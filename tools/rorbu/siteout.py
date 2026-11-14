@@ -15,7 +15,6 @@ HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(os.pat
 os.environ['KYST_DIST'] = os.environ.get('KYST_DIST') or os.path.join(ROOT, 'dist-vec')
 sys.path.insert(0, os.path.join(ROOT, 'tests'))
 OUT = os.path.join(ROOT, 'src', 'data', 'siteout.json')
-SITE_DRAFT = 3.0   # (kyst15, the deepest boat a rorbu and the naust take: core/07-harbours.js SITE_DRAFT)
 
 TRY = r"""async ([kind, id]) => { const b = S.boat; TAB.held = true; S.tut = 0;
   let pid = id, berth = 'main';
@@ -26,7 +25,11 @@ TRY = r"""async ([kind, id]) => { const b = S.boat; TAB.held = true; S.tut = 0;
   // depth, so the first that gets out sets the limit; skiff first, Åsværgården found no way for it where bigger boats may have one)
   const types = Object.keys(VESSELS).filter(t => (VESSELS[t].len || 0) <= SITE_MAXLEN && VESSELS[t].draft > 0).sort((a, c) => VESSELS[c].draft - VESSELS[a].draft || VESSELS[c].len - VESSELS[a].len)
     .filter((t, i, A) => !i || VESSELS[t].draft !== VESSELS[A[i - 1]].draft);
+  // (the site's own entry left out while it is measured: with it the deeper boats read the naust as the plant's quay, berthKind, and the
+  // search would start from the plant; put back after)
+  const had = Object.prototype.hasOwnProperty.call(SITE_SILL, pid), was = SITE_SILL[pid]; delete SITE_SILL[pid];
   const dests = PORTS.filter(q => !q.havOnly), tried = []; let lim = 0;
+  try {
   for (const t of types){
     b.type = t; if (!S.owned.includes(t)) S.owned.push(t); applyVessel(); for (const k in BERTHPOSE) delete BERTHPOSE[k];
     S.plan = null; b.status = 'port'; b.port = pid; b.berth = berth; const pt = portById(pid); b.pos = {x:pt.p.x, y:pt.p.y}; b.dyn = null;
@@ -36,11 +39,18 @@ TRY = r"""async ([kind, id]) => { const b = S.boat; TAB.held = true; S.tut = 0;
     if (open) cands.unshift(open);
     const T0 = S.t; let ok = null, last = '';
     try { for (let h = 0; h <= 12 && !ok; h += 3){ S.t = T0 + h * 60;
-      for (const q of cands){ await mapPreload([q.p], [['sim', 3], ['chart', 3]]); let r = null; try { r = await draftWay(from, q.p, berth === 'naust' ? null : pid, q.id, berth === 'naust' && berthKind(b) === 'naust', pid); } catch (e){ r = {why:['error ' + String(e && e.message).slice(0, 60)]}; } if (r && r.wps){ ok = {h, nm:+r.nm.toFixed(1)}; break; } last = r && r.why ? r.why[0] : 'none'; } } } finally { S.t = T0; }
+      for (const q of cands){ await mapPreload([q.p], [['sim', 3], ['chart', 3]]); let r = null; try { r = await draftWay(from, q.p, berth === 'naust' ? null : pid, q.id, berth === 'naust' && berthKind(b) === 'naust', pid); } catch (e){ r = {why:['error ' + String(e && e.message).slice(0, 60)]}; } if (r && r.wps){ let a = from, land = 0; for (const w of r.wps){ if (!legClear(a, w)) land++; a = w; } if (!land){ ok = {h, nm:+r.nm.toFixed(1)}; break; } r = {why:['a leg over land']}; } last = r && r.why ? r.why[0] : 'none'; } } } finally { S.t = T0; }
     tried.push([t, VESSELS[t].draft, ok ? 'ok' : String(last).slice(0, 80)]);
     if (ok){ lim = VESSELS[t].draft; break; }
   }
-  return {lim, tried, name:portById(pid).name, pid}; }"""
+  } finally { if (had) SITE_SILL[pid] = was; }
+  return {lim, tried, name:portById(pid).name, pid, siteDraft:SITE_DRAFT}; }"""
+
+def put(D, r):
+    """a site's limit into the data: only under the deepest draught of the boats up to 15 m (SITE_DRAFT as the game has it), where it
+    matters; a site that boat gets out from has no entry"""
+    if r['lim'] < r.get('siteDraft', 3.0): D[r['pid']] = r['lim']
+    else: D.pop(r['pid'], None)
 
 def apply(logs):
     """--apply <log>...: the limits from earlier --dry runs (their «  kind  id  {...}» lines) written as one, so the sites can be tried
@@ -50,8 +60,7 @@ def apply(logs):
         for line in open(f):
             if '{' not in line or not line.startswith('  '): continue
             r = json.loads(line[line.index('{'):])
-            if 'lim' in r: D[r['pid']] = r['lim']
-    D = {k: v for k, v in D.items() if v < SITE_DRAFT}   # (a site the biggest boat gets out from needs no entry)
+            if 'lim' in r: put(D, r)
     json.dump(dict(sorted(D.items())), open(OUT, 'w'), ensure_ascii=False, separators=(',', ':')); print(len(D), 'sites in', OUT)
 
 def main():
@@ -74,8 +83,7 @@ def main():
     if '--dry' in sys.argv: return
     D = json.load(open(OUT)) if os.path.exists(OUT) else {}
     for i, r in res.items():
-        if 'lim' in r: D[r['pid']] = r['lim']
-    D = {k: v for k, v in D.items() if v < SITE_DRAFT}
+        if 'lim' in r: put(D, r)
     json.dump(dict(sorted(D.items())), open(OUT, 'w'), ensure_ascii=False, separators=(',', ':')); print(len(D), 'sites in', OUT)
 
 if __name__ == '__main__': main()

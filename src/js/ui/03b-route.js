@@ -154,7 +154,7 @@ async function draftWay(start, goal, aPort, gPort, atN, port){
   // leave the quay): the way by water from the berth to the harbour or to open water (naustWay, core/07c-naust.js, the same test that
   // places the naust), then on: from the harbour point the very route a boat at the plant's quay gets (her start, quayPos, is that
   // point), else from where the way ends; the first whose legs all keep off land
-  if (fails(res) && site && port){ const way = naustWay({x:start.x, y:start.y}, port), H = portById(port);
+  if (fails(res) && site && port){ const way = naustWay({x:start.x, y:start.y}, port, BOAT.draft + LEIA.minOver), H = portById(port);   // (the water this boat needs: SITE_DRAFT, the default, is kyst15's)
     if (way && way.length > 1){ const e = way[way.length - 1], to = goal, id = gPort, pre = way.slice(1), tries = [];
       if (way.to === 'harbour') tries.push([pre.concat(dist(e, H.p) > 0.002 ? [{x:H.p.x, y:H.p.y}] : []), H.p, port], [pre, e, port]);
       tries.push([pre, e, null]);
@@ -171,9 +171,8 @@ async function leiaTo(pt, buoy, act){   // buoy: to a set's buoy, to haul it (th
   for (const p of PORTS){ if (ownT && !ownT.has(p.id)) continue; const d = dist(p.p, pt); if (d < r && d < bd){ bd = d; near = p; } }
   // a rorbu's quay (07d-rorbu.js), when the chart is close enough to show its name and not in «Første tur» (a tap in the field's ring
   // went to a rorbu by it)
-  if (view.z >= 2 && !tutOn() && siteFits(S.boat.type)) for (const R of rorbuSites(pt, r + 0.05)){ const d = dist(R.p, pt); if (d < r && d < bd){ bd = d; near = R; } }
-  // (one the boat does not get out from at any tide, SITE_SILL: said, and no route to it)
-  if (near && near.rorbu){ const why = siteWhy(S.boat.type, near.id); if (why){ toast(S.lang === 'en' ? why[1] : why[0]); return; } }
+  let sillR = null;   // (a rorbu the boat does not get out from at any tide, SITE_SILL: not a place to go; a tap on its shore says why)
+  if (view.z >= 2 && !tutOn() && siteFits(S.boat.type)) for (const R of rorbuSites(pt, r + 0.05)){ const d = dist(R.p, pt); if (d < r && d < bd){ if (!siteFits(S.boat.type, R.id)){ sillR = sillR || R; continue; } bd = d; near = R; } }
   // a harbour of the coast's packs: Autonav goes to a free berth there (07e-havn.js), when no place of the game is nearer
   if (view.z >= 2 && !tutOn() && !near && !buoy){ const B = havnTapNear(pt, r); if (B) near = B; }
   if (!near && !buoy) near = portByLabel(pt);
@@ -186,6 +185,7 @@ async function leiaTo(pt, buoy, act){   // buoy: to a set's buoy, to haul it (th
   const nt = naustTarget(pt, r);
   if (nt && atN){ toast(t('already_here')); return; }
   if (!nt && near && aPort === near.id && !atN){ toast(t('already_here')); return; }
+  if (!near && !nt && !buoy && sillR && isLandUI(pt)){ const why = siteWhy(S.boat.type, sillR.id); toast(S.lang === 'en' ? why[1] : why[0]); return; }
   if (!near && !nt && isLandUI(pt)){ toast(t('on_land')); return; }
   // a tap in water too shallow for the boat (by the shore): the nearest point within 500 m that is deep enough, with a word about it;
   // none, no route (Autonav never ends on a shoal, 08.10.2026)

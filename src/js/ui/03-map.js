@@ -885,9 +885,8 @@ function addWaypoint(pt){
   for (const p of PORTS){ if (ownT && !ownT.has(p.id)) continue; const d = dist(p.p, pt); if (d < r && d < bd){ bd = d; near = p; } }   // (only the places the chart shows)
   // a rorbu's quay (07d-rorbu.js), when the chart is close enough to show its name and not in «Første tur» (a tap in the field's ring
   // went to a rorbu by it)
-  if (view.z >= 2 && !tutOn() && siteFits(S.boat.type)) for (const R of rorbuSites(pt, r + 0.05)){ const d = dist(R.p, pt); if (d < r && d < bd){ bd = d; near = R; } }
-  // (one the boat does not get out from at any tide, SITE_SILL: said, and no route to it)
-  if (near && near.rorbu){ const why = siteWhy(S.boat.type, near.id); if (why){ toast(S.lang === 'en' ? why[1] : why[0]); return; } }
+  let sillR = null;   // (a rorbu the boat does not get out from at any tide, SITE_SILL: not a place to go; a tap on its shore says why)
+  if (view.z >= 2 && !tutOn() && siteFits(S.boat.type)) for (const R of rorbuSites(pt, r + 0.05)){ const d = dist(R.p, pt); if (d < r && d < bd){ if (!siteFits(S.boat.type, R.id)){ sillR = sillR || R; continue; } bd = d; near = R; } }
   // a harbour of the coast's packs: the route ends at a free berth there (07e-havn.js), when no place of the game is nearer
   if (view.z >= 2 && !tutOn() && !near){ const B = havnTapNear(pt, r); if (B) near = B; }
   // Father's naust: a route can end there (you sail to it; 07c-naust.js naustTarget)
@@ -895,6 +894,7 @@ function addWaypoint(pt){
   if (!near && !nt) near = portByLabel(pt);
   if (nt && atN && !S.draft.length){ toast(t('already_here')); return; }
   if (!nt && near && draftPort() === near.id && !S.draft.length && !atN){ toast(t('already_here')); return; }
+  if (!near && !nt && sillR && isLandUI(pt)){ const why = siteWhy(S.boat.type, sillR.id); toast(S.lang === 'en' ? why[1] : why[0]); return; }
   if (!near && !nt && isLandUI(pt)){ toast(t('on_land')); return; }
   draftEdit(() => {
     const wp = (q, auto) => S.draft.push({x:q.x, y:q.y, port:null, fish:0, auto});
