@@ -58,9 +58,12 @@ SETUP = r"""([type, hh]) => { TAB.held = true; const b = S.boat; S.tut = 0; S.ca
       if (open) cands.push(open);
       // now, and where the water is too shallow now, over the next tide (every 3 hours for 12): a place she leaves only near high water is
       // not one she is stuck at, but it is counted (tideBound)
+      // (as a tap in the chart plotter asks it, ui/03b-route.js draftWay: from Father's naust with no harbour to leave by, and its fallbacks;
+      // before 14.11.2026 the search alone, which found no way from the naust at Sørarnøy, Hidrasund, Tufjord and Gjesvær)
+      const atN = b.status === 'port' && berthKind(b) === 'naust';
       let r = null, to = null; const T00 = S.t;
       for (let h = 0; h <= 12 && !to; h += 3){ S.t = T00 + h * 60;
-        for (const q of cands){ await mapPreload([q.p], [['sim', 3], ['chart', 3]]); try { r = await leiaRoute(from, q.p, pid, q.id); } catch (e){ r = {why:[String(e && e.message)]}; } if (r && r.wps){ to = q; R.waitH = h; break; } } }
+        for (const q of cands){ await mapPreload([q.p], [['sim', 3], ['chart', 3]]); try { r = await draftWay(from, q.p, atN ? null : pid, q.id, atN, pid); } catch (e){ r = {why:[String(e && e.message)]}; } if (r && r.wps){ to = q; R.waitH = h; break; } } }
       if (!to){ S.t = T00; R.why = 'route: ' + String(r && r.why ? r.why[0] : 'none').slice(0, 90) + ' (to ' + cands.map(q => q.name).join(', ') + ', over 12 h)'; return R; }
       if (R.waitH) R.tideBound = R.waitH;
       R.to = to.name; R.nm = +r.nm.toFixed(1); if (noSail){ S.t = T00; return R; }
@@ -115,11 +118,18 @@ ONE = r"""async ([kind, id, type, big]) => { const R = {kind, id, type}; let pt;
   R.name = pt.name; const ll = natLL(pt.p); R.ll = [+ll.lat.toFixed(4), +ll.lon.toFixed(4)];
   const berth = kind === 'naust' ? 'naust' : 'main', pid = kind === 'naust' ? id : pt.id;
   // the big boat is turned away at a rorbu and the naust: not offered as a place to lie, and the naust's berth reads as the plant's
-  if (big){ const b = S.boat, t0 = b.type; b.type = big; applyVessel(); const bp = kind === 'rorbu' ? berthPose(pid, b.type, 'main') : null;
+  // (a site behind a sill, SITE_SILL in 07-harbours.js, tools/rorbu/siteout.py: kyst15 is turned away there too, and the biggest boat
+  // that gets out from it at any tide is the one sailed from it; none, and nothing is sailed)
+  const bigs = big ? [big] : [];
+  if (big && SITE_SILL[pid] != null && !siteFits(type, pid)){ R.sill = SITE_SILL[pid]; bigs.push(type);
+    const fit = Object.keys(VESSELS).filter(t => siteFits(t, pid)).sort((a, c) => VESSELS[c].draft - VESSELS[a].draft || VESSELS[c].len - VESSELS[a].len)[0];
+    R.type = type = fit || null; R.why0 = siteWhy(bigs[1], pid, kind === 'naust'); }
+  for (const bt of bigs){ const b = S.boat, t0 = b.type; b.type = bt; applyVessel(); const bp = kind === 'rorbu' ? berthPose(pid, b.type, 'main') : null;
     const at = kind === 'naust' ? (berthPose(pid, 'kyst15', 'naust') || pt.p) : (bp || pt.p);
-    R.bigOffered = kind === 'rorbu' ? !!rorbuTarget(at, 0.3) || moorAll(at, 0.3).some(m => m.id === pid) : !!naustTarget(at, 0.3) || moorAll(at, 0.3).some(m => m.berth === 'naust');
-    if (kind === 'naust'){ b.berth = 'naust'; b.port = pid; R.bigNaustKind = berthKind(b); }
+    R.bigOffered = R.bigOffered || (kind === 'rorbu' ? !!rorbuTarget(at, 0.3) || moorAll(at, 0.3).some(m => m.id === pid) : !!naustTarget(at, 0.3) || moorAll(at, 0.3).some(m => m.berth === 'naust'));
+    if (kind === 'naust'){ b.berth = 'naust'; b.port = pid; const k = berthKind(b); if (k !== 'main' || !R.bigNaustKind) R.bigNaustKind = k; }
     b.type = t0; applyVessel(); }
+  if (R.sill != null){ if (!type){ R.noBoat = true; return R; } S.boat.type = type; if (!S.owned.includes(type)) S.owned.push(type); applyVessel(); }
   R.h = +((S.t - Math.round((Date.UTC(2027, 5, 15, 11) - EPOCH) / 6e4)) / 60).toFixed(2); ALS.put(pid, berth); R.lie = ALS.lie(pid, berth);
   try { Object.assign(R, await ALS.go(pid)); } catch (e){ R.why = 'error: ' + String(e && e.message).slice(0, 100); }
   return R; }"""
@@ -202,6 +212,9 @@ async def main():
         # mark is the hands' own job. Red when the stuck and held ones are more than one place in a hundred)
         sh = [r for r in hd if (r.get('handsK') or {}).get('stuck') or (r.get('handsK') or {}).get('held')]
         print(ok(len(sh) <= max(1, len(done) // 100)), 'the hands took her on where she was stuck or held at no more than one place in a hundred (%d of %d)' % (len(sh), len(done)), [(r['kind'], r.get('name')) for r in sh[:12]])
+        sl = [r for r in done if r.get('sill') is not None]
+        print('places behind a sill (SITE_SILL, tools/rorbu/siteout.py): kyst15 turned away, sailed with the biggest boat that gets out (%d):' % len(sl), [(r['kind'], r.get('name'), r['sill'], r.get('type'), r.get('why0', [''])[0][:60] if r.get('why0') else None) for r in sl[:12]])
+        print(ok(all(r.get('why0') for r in sl)), 'the game says why at each of them (siteWhy)')
         tb = [r for r in done if r.get('tideBound')]
         print('places she leaves only nearer high water (not stuck; %d):' % len(tb), [(r['kind'], r.get('name'), r['tideBound']) for r in tb[:12]])
         print('errors:', errs[:4]); await br.close()

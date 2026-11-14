@@ -64,7 +64,8 @@ function rorbuFace(pid){
 function rorbuTarget(pt, r){
   let best = null; if (!siteFits(S.boat.type)) return null;   // (a boat over 15 m: not at a rorbu, SITE_MAXLEN in 07-harbours.js)
   for (const {R} of rorbuNear(pt, r + 1)){
-    if (!rorbuSite(R)) continue; const bp = berthPose(R.id, S.boat.type, 'main'); if (!bp) continue;
+    // (one she does not get out from at any tide: SITE_SILL)
+    if (!siteFits(S.boat.type, R.id) || !rorbuSite(R)) continue; const bp = berthPose(R.id, S.boat.type, 'main'); if (!bp) continue;
     const d = dist(pt, bp); if (d < r && (!best || d < best.d)) best = {d, x:bp.x, y:bp.y, port:R.id};
   }
   if (!best || PORTS.some(q => dist(q.p, pt) < best.d)) return null;

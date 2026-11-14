@@ -84,7 +84,23 @@ const quayFit = (f, L, T) => f.hl * 2 * 0.9 >= L + 2 && (f.depth == null ? QUAY_
 // and Autonav found no way out). Over it the rorbu and the naust are not offered (rorbuTarget, naustTarget, moorAll), a boat that lies
 // there is moved to the nearest harbour that takes her (ui/11-boot.js), and the naust's berth reads as the plant's (berthKind).
 const SITE_MAXLEN = 15;
-const siteFits = type => ((VESSELS[type] || {}).len || 0) <= SITE_MAXLEN;
+// (and a site with a sill or a shoal on the way out, where not even the biggest of those gets out at any tide: the deepest draught that
+// does, tools/rorbu/siteout.py, src/data/siteout.json {id: m}, the rorbu's id or the plant's for Father's naust by it. A boat that draws
+// more is not offered it either, and siteWhy says why; Ferdig når 3 of steg 126 AS1, 14.11.2026: the rorbu at Austgulen, 2.0 m, and the
+// one at Langvasseid, which has no way by water out at all, 0. The others the test found no way from, the rorbuer at Austein and
+// Åsværgården and the naust at Tufjord, Gjesvær, Sørarnøy and Hidrasund, kyst15 gets out from as the chart plotter finds the way,
+// ui/03b-route.js draftWay)
+const SITE_SILL = /*@include(data/siteout.json)*/null || {};
+const siteFits = (type, pid) => { const V = VESSELS[type] || {}; return (V.len || 0) <= SITE_MAXLEN && !(pid != null && SITE_SILL[pid] != null && (V.draft || 0) > SITE_SILL[pid]); };
+// why the rorbu or the naust (naust: true) at pid is not for this boat, or null when it is
+function siteWhy(type, pid, naust){
+  if (siteFits(type, pid)) return null;
+  const V = VESSELS[type] || {}, P = portById(pid), what = naust ? ['Naustet', "Father's naust"] : ['Rorbua i ' + (P ? P.name : ''), 'The rorbu at ' + (P ? P.name : '')];
+  if ((V.len || 0) > SITE_MAXLEN) return [what[0] + ' tar bare båter opp til ' + SITE_MAXLEN + ' m.', what[1] + ' only takes boats up to ' + SITE_MAXLEN + ' m.'];
+  const lim = SITE_SILL[pid], nf = v => String(Math.round(v * 10) / 10);
+  return lim > 0 ? [what[0] + ' ligger innenfor en grunne: en båt som stikker dypere enn ' + nf(lim).replace('.', ',') + ' m, kommer ikke ut derfra ved noe tidevann.', what[1] + ' lies behind a shoal: a boat that draws more than ' + nf(lim) + ' m does not get out from there at any tide.']
+    : [what[0] + ' har ingen vei ut til sjøen som båtene kommer gjennom.', what[1] + ' has no way out to sea that the boats get through.'];
+}
 // «uansett dybde ved kaia»: the water at the rorbuer's and the naust's berths is the deepest draught of those boats (kyst15, 3.0 m) and half a
 // metre at the lowest tide (siteDredge, in depthF: the berth's pocket dredged in the simulation, as the units' basins are, unitDredge;
 // the 3D view digs its pit, view3d/03-berths-naust.js), and a rorbu or a naust is only put where that boat gets out by water
@@ -580,7 +596,7 @@ const SHIFT_MPM = 3 * 1852 / 60;   // metres a minute at 3 knots in the harbour
 // for the fishing fleet, up to 1,500 l/min; H2e 06.11.2026): at the coastal boats' 90 l/min her 300 m³ tank took over two days
 const PUMP = {petrol:45, diesel:90, hav:800, hose:1.5, stow:1};
 // where she lies: 'main' (the plant's quay), 'bunker' or 'naust' (Father's pile quay in the home harbour; 'main' until it is found)
-const berthKind = b => b.berth === 'naust' && (!siteFits(b.type) || !quayFace(b.port, 'naust')) ? 'main' : (b.berth || 'main');
+const berthKind = b => b.berth === 'naust' && (!siteFits(b.type, b.port) || !quayFace(b.port, 'naust')) ? 'main' : (b.berth || 'main');
 // where the boat lies: at Father's naust its berth, not the harbour point the simulation keeps her at (tilbakemelding #20: Autonav
 // and the chart plotter started the route at the plant); else her position
 function quayPos(b){

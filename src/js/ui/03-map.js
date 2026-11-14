@@ -886,6 +886,8 @@ function addWaypoint(pt){
   // a rorbu's quay (07d-rorbu.js), when the chart is close enough to show its name and not in «Første tur» (a tap in the field's ring
   // went to a rorbu by it)
   if (view.z >= 2 && !tutOn() && siteFits(S.boat.type)) for (const R of rorbuSites(pt, r + 0.05)){ const d = dist(R.p, pt); if (d < r && d < bd){ bd = d; near = R; } }
+  // (one the boat does not get out from at any tide, SITE_SILL: said, and no route to it)
+  if (near && near.rorbu){ const why = siteWhy(S.boat.type, near.id); if (why){ toast(S.lang === 'en' ? why[1] : why[0]); return; } }
   // a harbour of the coast's packs: the route ends at a free berth there (07e-havn.js), when no place of the game is nearer
   if (view.z >= 2 && !tutOn() && !near){ const B = havnTapNear(pt, r); if (B) near = B; }
   // Father's naust: a route can end there (you sail to it; 07c-naust.js naustTarget)
