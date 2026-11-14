@@ -897,6 +897,11 @@ function sailReplan(pl, b, gp){
     if (!res || res.why || !res.wps || !res.wps.length){ if (!gp.ice && typeof dynHandsOn === 'function' && dynHandsOn(PL)) return; sailStop(PL, S.boat, none); return; }
     const ins = res.wps.slice(0, -1).map(q => ({x:q.x, y:q.y, port:null, fish:0, leia:true, obs:true}));
     PL.rpNone = ins.length ? null : {t:S.t, tg};
+    // (the way round is the leg itself, from where she lies now: the model's line was drawn from where she was when the route last
+    // changed, and that first piece of it crossed the islet she stopped for, 30 m off her, while the leg from her is clear. The line is
+    // drawn again from her, 16b-dyn.js dynLineBuild; before, the same line met the same ground and she stopped, «fant ingen trygg vei
+    // rundt»: Træna utstyrsbutikk, 14.11.2026, steg 126)
+    if (!ins.length && typeof DYN !== 'undefined' && DYN.line && DYN.line.plan === PL && S.boat === b) DYN.line = null;
     PL.wps.splice(PL.idx, 0, ...ins); if (PL.unsafe) PL.unsafe.splice(PL.idx, 0, ...ins.map(() => false)); PL.obsK = null;
     log('Autonav fant en vei rundt. Går videre.', 'Autonav found a way round. Going on.', 'nav');   // (also when the way is the leg itself: she goes on along it, tests/dyntest.py 2c)
   })).catch(e => { done(); console.error(e); bound(() => { if (S.plan === PL && PL.replan){ PL.replan = null; sailStop(PL, S.boat, none); } }); });
