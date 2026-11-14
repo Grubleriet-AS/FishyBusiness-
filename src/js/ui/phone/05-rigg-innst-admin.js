@@ -16,7 +16,7 @@
     // (D4: the tabs Redskap (with the rig), Last, Mannskap og drift, and the boat; «Lasterom» is «Last», for many boats carry the fish in
     // tubs on deck, Jonas 13.11.2026. A link to the old tab «rigg» lands on Redskap)
     if (sub.beholdning === 'rigg') sub.beholdning = 'gear';
-    const tab = sub.beholdning || 'gear', head = subs('beholdning', [['gear', 'Redskap', 'Gear'], ['last', 'Last', 'Catch'], ['crew', 'Mannskap og drift', 'Crew and plan'], ['boat', 'Båten', 'The boat']]);
+    const tab = sub.beholdning || 'gear', head = subs('beholdning', [['gear', 'Redskap', 'Gear'], ['last', 'Last', 'Catch'], ['crew', 'Mannskap og drift', 'Crew and plan'], ['boat', 'Båten', 'The boat']]).replace('class="ph-sub"', 'class="ph-sub ob-tabs"');
     if (tab === 'last') return head + last();
     if (tab === 'boat') return head + fartoy('min');
     if (tab === 'crew') return head + crewTab();

@@ -486,7 +486,7 @@ const DOCK = (() => {
     if (was !== pg && PLACE[pg] && typeof portServices === 'function' && atPlace(S.boat, PLACE[pg]) && selAway(PLACE[pg])) PHONE.dact(pg, 'vsel', {id:S.cur});
     if (sb) PHONE.dact(pg, 'sub', {s:sb});
     dr.hidden = false; document.body.classList.add('dk-open'); shown = ''; draw(was === pg); render(); if (typeof renderHud === 'function') renderHud();   // (D6: upright the box folds to the strip over the sheet)
-    if (to){ const e = to === 'top' ? null : dBody.querySelector(to); dBody.scrollTop = e ? dBody.scrollTop + e.getBoundingClientRect().top - dBody.getBoundingClientRect().top : 0; }
+    if (to){ const e = to === 'top' ? null : dBody.querySelector(to); const st = dBody.querySelector('.ob-tabs'); dBody.scrollTop = e ? dBody.scrollTop + e.getBoundingClientRect().top - dBody.getBoundingClientRect().top - (st ? st.offsetHeight : 0) : 0; }
     if (was !== pg && SHOP_PAGES.includes(pg) && typeof cloudEv === 'function') cloudEv('shop_view', {pg});
   }
   function close(){ if (typeof WORK !== 'undefined' && WORK.shut) WORK.shut(); page = null; dr.hidden = true; document.body.classList.remove('dk-open', 'dk-wide', 'dk-low'); shown = ''; html = ''; if (PAINT) PAINT.live(false); if (typeof G3 !== 'undefined' && G3.trying) G3.tryView(null); render(); if (typeof renderHud === 'function') renderHud(); }
