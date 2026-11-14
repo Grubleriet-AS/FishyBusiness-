@@ -2175,3 +2175,4 @@ body.vplot #hud{background:rgba(11,23,32,.78)!important}
 
 /* D4 (14.11.2026): Om bord's tabs stand over the long Mannskap og drift (the crew and the whole plan), so it is clear where the plan is */
 #drawerBody .ob-tabs{position:sticky;top:0;z-index:3;background:#0B1720}
+#drawerBody:has(.ob-tabs){scroll-padding-top:64px}   /* (a row brought up by the plan, scrollIntoView, stands under the tabs, not behind them) */
