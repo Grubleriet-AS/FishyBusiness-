@@ -125,7 +125,7 @@ function plan2CrewWhy(o, work){
   const V = VESSELS[S.boat.type];
   if ((V.crewMax || 0) < 2) return {wait:true, k:'one', no:'Båten har plass til bare én i mannskapet, så planen går bare når du er om bord. Mens du er i land, venter den.', en:'The boat has room for only one crew, so the plan runs only when you are aboard. While you are ashore, it waits.'};
   const sk = crewSkipper(), mt = crewMate();
-  if (!sk || !mt || sk === mt) return {k:'roles', fix:'mannskap', no:'Når du ikke er om bord, må både en skipper og en styrmann være utnevnt. Gjør det på Mannskap-siden.', en:'When you are not aboard, both a skipper and a mate must be appointed. Do it on the Crew page.'};
+  if (!sk || !mt || sk === mt) return {k:'roles', fix:'mannskap', no:'Når du ikke er om bord, må både en skipper og en styrmann være utnevnt. Gjør det under mannskapet i Om bord › Mannskap og drift.', en:'When you are not aboard, both a skipper and a mate must be appointed. Do it with the crew under Aboard › Crew and plan.'};
   const on = crewAboard(null, true); if (!on.includes(sk) || !on.includes(mt)) return {wait:true, k:'off', no:(on.includes(sk) ? mt : sk).name.split(' ')[0] + ' har fri, så båten venter.', en:(on.includes(sk) ? mt : sk).name.split(' ')[0] + ' has time off, so the boat waits.'};
   return null;
 }

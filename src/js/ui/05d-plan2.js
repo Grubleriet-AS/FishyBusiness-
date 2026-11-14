@@ -157,7 +157,7 @@ const PLAN2UI = (() => {
     if (o.on || stopped || o.paused) h.push('<div class="dr-now' + (now[1] === 'bad' || stopped ? ' bad' : now[1] === 'wait' ? ' wait' : '') + '"><b>' + L('Nå: ', 'Now: ') + '</b>' + now[0] + '</div>');
     if (o.on && o.run && o.run.fail && S.t - o.run.fail.t < 1440) h.push('<p class="warn">' + L('Kunne ikke sette eller trekke: ', 'Could not set or haul: ') + L(o.run.fail.no, o.run.fail.en) + '</p>');
     if (o.on && o.held) h.push(B('p2-resume', L('Gi båten tilbake til planen', 'Give the boat back to the plan'), '', 'p'));
-    if (stopped && o.stop.fix) h.push(B('p2-fix', {places:L('Endre stedet', 'Change the place'), mannskap:L('Til Mannskap-siden', 'To the Crew page'), quota:L('Se kvoten', 'See the quota'), rig:L('Endre redskapet', 'Change the gear')}[o.stop.fix] || L('Se planen', 'See the plan'), '', 'p'));
+    if (stopped && o.stop.fix) h.push(B('p2-fix', {places:L('Endre stedet', 'Change the place'), mannskap:L('Til mannskapet', 'To the crew'), quota:L('Se kvoten', 'See the quota'), rig:L('Endre redskapet', 'Change the gear')}[o.stop.fix] || L('Se planen', 'See the plan'), '', 'p'));
     // the gear in the sea while the plan is off (choice 2 A): said, with the trip that fetches it
     if (!o.on && (o.ring || o.v !== DRV3)){ const sets = mySets(); if (sets.length){ const H = S.t / 60; h.push('<p class="warn">' + L(sets.map(s => s.n + ' ' + unitName(s.kind, s.n) + ' har stått ' + fmt(H - s.tSet / 60, 0) + ' t').join(', ') + ' i sjøen.', sets.map(s => s.n + ' ' + unitName(s.kind, s.n) + ' has stood ' + fmt(H - s.tSet / 60, 0) + ' h').join(', ') + ' in the sea.') + '</p>' + B('p2-fetch', L('Hent redskapet', 'Fetch the gear'))); } }
     if (!o.on && !C.ok) h.push(C.errors.map((e, i) => why(e, C.go[i])).join(''));
@@ -220,6 +220,8 @@ const PLAN2UI = (() => {
     plan2Abort(o); o.fetch = true; o.on = true; o.stop = null; o.held = null; o.hold = 0; o.run = null; o.paused = null; toast(L('Båten går ut og henter redskapet.', 'The boat goes out to fetch the gear.'));
   }
   function act(a, d){
+    // (D4: another boat's plan from the row under Om bord › Mannskap og drift: her own page, with the boat chosen)
+    if (a === 'p2-other'){ if (!vesselById(d.id)) return false; PHONE.dact('drift', 'vsel', {id:d.id}); DOCK.open('drift'); return false; }
     if (a === 'p2-new'){ const o0 = plan2Ops(); if (o0 && (o0.on || o0.retire)) return false; if (o0 && S.plan && S.plan.ops) plan2Abort(o0); S.ops = fresh(); open = 'sted'; return true; }
     const o = plan2Ops(); if (!o) return false;
     if (a === 'p2-row'){ open = open === d.k ? null : d.k; return true; }

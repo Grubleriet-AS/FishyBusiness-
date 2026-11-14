@@ -30,13 +30,16 @@
   function crewTab(){
     // (D4, Jonas 13.11.2026 «Enig»: the work aboard with the plan's line, and the way to those signed on (shares, dismissal, a quarrel
     // to answer: the Ansatte page), first with a quarrel aboard, else last. Nobody is listed twice on the tab, so the list of those signed
-    // on is a page behind its button. The crew exchange is in Bygd, and only for hiring. The plan itself is still a page of its own: its
-    // wizard, the chart and the company's warnings go back to it; it moves in here in the rest of D4)
+    // on is a page behind its button. The crew exchange is in Bygd, and only for hiring. The plan stands under them (the rest of D4,
+    // 14.11.2026): the Driftsplan app, the chart's «Ferdig», the company's warnings and the wizard land on it here (DOCK.open 'drift').
+    // Another boat's plan opens as her own page from the row under it, for Om bord is the boat you follow)
     const q = !!S.cevt, card = '<div class="ph-c" style="padding-' + (q ? 'bottom' : 'top') + ':0"><div class="ph-card' + (q ? ' conflict' : '') + '"><h4>' + L('Ansatte', 'Employees') + '</h4><p class="ph-note">' +
       (q ? '<b>' + L('Uløst krangel om bord.', 'Unresolved quarrel aboard.') + '</b> ' + L('Svar under Ansatte.', 'Answer under Employees.') : L('Hvem som er mønstret på, lott og oppsigelse. Nye folk ansetter du i Mannskapsbørsen under Bygd.', 'Who is signed on, shares and dismissal. New hands are hired at the crew exchange under Village.')) + '</p>' +
       '<button class="ph-btn' + (q ? ' p' : '') + '" data-pa="open" data-a="mannskap">' + L('Ansatte', 'Employees') + '</button></div></div>';
-    const w = PAGES().arbeid();
-    return q ? card + w : w + card;
+    const w = WORK.page(), others = (S.fleet || []).filter(v => v.id !== S.cur),
+      plan = PLAN2UI.page() + (others.length ? '<div class="ph-c" style="padding-top:0"><div class="ph-card"><h4>' + L('Driftsplanen for de andre båtene', 'The plans of the other boats') + '</h4><div class="ops-days">' +
+        others.map(v => '<button class="ph-btn alt" data-pa="p2-other" data-id="' + v.id + '">' + String(vget(v, 'boatName')).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'})[c]) + '</button>').join('') + '</div></div></div>' : '');
+    return (q ? card + w : w + card) + plan;
   }
   function logg(){ return '<div class="ph-panel">' + panelLog() + '</div>'; }
   // Innstillinger in tabs (Jonas 16.11.2026: «Kan du fikse innstillinger-siden slik at den har faner øverst og ser mer proff ut?»): Spill,

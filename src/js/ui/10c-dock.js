@@ -466,12 +466,15 @@ const DOCK = (() => {
   dBody.addEventListener('click', e => { const f = e.target.closest('.fold'); if (f){ const on = f.classList.toggle('open'), op = folds[page] || (folds[page] = new Set()); if (on) op.add(foldKey(f)); else op.delete(foldKey(f)); } }, true);
   function open(a){
     let [pg, sb] = String(a).split(':');
-    if (pg === 'arbeid'){ pg = 'beholdning'; sb = sb || 'crew'; }   // the crew page is Om bord's fifth tab (U2-2): the plan's «Til Mannskap-siden» and the tests land there
+    let to = null;   // (D4: where in the page to bring up: the crew at the top, or the plan under them)
+    if (pg === 'arbeid'){ pg = 'beholdning'; sb = sb || 'crew'; to = 'top'; }   // the crew page is Om bord's crew tab (U2-2): the plan's «Til mannskapet» and the tests land there
     // (D4, Jonas 13.11.2026: one page a thing, many doors in. The rig, the gear and the hold are tabs of Om bord, and
     // every older door lands there: the pub's and the tips' links, the company's warnings. With another boat of the fleet chosen (the
     // company's list, «goto»), the gear and the plan open as her own pages, for Om bord is the boat you follow)
-    { const TO = {rigg:'gear', last:'last', redskap:'gear'}, own = PHONE.sel === S.cur;
-      if (TO[pg] && (own || pg === 'rigg' || pg === 'last')){ sb = TO[pg]; pg = 'beholdning'; } }
+    // (the rest of D4, 14.11.2026: the plan is in Om bord › Mannskap og drift, under the crew; the Driftsplan app, the chart's «Ferdig»,
+    // the wizard and the company's warnings land there, brought up to the plan)
+    { const TO = {rigg:'gear', last:'last', redskap:'gear', drift:'crew'}, own = PHONE.sel === S.cur;
+      if (TO[pg] && (own || pg === 'rigg' || pg === 'last')){ if (pg === 'drift') to = '.dr-page'; sb = TO[pg]; pg = 'beholdning'; } }
     if (!PHONE.DRAWER.has(pg)) return;
     const was = page; page = pg; menu = null; html = '';
     // (a trade page opens on the boat that lies here: the choice of another boat hung on from the last time the page was open, and the
@@ -479,6 +482,7 @@ const DOCK = (() => {
     if (was !== pg && PLACE[pg] && typeof portServices === 'function' && atPlace(S.boat, PLACE[pg]) && selAway(PLACE[pg])) PHONE.dact(pg, 'vsel', {id:S.cur});
     if (sb) PHONE.dact(pg, 'sub', {s:sb});
     dr.hidden = false; document.body.classList.add('dk-open'); shown = ''; draw(was === pg); render(); if (typeof renderHud === 'function') renderHud();   // (D6: upright the box folds to the strip over the sheet)
+    if (to){ const e = to === 'top' ? null : dBody.querySelector(to); dBody.scrollTop = e ? dBody.scrollTop + e.getBoundingClientRect().top - dBody.getBoundingClientRect().top : 0; }
     if (was !== pg && SHOP_PAGES.includes(pg) && typeof cloudEv === 'function') cloudEv('shop_view', {pg});
   }
   function close(){ if (typeof WORK !== 'undefined' && WORK.shut) WORK.shut(); page = null; dr.hidden = true; document.body.classList.remove('dk-open', 'dk-wide', 'dk-low'); shown = ''; html = ''; if (PAINT) PAINT.live(false); if (typeof G3 !== 'undefined' && G3.trying) G3.tryView(null); render(); if (typeof renderHud === 'function') renderHud(); }
@@ -491,7 +495,12 @@ const DOCK = (() => {
       // the act came from, GUI review F1 05.11.2026)
       const pg0 = page, next = PHONE.dact(page, el.dataset.pa, el.dataset);
       if (page !== pg0){ /* the act went to another page */ }
-      else if (next !== page){ const pg = String(next).split(':')[0]; if (PHONE.DRAWER.has(pg)){ page = pg; draw(false); } else if (next !== 'home') PHONE.open(next); }
+      // (D4: another boat's plan is her own page; with your own boat chosen there again, it is the one in Om bord)
+      else if (page === 'drift' && el.dataset.pa === 'vsel' && PHONE.sel === S.cur){ open('drift'); return; }
+      else if (next !== page){ const pg = String(next).split(':')[0];
+        // (D4: a link to a page that moved into Om bord, as the Ansatte page's «Åpne Driftsplan», goes through open and lands on its tab)
+        if (['drift', 'arbeid', 'rigg', 'last', 'redskap'].includes(pg)){ open(next); return; }
+        if (PHONE.DRAWER.has(pg)){ page = pg; draw(false); } else if (next !== 'home') PHONE.open(next); }
     } else doAct(el);
     draw(true); render();
   });

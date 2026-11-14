@@ -21,7 +21,7 @@ ACTS = [
     ('levere fangsten', "DOCK.open('lever')", "#drawerBody .ph-panel"),
     ('ansette', "DOCK.open(DOCK.items('bygd').find(x => x.id === 'mannskap').page)", "#drawerBody [data-pa=bhire], #drawerBody [data-pa=bneg]"),
     ('si opp', "DOCK.open('beholdning:crew'); document.querySelector('#drawerBody [data-pa=open][data-a=mannskap]').click()", "#drawerBody [data-pa=cfire]"),
-    ('lage driftsplan', "DOCK.open('beholdning:crew'); document.querySelector('#drawerBody .dr-line [data-pa=open][data-a=drift]').click()", "#drawerBody .dr-page"),
+    ('lage driftsplan', "DOCK.open('beholdning:crew')", "#drawerBody .dr-page"),
     ('reparere redskap i butikken', "DOCK.open('service')", "#drawerBody [data-pa=carelr][data-m=shop]"),
     ('selge redskap tilbake', "DOCK.open('service')", "#drawerBody [data-pa=caresell]"),
     ('se regnskapet', "DOCK.open('bank'); PHONE.dact('bank', 'sub', {s:'regnskap'}); DOCK.redraw()", "#drawerBody .acc3"),
@@ -77,6 +77,26 @@ async def run(p, vw, vh, tag):
     check(r['to'] == {'rigg': ['beholdning', 'Redskap'], 'last': ['beholdning', 'Last'], 'redskap': ['beholdning', 'Redskap']}, tag + ': de gamle dørene lander på fanen i Om bord', r['to'])
     check(r['ob'] == ['Redskap', 'Last', 'Mannskap og drift', 'Båten'] and r['shop'] == ['Redskap', 'Elektronikk og haler', 'Service'] and r['links'] == 0 and r['bk'] == ['dag', 'salg'],
           tag + ': Om bord har Redskap, Last, Mannskap og drift, Båten; butikken har Service som tredje fane; ingen lenke til butikken fra Redskap; boka har Dagbok og Salg', r)
+    # the plan is in Om bord › Mannskap og drift, under the crew (the rest of D4): the Driftsplan app, the Ansatte page's «Åpne Driftsplan»,
+    # the chart's «Ferdig» and the plan's «Til mannskapet» land there, with what they are about brought up; the plan's line («Åpne») is gone.
+    # Another boat's plan opens as her own page from the row under it, and choosing your own boat there again goes back to the tab
+    r = json.loads(await J("""(() => { const d = document.getElementById('drawerBody'), R = {}, on = () => (document.querySelector('#drawerBody .ph-sub button.on') || {}).textContent,
+      seen = sel => { const e = d.querySelector(sel); if (!e) return null; const a = e.getBoundingClientRect(), c = d.getBoundingClientRect(); return a.top < c.bottom - 40 && a.bottom > c.top; };
+      DOCK.close(); PHONE.show(true); PHONE.open('drift'); R.app = [DOCK.page, on(), seen('.dr-page'), !!document.querySelector('#drawerBody .wk')];
+      DOCK.close(); DOCK.open('mannskap'); const b = d.querySelector('[data-pa=open][data-a=drift]'); if (b) b.click(); R.ansatte = [DOCK.page, on(), seen('.dr-page')];
+      DOCK.close(); DOCK.open('beholdning:crew'); R.line = !!d.querySelector('.dr-line'); R.oneWk = d.querySelectorAll('.wk').length; R.onePlan = d.querySelectorAll('.dr-page').length;
+      if (!plan2Ops()){ PHONE.dact('beholdning', 'p2-new', {}); DOCK.redraw(); }
+      PLANMAP.open(S.cur); const f = document.querySelector('#pmBar [data-pm=done], #pmBar .pm-done'); if (f) f.click(); else PLANMAP.close && PLANMAP.close(); R.map = [PLANMAP.isOn(), DOCK.page, on(), seen('.dr-page')];
+      d.scrollTop = d.scrollHeight; PLAN2UI.act('p2-crew', {}); R.crew = [DOCK.page, on(), d.scrollTop];
+      storeVessel(curVessel()); const v2 = JSON.parse(JSON.stringify(curVessel())); v2.id = 'vD4'; v2.boatName = 'Andrebåt'; v2.crew = []; v2.ops = null; S.fleet.push(v2);
+      DOCK.close(); DOCK.open('beholdning:crew'); const o = d.querySelector('[data-pa=p2-other][data-id=vD4]'); R.row = !!o; if (o) o.click();
+      R.other = [DOCK.page, PHONE.sel]; const me = d.querySelector('.ph-sub [data-pa=vsel][data-id="' + S.cur + '"]'); if (me) me.click(); R.back = [DOCK.page, on(), PHONE.sel === S.cur];
+      S.fleet = S.fleet.filter(v => v.id !== 'vD4'); S.ops = null; DOCK.close(); PHONE.show(false); return R; })()"""))
+    check(r['app'] == ['beholdning', 'Mannskap og drift', True, True] and r['ansatte'] == ['beholdning', 'Mannskap og drift', True] and not r['line'] and r['oneWk'] == 1 and r['onePlan'] == 1,
+          tag + ': Driftsplan i telefonen og «Åpne Driftsplan» hos Ansatte åpner Om bord › Mannskap og drift med planen i bildet, under mannskapet, uten linja med «Åpne»', r)
+    check(r['map'][0] is False and r['map'][1:] == ['beholdning', 'Mannskap og drift', True] and r['crew'] == ['beholdning', 'Mannskap og drift', 0],
+          tag + ': «Ferdig» i kartet går tilbake til planen i fanen, og «Til mannskapet» viser mannskapet øverst i samme fane', r)
+    check(r['row'] and r['other'] == ['drift', 'vD4'] and r['back'] == ['beholdning', 'Mannskap og drift', True], tag + ': en annen båts plan åpner som hennes egen side, og egen båt valgt der igjen går tilbake til fanen', r)
     check(not errs, tag + ': sidefeil', errs)
     await b.close()
 
