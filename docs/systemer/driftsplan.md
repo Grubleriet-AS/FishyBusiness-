@@ -141,6 +141,15 @@ Jonas 23.10.2026: «en fullstendig redesign av driftsplan-systemet … forenkles
   - Push for stopp gjelder bare det som kan vites når appen legges bort.
 - **Tester:** (den forrige planens `drifttest.py` og `driftuitest.py` ble tatt ut i Ø12 C 08.11.2026; testene for planen står under «Ø12 C: ryddingen».)
 
+## Hvor planen står: Om bord › Mannskap og drift (D4, 14.11.2026)
+
+Jonas 13.11.2026 («Enig»): «Om bord › Mannskap og drift» for dem om bord og driftsplanen, og Driftsplan-appen i telefonen åpner den samme siden (`docs/planer/design-ombygging.md`, D4 punkt 3).
+
+- **Fanen** (`crewTab` i `ui/phone/05-rigg-innst-admin.js`): mannskapet om bord (`WORK.page()`), kortet til Ansatte, og under dem hele planen (`PLAN2UI.page()`). Linja med «Åpne» (`PLAN2UI.line()`) står ikke lenger i fanen; `PAGES().arbeid` har den fortsatt for den som kaller den.
+- **Dørene** (`DOCK.open` i `ui/10c-dock.js`): `drift` lander på `beholdning:crew` med planen skrollet opp (`.dr-page`), fra Driftsplan i telefonen, «Åpne Driftsplan» hos Ansatte, «Ferdig» i kartet (`ui/03g-planmap.js`), veiviseren og rederiets varsler. `arbeid` («Til mannskapet», `p2-crew`, og stoppet plan med `fix:'mannskap'`) lander i samme fane øverst. En lenke fra en side i skuffen til `drift`, `arbeid`, `rigg`, `last` eller `redskap` går gjennom `open`, så den lander på fanen og ikke på den gamle siden.
+- **En annen båt i flåten:** Om bord er båten du følger, så planen der er hennes. Raden «Driftsplanen for de andre båtene» under planen (`p2-other`) velger båten og åpner `drift` som hennes egen side med båtvelgeren; velges egen båt der igjen, går skuffen tilbake til fanen. Rederiets «Åpne» på en annen båts varsel (`goto`) åpner også hennes egen side, som før.
+- **Testene:** `tests/d4dorer.py` (dørene, fanen, kartet, flåten; sett rød mot bygget før: 8 FEIL), `tests/driftsplan2gui.py` (`PLAN`, `CREW`, `PLANSEEN` øverst).
+
 ## Driftsplan 2 (fra 26.10.2026, `docs/planer/driftsplan-2/`)
 
 Planen i spillet fra 27.10.2026. Delene under er bygd i rekkefølge og er det som gjelder; 5.7 over beskriver forgjengeren, som del 8 tok ut. **Del 8: Jonas 05.11.2026: «Ja, rydd bort den gamle».** Gjort i Ø12 C 08.11.2026 (steg 18 i `docs/planer/koen.md`), se «Ø12 C: ryddingen» nederst i avsnittet.

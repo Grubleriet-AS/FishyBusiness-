@@ -192,10 +192,20 @@ Bygd i samme økt som steg 127, etter Jonas 14.11.2026: «Bare fortsett jobben m
 - **Mannskap:** Bygd har «Ansett» (Mannskapsbørsen uten faner). Om bord › Mannskap og drift har arbeidet om bord, driftsplanens linje og knappen til Ansatte (lott, oppsigelse, krangel). Lista over de ansatte står bak knappen fordi fanen ellers lister hver person to ganger (`worktest` vokter det).
 - **Regnskap:** Kystbanken › Regnskap har konto, gjeld og resultat i år først, resten under «Detaljer». Havn har prisene der du er, uten regnskap. Blad B sto alt i Kvote, og i båthandelen bare der det stopper et kjøp.
 - **Dekksdagboka** har Dagbok og Salg, og all tekst i boka er minst 12 px.
-- **Gjenstår i D4:** driftsplanen inn i fanen Mannskap og drift (Driftsplan-appen åpner fortsatt sin egen side). Den ble prøvd og tatt ut igjen: veiviseren, kartet («Ferdig» går tilbake til Driftsplan-siden) og Rederi-varslene peker på siden, og `driftsplan2gui` fikk 16 nye røde. Den testen er rød fra før (7 av 7 kjøringer: den trykker på en Mannskap-knapp i dokka som gikk bort 06.11.2026) og må rettes i samme omgang.
+- **Driftsplanen** ble prøvd i første del og tatt ut igjen (veiviseren, kartet og Rederi-varslene pekte på siden, og `driftsplan2gui` fikk 16 nye røde); den kom inn i andre del, se under.
 - Testene: ny `tests/d4dorer.py` (tolv handlinger kan gjøres fra ett sted, de gamle dørene lander riktig; 390 × 844 og 1280 × 800), og `docktest`, `worktest`, `caretest`, `geartest`, `nettest`, `booktest` følger de nye stedene.
 
 **Samme økt, etter Jonas' bilder fra testutgaven 14.11.2026** («Mye rot her også. Forskjellig størrelse på bokser, merkelige plasseringer, ingen monterings-timer … får ikke til å montere utstyr på båten, menyer er i mange forskjellige størrelser»): en handelsside åpner på båten som ligger ved stedet, og en sperret knapp sier hvorfor; liggende er skuffen bred på alle sidene (Jonas' valg «Én bred for alle»; Malerverkstedet beholder den smale); kortene i samme rad er like høye; under 420 px har varekortet et lite bilde ved siden av navnet. Se «Båten siden gjelder, og skuffens bredde» i `docs/systemer/handel-og-steder.md`.
+
+## D4 bygd, andre del (14.11.2026): driftsplanen i Mannskap og drift
+
+- **Om bord › Mannskap og drift** har mannskapet om bord, kortet til Ansatte og under dem hele driftsplanen. Linja med «Åpne» er borte fra fanen, for planen står der.
+- **Dørene:** Driftsplan i telefonen, «Åpne Driftsplan» hos Ansatte, «Ferdig» i kartet, veiviseren og rederiets varsler lander på fanen med planen i bildet; «Til mannskapet» (var «Til Mannskap-siden») viser mannskapet øverst i samme fane. Grunnen «skipper og styrmann» sier «Gjør det under mannskapet i Om bord › Mannskap og drift».
+- **Flåten:** Om bord er båten du følger. De andre båtenes planer åpner som deres egne sider fra raden «Driftsplanen for de andre båtene» under planen (og fra rederiets varsler), med båtvelgeren; egen båt valgt der igjen går tilbake til fanen. Valget er øktas (planen sier ikke noe om flåten): det snus ved å vise båtvelgeren i fanen i stedet.
+- **Håndboka** sier hvor planen står; patchnotatet har én linje i dagens nyeste oppføring.
+- **`driftsplan2gui`** følger de nye stedene (Om bord i dokka i stedet for Mannskap-knappen som gikk bort 06.11.2026, planen i fanen i stedet for egen side), og s15 (stor båt) velter ikke lenger i testens eget skript (fangstmerkene trengte tre punkter der en 45 m båt får fiske innenfor 14 km).
+- **Funnet underveis og rettet:** `applyVessel` lot felt fra båten før stå (autolinerens `autoHooks` og `cls`), så en sjark etter autolineren satte lina som autoline og fant den ikke igjen. Det var årsaken til s17b og s20 i `driftsplan2gui`. Nå er båten typen over skiffens felt som ved en fersk lasting (`tests/unit/baatbytte.test.mjs`).
+- Systemdokumentet: «Hvor planen står» i `docs/systemer/driftsplan.md`.
 
 ## D5 etter Jonas' bilder (13.11.2026)
 

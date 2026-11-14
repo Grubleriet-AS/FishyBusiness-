@@ -9,3 +9,4 @@ På testadressen. Telefonen stående først.
 5. **Kystbanken › Regnskap:** konto, gjeld og resultat først, resten under «Detaljer». Er de tre tallene de du vil se først?
 6. **Dekksdagboka:** bare Dagbok og Salg. Er skriften stor nok nå?
 7. **Liggende på nettbrettet:** skuffen er like bred på alle sidene. Bedre, eller for bred på banken og Om bord?
+8. **Driftsplanen (andre del, 14.11.2026):** åpne Driftsplan i telefonen. Du skal lande i Om bord › Mannskap og drift med planen i bildet, under mannskapet. Lag eller endre en plan, trykk «Velg i kartet …» og «Ferdig»: tilbake i samme fane. Har du flere båter, står de andres planer i raden under planen. Er fanen for lang med både mannskapet og planen?
