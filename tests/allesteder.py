@@ -70,10 +70,14 @@ SETUP = r"""([type, hh]) => { TAB.held = true; const b = S.boat; S.tut = 0; S.ca
       let a = from, bad = 0; for (const w of S.plan.wps){ if (!legClear(a, w)) bad++; a = w; } R.overLand = bad;
       const T0 = S.t, L0 = S.log.length, C0 = SJV.nClash, H0 = DYN.hands || 0, HK0 = {...(DYN.handsK || {})}; if (depart() === false){ R.why = 'depart: ' + (S.msgs && S.msgs.length ? '' : '') + 'refused'; S.plan = null; return R; }
       // the game's loop (ui/08-actions.js): the model each frame, the minute step on the clock; she must lie in port at the end in time
-      const limit = 60 + Math.ceil(r.nm / Math.max(3, BOAT.vcruise) * 60 * 1.6); let acc = 0, k = 0, best = 1e9, lastBest = S.t, stuck = null, lh = b.hits && b.hits.length ? b.hits[b.hits.length - 1] : null; const pl0 = S.plan;
+      const limit = 60 + Math.ceil(r.nm / Math.max(3, BOAT.vcruise) * 60 * 1.6); let k = 0, best = 1e9, lastBest = S.t, stuck = null, lh = b.hits && b.hits.length ? b.hits[b.hits.length - 1] : null; const pl0 = S.plan;
+      // (the game's own fraction of the minute, ui/08-actions.js acc and lastWall, as its loop keeps them: the views' clock, liveFrac, and the
+      // look's (sjvClock) read it. With the loop held it stood at the end of the minute, and the other vessels were looked at where they
+      // would be a minute later: the coastal vessel stopped for a ferry at Laukvik in the ferry's way a minute on, 14.11.2026, steg 126)
+      acc = 0; lastWall = Date.now();
       while (S.t - T0 < limit){
         if (!simAreaReady()){ await mapNeed(b.pos, 4); await new Promise(r2 => setTimeout(r2, 20)); continue; }
-        dynTick(0.25); acc += 0.25 * simRate() / 60; while (acc >= 1){ step(); acc -= 1; }
+        dynTick(0.25); acc += 0.25 * simRate() / 60; lastWall = Date.now(); while (acc >= 1){ step(); acc -= 1; }
         // what she struck, and where: every knock the model counts (b.hits), with her position then (the log says only «støt»)
         if (b.hits && b.hits.length && b.hits[b.hits.length - 1] !== lh){ const i0 = lh ? b.hits.indexOf(lh) + 1 : 0; for (const hh of b.hits.slice(i0)){ const l = natLL(b.pos); R.hits = (R.hits || []).concat([[hh.k, hh.kn, +l.lat.toFixed(5), +l.lon.toFixed(5), pl0 ? pl0.idx : -1]]).slice(-8); } lh = b.hits[b.hits.length - 1]; }
         // a collision with a vessel (sjvBlow, S.clashes): where, at what speed, in a harbour or not, and what Autonav's giving way and the warning stood at then
