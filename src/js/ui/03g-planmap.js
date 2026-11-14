@@ -27,8 +27,8 @@ const PLANMAP = (() => {
     if (typeof PHONE !== 'undefined' && PHONE.show) PHONE.show(false); if (typeof DOCK !== 'undefined' && DOCK.close) DOCK.close();
     openPlotter(); fit(o); render(); renderDyn(); return true;
   }
-  // «Ferdig»: back to the page
-  function close(){ if (!on) return; on = false; msg = null; bar.hidden = true; document.body.classList.remove('pm'); if (typeof save === 'function') save(); renderDyn(); scheduleStatic(); if (typeof DOCK !== 'undefined' && DOCK.open) DOCK.open('drift'); else if (typeof PHONE !== 'undefined' && PHONE.open) PHONE.open('drift'); }
+  // «Ferdig»: back to the page (D4: your own plan is in Om bord, whatever boat a page chose last: 'drift:own')
+  function close(){ if (!on) return; on = false; msg = null; bar.hidden = true; document.body.classList.remove('pm'); if (typeof save === 'function') save(); renderDyn(); scheduleStatic(); if (typeof DOCK !== 'undefined' && DOCK.open) DOCK.open(vid === S.cur ? 'drift:own' : 'drift'); else if (typeof PHONE !== 'undefined' && PHONE.open) PHONE.open('drift'); }
   // a catch mark under a field's pin or the ring's middle hides its label (03-map.js, GUI review P2)
   const covers = (p, r) => { const o = mine(); if (!o || !o.ring) return false; return dist(o.ring, p) < r || o.places.some(q => dist(spot(q), p) < r); };
   function render(){

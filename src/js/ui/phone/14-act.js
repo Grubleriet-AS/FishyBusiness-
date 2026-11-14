@@ -2,7 +2,8 @@
   function act(a, d){
     const was = app, done = SEL_APPS.includes(app) && !NAV.has(a) ? withSel(() => act0(a, d)) : act0(a, d);
     // a link to a page that lives in the drawer now (Neste mål, Rederi's «Åpne») closes the phone and opens the drawer
-    if (DRAWER.has(String(app).split(':')[0])){ const to = app; app = DRAWER.has(was) ? 'home' : was; show(false); DOCK.open(to); return; }
+    // (D4: the Driftsplan app on the home screen is your own plan, in Om bord, whatever boat a page chose last)
+    if (DRAWER.has(String(app).split(':')[0])){ const to = app === 'drift' && was === 'home' ? 'drift:own' : app; app = DRAWER.has(was) ? 'home' : was; show(false); DOCK.open(to); return; }
     if (done) { save(); renderHud(); renderClock(); panelDirty = true; render(); }
   }
   // ---- the receipt after a buy for kroner (Jonas 06.11.2026, Tony's test: «Det skal ikke være tvil om et kjøp er gjennomført»): one

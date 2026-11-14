@@ -473,6 +473,10 @@ const DOCK = (() => {
     // company's list, «goto»), the gear and the plan open as her own pages, for Om bord is the boat you follow)
     // (the rest of D4, 14.11.2026: the plan is in Om bord › Mannskap og drift, under the crew; the Driftsplan app, the chart's «Ferdig»,
     // the wizard and the company's warnings land there, brought up to the plan)
+    // ('drift:own': your own plan, from the Driftsplan app and the chart of your own plan; the boat chosen last on another page is let go)
+    if (pg === 'drift' && sb === 'own'){ sb = undefined; if (PHONE.sel !== S.cur) PHONE.dact('drift', 'vsel', {id:S.cur}); }
+    // (the dot on Om bord from the plan: the crew tab with the plan brought up)
+    if (pg === 'beholdning' && sb === 'crew' && !S.cevt && opsDot()) to = '.dr-page';
     { const TO = {rigg:'gear', last:'last', redskap:'gear', drift:'crew'}, own = PHONE.sel === S.cur;
       if (TO[pg] && (own || pg === 'rigg' || pg === 'last')){ if (pg === 'drift') to = '.dr-page'; sb = TO[pg]; pg = 'beholdning'; } }
     if (!PHONE.DRAWER.has(pg)) return;

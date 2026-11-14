@@ -91,12 +91,19 @@ async def run(p, vw, vh, tag):
       storeVessel(curVessel()); const v2 = JSON.parse(JSON.stringify(curVessel())); v2.id = 'vD4'; v2.boatName = 'Andrebåt'; v2.crew = []; v2.ops = null; S.fleet.push(v2);
       DOCK.close(); DOCK.open('beholdning:crew'); const o = d.querySelector('[data-pa=p2-other][data-id=vD4]'); R.row = !!o; if (o) o.click();
       R.other = [DOCK.page, PHONE.sel]; const me = d.querySelector('.ph-sub [data-pa=vsel][data-id="' + S.cur + '"]'); if (me) me.click(); R.back = [DOCK.page, on(), PHONE.sel === S.cur];
+      // the other boat chosen last (on her page, or Fartøy, Ansatte): the Driftsplan app and the chart of your own plan are still your own, in Om bord
+      PHONE.dact('drift', 'vsel', {id:'vD4'}); DOCK.close(); PHONE.show(true); if (PHONE.app !== 'home') PHONE.open('home'); const ic = document.querySelector('#phView .ph-app[data-a=drift]'); if (ic) ic.click();
+      R.stale = [!!ic, DOCK.page, on(), PHONE.sel === S.cur, seen('.dr-page')];
+      PHONE.dact('drift', 'vsel', {id:'vD4'}); DOCK.close(); DOCK.open('beholdning:crew'); PLANMAP.open(S.cur); const f2 = document.querySelector('#pmBar [data-pm=done]'); if (f2) f2.click();
+      R.staleMap = [DOCK.page, on(), PHONE.sel === S.cur];
       S.fleet = S.fleet.filter(v => v.id !== 'vD4'); S.ops = null; DOCK.close(); PHONE.show(false); return R; })()"""))
     check(r['app'] == ['beholdning', 'Mannskap og drift', True, True] and r['ansatte'] == ['beholdning', 'Mannskap og drift', True] and not r['line'] and r['oneWk'] == 1 and r['onePlan'] == 1,
           tag + ': Driftsplan i telefonen og «Åpne Driftsplan» hos Ansatte åpner Om bord › Mannskap og drift med planen i bildet, under mannskapet, uten linja med «Åpne»', r)
     check(r['map'][0] is False and r['map'][1:] == ['beholdning', 'Mannskap og drift', True] and r['crew'] == ['beholdning', 'Mannskap og drift', 0],
           tag + ': «Ferdig» i kartet går tilbake til planen i fanen, og «Til mannskapet» viser mannskapet øverst i samme fane', r)
     check(r['row'] and r['other'] == ['drift', 'vD4'] and r['back'] == ['beholdning', 'Mannskap og drift', True], tag + ': en annen båts plan åpner som hennes egen side, og egen båt valgt der igjen går tilbake til fanen', r)
+    check(r['stale'] == [True, 'beholdning', 'Mannskap og drift', True, True] and r['staleMap'] == ['beholdning', 'Mannskap og drift', True],
+          tag + ': med en annen båt valgt sist åpner Driftsplan i telefonen og «Ferdig» i kartet for egen plan fortsatt Om bord med din egen plan', r)
     check(not errs, tag + ': sidefeil', errs)
     await b.close()
 
