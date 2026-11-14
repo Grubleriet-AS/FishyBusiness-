@@ -854,7 +854,7 @@ crew: people with skills, habits and moods
   - 722 `flyOut(c)`
   - 730 `flyTick()`
 
-## `src/js/core/05-vessels.js` (1445 linjer)
+## `src/js/core/05-vessels.js` (1458 linjer)
 
 ---------- other vessels (deterministic, so every player sees the same traffic) ----------
 
@@ -919,53 +919,53 @@ crew: people with skills, habits and moods
   - 813 `plantFuel(b)`
   - 816 `sailV(H, hs)`
   - 832 `sail(H, W, hs)`
-  - 864 `sailWaiting()`
-  - 865 `sailReplan(pl, b, gp)`
-  - 893 `iceWhy(p, tried)`
-  - 895 `sailStop(pl, b, why)`
-  - 903 `haltPlan(need)`
-  - 913 `arrive(w)`
-  - 931 `unstuckWhy()`
-  - 937 `unstuckSpot()`
-  - 944 `unstuck()`
-- **958** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
-  - 966 `moorPhase(b)`
-  - 981 `dock(pid, berth)`
-  - 1009 `catchFactors(H, W, hs)`
-  - 1022 `stockDev(p, sp)`
-  - 1028 `fish(H, W, hs)`
-  - 1134 `endFishing(why)`
-  - 1155 `bycHere(how)`
-  - 1159 `bycAdd(sp, kg, how)`
-  - 1163 `bycConf()`
-  - 1166 `addCatch(sp, kg, cls, hook, opt)`
-- **1188** work on deck: gutting and icing take hands and time
-  - 1204 `deckHands()`
-  - 1207 `deckPending()`
-  - 1208 `deckEta(hands)`
-  - 1213 `moveKg(x, kg, patch)`
-  - 1221 `iceMinute()`
-  - 1228 `iceOut(out)`
-  - 1234 `deckMinute()`
-- **1259** lying to in a storm (H1b R8, 05.11.2026)
-  - 1276 `quayFar(b)`
-  - 1280 `lieTo(W, hs)`
-  - 1287 `lieToStep(W, hs)`
-  - 1297 `risk(W, hs)`
-  - 1325 `hullRepair()`
-  - 1328 `svcOverdue()`
-- **1329** the rescue boat (plan E3, 05.10.2026)
-  - 1355 `rescueBases()`
-  - 1364 `rescueBase(p)`
-  - 1371 `rescueAis(H)`
-  - 1375 `rescue(keepCatch)`
-  - 1400 `towSea(p)`
-  - 1405 `towRoutes(b)`
-  - 1416 `towStep(H)`
-  - 1428 `towDone(t)`
-  - 1434 `towPose(frac)`
+  - 869 `sailWaiting()`
+  - 870 `sailReplan(pl, b, gp)`
+  - 906 `iceWhy(p, tried)`
+  - 908 `sailStop(pl, b, why)`
+  - 916 `haltPlan(need)`
+  - 926 `arrive(w)`
+  - 944 `unstuckWhy()`
+  - 950 `unstuckSpot()`
+  - 957 `unstuck()`
+- **971** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
+  - 979 `moorPhase(b)`
+  - 994 `dock(pid, berth)`
+  - 1022 `catchFactors(H, W, hs)`
+  - 1035 `stockDev(p, sp)`
+  - 1041 `fish(H, W, hs)`
+  - 1147 `endFishing(why)`
+  - 1168 `bycHere(how)`
+  - 1172 `bycAdd(sp, kg, how)`
+  - 1176 `bycConf()`
+  - 1179 `addCatch(sp, kg, cls, hook, opt)`
+- **1201** work on deck: gutting and icing take hands and time
+  - 1217 `deckHands()`
+  - 1220 `deckPending()`
+  - 1221 `deckEta(hands)`
+  - 1226 `moveKg(x, kg, patch)`
+  - 1234 `iceMinute()`
+  - 1241 `iceOut(out)`
+  - 1247 `deckMinute()`
+- **1272** lying to in a storm (H1b R8, 05.11.2026)
+  - 1289 `quayFar(b)`
+  - 1293 `lieTo(W, hs)`
+  - 1300 `lieToStep(W, hs)`
+  - 1310 `risk(W, hs)`
+  - 1338 `hullRepair()`
+  - 1341 `svcOverdue()`
+- **1342** the rescue boat (plan E3, 05.10.2026)
+  - 1368 `rescueBases()`
+  - 1377 `rescueBase(p)`
+  - 1384 `rescueAis(H)`
+  - 1388 `rescue(keepCatch)`
+  - 1413 `towSea(p)`
+  - 1418 `towRoutes(b)`
+  - 1429 `towStep(H)`
+  - 1441 `towDone(t)`
+  - 1447 `towPose(frac)`
 
-## `src/js/core/05b-ferje.js` (189 linjer)
+## `src/js/core/05b-ferje.js` (197 linjer)
 
 The car ferries along the whole coast (Ø15 N3 of docs/planer/npc-flaaten.md, 11.11.2026; docs/systemer/npc-trafikk.md 4.18). Every
 
@@ -974,12 +974,13 @@ The car ferries along the whole coast (Ø15 N3 of docs/planer/npc-flaaten.md, 11
   - 74 `ferjeChain(s, W)`
   - 98 `ferjeHop(s, a, b)`
   - 106 `ferjeSailed(s, v, H0)`
-  - 115 `ferjeAt(s, v, w, ok)`
-  - 131 `ferjeClock(H)`
-  - 136 `ferjeName(s, vi)`
-  - 145 `ferjeStates(s, H, wx = true, C = ferjeClock(H)`
-  - 164 `kystStates(H, only)`
-  - 177 `ferjeNear(H, only)`
+  - 117 `ferjeDock(R, o)`
+  - 118 `ferjeAt(s, v, w, ok)`
+  - 137 `ferjeClock(H)`
+  - 142 `ferjeName(s, vi)`
+  - 151 `ferjeStates(s, H, wx = true, C = ferjeClock(H)`
+  - 171 `kystStates(H, only)`
+  - 185 `ferjeNear(H, only)`
 
 ## `src/js/core/05c-air.js` (64 linjer)
 
@@ -1013,112 +1014,112 @@ The ocean fleet as NPCs (H1 of docs/planer/bestand-og-flaate.md, 02.11.2026)
   - 212 `havState(s, H, near)`
   - 237 `havNear(H, only)`
 
-## `src/js/core/05e-sjovei.js` (1202 linjer)
+## `src/js/core/05e-sjovei.js` (1235 linjer)
 
 ---------- the rules of the road: who gives way, and the NPCs and Autonav that do (Ø11.1, docs/systemer/sjofart-og-lover.md) ----------
 
 - **1** the rules of the road: who gives way, and the NPCs and Autonav that do (Ø11.1, docs/systemer/sjofart-og-lover.md)
-  - 54 `colregLim(La, Lb)`
-  - 60 `colregCls(n)`
-  - 73 `colregHav(s, A)`
-  - 81 `colregOwnCls(b)`
-  - 90 `colregAisSt(n)`
-  - 111 `colregSit(a, b, o = {})`
-  - 142 `sjvNeed(R, hd, sg, want, mover, gs = 1)`
-  - 153 `sjvSide(R, hd, mover, want, gs)`
-  - 163 `sjvSide19(rel, ov)`
-- **165** the manoeuvre laid over the shared course (npc-flåten 4 A): a fixed direction off the track, ramped at the turn's rate, held,
-  - 168 `sjvOffAt(E, H)`
-  - 176 `sjvPhase(E, H)`
-  - 182 `sjvLagAt(E, H)`
-  - 187 `sjvPose(n, E, H)`
-  - 208 `sjvLive()`
-  - 210 `sjvOwn()`
-  - 226 `sjvNarrow(n, H)`
-  - 235 `sjvRoom(n, nx, ny, k)`
-  - 248 `sjvRoomOn(n, E, H)`
-  - 261 `sjvRoomOwn(a, nx, ny, k)`
-  - 278 `sjvBackClear(M, Q, lim, gs)`
-  - 294 `sjvLead(R, v)`
-  - 297 `sjvBackNpc(n0, n, E, H)`
-  - 304 `sjvBackOwn(A, O)`
-  - 310 `sjvStart(n, R, H, mover, why, own, id)`
-- **323** Ø11.2: the sight, the lanterns and the sound signals (pure; sjvEval and the views use them)
-  - 327 `sjvLampNm(k, L)`
-  - 338 `sjvLightNm(D0, vis)`
-  - 345 `sjvSeenKm(L, vis, dark)`
-  - 347 `sjvHearNm(L)`
-  - 352 `sjvFogPat(c, v, L)`
-  - 361 `sjvManPat(side, slow)`
-  - 366 `sjvLanternSt(n)`
-  - 368 `sjvMinKn()`
-  - 371 `sjvSafeMs(dM)`
-  - 377 `sjvVisAt(H, p)`
-  - 378 `sjvDark(H, p)`
-  - 382 `sjvSig(id, pat, p, L, own)`
-  - 390 `sjvFogSigs(H, list, A, gs, vis, dark)`
-  - 408 `sjvFogCapV()`
-  - 415 `sjvCapV()`
-- **417** one look: the encounters round the boat you follow (at most once a game tenth of a minute, a real second)
-  - 418 `sjvEval(H, list)`
-  - 540 `sjvNearMiss(n, R, clr)`
-  - 548 `colregNpc(H, out, only)`
-  - 562 `sjvTrack(list)`
-- **564** Autonav
-  - 568 `sjvFresh(model)`
-  - 578 `sjvAuto(d, h, ds, T)`
-  - 593 `sjvSail(pl, b, left)`
-  - 612 `sjvCreep(pl, b, L, v)`
-- **621** the warning's words (the strip, the box and the card, the chart plotter)
-  - 623 `sjvSay(W, how)`
-  - 660 `sjvWhen(W)`
-  - 662 `sjvWarn()`
-- **664** Ø11.3: collisions (sjøloven kap. 8, LOV-1994-06-24-39 §§ 161-164, read on Lovdata 06.11.2026)
-  - 689 `sjvHullPts(X, Z, psi, L, B)`
-  - 693 `sjvInPoly(P, x, z)`
-  - 700 `sjvSat(A, B)`
-  - 721 `sjvSatC(A, cx, cz, r)`
-  - 730 `sjvMass(n)`
-  - 731 `sjvOwnMass(b = S.boat)`
-  - 734 `sjvKnEq(kn, mA, mB)`
-  - 736 `sjvValue(L)`
-  - 741 `sjvMatOf(n)`
-  - 744 `sjvOtherCost(kn, L, mat, P)`
-  - 754 `sjvOwnLoss(b, c)`
-  - 760 `sjvCpa(a, b, gs)`
-  - 765 `sjvTrailAdd(id, e)`
-  - 783 `sjvFault(T, X)`
-  - 850 `sjvFaultWord(w, no)`
-  - 861 `sjvFaultSay(F, name, lang)`
-  - 872 `sjvSettle(b, F, c, oth, name)`
-  - 883 `sjvPaySay(M, F, name, lang)`
-  - 891 `sjvKr(x, no)`
-  - 893 `sjvFrom()`
-  - 897 `sjvTo()`
-  - 904 `sjvVhf(n, rec)`
-  - 918 `sjvStandBy(n, H)`
-  - 929 `sjvBlow(n, kn, E, H, pre)`
-- **961** the manoeuvring model's steps (16b-dyn.js dynContact, by hand and on Autonav)
-  - 964 `sjvClock()`
-  - 971 `sjvNear(H, X, Z)`
-  - 990 `sjvImpulse(d, P, I, ve, vz, m2, gs)`
-  - 1001 `sjvTouch(b, d, P)`
-- **1034** the look's sweep (sjvEval), when the model does not have her
-  - 1037 `sjvSweep(n, A, H, gs, on)`
-- **1063** Ø11.8: the fairway: the speed limits and the cardinal marks (docs/systemer/sjofart-og-lover.md kap. 9)
-  - 1083 `fartMd(H)`
-  - 1085 `fartInSeason(s, md)`
-  - 1087 `fartRunsFrom(b)`
-  - 1097 `fartRuns()`
-  - 1107 `fartInArea(i, cx, cy)`
-  - 1113 `fartAt(p, H)`
-  - 1132 `fartLegKn(pl, p, L, H)`
-  - 1141 `fartCapMs()`
-  - 1152 `farvWrongSide(p, marks)`
-  - 1162 `farvLook(H)`
-  - 1191 `farvRec(r)`
-  - 1194 `farvWarn()`
-  - 1195 `farvSay(w, how)`
+  - 57 `colregLim(La, Lb)`
+  - 63 `colregCls(n)`
+  - 76 `colregHav(s, A)`
+  - 84 `colregOwnCls(b)`
+  - 93 `colregAisSt(n)`
+  - 114 `colregSit(a, b, o = {})`
+  - 156 `sjvNeed(R, hd, sg, want, mover, gs = 1)`
+  - 167 `sjvSide(R, hd, mover, want, gs)`
+  - 177 `sjvSide19(rel, ov)`
+- **179** the manoeuvre laid over the shared course (npc-flåten 4 A): a fixed direction off the track, ramped at the turn's rate, held,
+  - 182 `sjvOffAt(E, H)`
+  - 190 `sjvPhase(E, H)`
+  - 196 `sjvLagAt(E, H)`
+  - 201 `sjvPose(n, E, H)`
+  - 222 `sjvLive()`
+  - 224 `sjvOwn()`
+  - 240 `sjvNarrow(n, H)`
+  - 249 `sjvRoom(n, nx, ny, k)`
+  - 262 `sjvRoomOn(n, E, H)`
+  - 275 `sjvRoomOwn(a, nx, ny, k)`
+  - 292 `sjvBackClear(M, Q, lim, gs)`
+  - 308 `sjvLead(R, v)`
+  - 311 `sjvBackNpc(n0, n, E, H)`
+  - 318 `sjvBackOwn(A, O)`
+  - 324 `sjvStart(n, R, H, mover, why, own, id)`
+- **337** Ø11.2: the sight, the lanterns and the sound signals (pure; sjvEval and the views use them)
+  - 341 `sjvLampNm(k, L)`
+  - 352 `sjvLightNm(D0, vis)`
+  - 359 `sjvSeenKm(L, vis, dark)`
+  - 361 `sjvHearNm(L)`
+  - 366 `sjvFogPat(c, v, L)`
+  - 375 `sjvManPat(side, slow)`
+  - 380 `sjvLanternSt(n)`
+  - 382 `sjvMinKn()`
+  - 385 `sjvSafeMs(dM)`
+  - 391 `sjvVisAt(H, p)`
+  - 392 `sjvDark(H, p)`
+  - 396 `sjvSig(id, pat, p, L, own)`
+  - 404 `sjvFogSigs(H, list, A, gs, vis, dark)`
+  - 422 `sjvFogCapV()`
+  - 429 `sjvCapV()`
+- **431** one look: the encounters round the boat you follow (at most once a game tenth of a minute, a real second)
+  - 432 `sjvEval(H, list)`
+  - 567 `sjvNearMiss(n, R, clr)`
+  - 575 `colregNpc(H, out, only)`
+  - 589 `sjvTrack(list)`
+- **591** Autonav
+  - 595 `sjvFresh(model)`
+  - 605 `sjvAuto(d, h, ds, T)`
+  - 622 `sjvSail(pl, b, left)`
+  - 643 `sjvCreep(pl, b, L, v)`
+- **652** the warning's words (the strip, the box and the card, the chart plotter)
+  - 654 `sjvSay(W, how)`
+  - 691 `sjvWhen(W)`
+  - 693 `sjvWarn()`
+- **695** Ø11.3: collisions (sjøloven kap. 8, LOV-1994-06-24-39 §§ 161-164, read on Lovdata 06.11.2026)
+  - 720 `sjvHullPts(X, Z, psi, L, B)`
+  - 724 `sjvInPoly(P, x, z)`
+  - 731 `sjvSat(A, B)`
+  - 752 `sjvSatC(A, cx, cz, r)`
+  - 761 `sjvMass(n)`
+  - 762 `sjvOwnMass(b = S.boat)`
+  - 765 `sjvKnEq(kn, mA, mB)`
+  - 767 `sjvValue(L)`
+  - 772 `sjvMatOf(n)`
+  - 775 `sjvOtherCost(kn, L, mat, P)`
+  - 785 `sjvOwnLoss(b, c)`
+  - 791 `sjvCpa(a, b, gs)`
+  - 796 `sjvTrailAdd(id, e)`
+  - 814 `sjvFault(T, X)`
+  - 881 `sjvFaultWord(w, no)`
+  - 892 `sjvFaultSay(F, name, lang)`
+  - 903 `sjvSettle(b, F, c, oth, name)`
+  - 914 `sjvPaySay(M, F, name, lang)`
+  - 922 `sjvKr(x, no)`
+  - 924 `sjvFrom()`
+  - 928 `sjvTo()`
+  - 935 `sjvVhf(n, rec)`
+  - 949 `sjvStandBy(n, H)`
+  - 960 `sjvBlow(n, kn, E, H, pre)`
+- **992** the manoeuvring model's steps (16b-dyn.js dynContact, by hand and on Autonav)
+  - 995 `sjvClock()`
+  - 1002 `sjvNear(H, X, Z)`
+  - 1023 `sjvImpulse(d, P, I, ve, vz, m2, gs)`
+  - 1034 `sjvTouch(b, d, P)`
+- **1067** the look's sweep (sjvEval), when the model does not have her
+  - 1070 `sjvSweep(n, A, H, gs, on)`
+- **1096** Ø11.8: the fairway: the speed limits and the cardinal marks (docs/systemer/sjofart-og-lover.md kap. 9)
+  - 1116 `fartMd(H)`
+  - 1118 `fartInSeason(s, md)`
+  - 1120 `fartRunsFrom(b)`
+  - 1130 `fartRuns()`
+  - 1140 `fartInArea(i, cx, cy)`
+  - 1146 `fartAt(p, H)`
+  - 1165 `fartLegKn(pl, p, L, H)`
+  - 1174 `fartCapMs()`
+  - 1185 `farvWrongSide(p, marks)`
+  - 1195 `farvLook(H)`
+  - 1224 `farvRec(r)`
+  - 1227 `farvWarn()`
+  - 1228 `farvSay(w, how)`
 
 ## `src/js/core/06-services.js` (349 linjer)
 
@@ -1373,7 +1374,7 @@ the fish tubs (docs/planer/fiskekar-dekk.md, Jonas 04.11.2026)
   - 59 `tubPack(dims, spec, seed)`
   - 92 `karRefund()`
 
-## `src/js/core/07-harbours.js` (672 linjer)
+## `src/js/core/07-harbours.js` (689 linjer)
 
 harbours: quays, berths and mooring
 
@@ -1382,57 +1383,58 @@ harbours: quays, berths and mooring
   - 32 `unitDredge(p, d)`
   - 42 `quayFace(pid, kind)`
 - **73** the NPC boats' berths at the quays of the map data (part 4 of the coast-wide plan; the user's wish 03.10.2026: the quays made
-  - 96 `sitePockE(s, x, z)`
-  - 101 `siteDredge(p, d)`
-- **108** L1 (01.11.2026; Jonas: «Båtene skal benytte seg av de ekte kaiene vi har laget modeller av og som vi har plassert rundt om i
-  - 116 `quayReal(f)`
-  - 131 `faceReserved(f)`
-  - 145 `quayFree(f)`
-  - 160 `quayOut(f, a, L)`
-  - 180 `hullDry(p, hd, L, B)`
-  - 185 `npcBerths(group, p, boats, R = 0.6)`
-  - 225 `apprClr(q)`
-  - 226 `clearLine(a, b)`
-  - 229 `quayLand(q)`
-  - 230 `quayLandLine(a, b)`
-  - 237 `quayLandLeg(a, b)`
-  - 251 `approachPath(pt)`
-  - 308 `exitWps(pt, to)`
-  - 309 `entryWps(pt, from)`
-  - 324 `berthPose(pid, type, kind = 'main')`
-- **357** the way in to a berth and out of it (the user's list 04.10.2026: «legge til og fra kai uten å gå gjennom landmasse og
-  - 362 `berthBlocked(p, m = 2)`
-  - 371 `berthClear(a, b, m)`
-  - 372 `berthPath(from, bp)`
-- **397** landing the catch
-  - 420 `landFreeze()`
-  - 426 `landPlan(type, kg, hold)`
-  - 445 `landState(L, t)`
-  - 454 `mottakOpen(H)`
-  - 456 `mottakNext(H)`
-  - 460 `mottakWhen(H, no, from)`
-- **466** The queue at the plant (docs/planer/etter-tonys-test.md K1–K4, K6; Jonas 07.11.2026, V2 A and V3 A)
-  - 477 `landSlots(pt)`
-  - 478 `landQueueOn()`
-  - 480 `landQueueAsk(force)`
-  - 500 `landQueueGo()`
-  - 507 `landQueueEnd()`
-  - 513 `landLook(pts)`
-  - 519 `startLanding(ops)`
-  - 533 `landStart(pt, lp, kg, ops)`
-  - 545 `finishLanding()`
-  - 554 `iceChute(kg)`
-- **556** the bunker quay: moving along the harbour and filling fuel
-  - 569 `quayPos(b)`
-  - 584 `portBusy(b)`
-  - 585 `startShift(to, after)`
-  - 595 `startFueling(ops)`
-  - 608 `quayMinute()`
-  - 625 `buyIce(kg, free)`
-- **635** the tackle shop on the quay, in every harbour: hand jig, ice and halibut gear
-  - 641 `shopBuy(k, kg, free)`
+  - 98 `sitePockE(s, x, z)`
+  - 109 `siteOut(s)`
+  - 116 `siteDredge(p, d)`
+- **123** L1 (01.11.2026; Jonas: «Båtene skal benytte seg av de ekte kaiene vi har laget modeller av og som vi har plassert rundt om i
+  - 131 `quayReal(f)`
+  - 146 `faceReserved(f)`
+  - 160 `quayFree(f)`
+  - 176 `quayOut(f, a, L, all)`
+  - 196 `hullDry(p, hd, L, B)`
+  - 201 `npcBerths(group, p, boats, R = 0.6)`
+  - 241 `apprClr(q)`
+  - 242 `clearLine(a, b)`
+  - 245 `quayLand(q)`
+  - 246 `quayLandLine(a, b)`
+  - 253 `quayLandLeg(a, b)`
+  - 267 `approachPath(pt)`
+  - 324 `exitWps(pt, to)`
+  - 325 `entryWps(pt, from)`
+  - 340 `berthPose(pid, type, kind = 'main')`
+- **374** the way in to a berth and out of it (the user's list 04.10.2026: «legge til og fra kai uten å gå gjennom landmasse og
+  - 379 `berthBlocked(p, m = 2)`
+  - 388 `berthClear(a, b, m)`
+  - 389 `berthPath(from, bp)`
+- **414** landing the catch
+  - 437 `landFreeze()`
+  - 443 `landPlan(type, kg, hold)`
+  - 462 `landState(L, t)`
+  - 471 `mottakOpen(H)`
+  - 473 `mottakNext(H)`
+  - 477 `mottakWhen(H, no, from)`
+- **483** The queue at the plant (docs/planer/etter-tonys-test.md K1–K4, K6; Jonas 07.11.2026, V2 A and V3 A)
+  - 494 `landSlots(pt)`
+  - 495 `landQueueOn()`
+  - 497 `landQueueAsk(force)`
+  - 517 `landQueueGo()`
+  - 524 `landQueueEnd()`
+  - 530 `landLook(pts)`
+  - 536 `startLanding(ops)`
+  - 550 `landStart(pt, lp, kg, ops)`
+  - 562 `finishLanding()`
+  - 571 `iceChute(kg)`
+- **573** the bunker quay: moving along the harbour and filling fuel
+  - 586 `quayPos(b)`
+  - 601 `portBusy(b)`
+  - 602 `startShift(to, after)`
+  - 612 `startFueling(ops)`
+  - 625 `quayMinute()`
+  - 642 `buyIce(kg, free)`
+- **652** the tackle shop on the quay, in every harbour: hand jig, ice and halibut gear
+  - 658 `shopBuy(k, kg, free)`
 
-## `src/js/core/07c-naust.js` (238 linjer)
+## `src/js/core/07c-naust.js` (241 linjer)
 
 Father's naust by the home harbour, and the shop on the Finnsnes quay: where the 3D view sets them (05.10.2026)
 
@@ -1445,14 +1447,14 @@ Father's naust by the home harbour, and the shop on the Finnsnes quay: where the
   - 144 `naustWayOk(n, pid)`
   - 146 `naustSite()`
   - 172 `naustFace(pid)`
-  - 182 `shopNearFind(n)`
-  - 188 `shopNear()`
-  - 196 `naustTarget(pt, r)`
-  - 203 `shopSite()`
-- **207** the naust as a home (05.10.2026; Jonas chose it from the list, 4): set it to rights step by step
-  - 222 `naustRest(b)`
-  - 224 `naustWhy(k)`
-  - 232 `naustBuy(k)`
+  - 185 `shopNearFind(n)`
+  - 191 `shopNear()`
+  - 199 `naustTarget(pt, r)`
+  - 206 `shopSite()`
+- **210** the naust as a home (05.10.2026; Jonas chose it from the list, 4): set it to rights step by step
+  - 225 `naustRest(b)`
+  - 227 `naustWhy(k)`
+  - 235 `naustBuy(k)`
 
 ## `src/js/core/07d-rorbu.js` (85 linjer)
 
@@ -2426,7 +2428,7 @@ MANUAL HELM (the user's wish 03.10.2026)
   - 63 `helmCast()`
   - 69 `helmCastDone(pid, kind)`
 
-## `src/js/core/16b-dyn.js` (866 linjer)
+## `src/js/core/16b-dyn.js` (897 linjer)
 
 HOW THE BOAT MOVES: a manoeuvring model (Fysikk 1; Jonas 18.10.2026)
 
@@ -2489,18 +2491,20 @@ HOW THE BOAT MOVES: a manoeuvring model (Fysikk 1; Jonas 18.10.2026)
   - 561 `dynHelm(d, dtG)`
 - **582** the line she follows: out from the quay, the route's waypoints as the chart plotter draws them, to the harbour she ends in
   - 584 `dynLineBuild(pl, dep)`
-  - 610 `dynHands(T, k)`
-  - 616 `dynTight(T, c)`
-  - 630 `dynLineAt(T, s)`
-  - 636 `dynSeg(T, s)`
-  - 637 `dynSegHd(T, i)`
-  - 638 `dynLineProj(T, x, z, s0, back = 30)`
-  - 648 `dynLineHd(T, s, r0)`
-  - 655 `dynGroundAhead(T, s, look)`
-  - 671 `dynAvoid(d, P)`
-- **683** the autopilot
-  - 684 `dynAuto(d, dtG)`
-  - 865 `dynTrackView()`
+  - 612 `dynHandsPast(T, pl, L)`
+  - 623 `dynHandsOn(pl)`
+  - 625 `dynHands(T, k)`
+  - 631 `dynTight(T, c)`
+  - 645 `dynLineAt(T, s)`
+  - 651 `dynSeg(T, s)`
+  - 652 `dynSegHd(T, i)`
+  - 653 `dynLineProj(T, x, z, s0, back = 30)`
+  - 663 `dynLineHd(T, s, r0)`
+  - 670 `dynGroundAhead(T, s, look)`
+  - 686 `dynAvoid(d, P)`
+- **712** the autopilot
+  - 713 `dynAuto(d, dtG)`
+  - 896 `dynTrackView()`
 
 ## `src/js/core/16c-hull.js` (207 linjer)
 
@@ -2918,12 +2922,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **98** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 102 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1674 linjer)
+## `src/js/ui/phone/07-patch.js` (1679 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1662 `patch()`
+  - 1667 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (126 linjer)
 
@@ -4123,7 +4127,7 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
 - **45** terrain
   - 84 `terrRaw(x, z, dil)`
 
-## `src/js/view3d/03-berths-naust.js` (441 linjer)
+## `src/js/view3d/03-berths-naust.js` (445 linjer)
 
 ---------- The water at the berths the company holds in the coast's harbours (core/07e-havn.js) ----------
 
@@ -4134,35 +4138,35 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
 - **67** Father's naust and the Finnsnes shop (tools/harbour/naust.py, butikk.py; where: core/07c-naust.js)
   - 84 `rorbuNow()`
   - 90 `sitesNow()`
-  - 127 `siteLift(F, o, u, nn)`
-  - 137 `siteTerr(x, z, h)`
-  - 154 `onSite(x, z)`
-  - 164 `tileIn(kind, tx, ty)`
-  - 165 `tileH(L, kind, x, z)`
-  - 172 `terrH(x, z)`
-  - 181 `unitTerr(x, z, h0)`
-  - 214 `terrCoarse(x, z, dil)`
-  - 224 `forestAt(x, z)`
-  - 236 `forestCell(one, LF, ct, c, r)`
-  - 243 `coverAt(x, z, cv, ck, k)`
-  - 271 `satRead(L, x, z)`
-  - 283 `satAt(x, z, cv, o)`
-  - 291 `covBlk(LC, bx, by)`
-  - 295 `coverRing(LC, ix, iz)`
-  - 305 `coverClass(x, z)`
-  - 323 `runAll(g)`
-  - 325 `sliceRun(J, end)`
-  - 326 `meshBegin(x0, z0, sx, sz, n, hf)`
-  - 330 `meshRows(B, until)`
-  - 348 `gridIdx(n)`
-  - 371 `meshEnd(B)`
-  - 372 `makeMesh(x0, z0, sx, sz, n, hf)`
-  - 373 `freeMesh(m)`
-  - 375 `nearSurf(M, x, z)`
-  - 385 `unitPatch(U, M)`
-  - 410 `buildPatches()`
-  - 419 `buildTerrain()`
-  - 428 `stream3d()`
+  - 131 `siteLift(F, o, u, nn)`
+  - 141 `siteTerr(x, z, h)`
+  - 158 `onSite(x, z)`
+  - 168 `tileIn(kind, tx, ty)`
+  - 169 `tileH(L, kind, x, z)`
+  - 176 `terrH(x, z)`
+  - 185 `unitTerr(x, z, h0)`
+  - 218 `terrCoarse(x, z, dil)`
+  - 228 `forestAt(x, z)`
+  - 240 `forestCell(one, LF, ct, c, r)`
+  - 247 `coverAt(x, z, cv, ck, k)`
+  - 275 `satRead(L, x, z)`
+  - 287 `satAt(x, z, cv, o)`
+  - 295 `covBlk(LC, bx, by)`
+  - 299 `coverRing(LC, ix, iz)`
+  - 309 `coverClass(x, z)`
+  - 327 `runAll(g)`
+  - 329 `sliceRun(J, end)`
+  - 330 `meshBegin(x0, z0, sx, sz, n, hf)`
+  - 334 `meshRows(B, until)`
+  - 352 `gridIdx(n)`
+  - 375 `meshEnd(B)`
+  - 376 `makeMesh(x0, z0, sx, sz, n, hf)`
+  - 377 `freeMesh(m)`
+  - 379 `nearSurf(M, x, z)`
+  - 389 `unitPatch(U, M)`
+  - 414 `buildPatches()`
+  - 423 `buildTerrain()`
+  - 432 `stream3d()`
 
 ## `src/js/view3d/04-vec-packs.js` (399 linjer)
 
@@ -4904,7 +4908,7 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 232 `drawRescue(BMrel, eye, VP, t)`
   - 247 `drawRescueLights(VP, t)`
 
-## `src/js/view3d/22-docks-air.js` (262 linjer)
+## `src/js/view3d/22-docks-air.js` (265 linjer)
 
 ---------- the coast harbours' floating docks and mooring buoys (core/05-vessels.js moorHarbour, tools/harbour/brygge.py) ----------
 
@@ -4912,21 +4916,21 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 5 `buildDocks()`
   - 14 `quayFill()`
   - 25 `drawDocks(eye, t, VP)`
-- **80** the floating docks among the packs' piers (01c-vec.js flyteTile, tools/harbour/brygge.py; tilbakemelding #94)
-  - 93 `floatFree(k)`
-  - 94 `floatJob(t, FD, solid)`
-  - 145 `drawFloats(eye, t, VP)`
-- **163** aircraft (tools/air/fly.py) where core/05c-air.js airStates puts them, within about 15 km of the eye
-  - 165 `buildAir()`
-  - 170 `drawAir(eye, t, H, VP)`
-  - 184 `drawAirLights(VP, t)`
-  - 194 `drawNPCGlass(VP)`
-- **195** the lanterns in thick weather (Ø11.2; sjøveisreglene rule 20 c and vedlegg I, read 06.11.2026)
-  - 201 `lanternFog()`
-  - 202 `lampFade(d, kind, L, LF)`
-  - 211 `lampArc(M, lp, lk)`
-  - 224 `lampsMore(L3, st, len)`
-  - 232 `drawNPCLights(VP)`
+- **83** the floating docks among the packs' piers (01c-vec.js flyteTile, tools/harbour/brygge.py; tilbakemelding #94)
+  - 96 `floatFree(k)`
+  - 97 `floatJob(t, FD, solid)`
+  - 148 `drawFloats(eye, t, VP)`
+- **166** aircraft (tools/air/fly.py) where core/05c-air.js airStates puts them, within about 15 km of the eye
+  - 168 `buildAir()`
+  - 173 `drawAir(eye, t, H, VP)`
+  - 187 `drawAirLights(VP, t)`
+  - 197 `drawNPCGlass(VP)`
+- **198** the lanterns in thick weather (Ø11.2; sjøveisreglene rule 20 c and vedlegg I, read 06.11.2026)
+  - 204 `lanternFog()`
+  - 205 `lampFade(d, kind, L, LF)`
+  - 214 `lampArc(M, lp, lk)`
+  - 227 `lampsMore(L3, st, len)`
+  - 235 `drawNPCLights(VP)`
 
 ## `src/js/view3d/23-camera-frame.js` (104 linjer)
 
