@@ -110,6 +110,11 @@ export default function (t){
     S.begin(L, {id:q.id, from:{at:'slot', i:0}, to:{at:'nest', i:2}}, 'c', 0); S.take(L);
     const o = {key:'h4', kind:'haul', n:3, done:0, prog:0}; S.sync(L, {full:0, coil:0, empty:0, op:o}, 1, 1);
     t.ok(!L.n.snap && !!L.op && L.op.ids.includes(q.id) && !!L.job, 'halingen begynner mens en tom stamp bæres: den er med i halingen, og ingenting legges ut på nytt (snap ' + L.n.snap + ')'); }
+  // the work changes while a tub is carried to a work spot (the kontroll, 125f): it is set down at the spots it was carried to, the
+  // stern's, and is carried off them from there; before, it was taken for one at the hauler's spot and drawn there, with no snap
+  { const L = S.fresh(); L.Wk = 'set'; S.sync(L, {full:2, coil:0, empty:1, op:null}, 2); L.stage = true; const j = S.want(L, null); S.begin(L, j, 'c', 0); S.take(L);
+    L.Wk = 'haul'; L.stage = false; S.sync(L, {full:2, coil:0, empty:0, op:{key:'h5', kind:'haul', n:1, done:0, prog:0}}, 1, 1); S.put(L, 3); const q = S.by(L, j.id);
+    t.ok(j.to.at === 'work' && q.at === 'work' && q.wk === 'set' && !S.here(L, q) && !L.n.snap, 'arbeidet skifter midt i en bæring: stampen står ved plassene den ble båret til (' + JSON.stringify({wk:q.wk, snap:L.n.snap}) + ')'); }
   // the work changes (steg 125f, tests/stamper3d.py on the hurtigsjark): a full tub left ready at the stern (two spots there) as the haul
   // begins (one spot by the hauler), and the coiled one lifted off the hauler's spot as the deck gets ready for the next set: nothing is
   // laid out anew. The tub at the stern stays there and is carried to the stack; the haul's first tub is carried to the hauler's spot

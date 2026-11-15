@@ -9,6 +9,6 @@ export default function (t){
   const K = t.K, {VESSELS, deckMap} = K, bad = [];
   let n = 0;
   for (const vt of Object.keys(VESSELS)){ const M = deckMap(vt); if (!M) continue;
-    for (const [a, b, dy] of M.links){ n++; const ya = M.at(a)[1], yb = M.at(b)[1]; if (!(Math.abs(yb - ya - dy) <= 0.3)) bad.push(vt + ' ' + [ya, yb, dy].map(v => +(+v).toFixed(2)).join('/')); } }
+    for (const [a, b, dy] of M.links){ n++; const ya = M.at(a)[1], yb = M.at(b)[1]; if (a === b || !(Math.abs(yb - ya - dy) <= 0.3)) bad.push(vt + ' ' + [ya, yb, dy].map(v => +(+v).toFixed(2)).join('/')); } }
   t.ok(n > 10 && !bad.length, 'dekkskartet: hver lenke ender på dørken den ble laget for (' + n + ' lenker)', bad.slice(0, 6));
 }

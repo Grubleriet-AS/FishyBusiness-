@@ -350,7 +350,7 @@ function crewSim(src){
     a.sub = {k:s0.k, h:s0.h, task:'tubup', hold:TUB.UP, tub:{id:j.id, ph:'up', to:s1, p:p0}}; a.path = null; }
   // the carrier is through with a part of his errand (the sub's hold is over): lifted, now with it to where it goes; set down, back to his work
   function tubStep(a, t){ const u = a.sub.tub; if (!TUBL.job || TUBL.job.id !== u.id){ a.sub = null; a.path = null; return; }
-    if (u.ph === 'up'){ STAMPER.take(TUBL); const j = TUBL.job, p1 = tubPos(j.to.at, j.to.i, TUBL.Wk);
+    if (u.ph === 'up'){ STAMPER.take(TUBL); const j = TUBL.job, p1 = tubPos(j.to.at, j.to.i, TUBL.Wk, j.wk);
       a.sub = {k:u.to.k, h:u.to.h, task:'tubdn', hold:TUB.DN, carry:'stamp', tub:{id:u.id, ph:'dn', p:p1}}; a.path = null; return; }
     const q = STAMPER.by(TUBL, u.id); STAMPER.put(TUBL, t); if (q) q.ry = a.h; a.sub = null; a.path = null; }
   // for the view: every tub with where its foot is (boat frame), what it holds, how it is turned, and the one being carried, with
@@ -1640,7 +1640,7 @@ const STAMPER = {
   fillOf(L, q, o){ if (q.k === 'empty'){ const r = STAMPER.running(L, o); return r && r.q === q ? Math.max(0.001, r.f) : -1; }
     if (q.k === 'full'){ const r = STAMPER.running(L, o); return r && r.q === q ? Math.max(0.001, r.f) : 1; } return 0; },
   // the places taken now or by a carry on its way to them
-  taken(L, at, i){ return L.T.some(q => q.at === at && q.i === i && (at !== 'work' || STAMPER.here(L, q))) || !!(L.job && L.job.to.at === at && L.job.to.i === i); },
+  taken(L, at, i){ return L.T.some(q => q.at === at && q.i === i && (at !== 'work' || STAMPER.here(L, q))) || !!(L.job && L.job.to.at === at && L.job.to.i === i && (at !== 'work' || L.job.wk == null || L.Wk == null || L.job.wk === L.Wk)); },
   freeWork(L){ for (let w = 0; w < L.W; w++) if (!STAMPER.taken(L, 'work', w)) return w; return -1; },
   // (a free slot to set a tub in: with L.pri, the deck's order of the slots (the higher the sooner a tub is taken from it), the one
   // last in that order that has a tub under it or none to have; else the first free one)
@@ -1685,9 +1685,9 @@ const STAMPER = {
   // (and for a second after one is set down, while the next carry is looked for: now, the deck's clock)
   halt(L, o, now){ if (!o || o.kind !== 'haul' || !L.op || o.key !== L.op.key || o.done >= o.n) return false; const q = STAMPER.by(L, L.op.ids[o.done]); return !!q && (L.W ? !STAMPER.here(L, q) : q.at !== 'slot') && (!!L.job || (now != null && L.jobEnd != null && now - L.jobEnd < 1)); },
   // the carrier has the tub in his hands (begin: he is on his way to it; take: he lifts it; put: he sets it down where it was going)
-  begin(L, j, who, now){ L.job = Object.assign({who, took:false, t0:now}, j); },
+  begin(L, j, who, now){ L.job = Object.assign({who, took:false, t0:now, wk:j.to.at === 'work' ? L.Wk : undefined}, j); },   // (wk: whose spots it goes to, as it was when the carry began: the work may change on the way)
   take(L){ const j = L.job; if (!j || j.took) return; const q = STAMPER.by(L, j.id); if (q){ q.at = 'hand'; q.i = 0; q.who = j.who; } j.took = true; STAMPER.pack(L); },
-  put(L, now){ const j = L.job; if (!j) return; if (now != null && j.t0 != null){ const d = now - j.t0; L.cs = L.cs ? L.cs * 0.6 + d * 0.4 : d; } const q = STAMPER.by(L, j.id); if (q){ const ni = L.T.filter(x => x.at === 'nest').length; q.at = j.to.at; q.i = j.to.at === 'nest' ? ni : j.to.i; q.wk = j.to.at === 'work' ? L.Wk : undefined; q.who = null; L.n.carried++; } L.job = null; if (now != null) L.jobEnd = now; },
+  put(L, now){ const j = L.job; if (!j) return; if (now != null && j.t0 != null){ const d = now - j.t0; L.cs = L.cs ? L.cs * 0.6 + d * 0.4 : d; } const q = STAMPER.by(L, j.id); if (q){ const ni = L.T.filter(x => x.at === 'nest').length; q.at = j.to.at; q.i = j.to.at === 'nest' ? ni : j.to.i; q.wk = j.to.at === 'work' ? (j.wk || L.Wk) : undefined; q.who = null; L.n.carried++; } L.job = null; if (now != null) L.jobEnd = now; },
   // the carrier is gone from his work (the game gave him other work): what he held is set down where it was going (n.snap)
   drop(L){ const j = L.job; if (!j) return; if (j.took){ STAMPER.put(L); L.n.snap++; } else L.job = null; },
   // the nest's tubs one in the next, from the bottom up, with no gap

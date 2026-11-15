@@ -1664,12 +1664,12 @@ function deckMap(type){
   for (let k = 0; k < N; k++) H[k] = inDeck[k] >= 0 ? floors[k][inDeck[k]][0] : NaN;
   // (a link's head on the floor it was made for: where the head lies over a lower deck the map holds the lower floor in that cell, and the
   // way went on along the lower deck under the stair, through it: the snow crab boat's stair to the shelter deck, crewclip 125f. The
-  // head moves to the nearest cell with that floor; none within 0.8 m, and the link is no way)
+  // head moves to the nearest cell with that floor, four cells (0.8 m) each way at most; none, or only its own foot, and the link is no way)
   for (let i = links.length - 1; i >= 0; i--){ const l = links[i], [a, b, dy] = l, yb = H[a] + dy; if (Math.abs(H[b] - yb) <= 0.3) continue;
     const bi = b % nx, bj = (b - bi) / nx; let best = -1, bd = Infinity;
     for (let dj = -4; dj <= 4; dj++) for (let di = -4; di <= 4; di++){ const ii = bi + di, jj = bj + dj; if (ii < 0 || jj < 0 || ii >= nx || jj >= nz) continue; const q = jj * nx + ii;
       if (!(H[q] === H[q]) || Math.abs(H[q] - yb) > 0.3) continue; const d = Math.hypot(di, dj); if (d < bd){ bd = d; best = q; } }
-    if (best >= 0 && !links.some(m => m !== l && m[0] === a && m[1] === best)) l[1] = best; else links.splice(i, 1); }
+    if (best >= 0 && best !== a && !links.some(m => m !== l && m[0] === a && m[1] === best)) l[1] = best; else links.splice(i, 1); }
   const LINK = {}; for (const [a, b] of links){ (LINK[a] || (LINK[a] = [])).push(b); (LINK[b] || (LINK[b] = [])).push(a); }
   let n = 0; for (let k = 0; k < N; k++) if (H[k] === H[k]) n++;
   const M = {type, c:DM_C, x0, z0, nx, nz, h:H, bar, n, parts, yDeck, links, LINK, cellOf, _floors:floors, _lab:lab, at(k){ const i = k % nx; return [x0 + (i + 0.5) * DM_C, H[k], z0 + ((k - i) / nx + 0.5) * DM_C]; },
