@@ -344,7 +344,7 @@ function crewSim(src){
   function lineTubs0(){ const o = tubCount().op, j = TUBL.job, kind = TUBL.Wk || 'set';
     const T = TUBL.T.map(q => ({id:q.id, k:q.k, at:q.at, i:q.i, f:STAMPER.fillOf(TUBL, q, o), p:q.at === 'hand' ? null : tubPos(q.at, q.i, kind), ry:q.ry != null ? q.ry : (q.id * 2.39996) % 6.2832}));
     let carry = null; if (j){ const a = A.find(q => q.id === j.who); if (a && a.sub && a.sub.tub && a.sub.tub.id === j.id){ const sb = a.sub, at = a.mode === 'at' && sb.done; carry = {id:j.id, who:a.id, ph:sb.tub.ph, at:!!at, u:at ? clamp((ST.clk - (sb.done - sb.hold)) / sb.hold, 0, 1) : 0, p:sb.tub.p}; } }
-    const r = STAMPER.running(TUBL, o); return {T, carry, run:r ? {id:r.q.id, f:r.f} : null, halt:STAMPER.halt(TUBL, o), spots:tubSpots(), snap:TUBL.n.snap, carried:TUBL.n.carried}; }
+    const r = STAMPER.running(TUBL, o); return {T, carry, run:r ? {id:r.q.id, f:r.f} : null, halt:STAMPER.halt(TUBL, o, ST.clk), spots:tubSpots(), snap:TUBL.n.snap, carried:TUBL.n.carried}; }
   function overlay(M0, boxes){
     const N = M0.nx * M0.nz, H = Float32Array.from(M0.h); let n = 0;
     for (let k = 0; k < N; k++){ if (H[k] !== H[k]) continue; const i = k % M0.nx, x = M0.x0 + (i + 0.5) * M0.c, z = M0.z0 + ((k - i) / M0.nx + 0.5) * M0.c;
@@ -1641,11 +1641,14 @@ const STAMPER = {
   // s a carry has taken (the last ones), CARRY before the first
   carryS(L){ return L.cs || STAMPER.CARRY; },
   // hauling with the tub the line is coiled into not yet at its place: the hauler stands (the view stops it, and nothing is gaffed meanwhile)
-  halt(L, o){ if (!o || o.kind !== 'haul' || !L.op || o.key !== L.op.key || o.done >= o.n) return false; const q = STAMPER.by(L, L.op.ids[o.done]); return !!q && q.at !== (L.W ? 'work' : 'slot'); },
+  // (only while a tub is being carried to make room for it or to bring it: with nobody carrying, the hauler does not stand for ever,
+  // the line is coiled into it where it is)
+  // (and for a second after one is set down, while the next carry is looked for: now, the deck's clock)
+  halt(L, o, now){ if (!o || o.kind !== 'haul' || !L.op || o.key !== L.op.key || o.done >= o.n) return false; const q = STAMPER.by(L, L.op.ids[o.done]); return !!q && q.at !== (L.W ? 'work' : 'slot') && (!!L.job || (now != null && L.jobEnd != null && now - L.jobEnd < 1)); },
   // the carrier has the tub in his hands (begin: he is on his way to it; take: he lifts it; put: he sets it down where it was going)
   begin(L, j, who, now){ L.job = Object.assign({who, took:false, t0:now}, j); },
   take(L){ const j = L.job; if (!j || j.took) return; const q = STAMPER.by(L, j.id); if (q){ q.at = 'hand'; q.i = 0; q.who = j.who; } j.took = true; STAMPER.pack(L); },
-  put(L, now){ const j = L.job; if (!j) return; if (now != null && j.t0 != null){ const d = now - j.t0; L.cs = L.cs ? L.cs * 0.6 + d * 0.4 : d; } const q = STAMPER.by(L, j.id); if (q){ const ni = L.T.filter(x => x.at === 'nest').length; q.at = j.to.at; q.i = j.to.at === 'nest' ? ni : j.to.i; q.who = null; L.n.carried++; } L.job = null; },
+  put(L, now){ const j = L.job; if (!j) return; if (now != null && j.t0 != null){ const d = now - j.t0; L.cs = L.cs ? L.cs * 0.6 + d * 0.4 : d; } const q = STAMPER.by(L, j.id); if (q){ const ni = L.T.filter(x => x.at === 'nest').length; q.at = j.to.at; q.i = j.to.at === 'nest' ? ni : j.to.i; q.who = null; L.n.carried++; } L.job = null; if (now != null) L.jobEnd = now; },
   // the carrier is gone from his work (the game gave him other work): what he held is set down where it was going (n.snap)
   drop(L){ const j = L.job; if (!j) return; if (j.took){ STAMPER.put(L); L.n.snap++; } else L.job = null; },
   // the nest's tubs one in the next, from the bottom up, with no gap

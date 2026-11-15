@@ -51,7 +51,7 @@ export default function (t){
       // (the line from one tub at a time, at a work spot: the seconds it is not, once the first is there)
       // (setting it runs from a tub at a work spot or in the stack, never from one in the hands; hauling it is coiled into one at a work
       // spot (in the stack with none), once the first has been carried there)
-      const halt = S.halt(L, tg.op); if (halt) halted += dt;
+      const halt = S.halt(L, tg.op, now); if (halt) halted += dt;
       const r = S.running(L, tg.op), off = r && (o.kind === 'set' ? r.q.at === 'hand' || r.q.at === 'nest' : o.W ? r.q.at !== 'work' : r.q.at !== 'slot');
       if (tg.op && !halt && (!r || off)){ if (o.kind === 'set' || L.n.carried > 0) runOff += dt; else T += dt; }
       if (r && r.q.at === 'slot' && o.kind === 'set') fromStack += dt;
@@ -96,6 +96,11 @@ export default function (t){
   { const L = S.fresh(); S.sync(L, {full:0, coil:0, empty:2, op:null}, 1); S.sync(L, {full:0, coil:0, empty:0, op:{key:'h', kind:'haul', n:2, done:1, prog:0.2}}, 1);
     const q0 = L.T.find(q => q.k === 'coil'); q0.at = 'nest'; S.pack(L); const j = S.want(L, {key:'h', kind:'haul', n:2, done:1, prog:0.2});
     t.ok(!!j && j.id === q0.id && j.to.at === 'slot', 'en kveilet stamp i reiret blir båret til stabelen (' + JSON.stringify(j) + ')'); }
+  // hauling with nobody to carry the tub to the hauler: the hauler does not stand and wait for ever (fiskvei3d.py on the sjark, 15.11.2026:
+  // no fish bled in 80 s while it stood); it stands only while the tub is on its way
+  { const L = S.fresh(), o = {key:'h2', kind:'haul', n:2, done:0, prog:0.1}; S.sync(L, {full:0, coil:0, empty:2, op:null}, 2); S.sync(L, {full:0, coil:0, empty:0, op:o}, 2);
+    const idle = S.halt(L, o), j = S.want(L, o); S.begin(L, j, 'c', 0); const busy = S.halt(L, o);
+    t.ok(!idle && busy, 'haleren står bare mens stampen er på vei til ham (uten bærer: ' + idle + ', på vei: ' + busy + ')'); }
   // the baiting on deck (pg.shore egnself) makes coiled tubs full where they stand: none moves
   { const L = S.fresh(); S.sync(L, {full:0, coil:3, empty:0, op:null}, 2); const before = JSON.stringify(L.T.map(q => [q.at, q.i])); S.sync(L, {full:2, coil:1, empty:0, op:null}, 2);
     t.ok(JSON.stringify(L.T.map(q => [q.at, q.i])) === before && S.count(L, 'full') === 2 && !L.n.snap, 'egningen gjør stampene fulle der de står'); }
