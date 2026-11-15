@@ -17,7 +17,7 @@ THE ERROR TRAP (02.11.2026; Jonas: «det viktigste er at vi klarer å fange opp 
   - 60 `natP(lat, lon)`
   - 61 `natLL(p)`
 
-## `src/js/core/01-world.js` (538 linjer)
+## `src/js/core/01-world.js` (541 linjer)
 
 - **10** one clock for everyone (05.10.2026, the shared world V1)
   - 59 `gridScale(p)`
@@ -43,30 +43,30 @@ THE ERROR TRAP (02.11.2026; Jonas: «det viktigste er at vi klarer å fange opp 
   - 245 `feltLawful(sp, p, H)`
   - 248 `nearestPlace(p)`
   - 254 `groundCheck(a, c, sq = 0)`
-  - 271 `runAground(p)`
-  - 286 `rocksNear(a, b, r)`
-  - 296 `rocksIn(x0, y0, x1, y1)`
-  - 304 `rocksAlong(a, b, r)`
-  - 318 `coastDist(p)`
-  - 319 `coastDistFar(p)`
-  - 325 `decodeContours()`
-  - 334 `isLand(p)`
-  - 342 `isLandFar(p)`
-  - 348 `isLandUI(p)`
-  - 354 `inHarbourPocket(p)`
-  - 360 `harbourNear(x, z)`
-  - 366 `qPockets()`
-  - 367 `pocketHit(US, QS, x, z)`
-  - 374 `pocketsIn(x0, y0, x1, y1)`
-  - 383 `legClear(a, b)`
-  - 397 `legClearMemo(a, b)`
-  - 428 `portLabel(p)`
-- **444** the harbour unit (02.10.2026)
-  - 485 `fillOut(U, lx, lz)`
-  - 498 `onUnitGround(p)`
-  - 505 `unitCovers(x, z, m)`
-  - 513 `bridgeUnderUnit(br, extra)`
-  - 518 `portApproach(pt)`
+  - 274 `runAground(p)`
+  - 289 `rocksNear(a, b, r)`
+  - 299 `rocksIn(x0, y0, x1, y1)`
+  - 307 `rocksAlong(a, b, r)`
+  - 321 `coastDist(p)`
+  - 322 `coastDistFar(p)`
+  - 328 `decodeContours()`
+  - 337 `isLand(p)`
+  - 345 `isLandFar(p)`
+  - 351 `isLandUI(p)`
+  - 357 `inHarbourPocket(p)`
+  - 363 `harbourNear(x, z)`
+  - 369 `qPockets()`
+  - 370 `pocketHit(US, QS, x, z)`
+  - 377 `pocketsIn(x0, y0, x1, y1)`
+  - 386 `legClear(a, b)`
+  - 400 `legClearMemo(a, b)`
+  - 431 `portLabel(p)`
+- **447** the harbour unit (02.10.2026)
+  - 488 `fillOut(U, lx, lz)`
+  - 501 `onUnitGround(p)`
+  - 508 `unitCovers(x, z, m)`
+  - 516 `bridgeUnderUnit(br, extra)`
+  - 521 `portApproach(pt)`
 
 ## `src/js/core/01b-mapdata.js` (281 linjer)
 
@@ -1374,7 +1374,7 @@ the fish tubs (docs/planer/fiskekar-dekk.md, Jonas 04.11.2026)
   - 59 `tubPack(dims, spec, seed)`
   - 92 `karRefund()`
 
-## `src/js/core/07-harbours.js` (705 linjer)
+## `src/js/core/07-harbours.js` (719 linjer)
 
 harbours: quays, berths and mooring
 
@@ -1383,57 +1383,57 @@ harbours: quays, berths and mooring
   - 32 `unitDredge(p, d)`
   - 42 `quayFace(pid, kind)`
 - **73** the NPC boats' berths at the quays of the map data (part 4 of the coast-wide plan; the user's wish 03.10.2026: the quays made
-  - 96 `siteWhy(type, pid, naust)`
-  - 114 `sitePockE(s, x, z)`
-  - 125 `siteOut(s)`
-  - 132 `siteDredge(p, d)`
-- **139** L1 (01.11.2026; Jonas: «Båtene skal benytte seg av de ekte kaiene vi har laget modeller av og som vi har plassert rundt om i
-  - 147 `quayReal(f)`
-  - 162 `faceReserved(f)`
-  - 176 `quayFree(f)`
-  - 192 `quayOut(f, a, L, all)`
-  - 212 `hullDry(p, hd, L, B)`
-  - 217 `npcBerths(group, p, boats, R = 0.6)`
-  - 257 `apprClr(q)`
-  - 258 `clearLine(a, b)`
-  - 261 `quayLand(q)`
-  - 262 `quayLandLine(a, b)`
-  - 269 `quayLandLeg(a, b)`
-  - 283 `approachPath(pt)`
-  - 340 `exitWps(pt, to)`
-  - 341 `entryWps(pt, from)`
-  - 356 `berthPose(pid, type, kind = 'main')`
-- **390** the way in to a berth and out of it (the user's list 04.10.2026: «legge til og fra kai uten å gå gjennom landmasse og
-  - 395 `berthBlocked(p, m = 2)`
-  - 404 `berthClear(a, b, m)`
-  - 405 `berthPath(from, bp)`
-- **430** landing the catch
-  - 453 `landFreeze()`
-  - 459 `landPlan(type, kg, hold)`
-  - 478 `landState(L, t)`
-  - 487 `mottakOpen(H)`
-  - 489 `mottakNext(H)`
-  - 493 `mottakWhen(H, no, from)`
-- **499** The queue at the plant (docs/planer/etter-tonys-test.md K1–K4, K6; Jonas 07.11.2026, V2 A and V3 A)
-  - 510 `landSlots(pt)`
-  - 511 `landQueueOn()`
-  - 513 `landQueueAsk(force)`
-  - 533 `landQueueGo()`
-  - 540 `landQueueEnd()`
-  - 546 `landLook(pts)`
-  - 552 `startLanding(ops)`
-  - 566 `landStart(pt, lp, kg, ops)`
-  - 578 `finishLanding()`
-  - 587 `iceChute(kg)`
-- **589** the bunker quay: moving along the harbour and filling fuel
-  - 602 `quayPos(b)`
-  - 617 `portBusy(b)`
-  - 618 `startShift(to, after)`
-  - 628 `startFueling(ops)`
-  - 641 `quayMinute()`
-  - 658 `buyIce(kg, free)`
-- **668** the tackle shop on the quay, in every harbour: hand jig, ice and halibut gear
-  - 674 `shopBuy(k, kg, free)`
+  - 98 `siteWhy(type, pid, naust)`
+  - 117 `sitePockE(s, x, z)`
+  - 128 `siteOut(s)`
+  - 138 `siteDredge(p, d)`
+- **145** L1 (01.11.2026; Jonas: «Båtene skal benytte seg av de ekte kaiene vi har laget modeller av og som vi har plassert rundt om i
+  - 153 `quayReal(f)`
+  - 168 `faceReserved(f)`
+  - 182 `quayFree(f)`
+  - 200 `quayOut(f, a, L, all, wet)`
+  - 220 `hullDry(p, hd, L, B)`
+  - 225 `npcBerths(group, p, boats, R = 0.6)`
+  - 265 `apprClr(q)`
+  - 266 `clearLine(a, b)`
+  - 269 `quayLand(q)`
+  - 270 `quayLandLine(a, b)`
+  - 277 `quayLandLeg(a, b)`
+  - 291 `approachPath(pt)`
+  - 348 `exitWps(pt, to)`
+  - 349 `entryWps(pt, from)`
+  - 364 `berthPose(pid, type, kind = 'main')`
+- **398** the way in to a berth and out of it (the user's list 04.10.2026: «legge til og fra kai uten å gå gjennom landmasse og
+  - 404 `berthBlocked(p, m = 2, bk = 0)`
+  - 413 `berthClear(a, b, m, bk = 0)`
+  - 416 `berthPath(from, bp, mm)`
+- **444** landing the catch
+  - 467 `landFreeze()`
+  - 473 `landPlan(type, kg, hold)`
+  - 492 `landState(L, t)`
+  - 501 `mottakOpen(H)`
+  - 503 `mottakNext(H)`
+  - 507 `mottakWhen(H, no, from)`
+- **513** The queue at the plant (docs/planer/etter-tonys-test.md K1–K4, K6; Jonas 07.11.2026, V2 A and V3 A)
+  - 524 `landSlots(pt)`
+  - 525 `landQueueOn()`
+  - 527 `landQueueAsk(force)`
+  - 547 `landQueueGo()`
+  - 554 `landQueueEnd()`
+  - 560 `landLook(pts)`
+  - 566 `startLanding(ops)`
+  - 580 `landStart(pt, lp, kg, ops)`
+  - 592 `finishLanding()`
+  - 601 `iceChute(kg)`
+- **603** the bunker quay: moving along the harbour and filling fuel
+  - 616 `quayPos(b)`
+  - 631 `portBusy(b)`
+  - 632 `startShift(to, after)`
+  - 642 `startFueling(ops)`
+  - 655 `quayMinute()`
+  - 672 `buyIce(kg, free)`
+- **682** the tackle shop on the quay, in every harbour: hand jig, ice and halibut gear
+  - 688 `shopBuy(k, kg, free)`
 
 ## `src/js/core/07c-naust.js` (241 linjer)
 
@@ -1457,16 +1457,16 @@ Father's naust by the home harbour, and the shop on the Finnsnes quay: where the
   - 227 `naustWhy(k)`
   - 235 `naustBuy(k)`
 
-## `src/js/core/07d-rorbu.js` (86 linjer)
+## `src/js/core/07d-rorbu.js` (95 linjer)
 
 the rorbuer along the coast: a cheap bed ashore and a quay to lie at (05.10.2026)
 
 - **1** the rorbuer along the coast: a cheap bed ashore and a quay to lie at (05.10.2026)
-  - 24 `rorbuIn(x0, y0, x1, y1)`
-  - 33 `rorbuSite(R)`
-  - 58 `rorbuFace(pid)`
-  - 64 `rorbuTarget(pt, r)`
-  - 78 `rorbuSoon(p, r)`
+  - 31 `rorbuIn(x0, y0, x1, y1)`
+  - 40 `rorbuSite(R)`
+  - 65 `rorbuFace(pid)`
+  - 73 `rorbuTarget(pt, r)`
+  - 87 `rorbuSoon(p, r)`
 
 ## `src/js/core/07e-havn.js` (271 linjer)
 
@@ -2098,7 +2098,7 @@ Kappløpet Lindesnes–Nordkapp, the core (KL1, steg 116a; docs/planer/kapplop.m
   - 337 `lopTaskEnd(m, ok, how)`
   - 357 `lopLegClose(r, j)`
 
-## `src/js/core/11-route.js` (707 linjer)
+## `src/js/core/11-route.js` (753 linjer)
 
 ---------- Autonav (once «Følg leia»): a route along the fairway ----------
 
@@ -2130,18 +2130,19 @@ Kappløpet Lindesnes–Nordkapp, the core (KL1, steg 116a; docs/planer/kapplop.m
   - 331 `leiaLegOk(p, q, sd, margin)`
   - 358 `leiaLegOkL(p, q, sd, margin, tick)`
   - 366 `leiaLegFail(p, q, tick, endP, endQ, strict)`
-  - 383 `rockOnLeg(a, b, r)`
-  - 392 `leiaMend(P, sd, st, strict)`
-  - 433 `leiaStraighten(P, sd, margin, st)`
-  - 461 `leiaPull(P, sd, st)`
-  - 495 `leiaRoute(a, b, aPort, bPort, opt)`
-  - 531 `leiaSplit(a, b, aPort, bPort, opt, r0)`
-  - 564 `leiaLane(p, goal, km)`
-  - 595 `leiaPocket(p, sd)`
-  - 612 `leiaPocketOut(e, sd, st)`
-  - 622 `leiaRoute0(a, b, aPort, bPort, pocket, opt0)`
+  - 388 `rockOnLeg(a, b, r)`
+  - 397 `leiaMend(P, sd, st, strict)`
+  - 438 `leiaStraighten(P, sd, margin, st)`
+  - 466 `leiaPull(P, sd, st)`
+  - 500 `leiaRoute(a, b, aPort, bPort, opt)`
+  - 555 `leiaLaneMend(a, wps, aPort, bPort)`
+  - 577 `leiaSplit(a, b, aPort, bPort, opt, r0)`
+  - 610 `leiaLane(p, goal, km)`
+  - 641 `leiaPocket(p, sd)`
+  - 658 `leiaPocketOut(e, sd, st)`
+  - 668 `leiaRoute0(a, b, aPort, bPort, pocket, opt0)`
 
-## `src/js/core/11b-obstacles.js` (294 linjer)
+## `src/js/core/11b-obstacles.js` (299 linjer)
 
 WHAT A ROUTE MUST NOT SAIL THROUGH (Jonas 05.10.2026: «autoruter aldri skal gå gjennom 3d elementer eller landmasse», along
 
@@ -2155,12 +2156,12 @@ WHAT A ROUTE MUST NOT SAIL THROUGH (Jonas 05.10.2026: «autoruter aldri skal gå
   - 127 `obsSegHit(a, b, clr)`
   - 149 `obsRock(a, b)`
   - 155 `obsSafe(a, b, ref)`
-  - 168 `obsWays(o, a, b)`
-  - 219 `obsTurnable(a, w, b, pre)`
-  - 229 `obsDetour(a, b, depth = 3, ref)`
-  - 248 `obsRoute(a, wps)`
-  - 268 `obsLoad(pts, ms = 4000)`
-  - 283 `obsSail(pl, b)`
+  - 173 `obsWays(o, a, b)`
+  - 224 `obsTurnable(a, w, b, pre)`
+  - 234 `obsDetour(a, b, depth = 3, ref)`
+  - 253 `obsRoute(a, wps)`
+  - 273 `obsLoad(pts, ms = 4000)`
+  - 288 `obsSail(pl, b)`
 
 ## `src/js/core/11c-leinett.js` (155 linjer)
 
@@ -2429,7 +2430,7 @@ MANUAL HELM (the user's wish 03.10.2026)
   - 63 `helmCast()`
   - 69 `helmCastDone(pid, kind)`
 
-## `src/js/core/16b-dyn.js` (901 linjer)
+## `src/js/core/16b-dyn.js` (943 linjer)
 
 HOW THE BOAT MOVES: a manoeuvring model (Fysikk 1; Jonas 18.10.2026)
 
@@ -2492,20 +2493,20 @@ HOW THE BOAT MOVES: a manoeuvring model (Fysikk 1; Jonas 18.10.2026)
   - 561 `dynHelm(d, dtG)`
 - **582** the line she follows: out from the quay, the route's waypoints as the chart plotter draws them, to the harbour she ends in
   - 584 `dynLineBuild(pl, dep)`
-  - 612 `dynHandsPast(T, pl, L)`
-  - 623 `dynHandsOn(pl)`
-  - 625 `dynHands(T, k)`
-  - 631 `dynTight(T, c)`
-  - 645 `dynLineAt(T, s)`
-  - 651 `dynSeg(T, s)`
-  - 652 `dynSegHd(T, i)`
-  - 653 `dynLineProj(T, x, z, s0, back = 30)`
-  - 663 `dynLineHd(T, s, r0)`
-  - 670 `dynGroundAhead(T, s, look)`
-  - 686 `dynAvoid(d, P)`
-- **712** the autopilot
-  - 713 `dynAuto(d, dtG)`
-  - 900 `dynTrackView()`
+  - 646 `dynHandsPast(T, pl, L)`
+  - 657 `dynHandsOn(pl)`
+  - 659 `dynHands(T, k)`
+  - 665 `dynTight(T, c)`
+  - 679 `dynLineAt(T, s)`
+  - 685 `dynSeg(T, s)`
+  - 686 `dynSegHd(T, i)`
+  - 687 `dynLineProj(T, x, z, s0, back = 30)`
+  - 697 `dynLineHd(T, s, r0)`
+  - 704 `dynGroundAhead(T, s, look)`
+  - 720 `dynAvoid(d, P)`
+- **746** the autopilot
+  - 747 `dynAuto(d, dtG)`
+  - 942 `dynTrackView()`
 
 ## `src/js/core/16c-hull.js` (207 linjer)
 
@@ -2659,7 +2660,7 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 872 `portByLabel(pt)`
   - 877 `addWaypoint(pt)`
 
-## `src/js/ui/03b-route.js` (306 linjer)
+## `src/js/ui/03b-route.js` (327 linjer)
 
 ---------- the route editor: waypoint names, a timeline for the list, undo and redo, moving and inserting points ----------
 
@@ -2689,15 +2690,15 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 126 `mapToClient(p)`
 - **128** «Autonav» (the button in the chart plotter, and the dock's Auto-nav): the next tap on the chart is where to go, and the route
   - 131 `leiaArm(on)`
-  - 141 `draftWay(start, goal, aPort, gPort, atN, port)`
-  - 165 `leiaTo(pt, buoy, act)`
-  - 220 `deepNear(p, maxKm)`
-  - 230 `leiaStops()`
-  - 235 `leiaCompare()`
-- **252** the sea along the route (Ø8, 06.11.2026): the wave height on each leg at the minute the boat is there, as the local forecast gives it
-  - 260 `draftSea(tl)`
-  - 279 `routeSeaWatch()`
-  - 284 `routeSeaDraw()`
+  - 141 `draftWay(start, goal, aPort, gPort, atN, port, nt)`
+  - 186 `leiaTo(pt, buoy, act)`
+  - 241 `deepNear(p, maxKm)`
+  - 251 `leiaStops()`
+  - 256 `leiaCompare()`
+- **273** the sea along the route (Ø8, 06.11.2026): the wave height on each leg at the minute the boat is there, as the local forecast gives it
+  - 281 `draftSea(tl)`
+  - 300 `routeSeaWatch()`
+  - 305 `routeSeaDraw()`
 
 ## `src/js/ui/03g-planmap.js` (120 linjer)
 
@@ -2924,12 +2925,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **98** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 102 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1681 linjer)
+## `src/js/ui/phone/07-patch.js` (1682 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1669 `patch()`
+  - 1670 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (126 linjer)
 
@@ -3816,7 +3817,7 @@ put the game on the home screen (Jonas 11.10.2026: «Det er viktig at brukerne l
   - 115 `hopVoid(id, why)`
   - 127 `hopDeliver(id, d)`
 
-## `src/js/ui/11-boot.js` (417 linjer)
+## `src/js/ui/11-boot.js` (423 linjer)
 
 ---------- boot ----------
 
@@ -3851,7 +3852,7 @@ put the game on the home screen (Jonas 11.10.2026: «Det er viktig at brukerne l
   - 215 `bootMapLoad()`
   - 246 `chart0Load()`
   - 247 `bootGame()`
-  - 399 `bootFail(e)`
+  - 405 `bootFail(e)`
 
 ## `src/js/ui/11b-watchdog.js` (89 linjer)
 
@@ -4131,7 +4132,7 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
 - **45** terrain
   - 84 `terrRaw(x, z, dil)`
 
-## `src/js/view3d/03-berths-naust.js` (445 linjer)
+## `src/js/view3d/03-berths-naust.js` (450 linjer)
 
 ---------- The water at the berths the company holds in the coast's harbours (core/07e-havn.js) ----------
 
@@ -4144,33 +4145,33 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 90 `sitesNow()`
   - 131 `siteLift(F, o, u, nn)`
   - 141 `siteTerr(x, z, h)`
-  - 158 `onSite(x, z)`
-  - 168 `tileIn(kind, tx, ty)`
-  - 169 `tileH(L, kind, x, z)`
-  - 176 `terrH(x, z)`
-  - 185 `unitTerr(x, z, h0)`
-  - 218 `terrCoarse(x, z, dil)`
-  - 228 `forestAt(x, z)`
-  - 240 `forestCell(one, LF, ct, c, r)`
-  - 247 `coverAt(x, z, cv, ck, k)`
-  - 275 `satRead(L, x, z)`
-  - 287 `satAt(x, z, cv, o)`
-  - 295 `covBlk(LC, bx, by)`
-  - 299 `coverRing(LC, ix, iz)`
-  - 309 `coverClass(x, z)`
-  - 327 `runAll(g)`
-  - 329 `sliceRun(J, end)`
-  - 330 `meshBegin(x0, z0, sx, sz, n, hf)`
-  - 334 `meshRows(B, until)`
-  - 352 `gridIdx(n)`
-  - 375 `meshEnd(B)`
-  - 376 `makeMesh(x0, z0, sx, sz, n, hf)`
-  - 377 `freeMesh(m)`
-  - 379 `nearSurf(M, x, z)`
-  - 389 `unitPatch(U, M)`
-  - 414 `buildPatches()`
-  - 423 `buildTerrain()`
-  - 432 `stream3d()`
+  - 163 `onSite(x, z)`
+  - 173 `tileIn(kind, tx, ty)`
+  - 174 `tileH(L, kind, x, z)`
+  - 181 `terrH(x, z)`
+  - 190 `unitTerr(x, z, h0)`
+  - 223 `terrCoarse(x, z, dil)`
+  - 233 `forestAt(x, z)`
+  - 245 `forestCell(one, LF, ct, c, r)`
+  - 252 `coverAt(x, z, cv, ck, k)`
+  - 280 `satRead(L, x, z)`
+  - 292 `satAt(x, z, cv, o)`
+  - 300 `covBlk(LC, bx, by)`
+  - 304 `coverRing(LC, ix, iz)`
+  - 314 `coverClass(x, z)`
+  - 332 `runAll(g)`
+  - 334 `sliceRun(J, end)`
+  - 335 `meshBegin(x0, z0, sx, sz, n, hf)`
+  - 339 `meshRows(B, until)`
+  - 357 `gridIdx(n)`
+  - 380 `meshEnd(B)`
+  - 381 `makeMesh(x0, z0, sx, sz, n, hf)`
+  - 382 `freeMesh(m)`
+  - 384 `nearSurf(M, x, z)`
+  - 394 `unitPatch(U, M)`
+  - 419 `buildPatches()`
+  - 428 `buildTerrain()`
+  - 437 `stream3d()`
 
 ## `src/js/view3d/04-vec-packs.js` (399 linjer)
 

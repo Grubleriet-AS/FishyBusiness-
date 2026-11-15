@@ -169,6 +169,9 @@ async def main():
         # 9. Autonav 2 (12.10.2026): the lowest water of the trip counts as depth, narrow sounds on the 50 m grid, the net's legs pulled
         r = await J("""(async () => { const R = {}, A = PORTS.find(p => p.name === 'Havøysund'); await mapNeed(A.p, 9); const Rb = rorbuSites(A.p, 8)[0]; if (!Rb) return {err:'no rorbu'};
           // 9a: the credit is the lowest water above chart datum over the next hours, less the margin, between -0.5 and 1
+          // (once the route 8 set going is done: read while it was still searching, the credit outside a route was its own, 1, when the
+          // tests ran two at a time, 15.11.2026)
+          for (let i = 0; i < 300 && LEIA_RUN.length; i++) await new Promise(r => setTimeout(r, 100));
           const H0 = S.t / 60; let lo = Infinity; for (let h = 0; h <= 4; h += 0.25) lo = Math.min(lo, tideCD(H0 + h, A.p));
           R.credit = +leiaTideCredit(A.p, A.p).toFixed(3); R.expect = +clamp(lo - LEIA.tideMargin, -0.5, 1).toFixed(3); R.idle = LEIA_TIDE.credit;
           // 9b: Havøysund to its rorbu goes through the sound south of Havøya (7.5 nm round the island before)

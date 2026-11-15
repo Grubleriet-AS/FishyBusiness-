@@ -4776,3 +4776,10 @@
 2026-11-15 18:54	ccr-as1-alle	3b36e57+	autonavtest	OK	33	lite	alene	
 2026-11-15 18:55	ccr-as1-alle	3b36e57+	autonavtest	OK	38	lite	alene	
 2026-11-15 18:56	ccr-as1-alle	3b36e57+	rorbutest	OK	17	lite	alene	
+2026-11-15 20:09	ccr-as1-alle	df7ae66+	autonavtest	FEIL	36	lite	samtidig	FEIL 9a. tidevannets kreditt er laveste vannstand over turen minus marginen, og 0 utenfor en rute  {'credit': 1, 'expect': 1, 'idle': 1, 'nm1': 1.13, 'line1': 0
+2026-11-15 20:09	ccr-as1-alle	df7ae66+	trip2	OK	47	lite	samtidig	
+2026-11-15 20:10	ccr-as1-alle	df7ae66+	rorbutest	OK	20	lite	samtidig	
+2026-11-15 20:10	ccr-as1-alle	df7ae66+	harbourtest	OK	18	lite	samtidig	
+2026-11-15 20:10	ccr-as1-alle	df7ae66+	obstest	OK	11	lite	samtidig	
+2026-11-15 20:10	ccr-as1-alle	df7ae66+	autonavtest	OK	34	lite	samtidig	
+2026-11-15 20:11	ccr-as1-alle	df7ae66+	trip2	OK	41	lite	samtidig	
