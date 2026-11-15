@@ -523,6 +523,16 @@ async function leiaRoute(a, b, aPort, bPort, opt){
     if (r && r.why && LEIA_SPLIT.why.includes(r.why[0]) && (aPort || bPort) && !(opt && opt.noRev) && kmTrue(a, b) < LEIA_SPLIT.min){
       const r2 = await leiaRoute0(b, a, bPort, aPort, false, opt);
       if (r2 && !r2.why && r2.wps && r2.wps.length){ const back = r2.wps.slice(0, -1).reverse().concat([{x:b.x, y:b.y}]); r = {wps:back, nm:r2.nm, st:Object.assign({}, r2.st, {rev:true, firstWhy:r.why})}; } }
+    // and where neither way round holds: to the harbour's own way in as a point of open water (its outer end), then in by it, which the
+    // search trusts at the harbour's end anyway (laneIn); out the same way turned. Averøy from 1.5 km out: the search failed at the mend
+    // both ways round, and the way to the lane's outer end and in by the lane is there (steg 126, 15.11.2026)
+    if (r && r.why && LEIA_SPLIT.why.includes(r.why[0]) && (aPort || bPort) && !(opt && opt.noRev) && kmTrue(a, b) < LEIA_SPLIT.min){
+      for (const [P, end] of [[bPort, 'in'], [aPort, 'out']]){ if (!P || !(r && r.why)) continue; let ap = []; try { ap = approachPath(portById(P)) || []; } catch (e){} if (!ap.length) continue;
+        const o = ap[0], lane = ap.slice(1).filter(q => dist(q, portById(P).p) >= 0.002);
+        const r3 = end === 'in' ? await leiaRoute0(a, {x:o.x, y:o.y}, aPort, null, false, opt) : await leiaRoute0({x:o.x, y:o.y}, b, null, bPort, false, opt);
+        if (!r3 || r3.why || !r3.wps || !r3.wps.length) continue;
+        const wps = end === 'in' ? r3.wps.concat(lane, [{x:b.x, y:b.y}]) : lane.slice().reverse().concat([{x:o.x, y:o.y}], r3.wps);
+        r = {wps:wps.filter((q, i, l) => i === 0 || dist(q, l[i - 1]) > 0.001), nm:r3.nm, st:Object.assign({}, r3.st, {viaLane:end, firstWhy:r.why})}; } }
     if (r && r.st){ r.st.tide = +credit.toFixed(2); if (LEIA_ICE.on) r.st.ice = {cap:Math.round(LEIA_ICE.cap)}; } return r; } finally { back(); }
 }
 // A long way among the islands with no route in one piece (KL1a 12.11.2026: an autoliner from Rørvik to Bodø, 3.8 m draught. The
