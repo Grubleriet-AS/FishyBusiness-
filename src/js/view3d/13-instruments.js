@@ -247,6 +247,9 @@
     const vv = v => { const e = [BMrel[0] * v[0] + BMrel[4] * v[1] + BMrel[8] * v[2], BMrel[1] * v[0] + BMrel[5] * v[1] + BMrel[9] * v[2], BMrel[2] * v[0] + BMrel[6] * v[1] + BMrel[10] * v[2]]; return [e[0] * M[0] + e[1] * M[1] + e[2] * M[2], e[0] * M[4] + e[1] * M[5] + e[2] * M[6], e[0] * M[8] + e[1] * M[9] + e[2] * M[10]]; };
     const pp = p => { const q = xf(BMrel, p), d = [q[0] - M[12], q[1] - M[13], q[2] - M[14]]; return [(d[0] * M[0] + d[1] * M[1] + d[2] * M[2]) / S, (d[0] * M[4] + d[1] * M[5] + d[2] * M[6]) / S, (d[0] * M[8] + d[1] * M[9] + d[2] * M[10]) / S]; };
     const J = figStand(fg.sk, L.seated, null, S);
+    // (steg 125e, Jonas 15.11.2026: «Står og bøyer seg» at the hand jig: bent forward at the hips by L.bend (rad) and down in the knees by
+    // L.dip (m), as drawSkiff reckoned his shoulders; the knees bend by themselves with the hips lower, the feet where they stand)
+    if (L.bend){ J.chestR = figRot([1, 0, 0], -L.bend * 180 / Math.PI); J.pelvis = [J.pelvis[0], J.pelvis[1] - (L.dip || 0) / S, J.pelvis[2]]; }
     ['R', 'L'].forEach((sd, i) => { const a = L.arms[sd]; if (a) J.arms[sd] = {el:pp(a.E), wr:pp(a.Hc), hand:figHandTurn(fg.H0[i], vv(a.Fr[0]), vv(a.Fr[1]), vv(a.Fr[2]))}; });
     const o = figFromJoints(fg.sk, J); ['R', 'L'].forEach(sd => figGrip(fg.ex, fg.sex, (L.arms[sd] || {}).g || 'relax', o.local, sd));
     drawFig(fg, figPose(fg.sk, o.local, o.root).M, chain(M, M4.S(S)));
@@ -289,7 +292,12 @@
     const g0 = S.boat.gop, gearOn = mode === 'gear' && !!g0, setting = gearOn && g0.op === 'set', handNet = gearOn && g0.kind === 'garn' && !hasHauler('garn');
     const mate = showCrew && !!SK.fisherC && gearOn && !!SKA.coil && !!SKA.setter, atRail = !(setting && SKA.set);   // (a model without the places keeps the fisher at the rail)
     const moorI = SKA.moor && meAboard() && !cam.helm && (b.status === 'port' || b.status === 'unmooring') && (MO.phase === 'lines' || MO.phase === 'out') && MO.lines > 0.02 && MO.lines < 3.98 ? Math.min(3, Math.floor(MO.lines)) : -1;
-    if (((showSkipper && !fishing) || (setting && SKA.set && meAboard() && !cam.helm)) && moorI < 0) drawN(SK.skipper, BMrel);
+    if (((showSkipper && !fishing) || (setting && SKA.set && meAboard() && !cam.helm)) && moorI < 0){ const TG = SK.tillerG && SK.skAt;
+      drawN(SK.skipper, TG && SK.skipper.fig2 ? chain(BMrel, M4.T(SK.skAt[0], SK.skAt[1], SK.skAt[2])) : BMrel);
+      // (steg 125e: the right hand on the tiller's grip as it swings about the rudder head, the left on his knee; the tiller as drawn below)
+      if (TG && SK.tillerAt){ const P0 = SK.tillerAt, a = SK.wheelA * 0.3, c = Math.cos(a), sn = Math.sin(a), d = [SK.tillerG[0] - P0[0], SK.tillerG[1] - P0[1], SK.tillerG[2] - P0[2]],
+          gr = [P0[0] + c * d[0] + sn * d[2], SK.tillerG[1] + 0.03, P0[2] - sn * d[0] + c * d[2]], K0 = SK.skAt, sh = (SK.wk ? WK_SH : 1.3) * 0.72;
+        armTo(BMrel, SK.wk, [K0[0] + 0.2, K0[1] + sh, K0[2]], gr, 1, {g:'grip', a:[0, 0, -1]}); armTo(BMrel, SK.wk, [K0[0] - 0.2, K0[1] + sh, K0[2]], [K0[0] - 0.12, K0[1] + 0.56, K0[2] - 0.34], -1); } }
     if (showCrew && !mate) drawN(SK.crew, BMrel);
     if (mode !== A.mode){ A.mode = mode; A.st = 'jig'; A.t = 0; A.fish = []; A.fly = []; A.mc = []; A.bq = []; A.bl = null; A.jk = HANDJUKSA.fresh(); }
     // fish reported by the fishing step; stale ones (3D was off) are dropped
@@ -324,7 +332,7 @@
       const u = f.u; hang(f.sp, f.kg, [f.a[0] + (TUB[0] - f.a[0]) * u, f.a[1] + (TUB[1] - f.a[1]) * u + Math.sin(Math.PI * u) * 0.45, f.a[2] + (TUB[2] - f.a[2]) * u], i, 0); }
     if (mode && atRail){
       const FP = chain(M4.T(F[0], F[1], F[2]), M4.RY(-Math.PI / 2)); drawN(SK.fisher, chain(BMrel, FP));
-      const shY = SK.wk ? WK_SH : 1.3, shR = xf(FP, [0.2, shY, 0]), shL = xf(FP, [-0.2, shY, 0]); let hR, hL;
+      const shY = SK.wk ? WK_SH : 1.3; let shR = xf(FP, [0.2, shY, 0]), shL = xf(FP, [-0.2, shY, 0]), hR, hL;
       A.t += dt;
       if (mode === 'gear'){
         const RL = handNet && SKA.rail ? SKA.rail : SKA.haul, w = T * 3.2, hauling = S.boat.gop.op === 'haul';   // (the nets over the rail itself, SKA.rail)
@@ -405,6 +413,13 @@
           kDir = [0.6, -0.6, -0.4];   // (the knife is drawn in the right hand's grip, below with the arms)
           if (c > 0.75){ const sc = fsc(f.kg), th = xf(BMrel, [ch[0], ch[1] - sc * 0.12, ch[2]]), U = xf(BMrel, TUB); for (let i = 0; i < 10; i++){ const u = ((c - 0.75) * 1.6 + hash(i * 5) * 0.6) % 1; DKBLOOD.push([th[0] + (U[0] - th[0]) * 0.2 * u + (hash(i) - 0.5) * 0.03, th[1] - 0.9 * u * u, th[2] + (U[2] - th[2]) * 0.2 * u + (hash(i + 3) - 0.5) * 0.03]); } } }
         else { A.fly.push({sp:f.sp, kg:f.kg, a:ch, u:0}); A.bl = null; A.nb = (A.nb || 0) + 1; } }   // (nb: bled, for the tests)
+      // (steg 125e, «Står og bøyer seg»: the hands on the crank and the line by his knee: he bends forward at the hips, and down in the
+      // knees with it, as far as both hands need to reach (the arm's 0.62 m less a little), and comes up again for the bleeding; the bend
+      // follows over a third of a second or so. Only the new people bend (FIGLV), the old figure is one piece)
+      if (FIGLV && SK.wk){ const hipY = shY * 0.62, reach = 0.6, sAt = (th, dp, sd) => xf(FP, [sd * 0.2, hipY + (shY - hipY) * Math.cos(th) - dp, -(shY - hipY) * Math.sin(th)]), d3 = (P, Q2) => Math.hypot(P[0] - Q2[0], P[1] - Q2[1], P[2] - Q2[2]);
+        let want = 0; for (let k = 0; k <= 12; k++){ want = k * 0.07; if (d3(sAt(want, want * 0.3, 1), hR) <= reach && d3(sAt(want, want * 0.3, -1), hL) <= reach) break; }
+        A.bend = (A.bend || 0) + (want - (A.bend || 0)) * Math.min(1, dt * 5); const bd = A.bend, dp = bd * 0.3;
+        FIGLV.bend = bd; FIGLV.dip = dp; shR = sAt(bd, dp, 1); shL = sAt(bd, dp, -1); }
       const arm = (Sw, Hw, sd, sp) => armTo(BMrel, SK.wk, Sw, Hw, sd, sp);
       const gR = arm(shR, hR, 1, kDir ? {g:'grip', a:kDir, tool:true} : null); arm(shL, hL, -1);
       if (kDir && gR){ const kn = knifeKit(true); if (kn) drawN(kn, chain(BMrel, toolM(gR, kDir))); }

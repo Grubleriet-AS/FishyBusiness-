@@ -556,7 +556,7 @@
     // (steg 125e: a bled fish is counted in the tub when it lands there, FISKVEI.TOSS s into the bleeding; the account begun from the catch
     // waiting in the game once, and emptied with it when nothing waits and nobody guts)
     if (LEMMER.on){ const L = dkFv(), wk = dkWaitKg(); FISKVEI.seed(L, wk);
-      for (const e of DKEV) if (e.kind === 'bleed' && e.who != null && !e.inTub && now - e.t0 >= FISKVEI.TOSS && now - e.t0 <= DKDUR.bleed){ e.inTub = true; FISKVEI.bled(L); }
+      for (const e of DKEV) if (e.kind === 'bleed' && e.who != null && !e.inTub && now - e.t0 >= FISKVEI.TOSS){ e.inTub = true; FISKVEI.bled(L); }
       if (wk < 0.5 && !CREW3D.visible().some(a => a.task === 'gut' && a.mode === 'at')) FISKVEI.clear(L); }
     for (let i = DKEV.length - 1; i >= 0; i--){ const e = DKEV[i]; if (now - e.t0 > (e.who == null ? e.wait || DKDUR[e.kind] : DKDUR[e.kind]) + 4) DKEV.splice(i, 1); }
     for (const e of DKEV){ if (e.who == null || e.chained) continue; const age = now - e.t0;

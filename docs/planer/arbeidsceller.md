@@ -117,6 +117,15 @@ Tegningene: `docs/planer/dekk/<type>.png`, «I dag» og «Forslag» side om side
 - **Testene:** `dekkplan` holder modellene lik forslagene (sett rød med 49 avvik før flyttingen); lossing, sjøbein, arbeidsplass, arbeidssone, jig, trim og teiner er rettet for de nye plassene. `tests/dekk125d.py` tar bildene ovenfra med linetrekk i begge formater.
 - **Ikke gjort her (steg 3 og 4):** stillingene er ikke festet til de nye plassene, haleren bløgger ikke selv i animasjonen ennå, ingen fisk følger hele veien, sløyerens to kasser står fortsatt, krakken er ikke i bruk.
 
+## Bygd i steg 125e (15.11.2026): én fisk hele veien, første økt
+
+- **Regnskapet for den synlige fisken** (`FISKVEI` i `src/js/deckcrew.js`, bak `#folk2`): en bløgget fisk telles i bløggekaret når den lander der (`FISKVEI.TOSS`, 2,45 s ut i bløggingen); sløyeren tar en fisk ut av karet bare når det er en der, ellers venter han ved bordet med hendene i ro; den sløyde fisken går i den åpne luka (`work.nopack`) eller fiskekaret ved slutten av runden. Karet tegnes med regnskapets fisk, ikke spillets kilo; fisken som lå ved bordet etter kiloene, tegnes ikke med `#folk2`. Regnskapet begynner fra fangsten som venter (én fisk per 6 kg, høyst ti) når du kommer om bord midt i et drag, og tømmes med spillet når ingenting venter og ingen sløyer. Kalles sløyeren bort midt i en fisk, går den tilbake i karet om den ikke var lagt på bordet. Spillets fangst endres ikke av noe av dette.
+- **Sløyerens to kasser (`HOLDT.gutbox`, 125b) er ute.** Sløyeren henter fra bløggekaret ved hånda og kaster i luka eller fiskekaret (`tests/unit/arbeidssone.test.mjs` måler nå begge, som `dekkplan` gjør: karets nærmeste kant høyst 0,75 m, luka innen 2,2 m).
+- **Haleren bløgger selv der `work.solo`:** fisken han slipper ved siden av seg, er hans (før ventet den på den som sto ved bordet og forsvant etter 20 s).
+- **Trebåten (Jonas' klipp 15.11.2026):** håndjuksa med pilk + 10 kroker (`HANDJUKSA` i `deckcrew.js`): slippes ned, nappes, sveives opp med det som sitter på og slippes ned igjen; uten fisk sveives den opp etter 18 s. Fisk som krokes mens han bløgger, venter på krokene; køen kuttes ikke lenger. Karet tegnes uten fisken som venter på kniven og den i hånda (før sto de i karet før de var bløgget). Hånda på rorkulten følger den når båten svinger.
+- **Testene:** `fiskvei.test.mjs` og `handjuksa.test.mjs` (begge sett røde mot dagens regler), `tests/fiskvei3d.py` (regnskapet i spillet), `tests/trebat125e.py` (juksa og rorkulten i bilder), `tests/folk2klipp.py --lock` (hele dekket på én låst klokke).
+- **Gjenstår (andre økt):** klippene per båt; på trebåten hånda på sveivknotten og rundt snøret (sveiven står ved kneet og armen når den ikke stående: han må sitte eller bøye seg, et valg om modellen), og gangen mellom roret, juksa og bordet.
+
 ## Valgene som må tas før det bygges (Jonas)
 
 - A/B: færre samtidige stasjoner på de minste dekkene, eller trangere celler der.

@@ -34,6 +34,7 @@ async def main():
             n0 = await pg.evaluate("G3._debug.kitStat.n")
             await pg.evaluate(SET, [t, 'line', 0.0, 1.2, 9])
             await pg.wait_for_function("([t, n0]) => { const K = G3._debug.kitStat; return K.vt === t && K.n >= n0 + 4; }", arg=[t, n0], timeout=120000)
+            await pg.evaluate("G3._debug.studio(true)")   # (no land, sea or trees drawn, 35 frames a second in place of 1: the boat is what is looked at. After her model is in: in studio from the start the new type was never loaded)
             bad_sum, wrong, last, solo = 0, set(), None, False
             for _ in range(160):   # (80 s of the game's own time at the frame rate SwiftShader gives)
                 await pg.wait_for_timeout(500); r = await pg.evaluate(READ); f = r['fv']; n = f['n']; solo = r['solo']

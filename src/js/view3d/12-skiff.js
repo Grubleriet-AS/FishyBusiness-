@@ -235,7 +235,10 @@
     K.qName = A.names ? A.names.map(([B, T]) => texStrip(B, T)) : [];
     const g = A.tiller && A.tiller.grip, sk = A.skipper;
     // at a tiller: seated beside it, the right hand on its grip, the left on his knee
-    const hands = g ? [[sk[0] - 0.12, sk[1] + 0.56, sk[2] - 0.34], [g[0] - 0.03, g[1] + 0.03, g[2]]] : A.wheel ? [[A.wheel[0] - 0.14, A.wheel[1] + 0.14, A.wheel[2] + 0.05], [A.wheel[0] + 0.14, A.wheel[1] + 0.12, A.wheel[2] + 0.05]] : null;
+    // (steg 125e, Jonas 15.11.2026: «Han holder heller ikke på selve roret når båten svinger, for da beveger roret seg»: at a tiller his
+    // arms are drawn live, the right hand on the grip where the tiller has swung to, 13-instruments.js drawSkiff; hands false)
+    K.tillerG = g || null; K.skAt = sk;
+    const hands = g ? false : A.wheel ? [[A.wheel[0] - 0.14, A.wheel[1] + 0.14, A.wheel[2] + 0.05], [A.wheel[0] + 0.14, A.wheel[1] + 0.12, A.wheel[2] + 0.05]] : null;
     const ps = NB(); PERSON(ps, sk[0], sk[1], sk[2], !!A.sit, hands, seaLook(lookMe(), true)); K.skipper = ps.mesh();
     const pc = NB(); PERSON(pc, A.seat[0], A.seat[1], A.seat[2], true, null, seaLook(lookCrew(0)) || 'crew'); K.crew = pc.mesh();
     K.pp = {skipper:[sk[0], sk[1], sk[2], !!A.sit, hands], crew:[A.seat[0], A.seat[1], A.seat[2], true, null], fisher:[0, 0, 0, false, false]}; K.pSig = peopleSig(); K.wk = wkMeshes(seaLook(lookMe()));

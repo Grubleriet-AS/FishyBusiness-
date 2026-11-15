@@ -303,8 +303,9 @@
   }
   // (kind 'auto': the autoline hauler with its hook cleaner, tools/gear/autoline.py, set in the autoliner's hauling port, anchors.aline)
   function haulModel(kind){
-    if (kind in HAULM) return HAULM[kind]; HAULM[kind] = null; const type = kind === 'auto' ? 'gear-autoline' : 'haul-' + kind;
-    if (typeof glbHas !== 'function' || !glbHas(type)) return null;
+    if (kind in HAULM) return HAULM[kind]; const type = kind === 'auto' ? 'gear-autoline' : 'haul-' + kind;
+    // (steg 125e: not remembered as none while its model is still on its way: asked before it came, the hauler was never drawn and no fish gaffed in all the session)
+    if (typeof glbHas !== 'function' || !glbHas(type)) return null; HAULM[kind] = null;
     const G = glbLoad(type), ex = (G && G.ex) || {}, mk = nm => { const o = glbPart(type, nm); if (!o) return null; const n = o.p.length / 3, c = new Float32Array(n * 3);
       for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) c[i * 3 + k] = o.c[i * 4 + k]; return {pb:buf(asF32(o.p)), cb:buf(c), n}; };
     if (ex.axle && ex.path) HAULM[kind] = {frame:mk('frame'), sheave:mk('sheave'), stripper:mk('stripper'), ax:ex.axle, st:ex.stripper, r:ex.r, rg:ex.rg || ex.r, path:ex.path};
