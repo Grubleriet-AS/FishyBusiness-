@@ -55,7 +55,7 @@ async def gang():
     d0 = os.path.join(OUT, 'klipp'); os.makedirs(d0, exist_ok=True)
     async with async_playwright() as p:
         br = await p.chromium.launch(args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
-        pg = await br.new_page(viewport={'width': 640, 'height': 400}); errs = []
+        pg = await br.new_page(viewport={'width': 480, 'height': 300}); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await boot(pg, GAME + ',folk2,rawclock')
         await pg.wait_for_function("G3.isActive()", timeout=90000); await pg.wait_for_timeout(3000)
