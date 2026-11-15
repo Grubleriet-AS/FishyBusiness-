@@ -1,7 +1,8 @@
 """Clips of the new people at work, a frame at a time (Jonas 14.11.2026; CLAUDE.md «bildeklipp»): the software GPU draws a frame in
 10 to 40 s, so a recording in real time is useless. Here the man's own clock is set to a moment (SJOBEIN.test.t), the frame is drawn
 and saved, and the clock is moved one step on; the frames are sewn to a clip with ffmpeg. The boat, the deck and what stands on it
-are drawn (not the white room: whether a hand is on the table or the rail must be seen), the sea and the terrain are left out for speed.
+are drawn (the white room with the boat in it, G3._debug.studio(2): whether a hand is on the table or the rail must be seen), the sea, the
+terrain, the sky and the shadows are left out for speed.
 Not in run.py: a tool, as folk2live.py.
 
   python3 tests/folk2klipp.py <name> <scene> <task> <t0> <t1> [--fps 8] [--lay] [--dist 3.4] [--pitch 0.35] [--face 0.6]
@@ -41,6 +42,7 @@ async def main():
         who = await pg.evaluate("(k) => CREW3D.agents().findIndex(a => a.task === k && a.mode === 'at')", task)
         # (the HUD away, the sea and the land not drawn: the deck and the people are what is looked at)
         await pg.add_style_tag(content="body * { visibility: hidden !important; } canvas { visibility: visible !important; }")
+        await pg.evaluate("G3._debug.studio(2)")   # (the white room with the boat and her deck: no sea, land, sky or shadows; after her model is in)
         await pg.evaluate("([w, d, p, f]) => G3._debug.camOn(w, d, p, f, false)", [who, o['dist'], o['pitch'], o['face']])
         t_0 = time.time(); files = []
         if lock:
