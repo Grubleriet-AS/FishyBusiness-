@@ -79,6 +79,12 @@ export default function (t){
   // a jump (the clock run on, another boat): laid out anew, counted as a snap, and the count right again
   { const L = S.fresh(); S.sync(L, {full:3, coil:0, empty:0, op:null}, 2); S.sync(L, {full:1, coil:0, empty:4, op:null}, 2);
     t.ok(L.n.snap === 1 && S.count(L, 'empty') === 4 && S.count(L, 'full') === 1, 'et hopp legger dekket ut på nytt og teller det (snap ' + L.n.snap + ')'); }
+  // the deck's order of the slots (L.pri, deckcrew.js: the open side of a layer first): the set takes the open side's tubs first, and the
+  // haul fills the far side first, a layer at a time
+  { const L = S.fresh(); L.per = 2; L.pri = i => Math.floor(i / 2) * 10 + (i % 2 ? 1 : 0); S.sync(L, {full:4, coil:0, empty:0, op:null}, 0);
+    S.sync(L, {full:2, coil:0, empty:0, op:{key:'p', kind:'set', n:2, done:0, prog:0}}, 0); const took = L.op.ids.map(id => S.by(L, id).i);
+    const H = S.fresh(); H.per = 2; H.pri = L.pri; S.sync(H, {full:0, coil:0, empty:3, op:null}, 1); const order = []; for (let k = 0; k < 3; k++){ const s2 = S.freeSlot(H); order.push(s2); H.T.push({id:100 + k, k:'coil', at:'slot', i:s2}); }
+    t.ok(JSON.stringify(took) === '[3,2]' && JSON.stringify(order) === '[0,1,2]', 'stabelens rekkefølge: settingen tar fra den åpne siden først, halingen fyller den andre først (' + JSON.stringify([took, order]) + ')'); }
   // the baiting on deck (pg.shore egnself) makes coiled tubs full where they stand: none moves
   { const L = S.fresh(); S.sync(L, {full:0, coil:3, empty:0, op:null}, 2); const before = JSON.stringify(L.T.map(q => [q.at, q.i])); S.sync(L, {full:2, coil:1, empty:0, op:null}, 2);
     t.ok(JSON.stringify(L.T.map(q => [q.at, q.i])) === before && S.count(L, 'full') === 2 && !L.n.snap, 'egningen gjør stampene fulle der de står'); }

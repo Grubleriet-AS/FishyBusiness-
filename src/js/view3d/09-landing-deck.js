@@ -616,8 +616,9 @@
       drawTub1(chain(M0, M4.T((j % 2) * 0.52, Math.floor(i / per) * 0.38, Math.floor(j / 2) * 0.5), M4.RY(hash(i * 3 + 1) * 6.28)), f, green, i + per >= nd); } }
   // one line tub at M: its coil (not an empty one's), and with nothing on top of it the hooks hung round the rim (all baited: the
   // model's ring of them, else the baited ones one by one)
-  function drawTub1(M, f, green, top){ const T = kit('rig', 'stamp'), Lr = kit('rig', green ? 'line_g' : 'line_r'), K = kit('rig', 'kroker'), HX = (kitX('rig').hooks) || {n:30, r:0.2238, y:0.38, a0:-75, a1:75};
-    if (!T){ drawN(GB.tub, M); return; } drawN(T, M); if (f < 0) return; if (Lr) drawN(Lr, M); if (!top) return;
+  // (coil: the share of its coil that is in it, steg 125f: the coil sinks as the line runs out of it and rises as it is coiled in)
+  function drawTub1(M, f, green, top, coil){ const T = kit('rig', 'stamp'), Lr = kit('rig', green ? 'line_g' : 'line_r'), K = kit('rig', 'kroker'), HX = (kitX('rig').hooks) || {n:30, r:0.2238, y:0.38, a0:-75, a1:75};
+    if (!T){ drawN(GB.tub, M); return; } drawN(T, M); if (f < 0) return; if (Lr) drawN(Lr, coil != null && coil < 1 ? chain(M, M4.S(1, Math.max(0.04, coil), 1)) : M); if (!top) return;
     if (K && f >= 0.999) drawN(K, M);
     else if (f > 0 && GB.bait){ const m = Math.round(f * HX.n); if (!BITM.length) for (let j = 0; j < HX.n; j++){ const a = (HX.a0 + (HX.a1 - HX.a0) * j / Math.max(1, HX.n - 1)) * DEG; BITM.push(chain(M4.T(Math.cos(a) * HX.r, HX.y + 0.012, -Math.sin(a) * HX.r), M4.RY(a), M4.S(1.3))); }
       for (let j = 0; j < m && j < BITM.length; j++) drawN(GB.bait, chain(M, BITM[j])); } }
@@ -625,6 +626,22 @@
   // rail's top), in the frame of the place over the stern; null where it does not stand
   function magTubs(BMrel, G){ const P = G.kit && G.kit.setter, X = kitX('upg').mag; if (!P || !X || !X.at || typeof CREW3D === 'undefined' || !CREW3D.magOn()) return null;
     const M = chain(BMrel, M4.T(P[0], P[1], P[2]), M4.RY(P[3] || 0)); return [chain(M, M4.T(0, X.top, -(X.at[0] + 0.27))), chain(M, M4.T(0, X.top, -(X.at[1] - 0.27)))]; }
+  // the setter's magazine's two places in the boat's frame (the feet of the tubs on it, as magTubs), for the deck crew's account
+  function magPts(G){ const P = G.kit && G.kit.setter, X = kitX('upg').mag; if (!P || !X || !X.at) return null; const a = P[3] || 0, c = Math.cos(a), s = Math.sin(a), at = lz => [P[0] + s * lz, P[1] + X.top, P[2] + c * lz];
+    return [at(-(X.at[0] + 0.27)), at(-(X.at[1] - 0.27))]; }
+  // ---- the line tubs where the deck crew's account has them (steg 125f, deckcrew.js STAMPER and lineTubs): every tub by itself, in
+  // its slot of the stack (a tub with one on top of it shows no hooks), at a work spot, or nested in the others in the nest; the one
+  // the line runs from or into with its coil sinking or rising, and the one being carried drawn with the one carrying it (08-plants.js)
+  // fill: what the crew's jobs on deck show on the tubs in the stack's first places (baiting, stripping), else null
+  function drawStamper(BMrel, G, LT, fill){ const per = (((GEO(vtype()) || {}).kit || {}).stamps || {}).n || ((VESSELS[vtype()] || {len:10}).len < 8 ? 4 : 8);
+    const inSlot = new Set(LT.T.filter(q => q.at === 'slot').map(q => q.i)), nTop = Math.max(-1, ...LT.T.filter(q => q.at === 'nest').map(q => q.i)), c = LT.carry, n = {slot:0, work:0, nest:0, hand:0};
+    for (const q of LT.T){ n[q.at]++; if (!q.p || (c && c.id === q.id && (q.at === 'hand' || c.at))) continue;
+      const run = LT.run && LT.run.id === q.id, top = q.at === 'slot' ? !inSlot.has(q.i + per) : q.at === 'nest' ? q.i === nTop : true;
+      const f = q.at === 'slot' && fill && q.i < fill.length ? fill[q.i] : q.f, cl = run ? q.f : null;
+      drawTub1(chain(BMrel, M4.T(q.p[0], q.p[1], q.p[2]), M4.RY(q.ry)), run && q.k === 'empty' ? 0 : f, false, top, cl); }
+    KST.stamps = n.slot; KST.stampsAll = LT.T.length; KST.tubs125 = {slot:n.slot, work:n.work, nest:n.nest, hand:n.hand, carried:LT.carried, snap:LT.snap, halt:!!LT.halt, run:LT.run ? Math.round(LT.run.f * 100) / 100 : null}; }
+  // the account, where the deck has a crew and it has begun (else null: the boats worked by hand, the old drawing)
+  function stamperNow(G){ if (G.hand || typeof CREW3D === 'undefined' || !CREW3D.on() || !CREW3D.lineTubs) return null; if (CREW3D.setMag) CREW3D.setMag(CREW3D.magOn() ? magPts(G) : null); return CREW3D.lineTubs(); }
   // the line tubs aboard as a list of what each holds (1 baited, 0 coiled, -1 empty), drawn: the first two on the magazine where it
   // stands, one at the stern by the one setting (at: deckcrew.js setPlan's tub), the rest at the rig's place
   function drawTubList(BMrel, G, d, F, at){ const MT = magTubs(BMrel, G) || []; let i = 0;
@@ -640,7 +657,11 @@
     const out = Math.max(0, tubsOut() - (g.op === 'haul' ? g.n : 0)), PN = g.op === 'set' && !G.hand && typeof CREW3D !== 'undefined' && CREW3D.on() ? CREW3D.setPlan('line') : null;
     if (g.op === 'set'){ for (let i = g.done; i < g.n; i++) F.push(1); for (let i = 0; i < rest; i++) F.push(i < bt ? 1 : 0); for (let i = 0; i < g.done + out; i++) F.push(-1); }
     else { for (let i = 0; i < g.done; i++) F.push(0); for (let i = 0; i < rest; i++) F.push(i < bt ? 1 : 0); for (let i = g.done; i < g.n + out; i++) F.push(-1); }
-    if (G.hand){ const R = rigAt(G, 'line', d), n = g.op === 'haul' ? g.done : g.n - g.done; drawLineTubs(BMrel, R.at, n, g.op === 'set' ? n : 0, false, R.ry); return; }   // (the boats worked by hand as before: OB1, OB5)
+    // (the boats worked by hand: every tub at her stack, the empty ones too, as they were before the set or the haul; steg 125f: the
+    // ones set went out of the picture before)
+    if (G.hand){ const R = rigAt(G, 'line', d), H = []; if (g.op === 'set'){ for (let i = 0; i < g.done; i++) H.push(-1); for (let i = g.done; i < g.n; i++) H.push(1); } else { for (let i = 0; i < g.done; i++) H.push(0); for (let i = g.done; i < g.n; i++) H.push(-1); }
+      drawLineTubs(BMrel, R.at, H.length, 0, false, R.ry, H); return; }
+    const LT = stamperNow(G); if (LT){ drawStamper(BMrel, G, LT, null); return; }
     drawTubList(BMrel, G, d, F, PN && PN.tub); }
   // ---- the nets aboard (F8, OB3): NET_TUB to a tub, the tubs where the deck has room for them (deckcrew.js netTubs), the first ones
   // full and the last with what is left; what the tubs do not hold is heaped on the last
@@ -690,7 +711,8 @@
       const fill = []; for (const j of EJ) fill.push(...jobTubs(j)); for (let i = 0; i < n; i++) fill.push(i < bt ? 1 : 0);
       // (OB3: the empty tubs of the lines in the sea stay aboard; with the setter's magazine the first two tubs stand on it, unless they are worked)
       if (rig === 'line' && !G.hand) for (let i = tubsOut(); i > 0; i--) fill.push(-1);
-      const R = rigAt(G, 'line', d); if (fill.length){ if (G.hand || EJ.length) drawLineTubs(BMrel, R.at, fill.length, 0, false, R.ry, fill); else drawTubList(BMrel, G, d, fill, null); } }
+      const R = rigAt(G, 'line', d), LT = stamperNow(G); if (LT){ drawStamper(BMrel, G, LT, EJ.length ? EJ.flatMap(jobTubs) : null); return; }
+      if (fill.length){ if (G.hand || EJ.length) drawLineTubs(BMrel, R.at, fill.length, 0, false, R.ry, fill); else drawTubList(BMrel, G, d, fill, null); } }
   }
   // ---- the kit on the model's places (G.kit, from the boat's model; tools/deck): the life-saving gear the rules ask for (V.lsa,
   // 02-species-gear.js lsaOf), the radar that is bought, the freight on deck in crates and the crane. Nothing is drawn where the
