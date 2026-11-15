@@ -71,6 +71,14 @@ Jonas valgte gjennom samtalen med Gemini: **A** for sløyeren (kasser ved bordet
 - **Ikke bygd:** færre stasjoner på små dekk og «inne» for dem uten stasjon; banen rundt kroppen som én regel; gripepunkter for pakkeren, bløggeren og egneren; folk som går, går gjennom sløyerens kasser (dekkskartet kjenner dem ikke).
 - **Dette var andre og siste økt i runden.** Neste skritt er Jonas' på nettbrettet.
 
+## Ny retning 15.11.2026 (Jonas, etter klippet fra nettbrettet): plassene først, så fiskens vei
+
+Jonas: «Jeg tror det er lurt at vi tar en gjennomgang på alle båtene og plasserer fiskeredskap, kar, sløyebenker og alt sånt på plasser som harmonerer med arbeidsprosessene mannskapet skal utføre»; «fisk teleporterer fra kar til sløyebenk»; «hele hendelsesforløpet fra fisken kommer ombord, bløgges, legges i bløggekar, hentes for sløying, sløyes, kastes i lasterom eller kar på dekk har animasjoner»; «På båter med lasterom vil jeg at det skal være en åpen luke ned til lasterommet der fisken kastes enten rund etter bløgging, eller etter at den er sløyd»; ingen kasser som dukker opp ut av løse lufta, Blender-modeller av kasser som løftes; en trekrakk i stedet for de hvite kassene når de egner eller har pause; tomme linebøtter stables i hverandre etter hvert som lina settes. «Ja, det er greit at ting flyttes båt for båt» (snur «ingenting flyttes i modellene» fra 14.11). «Start med det du mener blir mest riktig for et bra sluttresultat.»
+
+**Rekkefølgen (foreslått, hvert steg med tak i økter og Jonas' ja):** (1) plantegninger av de åtte kystbåtdekkene med forslag til nye plasser, Jonas godkjenner båt for båt; (2) tingene flyttes i Blender-skriptene, luka åpnes, krakken lages; (3) én fisk som følger hele veien (regnskap for den synlige fisken), stillingene festet til de nye plassene; (4) linebøttene og krakken i bruk. Sløyerens to kasser fra 14.11 tas ut når plassene er lagt om.
+
+**Gjort 15.11:** `node tests/unit/run.mjs dekkplan` leser hvert dekk fra modellen (`tests/out/dekkplan.json`), og `python3 tools/deck/dekkplan.py [forslag.json]` tegner det ovenfra til `docs/planer/dekk/<type>.png` (i dag i farger, forslag i grønt). Fiskens vei i dag: 2,4 m (snekka) til 7,0 m (nysjarken); leddet bløggekaret → sløyeren er 1,4–4,1 m. Ting som står i hverandre i dag: bløggekaret og haleren på sjarken og plastsjarken (halerens mann står inne i karets fotavtrykk), bløggekaret og garnkaret på snekka. Første forslag tegnet for nysjarken (`docs/planer/dekk/forslag.json`). Ingenting i spillet er endret.
+
 ## Valgene som må tas før det bygges (Jonas)
 
 - A/B: færre samtidige stasjoner på de minste dekkene, eller trangere celler der.
