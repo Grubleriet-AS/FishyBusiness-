@@ -44,6 +44,16 @@ Fra `CLAUDE.md` 26.10.2026 (Jonas 07.10.2026, «Spør før hver test»: «Dekker
 
 Hvilke tester som dekker hvilke filer, står i `COVER` i `tests/run.py`. Funksjonstestene og triksene står nedenfor (kapittel 11).
 
+## Hva testene laster, og hva som koster (15.11.2026)
+
+Målt i SwiftShader (4 kjerner, 1280×800) 15.11.2026, analysen i Claude-dokumentet «Effektivisering av testene», skriptene i prosjektfilene `testmaling/`:
+
+- **Oppvarmingen er det dyre:** hver ny side bruker 50–140 s på de seks første 3D-bildene, og spillets egen tråd står stille i over 90 % av den tida (den venter på at SwiftShader kompilerer og tegner). Etterpå tar et bilde 55–120 ms. En fast profilmappe for nettleseren (skyggerne i hurtigbufferen) ga ingenting.
+- **FFT-sjøen koster nesten ingenting** per bilde, og påvirker båtens bevegelse, så den står på i alle testene.
+- **`GAME3D_MIN`** i `_env.py` slår av trærne, dyrelivet, vinden, strandbåndet, skjærene, marinaene og nærtingene (`#trees0,life0,vind0,shore0,rocks0,marina0,near0`): 10–20 % kortere bilder. Brukes av 3D-testene som sjekker logikk: `trackfollow`, `helmjit`, `moortest`, `landtest`, `bunkertest`, `saytest`. Testene av grafikken og bildene noen ser på, har full scene.
+- **Ingen test snakker med produksjonen:** `_env.py` stopper alle kall til `*.supabase.co` (spillet spurte før om serverens minutt, `rpc/sp_now`, ved hver start). Testene av skyen bruker sin egen falske vert (`https://sb.test`). `KYST_NETT=1` slipper dem gjennom.
+- **Skriptene som ikke er tester** (målinger, bilder av én båtmodell, klippene av folkene, `tutcoast`) står i `HAND` i `run.py`. `python3 tests/run.py utenfor` skal være tom; `run.py` stopper også hvis samme fil står to ganger i `COVER`.
+
 ## 11. Testing
 
 - **Verktøy:** Playwright med Chromium og SwiftShader (`--use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist`). Testene finner spillet via `tests/_env.py` (`GAME` med `#notut`, `GAME_TUT` uten).

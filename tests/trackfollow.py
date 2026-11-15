@@ -10,7 +10,7 @@ slakker av og stopper nøyaktig der den skal», Stopp underway not «bråstoppe�
    the cast-off) does not run her out along the line for the model to put her back (07.11.2026: 196 and 197 m under a stall of 22 s).
 4. The chart plotter draws the boat where she is between the simulation's minutes.
 Prints OK or FEIL per check."""
-from _env import GAME, boot
+from _env import GAME3D_MIN as GAME, boot  # (GAME3D_MIN: the 3D scene without the parts this test does not look at, CLAUDE.md 15.11.2026)
 import asyncio, json, math
 from playwright.async_api import async_playwright
 
