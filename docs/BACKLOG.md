@@ -1037,7 +1037,6 @@ E4 (`docs/utviklingsplan.md`) tok de røde testene én om gangen 26.10.2026, i t
 - **Personvernsiden og reléet** (Ø16, 05.11.2026): posisjonen går nå også gjennom vår egen server i Helsinki flere ganger i sekundet (ingenting lagres, bare tall logges). Teksten om posisjonen i `src/legal/personvern.html` sier trolig nok, men bør leses før utrullingen.
 - **Caddyfile-en er ikke sjekket med Caddy lokalt** (Ø16, 05.11.2026): ingen Caddy i skymiljøet. `setup.sh` kjører `caddy validate` før den laster inn den nye; er den ugyldig, stopper skriptet og den gamle går videre.
 
-- **Rundt hundre testskript står utenfor listene i `run.py`** (Ø2 05.11.2026): `shot.py`, `shot2`–`shot51`, `shore_*.py`, `*shot.py` for enkeltbåter (`hs11shot`, `ky15shot`, `r38shot` …), `animshot`, `fasit`, `misstest`, `motiontest`, `progtest`, `leiaprobe` og flere, og de kjøres aldri. De fleste er engangsbilder fra da en modell eller kysten ble laget. `shot23.py` var utdatert (`#modeBtn`, salg i telefonen) og er slettet. Forslag: gå gjennom resten i én økt, ta ut det som ikke kjøres mot dagens spill, og legg det som skal bli, i `D3` eller `LITE`. Lista: `python3 tests/run.py utenfor` (`tutcoast` står utenfor med vilje).
 - `oppdrag()` i `ui/phone/02-havn-last-agn-ordre.js` (linje 33, `salg('best')`) kalles ikke lenger: bestillingene tas i dokka (Bygd, Oppdrag), og Salgslaget har ikke fanen. Funnet i Ø2 05.11.2026 da `ordtest` ble skrevet om.
 
 - **fleet2test ventet fast 1,8 s etter reload** og ble rød da oppstarten ble tregere (lasteskjermen); venter nå på `S.fleet` (02.11.2026).
