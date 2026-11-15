@@ -53,6 +53,10 @@ async def run_op(pg, t, what, tub_s, secs, small):
     for i in range(int(secs * 10)):
         await step(pg, 100); r = await pg.evaluate(READ, dp); rs.append(r)
         if snap0 is None: snap0 = r['snap']
+        # (KYST_TRACE=1: the frame the deck is laid out anew, with what the account had then)
+        if os.environ.get('KYST_TRACE') and len(rs) > 1 and r['snap'] != rs[-2]['snap']:
+            w = await pg.evaluate("(() => { const L = CREW3D.tubAccount(), W = CREW3D.tubWhy(); return {W:L.W, Wk:L.Wk, stage:L.stage, spots:[W.spots.set.length, W.spots.haul.length], op:L.op && L.op.kind, tubs:L.T.map(q => q.k[0] + q.at[0] + q.i).join(' '), st:S.boat.status, rig:S.boat.rig, jobs:(S.jobs || []).map(j => j.kind + ':' + j.n).join(','), pg:S.pgear.lines.hyse.n + '/' + S.pgear.lines.hyse.baited}; })()")
+            print('    SNAP', i / 10, rs[-2]['snap'], '->', r['snap'], 'før:', rs[-2]['op'], json.dumps(w), flush=True)
         if r['n'] != r['game'] or sum(r['w'].values()) != r['n']: bad += 1
         if r['w']['hand'] and i % 10 == 0:
             cm = await pg.evaluate(CLIP)
@@ -70,7 +74,7 @@ async def run_op(pg, t, what, tub_s, secs, small):
                 await pg.set_viewport_size({'width': vw, 'height': vh}); await step(pg, 0); await step(pg, 0)
                 await pg.screenshot(path=os.path.join(OUT, f'stamper3d_{t}_{what}_{tag}.png'))
             await pg.set_viewport_size(small)
-        if not r['op'] and not r['job'] and r['w']['work'] == 0 and r['w']['hand'] == 0 and i > 10: break
+        if not r['op'] and not r['job'] and (r['w']['work'] == 0 or r['wk'] == 'full') and r['w']['hand'] == 0 and i > 10: break   # (one full ready at the stern: L.stage)
     # (a few frames more: the account follows the game's end of the work at the next tick)
     for _ in range(5): await step(pg, 100)
     rs.append(await pg.evaluate(READ, 0))

@@ -104,4 +104,16 @@ export default function (t){
   // the baiting on deck (pg.shore egnself) makes coiled tubs full where they stand: none moves
   { const L = S.fresh(); S.sync(L, {full:0, coil:3, empty:0, op:null}, 2); const before = JSON.stringify(L.T.map(q => [q.at, q.i])); S.sync(L, {full:2, coil:1, empty:0, op:null}, 2);
     t.ok(JSON.stringify(L.T.map(q => [q.at, q.i])) === before && S.count(L, 'full') === 2 && !L.n.snap, 'egningen gjør stampene fulle der de står'); }
+  // the work changes (steg 125f, tests/stamper3d.py on the hurtigsjark): a full tub left ready at the stern (two spots there) as the haul
+  // begins (one spot by the hauler), and the coiled one lifted off the hauler's spot as the deck gets ready for the next set: nothing is
+  // laid out anew. The tub at the stern stays there and is carried to the stack; the haul's first tub is carried to the hauler's spot
+  { const L = S.fresh(), carry = (j, now) => { S.begin(L, j, 'c', now); S.take(L); S.put(L, now + 5); }; L.Wk = 'set';
+    S.sync(L, {full:1, coil:0, empty:2, op:null}, 2); L.stage = true; carry(S.want(L, null), 0); L.stage = false;
+    const ready = L.T.find(q => q.at === 'work'), o = {key:'h3', kind:'haul', n:2, done:0, prog:0};
+    L.Wk = 'haul'; S.sync(L, {full:1, coil:0, empty:0, op:o}, 1, 10);
+    const snap0 = L.n.snap, first = S.want(L, o); carry(first, 10); const off = S.want(L, o);
+    const fin = {key:'h3', kind:'haul', n:2, done:2, prog:0}; S.sync(L, {full:1, coil:2, empty:0, op:null}, 1, 40); const coil = L.T.find(q => q.k === 'coil' && q.at === 'work');
+    const lift = coil ? S.want(L, null) : null; if (lift){ S.begin(L, lift, 'c', 41); S.take(L); } L.Wk = 'set'; L.stage = true; S.sync(L, {full:1, coil:2, empty:0, op:null}, 2, 42);
+    t.ok(!!ready && snap0 === 0 && L.n.snap === 0 && first && first.to.at === 'work' && first.to.i === 0 && S.by(L, first.id).wk === 'haul' && off && off.id === ready.id && off.to.at === 'slot' && !!L.job,
+      'setting og haling bytter plassene uten at dekket legges ut på nytt: den klare ved hekken bæres bort, den første til haleren, bæringen etter halingen går videre (' + JSON.stringify({snap:L.n.snap, first, off, lift}) + ')'); }
 }
