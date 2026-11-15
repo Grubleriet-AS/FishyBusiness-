@@ -1372,7 +1372,7 @@ function seaKnee(dref, dnow){ const L2 = SJOBEIN.SEG * SJOBEIN.SEG, a = dref / 2
 // ferdige resultatet»: the hands' points are tuned on the new body, FB7); without it the limbs are drawn, and the clip guard reckons,
 // as before the step. «#ik0» turns it off there too.
 const LEMMER = {
-  on:typeof location !== 'undefined' && /folk2/.test(String(location.hash || '')) && !/ik0/.test(String(location.hash || '')),
+  on:typeof location !== 'undefined' && (typeof FOLK2 !== 'undefined' ? FOLK2 : /folk2/.test(String(location.hash || ''))) && !/ik0/.test(String(location.hash || '')),   // (FOLK2: vessel3d.js, the test edition too)
   STD:{ua:0.32, fa:0.265, th:0.426, sn:0.426},   // m: upper arm, forearm (to the wrist), thigh, shin (to the ankle)
   LEN:{},         // the new people's lengths by body ('m', 'f'), read from the skeleton the first time (limbLen)
   HAND:0.085,     // m from the wrist to where a hand holds, for the one-piece glove far off (near, each grip has its own point)

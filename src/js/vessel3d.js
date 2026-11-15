@@ -1411,7 +1411,10 @@ function figureVB(B, x, y, z, seated, hands, kit){
 // name (tools/harbour/kropp_bygg.py; docs/systemer/folk-om-bord.md 5.33b). A figure is one mesh in the rest pose with four bones and
 // weights a corner; the shader bends it by the bones' matrices (figpose.js figPose, figGL). Shown only behind #folk2 in the address,
 // and only in the wardrobe yet: on deck and on the quay the figure is the old one (worker.b64) until Jonas has seen this one (FB7).
-const FOLK2 = typeof location !== 'undefined' && !!location && /folk2/.test(location.hash || '');
+// (the new people, FB7: with «#folk2» in the address, and on the test edition by default, Jonas 15.11.2026 «Standard på testutgaven»:
+// <meta name="dsb-channel" content="test">, build.mjs KYST_CHANNEL; «#folk1» gives the old figures there. The players' edition keeps the
+// old ones until Jonas says they can have them)
+const FOLK2 = typeof location !== 'undefined' && !!location && (/folk2/.test(location.hash || '') || (!/folk1/.test(location.hash || '') && (() => { try { return (document.querySelector('meta[name=dsb-channel]') || {}).content === 'test'; } catch (e){ return false; } })()));
 const FIGSK = {}, FIGPC = {};
 function figSkelOf(sex){ const k = sex === 'f' ? 'f' : 'm'; if (FIGSK[k]) return FIGSK[k]; const G = glbLoad('folk2'); return G && G.sk ? FIGSK[k] = figSkel(G.ex, k) : null; }
 // a part of the new file painted by the kit's zones as wkPart paints the old (1 jacket, 3 trousers, 4 skin, 5 hair, beard and
