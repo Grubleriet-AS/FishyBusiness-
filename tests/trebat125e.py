@@ -44,7 +44,7 @@ async def step(pg, ms):
     await pg.wait_for_function("(n0) => window.__RAFN >= n0 + 2", arg=n0, timeout=120000)
 
 
-WALK = "(() => { const W = G3._debug.SK && G3._debug.SK.walk; return W ? {at:W.at, to:W.to, dur:+(W.dur || 0).toFixed(2)} : null; })()"
+WALK = "(() => { const W = G3._debug.SK && G3._debug.SK.walk; return W ? {at:W.at, to:W.to, dur:+(W.dur || 0).toFixed(2), path:W.path && W.path.map(p => [+p[0].toFixed(2), +p[2].toFixed(2)])} : null; })()"
 
 
 async def gang():
@@ -60,8 +60,9 @@ async def gang():
         await boot(pg, GAME + ',folk2,rawclock')
         await pg.wait_for_function("G3.isActive()", timeout=90000); await pg.wait_for_timeout(3000)
         await pg.add_style_tag(content="body * { visibility: hidden !important; } canvas { visibility: visible !important; }")
+        await pg.evaluate("() => { const cv = [...document.querySelectorAll('canvas')].sort((a, b) => b.width * b.height - a.width * a.height); cv.slice(1).forEach(c => c.style.setProperty('visibility', 'hidden', 'important')); }")   # (the chart in the corner is a canvas of its own)
         for what, js in [('ror', "() => { const b = S.boat; b.status = 'sailing'; b.v = 2; b.fishUntil = null; }"),
-                         ('bord', "() => { S.settings.gut = true; for (let i = 0; i < 4; i++) S.hold.push({sp:'torsk', cls:SPECIES.torsk.ref, kg:3, n:1, bled:true, iced:false, hr:Math.floor(S.t / 60), fresh:100, gut:false, hook:true}); }")]:
+                         ('bord', "() => { const b = S.boat; b.status = 'idle'; b.fishUntil = null; S.settings.gut = true; for (let i = 0; i < 4; i++) S.hold.push({sp:'torsk', cls:SPECIES.torsk.ref, kg:3, n:1, bled:true, iced:false, hr:Math.floor(S.t / 60), fresh:100, gut:false, hook:true}); }")]:
             await pg.evaluate(SET, ['jig', -1.4, 0.55, 5.0]); await pg.wait_for_timeout(3000)
             await pg.evaluate("() => { clearInterval(window.FEED); }"); await pg.evaluate("G3._debug.studio(true)")
             await pg.evaluate("() => { if (!window.__R){ window.__R = performance.now.bind(performance); } window.__T = window.__R(); performance.now = () => window.__T; }")
@@ -73,9 +74,10 @@ async def gang():
             for k in range(200):
                 await step(pg, 100); w = await pg.evaluate(WALK)
                 await pg.screenshot(path=os.path.join(d, '%03d.png' % k))
-                if w and w['to']: seen_to = w['to']
+                if w and w['to'] and seen_to != w['to']: seen_to = w['to']; print('  vei', what, w['path'], flush=True)
                 if seen_to and w and not w['to']: arrived = w['at']; after += 1
                 if after >= 10: break
+                if k == 60 and not seen_to: break   # (6 s and he has not set off: no use drawing on)
             subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-framerate', '10', '-i', os.path.join(d, '%03d.png'), '-pix_fmt', 'yuv420p', os.path.join(d0, 'trebat_gang_' + what + '.mp4')], check=True)
             want = 'helm' if what == 'ror' else 'table'
             check(w0 and w0['at'] == 'rail' and seen_to == want and arrived == want, f'han går fra juksa til {"roret" if what == "ror" else "bordet"}', {'før': w0, 'gikk til': seen_to, 'kom til': arrived, 'bilder': k + 1})

@@ -269,7 +269,7 @@
   // where he fishes or the gutting table, and when the work changes he gets up and walks there on the floor boards (drawWorker's walk,
   // as the people on deck walk), the length of the way at 0.9 m/s and half a second to get up; meanwhile nobody is at any of the three
   // and the jig stands. SKW.at: where he is; walking from A to B (boat frame) from t0 for dur s
-  const SKW = {at:null, A:null, B:null, t0:0, dur:0, to:null};
+  const SKW = {at:null, path:null, t0:0, dur:0, to:null};
   const SKWV = 0.9, SKWUP = 0.5;
   const skWalking = () => !!SKW.to && performance.now() / 1000 < SKW.t0 + SKW.dur;
   function skSpot(k){ const G = GEO(vtype()), sole = SKA.sole != null ? SKA.sole : SKA.fisher[1];
@@ -277,19 +277,56 @@
     if (k === 'rail') return [SKA.fisher[0], sole, SKA.fisher[2]];
     if (k === 'table'){ const d = G.deck || {y:G.gw, z:2}, W = G.work || null, tx = W ? W.table[0] : -(G.beam / 2 - 0.42), tz = W ? W.table[2] : d.z; return [tx + 0.62, sole, tz]; }   // (where drawDeck has him at the table)
     return null; }
+  // the way round what stands on the floor (Jonas' first look at the walk: straight from the jig to the tiller he went through the engine
+  // box): a grid of 8 cm over the boat from her hull's own triangles (lod0), a cell blocked where a triangle reaches between 0.25 and 1.0 m
+  // over the floor boards (the engine box, the tubs, the thwarts, the sides), one cell wider for his body; the shortest way over free
+  // cells, eight ways, then straightened where he can see along it. Start and end may lie in a blocked cell (he sits on the thwart, stands
+  // at the rail): from there to the nearest free one. No hull or no way: straight, as before. Made once per type
+  function skGrid(){ const t = vtype(); if (SK.wgrid && SK.wgrid.t === t) return SK.wgrid;
+    const o = typeof glbHas === 'function' && glbHas(t) ? glbPart(t, 'lod0') : null; if (!o) return SK.wgrid = {t, none:true};
+    const P = o.p, sole = SKA.sole != null ? SKA.sole : 0.2, lo = sole + 0.25, hi = sole + 1.0, c = 0.08;
+    let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (let i = 0; i < P.length; i += 3){ x0 = Math.min(x0, P[i]); x1 = Math.max(x1, P[i]); z0 = Math.min(z0, P[i + 2]); z1 = Math.max(z1, P[i + 2]); }
+    const nx = Math.ceil((x1 - x0) / c) + 1, nz = Math.ceil((z1 - z0) / c) + 1, B = new Uint8Array(nx * nz);
+    for (let i = 0; i + 8 < P.length; i += 9){ const ya = P[i + 1], yb = P[i + 4], yc = P[i + 7];
+      if (Math.max(ya, yb, yc) < lo || Math.min(ya, yb, yc) > hi) continue;
+      const ia = Math.floor((Math.min(P[i], P[i + 3], P[i + 6]) - x0) / c), ib = Math.floor((Math.max(P[i], P[i + 3], P[i + 6]) - x0) / c), ja = Math.floor((Math.min(P[i + 2], P[i + 5], P[i + 8]) - z0) / c), jb = Math.floor((Math.max(P[i + 2], P[i + 5], P[i + 8]) - z0) / c);
+      for (let j = ja; j <= jb; j++) for (let k = ia; k <= ib; k++) B[j * nx + k] = 1; }
+    // (outside the hull counts as blocked: a cell with no hull under it, both ways across, is not floor)
+    const W = new Uint8Array(nx * nz); for (let j = 0; j < nz; j++){ let a = -1, b = -1; for (let k = 0; k < nx; k++) if (B[j * nx + k]){ if (a < 0) a = k; b = k; } for (let k = 0; k < nx; k++) W[j * nx + k] = a < 0 || k <= a || k >= b ? 1 : 0; }
+    for (let j = 0; j < nz; j++) for (let k = 0; k < nx; k++) if (B[j * nx + k]) for (let dj = -1; dj <= 1; dj++) for (let dk = -1; dk <= 1; dk++){ const jj = j + dj, kk = k + dk; if (jj >= 0 && jj < nz && kk >= 0 && kk < nx) W[jj * nx + kk] = 1; }
+    return SK.wgrid = {t, x0, z0, nx, nz, c, W}; }
+  function skPath(A, Bp){ const g = skGrid(); if (g.none) return [A, Bp];
+    const {x0, z0, nx, nz, c, W} = g, cell = p => [clamp(Math.round((p[0] - x0) / c), 0, nx - 1), clamp(Math.round((p[2] - z0) / c), 0, nz - 1)], at = (k, j) => [x0 + k * c, A[1], z0 + j * c];
+    const free = q => { if (!W[q[1] * nx + q[0]]) return q; let best = null, bd = 1e9; for (let j = Math.max(0, q[1] - 8); j <= Math.min(nz - 1, q[1] + 8); j++) for (let k = Math.max(0, q[0] - 8); k <= Math.min(nx - 1, q[0] + 8); k++){ const dd = (k - q[0]) ** 2 + (j - q[1]) ** 2; if (!W[j * nx + k] && dd < bd){ bd = dd; best = [k, j]; } } return best; };
+    const s0 = free(cell(A)), s1 = free(cell(Bp)); if (!s0 || !s1) return [A, Bp];
+    const N = nx * nz, D = new Float32Array(N).fill(1e9), from = new Int32Array(N).fill(-1), done = new Uint8Array(N), st = s0[1] * nx + s0[0], en = s1[1] * nx + s1[0]; D[st] = 0;
+    for (;;){ let u = -1, du = 1e9; for (let i = 0; i < N; i++) if (!done[i] && D[i] < du){ du = D[i]; u = i; } if (u < 0 || u === en) break; done[u] = 1;
+      const uk = u % nx, uj = (u - uk) / nx; for (let dj = -1; dj <= 1; dj++) for (let dk = -1; dk <= 1; dk++){ if (!dj && !dk) continue; const kk = uk + dk, jj = uj + dj; if (kk < 0 || kk >= nx || jj < 0 || jj >= nz) continue; const v = jj * nx + kk; if (W[v] || done[v]) continue; const nd = du + Math.hypot(dk, dj); if (nd < D[v]){ D[v] = nd; from[v] = u; } } }
+    if (D[en] >= 1e9) return [A, Bp];
+    const cells = []; for (let v = en; v >= 0; v = from[v]){ cells.unshift(v); if (v === st) break; }
+    const seen = (a, b) => { const ak = a % nx, aj = (a - ak) / nx, bk = b % nx, bj = (b - bk) / nx, n = Math.max(Math.abs(bk - ak), Math.abs(bj - aj)) * 2; for (let i = 1; i < n; i++){ const k = Math.round(ak + (bk - ak) * i / n), j = Math.round(aj + (bj - aj) * i / n); if (W[j * nx + k]) return false; } return true; };
+    const keep = [cells[0]]; for (let i = 1; i < cells.length - 1; i++) if (!seen(keep[keep.length - 1], cells[i + 1])) keep.push(cells[i]); keep.push(cells[cells.length - 1]);
+    return [A, ...keep.map(v => at(v % nx, Math.floor(v / nx))), Bp]; }
+  const pathLen = Pt => { let L = 0; for (let i = 1; i < Pt.length; i++) L += Math.hypot(Pt[i][0] - Pt[i - 1][0], Pt[i][2] - Pt[i - 1][2]); return L; };
+  // the point s m along the way, and the way's heading there (the turn at a corner spread over the 0.25 m either side of it)
+  function pathAt(Pt, s){ let i = 1; for (; i < Pt.length - 1; i++){ const l = Math.hypot(Pt[i][0] - Pt[i - 1][0], Pt[i][2] - Pt[i - 1][2]); if (s <= l) break; s -= l; }
+    const A = Pt[i - 1], B = Pt[i], l = Math.hypot(B[0] - A[0], B[2] - A[2]) || 1e-6, u = clamp(s / l, 0, 1), dir = (P, Q) => [Q[0] - P[0], Q[2] - P[2]];
+    let d = dir(A, B); if (i < Pt.length - 1 && l - s < 0.25){ const e = dir(B, Pt[i + 1]), k = 0.5 * (1 - (l - s) / 0.25), n1 = Math.hypot(d[0], d[1]) || 1, n2 = Math.hypot(e[0], e[1]) || 1; d = [d[0] / n1 * (1 - k) + e[0] / n2 * k, d[1] / n1 * (1 - k) + e[1] / n2 * k]; }
+    else if (i > 1 && s < 0.25){ const e = dir(Pt[i - 2], A), k = 0.5 * (1 - s / 0.25), n1 = Math.hypot(d[0], d[1]) || 1, n2 = Math.hypot(e[0], e[1]) || 1; d = [d[0] / n1 * (1 - k) + e[0] / n2 * k, d[1] / n1 * (1 - k) + e[1] / n2 * k]; }
+    return {p:[A[0] + (B[0] - A[0]) * u, A[1], A[2] + (B[2] - A[2]) * u], d}; }
   // where he is wanted this frame (null: not aboard, at the wheel's camera, or others aboard: no walk, he is where the work draws him)
   function skWalkStep(want){ const now = performance.now() / 1000; if (SK) SK.walk = SKW;   // (for the tests: G3._debug.SK.walk)
     if (SKW.to && now >= SKW.t0 + SKW.dur){ SKW.at = SKW.to; SKW.to = null; }
     if (!want){ SKW.at = null; SKW.to = null; return; }
-    if (SKW.to){ if (want !== SKW.to){ const u = clamp((now - SKW.t0 - SKWUP) / Math.max(0.01, SKW.dur - SKWUP), 0, 1), P = [SKW.A[0] + (SKW.B[0] - SKW.A[0]) * u, SKW.A[1], SKW.A[2] + (SKW.B[2] - SKW.A[2]) * u], B = skSpot(want);
-        if (B){ SKW.A = P; SKW.B = B; SKW.to = want; SKW.t0 = now - SKWUP; SKW.dur = SKWUP + Math.hypot(B[0] - P[0], B[2] - P[2]) / SKWV; } } return; }   // (turned back on the way: from where he is)
+    if (SKW.to){ if (want !== SKW.to){ const P = pathAt(SKW.path, clamp(now - SKW.t0 - SKWUP, 0, 1e9) * SKWV).p, B = skSpot(want);
+        if (B){ SKW.path = skPath(P, B); SKW.to = want; SKW.t0 = now - SKWUP; SKW.dur = SKWUP + pathLen(SKW.path) / SKWV; } } return; }   // (turned back on the way: from where he is)
     if (!SKW.at || SKW.at === want){ SKW.at = want; return; }
     const A = skSpot(SKW.at), B = skSpot(want); if (!A || !B){ SKW.at = want; return; }
-    SKW.A = A; SKW.B = B; SKW.to = want; SKW.t0 = now; SKW.dur = SKWUP + Math.hypot(B[0] - A[0], B[2] - A[2]) / SKWV; }
+    SKW.path = skPath(A, B); SKW.to = want; SKW.t0 = now; SKW.dur = SKWUP + pathLen(SKW.path) / SKWV; }
   // the walker drawn on the way (the look and the walk as the people on deck have them, 08-plants.js drawWorker)
-  function skWalkDraw(BMrel){ if (!skWalking()) return; const now = performance.now() / 1000, u = clamp((now - SKW.t0 - SKWUP) / Math.max(0.01, SKW.dur - SKWUP), 0, 1);
-    const P = [SKW.A[0] + (SKW.B[0] - SKW.A[0]) * u, SKW.A[1], SKW.A[2] + (SKW.B[2] - SKW.A[2]) * u], w = xf(BMrel, P), w2 = xf(BMrel, SKW.B), w1 = xf(BMrel, SKW.A), eye = lastEye;
-    const h = Math.atan2(w2[0] - w1[0], -(w2[2] - w1[2])), wy = w[1] + eye[1];
+  function skWalkDraw(BMrel){ if (!skWalking()) return; const now = performance.now() / 1000, s = Math.max(0, now - SKW.t0 - SKWUP) * SKWV, L = pathLen(SKW.path), u = clamp(s / Math.max(0.01, L), 0, 1);
+    const Q = pathAt(SKW.path, s), P = Q.p, w = xf(BMrel, P), w2 = xf(BMrel, [P[0] + Q.d[0], P[1], P[2] + Q.d[1]]), eye = lastEye;
+    const h = Math.atan2(w2[0] - w[0], -(w2[2] - w[2])), wy = w[1] + eye[1];
     drawWorker({gy:() => wy, bare:true, spray:0, kit:'skipper', look:seaLook(lookMe())}, {x:w[0] + eye[0], z:w[2] + eye[2], h, walk:u > 0 && u < 1, s:0}, eye, now, 7); }
   // the top of the gunwale at z on one side (side +1 starboard), read from the hull's own points (the GLB's lod0): the highest of them
   // that far out at that length, and the middle of those within 1.5 cm of it across the gunwale. (Steg 125e, Jonas 15.11.2026: «ikke den
