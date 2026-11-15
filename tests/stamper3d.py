@@ -29,7 +29,7 @@ READ = """((dp) => { const L = CREW3D.tubAccount(), g = S.boat.gop, pg = S.pgear
   const w = {slot:0, work:0, nest:0, hand:0}; for (const q of L.T) w[q.at]++;
   const k = {full:0, coil:0, empty:0}; for (const q of L.T) k[q.k]++;
   const out = (S.sets || []).filter(x => x.kind === 'line').reduce((a, x) => a + x.n, 0), g2 = S.boat.gop;
-  return {w, k, n:L.T.length, snap:L.n.snap, carried:L.n.carried, job:L.job ? L.job.to.at : null, op:g2 ? g2.op + ' ' + g2.done + '/' + g2.n + ' ' + g2.prog.toFixed(2) : null,
+  return {w, k, wk:L.T.filter(q => q.at === 'work').map(q => q.k).join(','), n:L.T.length, snap:L.n.snap, carried:L.n.carried, job:L.job ? L.job.to.at : null, op:g2 ? g2.op + ' ' + g2.done + '/' + g2.n + ' ' + g2.prog.toFixed(2) : null,
     game:(pg.hyse.n + pg.bank.n) + (g2 && g2.op === 'set' ? g2.n : 0) + out, kst:K.tubs125 || null, ag:CREW3D.agents().map(a => (a.role || a.st) + ':' + a.mode + ':' + a.task)}; })"""
 RAFN = "(() => { if (!window.__RAFN){ window.__RAFN = 1; const f = () => { window.__RAFN++; requestAnimationFrame(f); }; requestAnimationFrame(f); } return window.__RAFN; })()"
 
@@ -85,6 +85,9 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await boot(pg, GAME + ',folk2,rawclock')
         await pg.wait_for_function("G3.isActive()", timeout=90000); await pg.wait_for_timeout(3000)
+        # (the gear's rules away, as tests/ombord.py KYST_OMBORD_NORULE: every ground of the Senja pack lies inside the baseline, where
+        # kyst21 may not fish cod, haddock and saithe (J-187-2026 § 32); the tubs are what is tested here, not where she may set)
+        await pg.evaluate("window.gearRules = () => null")
         for t in boats:
             L = await pg.evaluate("(t) => VESSELS[t].len", t)
             n0 = await pg.evaluate("G3._debug.kitStat.n")
@@ -102,14 +105,16 @@ async def main():
             sp = await pg.evaluate("(() => { const P = CREW3D.tubWhy().spots; return {set:P.set.length, haul:P.haul.length}; })()")
             # (a deck where the stern and the stack are on parts of the deck with no way between them, deckcrew.js tubSpots: the line runs
             # from the stack and the empty ones stand there until they are hauled; the sjark while she fishes, since steg 125d)
-            if sp['set']: check(last['carried'] >= n and last['w']['nest'] >= n and last['w']['work'] == 0 and last['w']['hand'] == 0, t + ': setting: de tomme står i hverandre i reiret, ingen igjen ved hekken', {'w': last['w'], 'båret': last['carried'], 'op': last['op']})
-            else: check(last['w']['work'] == 0 and last['w']['hand'] == 0 and last['k']['empty'] == n, t + ': setting fra stabelen (ingen vei på dekk fra stabelen til hekken): de tomme står der lina gikk fra dem', {'w': last['w'], 'plasser': sp})
+            # (one full tub may stand ready at the stern after it, deckcrew.js L.stage: baited tubs aboard and nothing hauled waiting)
+            staged = lambda r: r['w']['work'] == 0 or r['wk'] == 'full'
+            if sp['set']: check(last['carried'] >= n and last['w']['nest'] >= n and staged(last) and last['w']['hand'] == 0, t + ': setting: de tomme står i hverandre i reiret, ingen igjen ved hekken', {'w': last['w'], 'wk': last['wk'], 'båret': last['carried'], 'op': last['op']})
+            else: check(staged(last) and last['w']['hand'] == 0 and last['k']['empty'] == n, t + ': setting fra stabelen (ingen vei på dekk fra stabelen til hekken): de tomme står der lina gikk fra dem', {'w': last['w'], 'plasser': sp})
             c0 = last['carried']
             why = await pg.evaluate(HAUL); check(why is None, t + ': halingen begynner', why)
             rs, bad, s1 = await run_op(pg, t, 'haling', 30, 180, small); last = rs[-1]
             check(bad == 0, t + ': haling: hver stamp er et sted, og tellingen er spillets', {'brudd': bad, 'sist': {k: last[k] for k in ('w', 'k', 'n', 'game')}})
             check(last['snap'] == s1, t + ': haling: ingen stamp lagt ut på nytt underveis', {'snap': [s1, last['snap']]})
-            check(last['carried'] - c0 >= n and last['w']['nest'] == 0 and last['w']['work'] == 0 and last['w']['hand'] == 0 and last['k']['empty'] == 0, t + ': haling: de fulle står i stabelen, reiret er tomt', {'w': last['w'], 'k': last['k'], 'båret': last['carried'] - c0, 'op': last['op']})
+            check(last['carried'] - c0 >= n and last['w']['nest'] == 0 and staged(last) and last['w']['hand'] == 0 and last['k']['empty'] == 0, t + ': haling: de fulle står i stabelen, reiret er tomt', {'w': last['w'], 'wk': last['wk'], 'k': last['k'], 'båret': last['carried'] - c0, 'op': last['op']})
             print('   ', t, 'plasser', sp, 'mannskapet sist:', last['ag'])
             check(t in CLIPMAX and CLIPMAX[t] <= 10, t + ': stampen i hendene høyst 10 cm inn i en kropp (vakt, folk2maal-målingen)', {'cm': CLIPMAX.get(t)})
         gerr = await pg.evaluate("G3._debug.glErr()")

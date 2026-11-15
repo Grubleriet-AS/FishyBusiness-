@@ -28,7 +28,14 @@ function crewSim(src){
   // the jigging places the view found on the rail (view3d.js jigRail): the hands stand inboard of the machines
   // the way to face at the door to go in: towards the point inside it (the model's anchors.doors[0].in), else forward as before
   function doorFace(){ const D = ST.PT && ST.PT.door, A0 = ST.G && ST.G.doors && ST.G.doors[0]; if (!D || !A0 || !A0.in || !ST.M.ok(D.k)) return; const p = ST.M.at(D.k);
-    if (Math.hypot(A0.in[0] - p[0], A0.in[2] - p[2]) > 0.2) D.h = Math.atan2(A0.in[0] - p[0], -(A0.in[2] - p[2])); }
+    if (Math.hypot(A0.in[0] - p[0], A0.in[2] - p[2]) > 0.2) D.h = Math.atan2(A0.in[0] - p[0], -(A0.in[2] - p[2]));
+    // (where one stands at the door: in front of the opening, the body facing in clear of the frame. The sjark's door is low and narrow,
+    // and its cell lies in the doorway: the shoulders and the head went through the jamb and the lintel on the last steps to it,
+    // crewclip 125f. The nearest cell within 0.6 m on that part of the deck where the body facing the door is clear; none: as it was)
+    const M = ST.M, C = deckComp(M), faceIn = q => Math.atan2(A0.in[0] - q[0], -(A0.in[2] - q[2])), clear = k => { const q = M.at(k); return !bodyHitAt(q[0], q[1], q[2], faceIn(q), 0); };
+    if (clear(D.k)) return; let best = -1, bd = 0.61;
+    for (let k = 0; k < M.nx * M.nz; k++){ if (!M.ok(k) || C[k] !== C[D.k]) continue; const q = M.at(k), d = Math.hypot(q[0] - p[0], q[2] - p[2]); if (d >= bd || Math.abs(q[1] - p[1]) > 0.45 || !clear(k)) continue; bd = d; best = k; }
+    if (best >= 0){ D.k = best; D.h = faceIn(M.at(best)); } }
   function setJig(spots){ ST.jig = spots || null; }
   function setRoll(r){ ST.roll = r || 0; }
   // what the deck does (FB4; view3d/24-cinema.js each frame): her roll and pitch (rad), her height (m, the heave) and the sea's
@@ -250,10 +257,10 @@ function crewSim(src){
     return out; }
   // the nearest floor to [tx, tz] within rMax on the deck at y where a tub's foot is whole, clear of avoid and 0.52 m from the others
   // (and, with comps, a place to stand by it on one of those parts of the deck: the one who carries has a way there on deck)
-  function tubSpot(tx, tz, y, rMax, avoid, others, comps){ const M0 = fixedMap(), C = [];
+  function tubSpot(tx, tz, y, rMax, avoid, others, comps, keeps){ const M0 = fixedMap(), C = [];
     for (let k = 0; k < M0.nx * M0.nz; k++){ if (!M0.ok(k)) continue; const q = M0.at(k); if (Math.abs(q[1] - y) > 0.3) continue; const dd = Math.hypot(q[0] - tx, q[2] - tz); if (dd >= rMax) continue;
       if (avoid.some(a => Math.hypot(q[0] - a[0], q[2] - a[1]) < a[2]) || others.some(o => Math.hypot(q[0] - o[0], q[2] - o[2]) < 0.52) || !tubFoot(M0, q)) continue; C.push([dd, q]); }
-    C.sort((a, b) => a[0] - b[0]); for (const [, q] of C) if (!comps || tubComps(q, q[1]).some(c => comps.has(c))) return [q[0], q[1], q[2]]; return null; }
+    C.sort((a, b) => a[0] - b[0]); for (const [, q] of C) if ((!comps || tubComps(q, q[1]).some(c => comps.has(c))) && (!keeps || keeps([q[0], q[1], q[2]]))) return [q[0], q[1], q[2]]; return null; }
   // the parts of the deck (deckComp of the walking map) with a cell to stand by a tub at p, on the floor at y
   function tubComps(p, y){ const M = ST.M, C = deckComp(M), out = new Set();
     for (let k = 0; k < M.nx * M.nz; k++){ if (!M.ok(k)) continue; const q = M.at(k); if (Math.abs(q[1] - y) > 0.35) continue; const dd = Math.hypot(q[0] - p[0], q[2] - p[2]); if (dd >= TUB.REACH[0] && dd <= TUB.REACH[1]) out.add(C[k]); }
@@ -265,19 +272,25 @@ function crewSim(src){
     // open hatch, the tubs and the bleeding tub cut the sjark's deck in two while she fishes; the crew go between through the house)
     const y0 = tubSlot(0)[1], Cst = new Set(); for (let j = 0; j < stampPer(); j++) for (const c of tubComps(tubSlot(j), y0)) Cst.add(c);
     const C = deckComp(ST.M), compOf = q => q && q.k != null && ST.M.ok(q.k) ? C[q.k] : null;
+    // (the tubs standing at the spots and in the nest may not cut the deck: the stations and the setter's place that are joined now stay
+    // joined with them there. Before, the nest closed the hurtigsjark's deck as the first empty tub was set in it; the one carrying
+    // the next found no way but through the house, and the tub was laid out anew, steg 125f)
+    const imp = ['sloy', 'is', 'haling', 'door'].map(nm => (ST.PT || {})[nm]).concat([setPlace('line', '-')]).filter(q => q && q.k != null && ST.M.ok(q.k)).map(q => q.k);
+    const keepsAll = Q => { const Mx = overlay(ST.M, Q.map(q => [q[0], q[2], 0.31, 0.31, 0])); if (Mx === ST.M) return true; const Cx = deckComp(Mx);
+      for (let i = 0; i < imp.length; i++) for (let j = i + 1; j < imp.length; j++) if (C[imp[i]] === C[imp[j]] && !(Mx.ok(imp[i]) && Mx.ok(imp[j]) && Cx[imp[i]] === Cx[imp[j]])) return false; return true; };
     // setting: the tub at the stern and one beside it, clear of the one setting and of where the line goes over, where the stern and
     // the stack are on one part of the deck (else the line runs from the stack, and the empty ones are nested there)
     let set = []; if (TUBC.mag) set = TUBC.mag.slice(); else { const T = setTub(), man = setPlace('line', '-'), cm = compOf(man);
       if (T && cm != null && Cst.has(cm) && tubComps(T, T[1]).includes(cm)){ set = [T]; const mp = man && ST.M.ok(man.k) ? ST.M.at(man.k) : null;
-        const T2 = tubSpot(T[0], T[2], T[1], 0.85, av.concat(mp ? [[mp[0], mp[2], 0.5]] : [], [[O.ov[0], O.ov[2], 0.35]]), [T], new Set([cm])); if (T2) set.push(T2); } }
+        const T2 = tubSpot(T[0], T[2], T[1], 0.85, av.concat(mp ? [[mp[0], mp[2], 0.5]] : [], [[O.ov[0], O.ov[2], 0.35]]), [T], new Set([cm]), q => keepsAll([T, q])); if (T2) set.push(T2); } }
     // hauling: by the hauler's tray (tools/gear/haler.py: the line comes off it 0.69 m inboard of the post, at the post's height), a
     // little forward of it, where the hauler is not
     const HP = G.hauler || [Bm / 2 * 0.92, d.y + 1, d.z - 1.3], sg = HP[0] >= 0 ? 1 : -1, F0 = G.haulerFoot || [sg * (Bm / 2 - 0.2), d.y, HP[2]], tray = [F0[0] - sg * 0.69, F0[1], F0[2]];
     const ch = compOf((ST.PT || {}).haling), CH = ch != null && Cst.has(ch) ? new Set([ch]) : null;
-    const h1 = CH ? tubSpot(tray[0] + sg * 0.05, tray[2] - 0.35, F0[1], 1.3, av, [], CH) : null, h2 = h1 ? tubSpot(h1[0], h1[2], h1[1], 0.85, av, [h1], CH) : null, haul = [h1, h2].filter(Boolean);
+    const h1 = CH ? tubSpot(tray[0] + sg * 0.05, tray[2] - 0.35, F0[1], 1.3, av, [], CH, q => keepsAll([q])) : null, h2 = h1 ? tubSpot(h1[0], h1[2], h1[1], 0.85, av, [h1], CH, q => keepsAll([h1, q])) : null, haul = [h1, h2].filter(Boolean);
     // the nest: by the stack, outside its layer
     let cx = 0, cz = 0, n = stampPer(); for (let i = 0; i < n; i++){ const s = tubSlot(i); cx += s[0] / n; cz += s[2] / n; }
-    const nest = tubSpot(cx, cz, y0, 2.2, av.filter(a => !(set.some(q => Math.hypot(q[0] - a[0], q[2] - a[1]) < 0.01))), set.concat(haul), Cst.size ? Cst : null);
+    const nest = tubSpot(cx, cz, y0, 2.2, av.filter(a => !(set.some(q => Math.hypot(q[0] - a[0], q[2] - a[1]) < 0.01))), set.concat(haul), Cst.size ? Cst : null, q => keepsAll(set.concat([q])) && keepsAll(haul.concat([q])));
     TUBC.key = key; TUBC.spots = {set, haul, nest:nest || tubSlot(n), why:{Cst:[...Cst], set:compOf(setPlace('line', '-')), haul:ch, stack:Array.from({length:stampPer()}, (_, j) => tubComps(tubSlot(j), y0))}}; return TUBC.spots; }
   // where a place of the account is, in the boat's frame: the tub's foot
   function tubPos(at, i, kind){ const P = tubSpots(); if (at === 'slot') return tubSlot(i); if (at === 'work'){ const W = P[kind === 'haul' ? 'haul' : 'set']; return W[i] || W[0] || tubSlot(0); }
@@ -1045,10 +1058,12 @@ function crewSim(src){
     for (const a of yieldA) if (TAKEN.get(a.goal.k) === a.id) TAKEN.delete(a.goal.k);
     for (const [p, a, kind] of pend){ let n = 0; const U = used[kind] || (used[kind] = new Set()); while (U.has(n)) n++; U.add(n);
       const was = a.goal, there = was && a.mode !== 'walk' && !a.sub && a.cell === was.k;
-      a.goal = fitWork(claim(goalOf(p, ctx, n), a.id), a.id); a.kind = kind; a.slot = n; a.path = null; a.sub = null; a.door = 0;
+      // (one with a tub on his errand keeps it: he sets it down where it goes, then goes to his new work; before, the errand was dropped
+      // and the tub stood on its place at once, the nysjark's haul in 125f)
+      a.goal = fitWork(claim(goalOf(p, ctx, n), a.id), a.id); a.kind = kind; a.slot = n; a.path = null; if (!(a.sub && a.sub.tub)) a.sub = null; a.door = 0;
       if (p.role === 'sett' && yieldA.length){ const G0 = a.goal && !a.goal.inside ? ST.M.at(a.goal.k) : null;
         for (const b of yieldA.splice(0)){ const B = ST.M.at(b.goal.k), bp = ctx.WA.find(q => (q.c ? 'c' + q.c.id : 'me') === b.id);
-          if (G0 && bp && Math.hypot(B[0] - G0[0], B[2] - G0[2]) < SEP){ b.goal = fitWork(claim(goalOf(bp, ctx, b.slot >= 0 ? b.slot : 0), b.id), b.id); b.path = null; b.sub = null; }
+          if (G0 && bp && Math.hypot(B[0] - G0[0], B[2] - G0[2]) < SEP){ b.goal = fitWork(claim(goalOf(bp, ctx, b.slot >= 0 ? b.slot : 0), b.id), b.id); b.path = null; if (!(b.sub && b.sub.tub)) b.sub = null; }
           else TAKEN.set(b.goal.k, b.id); } }
       if (there && PROP[was.task] && a.mode === 'at' && a.blend > 0.6 && !(a.goal && a.goal.task === was.task)) a.put = {task:was.task, t0:t, g:was};
       if (there && relieves(was) && (a.mode === 'at' || a.mode === 'helm')) a.was = was; else a.was = null; }
@@ -1104,6 +1119,8 @@ function crewSim(src){
       if (a.cell !== g.k || a.mode === 'walk'){
         if (!a.path){ let from = M.cellOf(a.x, a.z); if (!M.ok(from)) from = M.near(a.x, a.z, 2); if (from < 0){ snap(); return; }
           const P = deckPath(M, from, g.k);
+          // (no way on deck to the tub he is to lift: the errand is given up, the tub stays where it is; a tub is never carried through the house)
+          if (!P && a.sub && a.sub.tub && a.sub.tub.ph === 'up'){ a.sub = null; a.path = null; continue; }
           if (!P){ const hv = hopVia(from, g.k);
             if (hv && !(a.sub && a.sub.thru != null)){ a.sub = {k:hv[0], h:a.h, task:null, inside:'in', hold:hv[2], thru:g.inside ? -1 : hv[1]}; continue; }
             // no way at all: there at once, rather than through anything
@@ -1133,7 +1150,7 @@ function crewSim(src){
       const dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz); if (d > 0.45 || d < 1e-4) continue; const push = Math.min(0.03, (0.45 - d) * 0.3), nx = -dz / d, nz = dx / d;
       // (not when the walker is about to arrive next to the other: the places by the table and the tub are that close)
       for (const [o, s] of [[a, -1], [b, 1]]){ if (o.mode !== 'walk' || o.near < 0.6) continue; const x = o.x + nx * push * s, z = o.z + nz * push * s, f = walkOff(o);
-        if (ST.M.ok(ST.M.cellOf(x, z)) && !bodyLines(o, o.sqA).some(([v, w]) => lineHit(x + f[0] + v[0] * w, o.y, z + f[1] + v[1] * w))){ o.x = x; o.z = z; } } }
+        if (ST.M.ok(ST.M.cellOf(x, z)) && !bodyLines(o, o.sqA).some(([v, w]) => lineHit(x + f[0] + v[0] * w, o.y, z + f[1] + v[1] * w, walkY(o)))){ o.x = x; o.z = z; } } }
   }
   // for the view: the agents to draw (not those inside), and where a crew member stands for the line over his head
   function agents(){ return A; }
@@ -1147,27 +1164,40 @@ function crewSim(src){
         if (ways.some(w => { const f = fitPlace(k, q, w); return !poseHits(k, q.k, f.h, f.rail, f.off); })) clear++; } R[k] = [clear, L.length]; } return R; }
   // the body where it is now (walking or at its place): the shoulders and the chest and back as upright lines, through anything?
   function bodyHits(){ if (!ready()) return null; const M = ST.M, out = []; for (const a of A){ if (a.mode !== 'walk') continue;
-      const o = walkOff(a), x = a.x + o[0], z = a.z + o[1], y = a.y, which = bodyLines(a, a.sqA).map((q, i) => q.concat(['rlfb'[i]])).filter(([v, s]) => M.hit([x + v[0] * s, y + 0.35, z + v[1] * s], [x + v[0] * s, y + 1.55, z + v[1] * s]) >= 0).map(q => q[2]);
+      const o = walkOff(a), x = a.x + o[0], z = a.z + o[1], y = a.y, yb = walkY(a), which = bodyLines(a, a.sqA).map((q, i) => q.concat(['rlfb'[i]])).filter(([v, s]) => M.hit([x + v[0] * s, yb + 0.35, z + v[1] * s], [x + v[0] * s, y + 1.55, z + v[1] * s]) >= 0).map(q => q[2]);
       if (which.length) out.push({id:a.id, mode:a.mode, task:a.task, n:which.length, which:which.join(''), near:Math.round((a.near || 0) * 100) / 100}); } return out; }
   // ---- the body on its way, clear of everything: the shoulders and the chest and back as upright lines; one that would go through a wall
   // or the rail pushes the body off it a little (where the deck is), and where the way is narrower than the shoulders the person turns
   // and goes through sideways: a.sqA turns the body from 0 (facing the way) to 1 (side on), a.sqW is the turn wanted, held half a
   // second so the body does not flicker between the two. The narrow place is seen a step ahead, so the turn is made before it.
   const bodyLines = (a, sq) => { const hd = a.h + (sq || 0) * Math.PI / 2, F = [Math.sin(hd), -Math.cos(hd)], R = [Math.cos(hd), Math.sin(hd)]; return [[R, 0.2], [R, -0.2], [F, 0.12], [F, -0.12]]; };
-  const lineHit = (x, y, z) => ST.M.hit([x, y + 0.35, z], [x, y + 1.55, z]) >= 0;
+  const lineHit = (x, y, z, yb) => ST.M.hit([x, (yb == null ? y : Math.max(y, yb)) + 0.35, z], [x, y + 1.55, z]) >= 0;
+  // (the floor the body stands over while walking: on a step between two cells of the way (up to DM_STEP), the higher of them, so the
+  // body is over the step's tread as the leg is lifted onto it, not the line from the lower floor grazing the tread; the trawler's
+  // steps by the house, crewclip 125f)
+  // (only the line's foot: its top stays at the body's own height)
+  const walkY = a => { if (a.mode !== 'walk' || !a.path || !a.path.length) return a.y; const M = ST.M, P = a.path, i = Math.min(a.pi, P.length - 1), y1 = M.ok(P[i]) ? M.at(P[i])[1] : a.y, y0 = M.ok(P[Math.max(0, i - 1)]) ? M.at(P[Math.max(0, i - 1)])[1] : a.y;
+    const hi = Math.max(y0, y1); return hi > a.y && hi - Math.min(y0, y1) <= 0.45 + 1e-3 ? hi : a.y; };
+  const bodyHitAt = (x, y, z, h, sq, yb) => bodyLines({h}, sq).some(([v, w]) => lineHit(x + v[0] * w, y, z + v[1] * w, yb));
   const narrow = (x, y, z, h) => { const R = [Math.cos(h), Math.sin(h)], F = [Math.sin(h), -Math.cos(h)];
     return lineHit(x + R[0] * 0.2, y, z + R[1] * 0.2) && lineHit(x - R[0] * 0.2, y, z - R[1] * 0.2) && !lineHit(x + F[0] * 0.12, y, z + F[1] * 0.12) && !lineHit(x - F[0] * 0.12, y, z - F[1] * 0.12); };
   function sideways(a, t, dt){
-    const o = walkOff(a), x = a.x + o[0], z = a.z + o[1];
-    if (narrow(x, a.y, z, a.h) || narrow(x + Math.sin(a.h) * 0.35, a.y, z - Math.cos(a.h) * 0.35, a.h)){ a.sqW = 1; a.sqT = t; } else if (a.sqW && t - a.sqT > 0.5) a.sqW = 0;
+    const o = walkOff(a), x = a.x + o[0], z = a.z + o[1], y = a.y;
+    // (a squeeze past a bar or a post, a link of the map on one level, deckMap: through it side on, and turned before it is reached;
+    // ringnot38's post by the door, crewclip 125f)
+    const P = a.path, i = a.pi, sqz = j => { if (!P || j < 1 || j >= P.length) return false; const u = P[j - 1], v = P[j], L = ST.M.LINK && ST.M.LINK[u]; return !!L && L.includes(v) && Math.abs(ST.M.at(u)[1] - ST.M.at(v)[1]) < 0.45; };
+    if (sqz(i) || (sqz(i + 1) && (a.near || 0) < 0.5) || narrow(x, y, z, a.h) || narrow(x + Math.sin(a.h) * 0.35, y, z - Math.cos(a.h) * 0.35, a.h)){ a.sqW = 1; a.sqT = t; }
+    else if (a.sqW && t - a.sqT > 0.5) a.sqW = 0;
     const d = (a.sqW || 0) - (a.sqA || 0); a.sqA = (a.sqA || 0) + Math.max(-dt * 6, Math.min(dt * 6, d)); }
   function unclip(a, t){
     const M = ST.M;
     for (let it = 0; it < 3; it++){ let px = 0, pz = 0, n = 0; const o = walkOff(a);
-      for (const [v, s] of bodyLines(a, a.sqA)) if (lineHit(a.x + o[0] + v[0] * s, a.y, a.z + o[1] + v[1] * s)){ px -= v[0] * Math.sign(s); pz -= v[1] * Math.sign(s); n++; }
+      const yb = walkY(a); for (const [v, s] of bodyLines(a, a.sqA)) if (lineHit(a.x + o[0] + v[0] * s, a.y, a.z + o[1] + v[1] * s, yb)){ px -= v[0] * Math.sign(s); pz -= v[1] * Math.sign(s); n++; }
       if (!n) return true;
       if (Math.hypot(px, pz) < 0.5){ if (a.sqA < 1){ a.sqW = a.sqA = 1; a.sqT = t; continue; } return false; }   // both sides, not seen coming: side on at once
-      const l = Math.hypot(px, pz), nx2 = a.x + px / l * 0.04, nz2 = a.z + pz / l * 0.04; if (!M.ok(M.cellOf(nx2, nz2))) return false; a.x = nx2; a.z = nz2; }
+      const l = Math.hypot(px, pz), nx2 = a.x + px / l * 0.04, nz2 = a.z + pz / l * 0.04;
+      // (in a squeeze, a link of the map over cells that are not on it: off the post towards the open side, at most 0.2 m off the link's line)
+      if (!M.ok(M.cellOf(nx2, nz2)) && !(a.path && a.pi >= 1 && a.pi < a.path.length && (() => { const u = M.at(a.path[a.pi - 1]), v = M.at(a.path[a.pi]), dx = v[0] - u[0], dz = v[2] - u[2], L = Math.hypot(dx, dz); return L > 1e-3 && Math.abs(((nx2 - u[0]) * dz - (nz2 - u[2]) * dx) / L) <= 0.2 && (M.LINK[a.path[a.pi - 1]] || []).includes(a.path[a.pi]); })())) return false; a.x = nx2; a.z = nz2; }
     return false; }
   // ---- no way over the deck between two parts of it (fore and aft of the house on the big boats): through the house, out of sight for
   // as long as the walk inside takes, from the cell of this part nearest the other (or the door) to the cell of that part nearest it ----

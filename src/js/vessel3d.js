@@ -1662,6 +1662,14 @@ function deckMap(type){
   for (let i = links.length - 1; i >= 0; i--){ const [a, b] = links[i]; if (inDeck[a] < 0 || inDeck[b] < 0 || links.findIndex(l => l[0] === a && l[1] === b) !== i) links.splice(i, 1); }
   const parts = []; for (let L = 0; L < nl; L++) if (size[L] >= 8) parts.push({n:size[L], y:Math.round(ys[L] / size[L] * 100) / 100, main:L === main, on:onDeck.has(L)}); parts.sort((a, b) => b.n - a.n);
   for (let k = 0; k < N; k++) H[k] = inDeck[k] >= 0 ? floors[k][inDeck[k]][0] : NaN;
+  // (a link's head on the floor it was made for: where the head lies over a lower deck the map holds the lower floor in that cell, and the
+  // way went on along the lower deck under the stair, through it: the snow crab boat's stair to the shelter deck, crewclip 125f. The
+  // head moves to the nearest cell with that floor; none within 0.8 m, and the link is no way)
+  for (let i = links.length - 1; i >= 0; i--){ const l = links[i], [a, b, dy] = l, yb = H[a] + dy; if (Math.abs(H[b] - yb) <= 0.3) continue;
+    const bi = b % nx, bj = (b - bi) / nx; let best = -1, bd = Infinity;
+    for (let dj = -4; dj <= 4; dj++) for (let di = -4; di <= 4; di++){ const ii = bi + di, jj = bj + dj; if (ii < 0 || jj < 0 || ii >= nx || jj >= nz) continue; const q = jj * nx + ii;
+      if (!(H[q] === H[q]) || Math.abs(H[q] - yb) > 0.3) continue; const d = Math.hypot(di, dj); if (d < bd){ bd = d; best = q; } }
+    if (best >= 0 && !links.some(m => m !== l && m[0] === a && m[1] === best)) l[1] = best; else links.splice(i, 1); }
   const LINK = {}; for (const [a, b] of links){ (LINK[a] || (LINK[a] = [])).push(b); (LINK[b] || (LINK[b] = [])).push(a); }
   let n = 0; for (let k = 0; k < N; k++) if (H[k] === H[k]) n++;
   const M = {type, c:DM_C, x0, z0, nx, nz, h:H, bar, n, parts, yDeck, links, LINK, cellOf, _floors:floors, _lab:lab, at(k){ const i = k % nx; return [x0 + (i + 0.5) * DM_C, H[k], z0 + ((k - i) / nx + 0.5) * DM_C]; },
