@@ -4783,3 +4783,13 @@
 2026-11-15 20:10	ccr-as1-alle	df7ae66+	obstest	OK	11	lite	samtidig	
 2026-11-15 20:10	ccr-as1-alle	df7ae66+	autonavtest	OK	34	lite	samtidig	
 2026-11-15 20:11	ccr-as1-alle	df7ae66+	trip2	OK	41	lite	samtidig	
+2026-11-15 22:25	ccr-as1-alle	74e4c27+	havntest	FEIL	20	lite	samtidig	FEIL Bodø: the harbours are shut to the players: no berth found, tapped or offered, and a tap says why {'on': False, 'find': False, 'tap': False, 'opt': False, 
+2026-11-15 22:25	ccr-as1-alle	74e4c27+	trip2	OK	46	lite	samtidig	
+2026-11-15 22:25	ccr-as1-alle	74e4c27+	harbourtest	OK	20	lite	samtidig	
+2026-11-15 22:25	ccr-as1-alle	74e4c27+	rorbutest	OK	18	lite	samtidig	
+2026-11-15 22:26	ccr-as1-alle	74e4c27+	havntest	OK	19	lite	samtidig	
+2026-11-15 22:26	ccr-as1-alle	74e4c27+	havnstengt	OK	24	lite	samtidig	
+2026-11-15 22:30	ccr-as1-alle	d02ab6d	driftsplan2kyst	OK	106	lite	alene	
+2026-11-15 22:35	ccr-as1-alle	d02ab6d+	havnstengt	OK	23	lite	samtidig	
+2026-11-15 22:35	ccr-as1-alle	d02ab6d+	trip2	OK	44	lite	samtidig	
+2026-11-15 22:35	ccr-as1-alle	d02ab6d+	autonavtest	OK	31	lite	samtidig	
