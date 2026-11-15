@@ -4793,3 +4793,21 @@
 2026-11-15 22:35	ccr-as1-alle	d02ab6d+	havnstengt	OK	23	lite	samtidig	
 2026-11-15 22:35	ccr-as1-alle	d02ab6d+	trip2	OK	44	lite	samtidig	
 2026-11-15 22:35	ccr-as1-alle	d02ab6d+	autonavtest	OK	31	lite	samtidig	
+2026-11-12 17:12	claude/admiring-cray-o29dfv	45772c56	worktest	OK	30	lite	samtidig	
+2026-11-12 17:12	claude/admiring-cray-o29dfv	45772c56	selfcrew	OK	9	lite	samtidig	
+2026-11-12 17:13	claude/admiring-cray-o29dfv	45772c56	docktest	OK	65	lite	samtidig	
+2026-11-12 17:26	claude/admiring-cray-o29dfv	45772c56	tut	OK	764	lite	alene	
+2026-11-15 14:08	fb/2026-11-15-skipper-utseende	86787a58	looktest	OK	15	lite	alene	
+2026-11-15 14:09	fb/2026-11-15-skipper-utseende	86787a58	dbg23o	OK	47	3d	alene	
+2026-11-14 02:46	claude/admiring-cray-6tmnpb	e5e2d65f	vesseltest	OK	16	lite	alene	
+2026-11-14 03:01	claude/admiring-cray-6tmnpb	e5e2d65f	tral3d	FEIL	900	3d	alene	gikk ut på tid
+2026-11-15 21:36	fbfix/samlet	dde871b0	worktest	OK	26	lite	samtidig	
+2026-11-15 21:36	fbfix/samlet	dde871b0	selfcrew	OK	9	lite	samtidig	
+2026-11-15 21:36	fbfix/samlet	dde871b0	looktest	OK	15	lite	samtidig	
+2026-11-15 21:36	fbfix/samlet	dde871b0+	dbg23o	OK	48	3d	alene	
+2026-11-15 21:48	fbfix/samlet	79a55074	lanterntest	OK	12	lite	alene	
+2026-11-15 21:53	fbfix/samlet	79a55074+	anchorlight3d	OK	275	3d	alene	
+2026-11-15 21:56	fbfix/samlet	79a55074+	qdowntest	OK	166	3d	alene	
+2026-11-15 21:56	fbfix/samlet	79a55074+	dbg23o	OK	48	3d	alene	
+2026-11-15 21:58	fbfix/samlet	79a55074+	pikseltest	OK	117	3d	alene	
+2026-11-15 22:00	fbfix/samlet	79a55074+	pikseltest	OK	79	3d	alene	

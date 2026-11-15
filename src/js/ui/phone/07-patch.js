@@ -1,5 +1,13 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['lys-151126', '15.11.2026', 'Rolige lanterner og jevnere bilde på store skjermer', 'Steady lanterns and a smoother picture on big screens', [
+       ['Lanternene på de andre båtene blinker ikke lenger av og på når båtene ruller i kanten av lysets sektor. De toner ut over et par grader, som ekte lanterner.', 'The other boats\' lanterns no longer blink on and off as the boats roll at the edge of a light\'s sector. They fade out over a couple of degrees, like real lanterns.'],
+       ['På Lav grafikk tegner spillet færre punkter på en stor skjerm når bildet fortsatt hakker, og går tilbake når det ikke hjelper.', 'On Low graphics the game draws fewer pixels on a big screen when the picture still stutters, and goes back when that does not help.']]],
+    ['kystbat-151126', '15.11.2026', 'Kystbåten på 21 m: dekkshuset uten mørke striper', 'The 21 m coastal vessel: the deckhouse without dark streaks', [
+       ['Skyggen under båtdekkets kant på den eldre kystbåten på 21 m rant ned som mørke striper mot koøyene i dekkshuset. Nå holder den seg under kanten.', 'The shade under the boat deck\'s edge on the older 21 m coastal vessel ran down as dark streaks towards the portholes in the deckhouse. Now it stays under the edge.']]],
+    ['jukse-151126', '15.11.2026', 'Juksa når du er sliten', 'The jig when you are tired', [
+       ['Alene om bord står du ved rekka og jukser også når energien er lav. Før tok du pause, og juksa fisket ingenting til du kom i land.', 'Alone aboard, you stay at the rail and jig even when your energy is low. Before, you took a break, and the jig caught nothing until you got ashore.'],
+       ['«Jukse selv» vises også når du tar en pust i bakken mens mannskapet jukser.', '«Jig yourself» also shows while you take a breather and the crew jig.']]],
     ['steder-141126', '14.11.2026', 'Vei ut fra alle steder', 'A way out from every place', [
        ['Femten mottak, butikker og verft der den eldre kystbåten ikke kom ut ved noe tidevann, har fått nye kaier med vei ut, blant dem Helligvær, Flekkerøy, Tustna, Mandal, Arendal, Halden og Træna.', 'Fifteen plants, shops and yards the older coastal vessel could not get out of at any tide have new quays with a way out, among them Helligvær, Flekkerøy, Tustna, Mandal, Arendal, Halden and Træna.'],
        ['Rorbuer som lå innestengt for båter opp til 15 m, er flyttet dit de kommer ut.', 'Rorbuer that were shut in for boats up to 15 m have moved to where they can get out.'],
