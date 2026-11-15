@@ -529,6 +529,11 @@ async function leiaRoute(a, b, aPort, bPort, opt){
     if (r && r.why && LEIA_SPLIT.why.includes(r.why[0]) && (aPort || bPort) && !(opt && opt.noRev) && kmTrue(a, b) < LEIA_SPLIT.min){
       for (const [P, end] of [[bPort, 'in'], [aPort, 'out']]){ if (!P || !(r && r.why)) continue; let ap = []; try { ap = approachPath(portById(P)) || []; } catch (e){} if (!ap.length) continue;
         const o = ap[0], lane = ap.slice(1).filter(q => dist(q, portById(P).p) >= 0.002);
+        // (the lane as the boat sails it: the boat's own minimum depth outside the harbour, as the mend keeps the harbour's way in, safeIn;
+        // Trondheim verft's way in runs over 2 m at chart datum, and a 3.4 m boat is not sent in by it)
+        const lim = leiaLim(); let okLane = true; for (let i = 0, A0 = o; i <= lane.length && okLane; i++){ const B0 = i < lane.length ? lane[i] : portById(P).p, n = Math.max(1, Math.ceil(dist(A0, B0) / 0.004));
+          for (let k = 1; k <= n; k++){ const q = {x:A0.x + (B0.x - A0.x) * k / n, y:A0.y + (B0.y - A0.y) * k / n}; if (inHarbour(q)) continue; try { if (isLand(q) || depthF(q) < lim){ okLane = false; break; } } catch (e){ okLane = false; break; } } A0 = B0; }
+        if (!okLane) continue;
         const r3 = end === 'in' ? await leiaRoute0(a, {x:o.x, y:o.y}, aPort, null, false, opt) : await leiaRoute0({x:o.x, y:o.y}, b, null, bPort, false, opt);
         if (!r3 || r3.why || !r3.wps || !r3.wps.length) continue;
         const wps = end === 'in' ? r3.wps.concat(lane, [{x:b.x, y:b.y}]) : lane.slice().reverse().concat([{x:o.x, y:o.y}], r3.wps);

@@ -594,17 +594,32 @@ function dynLineBuild(pl, dep){
   else add(b.pos.x * 1000, b.pos.y * 1000);
   // up to the first harbour on it: she docks there and the route is over (arrive)
   let iEnd = pl.wps.length - 1; for (let i = pl.idx; i < pl.wps.length; i++) if (pl.wps[i].port){ iEnd = i; break; }
-  for (let i = pl.idx; i <= iEnd; i++){ const w = pl.wps[i]; add(w.x * 1000, w.y * 1000); wpAt[i] = P.length - 1; }
+  // (into Father's naust: the way in to its berth as the way out from it, berthPath, from astern of the berth and out from the quay, not
+  // straight from the plant's harbour point onto the quay: at Sandshamn, Risør, Engenes and four more the 14.99 m boat came in from the
+  // sea and struck the quay at 3-5 knots, steg 126, 15.11.2026, tests/allesteder.py with the way in)
+  const bz = new Set();   // (the line's points on the way in to the naust: its corners are taken by the hands, below)
+  for (let i = pl.idx; i <= iEnd; i++){ const w = pl.wps[i];
+    if (w.berth === 'naust' && w.port && P.length){ let bp = null; try { bp = berthPose(w.port, b.type, 'naust'); } catch (e){}
+      // (and the line ends where the way along the quay begins, astern of the berth and out from it, as a harbour's ends at its point in
+      // the water: within two of her lengths there and slow, the lines take her in, arrive; the berth itself is at the quay's face, and
+      // she ran onto it at 4 knots at Engenes)
+      if (bp){ const q = P[P.length - 1], fq = {x:q[0] / 1000, y:q[1] / 1000};
+        // (her beam and three metres from the plant's quay and the piers: at Engenes the way along the quay passed 4 m from the plant's
+        // quay's end, and she struck it in the turn; when no such way is found, the berth's own margin as on the way out)
+        let W = berthPath(fq, bp, (bp.Bb || 3) + 3); if (W.length <= 3 && (!berthClear(fq, W[1], (bp.Bb || 3) + 3, (bp.Bb || 3) + 3) || groundCheck(fq, W[1]))) W = berthPath(fq, bp);
+        if (W.length > 2){ bz.add(P.length - 1); for (const r of W.slice(1, -1)){ add(r.x * 1000, r.y * 1000); bz.add(P.length - 1); } wpAt[i] = P.length - 1; continue; } } }
+    add(w.x * 1000, w.y * 1000); wpAt[i] = P.length - 1; }
   const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
   const stops = []; for (let i = pl.idx; i <= iEnd; i++) if (wpStop(pl.wps[i]) && wpAt[i] != null) stops.push({i, s:L[wpAt[i]]});
   // the corners: where the line turns, by how much
-  const corners = []; for (let i = 1; i < P.length - 1; i++){ const a = Math.atan2(P[i][0] - P[i - 1][0], -(P[i][1] - P[i - 1][1])), c = Math.atan2(P[i + 1][0] - P[i][0], -(P[i + 1][1] - P[i][1])), th = Math.abs(dynAng(a, c)); if (th > 0.2) corners.push({s:L[i], th, i}); }
+  const corners = []; for (let i = 1; i < P.length - 1; i++){ const a = Math.atan2(P[i][0] - P[i - 1][0], -(P[i][1] - P[i - 1][1])), c = Math.atan2(P[i + 1][0] - P[i][0], -(P[i + 1][1] - P[i][1])), th = Math.abs(dynAng(a, c)); if (th > 0.2) corners.push({s:L[i], th, i, bz:bz.has(i)}); }
   // the hands take her round the sharp turns just past the harbour point too (13.11.2026, tests/allesteder.py, steg 126 AS1: the 21 m
   // coastal vessel at Vannvåg met a hairpin 15 m past it, crept into it at a knot and a half with no bite in her rudder and went round
   // in a circle 100 m wide, onto the marks of the lead; a turn of more than 60 degrees within three of her lengths of the last one)
   let sOut = L[iOut]; const Lb = (dep && dep.bp.Lb) || 8;
   if (dep) for (const c of corners){ if (c.s <= sOut) continue; if (c.s - sOut > 3 * Lb || c.th < Math.PI / 3) break; sOut = c.s; }
-  return {plan:pl, n:pl.wps.length, sig:dynSig(pl), chk:0, P, L, end:L[L.length - 1], wpAt, stops, corners, iEnd, back, turnL:Math.max(10, Lb * 1.5), hd0, sOut, s:0, gchk:0, ghit:null};
+  const bzS = bz.size ? L[Math.min(...bz)] : null;
+  return {plan:pl, n:pl.wps.length, sig:dynSig(pl), chk:0, P, L, end:L[L.length - 1], wpAt, stops, corners, bzS, iEnd, back, turnL:Math.max(10, Lb * 1.5), hd0, sOut, s:0, gchk:0, ghit:null};
 }
 // the hands take her on along the line past the shallows it runs into (500 m at most) and three of her lengths: south of Egersund the line
 // ran on over water too shallow for her at that tide for 70 m, and the ground ahead stopped her again 3 m past where the hands left her.
@@ -755,9 +770,17 @@ function dynAuto(d, dtG){
     // and filling before a bridge, held against the shallows the line runs into. The hands take her on as above)
     else if (!(T.assist > T.s) && !unsafe && S.t - T.prog.t >= 4 && ds > 3 * L && !pl.replan && !(T.stem > 0) && !(SJV.own && SJV.own.t1 == null)){ T.assist = Math.min(T.end - 1, sStop - 0.5, T.s + Math.max(60, 3 * L)); T.prog = {s:T.s, t:S.t}; dynHands(T, 'stuck'); }
     // (a boat of 12 m or more, whose radius of 30 m and more swings her well out of a corner; a smaller one turns round it on her own)
+    // (and every sharp corner on the way in to the naust, by the plant's quay and the piers round it, which the marks do not hold: at
+    // Engenes she swung 40 m wide of the turn in to it and struck the plant's quay at 4 knots, 15.11.2026)
     // (a sharp corner with a mark, a pile or a pier close by it, dynTight: the hands take her round on the line, which keeps the
     // route's margin from it, where her own radius swings her onto it: Stamsund, Grimstad, Sund in Lofoten, 14.11.2026, tests/allesteder.py)
-    if (!(T.assist > T.s) && !unsafe && L >= 12){ const c = T.corners.find(q => q.s > T.s && q.s - T.s < Math.max(2 * L, 30)); if (c && !c.done && c.th >= Math.PI / 3 && (c.done = true) && dynTight(T, c)){ T.assist = Math.min(T.end - 1, sStop - 0.5, c.s + Math.max(30, 1.5 * L)); T.prog = {s:T.s, t:S.t}; dynHands(T, 'tight'); } }
+    if (!(T.assist > T.s) && !unsafe && L >= 12){ const c = T.corners.find(q => q.s > T.s && q.s - T.s < Math.max(2 * L, 30)); if (c && !c.done && c.th >= Math.PI / 3 && (c.done = true) && (c.bz || dynTight(T, c))){ T.assist = Math.min(T.end - 1, sStop - 0.5, c.s + Math.max(30, 1.5 * L)); T.prog = {s:T.s, t:S.t}; dynHands(T, 'tight'); } }
+    // (the last 200 m in to Father's naust, along the quay and the piers of the plant's harbour, the hands take her on the line at a knot
+    // and a half to three, as a harbour's lines take her its last two lengths: the 14.99 m boat swung 20-40 m off the line in the turns and
+    // struck the plant's quay at Engenes, Vannareid and a dozen more, 15.11.2026, tests/allesteder.py with the way in at the lowest tide;
+    // the naust's own stop, not the next one: a way round put in on the way has its own, and the hands go on from it)
+    const sN = T.bzS != null && !T.bzDone ? T.stops.find(q => q.i >= pl.idx && pl.wps[q.i].berth === 'naust') : null;
+    if (sN && !(T.assist > T.s) && !unsafe && !T.ghit && T.s >= sN.s - 200 && sStop > T.s + 1){ T.assist = Math.min(sN.s, sStop) - 0.5; T.bzDone = T.assist >= sN.s - 0.6; T.prog = {s:T.s, t:S.t}; dynHands(T, 'naust'); }
     if ((T.back > 0 && T.s < sScr) || T.assist > T.s){
       const sTo = Math.max(T.back > 0 ? sScr : 0, T.assist || 0), vS = T.back > 0 && T.s < T.back + T.turnL ? 0.8 : Math.min(1.5, 0.8 + Math.max(0, T.s - T.back - T.turnL) * 0.05), psi0 = d.psi; T.s = Math.min(T.s + vS * h, sTo + 0.01); const q = dynLineAt(T, T.s), hd = dynLineHd(T, T.s, 3);
       d.X = q[0]; d.Y = q[1]; if (hd !== null) d.psi = hd; d.u = T.s < T.back ? -vS : vS; d.v = 0; d.r = dynAng(psi0, d.psi) / h; d.dl = 0; continue;
