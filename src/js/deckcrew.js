@@ -276,7 +276,11 @@ function crewSim(src){
     // (the tubs standing at the spots and in the nest may not cut the deck: the stations and the setter's place that are joined now stay
     // joined with them there. Before, the nest closed the hurtigsjark's deck as the first empty tub was set in it; the one carrying
     // the next found no way but through the house, and the tub was laid out anew, steg 125f)
+    // (and the stack: one cell to stand by it on each part of the deck it is reached from, slot by slot; the second empty tub set by the
+    // sjark's hauler cut the hauler off from the stack with the coiled one in his hands, stamper3d.py: snap 9 -> 10)
     const imp = ['sloy', 'is', 'haling', 'door'].map(nm => (ST.PT || {})[nm]).concat([setPlace('line', '-')]).filter(q => q && q.k != null && ST.M.ok(q.k)).map(q => q.k);
+    for (let j = 0; j < stampPer(); j++){ const p = tubSlot(j), seen = new Set(); for (let k = 0; k < ST.M.nx * ST.M.nz; k++){ if (!ST.M.ok(k) || seen.has(C[k])) continue; const q = ST.M.at(k), dd = Math.hypot(q[0] - p[0], q[2] - p[2]);
+      if (Math.abs(q[1] - y0) <= 0.35 && dd >= TUB.REACH[0] && dd <= TUB.REACH[1]){ seen.add(C[k]); imp.push(k); } } }
     const keepsAll = Q => { const Mx = overlay(ST.M, Q.map(q => [q[0], q[2], 0.31, 0.31, 0])); if (Mx === ST.M) return true; const Cx = deckComp(Mx);
       for (let i = 0; i < imp.length; i++) for (let j = i + 1; j < imp.length; j++) if (C[imp[i]] === C[imp[j]] && !(Mx.ok(imp[i]) && Mx.ok(imp[j]) && Cx[imp[i]] === Cx[imp[j]])) return false; return true; };
     // setting: the tub at the stern and one beside it, clear of the one setting and of where the line goes over, where the stern and
