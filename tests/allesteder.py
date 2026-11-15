@@ -133,7 +133,7 @@ SETUP = r"""([type, hh, low]) => { TAB.held = true; if (low){ tideH = (H, p) => 
       await mapPreload([open, pt.p], [['sim', 3], ['chart', 3], ['vec', 1.5]]);
       const nt = kind === 'naust' ? naustTarget(berthPose(pid, b.type, 'naust') || pt.p, 0.5) : null;
       if (kind === 'naust' && !nt){ R.why = 'in: the naust is not a place to go for her (naustTarget)'; return R; }
-      let r; try { r = await draftWay(open, pt.p, null, pid, false, null); } catch (e){ r = {why:[String(e && e.message)]}; }
+      let r; try { r = await draftWay(open, pt.p, null, pid, false, null, nt); } catch (e){ r = {why:[String(e && e.message)]}; }
       if (!r || !r.wps){ R.why = 'in: route: ' + String(r && r.why ? r.why[0] : 'none').slice(0, 90); return R; }
       R.nm = +r.nm.toFixed(1); const last = nt ? {x:nt.x, y:nt.y, port:pid, berth:'naust', fish:0} : {x:pt.p.x, y:pt.p.y, port:pid, fish:0};
       S.plan = {wps:r.wps.map((q, i) => i === r.wps.length - 1 ? last : {x:q.x, y:q.y, port:null, fish:0, leia:true}), idx:0, speed:BOAT.vcruise, returning:false};

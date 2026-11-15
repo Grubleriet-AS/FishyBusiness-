@@ -138,7 +138,7 @@ function leiaArm(on){
 // (leiaRoute), and from Father's naust (atN, port the plant's id) the harbour's own way, and from the naust or a rorbu the way by water
 // from the berth when that finds none. Out of the tap so tests/allesteder.py and tools/rorbu/siteout.py ask the way the game asks it (steg 126, 14.11.2026: the
 // test asked the search alone and found no way from the naust at Sørarnøy, Hidrasund, Tufjord and Gjesvær, where the chart plotter has one)
-async function draftWay(start, goal, aPort, gPort, atN, port){
+async function draftWay(start, goal, aPort, gPort, atN, port, nt){   // (nt: Father's naust as the end, naustTarget, whose route is the plant's with its berth last)
   let res = await leiaRoute({x:start.x, y:start.y}, goal, aPort, gPort);
   // Father's naust in a basin the 100 m grid sees as shut to the sea (Øksfjord, tilbakemelding #39: no way found to the first trip's
   // ring): the way out is then the harbour's own, by its approach path
@@ -171,6 +171,16 @@ async function draftWay(start, goal, aPort, gPort, atN, port){
     if (way && way.length > 1){ const e = way[way.length - 1]; let r2 = await leiaRoute({x:start.x, y:start.y}, {x:e.x, y:e.y}, aPort, null);
       if (r2.why){ const r4 = await leiaRoute({x:e.x, y:e.y}, {x:start.x, y:start.y}, null, aPort); if (!r4.why && r4.wps && r4.wps.length) r2 = {wps:r4.wps.slice(0, -1).reverse().concat([{x:e.x, y:e.y}]), nm:r4.nm, st:Object.assign({}, r4.st, {rev:true})}; }
       if (!r2.why && r2.wps && r2.wps.length){ const nm = r2.nm + dist(e, goal) / NM; res = {wps:r2.wps.concat(way.slice(1, -1).reverse(), [{x:goal.x, y:goal.y}]), nm, st:Object.assign({}, r2.st, {siteIn:way.length})}; } } }
+  // into Father's naust where it lies outside the plant's basin: the way along the quay from the plant's harbour point to its berth goes
+  // far round (Smøla nord, steg 126, 15.11.2026: the naust on the island's other side, berthPath 2.5 km round it into the shallows at the
+  // lowest tide, tests/allesteder.py with the way in). Then as a rorbu: the route to where the way by water out from its berth ends, and
+  // that way turned
+  if (nt && !res.why && res.wps && res.wps.length){ const bp = berthPose(nt.port, S.boat.type, 'naust');
+    const q = res.wps.length > 1 ? res.wps[res.wps.length - 2] : start, W = bp ? berthPath({x:q.x, y:q.y}, bp) : null, len = A => A.reduce((s, p, k) => k ? s + dist(A[k - 1], p) : 0, 0);
+    if (W && len(W) > 2 * dist(q, bp) + 0.2){ const way = naustWay({x:bp.x, y:bp.y}, nt.port, BOAT.draft + LEIA.minOver);
+      if (way && way.length > 1 && way.to !== 'harbour'){ const e = way[way.length - 1]; let r2 = await leiaRoute({x:start.x, y:start.y}, {x:e.x, y:e.y}, aPort, null);
+        if (r2.why){ const r4 = await leiaRoute({x:e.x, y:e.y}, {x:start.x, y:start.y}, null, aPort); if (!r4.why && r4.wps && r4.wps.length) r2 = {wps:r4.wps.slice(0, -1).reverse().concat([{x:e.x, y:e.y}]), nm:r4.nm, st:Object.assign({}, r4.st, {rev:true})}; }
+        if (!r2.why && r2.wps && r2.wps.length) res = {wps:r2.wps.concat(way.slice(1, -1).reverse(), [{x:goal.x, y:goal.y}]), nm:r2.nm + len(way) / NM, st:Object.assign({}, r2.st, {naustIn:way.length})}; } } }
   return res;
 }
 async function leiaTo(pt, buoy, act){   // buoy: to a set's buoy, to haul it (the rules are not asked); act: what the boat does there (a haul)
@@ -214,7 +224,7 @@ async function leiaTo(pt, buoy, act){   // buoy: to a set's buoy, to haul it (th
         toast(rb + L(' Autonav går til nærmeste sted der du kan fiske, ' + m + ' m unna. Trykk samme sted igjen for å gå helt dit.', ' Autonav goes to the nearest place where you may fish, ' + m + ' m away. Tap the same place again to go all the way.')); }
       else toast(rb + L(' Du kan seile dit, men ikke fiske der.', ' You may sail there, but not fish there.')); } }
   const before = JSON.stringify(S.draft); LEIA_BUSY = true; panelDirty = true; renderPanel(); renderRouteTools();
-  let res; try { res = await draftWay(start, near ? near.p : goal, aPort, near ? near.id : null, atN, b.port); }
+  let res; try { res = await draftWay(start, near ? near.p : goal, aPort, near ? near.id : null, atN, b.port, nt); }
   finally { LEIA_BUSY = false; }
   if (JSON.stringify(S.draft) !== before){ routeChanged(); return; }   // the route was changed while the way was being found
   if (res.why){ toast(S.lang === 'no' ? res.why[0] : res.why[1]); routeChanged(); return; }

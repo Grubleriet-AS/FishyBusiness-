@@ -607,6 +607,9 @@ function dynLineBuild(pl, dep){
         // (her beam and three metres from the plant's quay and the piers: at Engenes the way along the quay passed 4 m from the plant's
         // quay's end, and she struck it in the turn; when no such way is found, the berth's own margin as on the way out)
         let W = berthPath(fq, bp, (bp.Bb || 3) + 3); if (W.length <= 3 && (!berthClear(fq, W[1], (bp.Bb || 3) + 3, (bp.Bb || 3) + 3) || groundCheck(fq, W[1]))) W = berthPath(fq, bp);
+        // (nor a way round far longer than the berth's own: at Smøla nord the wider way went 400 m north round the island's point into
+        // the shallows, and the way round those all round the island)
+        else { const W0 = berthPath(fq, bp), len = A => A.reduce((s, q, k) => k ? s + dist(A[k - 1], q) : 0, 0); if (len(W) > 1.5 * len(W0) + 0.05) W = W0; }
         if (W.length > 2){ bz.add(P.length - 1); for (const r of W.slice(1, -1)){ add(r.x * 1000, r.y * 1000); bz.add(P.length - 1); } wpAt[i] = P.length - 1; continue; } } }
     add(w.x * 1000, w.y * 1000); wpAt[i] = P.length - 1; }
   const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
