@@ -2681,8 +2681,9 @@
 "sv520573_1007674": {
 "fylke": "Trøndelag",
 "kommune": "Trondheim",
-"lat": 63.43534,
-"lon": 10.39898,
+"lat": 63.43751,
+"lon": 10.3965,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "50",
 "off": 0
 },
