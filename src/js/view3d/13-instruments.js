@@ -297,12 +297,16 @@
     return SK.wgrid = {t, x0, z0, nx, nz, c, W}; }
   function skPath(A, Bp){ const g = skGrid(); if (g.none) return [A, Bp];
     const {x0, z0, nx, nz, c, W} = g, cell = p => [clamp(Math.round((p[0] - x0) / c), 0, nx - 1), clamp(Math.round((p[2] - z0) / c), 0, nz - 1)], at = (k, j) => [x0 + k * c, A[1], z0 + j * c];
-    const free = q => { if (!W[q[1] * nx + q[0]]) return q; let best = null, bd = 1e9; for (let j = Math.max(0, q[1] - 8); j <= Math.min(nz - 1, q[1] + 8); j++) for (let k = Math.max(0, q[0] - 8); k <= Math.min(nx - 1, q[0] + 8); k++){ const dd = (k - q[0]) ** 2 + (j - q[1]) ** 2; if (!W[j * nx + k] && dd < bd){ bd = dd; best = [k, j]; } } return best; };
-    const s0 = free(cell(A)), s1 = free(cell(Bp)); if (!s0 || !s1) return [A, Bp];
-    const N = nx * nz, D = new Float32Array(N).fill(1e9), from = new Int32Array(N).fill(-1), done = new Uint8Array(N), st = s0[1] * nx + s0[0], en = s1[1] * nx + s1[0]; D[st] = 0;
-    for (;;){ let u = -1, du = 1e9; for (let i = 0; i < N; i++) if (!done[i] && D[i] < du){ du = D[i]; u = i; } if (u < 0 || u === en) break; done[u] = 1;
-      const uk = u % nx, uj = (u - uk) / nx; for (let dj = -1; dj <= 1; dj++) for (let dk = -1; dk <= 1; dk++){ if (!dj && !dk) continue; const kk = uk + dk, jj = uj + dj; if (kk < 0 || kk >= nx || jj < 0 || jj >= nz) continue; const v = jj * nx + kk; if (W[v] || done[v]) continue; const nd = du + Math.hypot(dk, dj); if (nd < D[v]){ D[v] = nd; from[v] = u; } } }
-    if (D[en] >= 1e9) return [A, Bp];
+    // (the free cells nearest a point, nearest first: the nearest may be a pocket cut off from the rest, as the space aft of the skipper's
+    // thwart, so the way starts from the first one that reaches any of those by the end)
+    const cands = q => { const out = []; for (let j = Math.max(0, q[1] - 8); j <= Math.min(nz - 1, q[1] + 8); j++) for (let k = Math.max(0, q[0] - 8); k <= Math.min(nx - 1, q[0] + 8); k++) if (!W[j * nx + k]) out.push([(k - q[0]) ** 2 + (j - q[1]) ** 2, j * nx + k]); return out.sort((x, y) => x[0] - y[0]).map(x => x[1]); };
+    const C0 = cands(cell(A)).slice(0, 6), C1 = cands(cell(Bp)); if (!C0.length || !C1.length) return [A, Bp];
+    const N = nx * nz; let D, from, st = -1, en = -1;
+    for (const s0 of C0){ D = new Float32Array(N).fill(1e9); from = new Int32Array(N).fill(-1); const done = new Uint8Array(N); D[s0] = 0;
+      for (;;){ let u = -1, du = 1e9; for (let i = 0; i < N; i++) if (!done[i] && D[i] < du){ du = D[i]; u = i; } if (u < 0) break; done[u] = 1;
+        const uk = u % nx, uj = (u - uk) / nx; for (let dj = -1; dj <= 1; dj++) for (let dk = -1; dk <= 1; dk++){ if (!dj && !dk) continue; const kk = uk + dk, jj = uj + dj; if (kk < 0 || kk >= nx || jj < 0 || jj >= nz) continue; const v = jj * nx + kk; if (W[v] || done[v]) continue; const nd = du + Math.hypot(dk, dj); if (nd < D[v]){ D[v] = nd; from[v] = u; } } }
+      const e = C1.find(v => D[v] < 1e9); if (e != null){ st = s0; en = e; break; } }
+    if (en < 0) return [A, Bp];
     const cells = []; for (let v = en; v >= 0; v = from[v]){ cells.unshift(v); if (v === st) break; }
     const seen = (a, b) => { const ak = a % nx, aj = (a - ak) / nx, bk = b % nx, bj = (b - bk) / nx, n = Math.max(Math.abs(bk - ak), Math.abs(bj - aj)) * 2; for (let i = 1; i < n; i++){ const k = Math.round(ak + (bk - ak) * i / n), j = Math.round(aj + (bj - aj) * i / n); if (W[j * nx + k]) return false; } return true; };
     const keep = [cells[0]]; for (let i = 1; i < cells.length - 1; i++) if (!seen(keep[keep.length - 1], cells[i + 1])) keep.push(cells[i]); keep.push(cells[cells.length - 1]);
@@ -315,7 +319,7 @@
     else if (i > 1 && s < 0.25){ const e = dir(Pt[i - 2], A), k = 0.5 * (1 - s / 0.25), n1 = Math.hypot(d[0], d[1]) || 1, n2 = Math.hypot(e[0], e[1]) || 1; d = [d[0] / n1 * (1 - k) + e[0] / n2 * k, d[1] / n1 * (1 - k) + e[1] / n2 * k]; }
     return {p:[A[0] + (B[0] - A[0]) * u, A[1], A[2] + (B[2] - A[2]) * u], d}; }
   // where he is wanted this frame (null: not aboard, at the wheel's camera, or others aboard: no walk, he is where the work draws him)
-  function skWalkStep(want){ const now = performance.now() / 1000; if (SK) SK.walk = SKW;   // (for the tests: G3._debug.SK.walk)
+  function skWalkStep(want){ const now = performance.now() / 1000; if (SK){ SK.walk = SKW; SK.pathOf = skPath; SK.gridOf = skGrid; SK.spotOf = skSpot; }   // (for the tests: G3._debug.SK.walk)
     if (SKW.to && now >= SKW.t0 + SKW.dur){ SKW.at = SKW.to; SKW.to = null; }
     if (!want){ SKW.at = null; SKW.to = null; return; }
     if (SKW.to){ if (want !== SKW.to){ const P = pathAt(SKW.path, clamp(now - SKW.t0 - SKWUP, 0, 1e9) * SKWV).p, B = skSpot(want);

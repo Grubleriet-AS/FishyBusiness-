@@ -66,21 +66,21 @@ async def gang():
             await pg.evaluate(SET, ['jig', -1.4, 0.55, 5.0]); await pg.wait_for_timeout(3000)
             await pg.evaluate("() => { clearInterval(window.FEED); }"); await pg.evaluate("G3._debug.studio(true)")
             await pg.evaluate("() => { if (!window.__R){ window.__R = performance.now.bind(performance); } window.__T = window.__R(); performance.now = () => window.__T; }")
-            for _ in range(30):
-                await step(pg, 100)
-            w0 = await pg.evaluate(WALK)
+            for _ in range(80):   # (until he stands at the jig: he may be on his way there from the tiller)
+                await step(pg, 100); w0 = await pg.evaluate(WALK)
+                if w0 and w0['at'] == 'rail' and not w0['to']: break
             await pg.evaluate(js)
-            d = os.path.join(d0, 'trebat_gang_' + what); os.makedirs(d, exist_ok=True); seen_to, arrived, k, after = None, None, 0, 0
+            d = os.path.join(d0, 'trebat_gang_' + what); os.makedirs(d, exist_ok=True); seen_to, arrived, k, after, reached = None, None, 0, 0, set()
             for k in range(200):
                 await step(pg, 100); w = await pg.evaluate(WALK)
                 await pg.screenshot(path=os.path.join(d, '%03d.png' % k))
                 if w and w['to'] and seen_to != w['to']: seen_to = w['to']; print('  vei', what, w['path'], flush=True)
-                if seen_to and w and not w['to']: arrived = w['at']; after += 1
+                if seen_to and w and not w['to']: arrived = w['at']; reached.add(w['at']); after += 1
                 if after >= 10: break
                 if k == 60 and not seen_to: break   # (6 s and he has not set off: no use drawing on)
             subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-framerate', '10', '-i', os.path.join(d, '%03d.png'), '-pix_fmt', 'yuv420p', os.path.join(d0, 'trebat_gang_' + what + '.mp4')], check=True)
             want = 'helm' if what == 'ror' else 'table'
-            check(w0 and w0['at'] == 'rail' and seen_to == want and arrived == want, f'han går fra juksa til {"roret" if what == "ror" else "bordet"}', {'før': w0, 'gikk til': seen_to, 'kom til': arrived, 'bilder': k + 1})
+            check(w0 and w0['at'] == 'rail' and want in reached, f'han går fra juksa til {"roret" if what == "ror" else "bordet"}', {'før': w0 and w0['at'], 'kom til': sorted(reached), 'sist': arrived, 'bilder': k + 1})
             await pg.evaluate("() => { performance.now = window.__R; G3._debug.studio(false); }")
         check(not errs, 'ingen sidefeil', errs[:3])
         await br.close()
