@@ -15,6 +15,11 @@ export default function (t){
     t.ok(K.havnOptions(p, 1, 'sjark').length === 0, 'havnOptions: ingen havneplass som hjem');
     t.ok(K.havnShutAt(p, 0.2) === true, 'havnShutAt: kartet vet at trykket var ved en stengt havn');
     const W = K.get('HAVN_WHY'); t.ok(W && /kystens egne båter/.test(W[0]) && /coast's own boats/.test(W[1]), 'HAVN_WHY: sier hvorfor, på norsk og engelsk', W);
+    // a route from before that still ends at a berth (the way home along the trail, a plan from before): passed, never moored at
+    { const S = K.get('S'), w = {x:100.01, y:100, port:'hs:h1:0', fish:0}; let docked = null; const dk = K.get('dock'); K.set('dock', id => { docked = id; });
+      S.plan = {wps:[w], idx:0, speed:6}; S.boat.status = 'sailing'; S.trail = [];
+      try { K.arrive(w); } finally { K.set('dock', dk); }
+      t.ok(docked === null && w.port === null && S.trail.length === 1 && S.trail[0].port === null, 'arrive: en rute som ender ved en havneplass, legger ikke til der', {docked, port:w.port}); }
     HAVN.shut = false;
     t.ok(!!K.havnFind(p, 1, 'sjark') && !!K.havnTapNear(p, 1) && K.havnOptions(p, 1, 'sjark').length === 1 && K.havnShutAt(p, 0.2) === false, 'åpnet igjen (HAVN.shut false): samme havn gir plassen som før');
   } finally { HAVN.shut = was; for (const n in keep) K.set(n, keep[n]); }

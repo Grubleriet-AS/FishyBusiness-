@@ -317,8 +317,11 @@ if (BOOTG.safe) bootgSafe();   // the starts before locked (BOOTG above): the ro
       const q = PORTS.filter(p => !p.rorbu && portFits(p, b.type)).sort((x, y) => dist(x.p, at) - dist(y.p, at))[0];
       if (q){ b.port = q.id; b.berth = 'main'; b.pos = {x:q.p.x, y:q.p.y}; b.dyn = null; b.anch = null; if (b === S.boat) S.trail = [{x:q.p.x, y:q.p.y, port:q.id}]; held.add(old);
         log(HAVN_WHY[0] + ' «' + (S.boatName || '') + '» er flyttet til ' + q.name + '.', HAVN_WHY[1] + ' «' + (S.boatName || '') + '» was moved to ' + q.name + '.'); } }
-    for (const L of [S.plan && S.plan.wps, S.draft]){ const e = L && L.length ? L[L.length - 1] : null; if (!e || !isBerth(e.port)) continue;
-      held.add(e.port); e.port = null; e.leia = true; delete e.berth; if (L !== S.draft) log(HAVN_WHY[0] + ' Ruta ender der den gikk, utenfor.', HAVN_WHY[1] + ' The route ends where it went, off the shore.'); }
+    // (every point of the route, not only its end: a standing plan's day can have its home before the grounds, the kontroll of steg 126)
+    for (const L of [S.plan && S.plan.wps, S.draft]){ let n = 0; for (const e of L || []){ if (!e || !isBerth(e.port)) continue;
+      held.add(e.port); e.port = null; e.leia = true; delete e.berth; n++; } if (n && L !== S.draft) log(HAVN_WHY[0] + ' Ruta går forbi der, uten å legge til.', HAVN_WHY[1] + ' The route passes there without mooring.'); }
+    // (and the trail: the way home along it, startReturn, ended at the berth she left from)
+    for (const q of S.trail || []) if (q && isBerth(q.port)){ held.add(q.port); q.port = null; }
     const o = S.ops; if (o && isBerth(o.home)){ held.add(o.home); o.on = false; o.home = null; log(HAVN_WHY[0] + ' Driftsplanen er stoppet; velg et nytt hjemsted i den.', HAVN_WHY[1] + ' The operating plan is stopped; choose a new home in it.'); }
     for (const id of held) havnFree(id); };
   if (!(S.fleet && S.fleet.length)){ siteOut(); goneWay(); berthOut(); }
