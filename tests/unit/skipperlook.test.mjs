@@ -3,7 +3,9 @@
 export default function (t){
   const K = t.K; K.set('S', K.newState());
   const S = K.get('S');
-  const a = K.genCrew(), b = K.genCrew(); a.name = 'A'; b.name = 'B'; S.crew = [a, b]; S.look = null;
+  const a = K.genCrew(), b = K.genCrew(); a.name = 'A'; b.name = 'B';
+  for (const c of [a, b]) Object.assign(c, {bi:false, biDays:null, off:false, sleepW:false});   // genCrew makes a part-timer one time in nine (bi), away on some weekdays
+  S.crew = [a, b]; S.look = null;
   const sig = l => l ? K.lookKey(l) : null;
   // aboard: you at the wheel, the first of the crew the first hand
   S.me = S.cur;
