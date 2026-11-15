@@ -4783,3 +4783,25 @@
 2026-11-15 20:10	ccr-as1-alle	df7ae66+	obstest	OK	11	lite	samtidig	
 2026-11-15 20:10	ccr-as1-alle	df7ae66+	autonavtest	OK	34	lite	samtidig	
 2026-11-15 20:11	ccr-as1-alle	df7ae66+	trip2	OK	41	lite	samtidig	
+2026-11-15 20:39	ccr-c50c6763-d0kzqc	74e4c27+	tabtest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-15 20:39	ccr-c50c6763-d0kzqc	74e4c27+	timetest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-15 20:39	ccr-c50c6763-d0kzqc	74e4c27+	mig2test	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-15 20:39	ccr-c50c6763-d0kzqc	74e4c27+	pwatest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-15 20:39	ccr-c50c6763-d0kzqc	74e4c27+	cashfxtest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-15 20:39	ccr-c50c6763-d0kzqc	74e4c27+	errtest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-15 20:39	ccr-c50c6763-d0kzqc	74e4c27+	roetest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-15 20:39	ccr-c50c6763-d0kzqc	74e4c27+	worktest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-15 20:39	ccr-c50c6763-d0kzqc	74e4c27+	sleeptest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-15 20:39	ccr-c50c6763-d0kzqc	74e4c27+	havtur	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-15 20:39	ccr-c50c6763-d0kzqc	74e4c27+	mannskapshot	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-15 20:41	ccr-c50c6763-d0kzqc	74e4c27+	tabtest	OK	114	lite	samtidig	
+2026-11-15 20:41	ccr-c50c6763-d0kzqc	74e4c27+	timetest	OK	20	lite	samtidig	
+2026-11-15 20:41	ccr-c50c6763-d0kzqc	74e4c27+	mig2test	OK	25	lite	samtidig	
+2026-11-15 20:41	ccr-c50c6763-d0kzqc	74e4c27+	pwatest	OK	32	lite	samtidig	
+2026-11-15 20:41	ccr-c50c6763-d0kzqc	74e4c27+	cashfxtest	OK	10	lite	samtidig	
+2026-11-15 20:41	ccr-c50c6763-d0kzqc	74e4c27+	errtest	OK	42	lite	samtidig	
+2026-11-15 20:43	ccr-c50c6763-d0kzqc	d993237	roetest	OK	123	lite	samtidig	
+2026-11-15 20:43	ccr-c50c6763-d0kzqc	d993237	worktest	OK	22	lite	samtidig	
+2026-11-15 20:43	ccr-c50c6763-d0kzqc	d993237	sleeptest	OK	11	lite	samtidig	
+2026-11-15 20:43	ccr-c50c6763-d0kzqc	d993237	havtur	FEIL	0	lite	samtidig	FEIL hele kysten mangler i tools/map/out/game (release.py og game.py)
+2026-11-15 20:43	ccr-c50c6763-d0kzqc	d993237	mannskapshot	OK	16	lite	samtidig	
