@@ -49,7 +49,7 @@ const G3 = (() => {
   QUAL.pxK = 1; QUAL.pxMin = 0.5;
   const PXS = {bad:0, good:0, tryAt:0, fps0:0, prev:1, no:false};
   function pxTick(dt, fps, now){
-    if (QUAL.lvl !== 0 || QUAL.fix || !fps) { PXS.bad = PXS.good = 0; return; }
+    if (QUAL.lvl !== 0 || QUAL.fix || !fps) { PXS.bad = PXS.good = 0; PXS.tryAt = 0; return; }   // (a trial left off Low is not judged later against another frame rate)
     if (PXS.tryAt){ if (now - PXS.tryAt < 6000) return; if (fps < PXS.fps0 * 1.08){ QUAL.pxK = PXS.prev; PXS.no = true; } PXS.tryAt = 0; PXS.bad = PXS.good = 0; return; }
     if (fps < 26){ PXS.bad += dt; PXS.good = 0; if (PXS.bad > 5 && !PXS.no && QUAL.pxK > QUAL.pxMin){ PXS.prev = QUAL.pxK; QUAL.pxK = Math.max(QUAL.pxMin, QUAL.pxK * 0.75); PXS.fps0 = fps; PXS.tryAt = now; PXS.bad = 0; } }
     else if (fps > 45){ PXS.good += dt; PXS.bad = 0; if (PXS.good > 10 && QUAL.pxK < 1){ QUAL.pxK = Math.min(1, QUAL.pxK / 0.75); PXS.good = 0; } }
