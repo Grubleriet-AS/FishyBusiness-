@@ -57,7 +57,12 @@ async def run_op(pg, t, what, tub_s, secs, small):
         if r['w']['hand'] and i % 10 == 0:
             cm = await pg.evaluate(CLIP)
             if cm is not None: CLIPMAX[t] = max(CLIPMAX.get(t, 0), cm)
-        if os.environ.get('KYST_TRACE') and i % 100 == 0: print('   ', i / 10, r['op'], r['w'], r['k'], 'snap', r['snap'], 'båret', r['carried'], r['job'], r['ag'], flush=True)
+        # (KYST_TRACE=1: every 4 s of the held clock the account, the carry wanted now, who would take it and where he would stand at
+        # both ends (null: no place on his part of the deck), the parts of the deck (deckComp) and the tubs one by one: k at i, e.g. 'fs3'
+        # a full tub in slot 3, 'ew0' an empty one at work spot 0, 'en1' the nest's level 1)
+        if os.environ.get('KYST_TRACE') and i % 40 == 0:
+            w = await pg.evaluate("(() => { const W = CREW3D.tubWhy(); return W && {job:W.job, who:W.who, s0:W.s0, s1:W.s1, comp:W.comp, tubs:CREW3D.tubAccount().T.map(q => q.k[0] + q.at[0] + q.i).join(' ')}; })()")
+            print('   ', i / 10, r['op'], 'snap', r['snap'], 'båret', r['carried'], r['ag'], json.dumps(w)[:700], flush=True)
         # (a picture in each format while a tub is in someone's hands, once it is up)
         if r['w']['hand'] and not shot and i > 20:
             shot = True
