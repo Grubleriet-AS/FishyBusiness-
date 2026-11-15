@@ -30,6 +30,7 @@ TYPE = os.environ.get('KYST_ALLE_TYPE', 'kyst21')
 SMALL = os.environ.get('KYST_ALLE_SMALL', 'kyst15')
 # the clock moved on so many hours from the start (a place that failed in the whole run, tried alone at the time it came up there)
 HOURS = float(os.environ.get('KYST_ALLE_H', '0'))
+PART = tuple(int(v) for v in os.environ['KYST_ALLE_PART'].split('/')) if os.environ.get('KYST_ALLE_PART') else None
 # the tide held at chart datum the whole trip (Jonas 15.11.2026: «kjøre testen på kun laveste lavvann, fordi det sikrer at det faktisk
 # fungerer under alle forhold»): tideH gives minus mean sea level above chart datum everywhere, so tideCD is 0, the charted depths are the
 # water there is, and no tidal stream runs. Waiting for the flood to get out (tideBound) is then no way out but a finding.
@@ -211,6 +212,9 @@ async def main():
         if 'havn' in KINDS: todo += [('havn', h) for h in await pg.evaluate(HAVNS)]
         if IDS: todo = [t for t in todo if t[1] in IDS]
         todo = todo[::EVERY]
+        # KYST_ALLE_PART=k/n: every n-th place from the k-th (0-based), so the coast runs in n processes at once (each its own browser);
+        # the results go to allesteder<_type>_<k>.json and are read together by --join
+        if PART: todo = todo[PART[0]::PART[1]]
         res = []; t0 = time.time()
         for i, (kind, pid) in enumerate(todo):
             if kind == 'naust':
@@ -221,7 +225,7 @@ async def main():
             bad = r.get('why') or (r.get('lie', {}).get('land') if r.get('lie') else None)
             if bad: print('allesteder:', kind, r.get('name'), r.get('ll'), json.dumps({k: r.get(k) for k in ('why', 'to', 'nm', 'min', 'end', 'log', 'hits', 'clash', 'asleep', 'h', 'hands', 'inn')}, ensure_ascii=False), flush=True)
             if i % 25 == 0: print('   ', i, '/', len(todo), round(time.time() - t0), 's', flush=True)
-        json.dump(res, open(os.path.join(ROOT, 'tests', 'out', 'allesteder%s.json' % ('_' + TYPE if TYPE != 'kyst21' else '')), 'w'), ensure_ascii=False, indent=0)
+        json.dump(res, open(os.path.join(ROOT, 'tests', 'out', 'allesteder%s%s.json' % ('_' + TYPE if TYPE != 'kyst21' else '', '_%d' % PART[0] if PART else '')), 'w'), ensure_ascii=False, indent=0)
         done = [r for r in res if not r.get('skip')]
         by = lambda k: [r for r in done if r['kind'] == k]
         print('places:', len(done), {k: len(by(k)) for k in ('port', 'rorbu', 'naust', 'havn')}, '| harbours with no berth for her:', sum(1 for r in res if r.get('none')), '| skipped:', [(r['kind'], r['id'], r['skip']) for r in res if r.get('skip')][:8])

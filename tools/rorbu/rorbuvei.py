@@ -49,8 +49,13 @@ TRY = r"""async ([id, apart, FAST, LOW]) => { const R = RBID.get(id), b = S.boat
     if (open) cands[FAST ? 'unshift' : 'push'](open);
     const T0 = S.t; let last = '';
     try { for (let h = 0; h <= (LOW ? 0 : 12); h += 3){ S.t = T0 + h * 60;
-      for (const q of cands){ await mapPreload([q.p], [['sim', 3], ['chart', 3]]); let r = null; try { r = await leiaRoute(from, q.p, id, q.id); } catch (e){ r = {why:['error ' + String(e && e.message).slice(0, 60)]}; } if (r && r.wps) return {ok:true, h, nm:+r.nm.toFixed(1)}; last = r && r.why ? r.why[0] : 'none'; } } } finally { S.t = T0; }
+      for (const q of cands){ await mapPreload([q.p], [['sim', 3], ['chart', 3]]); let r = null; try { r = await draftWay(from, q.p, id, q.id, false, id); } catch (e){ r = {why:['error ' + String(e && e.message).slice(0, 60)]}; } if (r && r.wps){ if (LOW && !(await wayIn(r, from))) { last = 'no way in'; continue; } return {ok:true, h, nm:+r.nm.toFixed(1)}; } last = r && r.why ? r.why[0] : 'none'; } } } finally { S.t = T0; }
     return {ok:false, why:'no way out: ' + last}; };
+  // (and in again, at the lowest tide: from 1.5 km along the way out back to the rorbu as the chart plotter finds it, ui/03b-route.js
+  // draftWay, as tests/allesteder.py; Jonas 15.11.2026: «både inn og ut av»)
+  const wayIn = async (r, from) => { let a = from, op = null; for (const w of r.wps){ for (let k = 1; k <= 20 && !op; k++){ const q = {x:a.x + (w.x - a.x) * k / 20, y:a.y + (w.y - a.y) * k / 20}; if (dist(q, from) >= 1.5) op = q; } if (op) break; a = w; }
+    if (!op) op = r.wps[r.wps.length - 1]; const st = b.status; b.status = 'idle'; b.port = null; b.pos = {x:op.x, y:op.y};
+    let r2 = null; try { r2 = await draftWay(op, R.p, null, id, false, null); } catch (e){} b.status = 'port'; b.port = id; b.pos = {x:R.p.x, y:R.p.y}; return !!(r2 && r2.wps); };
   const setAt = p => { R.cand = {x:p.x, y:p.y}; R.p = {x:p.x, y:p.y}; R.coast = {x:p.x, y:p.y}; R.xy = [p.x, p.y]; R.shore = [p.x, p.y]; delete R.site; RORBU.ver = (RORBU.ver || 0) + 1; delete APPROACH[id]; R.free = undefined; if (typeof QUAYF !== 'undefined') QUAYF = null; };
   for (const rr of [0.3, 0.6, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5]){
     const ring = []; for (let a = 0; a < 6.28; a += 0.2618){ const p = {x:c0.x + Math.cos(a) * rr, y:c0.y + Math.sin(a) * rr}; ring.push(p); }

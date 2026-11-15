@@ -40,19 +40,20 @@ async def main():
         await boot(pg, GAME + '#glchk')
         homes = await pg.evaluate("(L) => L.map(lat => { const q = P(lat, 14); return PORTS.filter(p => p.mottak && !p.sted).sort((a, b) => Math.abs(a.p.y - q.y) - Math.abs(b.p.y - q.y))[0].id; })", NAUST_LAT)
         await ctx.close()
+        # (one page for all six: a page load in 3D takes 50-140 s before the first frames in SwiftShader, Jonas' test review 15.11.2026;
+        # the trees, the life, the wind and the marinas off, the shore and the near zone on, since the bank under her is what is looked at)
+        ctx = await br.new_context(viewport={'width': 1000, 'height': 700}); pg = await ctx.new_page()
+        pg.on('pageerror', lambda e: errs.append(str(e)))
+        await boot(pg, GAME + '#glchk#trees0,life0,vind0,marina0')
         for kind, pid in [('rorbu', i) for i in RORBU] + [('naust', i) for i in homes]:
-            # (a fresh page for each place, as kaishot.py: one moved along the coast in 3D waited for its coast past two minutes)
-            ctx = await br.new_context(viewport={'width': 1000, 'height': 700}); pg = await ctx.new_page()
-            pg.on('pageerror', lambda e: errs.append(str(e)))
-            await boot(pg, GAME + '#glchk')
             await pg.evaluate(PUT, [kind, pid])
             try: await pg.wait_for_function("G3.isActive()", timeout=120000)
-            except Exception: print(kind, pid, '3D kom ikke opp'); await ctx.close(); continue
+            except Exception: print(kind, pid, '3D kom ikke opp'); continue
             await pg.wait_for_timeout(25000)
             r = await pg.evaluate(LOOK, kind); await pg.wait_for_timeout(8000)
             await pg.screenshot(path=os.path.join(ROOT0, 'tests', 'out', f'valga_{kind}_{pid}{TAG}.png'), timeout=300000)
             r = r or {}; r.update(kind=kind, id=pid); res.append(r); print(json.dumps(r, ensure_ascii=False), flush=True)
-            await ctx.close()
+        await ctx.close()
         await br.close()
         got = [r for r in res if 'worst' in r]
         check(len(got) == 6, 'all six places looked at (%d)' % len(got))
