@@ -617,8 +617,11 @@ function dynLineBuild(pl, dep){
         // (not where the way along the quay goes far round where the route's own last point lies off the berth: naustTarget's point 116 m
         // from it at Flatanger, and the way from there doubled back on itself, a hairpin she stood still in, allesteder 15.11.2026; she
         // goes to the route's point as before, and the mooring takes her in)
+        // (only where it truly doubles back, a turn of over 150 degrees in it: the length alone sent Botnhamn, Sørvågen, Risør and five
+        // more naust in from the route's point straight onto the quay, allesteder-13)
         const lw = (A => A.reduce((s0, q0, k) => k ? s0 + dist(A[k - 1], q0) : 0, 0))(W), lp = dist(fq, w) + dist(w, bp);
-        if (W.length > 2 && lw <= 1.25 * lp + 0.03){ bz.add(P.length - 1); for (const r of W.slice(1, -1)){ add(r.x * 1000, r.y * 1000); bz.add(P.length - 1); } wpAt[i] = P.length - 1; continue; } } }
+        const pin = W.some((r, k) => k > 0 && k < W.length - 1 && Math.abs(dynAng(Math.atan2(r.x - W[k - 1].x, W[k - 1].y - r.y), Math.atan2(W[k + 1].x - r.x, r.y - W[k + 1].y))) > 2.6);
+        if (W.length > 2 && !(pin && lw > 1.25 * lp + 0.03)){ bz.add(P.length - 1); for (const r of W.slice(1, -1)){ add(r.x * 1000, r.y * 1000); bz.add(P.length - 1); } wpAt[i] = P.length - 1; continue; } } }
     add(w.x * 1000, w.y * 1000); wpAt[i] = P.length - 1; }
   const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
   const stops = []; for (let i = pl.idx; i <= iEnd; i++) if (wpStop(pl.wps[i]) && wpAt[i] != null) stops.push({i, s:L[wpAt[i]]});
