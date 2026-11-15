@@ -2,6 +2,7 @@
 were not on the crank, the line or the tiller): the hand jig's round read from the game (G3._debug.SK.anim.jk: the pilk let down, jigged,
 cranked up, at the roller) with a picture at each, and the skipper at the tiller while she turns, in both formats. The account of the fish:
 none let go while he jigs (the queue only shrinks as they are cranked up). Pictures trebat125e_<what>_<format>.png in tests/out. Prints OK or FEIL.
+  python3 tests/trebat125e.py [--gang]   (--gang: only the walk between the tiller, the jig and the table, as clips)
 
 The jig on a locked clock (steg 125e, second session): SwiftShader gives a frame or less a second, and the jig and the bleeding go by
 the frame's dt (at most 0.1 s a frame) while the hooked fish came by the wall's clock, so at 1280x800 he had bled 3 fish in two minutes
@@ -43,6 +44,46 @@ async def step(pg, ms):
     await pg.wait_for_function("(n0) => window.__RAFN >= n0 + 2", arg=n0, timeout=120000)
 
 
+WALK = "(() => { const W = G3._debug.SK && G3._debug.SK.walk; return W ? {at:W.at, to:W.to, dur:+(W.dur || 0).toFixed(2)} : null; })()"
+
+
+async def gang():
+    """Punkt 8 (Jonas 15.11.2026: «når han skal bruke juksa, må han fysisk gå fra roret til juksa, og når han skal sløye må han snu seg å gå
+    de få stegene til sløyebordet»): on the held clock, from the jig to the tiller (she stops fishing and goes) and from the jig to the
+    table (gutting on), a frame each 100 ms sewn to tests/out/klipp/trebat_gang_<what>.mp4."""
+    import subprocess
+    d0 = os.path.join(OUT, 'klipp'); os.makedirs(d0, exist_ok=True)
+    async with async_playwright() as p:
+        br = await p.chromium.launch(args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
+        pg = await br.new_page(viewport={'width': 640, 'height': 400}); errs = []
+        pg.on('pageerror', lambda e: errs.append(str(e)))
+        await boot(pg, GAME + ',folk2,rawclock')
+        await pg.wait_for_function("G3.isActive()", timeout=90000); await pg.wait_for_timeout(3000)
+        await pg.add_style_tag(content="body * { visibility: hidden !important; } canvas { visibility: visible !important; }")
+        for what, js in [('ror', "() => { const b = S.boat; b.status = 'sailing'; b.v = 2; b.fishUntil = null; }"),
+                         ('bord', "() => { S.settings.gut = true; for (let i = 0; i < 4; i++) S.hold.push({sp:'torsk', cls:SPECIES.torsk.ref, kg:3, n:1, bled:true, iced:false, hr:Math.floor(S.t / 60), fresh:100, gut:false, hook:true}); }")]:
+            await pg.evaluate(SET, ['jig', -1.4, 0.55, 5.0]); await pg.wait_for_timeout(3000)
+            await pg.evaluate("() => { clearInterval(window.FEED); }"); await pg.evaluate("G3._debug.studio(true)")
+            await pg.evaluate("() => { if (!window.__R){ window.__R = performance.now.bind(performance); } window.__T = window.__R(); performance.now = () => window.__T; }")
+            for _ in range(30):
+                await step(pg, 100)
+            w0 = await pg.evaluate(WALK)
+            await pg.evaluate(js)
+            d = os.path.join(d0, 'trebat_gang_' + what); os.makedirs(d, exist_ok=True); seen_to, arrived, k, after = None, None, 0, 0
+            for k in range(200):
+                await step(pg, 100); w = await pg.evaluate(WALK)
+                await pg.screenshot(path=os.path.join(d, '%03d.png' % k))
+                if w and w['to']: seen_to = w['to']
+                if seen_to and w and not w['to']: arrived = w['at']; after += 1
+                if after >= 10: break
+            subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-framerate', '10', '-i', os.path.join(d, '%03d.png'), '-pix_fmt', 'yuv420p', os.path.join(d0, 'trebat_gang_' + what + '.mp4')], check=True)
+            want = 'helm' if what == 'ror' else 'table'
+            check(w0 and w0['at'] == 'rail' and seen_to == want and arrived == want, f'han går fra juksa til {"roret" if what == "ror" else "bordet"}', {'før': w0, 'gikk til': seen_to, 'kom til': arrived, 'bilder': k + 1})
+            await pg.evaluate("() => { performance.now = window.__R; G3._debug.studio(false); }")
+        check(not errs, 'ingen sidefeil', errs[:3])
+        await br.close()
+
+
 async def main():
     async with async_playwright() as p:
         br = await p.chromium.launch(args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
@@ -82,4 +123,5 @@ async def main():
         check(not errs, 'ingen sidefeil', errs[:3])
         await br.close()
 
-asyncio.run(main())
+import sys
+asyncio.run(gang() if '--gang' in sys.argv else main())

@@ -278,7 +278,7 @@
     if (k === 'table'){ const d = G.deck || {y:G.gw, z:2}, W = G.work || null, tx = W ? W.table[0] : -(G.beam / 2 - 0.42), tz = W ? W.table[2] : d.z; return [tx + 0.62, sole, tz]; }   // (where drawDeck has him at the table)
     return null; }
   // where he is wanted this frame (null: not aboard, at the wheel's camera, or others aboard: no walk, he is where the work draws him)
-  function skWalkStep(want){ const now = performance.now() / 1000;
+  function skWalkStep(want){ const now = performance.now() / 1000; if (SK) SK.walk = SKW;   // (for the tests: G3._debug.SK.walk)
     if (SKW.to && now >= SKW.t0 + SKW.dur){ SKW.at = SKW.to; SKW.to = null; }
     if (!want){ SKW.at = null; SKW.to = null; return; }
     if (SKW.to){ if (want !== SKW.to){ const u = clamp((now - SKW.t0 - SKWUP) / Math.max(0.01, SKW.dur - SKWUP), 0, 1), P = [SKW.A[0] + (SKW.B[0] - SKW.A[0]) * u, SKW.A[1], SKW.A[2] + (SKW.B[2] - SKW.A[2]) * u], B = skSpot(want);
@@ -291,6 +291,18 @@
     const P = [SKW.A[0] + (SKW.B[0] - SKW.A[0]) * u, SKW.A[1], SKW.A[2] + (SKW.B[2] - SKW.A[2]) * u], w = xf(BMrel, P), w2 = xf(BMrel, SKW.B), w1 = xf(BMrel, SKW.A), eye = lastEye;
     const h = Math.atan2(w2[0] - w1[0], -(w2[2] - w1[2])), wy = w[1] + eye[1];
     drawWorker({gy:() => wy, bare:true, spray:0, kit:'skipper', look:seaLook(lookMe())}, {x:w[0] + eye[0], z:w[2] + eye[2], h, walk:u > 0 && u < 1, s:0}, eye, now, 7); }
+  // the top of the gunwale at z on one side (side +1 starboard), read from the hull's own points (the GLB's lod0): the highest of them
+  // that far out at that length, and the middle of those within 1.5 cm of it across the gunwale. (Steg 125e, Jonas 15.11.2026: «ikke den
+  // andre hånda plassert riktig på rekka, den er liksom i lufta over rekka»: the hand that holds on was placed off the reel, which stands
+  // on the gunwale; now the gunwale itself places it.) Null on the drawn skiff or a model without its hull, and past a fitting (higher
+  // than the gunwale's height and 15 cm)
+  function gunTop(z, side){ const t = vtype(), C = SK.gunC || (SK.gunC = {}), key = t + ':' + z.toFixed(2) + ':' + side; if (key in C) return C[key];
+    let out = null; const o = typeof glbHas === 'function' && glbHas(t) ? glbPart(t, 'lod0') : null, G = GEO(t);
+    if (o && G){ const P = o.p, half = G.beam / 2, cap = (G.gw || 1) + 0.15; let my = -1e9;
+      for (let i = 0; i < P.length; i += 3) if (Math.abs(P[i + 2] - z) < 0.06 && P[i] * side > half * 0.6 && P[i + 1] < cap && P[i + 1] > my) my = P[i + 1];
+      if (my > -1e9){ let sx = 0, n = 0, xo = 0; for (let i = 0; i < P.length; i += 3) if (Math.abs(P[i + 2] - z) < 0.06 && P[i] * side > half * 0.6 && P[i + 1] < cap && P[i + 1] > my - 0.015){ sx += P[i]; n++; if (P[i] * side > xo * side) xo = P[i]; }
+        out = [sx / n, my, z, xo]; } }
+    return C[key] = out; }
   function drawSkiff(BMrel, VP, dt, showSkipper, showCrew){
     if (!SK) return; const b = S.boat;
     // wheel follows the turn rate, the outboard follows the wheel, the lever follows the speed
@@ -372,7 +384,7 @@
       const u = f.u; hang(f.sp, f.kg, [f.a[0] + (TUB[0] - f.a[0]) * u, f.a[1] + (TUB[1] - f.a[1]) * u + Math.sin(Math.PI * u) * 0.45, f.a[2] + (TUB[2] - f.a[2]) * u], i, 0); }
     if (mode && atRail && !walkW){
       const FP = chain(M4.T(F[0], F[1], F[2]), M4.RY(-Math.PI / 2)); drawN(SK.fisher, chain(BMrel, FP));
-      const shY = SK.wk ? WK_SH : 1.3; let shR = xf(FP, [0.2, shY, 0]), shL = xf(FP, [-0.2, shY, 0]), hR, hL;
+      const shY = SK.wk ? WK_SH : 1.3; let shR = xf(FP, [0.2, shY, 0]), shL = xf(FP, [-0.2, shY, 0]), hR, hL, spL = null;
       A.t += dt;
       if (mode === 'gear'){
         const RL = handNet && SKA.rail ? SKA.rail : SKA.haul, w = T * 3.2, hauling = S.boat.gop.op === 'haul';   // (the nets over the rail itself, SKA.rail)
@@ -408,7 +420,9 @@
         // (Jonas 15.11.2026: «Kanskje han skal holde seg i rekka med den andre hånda som han ikke sveiver med?»: while he cranks and while
         // it hangs up at the roller, the left hand holds on to the gunwale beside the reel, on his left; jigging, it works the line)
         const onLine = JK.st === 'jig' || JK.st === 'down';
-        hL = JK.st === 'jig' ? [RL[0] - 0.02, RL[1] + 0.12 + 0.3 * jig, RL[2] - 0.02] : onLine ? [RL[0] - 0.05, RL[1] + 0.06, RL[2]] : [C[0] - 0.02, C[1] + 0.03, C[2] - 0.42];
+        const gT = onLine ? null : gunTop(C[2] - 0.42, C[0] >= 0 ? 1 : -1), gX = gT ? gT[0] - (gT[3] - gT[0]) * 0.5 : 0;   // (the hand on the inner half of the gunwale's top: halfway from its middle to its inner edge)
+        hL = JK.st === 'jig' ? [RL[0] - 0.02, RL[1] + 0.12 + 0.3 * jig, RL[2] - 0.02] : onLine ? [RL[0] - 0.05, RL[1] + 0.06, RL[2]] : gT ? [gX, gT[1] + 0.035, gT[2]] : [C[0] - 0.02, C[1] + 0.03, C[2] - 0.42];
+        if (gT) spL = {g:'relax', n:[0, -1, 0]};   // (the palm down on it)
         const top = [RL[0], RL[1] + 0.04, RL[2]], sea = -0.3;
         // the line from the spool (through his left hand while he jigs) over the roller and down to the pilk; under the surface as far as it is seen
         if (onLine) SK.lines.push([L2R([C[0] + 0.02, C[1] + 0.08, C[2]]), L2R(hL)], [L2R(hL), L2R(top)]); else SK.lines.push([L2R([C[0] + 0.02, C[1] + 0.08, C[2]]), L2R(top)]);
@@ -464,7 +478,7 @@
         A.bend = (A.bend || 0) + (want - (A.bend || 0)) * Math.min(1, dt * 5); const bd = A.bend, dp = bd * 0.3;
         FIGLV.bend = bd; FIGLV.dip = dp; shR = sAt(bd, dp, 1); shL = sAt(bd, dp, -1); }
       const arm = (Sw, Hw, sd, sp) => armTo(BMrel, SK.wk, Sw, Hw, sd, sp);
-      const gR = arm(shR, hR, 1, kDir ? {g:'grip', a:kDir, tool:true} : null); arm(shL, hL, -1);
+      const gR = arm(shR, hR, 1, kDir ? {g:'grip', a:kDir, tool:true} : null); arm(shL, hL, -1, spL);
       if (kDir && gR){ const kn = knifeKit(true); if (kn) drawN(kn, chain(BMrel, toolM(gR, kDir))); }
       if (DKBLOOD.length) dkBloodDraw(VP);
     }
