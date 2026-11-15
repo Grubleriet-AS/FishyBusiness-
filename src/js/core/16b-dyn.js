@@ -625,7 +625,9 @@ function dynLineBuild(pl, dep){
         // back along that leg, the line lay on itself there, and her place on it, dynLineProj, fell back onto the leg in for good, so the hands held her at the turn)
         const Wj = P.length > 1 ? [{x:P[P.length - 2][0] / 1000, y:P[P.length - 2][1] / 1000}].concat(W) : W;
         const pin = Wj.some((r, k) => k > 0 && k < Wj.length - 1 && Math.abs(dynAng(Math.atan2(r.x - Wj[k - 1].x, Wj[k - 1].y - r.y), Math.atan2(Wj[k + 1].x - r.x, r.y - Wj[k + 1].y))) > (Wj === W || k > 1 ? 2.6 : 3.05));
-        const long = lw > 1.25 * lp + 0.03 && (pin || W.slice(1).some((r, k) => groundCheck(W[k], r)));
+        // (and ground on it anywhere, long or not: at Seløy the way along the quay from a point after a replan ran 480 m over the shallows
+        // at the lowest tide, «Grunt vann forut» and no way round, 16.11.2026; the route's own point is searched for depth, the way is not)
+        const shoal = W.slice(1).some((r, k) => groundCheck(W[k], r)), long = shoal || (lw > 1.25 * lp + 0.03 && pin);
         if (W.length > 2 && !long){ bz.add(P.length - 1); for (const r of W.slice(1, -1)){ add(r.x * 1000, r.y * 1000); bz.add(P.length - 1); } wpAt[i] = P.length - 1; continue; } } }
     add(w.x * 1000, w.y * 1000); wpAt[i] = P.length - 1; }
   const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
