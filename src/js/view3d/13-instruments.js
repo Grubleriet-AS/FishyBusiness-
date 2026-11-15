@@ -311,9 +311,9 @@
     const seen = (a, b) => { const ak = a % nx, aj = (a - ak) / nx, bk = b % nx, bj = (b - bk) / nx, n = Math.max(Math.abs(bk - ak), Math.abs(bj - aj)) * 2; for (let i = 1; i < n; i++){ const k = Math.round(ak + (bk - ak) * i / n), j = Math.round(aj + (bj - aj) * i / n); if (W[j * nx + k]) return false; } return true; };
     const keep = [cells[0]]; for (let i = 1; i < cells.length - 1; i++) if (!seen(keep[keep.length - 1], cells[i + 1])) keep.push(cells[i]); keep.push(cells[cells.length - 1]);
     return [A, ...keep.map(v => at(v % nx, Math.floor(v / nx))), Bp]; }
-  const pathLen = Pt => { let L = 0; for (let i = 1; i < Pt.length; i++) L += Math.hypot(Pt[i][0] - Pt[i - 1][0], Pt[i][2] - Pt[i - 1][2]); return L; };
+  const skPathLen = Pt => { let L = 0; for (let i = 1; i < Pt.length; i++) L += Math.hypot(Pt[i][0] - Pt[i - 1][0], Pt[i][2] - Pt[i - 1][2]); return L; };
   // the point s m along the way, and the way's heading there (the turn at a corner spread over the 0.25 m either side of it)
-  function pathAt(Pt, s){ let i = 1; for (; i < Pt.length - 1; i++){ const l = Math.hypot(Pt[i][0] - Pt[i - 1][0], Pt[i][2] - Pt[i - 1][2]); if (s <= l) break; s -= l; }
+  function skPathAt(Pt, s){ let i = 1; for (; i < Pt.length - 1; i++){ const l = Math.hypot(Pt[i][0] - Pt[i - 1][0], Pt[i][2] - Pt[i - 1][2]); if (s <= l) break; s -= l; }
     const A = Pt[i - 1], B = Pt[i], l = Math.hypot(B[0] - A[0], B[2] - A[2]) || 1e-6, u = clamp(s / l, 0, 1), dir = (P, Q) => [Q[0] - P[0], Q[2] - P[2]];
     let d = dir(A, B); if (i < Pt.length - 1 && l - s < 0.25){ const e = dir(B, Pt[i + 1]), k = 0.5 * (1 - (l - s) / 0.25), n1 = Math.hypot(d[0], d[1]) || 1, n2 = Math.hypot(e[0], e[1]) || 1; d = [d[0] / n1 * (1 - k) + e[0] / n2 * k, d[1] / n1 * (1 - k) + e[1] / n2 * k]; }
     else if (i > 1 && s < 0.25){ const e = dir(Pt[i - 2], A), k = 0.5 * (1 - s / 0.25), n1 = Math.hypot(d[0], d[1]) || 1, n2 = Math.hypot(e[0], e[1]) || 1; d = [d[0] / n1 * (1 - k) + e[0] / n2 * k, d[1] / n1 * (1 - k) + e[1] / n2 * k]; }
@@ -322,14 +322,14 @@
   function skWalkStep(want){ const now = performance.now() / 1000; if (SK){ SK.walk = SKW; SK.pathOf = skPath; SK.gridOf = skGrid; SK.spotOf = skSpot; }   // (for the tests: G3._debug.SK.walk)
     if (SKW.to && now >= SKW.t0 + SKW.dur){ SKW.at = SKW.to; SKW.to = null; }
     if (!want){ SKW.at = null; SKW.to = null; return; }
-    if (SKW.to){ if (want !== SKW.to){ const P = pathAt(SKW.path, clamp(now - SKW.t0 - SKWUP, 0, 1e9) * SKWV).p, B = skSpot(want);
-        if (B){ SKW.path = skPath(P, B); SKW.to = want; SKW.t0 = now - SKWUP; SKW.dur = SKWUP + pathLen(SKW.path) / SKWV; } } return; }   // (turned back on the way: from where he is)
+    if (SKW.to){ if (want !== SKW.to){ const P = skPathAt(SKW.path, clamp(now - SKW.t0 - SKWUP, 0, 1e9) * SKWV).p, B = skSpot(want);
+        if (B){ SKW.path = skPath(P, B); SKW.to = want; SKW.t0 = now - SKWUP; SKW.dur = SKWUP + skPathLen(SKW.path) / SKWV; } } return; }   // (turned back on the way: from where he is)
     if (!SKW.at || SKW.at === want){ SKW.at = want; return; }
     const A = skSpot(SKW.at), B = skSpot(want); if (!A || !B){ SKW.at = want; return; }
-    SKW.path = skPath(A, B); SKW.to = want; SKW.t0 = now; SKW.dur = SKWUP + pathLen(SKW.path) / SKWV; }
+    SKW.path = skPath(A, B); SKW.to = want; SKW.t0 = now; SKW.dur = SKWUP + skPathLen(SKW.path) / SKWV; }
   // the walker drawn on the way (the look and the walk as the people on deck have them, 08-plants.js drawWorker)
-  function skWalkDraw(BMrel){ if (!skWalking()) return; const now = performance.now() / 1000, s = Math.max(0, now - SKW.t0 - SKWUP) * SKWV, L = pathLen(SKW.path), u = clamp(s / Math.max(0.01, L), 0, 1);
-    const Q = pathAt(SKW.path, s), P = Q.p, w = xf(BMrel, P), w2 = xf(BMrel, [P[0] + Q.d[0], P[1], P[2] + Q.d[1]]), eye = lastEye;
+  function skWalkDraw(BMrel){ if (!skWalking()) return; const now = performance.now() / 1000, s = Math.max(0, now - SKW.t0 - SKWUP) * SKWV, L = skPathLen(SKW.path), u = clamp(s / Math.max(0.01, L), 0, 1);
+    const Q = skPathAt(SKW.path, s), P = Q.p, w = xf(BMrel, P), w2 = xf(BMrel, [P[0] + Q.d[0], P[1], P[2] + Q.d[1]]), eye = lastEye;
     const h = Math.atan2(w2[0] - w[0], -(w2[2] - w[2])), wy = w[1] + eye[1];
     drawWorker({gy:() => wy, bare:true, spray:0, kit:'skipper', look:seaLook(lookMe())}, {x:w[0] + eye[0], z:w[2] + eye[2], h, walk:u > 0 && u < 1, s:0}, eye, now, 7); }
   // the top of the gunwale at z on one side (side +1 starboard), read from the hull's own points (the GLB's lod0): the highest of them
