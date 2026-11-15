@@ -854,7 +854,7 @@ crew: people with skills, habits and moods
   - 722 `flyOut(c)`
   - 730 `flyTick()`
 
-## `src/js/core/05-vessels.js` (1463 linjer)
+## `src/js/core/05-vessels.js` (1466 linjer)
 
 ---------- other vessels (deterministic, so every player sees the same traffic) ----------
 
@@ -925,45 +925,45 @@ crew: people with skills, habits and moods
   - 913 `sailStop(pl, b, why)`
   - 921 `haltPlan(need)`
   - 931 `arrive(w)`
-  - 949 `unstuckWhy()`
-  - 955 `unstuckSpot()`
-  - 962 `unstuck()`
-- **976** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
-  - 984 `moorPhase(b)`
-  - 999 `dock(pid, berth)`
-  - 1027 `catchFactors(H, W, hs)`
-  - 1040 `stockDev(p, sp)`
-  - 1046 `fish(H, W, hs)`
-  - 1152 `endFishing(why)`
-  - 1173 `bycHere(how)`
-  - 1177 `bycAdd(sp, kg, how)`
-  - 1181 `bycConf()`
-  - 1184 `addCatch(sp, kg, cls, hook, opt)`
-- **1206** work on deck: gutting and icing take hands and time
-  - 1222 `deckHands()`
-  - 1225 `deckPending()`
-  - 1226 `deckEta(hands)`
-  - 1231 `moveKg(x, kg, patch)`
-  - 1239 `iceMinute()`
-  - 1246 `iceOut(out)`
-  - 1252 `deckMinute()`
-- **1277** lying to in a storm (H1b R8, 05.11.2026)
-  - 1294 `quayFar(b)`
-  - 1298 `lieTo(W, hs)`
-  - 1305 `lieToStep(W, hs)`
-  - 1315 `risk(W, hs)`
-  - 1343 `hullRepair()`
-  - 1346 `svcOverdue()`
-- **1347** the rescue boat (plan E3, 05.10.2026)
-  - 1373 `rescueBases()`
-  - 1382 `rescueBase(p)`
-  - 1389 `rescueAis(H)`
-  - 1393 `rescue(keepCatch)`
-  - 1418 `towSea(p)`
-  - 1423 `towRoutes(b)`
-  - 1434 `towStep(H)`
-  - 1446 `towDone(t)`
-  - 1452 `towPose(frac)`
+  - 952 `unstuckWhy()`
+  - 958 `unstuckSpot()`
+  - 965 `unstuck()`
+- **979** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
+  - 987 `moorPhase(b)`
+  - 1002 `dock(pid, berth)`
+  - 1030 `catchFactors(H, W, hs)`
+  - 1043 `stockDev(p, sp)`
+  - 1049 `fish(H, W, hs)`
+  - 1155 `endFishing(why)`
+  - 1176 `bycHere(how)`
+  - 1180 `bycAdd(sp, kg, how)`
+  - 1184 `bycConf()`
+  - 1187 `addCatch(sp, kg, cls, hook, opt)`
+- **1209** work on deck: gutting and icing take hands and time
+  - 1225 `deckHands()`
+  - 1228 `deckPending()`
+  - 1229 `deckEta(hands)`
+  - 1234 `moveKg(x, kg, patch)`
+  - 1242 `iceMinute()`
+  - 1249 `iceOut(out)`
+  - 1255 `deckMinute()`
+- **1280** lying to in a storm (H1b R8, 05.11.2026)
+  - 1297 `quayFar(b)`
+  - 1301 `lieTo(W, hs)`
+  - 1308 `lieToStep(W, hs)`
+  - 1318 `risk(W, hs)`
+  - 1346 `hullRepair()`
+  - 1349 `svcOverdue()`
+- **1350** the rescue boat (plan E3, 05.10.2026)
+  - 1376 `rescueBases()`
+  - 1385 `rescueBase(p)`
+  - 1392 `rescueAis(H)`
+  - 1396 `rescue(keepCatch)`
+  - 1421 `towSea(p)`
+  - 1426 `towRoutes(b)`
+  - 1437 `towStep(H)`
+  - 1449 `towDone(t)`
+  - 1455 `towPose(frac)`
 
 ## `src/js/core/05b-ferje.js` (197 linjer)
 
@@ -1468,44 +1468,44 @@ the rorbuer along the coast: a cheap bed ashore and a quay to lie at (05.10.2026
   - 73 `rorbuTarget(pt, r)`
   - 87 `rorbuSoon(p, r)`
 
-## `src/js/core/07e-havn.js` (271 linjer)
+## `src/js/core/07e-havn.js` (278 linjer)
 
 A berth in the coast's harbours for the player's boats (Jonas 23.10.2026: «Båten burde som oftest ligge til en skikkelig kai
 
 - **1** A berth in the coast's harbours for the player's boats (Jonas 23.10.2026: «Båten burde som oftest ligge til en skikkelig kai
-  - 19 `isBerth(id)`
-  - 21 `havnStore()`
-  - 22 `havnPlace(id)`
-  - 37 `havnTown(p)`
-  - 49 `havnSide(p, T, force)`
-  - 53 `havnName(p, side)`
-  - 58 `havnLocal(t, hi)`
-  - 74 `havnsNear(p, r)`
-  - 85 `havnNm(H)`
-  - 94 `havnTaken(H, vid)`
-  - 108 `havnSlabs(cx, cz, R)`
-  - 113 `havnOnSlab(S0, x, z)`
-  - 119 `havnHullFree(p, hd, L, B, d, others, piers, slabs)`
-  - 135 `havnBerths(H, type, vid, n)`
-  - 174 `havnMoor(h)`
-  - 177 `havnPlaceOf(H, b, type)`
-  - 187 `havnPrune(keep)`
-  - 194 `havnFace(pid)`
-  - 196 `havnFind(p, r, type)`
-  - 202 `havnTapNear(pt, r)`
-  - 207 `havnOptions(p, r, type)`
-- **212** held: the berth is the vessel's while she lies there, or while it is her plan's home (06g-plan2.js o.home)
-  - 213 `havnHold(id)`
-  - 217 `havnFree(id)`
-  - 225 `havnMinute()`
-  - 233 `havnBlocked(x, z, r)`
-- **238** the server (D: «Serveren holder rede på hvem som ligger hvor»): what the others hold in a harbour, asked at most every two minutes;
-  - 241 `havnCloud()`
-  - 242 `havnAsk(hid)`
-  - 251 `havnPut(id, s)`
-  - 259 `havnRenew()`
-  - 260 `havnDrop(id)`
-  - 261 `havnMoved(id)`
+  - 25 `isBerth(id)`
+  - 27 `havnStore()`
+  - 28 `havnPlace(id)`
+  - 43 `havnTown(p)`
+  - 55 `havnSide(p, T, force)`
+  - 59 `havnName(p, side)`
+  - 64 `havnLocal(t, hi)`
+  - 80 `havnsNear(p, r)`
+  - 91 `havnNm(H)`
+  - 100 `havnTaken(H, vid)`
+  - 114 `havnSlabs(cx, cz, R)`
+  - 119 `havnOnSlab(S0, x, z)`
+  - 125 `havnHullFree(p, hd, L, B, d, others, piers, slabs)`
+  - 141 `havnBerths(H, type, vid, n)`
+  - 180 `havnMoor(h)`
+  - 183 `havnPlaceOf(H, b, type)`
+  - 193 `havnPrune(keep)`
+  - 200 `havnFace(pid)`
+  - 202 `havnFind(p, r, type)`
+  - 208 `havnTapNear(pt, r)`
+  - 214 `havnOptions(p, r, type)`
+- **219** held: the berth is the vessel's while she lies there, or while it is her plan's home (06g-plan2.js o.home)
+  - 220 `havnHold(id)`
+  - 224 `havnFree(id)`
+  - 232 `havnMinute()`
+  - 240 `havnBlocked(x, z, r)`
+- **245** the server (D: «Serveren holder rede på hvem som ligger hvor»): what the others hold in a harbour, asked at most every two minutes;
+  - 248 `havnCloud()`
+  - 249 `havnAsk(hid)`
+  - 258 `havnPut(id, s)`
+  - 266 `havnRenew()`
+  - 267 `havnDrop(id)`
+  - 268 `havnMoved(id)`
 
 ## `src/js/core/08-lore.js` (67 linjer)
 
@@ -2604,7 +2604,7 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 190 `chartNamesOf(pk, entry, sc, ox, oy)`
   - 203 `chartNamesSvg(vx0, vy0, vx1, vy1, u, taken, part)`
 
-## `src/js/ui/03-map.js` (920 linjer)
+## `src/js/ui/03-map.js` (922 linjer)
 
 ---------- map ----------
 
@@ -2660,7 +2660,7 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 872 `portByLabel(pt)`
   - 877 `addWaypoint(pt)`
 
-## `src/js/ui/03b-route.js` (327 linjer)
+## `src/js/ui/03b-route.js` (329 linjer)
 
 ---------- the route editor: waypoint names, a timeline for the list, undo and redo, moving and inserting points ----------
 
@@ -2692,13 +2692,13 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 131 `leiaArm(on)`
   - 141 `draftWay(start, goal, aPort, gPort, atN, port, nt)`
   - 186 `leiaTo(pt, buoy, act)`
-  - 241 `deepNear(p, maxKm)`
-  - 251 `leiaStops()`
-  - 256 `leiaCompare()`
-- **273** the sea along the route (Ø8, 06.11.2026): the wave height on each leg at the minute the boat is there, as the local forecast gives it
-  - 281 `draftSea(tl)`
-  - 300 `routeSeaWatch()`
-  - 305 `routeSeaDraw()`
+  - 243 `deepNear(p, maxKm)`
+  - 253 `leiaStops()`
+  - 258 `leiaCompare()`
+- **275** the sea along the route (Ø8, 06.11.2026): the wave height on each leg at the minute the boat is there, as the local forecast gives it
+  - 283 `draftSea(tl)`
+  - 302 `routeSeaWatch()`
+  - 307 `routeSeaDraw()`
 
 ## `src/js/ui/03g-planmap.js` (120 linjer)
 
@@ -2925,12 +2925,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **98** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 102 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1682 linjer)
+## `src/js/ui/phone/07-patch.js` (1683 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1670 `patch()`
+  - 1671 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (126 linjer)
 
@@ -3817,7 +3817,7 @@ put the game on the home screen (Jonas 11.10.2026: «Det er viktig at brukerne l
   - 115 `hopVoid(id, why)`
   - 127 `hopDeliver(id, d)`
 
-## `src/js/ui/11-boot.js` (423 linjer)
+## `src/js/ui/11-boot.js` (438 linjer)
 
 ---------- boot ----------
 
@@ -3852,7 +3852,7 @@ put the game on the home screen (Jonas 11.10.2026: «Det er viktig at brukerne l
   - 215 `bootMapLoad()`
   - 246 `chart0Load()`
   - 247 `bootGame()`
-  - 405 `bootFail(e)`
+  - 420 `bootFail(e)`
 
 ## `src/js/ui/11b-watchdog.js` (89 linjer)
 

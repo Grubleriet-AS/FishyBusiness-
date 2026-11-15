@@ -930,6 +930,9 @@ function haltPlan(need){
 }
 function arrive(w){
   const b = S.boat, pl = S.plan;
+  // (a berth in one of the coast's harbours, shut to the players since 15.11.2026, HAVN.shut: passed as a point, never moored at; a way home
+  // along the trail from before, or a plan from before, still named one, the kontroll of steg 126)
+  if (w.port && typeof HAVN !== 'undefined' && HAVN.shut && isBerth(w.port)){ w.port = null; delete w.berth; log(HAVN_WHY[0], HAVN_WHY[1]); }
   S.trail.push({x:w.x, y:w.y, port:w.port || null});
   if (w.port){ dock(w.port, w.berth); return true; }
   pl.idx++;

@@ -501,8 +501,8 @@
       // on its own side, the stern 67.5 degrees each side of aft); the glow drew them all round, so the green showed from the port bow
       // through the wheelhouse (01.11.2026). The eye is the frame's origin (BMrel is relative to it)
       // (the arcs: 22-docks-air.js lampArc, the same for the other boats since Ø11.2)
-      for (const [lp, lc, lk] of L3){ if (!lampArc(BMrel, lp, lk)) continue; const q = xf(BMrel, lp);
-        PB[0] = q[0]; PB[1] = q[1]; PB[2] = q[2]; PA[0] = LA; drawPts(1, gl.POINTS, VPn, lc, anchored ? 420 : 260, true); }
+      for (const [lp, lc, lk] of L3){ const arc = lampArc(BMrel, lp, lk); if (!arc) continue; const q = xf(BMrel, lp);
+        PB[0] = q[0]; PB[1] = q[1]; PB[2] = q[2]; PA[0] = LA * arc; drawPts(1, gl.POINTS, VPn, lc, anchored ? 420 : 260, true); }
       gl.depthMask(true); gl.disable(gl.BLEND);
     } else ANCHAL.drawn = 0;   // (none lit: by day in clear weather)
     ANCHAL.litA = LA;   // (how strongly the lanterns show: the night, or the fog by day; for the tests)

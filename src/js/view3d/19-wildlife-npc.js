@@ -187,7 +187,7 @@
     const b = VB(); b.lod = 0.6; personVB(b, 0, 0, 0, false, kind === 'skip' ? [[-0.16, 1.08, -0.42], [0.16, 1.08, -0.42]] : null, null, look);
     return PV[key] = {pb:buf(asF32(b.p)), nb:buf(asF32(b.n)), cb:buf(asF32(b.c)), n:b.p.length / 3};
   }
-  const ownPerson = (kind, i) => { const l = seaLook(kind === 'crew' ? lookCrew(i) : lookMe(), kind === 'skip'); if (!l) return null; const key = 'o|' + kind + '|' + lookSig(l); return PV[key] || personMesh(kind, l, key); };
+  const ownPerson = (kind, i) => { const l = seaLook(kind === 'crew' ? lookCrew(i) : lookLead(), kind === 'skip'); if (!l) return null; const key = 'o|' + kind + '|' + lookSig(l); return PV[key] || personMesh(kind, l, key); };
   // a boat of another player: her skipper's and crew's looks as she sent them (lk, ck); the local boats' from a look made from the id
   const npcPerson = (kind, n, i) => {
     if (n.lk){ const code = kind === 'crew' ? String(n.ck || '').split(';')[i || 0] : n.lk, key = 'p|' + kind + '|' + code, look = !PV[key] && lookFromKey(code); if (PV[key]) return PV[key]; if (look) return personMesh(kind, look, key); }
