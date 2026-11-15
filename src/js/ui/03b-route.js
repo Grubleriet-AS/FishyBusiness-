@@ -160,6 +160,14 @@ async function draftWay(start, goal, aPort, gPort, atN, port){
       tries.push([pre, e, null]);
       for (const [P0, from, ap] of tries){ const r2 = await leiaRoute({x:from.x, y:from.y}, to, ap, id); if (r2.why) continue;
         const r3 = {wps:P0.concat(r2.wps), nm:r2.nm, st:r2.st}; if (res.why) res = r3; if (!fails(r3)){ res = r3; break; } } } }
+  // and the same the other way: into a rorbu, where the search finds no way to its point (the last leg to the berth fails at the mend in
+  // the shallow water by the shore: Mehamn, Kongsfjord, Havøysund and some forty more at the lowest tide, steg 126, 15.11.2026, tests/
+  // allesteder.py with the way in): the way by water out from its berth (naustWay, as above), turned, and the route to where that way
+  // ends (Jonas 15.11.2026: «Alle steder spillerens båt kan fortøye må være tilgjengelig via autonav både inn og ut av»)
+  if (res.why && gPort && gPort !== port && isRorbu(gPort)){ const bp = berthPose(gPort, S.boat.type, 'main');
+    const way = bp && naustWay({x:bp.x, y:bp.y}, gPort, BOAT.draft + LEIA.minOver);
+    if (way && way.length > 1){ const e = way[way.length - 1], r2 = await leiaRoute({x:start.x, y:start.y}, {x:e.x, y:e.y}, aPort, null);
+      if (!r2.why && r2.wps && r2.wps.length){ const nm = r2.nm + dist(e, goal) / NM; res = {wps:r2.wps.concat(way.slice(1, -1).reverse(), [{x:goal.x, y:goal.y}]), nm, st:Object.assign({}, r2.st, {siteIn:way.length})}; } } }
   return res;
 }
 async function leiaTo(pt, buoy, act){   // buoy: to a set's buoy, to haul it (the rules are not asked); act: what the boat does there (a haul)

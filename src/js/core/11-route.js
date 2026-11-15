@@ -515,6 +515,14 @@ async function leiaRoute(a, b, aPort, bPort, opt){
     // a long way that found none: split at a point on open, deep water out towards the goal (leiaSplit), only now, so a way found
     // today is the same
     if (r && r.why && LEIA_SPLIT.why.includes(r.why[0]) && !(opt && opt.noSplit) && kmTrue(a, b) >= LEIA_SPLIT.min){ const r2 = await leiaSplit(a, b, aPort, bPort, opt, r); if (r2) r = r2; }
+    // into a harbour, a rorbu or the naust from the sea, or out of one, where the search this way round found no way: the same way found
+    // the other way round and turned (steg 126, 15.11.2026: the way in to Averøy's plant from 1 km out failed at the mend, and the way
+    // out from the plant to that very point is there; the search and the mend are not the same both ways, and a harbour a boat sails out
+    // of must be one she sails into, Jonas 15.11.2026: «Alle steder spillerens båt kan fortøye må være tilgjengelig via autonav både inn og
+    // ut av»). Only on a way under LEIA_SPLIT.min, so a long search that finds nothing does not take twice as long
+    if (r && r.why && LEIA_SPLIT.why.includes(r.why[0]) && (aPort || bPort) && !(opt && opt.noRev) && kmTrue(a, b) < LEIA_SPLIT.min){
+      const r2 = await leiaRoute0(b, a, bPort, aPort, false, opt);
+      if (r2 && !r2.why && r2.wps && r2.wps.length){ const back = r2.wps.slice(0, -1).reverse().concat([{x:b.x, y:b.y}]); r = {wps:back, nm:r2.nm, st:Object.assign({}, r2.st, {rev:true, firstWhy:r.why})}; } }
     if (r && r.st){ r.st.tide = +credit.toFixed(2); if (LEIA_ICE.on) r.st.ice = {cap:Math.round(LEIA_ICE.cap)}; } return r; } finally { back(); }
 }
 // A long way among the islands with no route in one piece (KL1a 12.11.2026: an autoliner from Rørvik to Bodø, 3.8 m draught. The
