@@ -299,10 +299,10 @@ if (BOOTG.safe) bootgSafe();   // the starts before locked (BOOTG above): the ro
   if (S.boat.status === 'port' && portById(S.boat.port)){ const pp = portById(S.boat.port).p; S.boat.pos = {x:pp.x, y:pp.y}; }
   // a boat over 15 m at a rorbu (from before SITE_MAXLEN, 13.11.2026: the 21 m coastal vessel lay there with too little water to get out):
   // at the nearest harbour that takes her, told in the log
-  const siteOut = () => { const b = S.boat; if (b.status !== 'port' || siteFits(b.type) || !isRorbu(b.port)) return; const R = portById(b.port), at = R ? R.p : b.pos;
+  const siteOut = () => { const b = S.boat; if (b.status !== 'port' || siteFits(b.type, b.port) || !isRorbu(b.port)) return; const R = portById(b.port), at = R ? R.p : b.pos;
     const q = PORTS.filter(p => !p.rorbu && portFits(p, b.type)).sort((x, y) => dist(x.p, at) - dist(y.p, at))[0]; if (!q) return;
     b.port = q.id; b.berth = 'main'; b.pos = {x:q.p.x, y:q.p.y}; b.dyn = null; if (b === S.boat) S.trail = [{x:q.p.x, y:q.p.y, port:q.id}];
-    log('Rorbukaia tar bare båter opp til ' + SITE_MAXLEN + ' m. «' + (S.boatName || '') + '» er flyttet til ' + q.name + '.', 'The rorbu quay only takes boats up to ' + SITE_MAXLEN + ' m. «' + (S.boatName || '') + '» was moved to ' + q.name + '.'); };
+    const w = siteWhy(b.type, R ? R.id : b.port) || ['', '']; log(w[0] + ' «' + (S.boatName || '') + '» er flyttet til ' + q.name + '.', w[1] + ' «' + (S.boatName || '') + '» was moved to ' + q.name + '.'); };
   if (!(S.fleet && S.fleet.length)) siteOut();
   if (S.fleet && S.fleet.length){ ensureFleet(); for (const v of S.fleet) withVessel(v, () => { siteOut(); if (S.boat.status === 'port' && !portById(S.boat.port)) S.boat.port = nearestPort(S.boat.pos && isFinite(S.boat.pos.x) ? S.boat.pos : PORTS[0].p).id;   /* (the fleet's other vessels as the boat above, 13.11.2026) */ if (S.boat.status === 'port' && portById(S.boat.port)){ const pp = portById(S.boat.port).p; S.boat.pos = {x:pp.x, y:pp.y}; } }); } else ensureFleet(); }
 // every vessel gets its gear locker (saves from before passive gear have none, also on vessels that are not bound)

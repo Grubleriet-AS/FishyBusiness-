@@ -197,7 +197,7 @@ function shopNear(){
 // Father's naust as where a route can end (the chart plotter and Autonav): the berth's point (km) when (x, y) is within r km of it
 // and nearer than any harbour point; {x, y, port, berth:'naust'} or null. You sail there and back; nothing moves the boat for you.
 function naustTarget(pt, r){
-  const pid = S.home || HOME0; if (!siteFits(S.boat.type)) return null;   // (a boat over 15 m: the plant's quay, SITE_MAXLEN)
+  const pid = S.home || HOME0; if (!siteFits(S.boat.type, pid)) return null;   // (a boat over 15 m, or one that draws more than gets out from it: the plant's quay, SITE_MAXLEN, SITE_SILL)
   const bp = quayFace(pid, 'naust') && berthPose(pid, S.boat.type, 'naust'); if (!bp) return null;
   const d = dist(pt, bp); if (d >= r || PORTS.some(q => dist(q.p, pt) < d)) return null;
   return {x:bp.x, y:bp.y, port:pid, berth:'naust'};

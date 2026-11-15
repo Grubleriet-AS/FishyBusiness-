@@ -4491,3 +4491,76 @@
 2026-11-14 20:49	ccr-as1-alle	8977c019	trackfollow	OK	1467	3d	alene	
 2026-11-14 21:18	ccr-as1-alle	8977c019	trackfollow	OK	1680	3d	alene	
 2026-11-14 21:18	ccr-as1-alle	8977c019	boottest	OK	23	lite	alene	
+2026-11-14 23:44	ccr-as1-alle	a7d36269	trip2	OK	42	lite	samtidig	
+2026-11-14 23:44	ccr-as1-alle	a7d36269	tutfull	OK	9	lite	samtidig	
+2026-11-14 23:44	ccr-as1-alle	a7d36269	krabbefabrikktest	OK	24	lite	samtidig	
+2026-11-14 23:49	ccr-as1-alle	a7d36269+	trip2	OK	51	lite	samtidig	
+2026-11-14 23:49	ccr-as1-alle	a7d36269+	tutfull	OK	10	lite	samtidig	
+2026-11-14 23:49	ccr-as1-alle	a7d36269+	krabbefabrikktest	OK	29	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	colregtest	OK	735	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	keeptest	OK	18	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	autonavtest	OK	29	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	turtest	OK	23	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	decktest	OK	19	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	worktest	OK	33	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	npctest	OK	11	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	towtest	OK	21	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	tattest	OK	27	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	peergear	OK	7	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	mobtest	FEIL	215	lite	samtidig	FEIL 5a. under draget: en hang seg fast ved haleren, den andre stoppet den med nødstoppen, nestenulykke i dagboka  ["Nestenulykke: Stian Nilsen fikk en krok i h
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	turlinjetest	OK	6	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	kaiover	OK	131	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	skipdrift	OK	23	lite	samtidig	
+2026-11-15 00:01	ccr-as1-alle	55cfde3a	fleet2test	OK	40	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	havplantest	FEIL	1049	lite	samtidig	FEIL the hold at 95 %: the strings hauled home, the landing at the plant, the other crew signs on [0, 1, 584729, [0, 1]]
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	driftsplan2kyst	OK	150	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	fabrikktest	OK	16	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	kotest	OK	21	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	naustleia	OK	7	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	harbourtest	OK	16	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	rorbutest	OK	15	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	havntest	OK	16	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	havtur	FEIL	114	lite	samtidig	FEIL Båtsfjord: sovner du om bord, tar vakta på broa over og lagene arbeider videre (ikke «driver») [['Du sovnet av utmattelse. Båten ligger og driver.', 'Du so
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	utfrakai	OK	105	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	lukket	OK	22	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	boostklokke	OK	60	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	skiptest	OK	22	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	sleeptest	OK	14	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	bunktest	OK	20	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	mannskapshot	OK	21	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	helmtest	OK	26	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	worldtest	OK	22	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	dyntest	FEIL	265	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	driftsplan2map	OK	17	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	placetest	OK	8	lite	samtidig	
+2026-11-15 00:17	ccr-as1-alle	55cfde3a+	sidetab	OK	18	lite	samtidig	
+2026-11-15 00:21	ccr-as1-alle	55cfde3a+	etikett	OK	219	lite	samtidig	
+2026-11-15 00:21	ccr-as1-alle	55cfde3a+	legmemotest	OK	15	lite	samtidig	
+2026-11-15 00:24	ccr-as1-alle	850ed06b	farttest	OK	388	lite	samtidig	
+2026-11-15 00:24	ccr-as1-alle	850ed06b	r4test	OK	14	lite	samtidig	
+2026-11-15 00:24	ccr-as1-alle	850ed06b	driftsplan2ui	OK	29	lite	samtidig	
+2026-11-15 00:24	ccr-as1-alle	850ed06b	rundshot	OK	26	lite	samtidig	
+2026-11-15 00:24	ccr-as1-alle	850ed06b	jukseboot	OK	11	lite	samtidig	
+2026-11-15 00:24	ccr-as1-alle	850ed06b	savestest	OK	9	lite	samtidig	
+2026-11-15 00:24	ccr-as1-alle	850ed06b	boottest	OK	44	lite	samtidig	
+2026-11-15 00:24	ccr-as1-alle	850ed06b	errtest	OK	42	lite	samtidig	
+2026-11-15 00:27	ccr-as1-alle	850ed06b	bootgtest	OK	182	lite	samtidig	
+2026-11-15 00:27	ccr-as1-alle	850ed06b	docktest	OK	70	lite	samtidig	
+2026-11-15 00:27	ccr-as1-alle	850ed06b	obstest	OK	10	lite	samtidig	
+2026-11-15 00:43	ccr-as1-alle	850ed06b	vectest	OK	971	3d	alene	
+2026-11-15 00:58	ccr-as1-alle	850ed06b	kaishot	FEIL	900	3d	alene	gikk ut på tid
+2026-11-15 01:01	ccr-as1-alle	850ed06b	bunkertest	OK	162	3d	alene	
+2026-11-15 01:02	ccr-as1-alle	850ed06b	moortest	OK	50	3d	alene	
+2026-11-15 01:04	ccr-as1-alle	850ed06b	unittest	FEIL	126	3d	alene	avsluttet med kode 1
+2026-11-15 01:08	ccr-as1-alle	850ed06b	colregtest	OK	737	lite	samtidig	
+2026-11-15 01:08	ccr-as1-alle	850ed06b	dyntest	FEIL	268	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-15 01:08	ccr-as1-alle	850ed06b	helmtest	OK	27	lite	samtidig	
+2026-11-15 01:08	ccr-as1-alle	850ed06b	trip2	OK	54	lite	samtidig	
+2026-11-15 01:08	ccr-as1-alle	850ed06b	autonavtest	OK	38	lite	samtidig	
+2026-11-15 01:08	ccr-as1-alle	850ed06b	sitetest	FEIL	293	3d	alene	avsluttet med kode 1
+2026-11-15 01:31	ccr-as1-alle	7d4c9cd3	coast3d	OK	1325	3d	alene	
+2026-11-15 01:47	ccr-as1-alle	52749e3f	vindshot	OK	1008	3d	alene	
+2026-11-15 02:16	ccr-as1-alle	52749e3f	boottest	OK	25	lite	alene	
+2026-11-15 02:16	ccr-as1-alle	52749e3f	routetest	OK	43	lite	alene	
+2026-11-15 02:17	ccr-as1-alle	52749e3f	charttest	OK	49	lite	alene	
+2026-11-15 02:19	ccr-as1-alle	52749e3f	driftsplan2test	OK	102	lite	alene	
