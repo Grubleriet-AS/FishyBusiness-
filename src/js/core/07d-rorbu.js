@@ -13,11 +13,18 @@
 const RORBU_D = /*@include(data/rorbuer.json)*/null;
 // the quay (rorbu.py QUAY): 14 m of face, its shoreline 4.4 m behind it where the bank (BANK) crosses mean sea level
 const RORBU = {kr:150, night:24 * 60, rate:100 / 6 / 60, out:4.4, hl:7, depth:3.4, look:'row'};
+// (a rorbu taken away, rorbuer.json «gone», tools/rorbu/rorbuvei.py --gone: one no boat up to 15 m gets in to and out from by Autonav at
+// the lowest tide, and no shore near it where one would (Jonas 15.11.2026: «Om noen få rorbuer er umulig å få grønn har du min tillatelse
+// til å fjerne dem i sin helhet»). It keeps its place in the list, so the ids rb<i> of the others stay, and stays in RBID, so a save with a
+// boat there or a rest there still finds it: siteFits says no to every boat (07-harbours.js), and the boot moves her to the nearest
+// harbour with siteWhy's word (ui/11-boot.js). It is in none of the lists the chart, the 3D view, the search and Autonav read)
+const RORBU_GONE = new Set((RORBU_D && RORBU_D.gone) || []);
 const RORBUER = ((RORBU_D && RORBU_D.r) || []).map((r, i) => {
   const id = 'rb' + i, p = {x:r[0], y:r[1]};
   const R = {id, name:r[3] || 'Rorbua', kind:r[2], cand:p, p:{x:p.x, y:p.y}, coast:{x:p.x, y:p.y}, xy:[p.x, p.y], shore:[p.x, p.y], rorbu:true, pier:true, fuel:false, ice:false, mottak:false, pf:1, v:RORBU.look[hashStr(id) % 3]};
+  if (RORBU_GONE.has(id)) R.gone = true;
   RBID.set(id, R); return R;
-});
+}).filter(R => !R.gone);
 // the rorbuer in a box (km), by a 20 km grid
 const RBGRID = new Map();
 for (const R of RORBUER){ const k = Math.floor(R.cand.x / 20) * 1000 + Math.floor(R.cand.y / 20); if (!RBGRID.has(k)) RBGRID.set(k, []); RBGRID.get(k).push(R); }
@@ -57,7 +64,9 @@ const isRorbu = pid => RBID.has(pid);
 // its quay's face, as quayFace gives the harbours' (07-harbours.js)
 function rorbuFace(pid){
   const s = rorbuSite(pid); if (!s) return null;
-  return {x:s.o[0], z:s.o[1], ux:s.u[0], uz:s.u[1], nx:-s.u[1], nz:s.u[0], hl:RORBU.hl, depth:RORBU.depth, rorbu:true};
+  // (the quay out to her the same for every boat up to 15 m, siteOut, as the naust's: valg 41 A, the bank in front dredged in 3D)
+  const F = {x:s.o[0], z:s.o[1], ux:s.u[0], uz:s.u[1], nx:-s.u[1], nz:s.u[0], hl:RORBU.hl, depth:RORBU.depth, rorbu:true}, out = siteOut(s);
+  if (out === out) F.out = out; else F.nocache = true; return F;
 }
 // a rorbu as where a route can end (the chart plotter and Autonav), as naustTarget: {x, y, port} when (x, y) is within r km of its
 // berth and nearer than any harbour point

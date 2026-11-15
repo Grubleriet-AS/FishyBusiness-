@@ -144,9 +144,14 @@
       if (Math.abs(x - s.o[0]) > 70 || Math.abs(z - s.o[1]) > 70) continue;
       const [lx, y] = siteL(s, x, z), ax = Math.abs(lx);
       if (s.pit){   // the naust and the rorbuer: on the map's ground as it is (lifted over it: s.lift); only the sea bed in front of the quay goes down
-        if (y >= 0.4 || h >= NPIT.wet) continue; const P = s.pit, d = Math.hypot(Math.max(0, ax - P.a + Math.min(0, y) * 10 / (P.w + 6)), Math.max(0, -P.w - y)); if (d >= 8) continue;
-        const cap = y <= -1 ? -P.d : -P.d + (y + 1) * (P.d - 0.5) / 1.4;
-        return h <= cap ? h : cap + (h - cap) * sstep(0, 8, d);
+        // (valg 41 A, Jonas 15.11.2026: «Valg A»: the boat lies inside the pile quay, and the bank in front of its face is dredged, also
+        // where the 3D shore stood over the sea there (2 m at the fine coast's line, falling 1 in 3): in front of the face (y < 0) down to
+        // the pit's depth, and under the deck (y 0.4-3.4, its piles) a steep bank up to the ground as it is at the back of the deck, so no
+        // wall stands over the water and nothing behind the quay is dug; at the deck's ends it comes up again over 3 m)
+        if (y >= 3.4) continue; const P = s.pit, d = Math.hypot(Math.max(0, ax - P.a + Math.min(0, y) * 10 / (P.w + 6)), Math.max(0, -P.w - y)); if (d >= 8) continue;
+        if (y >= -1 && ax > 11) continue;
+        const cap = y <= -1 ? -P.d : -P.d + (y + 1) * (Math.max(h, -P.d) + P.d) / 4.4, k = y >= -1 ? Math.max(sstep(0, 8, d), sstep(8, 11, ax)) : sstep(0, 8, d);
+        return h <= cap ? h : cap + (h - cap) * k;
       }
       const A = SHOP_APRON, d = Math.hypot(Math.max(0, A[0] - lx, lx - A[1]), Math.max(0, A[2] - y, y - A[3])); if (d >= 12) continue;
       if (s.lev !== undefined && y < A[2] - 4) continue;   // by the naust: the shore in front of the yard stays as it is

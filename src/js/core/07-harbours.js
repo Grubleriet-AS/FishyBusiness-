@@ -91,11 +91,14 @@ const SITE_MAXLEN = 15;
 // Åsværgården and the naust at Tufjord, Gjesvær, Sørarnøy and Hidrasund, kyst15 gets out from as the chart plotter finds the way,
 // ui/03b-route.js draftWay)
 const SITE_SILL = /*@include(data/siteout.json)*/null || {};
-const siteFits = (type, pid) => { const V = VESSELS[type] || {}; return (V.len || 0) <= SITE_MAXLEN && !(pid != null && SITE_SILL[pid] != null && (V.draft || 0) > SITE_SILL[pid]); };
+const siteFits = (type, pid) => { const V = VESSELS[type] || {}; if (pid != null && siteGone(pid)) return false; return (V.len || 0) <= SITE_MAXLEN && !(pid != null && SITE_SILL[pid] != null && (V.draft || 0) > SITE_SILL[pid]); };
+// a rorbu taken away (07d-rorbu.js RORBU_GONE): no boat lies there any more
+const siteGone = pid => { const R = RBID.get(pid); return !!(R && R.gone); };
 // why the rorbu or the naust (naust: true) at pid is not for this boat, or null when it is
 function siteWhy(type, pid, naust){
   if (siteFits(type, pid)) return null;
   const V = VESSELS[type] || {}, P = portById(pid), what = naust ? ['Naustet', "Father's naust"] : ['Rorbua i ' + (P ? P.name : ''), 'The rorbu at ' + (P ? P.name : '')];
+  if (siteGone(pid)) return [what[0] + ' er tatt bort: båtene kom ikke trygt inn og ut der ved laveste lavvann.', what[1] + ' has been taken away: the boats did not get safely in and out there at the lowest tide.'];
   if ((V.len || 0) > SITE_MAXLEN) return [what[0] + ' tar bare båter opp til ' + SITE_MAXLEN + ' m.', what[1] + ' only takes boats up to ' + SITE_MAXLEN + ' m.'];
   const lim = SITE_SILL[pid], nf = v => String(Math.round(v * 10) / 10);
   return lim > 0 ? [what[0] + ' ligger innenfor en grunne: en båt som stikker dypere enn ' + nf(lim).replace('.', ',') + ' m, kommer ikke ut derfra ved noe tidevann.', what[1] + ' lies behind a shoal: a boat that draws more than ' + nf(lim) + ' m does not get out from there at any tide.']
@@ -125,7 +128,10 @@ const SITE_OUT = new Map(), SITE_OUTN = new Map();
 function siteOut(s){
   if (!s || !s.o || !s.u) return 0; const k = Math.round(s.o[0] * 10) * 4e7 + Math.round(s.o[1] * 10); let q = SITE_OUT.get(k); if (q !== undefined) return q;
   const t = SITE_OUTN.get(k); if (t !== undefined && Date.now() - t < 1000) return NaN;
-  try { q = quayOut({x:s.o[0], z:s.o[1], ux:s.u[0], uz:s.u[1], nx:-s.u[1], nz:s.u[0]}, 0, SITE_MAXLEN, true); } catch (e){ q = NaN; }   // (no map in yet)
+  // (valg 41 A, Jonas 15.11.2026: «Valg A», the boat lies inside the pile quay and the sea bed in front of it is dredged: the 3D view cuts
+  // the bank in front of the face down, siteTerr, so the quay is built out only as far as the fine coast's water is, wet, not over the
+  // bank as at the harbours; 0 where the face stands on the water, and the T-shaped pier of before is gone)
+  try { q = quayOut({x:s.o[0], z:s.o[1], ux:s.u[0], uz:s.u[1], nx:-s.u[1], nz:s.u[0]}, 0, SITE_MAXLEN, true, true); } catch (e){ q = NaN; }   // (no map in yet)
   if (q !== q){ if (SITE_OUTN.size > 500) SITE_OUTN.clear(); SITE_OUTN.set(k, Date.now()); return NaN; } SITE_OUTN.delete(k); if (q < 0) q = QOUT.max;
   if (SITE_OUT.size > 500) SITE_OUT.clear(); SITE_OUT.set(k, q); return q;
 }
@@ -187,9 +193,11 @@ const faceAt = (f, a, L, out) => ({id:f.id, x:f.x + f.ux * a, z:f.z + f.uz * a, 
 // and the 3D view draws a concrete quay (or a timber pier) from the shore out to her (drawDocks quayMod). -1: more than QOUT.max out;
 // NaN: the fine coast is not in there yet (taken as 0 where the berth is fixed again when it comes). The players' berths the same
 // (Jonas 03.11.2026: «Jeg vil ikke ha noe graving i landmasse for hverken npcer eller brukere»): berthPose, havnBerths.
-const QOUT = {top:2.0, g:3, gMole:1.5, clear:0.6, max:16};
+const QOUT = {top:2.0, g:3, gMole:1.5, clear:0.6, max:16, wet:0.5};
 // (all: NaN unless every sample along the face has the fine coast in, for an answer that is kept, siteOut)
-function quayOut(f, a, L, all){
+// (wet: only so far out that her side is on the fine coast's water with QOUT.wet to spare, for the naust and the rorbuer, whose bank
+// the 3D view dredges, siteOut)
+function quayOut(f, a, L, all, wet){
   if (typeof coastSdIf !== 'function') return 0;
   let g = 0, seen = false;
   for (let it = 0; it < 6; it++){
@@ -197,7 +205,7 @@ function quayOut(f, a, L, all){
     for (const fa of [-0.5, -0.25, 0, 0.25, 0.5]){
       const s = a + fa * (L + 2), x = f.x + f.ux * s + f.nx * (g + 0.4), z = f.z + f.uz * s + f.nz * (g + 0.4);
       const sd = coastSdIf({x:x / 1000, y:z / 1000}, 30); if (sd !== sd){ if (all) return NaN; continue; } seen = true;
-      need = Math.max(need, sd + (QOUT.top + QOUT.clear) * (COAST.mole ? QOUT.gMole : QOUT.g));
+      need = Math.max(need, wet ? sd + QOUT.wet : sd + (QOUT.top + QOUT.clear) * (COAST.mole ? QOUT.gMole : QOUT.g));
     }
     if (!seen) return NaN;   // the fine coast is not in here yet
     if (need <= 0.05) return g;
