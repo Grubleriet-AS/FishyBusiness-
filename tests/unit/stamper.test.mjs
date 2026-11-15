@@ -104,6 +104,12 @@ export default function (t){
   // the baiting on deck (pg.shore egnself) makes coiled tubs full where they stand: none moves
   { const L = S.fresh(); S.sync(L, {full:0, coil:3, empty:0, op:null}, 2); const before = JSON.stringify(L.T.map(q => [q.at, q.i])); S.sync(L, {full:2, coil:1, empty:0, op:null}, 2);
     t.ok(JSON.stringify(L.T.map(q => [q.at, q.i])) === before && S.count(L, 'full') === 2 && !L.n.snap, 'egningen gjør stampene fulle der de står'); }
+  // the haul begins while an empty tub is being carried to the nest (stamper3d.py on the nysjark: snap 3 -> 4 as the haul began): the
+  // one in his hands is one of the haul's, and nothing is laid out anew
+  { const L = S.fresh(); S.sync(L, {full:0, coil:0, empty:3, op:null}, 0); const q = L.T[2]; q.at = 'slot'; q.i = 0; S.pack(L);
+    S.begin(L, {id:q.id, from:{at:'slot', i:0}, to:{at:'nest', i:2}}, 'c', 0); S.take(L);
+    const o = {key:'h4', kind:'haul', n:3, done:0, prog:0}; S.sync(L, {full:0, coil:0, empty:0, op:o}, 1, 1);
+    t.ok(!L.n.snap && !!L.op && L.op.ids.includes(q.id) && !!L.job, 'halingen begynner mens en tom stamp bæres: den er med i halingen, og ingenting legges ut på nytt (snap ' + L.n.snap + ')'); }
   // the work changes (steg 125f, tests/stamper3d.py on the hurtigsjark): a full tub left ready at the stern (two spots there) as the haul
   // begins (one spot by the hauler), and the coiled one lifted off the hauler's spot as the deck gets ready for the next set: nothing is
   // laid out anew. The tub at the stern stays there and is carried to the stack; the haul's first tub is carried to the hauler's spot

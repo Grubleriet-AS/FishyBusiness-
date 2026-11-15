@@ -122,11 +122,11 @@ async def main():
             # (one full tub may stand ready at the stern after it, deckcrew.js L.stage: baited tubs aboard and nothing hauled waiting)
             if sp['set']: check(last['carried'] >= n and last['w']['nest'] >= n and staged(last) and last['w']['hand'] == 0, t + ': setting: de tomme står i hverandre i reiret, ingen igjen ved hekken', {'w': last['w'], 'wk': last['wk'], 'båret': last['carried'], 'op': last['op']})
             else: check(staged(last) and last['w']['hand'] == 0 and last['k']['empty'] == n, t + ': setting fra stabelen (ingen vei på dekk fra stabelen til hekken): de tomme står der lina gikk fra dem', {'w': last['w'], 'plasser': sp})
-            c0 = last['carried']
+            c0, sp0 = last['carried'], last['snap']   # (and none laid out anew as the haul begins: from the set's last reading)
             why = await pg.evaluate(HAUL); check(why is None, t + ': halingen begynner', why)
             rs, bad, s1 = await run_op(pg, t, 'haling', 30, 180, small); last = rs[-1]
             check(bad == 0, t + ': haling: hver stamp er et sted, og tellingen er spillets', {'brudd': bad, 'sist': {k: last[k] for k in ('w', 'k', 'n', 'game')}})
-            check(last['snap'] == s1, t + ': haling: ingen stamp lagt ut på nytt underveis', {'snap': [s1, last['snap']]})
+            check(last['snap'] == s1 == sp0, t + ': haling: ingen stamp lagt ut på nytt underveis, heller ikke når den begynner', {'snap': [sp0, s1, last['snap']]})
             check(last['carried'] - c0 >= n and last['w']['nest'] == 0 and staged(last) and last['w']['hand'] == 0 and last['k']['empty'] == 0, t + ': haling: de fulle står i stabelen, reiret er tomt', {'w': last['w'], 'wk': last['wk'], 'k': last['k'], 'båret': last['carried'] - c0, 'op': last['op']})
             print('   ', t, 'plasser', sp, 'mannskapet sist:', last['ag'])
             check(t in CLIPMAX and CLIPMAX[t] <= 10, t + ': stampen i hendene høyst 10 cm inn i en kropp (vakt, folk2maal-målingen)', {'cm': CLIPMAX.get(t)})

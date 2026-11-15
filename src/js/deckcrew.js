@@ -1621,7 +1621,7 @@ const STAMPER = {
     // (the set or the haul is over: its tubs are what it left them)
     if (L.op && (!o || o.key !== L.op.key)){ for (const id of L.op.ids){ const q = STAMPER.by(L, id); if (q) q.k = L.op.kind === 'set' ? 'empty' : 'coil'; } L.op = null; }
     // (one begins: the set takes the full tubs from the top of the stack down, the haul the empty ones from the top of the nest)
-    if (o && !L.op){ const set = o.kind === 'set', pool = L.T.filter(q => q.k === (set ? 'full' : 'empty') && !(L.job && L.job.id === q.id));
+    if (o && !L.op){ const set = o.kind === 'set', pool = L.T.filter(q => q.k === (set ? 'full' : 'empty'));   // (the one in someone's hands too: it is one of them, and is set down first)
       const rank = q => STAMPER.here(L, q) ? 3e3 : q.at === 'hand' ? 2e3 : q.at === 'work' ? 1.5e3 : (q.at === 'slot' ? (set ? 1e3 : 0) : set ? 0 : 1e3) + (q.at === 'slot' && L.pri ? L.pri(q.i) : q.i);
       pool.sort((a, b) => rank(b) - rank(a));
       if (pool.length >= o.n) L.op = {key:o.key, kind:o.kind, n:o.n, ids:pool.slice(0, o.n).map(q => q.id)}; }
