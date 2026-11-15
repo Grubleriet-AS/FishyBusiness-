@@ -30,7 +30,7 @@ OUT = os.path.join(os.path.dirname(__file__), 'out')
 # then, on her port side, heading across her course (the ferry comes from her starboard side: rule 15, she gives way), at 6 knots by hand
 CLASH_SETUP = """async () => { PHONE.show(false); if (typeof DOCK !== 'undefined') DOCK.close(); S.jobs = []; S.cash = 1e6; S.free = {tow:1, rep:1}; WX_FORCE = {w:4, d:200};
   S.t = Math.round((Date.UTC(2027, 5, 15, 8, 5) - EPOCH) / 6e4); acc = 0;
-  SJV.E.clear(); SJV.sits.clear(); SJV.trail.clear(); SJV.lp.clear(); SJV.clash.clear(); SJV.own = null; SJV.warn = null; SJV.at = -1; SJV.tl = null;
+  SJV.ghost = false; SJV.E.clear(); SJV.sits.clear(); SJV.trail.clear(); SJV.lp.clear(); SJV.clash.clear(); SJV.own = null; SJV.warn = null; SJV.at = -1; SJV.tl = null;
   const b = S.boat; b.type = 'hurtigsjark'; applyVessel(); b.dmg = null; b.damage = 0; b.kasko = null; b.tow = null; b.anch = null; b.hove = null; b.gop = null; S.boatName = 'Havbris'; S.home = 'finnsnes';
   const T = 2.5, vp = 10, H0 = S.t / 60;
   for (let k = 0; k < 120; k++){

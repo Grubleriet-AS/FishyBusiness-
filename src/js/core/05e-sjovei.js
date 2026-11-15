@@ -24,6 +24,10 @@ const SJV_ABAFT = 112.5 * Math.PI / 180, SJV_HO = 12 * Math.PI / 180;
 // stands off her track at most (km)
 const SJV_TH = 35 * Math.PI / 180, SJV_OFFMAX = 0.6;
 const SJV = {
+  // ghost: the player's boat goes through the coast's own vessels, no blow, no damage, no tow (Jonas 16.11.2026: «vår båt rett og slett
+  // får lov til å clippe gjennom NPC-båter … vi kan ikke ha det sånn at spillere blir påkjørt av NPC-er og må slepes»); Autonav and the
+  // NPCs still give way to each other as before, so it looks right. Another player's boat is met as before. false: the blows as before
+  ghost:true,
   E:new Map(),      // the NPCs giving way (or holding off): id -> the manoeuvre, laid over npcStates' position
   sits:new Map(),   // the encounters seen: id -> {sit, t, clr, nm} (13 d: once overtaking, till past and clear; the near miss once)
   own:null,         // Autonav's own manoeuvre for the boat you follow
@@ -1036,7 +1040,7 @@ function sjvTouch(b, d, P){
   sjvFresh(true);   // (a look now and then also by hand with no view asking: the trail the fault is read from)
   const H = sjvClock(), T = sjvNear(H, d.X, d.Y), gs = gridScale(b.pos), A = sjvHullPts(d.X, d.Y, d.psi, P.L, P.B), dt = (H - T.H) * 3600;
   let out = null;
-  for (const q of T.v){
+  for (const q of T.v){ if (SJV.ghost && !q.n.player) continue;   // (the coast's own vessels: she goes through them, SJV.ghost)
     const x = q.x + q.ve * dt, z = q.z + q.vz * dt; if (Math.hypot(x - d.X, z - d.Y) > (P.L + q.L) * 0.6 + 2) continue;
     const I = sjvSat(A, sjvHullPts(x, z, q.hd, q.L, q.B)); if (!I) continue;
     const cog = Math.abs(d.u) > 0.3 ? d.psi + Math.atan2(d.v, Math.abs(d.u)) : d.psi, pre = {p:{x:d.X / 1000, y:d.Y / 1000}, hd:d.psi, cog, v:Math.hypot(d.u, d.v) / KN_MS};
@@ -1071,7 +1075,7 @@ function sjvSweep(n, A, H, gs, on){
   const b = S.boat, own = b.status === 'sailing' && typeof livePose === 'function' ? livePose(clamp(H * 60 - S.t, 0, 0.999)) : null, ap = own && own.p ? own.p : A.p, ahd = own && own.hd != null ? own.hd : A.hd;
   const lp = SJV.lp.get(n.id), now = {H, ax:ap.x, ay:ap.y, ahd, bx:n.p.x, by:n.p.y, bhd:n.hd || 0};
   SJV.lp.set(n.id, now);
-  if (!on || !lp || !(H > lp.H) || H - lp.H > 1.5 / 60 || b.status === 'port' || b.anch || n.rs || n.kv || n.hidden || String(n.id)[0] === 't') return null;
+  if (!on || !lp || !(H > lp.H) || H - lp.H > 1.5 / 60 || b.status === 'port' || b.anch || n.rs || n.kv || n.hidden || String(n.id)[0] === 't' || (SJV.ghost && !n.player)) return null;
   const La = A.L || 10, Ba = A.B || La / 3, Lb = n.L || 10, Bb = n.B || Lb / 3, m = 1000;
   const rx0 = (lp.bx - lp.ax) * m, ry0 = (lp.by - lp.ay) * m, rx1 = (now.bx - now.ax) * m, ry1 = (now.by - now.ay) * m, dx = rx1 - rx0, dy = ry1 - ry0, d2 = dx * dx + dy * dy;
   const u = d2 > 1e-9 ? clamp(-(rx0 * dx + ry0 * dy) / d2, 0, 1) : 0;
