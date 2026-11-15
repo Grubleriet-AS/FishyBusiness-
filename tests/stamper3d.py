@@ -40,6 +40,13 @@ async def step(pg, ms):
     await pg.wait_for_function("(n0) => window.__RAFN >= n0 + 2", arg=n0, timeout=120000)
 
 
+# (the tub in someone's hands against the bodies, as tests/folk2maal.py measures a man's own things: cm inside a body at the most)
+CLIP = """(() => { if (typeof LEMMER === 'undefined' || !LEMMER.redraw) return null; LEMMER.things = []; LEMMER.bodies = []; LEMMER.log = []; LEMMER.redraw();
+  const o = (G3._debug.thingClip(0.01) || []).filter(x => x.task === 'carry'); LEMMER.things = null; LEMMER.bodies = null; LEMMER.log = null;
+  return o.length ? Math.max(...o.map(x => x.cm)) : 0; })()"""
+CLIPMAX = {}
+
+
 async def run_op(pg, t, what, tub_s, secs, small):
     """secs of the held clock at 100 ms a frame, the work a tub in tub_s of it."""
     rs, bad, snap0, shot, dp = [], 0, None, False, 0.1 / tub_s
@@ -47,6 +54,9 @@ async def run_op(pg, t, what, tub_s, secs, small):
         await step(pg, 100); r = await pg.evaluate(READ, dp); rs.append(r)
         if snap0 is None: snap0 = r['snap']
         if r['n'] != r['game'] or sum(r['w'].values()) != r['n']: bad += 1
+        if r['w']['hand'] and i % 10 == 0:
+            cm = await pg.evaluate(CLIP)
+            if cm is not None: CLIPMAX[t] = max(CLIPMAX.get(t, 0), cm)
         if os.environ.get('KYST_TRACE') and i % 100 == 0: print('   ', i / 10, r['op'], r['w'], r['k'], 'snap', r['snap'], 'båret', r['carried'], r['job'], r['ag'], flush=True)
         # (a picture in each format while a tub is in someone's hands, once it is up)
         if r['w']['hand'] and not shot and i > 20:
@@ -56,6 +66,9 @@ async def run_op(pg, t, what, tub_s, secs, small):
                 await pg.screenshot(path=os.path.join(OUT, f'stamper3d_{t}_{what}_{tag}.png'))
             await pg.set_viewport_size(small)
         if not r['op'] and not r['job'] and r['w']['work'] == 0 and r['w']['hand'] == 0 and i > 10: break
+    # (a few frames more: the account follows the game's end of the work at the next tick)
+    for _ in range(5): await step(pg, 100)
+    rs.append(await pg.evaluate(READ, 0))
     return rs, bad, snap0
 
 
@@ -93,6 +106,7 @@ async def main():
             check(last['snap'] == s1, t + ': haling: ingen stamp lagt ut på nytt underveis', {'snap': [s1, last['snap']]})
             check(last['carried'] - c0 >= n and last['w']['nest'] == 0 and last['w']['work'] == 0 and last['w']['hand'] == 0 and last['k']['empty'] == 0, t + ': haling: de fulle står i stabelen, reiret er tomt', {'w': last['w'], 'k': last['k'], 'båret': last['carried'] - c0, 'op': last['op']})
             print('   ', t, 'plasser', sp, 'mannskapet sist:', last['ag'])
+            check(t in CLIPMAX and CLIPMAX[t] <= 10, t + ': stampen i hendene høyst 10 cm inn i en kropp (vakt, folk2maal-målingen)', {'cm': CLIPMAX.get(t)})
         gerr = await pg.evaluate("G3._debug.glErr()")
         check(gerr == 0, 'ingen GL-feil', gerr)
         check(not errs, 'ingen sidefeil', errs[:3])

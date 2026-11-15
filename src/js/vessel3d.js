@@ -1717,7 +1717,8 @@ function deckPath(M, a, b){
   // the shoulders off them where there is room: Jonas 23.10.2026, «aldri "clipper" gjennom vegger, rekka eller andre ting»)
   if (!M.tight){ const TT = new Uint8Array(N); for (let k = 0; k < N; k++){ if (!M.ok(k)) continue; const p = M.at(k);
       for (const [dx, dz] of [[0.2, 0], [-0.2, 0], [0, 0.2], [0, -0.2]]) if (M.hit([p[0] + dx, p[1] + 0.35, p[2] + dz], [p[0] + dx, p[1] + 1.55, p[2] + dz]) >= 0){ TT[k] = 1; break; } } M.tight = TT; }
-  const EC = new Float32Array(N); for (let k = 0; k < N; k++) if (M.ok(k)) EC[k] = (edge(k) ? 0.6 : 0) + (M.tight[k] ? 2.5 : 0);
+  // (M.avoid: cells the crew keep off where they can, the stools that stand on deck, deckcrew.js stools; costed as a tight cell)
+  const EC = new Float32Array(N); for (let k = 0; k < N; k++) if (M.ok(k)) EC[k] = (edge(k) ? 0.6 : 0) + (M.tight[k] || (M.avoid && M.avoid[k]) ? 2.5 : 0);
   const hx = b % nx, hz = (b - hx) / nx, heur = k => { const i = k % nx, j = (k - i) / nx; return Math.hypot(i - hx, j - hz); };
   const closed = new Uint8Array(N);
   while (open.length){

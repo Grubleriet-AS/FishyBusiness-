@@ -85,6 +85,14 @@ export default function (t){
     S.sync(L, {full:2, coil:0, empty:0, op:{key:'p', kind:'set', n:2, done:0, prog:0}}, 0); const took = L.op.ids.map(id => S.by(L, id).i);
     const H = S.fresh(); H.per = 2; H.pri = L.pri; S.sync(H, {full:0, coil:0, empty:3, op:null}, 1); const order = []; for (let k = 0; k < 3; k++){ const s2 = S.freeSlot(H); order.push(s2); H.T.push({id:100 + k, k:'coil', at:'slot', i:s2}); }
     t.ok(JSON.stringify(took) === '[3,2]' && JSON.stringify(order) === '[0,1,2]', 'stabelens rekkefølge: settingen tar fra den åpne siden først, halingen fyller den andre først (' + JSON.stringify([took, order]) + ')'); }
+  // the deck ready for a set (L.stage): a full tub carried to the stern and left there, and the set runs from it from its first metre
+  { const L = S.fresh(); S.sync(L, {full:3, coil:0, empty:0, op:null}, 2); L.stage = true; const j = S.want(L, null); S.begin(L, j, 'c', 0); S.take(L); S.put(L, 5);
+    const again = S.want(L, null); S.sync(L, {full:1, coil:0, empty:0, op:{key:'s', kind:'set', n:2, done:0, prog:0}}, 2);
+    t.ok(j && j.to.at === 'work' && !again && S.running(L, {key:'s', kind:'set', n:2, done:0, prog:0}).q.at === 'work', 'klar til setting: én full stamp står ved hekken, og settingen går fra den fra første meter'); }
+  // a tub coiled into where it stood in the nest (the haul came on before it was carried): taken to the stack, not left among the empty ones
+  { const L = S.fresh(); S.sync(L, {full:0, coil:0, empty:2, op:null}, 1); S.sync(L, {full:0, coil:0, empty:0, op:{key:'h', kind:'haul', n:2, done:1, prog:0.2}}, 1);
+    const q0 = L.T.find(q => q.k === 'coil'); q0.at = 'nest'; S.pack(L); const j = S.want(L, {key:'h', kind:'haul', n:2, done:1, prog:0.2});
+    t.ok(!!j && j.id === q0.id && j.to.at === 'slot', 'en kveilet stamp i reiret blir båret til stabelen (' + JSON.stringify(j) + ')'); }
   // the baiting on deck (pg.shore egnself) makes coiled tubs full where they stand: none moves
   { const L = S.fresh(); S.sync(L, {full:0, coil:3, empty:0, op:null}, 2); const before = JSON.stringify(L.T.map(q => [q.at, q.i])); S.sync(L, {full:2, coil:1, empty:0, op:null}, 2);
     t.ok(JSON.stringify(L.T.map(q => [q.at, q.i])) === before && S.count(L, 'full') === 2 && !L.n.snap, 'egningen gjør stampene fulle der de står'); }

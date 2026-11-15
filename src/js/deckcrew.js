@@ -88,7 +88,7 @@ function crewSim(src){
       // (the tub the line is set from: the one setting stands at it, close, by design; its padding as before)
       if (g.set === 'line'){ const T = setTub(); if (T) out.push([T[0], T[2], 0.31, 0.31, 0, 0.06, 1]); }
       // (steg 125f: the tubs that stand at the other work spots and in the nest, STAMPER; close, by design, as the one at the stern)
-      if (TUBL.T.length && !G.hand){ const P = tubSpots(), W = P[TUBL.Wk === 'haul' ? 'haul' : 'set'], T0 = g.set === 'line' ? setTub() : null;
+      if (TUBL.T.length && !G.hand && LEMMER.on){ const P = tubSpots(), W = P[TUBL.Wk === 'haul' ? 'haul' : 'set'], T0 = g.set === 'line' ? setTub() : null;
         for (const q of TUBL.T) if (q.at === 'work' && W[q.i] && !TUBC.mag && !(T0 && Math.hypot(W[q.i][0] - T0[0], W[q.i][2] - T0[2]) < 0.05)) out.push([W[q.i][0], W[q.i][2], 0.31, 0.31, 0, 0.06, 1]);
         if (TUBL.T.some(q => q.at === 'nest')) out.push([P.nest[0], P.nest[2], 0.31, 0.31, 0, 0.06, 1]); }
       // (and the stools the bait stands on at the baiting seats: nobody stands in one; the one sat on is the sitter's place, stools)
@@ -306,7 +306,10 @@ function crewSim(src){
     const key = g ? g.op + ':' + (g.sid || '') + ':' + g.n + ':' + g.a.x.toFixed(5) + ',' + g.a.y.toFixed(5) : '';
     return {full:bt + sum('strip'), coil:n - bt + sum('egn'), empty:Math.max(0, out), op:g ? {key, kind:g.op, n:g.n, done:g.done, prog:g.prog} : null}; }
   function tubWork(t){
-    if (src || !S.pgear || !ST.G || ST.G.hand) return; const tg = tubCount(), kind = tg.op ? tg.op.kind : TUBL.Wk || 'set';
+    if (src || !S.pgear || !ST.G || ST.G.hand || !LEMMER.on) return; const tg = tubCount(), b = S.boat, rig = typeof rigOf === 'function' ? rigOf() : b.rig;
+    // (out at sea rigged for line with baited tubs aboard and nothing hauled waiting by the hauler: a tub stands ready at the stern, STAMPER.want)
+    TUBL.stage = !tg.op && rig === 'line' && b.status !== 'port' && !b.port && tg.full > 0 && !TUBL.T.some(q => q.at === 'work' && TUBL.Wk === 'haul');
+    const kind = tg.op ? tg.op.kind : TUBL.stage ? 'set' : TUBL.Wk || 'set';
     // (the work spots are the stern's while she sets and the hauler's while she hauls: a tub left at the one is put away before the other is used)
     if (tg.op && TUBL.Wk && TUBL.Wk !== kind && TUBL.T.some(q => q.at === 'work')) TUBL.W = -1; TUBL.Wk = kind;
     // (the stack's order: the higher layer first, and in a layer the tubs on the side of the open deck before those by the rail or the wall)
@@ -332,7 +335,7 @@ function crewSim(src){
     const q = STAMPER.by(TUBL, u.id); STAMPER.put(TUBL, t); if (q) q.ry = a.h; a.sub = null; a.path = null; }
   // for the view: every tub with where its foot is (boat frame), what it holds, how it is turned, and the one being carried, with
   // the carrier, the part of the errand and its share; the tub the line runs from or into, and whether the hauler stands for it
-  function lineTubs(){ if (!ready() || src || !ST.G || ST.G.hand || !TUBL.T.length) return null; if (TUBC.lt && TUBC.ltT === ST.clk && TUBC.ltN === TUBL.n.carried + TUBL.n.snap * 1e4) return TUBC.lt;   // (once a tick: the view asks several times a frame)
+  function lineTubs(){ if (!ready() || src || !ST.G || ST.G.hand || !TUBL.T.length || !LEMMER.on) return null; if (TUBC.lt && TUBC.ltT === ST.clk && TUBC.ltN === TUBL.n.carried + TUBL.n.snap * 1e4) return TUBC.lt;   // (once a tick: the view asks several times a frame)
     TUBC.ltT = ST.clk; TUBC.ltN = TUBL.n.carried + TUBL.n.snap * 1e4; return (TUBC.lt = lineTubs0()); }
   function lineTubs0(){ const o = tubCount().op, j = TUBL.job, kind = TUBL.Wk || 'set';
     const T = TUBL.T.map(q => ({id:q.id, k:q.k, at:q.at, i:q.i, f:STAMPER.fillOf(TUBL, q, o), p:q.at === 'hand' ? null : tubPos(q.at, q.i, kind), ry:q.ry != null ? q.ry : (q.id * 2.39996) % 6.2832}));
@@ -372,6 +375,9 @@ function crewSim(src){
         if (gs){ const T0 = new Map(TAKEN); TAKEN.clear();
           if (!own(setPlace(gs, '-'))){ const MW = ST.M, KW = ST.KB; ST.M = MT; ST.KB = KT; if (!own(setPlace(gs, '-'))){ ST.M = MW; ST.KB = KW; } }
           for (const [k, v] of T0) TAKEN.set(k, v); } } }
+    // (steg 125f: the stools the crew sit on, standing on deck: the ways go round a free one where there is room, and are not pulled
+    // straight over it; the one who sits on it walks onto its cell)
+    if (LEMMER.on && !src && !(ST.G || {}).hand){ const M = ST.M, AV = new Uint8Array(M.nx * M.nz), KS = stools(); for (let k = 0; k < M.nx * M.nz; k++){ if (!M.ok(k)) continue; const q = M.at(k); if (KS.some(o => Math.hypot(o.p[0] - q[0], o.p[2] - q[2]) < HOLDT.krakk.half + 0.08)) AV[k] = 1; } M.avoid = AV; }
     ST.KC = null;   // (the cells with gear in a body there, kitAt, worked out again for this map)
     for (const a of A) a.path = null;   // (the ways are found again over the new map)
   }
@@ -489,7 +495,9 @@ function crewSim(src){
   // other stools, that seat has none. [{i, k, h, p, b, tub}]: the seat's cell and heading, the two stools' feet
   function stools(){ const key = ST.type + '|' + ST.MFk; if (ST.KR && ST.KR.key === key) return ST.KR.S;
     const PL = places(), V = VESSELS[ST.type] || {}, n = clamp((V.crewMax || 1) + 1, 1, 4), M0 = ST.M0, MF = fixedMap(), K = HOLDT.krakk, E = HOLDT.egn.at, out = [], tubs = PL.tubs.slice(0, Math.min(8, stampPer()));
-    const clear = (x, z, y) => { if (tubs.some(t => Math.hypot(t[0] - x, t[1] - z) < 0.25 + K.half)) return false; if (out.some(o => Math.hypot(o.p[0] - x, o.p[2] - z) < 2 * K.half + 0.04 || Math.hypot(o.b[0] - x, o.b[2] - z) < 2 * K.half + 0.04)) return false;
+    // (and clear of the gear's other places on deck: the net tubs, the pot stacks, the fish tubs, the freight; whatever she is rigged for)
+    const KK = (ST.G || {}).kit || {}, gear = [].concat(KK.garn && KK.garn.at ? [[KK.garn.at[0], KK.garn.at[2], 0.65 * (KK.garn.s || 1)]] : [], ((KK.pots || {}).at || []).map(q => [q[0], q[2], 0.75]), (KK.tubs || []).map(q => [q[0], q[2], 0.65]), (KK.cargo || []).map(q => [q[0], q[2], 0.7]));
+    const clear = (x, z, y) => { if (tubs.some(t => Math.hypot(t[0] - x, t[1] - z) < 0.25 + K.half) || gear.some(g => Math.hypot(g[0] - x, g[1] - z) < g[2] + K.half)) return false; if (out.some(o => Math.hypot(o.p[0] - x, o.p[2] - z) < 2 * K.half + 0.04 || Math.hypot(o.b[0] - x, o.b[2] - z) < 2 * K.half + 0.04)) return false;
       for (const [ux, uz] of [[K.half, 0], [-K.half, 0], [0, K.half], [0, -K.half], [0, 0]]){ const f = MF.floorAt(x + ux, z + uz); if (!(f === f) || Math.abs(f - y) > 0.06 || MF.hit([x + ux, y + K.H + 0.25, z + uz], [x + ux, y + 0.08, z + uz]) >= 0) return false; } return true; };
     // (the seat the tubs' own places give first, tubAt, then the other three sides of the tub, 0.68 m out as there)
     const sp = (((ST.G || {}).kit || {}).stamps || {}).ry || 0, cs = Math.cos(sp), sn = Math.sin(sp);
@@ -774,7 +782,7 @@ function crewSim(src){
     if (st === 'fiske'){ const q = jigSpot(n); return q || idleGoal(p, ctx, 'lean'); }
     if (st === 'stell' && p.jw && (p.jw.kind === 'pr' || p.jw.kind === 'jg')){ const q = at(PL.pot, 1.4); return q || idleGoal(p, ctx, 'look'); }   // (the pots and the jig sets are seen to by the hauler's side)
     // (steg 125f: on the stool at his tub, the bait on the other one by his knee, where the seat has its stools; HOLDT.krakk)
-    if (st === 'egn' || st === 'strip' || st === 'stell'){ const K = LEMMER.on ? stools()[n] : null, q = K && ST.M.ok(K.k) ? {k:K.k, h:K.h, task:null, stool:K.i, tub:K.tub} : at(PL.tubAt(n), 1.2); if (q){ q.task = st === 'stell' ? 'egn' : st; if (q.tub == null) q.tub = n; } return q || idleGoal(p, ctx, 'look'); }
+    if (st === 'egn' || st === 'strip' || st === 'stell'){ const id = p.c ? 'c' + p.c.id : 'me', mine = o => !A.some(a => a.id !== id && a.goal && a.goal.stool === o.i), KL = LEMMER.on ? stools() : [], K = KL[n] && mine(KL[n]) ? KL[n] : KL.find(mine) || null, q = K && ST.M.ok(K.k) ? {k:K.k, h:K.h, task:null, stool:K.i, tub:K.tub} : at(PL.tubAt(n), 1.2); if (q){ q.task = st === 'stell' ? 'egn' : st; if (q.tub == null) q.tub = n; } return q || idleGoal(p, ctx, 'look'); }
     if (st === 'mend'){ const q = PL.mend[n % Math.max(1, PL.mend.length)], g = q ? at(q, 1.0) : null; if (g) g.task = 'mend'; return g || idleGoal(p, ctx, 'look'); }
     if (st === 'last'){ const q = at(PL.cargo, 1.6); if (q && p.role === 'hekt'){ q.task = 'unhook'; q.dyn = 'kai'; } return q || idleGoal(p, ctx, 'look'); }
     if (st === 'kokk') return PT.door ? {k:PT.door.k, h:PT.door.h || 0, task:null, inside:'in'} : null;
@@ -1110,7 +1118,8 @@ function crewSim(src){
       } else {
         // at the place: turn to face the work, and the blend into its pose
         let dh = g.h - a.h; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI; a.h += Math.max(-TURN * dt, Math.min(TURN * dt, dh));
-        a.blend = Math.min(1, a.blend + dt / 0.4); a.task = g.dyn ? dynTask(g) : g.task; a.sqW = 0; if (a.sub && a.sub.tub && !a.sub.done) a.sub.done = t + a.sub.hold;   // (the tub's errand from where he stands already) a.sqA = Math.max(0, (a.sqA || 0) - dt * 6);
+        a.blend = Math.min(1, a.blend + dt / 0.4); a.task = g.dyn ? dynTask(g) : g.task; a.sqW = 0; a.sqA = Math.max(0, (a.sqA || 0) - dt * 6);
+        if (a.sub && a.sub.tub && !a.sub.done) a.sub.done = t + a.sub.hold;   // (the tub's errand from where he stands already)
         // (in through the door: a hand to it for a moment first)
         if (g.inside && Math.abs(dh) < 0.3){ if (g.inside !== 'in' || !ST.PT.door || g.k !== ST.PT.door.k){ a.mode = g.inside; continue; }
           if (!a.door) a.door = t + 0.6; if (t < a.door) a.task = 'door'; else { a.mode = g.inside; a.door = 0; } } }
@@ -1606,7 +1615,13 @@ const STAMPER = {
     // the one the line runs from or into, nor the next one waiting at the other spot)
     const keep = q => q === cur || (q === nxt && q.at === 'work');
     const e = L.T.find(q => q.k === 'empty' && (q.at === 'work' || q.at === 'slot') && !keep(q)); if (e) return toNest(e);
-    const f = L.T.find(q => q.at === 'work' && q.k !== 'empty' && !keep(q)); if (f) return toSlot(f);
+    // (a tub that was coiled into where it stood in the nest, the haul having come on before it was carried to the hauler: to the stack)
+    const cn = L.T.find(q => q.at === 'nest' && q.k !== 'empty' && !keep(q)); if (cn) return toSlot(cn);
+    // (no set going on, and the deck ready for one, L.stage: a full tub is carried to the stern and stays there, the line's end ready;
+    // the set then runs from it from its first metre)
+    const staged = !op && L.stage && W ? L.T.find(q => q.at === 'work' && q.k === 'full') : null;
+    const f = L.T.find(q => q.at === 'work' && q.k !== 'empty' && !keep(q) && q !== staged); if (f) return toSlot(f);
+    if (!op && L.stage && W && !staged){ const q = L.T.filter(x => x.at === 'slot' && x.k === 'full').sort((a, b) => (L.pri ? L.pri(b.i) - L.pri(a.i) : b.i - a.i))[0], w = STAMPER.freeWork(L); if (q && w >= 0) return job(q, {at:'work', i:w}); }
     if (!op || !cur) return null;
     // (setting: the tub the line runs from is not moved once it runs; the next one is carried to the free spot by the stern as soon as
     // the line runs, when it gets there before the line runs to it. With no work spot it runs from the stack)
