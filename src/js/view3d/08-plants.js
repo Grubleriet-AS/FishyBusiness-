@@ -49,7 +49,7 @@
       // on deck: the bleeding tub with its bloody water, the gutting table, a cod in the hand, a gob of offal, a bare head
       // the hold's hatch open (steg 125d): the dark well seen through the coaming, 1 x 1 m scaled to the opening; the lid, gelcoat white
       // with a darker underside, 1 x 1 m and 4 cm thick, its hinge edge at z 0 and the rest along +z (turned up about the hinge)
-      hatchHole:mk(b => { b.box(0, -0.6, 0, 1, 0.6, 1, [0.025, 0.03, 0.035, 0.05]); }),
+      hatchHole:mk(b => { b.box(0, -0.6, 0, 1, 0.6, 1, [0.025, 0.03, 0.035, 0]); }),   // (no gloss: a near-black face with any glints in it sparkled in the screenshots)
       hatchLid:mk(b => { b.box(0, 0, 0.5, 1, 0.04, 1, [0.86, 0.87, 0.84, 0.35]); b.box(0, -0.004, 0.5, 0.9, 0.006, 0.9, [0.55, 0.57, 0.55, 0.2]); }),
       btub:mk(b => { b.box(0, 0, 0, 0.95, 0.55, 0.7, [0.2, 0.38, 0.62, 0.25]); b.box(0, 0.47, 0, 0.87, 0.04, 0.62, [0.32, 0.08, 0.07, 0.6]); }),
       gtable:mk(b => { b.box(0, 0.82, 0, 0.5, 0.05, 0.95, [0.72, 0.74, 0.76, 0.6]); for (const [x, z] of [[-0.2, -0.42], [0.2, -0.42], [-0.2, 0.42], [0.2, 0.42]]) b.box(x, 0, z, 0.04, 0.82, 0.04, [0.6, 0.62, 0.64, 0.5]); }),

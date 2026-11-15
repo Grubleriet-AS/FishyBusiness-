@@ -999,9 +999,9 @@
     // (the kyst15), else on the side away from the hauler; nobody icing on deck (work.nopack), anchors.hatchSize
     { const Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at), HS = G.hatchSize;
       if (Hh && HS && W && W.nopack && !potRig && hatchFishOpen()){ const aw = Math.max(0.2, HS[0] - 0.06), al = Math.max(0.2, HS[1] - 0.06);
-        drawN(PM.hatchHole, chain(BMrel, M4.T(Hh[0], Hh[1] + 0.004, Hh[2]), M4.S(aw, 1, al)));
+        drawN(PM.hatchHole, chain(BMrel, M4.T(Hh[0], Hh[1] + 0.025, Hh[2]), M4.S(aw, 1, al)));   // (2.5 cm over the anchor: at 4 mm the lid's non-slip came through in white specks)
         const side = hatchSide(G, Hh);
-        drawN(PM.hatchLid, chain(BMrel, M4.T(Hh[0] + side * aw / 2, Hh[1] + 0.02, Hh[2]), M4.RY(-side * Math.PI / 2), M4.RX(-1.62), M4.S(al, 1, aw))); } }
+        drawN(PM.hatchLid, chain(BMrel, M4.T(Hh[0] + side * aw / 2, Hh[1] + 0.035, Hh[2]), M4.RY(-side * Math.PI / 2), M4.RX(-1.62), M4.S(al, 1, aw))); } }
     if (b.land) return;   // (through a landing the kit stands, but nobody works the catch on deck: the crew are at the landing, deckcrew.js)
     // the catch on deck (tools/fish): the round fish waiting for the knife lie in the bleeding tub (their species, about one for every 6 kg),
     // the gutted ones waiting for the icer at the end of the gutting table, and one on the table when nobody guts

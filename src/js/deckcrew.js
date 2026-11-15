@@ -618,7 +618,8 @@ function crewSim(src){
     if (st === 'haling' && (p.role === 'sett' || p.role === 'lang')){ const kind = !src && S.boat.gop ? S.boat.gop.kind : 'line', id = p.c ? 'c' + p.c.id : 'me';
       const q = p.role === 'sett' ? setPlace(kind, id) : langPlace(kind, id); return q || idleGoal(p, ctx, 'look'); }
     if ((st === 'haling' || st === 'blogg') && ST.G.hauler && PT.haling){ const dy = ST.G.hauler[1] - ST.M0.at(PT.haling.k)[1]; if (dy < -0.3 || dy > 1.7) return IN; }
-    if (!ctx.port && ((st === 'is' && Wk && Wk.nopack) || (st === 'blogg' && Wk && Wk.solo))) return IN;   // (steg 125d: no place for it on this deck; the hauler bleeds, the hold is iced below)
+    if (!ctx.port && st === 'is' && Wk && Wk.nopack) return IN;   // (steg 125d: no place for the packer on this deck: the hold is iced below)
+    if (st === 'blogg' && Wk && Wk.solo) return deckAt(PT.sloy, n, 'gut') || idleGoal(p, ctx, 'look');   // (steg 125d: the hauler bleeds himself on this deck; the one the game has bleeding guts at the table, beside the gutter there is one)
     if (st === 'sloy') return deckAt(PT.sloy, n, 'gut') || idleGoal(p, ctx, 'look');
     // (on a boat with a hold the packer turns his back to the bleeding tub: the box he packs stands on the deck before him, by the hatch)
     if (st === 'is'){ const g = deckAt(PT.is, n, 'pack'); if (g && ((VESSELS[ST.type] || {}).hold || {}).kind !== 'dekk') g.h = (g.h || 0) + Math.PI; return g || idleGoal(p, ctx, 'look'); }
@@ -635,8 +636,9 @@ function crewSim(src){
     return idleGoal(p, ctx);
   }
   // the station and its part (at the hauler: the hauler, the picker, the pot hand): a person keeps the place while it stays the same
+  const soloDeck = () => !!(ST.G && ST.G.work && ST.G.work.solo);
   const QROLE = {hekt:1, luke:1, isrom:1, kran:1}, DROLE = {spyl:1, kost:1, mat:1, frys:1};
-  const kindOf = p => p.spot != null ? 'spot' : p.st === 'fort' ? 'fort:' + (p.mo || '') : DROLE[p.role] && p.st === 'pause' ? 'dekk:' + p.role + (p.role === 'frys' ? ':' + p.idle : '') : QROLE[p.role] && (p.st === 'pause' || p.st === 'last') ? 'kai:' + p.st + ':' + p.role + (p.role === 'hekt' && p.st === 'pause' ? ':' + ((landNow() || {}).place || 0) : '') : p.st === 'haling' ? 'haling:' + (p.role === 'haler' ? 'h' : p.role) : p.st === 'pause' && p.idle ? 'pause:' + p.idle + (p.with ? '>' + p.with : '') : p.st;
+  const kindOf = p => p.spot != null ? 'spot' : p.st === 'fort' ? 'fort:' + (p.mo || '') : DROLE[p.role] && p.st === 'pause' ? 'dekk:' + p.role + (p.role === 'frys' ? ':' + p.idle : '') : QROLE[p.role] && (p.st === 'pause' || p.st === 'last') ? 'kai:' + p.st + ':' + p.role + (p.role === 'hekt' && p.st === 'pause' ? ':' + ((landNow() || {}).place || 0) : '') : p.st === 'haling' ? 'haling:' + (p.role === 'haler' ? 'h' : p.role) : p.st === 'pause' && p.idle ? 'pause:' + p.idle + (p.with ? '>' + p.with : '') : p.st === 'blogg' && soloDeck() ? 'sloy' : p.st;   // (steg 125d: where the hauler bleeds himself, the one the game has bleeding guts at the table)
   // ---- a free person: something to do for a while, by the weather, the hour and their nature ----
   const IDLE = ['lean', 'lean', 'look', 'coffee', 'sweep', 'sit'];
   // (p.idle: the break the game chose, kept as long as it lasts there; each its own place and pose, view3d.js drawWorker: facing out over

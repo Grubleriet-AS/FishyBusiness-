@@ -1450,7 +1450,7 @@ def anchors():
                      'drop': G(DROP_AT[0], DROP_AT[1], md(*DROP_AT)), 'nopack': True},
             # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
             'hatchSize': [round(v, 3) for v in (OPEN[3] - OPEN[2], OPEN[1] - OPEN[0])],
-            'hatch': G((OPEN[0] + OPEN[1]) / 2, (OPEN[2] + OPEN[3]) / 2, z_md((OPEN[0] + OPEN[1]) / 2) + HATCH_H),   # (steg 125d: the open part)
+            'hatch': G((OPEN[0] + OPEN[1]) / 2, (OPEN[2] + OPEN[3]) / 2, z_md((HATCH[0] + HATCH[1]) / 2) + HATCH_H),   # (steg 125d: the open part, on the tarpaulin's top, which is flat at the hatch's middle height)
             'hatchCover': G((HATCH[0] + HATCH[1]) / 2, 0.0, z_md((HATCH[0] + HATCH[1]) / 2) + HATCH_H),   # (the whole cover: the hold's middle for the trim, where a pot is tipped)
             'bunk': G(4.0, 1.2, md(4.0, 1.2) + 0.6), 'exhaust': G(FUN[0] - 0.12, 0, BD() + 0.06 + 2.65),
             'deck': {'y': round(md(10.5, 2.0) - WL, 3), 'z': round(-(10.5 - XM), 3)}, 'gw': round(z_cap(10.5) - WL, 3),
