@@ -265,7 +265,10 @@ function groundCheck(a, c, sq = 0){
   for (let i = 1; i <= n; i++){ const p = {x:a.x + (c.x - a.x) * i / n, y:a.y + (c.y - a.y) * i / n}; if (inHarbour(p)) continue; if (isLand(p) || ((i & 3) === 0 || i === n) && depthF(p) + tl < BOAT.draft + sq) return p;
     if (iceOn && (i % 10 === 0 || i === n)){ const ic = seaIceAt(p); if (ic >= iceL && ic > ic0 + 0.01) return {x:p.x, y:p.y, ice:true}; ic0 = ic; } }
   if (!inHarbour(c) && coastSegHit(a, c)) return c;   // a breakwater or a skerry thinner than the 20 m steps (01d-coast.js)
-  if (!inHarbour(c)){ const dx = c.x - a.x, dy = c.y - a.y, L2 = dx * dx + dy * dy || 1e-9; for (const q of rocksIn(c.x - L - 0.02, c.y - L - 0.02, c.x + L + 0.02, c.y + L + 0.02)){ if (Math.abs(q[0] - c.x) > L + 0.02 || Math.abs(q[1] - c.y) > L + 0.02) continue; const u = clamp(((q[0] - a.x) * dx + (q[1] - a.y) * dy) / L2, 0, 1); if (Math.hypot(a.x + dx * u - q[0], a.y + dy * u - q[1]) < 0.012 && Math.random() < 0.5) return {x:q[0], y:q[1]}; } }
+  // (a rock behind her, or abeam where the leg begins, is not ahead: the leg goes away from it, u0 <= 0; the leg before this one had it
+  // ahead at its end. Tussøy utstyrsbutikk 15.11.2026: she stopped 9 m from a rock and every way from there, round it too, was called
+  // ahead of a rock, and she lay still)
+  if (!inHarbour(c)){ const dx = c.x - a.x, dy = c.y - a.y, L2 = dx * dx + dy * dy || 1e-9; for (const q of rocksIn(c.x - L - 0.02, c.y - L - 0.02, c.x + L + 0.02, c.y + L + 0.02)){ if (Math.abs(q[0] - c.x) > L + 0.02 || Math.abs(q[1] - c.y) > L + 0.02) continue; const u0 = ((q[0] - a.x) * dx + (q[1] - a.y) * dy) / L2; if (u0 <= 0) continue; const u = Math.min(1, u0); if (Math.hypot(a.x + dx * u - q[0], a.y + dy * u - q[1]) < 0.012 && Math.random() < 0.5) return {x:q[0], y:q[1]}; } }
   return null;
 }
 function runAground(p){

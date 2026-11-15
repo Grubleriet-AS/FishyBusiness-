@@ -153,10 +153,14 @@ function obsRock(a, b){
   return m;
 }
 function obsSafe(a, b, ref){
+  // (never within 13 m of a rock, whatever the leg it stands in for: groundCheck stops her for one within 12 m of her way ahead, and the
+  // search from there, to the way round's point by the rock, finds none. Tussøy utstyrsbutikk, 15.11.2026, tests/allesteder.py: the way
+  // round a mark passed 10 m from a rock that legHazard's count did not have)
+  if (rockOnLeg(a, b, 0.013)) return false;
   const sd = safeDepth(), h = legHazardMemo(a, b, sd);
   // (the second try round a thing, obsDetourAny: a leg deep enough for the boat and 8 m from rocks will do, where none as good as the
-  // drawn leg goes round it; that leg ran over the mark)
-  if (HIND.clrMin) return h.minD >= Math.min(sd, leiaLim()) - 0.2 && (h.rocks === 0 || obsRock(a, b) >= 0.008);
+  // drawn leg goes round it; that leg ran over the mark; 13 m from rocks, above)
+  if (HIND.clrMin) return h.minD >= Math.min(sd, leiaLim()) - 0.2;
   if (h.minD < Math.min(sd, ref ? ref.minD : sd) - 0.2) return false;
   if (h.rocks === 0) return true;
   if (!ref || !ref.rocks) return false;

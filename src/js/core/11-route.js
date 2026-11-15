@@ -374,15 +374,20 @@ async function leiaLegFail(p, q, tick, endP, endQ, strict){
   const runs = legRuns(p, q, lim); let k = 0;
   for (const i of legIdx(runs, L, n, true)){ const pt = i === n ? q : {x:p.x + (q.x - p.x) * i / n, y:p.y + (q.y - p.y) * i / n}, s = L * i / n;
     if (isLand(pt) ? !(s < hp || L - s < hq || quayLand(pt)) : ((i & 1) === 0 && !inHarbour(pt) && depthF(pt) < lim)) return pt; if ((++k & 63) === 0 && tick) await tick(); }
-  if (inHarbour(q)) return null;
+  // (into a harbour: the rocks on the part of the leg outside it still, as groundCheck looks ahead at them from out there; before
+  // 15.11.2026 none were asked, and a leg in to Tussøy utstyrsbutikk passed 9 m from a rock 1 km out, where the boat stopped at the lowest
+  // tide, «Grunt vann forut, og Autonav fant ingen trygg vei rundt», and the hands do not take her past a rock; tests/allesteder.py)
+  if (inHarbour(q)){ let e = null; for (let i = n - 1; i >= 1; i--){ const pt = {x:p.x + (q.x - p.x) * i / n, y:p.y + (q.y - p.y) * i / n}; if (!inHarbour(pt)){ e = pt; break; } }
+    const rk = e && dist(p, e) > 0.004 ? rockOnLeg(p, e, strict ? 0.025 : 0.012) : null; return rk ? {x:rk[0], y:rk[1]} : null; }
   // a breakwater: the first 100 m of the leg that crosses it; a rock: the rock itself
   if (legSegHit(p, q, runs)){ const m = Math.max(1, Math.ceil(L / 0.1)); for (let i = 0; i < m; i++){ const a = {x:p.x + (q.x - p.x) * i / m, y:p.y + (q.y - p.y) * i / m}, b = {x:p.x + (q.x - p.x) * (i + 1) / m, y:p.y + (q.y - p.y) * (i + 1) / m}; if (coastSegHit(a, b)) return {x:(a.x + b.x) / 2, y:(a.y + b.y) / 2}; } return {x:(p.x + q.x) / 2, y:(p.y + q.y) / 2}; }
   const rk = rockOnLeg(p, q, strict ? 0.025 : 0.012); return rk ? {x:rk[0], y:rk[1]} : null;
 }
-// the first rock within r km of the leg (01-world.js rocksIn), or null
+// the first rock within r km of the leg (01-world.js rocksIn), or null; not one behind its start or abeam of it, which the leg goes
+// away from (the leg before had it ahead at its end; groundCheck the same)
 function rockOnLeg(a, b, r){
   const x0 = Math.min(a.x, b.x) - r, x1 = Math.max(a.x, b.x) + r, y0 = Math.min(a.y, b.y) - r, y1 = Math.max(a.y, b.y) + r, dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy || 1e-9;
-  for (const q of rocksAlong(a, b, r)){ if (q[0] < x0 || q[0] > x1 || q[1] < y0 || q[1] > y1) continue; const u = clamp(((q[0] - a.x) * dx + (q[1] - a.y) * dy) / L2, 0, 1); if (Math.hypot(a.x + dx * u - q[0], a.y + dy * u - q[1]) < r) return q; }
+  for (const q of rocksAlong(a, b, r)){ if (q[0] < x0 || q[0] > x1 || q[1] < y0 || q[1] > y1) continue; const u0 = ((q[0] - a.x) * dx + (q[1] - a.y) * dy) / L2; if (u0 <= 0) continue; const u = Math.min(1, u0); if (Math.hypot(a.x + dx * u - q[0], a.y + dy * u - q[1]) < r) return q; }
   return null;
 }
 // Every leg of the way once more, as the boat will sail it: a step between two cells was never checked as a line (land between two
@@ -529,9 +534,12 @@ async function leiaRoute(a, b, aPort, bPort, opt){
     if (r && r.why && LEIA_SPLIT.why.includes(r.why[0]) && (aPort || bPort) && !(opt && opt.noRev) && kmTrue(a, b) < LEIA_SPLIT.min){
       for (const [P, end] of [[bPort, 'in'], [aPort, 'out']]){ if (!P || !(r && r.why)) continue; let ap = []; try { ap = approachPath(portById(P)) || []; } catch (e){} if (!ap.length) continue;
         const o = ap[0], lane = ap.slice(1).filter(q => dist(q, portById(P).p) >= 0.002);
-        // (the lane as the boat sails it: the boat's own minimum depth outside the harbour, as the mend keeps the harbour's way in, safeIn;
-        // Trondheim verft's way in runs over 2 m at chart datum, and a 3.4 m boat is not sent in by it)
-        const lim = leiaLim(); let okLane = true; for (let i = 0, A0 = o; i <= lane.length && okLane; i++){ const B0 = i < lane.length ? lane[i] : portById(P).p, n = Math.max(1, Math.ceil(dist(A0, B0) / 0.004));
+        // (the lane as the boat sails it: her draught under her outside the harbour at the tide now, as groundCheck has it, not the search's
+        // margin on top, which shut Averøy's lane at 3.9-4.1 m for the 3.4 m boat, allesteder-12-0.log;
+        // Trondheim verft's way in runs over 2 m at chart datum, and a 3.4 m boat is not sent in by it. Not at a rorbu: its point is the
+        // cabin on the shore, the lane's last metres over the shallows to it, and her berth by it the site's own, rorbuSite; Sand, Herdla
+        // and 60 more lost their only way out by it, allesteder-12-*.log)
+        const lim = BOAT.draft - tideCD(S.t / 60); let okLane = true; if (!RBID.has(P)) for (let i = 0, A0 = o; i <= lane.length && okLane; i++){ const B0 = i < lane.length ? lane[i] : portById(P).p, n = Math.max(1, Math.ceil(dist(A0, B0) / 0.004));
           for (let k = 1; k <= n; k++){ const q = {x:A0.x + (B0.x - A0.x) * k / n, y:A0.y + (B0.y - A0.y) * k / n}; if (inHarbour(q)) continue; try { if (isLand(q) || depthF(q) < lim){ okLane = false; break; } } catch (e){ okLane = false; break; } } A0 = B0; }
         if (!okLane) continue;
         const r3 = end === 'in' ? await leiaRoute0(a, {x:o.x, y:o.y}, aPort, null, false, opt) : await leiaRoute0({x:o.x, y:o.y}, b, null, bPort, false, opt);
