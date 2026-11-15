@@ -902,7 +902,10 @@ def anchors():
             # the work at sea, in its order (snekke-grunnlag kap. 6.2): the fisher at the starboard gunwale by the hauler; the bleeding tub
             # on the sole just aft of him; the gutting board is the boat's own, over the port gunwale abreast of him (own: the game draws
             # no table; top: where the fish lie), the one who guts on the sole inboard of it; the iced catch in the 300 l tub aft (kit.tubs)
-            'work': {'table': G(sum(GUT) / 2, 1.08, ZC), 'tub': G(1.75, 0.0, ZC), 's': 0.75, 'pack': G(1.35, -0.45, ZC) + [3.14], 'own': True, 'top': round(gut_top() - WL, 3)},
+            # (steg 125d, Jonas 15.11.2026: the deck laid out after the work, docs/planer/dekk/forslag.json: the tub 0.6 m forward to the middle
+            # of the sole between the hauler and the board, clear of the net tub; the hauler bleeds the fish himself and throws it in (solo),
+            # and nobody ices on the sole (nopack): the packer stood 0.43 m from the hauler. The tub is aft of both of them, as Jonas accepted)
+            'work': {'table': G(sum(GUT) / 2, 1.08, ZC), 'tub': G(2.35, -0.15, ZC), 's': 0.75, 'own': True, 'top': round(gut_top() - WL, 3), 'solo': True, 'nopack': True},
             # the jigging places (OB6 09.11.2026, om-bord.md 4.3, F15, F21): the search along her rails (view3d jigRail) put place 2 in the
             # corner by the dashboard with the hard top's post through the one standing there, and the third out on the side deck by the
             # cabin. The places in the order the machines are bolted on, [side (1 starboard, -1 port), z in the game's frame]: starboard

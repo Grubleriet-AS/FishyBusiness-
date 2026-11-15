@@ -50,7 +50,7 @@ function crewSim(src){
     const G = ST.G, d = G.deck || {y:G.gw, z:0}, W = G.work, K = G.kit || {}, Bm = G.beam || 3, V = VESSELS[ST.type] || {}, out = [];
     const box = (x, z, w, l, ry) => out.push([x, z, w / 2 + 0.06, l / 2 + 0.06, ry || 0, 0.06]);
     const tu = W ? W.tub : [Bm / 2 - 0.62, d.y, d.z + 0.35], s = (W && W.s) || 1; box(tu[0], tu[2], 0.72 * s, 1.08 * s, W && W.ry || 0);
-    if (!(W && W.own)){ const tb = W ? W.table : [-(Bm / 2 - 0.42), d.y, d.z]; box(tb[0], tb[2], 0.62, V.len >= 10 ? 1.6 : 1.15); }
+    if (!(W && W.own)){ const tb = W ? W.table : [-(Bm / 2 - 0.42), d.y, d.z]; box(tb[0], tb[2], 0.62, benkOf(V, W) ? 1.6 : 1.15); }
     if (G.hauler) box(G.haulerFoot ? G.haulerFoot[0] : Bm / 2 - 0.2, G.hauler[2], 0.35, 0.4);   // (anchors.haulerFoot: where the model sets the post, 10-gear.js, OB12)
     // (the autoline hauler and its hook cleaner across the hauling station, from the port in to the cleaner; the line's guide arm over
     // the way along the back wall is high enough to pass under, H2d2)
@@ -402,7 +402,7 @@ function crewSim(src){
     if (LEMMER.on && ST.PT){ const M = ST.M, B = BLEED, pt = n => { const c = ST.PT[n]; return c && c.k != null && ST.M0.ok(c.k) ? [ST.M0.at(c.k)[0], ST.M0.at(c.k)[2], c.h || 0] : null; };
       // (the table and the ice under a shelter deck or below: nobody stands at those places on this deck, goalOf «below»)
       const wy = W ? W.table[1] : d.y, sq = ST.PT.sloy, under = wy != null && sq && sq.k != null && M.ok(sq.k) && Math.abs(M.at(sq.k)[1] - wy) > 0.5;
-      let ICE = null; const I = under ? null : pt('is'), Sl = under ? null : pt('sloy'), h0 = PL.haul[0], OB = [[h0[0], h0[1], B.room.haul], [PL.haul[1][0], PL.haul[1][1], B.room.haul2], [PL.pick[0], PL.pick[1], B.room.pick], [PL.pot[0], PL.pot[1], B.room.pick]], two = (((VESSELS[ST.type] || {}).stations || {}).hauler || 1) > 1, NEAR = [[PL.haul[1][0], PL.haul[1][1], B.drop2, two]];   /* (NEAR: [x, z, m clear, a person whose place it is]; the second hauler where the boat has two hauling) */
+      let ICE = null; const I = under || (W && W.nopack) ? null : pt('is'), Sl = under ? null : pt('sloy'), h0 = PL.haul[0], OB = [[h0[0], h0[1], B.room.haul], [PL.haul[1][0], PL.haul[1][1], B.room.haul2], [PL.pick[0], PL.pick[1], B.room.pick], [PL.pot[0], PL.pot[1], B.room.pick]], two = (((VESSELS[ST.type] || {}).stations || {}).hauler || 1) > 1, NEAR = [[PL.haul[1][0], PL.haul[1][1], B.drop2, two]];   /* (NEAR: [x, z, m clear, a person whose place it is]; the second hauler where the boat has two hauling) */
       if (Sl){ OB.push([Sl[0], Sl[1], B.room.is]); NEAR.push([Sl[0], Sl[1], B.drop, true]); }
       if (I){ const ih = I[2] + (((VESSELS[ST.type] || {}).hold || {}).kind !== 'dekk' ? Math.PI : 0), cr = [I[0] + Math.sin(ih) * 0.58, I[1] - Math.cos(ih) * 0.58]; OB.push([I[0], I[1], B.room.is], [cr[0], cr[1], B.room.box]); NEAR.push([I[0], I[1], B.drop, true], [cr[0], cr[1], B.drop]); }
       // (the ice box on deck, and the shovel's way from it to the packer's box: the fish is not let fall on it, and nobody stands in it)
@@ -433,6 +433,13 @@ function crewSim(src){
         if (m > av){ av = m; any = k; } if ((m < 0 || d >= bv) && m <= wv) continue; if (poseHits('bleedst', k, face(c[0], c[2], drop[0], drop[1]))) continue;   /* (his pose clear of the boat there, so fitWork leaves him where he was put) */
         if (m >= 0 && d < bv){ bv = d; best = k; } if (m > wv){ wv = m; wide = k; } }
       const kb = best >= 0 ? best : wide >= 0 ? wide : any; PL.tightB = best >= 0 ? 0 : wide >= 0 ? 1 : 2; if (kb >= 0){ const c = M.at(kb); PL.bleed = [c[0], c[2], face(c[0], c[2], drop[0], drop[1]), 'bleedst']; } }
+    // (steg 125d, Jonas 15.11.2026: the deck laid out after the work, boat by boat, docs/planer/arbeidsceller.md «Forslagene, båt for båt»:
+    // where the model says where the fish is let fall and where the bleeder stands (work.drop, work.bleed), that is where, not a search.
+    // work.solo: the hauler bleeds the fish himself and throws it in the tub, so nobody has the bleeder's place (the four smallest decks).
+    // work.nopack: nobody ices on deck (the icing is done in the hold, or there is no room): the packer is inside)
+    if (W && W.drop){ drop[0] = W.drop[0]; drop[1] = W.drop[2]; PL.tight = 0; PL.dropSide = true; }
+    if (W && W.bleed){ PL.bleed = [W.bleed[0], W.bleed[2], W.bleed[3] != null ? W.bleed[3] : face(W.bleed[0], W.bleed[2], drop[0], drop[1]), 'bleedst']; PL.tightB = 0; }
+    PL.solo = !!(W && W.solo); PL.noPack = !!(W && W.nopack);
     // the line tubs (rigAt: two across from the model's place, turned with it): one baiter or stripper to a tub, inboard of it, facing it
     const sp = K.stamps ? K.stamps : {at:[Bm / 2 * 0.25, d.y, d.z - 0.6], ry:0}, c = Math.cos(sp.ry || 0), s = Math.sin(sp.ry || 0);
     PL.tubY = sp.at[1]; PL.tubs = []; for (let i = 0; i < 8; i++){ const lx = (i % 2) * 0.52, lz = Math.floor(i / 2) * 0.5, x = sp.at[0] + lx * c + lz * s, z = sp.at[2] - lx * s + lz * c; PL.tubs.push([x, z]); }
@@ -604,6 +611,7 @@ function crewSim(src){
     if (st === 'haling' && (p.role === 'sett' || p.role === 'lang')){ const kind = !src && S.boat.gop ? S.boat.gop.kind : 'line', id = p.c ? 'c' + p.c.id : 'me';
       const q = p.role === 'sett' ? setPlace(kind, id) : langPlace(kind, id); return q || idleGoal(p, ctx, 'look'); }
     if ((st === 'haling' || st === 'blogg') && ST.G.hauler && PT.haling){ const dy = ST.G.hauler[1] - ST.M0.at(PT.haling.k)[1]; if (dy < -0.3 || dy > 1.7) return IN; }
+    if ((st === 'is' && Wk && Wk.nopack) || (st === 'blogg' && Wk && Wk.solo)) return IN;   // (steg 125d: no place for it on this deck; the hauler bleeds, the hold is iced below)
     if (st === 'sloy') return deckAt(PT.sloy, n, 'gut') || idleGoal(p, ctx, 'look');
     // (on a boat with a hold the packer turns his back to the bleeding tub: the box he packs stands on the deck before him, by the hatch)
     if (st === 'is'){ const g = deckAt(PT.is, n, 'pack'); if (g && ((VESSELS[ST.type] || {}).hold || {}).kind !== 'dekk') g.h = (g.h || 0) + Math.PI; return g || idleGoal(p, ctx, 'look'); }

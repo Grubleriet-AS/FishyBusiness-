@@ -11,9 +11,9 @@ function hit(A, B, tol){ const ax = b => [[Math.cos(b[4]), -Math.sin(b[4])], [Ma
     if (Math.abs(d[0] * u[0] + d[1] * u[1]) > r(A) + r(B) - tol) return false; } return true; }
 
 // the sizes the anchors do not carry [across, along], from the models' scripts in tools/boats/: the boats' own gutting places (GUT, TABLE)
-// and the hatches (HOLD; kyst21: her coaming as the deck's map has it). The others' hatches are drawn 1 x 1 m.
-const OWN = {snekke:[0.4, 0.57], plastsjark:[0.5, 0.75], breisjark:[0.58, 0.9], kyst15:[0.56, 1.0], kyst21:[0.58, 2.0]};
-const HATCH = {plastsjark:[1.1, 0.95], breisjark:[1.24, 1.48], kyst15:[0.6, 0.8], kyst21:[2.4, 2.4]};
+// and the hatches (HOLD; kyst21: the open part of her hatch, OPEN)
+const OWN = {snekke:[0.4, 0.57], plastsjark:[0.6, 0.75], breisjark:[0.58, 0.9], kyst15:[0.56, 1.0], kyst21:[0.58, 2.0]};
+const HATCH = {plastsjark:[1.1, 0.95], sjark:[1.32, 1.6], hurtigsjark:[1.1, 1.2], sjarkny:[1.24, 1.3], breisjark:[1.24, 1.48], kyst15:[0.6, 0.8], kyst21:[1.0, 1.0]};
 // The rules a proposal (docs/planer/dekk/forslag.json) is held to, metres and radians: Jonas 15.11.2026, docs/planer/start/125c.md
 const R = {slipp:[0.4, 0.8], side:70 * Math.PI / 180, fisk:[0.4, 0.8], kast:[0.7, 1.6], foran:110 * Math.PI / 180, rekk:0.75, bord:[0.15, 0.5], ser:35 * Math.PI / 180, ende:2.2, inn:0.3, folk:0.75, kropp:0.2, dor:0.4, rekke:0.45, tol:0.03};
 const KJENT = {'snekke: bløggekaret er bak den som kaster':'snekka har ikke gulv ved halerens side: karet står skrått bak ham', 'snekke: bløggekaret er bak sløyeren':'sløyebrettet ligger på ripa og alt gulv er bak ham: han snur seg etter fisken'};   // (known and told to Jonas, not a pass)
@@ -85,14 +85,14 @@ export default function (t){
     if (G.hauler) add('haler', G.haulerFoot ? G.haulerFoot[0] : Math.sign(G.hauler[0]) * (Bm / 2 - 0.2), G.hauler[2], 0.35, 0.4, 0);
     (Kt.tubs || []).forEach((q, i) => { const big = (q[4] || 460) > 300; add('fiskekar ' + (i + 1), q[0], q[2], big ? 1.0 : 0.72, big ? 1.2 : 1.08, q[3]); });
     if (Kt.iskasse){ const k = Kt.iskasse[4] || 1; add('iskasse', Kt.iskasse[0], Kt.iskasse[2], 0.72 * k, 1.08 * k, Kt.iskasse[3]); }
-    if (Kt.stamps){ const n = Kt.stamps.n || 4, rows = Math.ceil(n / 2), ry = Kt.stamps.ry || 0, c = Math.cos(ry), sn = Math.sin(ry), lz = (rows - 1) * 0.25; add('linestamper', Kt.stamps.at[0] + 0.26 * c + lz * sn, Kt.stamps.at[2] - 0.26 * sn + lz * c, 1.02, rows * 0.5 + 0.02, ry, false); }
+    if (Kt.stamps){ const n = Kt.stamps.n || (V.len < 8 ? 4 : 8),   /* (per layer, as the game stands them: deckcrew.js stampPer; the rest are stacked on them) */ rows = Math.ceil(n / 2), ry = Kt.stamps.ry || 0, c = Math.cos(ry), sn = Math.sin(ry), lz = (rows - 1) * 0.25; add('linestamper', Kt.stamps.at[0] + 0.26 * c + lz * sn, Kt.stamps.at[2] - 0.26 * sn + lz * c, 1.02, rows * 0.5 + 0.02, ry, false); }
     if (Kt.garn) add('garnkar', Kt.garn.at[0], Kt.garn.at[2], 1.0, 1.2, Kt.garn.ry, false);
     if (Kt.crane && Kt.crane.at) add('kran', Kt.crane.at[0], Kt.crane.at[2], 0.9, 0.9, 0);
     if (G.hatch){ const h = HATCH[vt] || [1.0, 1.0]; add('luke', G.hatch[0], G.hatch[2], h[0], h[1], 0); }
     const cells = []; for (let k = 0; k < M.nx * M.nz; k++) if (M.ok(k)){ const p = M.at(k); cells.push([r2(p[0]), r2(p[2]), r2(p[1])]); }
     const pt = n => { const c = ST.PT[n]; return c && c.k != null && M.ok(c.k) ? {name:n, x:r2(M.at(c.k)[0]), z:r2(M.at(c.k)[2]), h:r2(c.h || 0)} : null; };
-    const st = [{name:'haler', x:r2(PL.haul[0][0]), z:r2(PL.haul[0][1]), h:r2(PL.haul[0][2])}, {name:'bløgger', x:r2(PL.bleed[0]), z:r2(PL.bleed[1]), h:r2(PL.bleed[2])}];
-    for (const [n, nm] of [['sloy', 'sløyer'], ['is', 'pakker'], ['ror', 'ror'], ['door', 'dør']]){ const q = pt(n); if (q){ q.name = nm; st.push(q); } }
+    const st = [{name:'haler', x:r2(PL.haul[0][0]), z:r2(PL.haul[0][1]), h:r2(PL.haul[0][2])}]; if (PL.bleed && !PL.solo) st.push({name:'bløgger', x:r2(PL.bleed[0]), z:r2(PL.bleed[1]), h:r2(PL.bleed[2])});
+    for (const [n, nm] of [['sloy', 'sløyer'], ['is', 'pakker'], ['ror', 'ror'], ['door', 'dør']]){ if (n === 'is' && PL.noPack) continue; const q = pt(n); if (q){ q.name = nm; st.push(q); } }
     for (let i = 0; i < 4; i++){ const q = pt('spot' + i); if (q){ q.name = 'juksa ' + (i + 1); st.push(q); } }
     out.push({type:vt, name:V.name || vt, len:V.len, beam:Bm, c:M.c, hold:V.hold, open:!!G.open, crew:V.crew || null, cells, things, stations:st, drop:PL.drop.map(r2), deckY:r2(d.y)});
     // (things that stand in each other: the hatch lies in the deck and the hauler is on the rail, so only what stands on the deck)
@@ -110,6 +110,18 @@ export default function (t){
   if (brudd.length) console.log('BRUDD: ' + brudd.join('\n       '));
   try { mkdirSync(new URL('../out/', import.meta.url), {recursive:true}); writeFileSync(new URL('../out/dekkplan.json', import.meta.url), JSON.stringify(out)); } catch (e){ console.log('dekkplan.json ikke skrevet: ' + e.message); }
   console.log('dekkplan: ' + out.length + ' båttyper; ting som står i hverandre: ' + (clash.join('; ') || 'ingen'));
+  // (steg 125d: the decks as the models have them now are the proposals Jonas said yes to on 15.11.2026: each thing and station named in
+  // forslag.json within 5 cm and 0.1 rad of it there, where the fish is let fall too, and what it takes off the deck is gone)
+  const avvik = [];
+  for (const B of out){ const N = NEW[B.type]; if (!N) continue; const T = Object.fromEntries(B.things.map(q => [q.name, q])), S2 = Object.fromEntries(B.stations.map(q => [q.name, q]));
+    for (const [n, v] of Object.entries(N)){ if (n === 'ut') continue;
+      if (n === 'slipp'){ if (Math.hypot(B.drop[0] - v[0], B.drop[1] - v[1]) > 0.05) avvik.push(B.type + ': slippet ' + B.drop.join(',') + ' (forslaget ' + v.join(',') + ')'); continue; }
+      const q = T[n] || S2[n] || (n === 'sløyebord' ? T['sløyeplass (båtens egen)'] : null); if (!q){ avvik.push(B.type + ': ' + n + ' finnes ikke'); continue; }
+      const a = q.ry != null ? q.ry : q.h, da = Math.abs(Math.atan2(Math.sin(a - (v[2] || 0)), Math.cos(a - (v[2] || 0))));
+      if (Math.hypot(q.x - v[0], q.z - v[1]) > 0.05 || (da > 0.1 && Math.abs(da - Math.PI) > 0.1)) avvik.push(B.type + ': ' + n + ' står på ' + q.x + ',' + q.z + ' (forslaget ' + v[0] + ',' + v[1] + ')'); }
+    for (const n of new Set([...(N.ut || []), ...(B.hold && B.hold.kind === 'rom' ? ['pakker', 'iskasse'] : [])])) if (T[n] || S2[n]) avvik.push(B.type + ': ' + n + ' er fortsatt på dekk'); }
+  if (avvik.length) console.log('AVVIK fra forslaget: ' + avvik.join('\n       '));
+  t.ok(!avvik.length, 'dekkene i modellene er lik forslagene (' + (avvik.length ? avvik.length + ' avvik' : 'alle åtte') + ')');
   const med = out.filter(B => B.forslag).length;
   t.ok(med === 0 || brudd.length === 0, 'forslagene holder reglene (' + med + ' båter med forslag; brudd: ' + (brudd.join('; ') || 'ingen') + ')');
   if (!process.env.KYST_FORSLAG) t.ok(med === out.length, 'hver kystbåt har et forslag (' + med + ' av ' + out.length + ')');
