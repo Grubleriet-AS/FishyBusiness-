@@ -421,13 +421,16 @@
     // also with crew aboard: he tends the jig while they gut (tilbakemelding #62: on a sjark with two hands he stood in the wheelhouse
     // while one hand looked on); he stays at the wheel only when the crew fill every deck place
     else { const jig = S.boat.status === 'fishing' && !S.boat.gop && !S.boat.deckStop;
-      if (!(DKON && STUDIO)){ drawVessel(VT, VG, BMrel, VPn, !DKON && !cam.helm && !awaySk, DKON ? 0 : deckCrew, !DKON && jig, hullLiv(S.boat), true); drawJigRail(BMrel, VPn, VT, VG, dt); }   // (the white room draws no boat)
+      // (the white room draws her, her deck and her gear too and wipes the frame after: the gaffed fish and the fish let fall are made
+      // there, in drawGearOp, and without it the white room saw one fish come in and no more, steg 125e)
+      drawVessel(VT, VG, BMrel, VPn, !DKON && !cam.helm && !awaySk, DKON ? 0 : deckCrew, !DKON && jig, hullLiv(S.boat), true); drawJigRail(BMrel, VPn, VT, VG, dt);
       gl.disableVertexAttribArray(2); gl.useProgram(PL.p);
       // (the white room, Jonas 14.11.2026: «et helt hvit rom uten noen hindringer … der du har godt lys»: «#studio» in the address, or
       // G3._debug.studio(true). The frame is wiped white here and only the people on deck are drawn, with what they hold, in an even
       // light; nothing of the boat, the sea or the land stands in the way. With cam.who the eye turns round one of them. The frame ends
       // here: a tool for the session and the tests, not for the game)
-      if (DKON && STUDIO){ const E0 = {lightDir:env.lightDir, sunCol:env.sunCol, amb:env.amb, gnd:env.gnd, fog:env.fog, fogD:env.fogD};
+      if (DKON && STUDIO){ if (PM) drawDeck(BMrel, eye, VPn, t, DECKACT); drawGearOp(BMrel, eye, VPn, t);   // (and the deck and the gear, wiped below: their events are the work)
+        const E0 = {lightDir:env.lightDir, sunCol:env.sunCol, amb:env.amb, gnd:env.gnd, fog:env.fog, fogD:env.fogD};
         gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         // (the light from over the eye's shoulder, so the side that is looked at is lit wherever the eye stands)
         { const dx = -eye[0] + (bv.x), dz = -eye[2] + (bv.z), l = Math.hypot(dx, dz) || 1, v = [-dx / l * 0.55 + dz / l * 0.3, 0.75, -dz / l * 0.55 - dx / l * 0.3], n = Math.hypot(v[0], v[1], v[2]); env.lightDir = [v[0] / n, v[1] / n, v[2] / n]; }
