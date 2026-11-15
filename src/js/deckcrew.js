@@ -1369,6 +1369,110 @@ const FISKVEI = {
     return w; }
 };
 
+// The line tubs aboard (steg 125f, Jonas 15.11.2026: «tomme linebøtter stables i hverandre etter hvert som lina settes»; «Jeg vil heller
+// ikke at mannskapet bærer på kasser og sånt som ikke eksisterer og som dukker opp ut av løse lufta»): the account of every line tub on a
+// boat with a crew, each by itself and where it is: in a slot of the stack at the rig's place (kit.stamps: a layer there, the rest
+// stacked on it), at one of the work spots (where the line runs from as it is set, or is coiled into as it is hauled), empty in the nest
+// (the empty tubs stand in each other), or in the hands of the one who carries it. A tub changes what it holds only where the line runs
+// (full to empty at the work spot as it is set, empty to coiled as it is hauled), and goes from one place to another only in someone's
+// hands: none comes or goes. The game's own count is the truth (core/10-gear.js S.pgear.lines and b.gop): sync follows it, and only
+// a count that cannot be followed (a jump of the clock, another boat) lays the deck out anew (n.snap). The carrying itself is the deck
+// crew's (deckcrew.js tubWork asks want for the next carry); the 3D view draws the tubs where this says (view3d/09-landing-deck.js).
+// tests/unit/stamper.test.mjs keeps the account.
+const STAMPER = {
+  CARRY:9,       // s a carry is reckoned to take (to the tub, lifted, with it, set down) before one has been timed
+  MARGIN:3,      // s to spare: the next tub is fetched only when it is set down that long before the line runs to it
+  NEXT:0.45,     // the share of the running tub gone (setting) or filled (hauling) from which the next one is carried to the other work spot
+  fresh(){ return {T:[], op:null, job:null, W:1, n:{snap:0, carried:0}}; },
+  // the deck at rest: the coiled tubs at the bottom of the stack, the full (baited) ones on them, the empty ones in the nest
+  lay(L, tg){ const T = L.T = []; let id = 0, s = 0; const o = tg.op;
+    for (let i = 0; i < tg.coil; i++) T.push({id:id++, k:'coil', at:'slot', i:s++});
+    for (let i = 0; i < tg.full; i++) T.push({id:id++, k:'full', at:'slot', i:s++});
+    let e = 0; for (let i = 0; i < tg.empty; i++) T.push({id:id++, k:'empty', at:'nest', i:e++});
+    L.op = null; L.job = null;
+    if (!o) return;
+    // (a set or a haul under way: the tubs of it where they would be by now)
+    const ids = new Array(o.n), d = Math.min(o.done, o.n), w = d % Math.max(1, L.W);
+    if (o.kind === 'set'){ for (let i = o.n - 1; i > d; i--){ ids[i] = id; T.push({id:id++, k:'full', at:'slot', i:s++}); }
+      for (let i = 0; i < d; i++){ ids[i] = id; T.push({id:id++, k:'empty', at:'nest', i:e++}); }
+      if (d < o.n){ ids[d] = id; T.push({id:id++, k:'full', at:L.W ? 'work' : 'slot', i:L.W ? w : s++}); } }
+    else { for (let i = 0; i < d; i++){ ids[i] = id; T.push({id:id++, k:'coil', at:'slot', i:s++}); }
+      for (let i = o.n - 1; i > d; i--){ ids[i] = id; T.push({id:id++, k:'empty', at:'nest', i:e++}); }
+      if (d < o.n){ ids[d] = id; T.push({id:id++, k:'empty', at:L.W ? 'work' : 'slot', i:L.W ? w : s++}); } }
+    L.op = {key:o.key, kind:o.kind, n:o.n, ids}; },
+  by(L, id){ return L.T.find(q => q.id === id); },
+  count(L, k){ return L.T.filter(q => q.k === k).length; },
+  // what the game says the deck holds now: tg = {full, coil, empty} of the tubs that are not in the set or haul under way, and op
+  // {key, kind:'set'|'haul', n, done, prog} or null; W the work spots this deck has (0: the line runs from the tub in its own slot)
+  sync(L, tg, W, now){
+    // (the pace of the work under way, s per tub, from how fast the game's count goes on: the next tub is carried only when it gets there in time)
+    if (now != null){ const o0 = tg.op, x = o0 ? o0.done + o0.prog : null; if (o0 && L.pace && L.pace.key === o0.key){ if (x > L.pace.x + 1e-9){ const r = (x - L.pace.x) / Math.max(1e-3, now - L.pace.t); L.pace.r = L.pace.r ? L.pace.r * 0.5 + r * 0.5 : r; L.pace.x = x; L.pace.t = now; } }
+      else L.pace = o0 ? {key:o0.key, x, t:now, r:0} : null; }
+    if (W !== L.W){ L.W = W; if (L.T.length){ STAMPER.lay(L, tg); L.n.snap++; return; } }
+    const first = !L.T.length;
+    const o = tg.op;
+    // (the set or the haul is over: its tubs are what it left them)
+    if (L.op && (!o || o.key !== L.op.key)){ for (const id of L.op.ids){ const q = STAMPER.by(L, id); if (q) q.k = L.op.kind === 'set' ? 'empty' : 'coil'; } L.op = null; }
+    // (one begins: the set takes the full tubs from the top of the stack down, the haul the empty ones from the top of the nest)
+    if (o && !L.op){ const set = o.kind === 'set', pool = L.T.filter(q => q.k === (set ? 'full' : 'empty') && !(L.job && L.job.id === q.id));
+      const rank = q => q.at === 'work' ? 3e3 : q.at === 'hand' ? 2e3 : (q.at === 'slot' ? (set ? 1e3 : 0) : set ? 0 : 1e3) + q.i;
+      pool.sort((a, b) => rank(b) - rank(a));
+      if (pool.length >= o.n) L.op = {key:o.key, kind:o.kind, n:o.n, ids:pool.slice(0, o.n).map(q => q.id)}; }
+    if (o && L.op){ const d = Math.min(o.done, o.n); L.op.ids.forEach((id, i) => { const q = STAMPER.by(L, id); if (q && i < d) q.k = o.kind === 'set' ? 'empty' : 'coil'; }); }
+    // (the count the game has: the tubs of the work under way by how far it has come, and the rest)
+    const d = o ? Math.min(o.done, o.n) : 0, want = {full:tg.full + (o && o.kind === 'set' ? o.n - d : 0), coil:tg.coil + (o && o.kind === 'haul' ? d : 0), empty:tg.empty + (o ? (o.kind === 'set' ? d : o.n - d) : 0)};
+    const tot = want.full + want.coil + want.empty;
+    if (tot !== L.T.length || (o && !L.op)){ STAMPER.lay(L, tg); if (!first) L.n.snap++; return; }
+    // (the baiting and the stripping on deck change what a tub holds where it stands, not where it is: the top of the stack first)
+    const op = L.op ? new Set(L.op.ids) : new Set(), swap = (from, to, n) => { const C = L.T.filter(q => q.k === from && !op.has(q.id)).sort((a, b) => (b.at === 'slot' ? b.i : -1) - (a.at === 'slot' ? a.i : -1)); for (let i = 0; i < n && i < C.length; i++) C[i].k = to; };
+    const df = STAMPER.count(L, 'full') - want.full; if (df > 0) swap('full', 'coil', df); else if (df < 0) swap('coil', 'full', -df);
+    if (STAMPER.count(L, 'empty') !== want.empty){ STAMPER.lay(L, tg); L.n.snap++; } },
+  // the tub the line runs from (setting) or is coiled into (hauling), and how much of it is still in it (setting) or in it (hauling)
+  running(L, o){ if (!o || !L.op || o.done >= o.n) return null; const q = STAMPER.by(L, L.op.ids[o.done]); return q ? {q, f:o.kind === 'set' ? 1 - o.prog : o.prog} : null; },
+  // what each tub holds to draw it: 1 baited, 0 coiled, -1 empty, between 0 and 1 the share of the line left in it (setting) or come in (hauling)
+  fillOf(L, q, o){ if (q.k === 'empty'){ const r = STAMPER.running(L, o); return r && r.q === q ? Math.max(0.001, r.f) : -1; }
+    if (q.k === 'full'){ const r = STAMPER.running(L, o); return r && r.q === q ? Math.max(0.001, r.f) : 1; } return 0; },
+  // the places taken now or by a carry on its way to them
+  taken(L, at, i){ return L.T.some(q => q.at === at && q.i === i) || !!(L.job && L.job.to.at === at && L.job.to.i === i); },
+  freeWork(L){ for (let w = 0; w < L.W; w++) if (!STAMPER.taken(L, 'work', w)) return w; return -1; },
+  freeSlot(L){ for (let s = 0; ; s++) if (!STAMPER.taken(L, 'slot', s)) return s; },
+  nestTop(L){ return L.T.filter(q => q.at === 'nest').length + (L.job && L.job.to.at === 'nest' ? 1 : 0); },
+  // the next carry the deck needs (null: none): {id, from:{at, i}, to:{at, i}}. The one the line is about to run from or into first,
+  // then the work spots cleared (the empty tub to the nest, the filled one to the stack), then the next one fetched before it is needed
+  want(L, o){ if (L.job) return null; const op = L.op && o && o.key === L.op.key ? o : null, W = L.W, set = op && op.kind === 'set', at = q => ({at:q.at, i:q.i});
+    const job = (q, to) => ({id:q.id, from:at(q), to}), toNest = q => job(q, {at:'nest', i:STAMPER.nestTop(L)}), toSlot = q => job(q, {at:'slot', i:STAMPER.freeSlot(L)});
+    const cur = op && op.done < op.n ? STAMPER.by(L, L.op.ids[op.done]) : null, nxt = op && op.done + 1 < op.n ? STAMPER.by(L, L.op.ids[op.done + 1]) : null;
+    // (the empty tubs off the work spots and out of the stack into the nest, the filled ones off the work spots onto the stack; never
+    // the one the line runs from or into, nor the next one waiting at the other spot)
+    const keep = q => q === cur || (q === nxt && q.at === 'work');
+    const e = L.T.find(q => q.k === 'empty' && (q.at === 'work' || q.at === 'slot') && !keep(q)); if (e) return toNest(e);
+    const f = L.T.find(q => q.at === 'work' && q.k !== 'empty' && !keep(q)); if (f) return toSlot(f);
+    if (!op || !cur) return null;
+    // (setting: the tub the line runs from is not moved once it runs; the next one is carried to the free spot by the stern while it
+    // runs, from the moment the line runs from the stack or the share NEXT of it is gone. With no work spot it runs from the stack)
+    if (set){ if (!W || !nxt || nxt.at === 'work') return null; const left = L.pace && L.pace.r > 0 ? (1 - op.prog) / L.pace.r : 0;
+      if ((cur.at !== 'work' || op.prog >= STAMPER.NEXT) && left > STAMPER.carryS(L) + STAMPER.MARGIN){ const w = STAMPER.freeWork(L); if (w >= 0) return job(nxt, {at:'work', i:w}); } return null; }
+    // (hauling: the empty tub the line is coiled into, to a work spot by the hauler (a free slot with none), and the next one there
+    // before this one is full)
+    if (cur.at === 'nest' || (W && cur.at !== 'work')){ const w = W ? STAMPER.freeWork(L) : -1; if (w >= 0) return job(cur, {at:'work', i:w}); if (!W) return toSlot(cur); }
+    if (W && nxt && nxt.at === 'nest' && op.prog >= STAMPER.NEXT){ const w = STAMPER.freeWork(L); if (w >= 0) return job(nxt, {at:'work', i:w}); }
+    return null; },
+  // s a carry has taken (the last ones), CARRY before the first
+  carryS(L){ return L.cs || STAMPER.CARRY; },
+  // hauling with the tub the line is coiled into not yet at its place: the hauler stands (the view stops it, and nothing is gaffed meanwhile)
+  halt(L, o){ if (!o || o.kind !== 'haul' || !L.op || o.key !== L.op.key || o.done >= o.n) return false; const q = STAMPER.by(L, L.op.ids[o.done]); return !!q && q.at !== (L.W ? 'work' : 'slot'); },
+  // the carrier has the tub in his hands (begin: he is on his way to it; take: he lifts it; put: he sets it down where it was going)
+  begin(L, j, who, now){ L.job = Object.assign({who, took:false, t0:now}, j); },
+  take(L){ const j = L.job; if (!j || j.took) return; const q = STAMPER.by(L, j.id); if (q){ q.at = 'hand'; q.i = 0; q.who = j.who; } j.took = true; STAMPER.pack(L); },
+  put(L, now){ const j = L.job; if (!j) return; if (now != null && j.t0 != null){ const d = now - j.t0; L.cs = L.cs ? L.cs * 0.6 + d * 0.4 : d; } const q = STAMPER.by(L, j.id); if (q){ const ni = L.T.filter(x => x.at === 'nest').length; q.at = j.to.at; q.i = j.to.at === 'nest' ? ni : j.to.i; q.who = null; L.n.carried++; } L.job = null; },
+  // the carrier is gone from his work (the game gave him other work): what he held is set down where it was going (n.snap)
+  drop(L){ const j = L.job; if (!j) return; if (j.took){ STAMPER.put(L); L.n.snap++; } else L.job = null; },
+  // the nest's tubs one in the next, from the bottom up, with no gap
+  pack(L){ L.T.filter(q => q.at === 'nest').sort((a, b) => a.i - b.i).forEach((q, i) => { q.i = i; }); },
+  // where every tub is: {slot, work, nest, hand} counts, for the tests
+  where(L){ const w = {slot:0, work:0, nest:0, hand:0}; for (const q of L.T) w[q.at]++; return w; }
+};
+
 // The hand jig on the boats worked by hand (steg 125e, Jonas 15.11.2026, with a clip from the old wooden boat: «mange fisk som bare
 // teleporterer ombord, mens mannen står å bløgger andre fisker»; «den i alle fall visuelt burde sveives inn og kastes ut igjen når den er
 // helt oppe»; the pilk and ten hooks, his choice the same day): the line's round as the 3D view draws it (view3d/13-instruments.js
