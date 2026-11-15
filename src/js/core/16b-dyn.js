@@ -588,7 +588,11 @@ function dynLineBuild(pl, dep){
   // (from Father's naust straight out to the route's first point: the harbour point is the plant's, tilbakemelding #20)
   if (dep){ const pt = portById(dep.pid), w0 = pl.wps[pl.idx], from = dep.naust && w0 ? w0 : pt && pt.p; let W = from ? berthPath(from, dep.bp).reverse() : [dep.bp];
     // from the last turn out from the quay straight on to the route when that is clear (Senjahopen: the harbour point lies by the berth)
-    const w1 = pl.wps[pl.idx]; if (W.length > 2 && w1 && berthClear(W[W.length - 2], w1, (dep.bp.Bb || 3) / 2)) W = W.slice(0, -1);
+    // (and clear of the shallows and the rocks as the route's own legs are: the route's first leg was found from the harbour point, and
+    // the shortcut from the turn passed 10 m from a rock the route kept clear of, Klokkarstua verft, 15.11.2026, tests/allesteder.py: she
+    // stopped for it and found no way round)
+    const w1 = pl.wps[pl.idx], sc = W.length > 2 ? W[W.length - 2] : null, scBad = () => { try { return !!groundCheck(sc, w1) || !!rockOnLeg(sc, w1, 0.012); } catch (e){ return true; } };
+    if (sc && w1 && berthClear(sc, w1, (dep.bp.Bb || 3) / 2) && !scBad()) W = W.slice(0, -1);
     for (const q of W) add(q.x * 1000, q.y * 1000); hd0 = dep.bp.hd; iOut = P.length - 1;
     if (P.length > 1) back = Math.hypot(P[1][0] - P[0][0], P[1][1] - P[0][1]); }
   else add(b.pos.x * 1000, b.pos.y * 1000);
