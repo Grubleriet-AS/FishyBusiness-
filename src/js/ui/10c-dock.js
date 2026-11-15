@@ -236,7 +236,8 @@ const DOCK = (() => {
     if (b.status === 'fishing') return [I('stopfish', 'stopp', 'Stopp', 'Stop', {act:'stopfish'}),
       b.deckStop && !b.deckEnd ? I('deckgo', 'videre', 'Fisk videre', 'Fish on', {act:'deckgo', pri:true}) : !b.deckStop && deckPending() > 0.5 ? I('deckstop', 'sloy', 'Stopp og sløy', 'Stop and gut', {act:'deckstop'}) : null,
       G3.isActive() && window.JIGG && (window.jigActive || window.JIGG.ok()) ? I('jigg', 'juks', window.jigActive ? 'Slutt å jukse' : 'Jukse selv', window.jigActive ? 'Stop jigging' : 'Jig yourself', {act:'jigg', pri:!window.jigActive, on:!!window.jigActive}) : null, rest, beh].filter(Boolean);
-    if (b.status === 'sailing') return [I('stop', 'stopp', 'Stopp båten', 'Stop', {act:'stop', stay:true}), tut, rest, beh].filter(Boolean);
+    // (a route or the helm waiting for the anchor: «Hiver anker» with the minutes left beside «Stopp båten», tilbakemelding #120)
+    if (b.status === 'sailing') return [I('stop', 'stopp', 'Stopp båten', 'Stop', {act:'stop', stay:true}), b.anch ? lieItems().anc : null, tut, rest, beh].filter(Boolean);
     if (b.status === 'tow') return [beh];   // the tow takes its time (no fast forward: one clock for everyone)
     if (b.status === 'adrift' || b.status === 'engine' || b.status === 'aground') return [I('hjelp', 'hjelp', 'Hjelp', 'Help', {run:() => PHONE.open('redning'), warn:true, stay:true}), beh];
     return [beh];

@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['anker-151126', '15.11.2026', 'Stopp mens ankeret hives', 'Stopping while the anchor comes up', [
+       ['Starter du en rute eller Autonav med ankeret ute, viser knappelinja «Hiver anker» med minuttene som er igjen. «Stopp båten» stopper henne da med en gang, og ankeret fortsetter å komme opp.', 'If you start a route or Autonav with the anchor out, the button row shows «Weighing» with the minutes left. «Stop» then stops her at once, and the anchor keeps coming up.']]],
     ['steder-141126', '14.11.2026', 'Vei ut fra alle steder', 'A way out from every place', [
        ['Femten mottak, butikker og verft der den eldre kystbåten ikke kom ut ved noe tidevann, har fått nye kaier med vei ut, blant dem Helligvær, Flekkerøy, Tustna, Mandal, Arendal, Halden og Træna.', 'Fifteen plants, shops and yards the older coastal vessel could not get out of at any tide have new quays with a way out, among them Helligvær, Flekkerøy, Tustna, Mandal, Arendal, Halden and Træna.'],
        ['Rorbuer som lå innestengt for båter opp til 15 m, er flyttet dit de kommer ut.', 'Rorbuer that were shut in for boats up to 15 m have moved to where they can get out.'],
