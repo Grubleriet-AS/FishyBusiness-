@@ -952,6 +952,8 @@ def anchors():
             'work': {'table': G(GX, -1.30, z_deck(GX)), 'tub': G(TUB[0], TUB[1], z_deck(TUB[0])), 'own': True, 'top': round(gut_top() - WLE, 3),
                      'gut': G(1.425, -0.70, z_deck(1.425)) + [1.571], 'solo': True, 'nopack': True},
             'jigZ': [[sd, round(XM - x, 3)] for sd, x in JIG],
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (HOLD[3] - HOLD[2], HOLD[1] - HOLD[0])],
             'hatch': G(HC, 0.0, z_deck(HC) + 0.225), 'bunk': G(7.5, 0.5, z_deck(7.5) - 0.1), 'exhaust': G(MX - 0.37, 0.55, zr_ + 1.56),
             'deck': {'y': round(z_deck(HC) - WLE, 3), 'z': round(-(HC - XM), 3)}, 'gw': round(zs(HC) - WLE, 3),
             'stern': round(XM - XA, 3), 'bow': round(-(XF - XM), 3), 'side': HB, 'beam': BEAM, 'pl': 3.3, 'rl': 1.4, 'open': False, 'hand': False,

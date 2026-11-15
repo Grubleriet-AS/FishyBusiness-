@@ -41,7 +41,7 @@ function propose(B, N, V){ const bad = [], T = {}, S = {}, ut = new Set(N.ut || 
   for (let i = 0; i < solid.length; i++) for (let j = i + 1; j < solid.length; j++) if (!(lineNet(solid[i].name) && lineNet(solid[j].name)) && !under(solid[i].name, solid[j].name) && hit(arr(solid[i]), arr(solid[j]), R.tol)) bad.push(solid[i].name + ' og ' + solid[j].name + ' står i hverandre');
   const luke = T.luke; if (luke) for (const q of solid) if (q.name !== 'haler' && hit(arr(q), arr(luke), R.tol)) bad.push(q.name + ' står på luka');
   for (const n of moved) if (T[n]){ if (n === 'luke'){ if (![[-1, -1], [1, -1], [1, 1], [-1, 1]].every(([a, b]) => any.has(Math.floor((T[n].x + a * (T[n].hw - 0.05)) / c) + ',' + Math.floor((T[n].z + b * (T[n].hl - 0.05)) / c)))) bad.push('luka er ikke i dekket'); }
-    else if (!onDeck(T[n])) bad.push(n + ' står ikke på dekk'); }
+    else if (!(n === 'sløyebord' && B.things.some(q => q.name.startsWith('sløyeplass')) && N.own !== false && B.ownMoved) && !onDeck(T[n])) bad.push(n + ' står ikke på dekk'); }   // (a model's own table, once moved in it, is a part of her deck map itself)
   const work = ['haler', 'bløgger', 'sløyer', 'pakker'].filter(n => S[n]);
   for (const n of work){ const s = S[n]; if (!ok(s.x, s.z)) bad.push(n + ' står ikke på dekk');
     for (const q of solid) if (near(q, s.x, s.z).d < R.kropp && !(n === 'haler' && q.name === 'haler')) bad.push(n + ' står inne i ' + q.name);
@@ -88,7 +88,7 @@ export default function (t){
     if (Kt.stamps){ const n = Kt.stamps.n || (V.len < 8 ? 4 : 8),   /* (per layer, as the game stands them: deckcrew.js stampPer; the rest are stacked on them) */ rows = Math.ceil(n / 2), ry = Kt.stamps.ry || 0, c = Math.cos(ry), sn = Math.sin(ry), lz = (rows - 1) * 0.25; add('linestamper', Kt.stamps.at[0] + 0.26 * c + lz * sn, Kt.stamps.at[2] - 0.26 * sn + lz * c, 1.02, rows * 0.5 + 0.02, ry, false); }
     if (Kt.garn) add('garnkar', Kt.garn.at[0], Kt.garn.at[2], 1.0, 1.2, Kt.garn.ry, false);
     if (Kt.crane && Kt.crane.at) add('kran', Kt.crane.at[0], Kt.crane.at[2], 0.9, 0.9, 0);
-    if (G.hatch){ const h = HATCH[vt] || [1.0, 1.0]; add('luke', G.hatch[0], G.hatch[2], h[0], h[1], 0); }
+    if (G.hatch){ const h = G.hatchSize || HATCH[vt] || [1.0, 1.0]; add('luke', G.hatch[0], G.hatch[2], h[0], h[1], 0); }   // (anchors.hatchSize since steg 125d)
     const cells = []; for (let k = 0; k < M.nx * M.nz; k++) if (M.ok(k)){ const p = M.at(k); cells.push([r2(p[0]), r2(p[2]), r2(p[1])]); }
     const pt = n => { const c = ST.PT[n]; return c && c.k != null && M.ok(c.k) ? {name:n, x:r2(M.at(c.k)[0]), z:r2(M.at(c.k)[2]), h:r2(c.h || 0)} : null; };
     const st = [{name:'haler', x:r2(PL.haul[0][0]), z:r2(PL.haul[0][1]), h:r2(PL.haul[0][2])}]; if (PL.bleed && !PL.solo) st.push({name:'bløgger', x:r2(PL.bleed[0]), z:r2(PL.bleed[1]), h:r2(PL.bleed[2])});
@@ -102,7 +102,8 @@ export default function (t){
   // the proposals (docs/planer/dekk/forslag.json): laid over each deck and held to the rules; written with the plan for the drawing
   let NEW = {}; try { NEW = JSON.parse(readFileSync(process.env.KYST_FORSLAG || new URL('../../docs/planer/dekk/forslag.json', import.meta.url), 'utf8')); } catch (e){ console.log('forslag.json ikke lest: ' + e.message); }
   const brudd = [], kjent = [];
-  for (const B of out){ if (!NEW[B.type]) continue; B.forslag = propose(B, NEW[B.type], VESSELS[B.type]);
+  for (const B of out){ if (!NEW[B.type]) continue; { const o = B.things.find(q => q.name.startsWith('sløyeplass')), v = NEW[B.type]['sløyebord']; B.ownMoved = !!(o && v && Math.hypot(o.x - v[0], o.z - v[1]) < 0.05); }
+    B.forslag = propose(B, NEW[B.type], VESSELS[B.type]);
     for (const m of B.forslag.bad){ const id = B.type + ': ' + m; if (KJENT[id]){ kjent.push(id + ' (' + KJENT[id] + ')'); B.forslag.kjent = (B.forslag.kjent || []).concat(m); } else brudd.push(id); }
     B.forslag.bad = B.forslag.bad.filter(m => !KJENT[B.type + ': ' + m]);
     console.log('forslag ' + B.type + ': ' + B.forslag.way.map(w => w.a + ' → ' + w.b + ' ' + w.d).join(', ') + '; i alt ' + B.forslag.way.reduce((a, w) => a + w.d, 0).toFixed(1) + ' m; ut: ' + (B.forslag.ut.join(', ') || 'ingen')); }

@@ -1830,7 +1830,10 @@ function deckPoints(type){
   // map has her rail (the shelter-deckers, whose working deck under the shelter the map does not hold)
   // (OB12: a model whose working deck lies under a deck says which deck her rail is on, anchors.leanY: the kyst15's working deck runs aft to
   // the transom now, and the cells along the transom's inside counted as a rail, so the idle hands stood facing the wall under the shelter deck)
+  // (steg 125d: not by the fish hold's hatch, open while she fishes: on the kyst15 it lies at the side under the opening)
+  const Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at), HS = W && W.nopack && Hh && G.hatchSize, byHatch = l => { if (!HS) return false; const p = M.at(l.k); return Math.abs(p[0] - Hh[0]) < HS[0] / 2 + 0.35 && Math.abs(p[2] - Hh[2]) < HS[1] / 2 + 0.35; };
   const ly = typeof G.leanY === 'number' ? G.leanY : d.y, low = lean.filter(l => Math.abs(M.at(l.k)[1] - ly) < 0.6), rail = low.length >= 4 ? low : lean;
-  rail.sort((a, b) => M.at(a.k)[2] - M.at(b.k)[2]); const step = Math.max(1, Math.floor(rail.length / 10)); pt.lean = rail.filter((_, i) => i % step === 0).slice(0, 10);
+  rail.sort((a, b) => M.at(a.k)[2] - M.at(b.k)[2]); const step = Math.max(1, Math.floor(rail.length / 10)); pt.lean = rail.filter((_, i) => i % step === 0).slice(0, 10).filter(l => !byHatch(l));
+  Object.defineProperty(pt, 'leanAll', {value:rail, enumerable:false});   // (not among the places others go through; every place along her rail: the one who gives the crane signs looks for a free one there, steg 125d: on the breisjark the ten were all by the tub, the hauler and the table)
   DECKPTS[type] = pt; return pt;
 }

@@ -1137,6 +1137,8 @@ def anchors():
             # fish go down the open hatch and are iced in the hold: no ice box and nobody icing on deck (nopack). gut: the one who guts)
             'work': {'table': G(TABLE_X, TABLE_Y, z_deck(TABLE_X)), 'tub': G(TUB[0], TUB[1], z_deck(TUB[0])), 'gut': G(GUT_AT[0], GUT_AT[1], z_deck(GUT_AT[0])) + [1.571], 'solo': True, 'nopack': True},   # (deckcrew.js turns the packer round on a boat with a hold: -pi/2 + pi faces the tub to starboard)
             'jigZ': [[sd, round(XM - x, 3)] for sd, x in JIG],
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (HOLD[3] - HOLD[2], HOLD[1] - HOLD[0])],
             'hatch': G(3.2, 0.0, z_deck(3.2) + HOLD_H + 0.04), 'bunk': G(8.0, 0.6, z_bk(8.0) - 0.6), 'exhaust': G(6.0, 0.55, 4.20),
             'deck': {'y': round(zd - WL, 3), 'z': round(-(3.0 - XM), 3)}, 'gw': round(z_cap(4.5, -1) - WL, 3),
             'stern': round(XM + 0.2, 3), 'bow': round(-(10.3 - XM), 3), 'side': 1.9, 'beam': BEAM, 'pl': 4.2, 'rl': 1.56, 'open': False, 'hand': False,

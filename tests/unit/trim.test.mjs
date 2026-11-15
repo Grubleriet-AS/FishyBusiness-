@@ -86,7 +86,7 @@ export default function (t){
   // place the table holds for her against the exported anchors, within 2 cm ----
   { const A = anchorsOf('boat-hurtig11.b64'), T = K.STAB_AT.hurtigsjark, xz = p => [p[0], p[2]];
     const pairs = {dy:[T.dy, A.deck.y], table:[T.table, xz(A.work.table)], deck:[T.deck, xz(A.work.tub)], tub:[T.tub, xz(A.kit.stamps.at)], net:[T.net, xz(A.kit.garn.at)],
-      haul:[T.haul, xz(A.hauler)], helm:[T.helm, xz(A.skipperAt)], hatch:[T.hatch, A.hatch[2]], stern:[T.stern, A.stern]};
+      haul:[T.haul, xz(A.hauler)], helm:[T.helm, xz(A.skipperAt)], hatch:[T.hatch, (A.hatchCover || A.hatch)[2]], stern:[T.stern, A.stern]};
     for (const k in pairs){ const [a, b] = pairs[k], d = Array.isArray(a) ? Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) : Math.abs(a - b);
       t.ok(d < 0.02, 'hurtigsjark: STAB_AT.' + k + ' er modellens (' + JSON.stringify(a) + ' mot ' + JSON.stringify(b) + ')'); } }
   // ---- the same for the new hurtigsjark (OB10, 10.11.2026): the game's waterline is the empty boat's (WLE, 0.665 m under the drawing's
@@ -94,7 +94,7 @@ export default function (t){
   // hatch's starboard side aft, the pots in the starboard quarter and on the hatch ----
   { const A = anchorsOf('boat-hs11.b64'), T = K.STAB_AT.sjarkny, xz = p => [p[0], p[2]], P = A.kit.pots.at;
     const pairs = {dy:[T.dy, A.deck.y], table:[T.table, xz(A.work.table)], deck:[T.deck, xz(A.work.tub)], tub:[T.tub, xz(A.kit.stamps.at)], net:[T.net, xz(A.kit.garn.at)],
-      haul:[T.haul, xz(A.hauler)], helm:[T.helm, xz(A.skipperAt)], hatch:[T.hatch, A.hatch[2]], stern:[T.stern, A.stern],
+      haul:[T.haul, xz(A.hauler)], helm:[T.helm, xz(A.skipperAt)], hatch:[T.hatch, (A.hatchCover || A.hatch)[2]], stern:[T.stern, A.stern],
       pots:[T.pots, [P.reduce((a, q) => a + q[0], 0) / P.length, P.reduce((a, q) => a + q[2], 0) / P.length]]};
     for (const k in pairs){ const [a, b] = pairs[k], d = Array.isArray(a) ? Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) : Math.abs(a - b);
       t.ok(d < 0.02, 'sjarkny: STAB_AT.' + k + ' er modellens (' + JSON.stringify(a) + ' mot ' + JSON.stringify(b) + ')'); } }
@@ -103,7 +103,7 @@ export default function (t){
   // stood under the shelter to port), the pots' stack on the open aft deck (OB16's place) by the middle ----
   { const A = anchorsOf('boat-malo36.b64'), T = K.STAB_AT.breisjark, xz = p => [p[0], p[2]], P = A.kit.pots.at;
     const pairs = {dy:[T.dy, A.deck.y], table:[T.table, xz(A.work.table)], deck:[T.deck, xz(A.work.tub)], tub:[T.tub, xz(A.kit.stamps.at)], net:[T.net, xz(A.kit.garn.at)],
-      haul:[T.haul, xz(A.hauler)], helm:[T.helm, xz(A.skipperAt)], hatch:[T.hatch, A.hatch[2]], stern:[T.stern, A.stern],
+      haul:[T.haul, xz(A.hauler)], helm:[T.helm, xz(A.skipperAt)], hatch:[T.hatch, (A.hatchCover || A.hatch)[2]], stern:[T.stern, A.stern],
       pots:[T.pots, [P.reduce((a, q) => a + q[0], 0) / P.length, P.reduce((a, q) => a + q[2], 0) / P.length]]};
     for (const k in pairs){ const [a, b] = pairs[k], d = Array.isArray(a) ? Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) : Math.abs(a - b);
       t.ok(d < 0.02, 'breisjark: STAB_AT.' + k + ' er modellens (' + JSON.stringify(a) + ' mot ' + JSON.stringify(b) + ')'); } }
@@ -112,7 +112,7 @@ export default function (t){
   // sills. The model weighs 75.1 t at the drawn waterline, so the game's waterline is the drawing's ----
   { const A = anchorsOf('boat-kyst15.b64'), T = K.STAB_AT.kyst15, xz = p => [p[0], p[2]], J = A.jigZ;
     const pairs = {dy:[T.dy, A.deck.y], table:[T.table, xz(A.work.table)], deck:[T.deck, xz(A.work.tub)], tub:[T.tub, xz(A.kit.stamps.at)], net:[T.net, xz(A.kit.garn.at)],
-      haul:[T.haul, xz(A.hauler)], helm:[T.helm, xz(A.skipperAt)], hatch:[T.hatch, A.hatch[2]], stern:[T.stern, A.stern],
+      haul:[T.haul, xz(A.hauler)], helm:[T.helm, xz(A.skipperAt)], hatch:[T.hatch, (A.hatchCover || A.hatch)[2]], stern:[T.stern, A.stern],
       fish:[T.fish || [0, 0], [A.haulerFoot[0], J.reduce((a, q) => a + q[1], 0) / J.length]]};
     for (const k in pairs){ const [a, b] = pairs[k], d = Array.isArray(a) ? Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) : Math.abs(a - b);
       t.ok(d < 0.02, 'kyst15: STAB_AT.' + k + ' er modellens (' + JSON.stringify(a) + ' mot ' + JSON.stringify(b) + ')'); }
@@ -127,7 +127,7 @@ export default function (t){
   // The model weighs 190.1 t at the drawn waterline, so the game's waterline is the drawing's ----
   { const A = anchorsOf('boat-kyst21.b64'), T = K.STAB_AT.kyst21, xz = p => [p[0], p[2]], J = A.jigZ || [[0, 0, 0, 0]], P = A.kit.pots.at;
     const pairs = {dy:[T.dy, A.deck.y], table:[T.table, xz(A.work.table)], deck:[T.deck, xz(A.work.tub)], tub:[T.tub, xz(A.kit.stamps.at)], net:[T.net, xz(A.kit.garn.at)],
-      haul:[T.haul, xz(A.hauler)], helm:[T.helm, xz(A.skipperAt)], hatch:[T.hatch, A.hatch[2]], stern:[T.stern, A.stern], bow:[T.bow, A.bow],
+      haul:[T.haul, xz(A.hauler)], helm:[T.helm, xz(A.skipperAt)], hatch:[T.hatch, (A.hatchCover || A.hatch)[2]], stern:[T.stern, A.stern], bow:[T.bow, A.bow],
       fish:[T.fish || [0, 0], [J[0][2], J[0][1]]],
       pots:[T.pots, [P.reduce((a, q) => a + q[0], 0) / P.length, P.reduce((a, q) => a + q[2], 0) / P.length]]};
     for (const k in pairs){ const [a, b] = pairs[k], d = Array.isArray(a) ? Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) : Math.abs(a - b);
@@ -141,5 +141,6 @@ export default function (t){
     const ST = (readFileSync(join(ROOT, 'src', 'js', 'vessel3d.js'), 'utf8').match(/const SETTERS = \{[\s\S]*?\};/) || [''])[0];
     t.ok(ST.length > 100 && !/^\s*kyst21:/m.test(ST), 'kyst21: ingen plass i tabellen SETTERS i vessel3d.js (modellen har kit.setter selv)');
     // (her own gutting table is long enough for the three who gut to stand side by side, F19: kyst21.py TABLE, 2.0 m)
-    t.ok(A.work.own === true && Array.isArray(A.work.pack) && Math.abs(A.work.pack[0]) < Math.abs(A.work.table[0]) - 1, 'kyst21: den som iser, står ved luka innenfor dem som sløyer (work.pack ' + JSON.stringify(A.work.pack) + ')'); }
+    // (steg 125d, Jonas 15.11.2026: nobody ices on deck on a boat with a hold; the fish go down the open part of the hatch, work.nopack)
+    t.ok(A.work.own === true && A.work.nopack === true && !A.work.pack, 'kyst21: ingen iser på dekk, fisken går ned den åpne luka (work.nopack)'); }
 }

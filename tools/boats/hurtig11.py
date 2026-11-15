@@ -1009,6 +1009,8 @@ def anchors():
             # in the tub across her just aft of him (solo); the gutting table (the game's plastic one, bord) along the starboard bulwark aft
             # of that, the one who guts inboard of it facing out (gut), the hatch a step behind him; the fish are iced in the hold (nopack)
             'work': {'table': G(BENCH, BENCH_Y, ZMD), 'tub': G(TUB[0], TUB[1], ZMD), 'ry': 1.571, 'gut': G(GUT_AT[0], GUT_AT[1], ZMD) + [1.571], 'bord': True, 'solo': True, 'nopack': True},
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (HOLD[3] - HOLD[2], HOLD[1] - HOLD[0])],
             'hatch': G(2.35, 0.0, ZMD + 0.05 + HOLD_H + 0.03),
             'deck': {'y': round(ZMD - WLE, 3), 'z': round(-(2.4 - XM), 3)}, 'gw': round(z_sh(3.0) - WLE, 3),
             'stern': round(XM - XA, 3), 'bow': round(-(XF - XM), 3), 'side': 1.95, 'beam': BEAM, 'pl': 4.2, 'rl': 1.6, 'open': False, 'hand': False,

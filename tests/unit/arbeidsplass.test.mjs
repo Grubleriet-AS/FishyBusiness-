@@ -14,6 +14,7 @@ export default function (t){
   const d = (a, c) => Math.hypot(a[0] - c[0], a[1] - c[1]), was = LEMMER.on;
   for (const on of [false, true]){ LEMMER.on = on; const bad = [], seen = [];
     for (const vt of BOATS){ S.tut = 0; S.me = S.cur; b.type = vt; applyVessel(); CREW3D.reset(); if (!CREW3D.on()){ bad.push(vt + ': ikke noe dekk'); continue; }
+      const W0 = CREW3D._st.G.work || {}; if (W0.bleed || W0.solo){ seen.push(vt + ' modellens'); continue; }   // (steg 125d: the model gives the bleeder's place, or the hauler bleeds himself; dekkplan.test.mjs holds them to the rules)
       const ST = CREW3D._st, PL = CREW3D.places(), q = ST.PT.is, I = q && q.k != null && ST.M0.ok(q.k) ? [ST.M0.at(q.k)[0], ST.M0.at(q.k)[2]] : null, H = PL.haul[0], B = PL.bleed, D = PL.drop;
       if (!on){ if (Math.abs(d(H, B) - 1.08) > 0.01 || Math.abs(d(D, B) - 0.69) > 0.01 || Math.abs(d(H, D) - 0.45) > 0.01) bad.push(vt + ': flyttet uten merket'); continue; }
       seen.push(vt + ' ' + (I ? d(I, B).toFixed(2) : '-') + '/' + d(H, B).toFixed(2) + (PL.tight || PL.tightB ? ' trangt' + (PL.tight || 0) + (PL.tightB || 0) : ''));

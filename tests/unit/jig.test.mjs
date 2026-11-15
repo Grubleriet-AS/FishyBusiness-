@@ -30,12 +30,12 @@ export default function (t){
     t.ok(n >= 3 && V.hurtigsjark.jukseMax <= n, 'hurtigsjark: plass til ' + V.hurtigsjark.jukseMax + ' juksamaskiner, ' + n + ' juksaplasser i modellen'); }
   // (the same for the new hurtigsjark, OB10: four places on her starboard rail; her port side is the deckhouse, the bench and the crane)
   { const A = anchorsOf('boat-hs11.b64'), n = (A.jigZ || []).length;
-    t.ok(n >= 4 && V.sjarkny.jukseMax <= n, 'sjarkny: plass til ' + V.sjarkny.jukseMax + ' juksamaskiner, ' + n + ' juksaplasser i modellen'); }
+    t.ok(n >= 3 && V.sjarkny.jukseMax <= n,   /* (steg 125d, Jonas 15.11.2026 «Tre plasser»: the starboard waist is the tub's and the bench's) */ 'sjarkny: plass til ' + V.sjarkny.jukseMax + ' juksamaskiner, ' + n + ' juksaplasser i modellen'); }
   // (and the breisjark, OB11: only her low starboard rail is one a man can jig over, and the hauler and the bleeding tub stand in the
   // open side: one place there, and one aft of the shelter's corner since valg 32 (Jonas 10.11.2026: «den burde ha 2 maskiner»; the
   // rail's step to the high aft bulwark stands a metre further aft to starboard). Three of her six machines stood in the plating)
   { const A = anchorsOf('boat-malo36.b64'), n = (A.jigZ || []).length;
-    t.ok(n >= 2 && V.breisjark.jukseMax === 2 && V.breisjark.jukseMax <= n, 'breisjark: plass til ' + V.breisjark.jukseMax + ' juksamaskiner, ' + n + ' juksaplasser i modellen'); }
+    t.ok(n >= 1 && V.breisjark.jukseMax === 1 && V.breisjark.jukseMax <= n,   /* (steg 125d, Jonas 15.11.2026 «Én juksaplass») */ 'breisjark: plass til ' + V.breisjark.jukseMax + ' juksamaskiner, ' + n + ' juksaplasser i modellen'); }
   // (and the kyst15, OB12: her side is the shelter's closed wall but for the hauling station's opening and the after hatch, both to
   // starboard: two places aft of the bleeding tub in the station and two in the hatch, an arm's length apart. Before, three places 0.7 m
   // apart on the station's sill, and the rest of her eight machines' hands jigged from the shelter deck's rail, 3 m over the sea)

@@ -1372,6 +1372,8 @@ def anchors():
             # gutting bench (the game's) at the port bulwark abreast the hatch, the one who guts inboard of it; the fish go down the hatch
             'work': {'table': G(TABLE[0], TABLE[1], ZMD), 'tub': G(TUB[0], TUB[1], ZMD), 'gut': G(GUT_AT[0], GUT_AT[1], ZMD) + [1.571],
                      'bleed': G(BLEED_AT[0], BLEED_AT[1], ZMD) + [1.571], 'drop': G(DROP_AT[0], DROP_AT[1], ZMD), 'nopack': True},
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (HOLD[3] - HOLD[2], HOLD[1] - HOLD[0])],
             'hatch': G((HOLD[0] + HOLD[1]) / 2, 0.0, ZMD + 0.05 + HOLD_H + 0.03),
             'deck': {'y': round(ZMD - WLE, 3), 'z': round(-(2.6 - XM), 3)}, 'gw': round(z_sh(3.0) - WLE, 3),
             'stern': round(XM - XA, 3), 'bow': round(-(XF - XM), 3), 'side': round(BEAM / 2, 3), 'beam': BEAM, 'pl': 4.4, 'rl': 1.78, 'open': False, 'hand': False,

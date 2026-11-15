@@ -19,10 +19,11 @@ export default function (t){
     const ST = CREW3D._st, G = ST.G, PL = CREW3D.places(), d = G.deck || {y:G.gw, z:0}, Bm = G.beam || 3, W = G.work, HP = G.hauler || [Bm / 2 * 0.92, d.y + 1, d.z - 1.3];
     const pt = n => { const c = ST.PT[n]; return c && c.k != null && ST.M0.ok(c.k) ? [ST.M0.at(c.k)[0], ST.M0.at(c.k)[2], c.h || 0] : null; };
     const table = W ? [W.table[0], W.table[2]] : [-(Bm / 2 - 0.42), d.z], tub = PL.tub, ice = G.kit && G.kit.iskasse ? [G.kit.iskasse[0], G.kit.iskasse[2]] : null;
-    const Sl = pt('sloy'), Is = pt('is'), Ha = PL.haul[0], Bl = PL.bleed, crate = Is ? [Is[0] + Math.sin(Is[2]) * 0.58, Is[1] - Math.cos(Is[2]) * 0.58] : null;
+    const Sl = pt('sloy'), Is = W && W.nopack ? null : pt('is'), Ha = PL.haul[0], Bl = PL.solo ? null : PL.bleed,   // (steg 125d: no packer on deck where the hold is iced, no bleeder where the hauler bleeds)
+         tl = W && W.tl ? W.tl / 2 : 0, tAt = (P0) => !P0 || !tl ? table : [table[0], Math.max(table[1] - tl, Math.min(table[1] + tl, P0[1]))], crate = Is ? [Is[0] + Math.sin(Is[2]) * 0.58, Is[1] - Math.cos(Is[2]) * 0.58] : null;
     const ST8 = [['haler', Ha, [['haleren', [HP[0], HP[2]], 'hold'], ['slippet', PL.drop, 'reach']]],
       ['bløgger', Bl, [['fisken', PL.drop, 'reach'], ['karet', tub, 'throw']]],
-      ['sløyer', Sl, [['bordet', table, 'hold']]],
+      ['sløyer', Sl, [['bordet', tAt(Sl), 'hold']]],   // (a long table of her own, work.tl: the part of it before him)
       ['pakker', Is, [['iskassa', ice && Is && Math.hypot(ice[0] - Is[0], ice[1] - Is[1]) < 1.35 ? ice : null, 'reach']]]];   // (further off than 1.35 m he takes the ice from the bin at his side, drawDeckCrew)
     for (const [nm, P, things] of ST8){ if (!P) continue; nSt++;
       for (const [tn, q, kind] of things){ if (!q) continue; const dx = q[0] - P[0], dz = q[1] - P[1], dist = Math.hypot(dx, dz); let a = Math.atan2(dx, -dz) - P[2]; while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI;

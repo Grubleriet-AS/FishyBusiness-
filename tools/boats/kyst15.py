@@ -417,7 +417,7 @@ STAMP = (4.06, 0.86)         # the line tubs' place: the block of eight (0.78 x 
                              # (deckcrew.js gearBoxes), along the inboard wall forward
 # the jigging places on the sills, in the order the machines are bolted on (anchors.jigZ, F21: an arm's length between them, clear of
 # the hauler at HXX and the bleeding tub at TUB): two in the station's opening aft of the tub, two in the after hatch
-JIG = [(1, 4.86), (1, 3.60), (1, 2.60)]   # (steg 125d: the hatch lies under the opening's after part now, where the first stood)
+JIG = [(1, 6.45), (1, 4.86), (1, 3.60), (1, 2.60)]   # (steg 125d: the hatch lies under the opening's after part now; the first between it and the hauler, where the bleeder stands when they haul: nobody hauls while they jig)
 
 
 # ---------- the openings: real holes, cut with a boolean and lined ----------
@@ -1186,6 +1186,8 @@ def anchors():
             # gutting table along the inboard wall aft, the hold's hatch between them for the gutted fish on ice
             'work': {'table': G((TABLE[0] + TABLE[1]) / 2, (TABLE[2] + TABLE[3]) / 2, ZMD), 'tub': G(TUB[0], TUB[1], ZMD), 'own': True, 'top': round(ZMD + 0.90 - WL, 3), 'stand': 1,
                      'gut': G(GUT_AT[0], GUT_AT[1], ZMD) + [-1.571], 'bleed': G(BLEED_AT[0], BLEED_AT[1], ZMD) + [0.0], 'drop': G(DROP_AT[0], DROP_AT[1], ZMD), 'nopack': True},
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (HOLD[3] - HOLD[2], HOLD[1] - HOLD[0])],
             'hatch': G((HOLD[0] + HOLD[1]) / 2, (HOLD[2] + HOLD[3]) / 2, ZMD + 0.13), 'bunk': G(9.8, 1.0, ZMD + 0.6), 'exhaust': G(WX0 - 0.22, 2.05, WR + 1.30),
             'deck': {'y': round(ZMD - WL, 3), 'z': round(-(6.2 - XM), 3)}, 'gw': round(SILL - WL, 3),
             'stern': round(XM - XA, 3), 'bow': round(-(XF - XM), 3), 'side': round(BEAM / 2, 3), 'beam': BEAM, 'pl': 6.0, 'rl': 2.5, 'open': False, 'hand': False,
@@ -1274,8 +1276,8 @@ def check():
     jx = sorted(x for _, x in JIG); gaps = [b - a for a, b in zip(jx, jx[1:])]
     inop = lambda x: AH0 + 0.45 <= x <= AH1 - 0.45 or OP0 + 0.25 <= x <= OP1 - 0.45
     tubx = (TUB[0] - 0.54 - m6, TUB[0] + 0.54 + m6)
-    out.append(('juksaplassene (F21): %d på styrbord terskel ved x %s, minst %.2f m mellom to (en armlengde, 0.95), alle i en åpning, %.2f m akter for luka og %.2f for haleren; VESSELS.kyst15.jukseMax skal være %d (valg 31 A)'
-                % (len(JIG), jx, min(gaps), HOLD[0] - 0.25 - max(jx), HXX - max(jx), len(JIG)), min(gaps) >= 0.95 and all(inop(x) for x in jx) and HOLD[0] - 0.25 - max(jx) >= 0.10 and HXX - max(jx) > 0.6))
+    out.append(('juksaplassene (F21): %d på styrbord terskel ved x %s, minst %.2f m mellom to (en armlengde, 0.95), alle i en åpning, %.2f m fri av luka og %.2f for haleren; VESSELS.kyst15.jukseMax skal være %d (valg 31 A)'
+                % (len(JIG), jx, min(gaps), min(abs(x - (HOLD[0] + HOLD[1]) / 2) - (HOLD[1] - HOLD[0]) / 2 for x in jx), HXX - max(jx), len(JIG)), min(gaps) >= 0.95 and all(inop(x) for x in jx) and all(not (HOLD[0] - 0.35 < x < HOLD[1] + 0.35) for x in jx) and HXX - max(jx) > 0.6))
     hf = ybi(HXX) - HFOOT
     out.append(('halerens fot %.2f m fra midten på arbeidsdekket, %.2f innenfor skrogets innside (%.2f) og %.2f innenfor ytterhuden der; spillet satte den før ved %.2f, utenfor' % (hf, HFOOT, ybi(HXX), y_at(HXX, ZMD, -1) - hf, BEAM / 2 - 0.2),
                 hf < ybi(HXX) - 0.1 and BEAM / 2 - 0.2 > ybi(HXX)))

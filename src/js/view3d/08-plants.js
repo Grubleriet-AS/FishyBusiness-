@@ -47,6 +47,10 @@
       icebin:mk(b => { b.box(0, 0, 0, 0.62, 0.48, 0.48, [0.93, 0.93, 0.9, 0.2]); b.box(0, 0.47, 0, 0.56, 0.03, 0.42, [0.9, 0.95, 0.99, 0.6]); b.box(0.05, 0.49, 0.02, 0.36, 0.03, 0.28, [0.96, 0.98, 1, 0.6]); }),
       icebox:mk(b => { b.box(0, 0, 0, 0.78, 0.28, 0.38, [0.18, 0.4, 0.74, 0.25]); b.box(0, 0.27, 0, 0.72, 0.012, 0.32, [0.55, 0.57, 0.5, 0.4]); b.box(0, 0.282, 0, 0.66, 0.012, 0.28, [0.92, 0.96, 0.99, 0.6]); }),
       // on deck: the bleeding tub with its bloody water, the gutting table, a cod in the hand, a gob of offal, a bare head
+      // the hold's hatch open (steg 125d): the dark well seen through the coaming, 1 x 1 m scaled to the opening; the lid, gelcoat white
+      // with a darker underside, 1 x 1 m and 4 cm thick, its hinge edge at z 0 and the rest along +z (turned up about the hinge)
+      hatchHole:mk(b => { b.box(0, -0.6, 0, 1, 0.6, 1, [0.025, 0.03, 0.035, 0.05]); }),
+      hatchLid:mk(b => { b.box(0, 0, 0.5, 1, 0.04, 1, [0.86, 0.87, 0.84, 0.35]); b.box(0, -0.004, 0.5, 0.9, 0.006, 0.9, [0.55, 0.57, 0.55, 0.2]); }),
       btub:mk(b => { b.box(0, 0, 0, 0.95, 0.55, 0.7, [0.2, 0.38, 0.62, 0.25]); b.box(0, 0.47, 0, 0.87, 0.04, 0.62, [0.32, 0.08, 0.07, 0.6]); }),
       gtable:mk(b => { b.box(0, 0.82, 0, 0.5, 0.05, 0.95, [0.72, 0.74, 0.76, 0.6]); for (const [x, z] of [[-0.2, -0.42], [0.2, -0.42], [-0.2, 0.42], [0.2, 0.42]]) b.box(x, 0, z, 0.04, 0.82, 0.04, [0.6, 0.62, 0.64, 0.5]); }),
       fish:mk(b => { b.box(0, 0, 0, 0.1, 0.09, 0.42, [0.5, 0.52, 0.44, 0.4]); b.box(0, 0.005, 0.25, 0.02, 0.1, 0.1, [0.45, 0.46, 0.4, 0.3]); }),

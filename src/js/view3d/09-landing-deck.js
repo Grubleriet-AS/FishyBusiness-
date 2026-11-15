@@ -86,6 +86,8 @@
     for (let k = 0; k < 5; k++) drawN(fishOf('snokrabbe'), chain(M, M4.T((hash(j * 13 + k * 5) - 0.5) * 0.6, w, (hash(j * 7 + k * 11 + 3) - 0.5) * 0.8), M4.RY(hash(j + k * 3) * 6.3), M4.S(0.42))); }
   // how far open your boat's cargo hatch is (0 shut, 1 open; anchors.hatch, H2d): open while she lands pallets, from the crane's first move
   // over to the last pallet ashore, shut at sea
+  // the fish hold's hatch is open while she fishes and the catch goes down it (steg 125d): at sea fishing, not in port or under way home
+  function hatchFishOpen(){ const b = S.boat; return !!b && ((b.status === 'fishing' && !b.land) || (b.status === 'port' && (b.iceUntil || 0) > S.t)); }   // (and in port while the ice is taken in: it goes down into the hold)
   function hatchOpenK(){ const b = S.boat, L = b && b.land; if (!L || L.kind !== 'pall' || b.status !== 'port') return 0;
     const e = S.t + currentFrac() - L.t0, end = landLiftT(L, (L.np > 0 && L.np < L.lifts ? L.np : L.lifts) - 1) + liftMin(L); return clamp(e / (LANDING.prep * 0.8), 0, 1) * (1 - clamp((e - end) / LANDING.prep, 0, 1)); }
   // the tubs of an open boat off her deck at a landing now (on the hook, on the quay, in the plant)
@@ -988,6 +990,12 @@
       else drawN(PM.btub, chain(BMrel, M4.T(ux, d.y, uz), M4.RY(W && W.ry || 0), M4.S(W && W.s || 1)));
       // the table by the rail, its long side along the boat and the worker's side inboard
       if (!own){ if (KB) drawN(KB, chain(BMrel, M4.T(tx, d.y, tz), M4.RY(tSide * Math.PI / 2))); else drawN(PM.gtable, chain(BMrel, M4.T(tx, d.y, tz))); } }
+    // the hold's hatch open while she fishes (steg 125d, Jonas 15.11.2026: «en åpen luke ned til lasterommet der fisken kastes»): the
+    // dark well inside the coaming and the lid tipped up on its forward edge; nobody icing on deck (work.nopack), anchors.hatchSize
+    { const Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at), HS = G.hatchSize;
+      if (Hh && HS && W && W.nopack && !potRig && hatchFishOpen()){ const aw = Math.max(0.2, HS[0] - 0.06), al = Math.max(0.2, HS[1] - 0.06);
+        drawN(PM.hatchHole, chain(BMrel, M4.T(Hh[0], Hh[1] + 0.004, Hh[2]), M4.S(aw, 1, al)));
+        drawN(PM.hatchLid, chain(BMrel, M4.T(Hh[0], Hh[1] + 0.02, Hh[2] - al / 2), M4.RX(-1.75), M4.S(aw, 1, al))); } }
     if (b.land) return;   // (through a landing the kit stands, but nobody works the catch on deck: the crew are at the landing, deckcrew.js)
     // the catch on deck (tools/fish): the round fish waiting for the knife lie in the bleeding tub (their species, about one for every 6 kg),
     // the gutted ones waiting for the icer at the end of the gutting table, and one on the table when nobody guts

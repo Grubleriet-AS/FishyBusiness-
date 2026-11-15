@@ -1578,6 +1578,8 @@ def anchors():
             # of him, the gutting table (her own) across the hatch to port, the hold's hatch between them for the gutted fish on ice
             'work': {'table': G((TABLE[0] + TABLE[1]) / 2, (TABLE[2] + TABLE[3]) / 2, z_deck((TABLE[0] + TABLE[1]) / 2)), 'tub': G(TUB[0], TUB[1], z_deck(TUB[0])), 'own': True, 'top': round(z_deck((TABLE[0] + TABLE[1]) / 2) + 0.9 - WLE, 3),
                      'gut': G(GUT_AT[0], GUT_AT[1], z_deck(GUT_AT[0])) + [1.571], 'bleed': G(BLEED_AT[0], BLEED_AT[1], z_deck(BLEED_AT[0])) + [1.571], 'drop': G(DROP_AT[0], DROP_AT[1], z_deck(DROP_AT[0])), 'nopack': True},
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (HOLD[3] - HOLD[2], HOLD[1] - HOLD[0])],
             'hatch': G(4.7, 0.0, z_deck(4.7) + HOLD_H + 0.09), 'bunk': G(8.6, 0.4, z_bk(8.6) - 0.7), 'exhaust': G(2.67, 1.45, 5.32),
             'deck': {'y': round(zd - WLE, 3), 'z': round(-(4.5 - XM), 3)}, 'gw': round(z_cap(4.5) - WLE, 3),
             'stern': round(-(XA - XM) + 0.1, 3), 'bow': round(-(10.3 - XM), 3), 'side': 1.89, 'beam': BEAM, 'pl': 4.4, 'rl': 1.6, 'open': False, 'hand': False,
