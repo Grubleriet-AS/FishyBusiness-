@@ -305,7 +305,10 @@ if (BOOTG.safe) bootgSafe();   // the starts before locked (BOOTG above): the ro
     const w = siteWhy(b.type, R ? R.id : b.port) || ['', '']; log(w[0] + ' «' + (S.boatName || '') + '» er flyttet til ' + q.name + '.', w[1] + ' «' + (S.boatName || '') + '» was moved to ' + q.name + '.'); };
   // (a route that ends at a rorbu taken away, siteGone: she stops where the route ends instead, told in the log; steg 126, 15.11.2026)
   const goneWay = () => { for (const L of [S.plan && S.plan.wps, S.draft]){ const e = L && L.length ? L[L.length - 1] : null; if (!e || !e.port || !siteGone(e.port)) continue;
-    const w = siteWhy(S.boat.type, e.port) || ['', '']; e.port = null; e.leia = true; delete e.berth; if (L === S.draft) continue; log(w[0] + ' Ruta ender der den gikk, utenfor.', w[1] + ' The route ends where it went, off the shore.'); } };
+    const w = siteWhy(S.boat.type, e.port) || ['', '']; e.port = null; e.leia = true; delete e.berth; if (L === S.draft) continue; log(w[0] + ' Ruta ender der den gikk, utenfor.', w[1] + ' The route ends where it went, off the shore.'); }
+    // (and a standing plan with that rorbu as home: stopped, said why; its trips home went there while the game was closed, the kontroll
+    // of steg 126. The player sets a new home in it)
+    const o = S.ops; if (o && o.home && siteGone(o.home)){ const w = siteWhy(S.boat.type, o.home) || ['', '']; o.on = false; o.home = null; log(w[0] + ' Driftsplanen er stoppet; velg et nytt hjemsted i den.', w[1] + ' The operating plan is stopped; choose a new home in it.'); } };
   if (!(S.fleet && S.fleet.length)){ siteOut(); goneWay(); }
   if (S.fleet && S.fleet.length){ ensureFleet(); for (const v of S.fleet) withVessel(v, () => { siteOut(); goneWay(); if (S.boat.status === 'port' && !portById(S.boat.port)) S.boat.port = nearestPort(S.boat.pos && isFinite(S.boat.pos.x) ? S.boat.pos : PORTS[0].p).id;   /* (the fleet's other vessels as the boat above, 13.11.2026) */ if (S.boat.status === 'port' && portById(S.boat.port)){ const pp = portById(S.boat.port).p; S.boat.pos = {x:pp.x, y:pp.y}; } }); } else ensureFleet(); }
 // every vessel gets its gear locker (saves from before passive gear have none, also on vessels that are not bound)

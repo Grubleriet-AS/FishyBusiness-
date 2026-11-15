@@ -188,6 +188,7 @@ COVER['src/js/view3d/03-berths-naust.js'] = COVER.get('src/js/view3d/03-berths-n
 # rorbuer and the naust, a few hours with the coast's harbours): only for the rorbuer's and the naust's places and the test itself; the
 # whole regression runs it. Needs the whole coast. On lines of their own, as above
 LITE += ['allesteder']
+D3 += ['as1valga']; VECB.append('as1valga'); COVER['tests/as1valga.py'] = ['as1valga']   # (steg 126 Valg A: the boat inside the pile quay at the naust and the rorbuer, 3D; needs the whole coast)
 VECB += ['allesteder']
 COVER['tests/allesteder.py'] = ['allesteder']
 for _f in ('src/js/core/07c-naust.js', 'src/js/core/07d-rorbu.js'):
