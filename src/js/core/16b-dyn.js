@@ -614,7 +614,11 @@ function dynLineBuild(pl, dep){
         // (nor a way round far longer than the berth's own: at Smøla nord the wider way went 400 m north round the island's point into
         // the shallows, and the way round those all round the island)
         else { const W0 = berthPath(fq, bp), len = A => A.reduce((s, q, k) => k ? s + dist(A[k - 1], q) : 0, 0); if (len(W) > 1.5 * len(W0) + 0.05) W = W0; }
-        if (W.length > 2){ bz.add(P.length - 1); for (const r of W.slice(1, -1)){ add(r.x * 1000, r.y * 1000); bz.add(P.length - 1); } wpAt[i] = P.length - 1; continue; } } }
+        // (not where the way along the quay goes far round where the route's own last point lies off the berth: naustTarget's point 116 m
+        // from it at Flatanger, and the way from there doubled back on itself, a hairpin she stood still in, allesteder 15.11.2026; she
+        // goes to the route's point as before, and the mooring takes her in)
+        const lw = (A => A.reduce((s0, q0, k) => k ? s0 + dist(A[k - 1], q0) : 0, 0))(W), lp = dist(fq, w) + dist(w, bp);
+        if (W.length > 2 && lw <= 1.25 * lp + 0.03){ bz.add(P.length - 1); for (const r of W.slice(1, -1)){ add(r.x * 1000, r.y * 1000); bz.add(P.length - 1); } wpAt[i] = P.length - 1; continue; } } }
     add(w.x * 1000, w.y * 1000); wpAt[i] = P.length - 1; }
   const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
   const stops = []; for (let i = pl.idx; i <= iEnd; i++) if (wpStop(pl.wps[i]) && wpAt[i] != null) stops.push({i, s:L[wpAt[i]]});
