@@ -106,6 +106,17 @@ Tegningene: `docs/planer/dekk/<type>.png`, «I dag» og «Forslag» side om side
 
 **Svakt og antatt:** målene på båtenes egne sløyebenker og lukene er lest fra konstantene i `tools/boats/*.py`, ikke målt i modellene; lukene på sjarken, hurtigsjarken og nysjarken er tegnet 1 × 1 m. Juksaplassene og pauseplassene er ikke lagt om (de følger i steg 2 og 3). Om en plass ser riktig ut med folk på, avgjør klippet og Jonas på nettbrettet, ikke tegningen.
 
+## Bygd i steg 125d (15.11.2026, Jonas' økt): dekkene lagt om i modellene
+
+- **Plassene står i modellene:** `work.gut` (sløyeren), `work.bleed` og `work.drop` (bløggeren og slippet), `work.solo` (haleren bløgger selv: snekka, plastsjarken, sjarken, hurtigsjarken), `work.nopack` (ingen iser på dekk: de sju med lasterom og snekka), `work.bord` (plastbordet på hurtigsjarken, 1,15 m; Jonas sa 1,0, nærmeste bord spillet har), `work.tl` (21-meterens bord, 2,0 m), `hatchSize` og på 21-meteren `hatchCover`. `places()` og `deckPoints()` tar dem; der modellen ikke gir dem, søker koden som før. Den uten plass på dekket er inne (pakkeren og bløggeren), men i havn tar pakkeren imot isen ved luka.
+- **Modellene:** snekka, sjarken, hurtigsjarken, nysjarken og 21-meteren fikk bare nye ankere (`tools/boats/glbanchors.py`, geometrien byte for byte; prøvd: de gamle skriptene gir nøyaktig ankerne i de gamle modellene). Plastsjarken (benken til styrbord rekke), breisjarken (benken fra babord under lyet til styrbord akter for karet) og 15-meteren (luka ut til sida) er eksportert på nytt. `check()` er grønn i alle åtte.
+- **Den åpne luka** tegnes av spillet (en mørk brønn i karmen og lokket reist opp på forkanten), ikke i modellen: åpen mens båten fisker og mens isen tas imot i havn, lukket under teiner (de tømmes på lukedekselet på 21-meteren) og ellers. Ingen går over den (`fixedBoxes`). Isen i havn går ned luka, ikke i en iskasse.
+- **Juksaplassene** som sto der karet og benken står nå: breisjarken én (jukseMax 1, Jonas 15.11.2026 «Én juksaplass»), nysjarken tre (jukseMax 3, Jonas «Tre plasser»: to om babord der benken sto, én i hekken), 15-meteren fire (den første flyttet mellom luka og haleren; de jukser ikke mens de haler), sjarken fire (den første til styrbord låring), plastsjarken og hurtigsjarken som før med nye steder.
+- **Linestampene** står fire i laget der de er flyttet (plastsjarken, nysjarken, breisjarken), resten stablet oppå, slik spillet stabler dem. På sjarken og breisjarken står de nå forut på babord og bæres akterut når det settes; lina går ikke rett fra dem til setteporten lenger.
+- **Trekrakken** er lagt til `deck-pause.b64` (`tools/deck/pause.py add`; de 13 gamle delene er uendret). Den brukes ikke ennå (steg 4).
+- **Testene:** `dekkplan` holder modellene lik forslagene (sett rød med 49 avvik før flyttingen); lossing, sjøbein, arbeidsplass, arbeidssone, jig, trim og teiner er rettet for de nye plassene. `tests/dekk125d.py` tar bildene ovenfra med linetrekk i begge formater.
+- **Ikke gjort her (steg 3 og 4):** stillingene er ikke festet til de nye plassene, haleren bløgger ikke selv i animasjonen ennå, ingen fisk følger hele veien, sløyerens to kasser står fortsatt, krakken er ikke i bruk.
+
 ## Valgene som må tas før det bygges (Jonas)
 
 - A/B: færre samtidige stasjoner på de minste dekkene, eller trangere celler der.
