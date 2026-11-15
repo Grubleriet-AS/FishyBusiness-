@@ -245,7 +245,11 @@
     const PN = !over && !G.hand && typeof CREW3D !== 'undefined' && CREW3D.on() ? CREW3D.setPlan(g.kind) : null;
     let O = over, path, hand = null;
     if (PN){ const E0 = PN.ov, a = PN.dir, ca = Math.cos(a), sa = Math.sin(a), fr = (lx, ly, lz) => [E0[0] + ca * lx + sa * lz, E0[1] + ly, E0[2] - sa * lx + ca * lz], X = kitX('upg');
-      const from = garn ? [stack[0], stack[1] + 0.8, stack[2]] : PN.mag && X.mag ? fr(0, X.mag.top + 0.33, -(X.mag.at[0] + 0.27)) : PN.tub ? [PN.tub[0], PN.tub[1] + 0.33, PN.tub[2]] : [stack[0], stack[1] + 0.35, stack[2]];
+      // (steg 125f: the line from the tub it runs from where the deck crew's account has it, deckcrew.js lineTubs: at the stern, on the
+      // magazine, in the stack, or in the hands of the one who carries it)
+      const LT = !garn && CREW3D.lineTubs ? CREW3D.lineTubs() : null, rq = LT && LT.run ? LT.T.find(q => q.id === LT.run.id) : null, ra = rq && !rq.p && LT.carry ? CREW3D.agents().find(a => a.id === LT.carry.who) : null;
+      const from = garn ? [stack[0], stack[1] + 0.8, stack[2]] : rq && rq.p ? [rq.p[0], rq.p[1] + 0.33, rq.p[2]] : ra ? [ra.x + Math.sin(ra.h) * 0.45, ra.y + 0.9, ra.z - Math.cos(ra.h) * 0.45]
+        : PN.mag && X.mag ? fr(0, X.mag.top + 0.33, -(X.mag.at[0] + 0.27)) : PN.tub ? [PN.tub[0], PN.tub[1] + 0.33, PN.tub[2]] : [stack[0], stack[1] + 0.35, stack[2]];
       path = [from];
       if (PN.thru === 'linesetter' && X.setter){ path.push(fr(X.setter.mouth[0], X.setter.mouth[1], X.setter.mouth[2]), fr(X.setter.lip[0], X.setter.lip[1] + 0.02, X.setter.lip[2])); }
       else if (PN.thru === 'garnrenne' && X.renne){ path.push(fr(0, 0.07, -X.renne.in), fr(X.renne.lip[0], X.renne.lip[1] + 0.03, X.renne.lip[2])); }
@@ -303,8 +307,9 @@
   }
   // (kind 'auto': the autoline hauler with its hook cleaner, tools/gear/autoline.py, set in the autoliner's hauling port, anchors.aline)
   function haulModel(kind){
-    if (kind in HAULM) return HAULM[kind]; HAULM[kind] = null; const type = kind === 'auto' ? 'gear-autoline' : 'haul-' + kind;
-    if (typeof glbHas !== 'function' || !glbHas(type)) return null;
+    if (kind in HAULM) return HAULM[kind]; const type = kind === 'auto' ? 'gear-autoline' : 'haul-' + kind;
+    // (steg 125e: not remembered as none while its model is still on its way: asked before it came, the hauler was never drawn and no fish gaffed in all the session)
+    if (typeof glbHas !== 'function' || !glbHas(type)) return null; HAULM[kind] = null;
     const G = glbLoad(type), ex = (G && G.ex) || {}, mk = nm => { const o = glbPart(type, nm); if (!o) return null; const n = o.p.length / 3, c = new Float32Array(n * 3);
       for (let i = 0; i < n; i++) for (let k = 0; k < 3; k++) c[i * 3 + k] = o.c[i * 4 + k]; return {pb:buf(asF32(o.p)), cb:buf(c), n}; };
     if (ex.axle && ex.path) HAULM[kind] = {frame:mk('frame'), sheave:mk('sheave'), stripper:mk('stripper'), ax:ex.axle, st:ex.stripper, r:ex.r, rg:ex.rg || ex.r, path:ex.path};
@@ -691,7 +696,9 @@
     const vt = vtype(), G = GEO(vt), gw = G.gw || 1, sx = G.beam / 2, d = G.deck || {y:gw, z:1}, skiff = !!G.hand;
     // the hauler on the starboard rail just forward of the working deck; gear stacks on the deck aft of it
     // (a boat worked by hand draws her nets over the rail by hand, OB1, valg 21 B: a line hauler she has stands still meanwhile)
-    const HP = skiff ? SKA.haul : G.hauler, turning = g.op === 'haul' && !(b.deckStop), DZ = skiff ? 0 : d.z - 0.6, still = skiff && g.kind === 'garn' && !hasHauler('garn');
+    // (steg 125f: the hauler stands while the tub the line is coiled into is carried to it, deckcrew.js STAMPER.halt)
+    const LT0 = !skiff && g.kind === 'line' && !g.auto && typeof CREW3D !== 'undefined' && CREW3D.on() && CREW3D.lineTubs ? CREW3D.lineTubs() : null;
+    const HP = skiff ? SKA.haul : G.hauler, turning = g.op === 'haul' && !(b.deckStop) && !(LT0 && LT0.halt), DZ = skiff ? 0 : d.z - 0.6, still = skiff && g.kind === 'garn' && !hasHauler('garn');
     nSetup(VP);
     // (the autoline: its own hauler in the hauling port, anchors.aline; no tubs, the line lies on the magazines below deck, H2d)
     const auto = !skiff && !!g.auto && !!G.aline;
@@ -716,6 +723,8 @@
       const path = HM.path.map(q => [P0[0] + q[0], P0[1] + q[1], P0[2] + q[2]]); path[0] = auto ? [P0[0] + 3.4, -0.3, P0[2] - 3.0] : W0.slice();
       const garn = g.kind === 'garn', rope = garn ? GB.net : GB.float;
       for (let i = 1; i < path.length; i++) seg(path[i - 1], path[i], garn ? 0.03 : 0.006, rope, i === 1 ? 0.25 : 0);
+      // (steg 125f: off the tray's end down into the tub it is coiled into, where the account has it by the hauler)
+      if (!garn && LT0 && LT0.run){ const rq = LT0.T.find(q => q.id === LT0.run.id); if (rq && rq.p){ const E = path[path.length - 1]; seg(E, [rq.p[0], rq.p[1] + 0.06 + 0.3 * clamp(LT0.run.f, 0, 1), rq.p[2]], 0.006, GB.float, 0.12); } }
       // along the path by length: floats (net) or snoods with a hook (line) every metre, moving in with the gear
       const L = []; let tot = 0; for (let i = 1; i < path.length; i++){ const l = Math.hypot(path[i][0] - path[i - 1][0], path[i][1] - path[i - 1][1], path[i][2] - path[i - 1][2]); L.push(l); tot += l; }
       const pos = s => { let i = 0; while (i < L.length - 1 && s > L[i]){ s -= L[i]; i++; } const u = clamp(s / L[i], 0, 1), A = path[i], B = path[i + 1]; return [A[0] + (B[0] - A[0]) * u, A[1] + (B[1] - A[1]) * u, A[2] + (B[2] - A[2]) * u]; };

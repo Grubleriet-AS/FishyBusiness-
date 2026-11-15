@@ -1,4 +1,4 @@
-from _env import GAME, boot
+from _env import GAME3D_MIN, boot  # (GAME3D_MIN: the 3D scene without the parts this test does not look at, CLAUDE.md 15.11.2026)
 # Landing (B4): the catch goes up with the crane over game time, the landing note comes at the end, departure waits for it,
 # a standing plan's report comes with the note, and ice runs down the chute.
 import asyncio, json
@@ -11,7 +11,7 @@ async def main():
         b = await p.chromium.launch(args=['--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'])
         pg = await b.new_page(viewport={'width':900, 'height':800})
         errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
-        await boot(pg)
+        await boot(pg, GAME3D_MIN)
         r = await pg.evaluate("""(()=>{
           S.tut = 0; S.cash = 1e6; S.t = Math.round((Date.UTC(2027, 2, 9, 10) - EPOCH) / 6e4); const R = {};
           const fish = kg => [{sp:'sei', cls:1, kg, n:Math.round(kg / 4), bled:true, iced:true, hr:0, fresh:95, gut:false, hook:true}];

@@ -148,6 +148,10 @@
     const crateOf = a => { const F0 = [Math.sin(a.h), -Math.cos(a.h)], R0 = [Math.cos(a.h), Math.sin(a.h)];
       if (tubs && tubs.length){ const ti = karFilling(vtype()), q = tubs[ti]; return {p:q.at.slice(), top:karTop(vtype(), ti), tub:true}; }
       return {p:[a.x + F0[0] * 0.58, a.y, a.z + F0[1] * 0.58], top:0.28, tub:false}; };
+    const LTB = CREW3D.lineTubs ? CREW3D.lineTubs() : null;   // (steg 125f: the line tubs, and the one being carried)
+    // (steg 125f: the wooden stools at the baiting seats, standing on deck whether anyone sits on them or not, deckcrew.js stools)
+    { const KR = LEMMER.on && CREW3D.stools ? kit('pause', 'krakk') : null; if (KR) for (const s of CREW3D.stools()){ drawN(KR, chain(BMrel, M4.T(s.p[0], s.p[1], s.p[2]), M4.RY(-s.h))); drawN(KR, chain(BMrel, M4.T(s.b[0], s.b[1], s.b[2]), M4.RY(-s.h))); } }
+    const fvAt = new Set();   // (steg 125e: the gutters at work this frame, FISKVEI; the account's others have left the table)
     const pkC = pk ? crateOf(pk) : null, held = spHold(x => !x.gut && !x.iced), packed = spHold(x => x.iced), table = rel(DW.table), tubTop = rel(dkTub(G)), offal = rel(DW.offal);
     for (const a of A){ if (cam.helm && (a.me || a.mode === 'helm')) continue;
       // (a place stood off its cell: leaning back, the back at the rail, deckcrew.js idlePlace)
@@ -177,6 +181,8 @@
             if (r){ st.Rl = rel([a.x + r.F[0] * r.d, a.y + r.y, a.z + r.F[1] * r.d]); st.Wt = rel([a.x + r.F[0] * (r.d + 0.9), -0.1, a.z + r.F[1] * (r.d + 0.9)]);
               let dh = Math.atan2(r.F[0], -r.F[1]) - a.h; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI;
               st.h += dh * ease(Math.min(1, age / 0.3)) * (1 - ease(Math.max(0, (age / dur - 0.8) / 0.2))); } } } }
+      // (steg 125f: sitting on one of the stools that stand on deck, deckcrew.js stools: he is drawn without the box under him, and the bait on the other stool)
+      if (LEMMER.on && a.mode === 'at' && a.goal && a.goal.stool != null && a.cell === a.goal.k) st.stool = true;
       if (a.mode === 'at' && !ev && !st.fx){
         // gutting at the table: the fish from the bleeding tub, the guts over the rail, the gutted fish to the packer
         if (a.task === 'gut'){ st.task = 'gutw'; st.Tb = table;
@@ -192,13 +198,15 @@
           if (LEMMER.on && st.task === 'gutw'){ const tb = dkTub(G), gs = A.filter(q => q !== a && q.task === 'gut' && q.mode === 'at').map(q => [q.x, q.z]);
             if (VENT.inWay([a.x, a.z], [tb[0], tb[2]], gs, VENT.pass)){ const lat = (DW.table[0] - a.x) * R0[0] + (DW.table[2] - a.z) * R0[1], lim = benkOf(V, G.work) ? HOLDT.table.benk : HOLDT.table.bord, sd = (tb[0] - a.x) * R0[0] + (tb[2] - a.z) * R0[1] >= 0 ? 1 : -1, k = lat - clamp(lat, -lim, lim) + sd * VENT.table[0],   /* (lat less what the table reaches: his own part of it, straight before him while he stands within its length) */ ah = (DW.table[0] - a.x) * F0[0] + (DW.table[2] - a.z) * F0[1];
               st.Ub = rel([a.x + F0[0] * ah + R0[0] * k, DW.table[1] + VENT.table[1], a.z + F0[1] * ah + R0[1] * k]); } } const n = Math.floor((ta + idx * 1.7) / 5.6); st.gsp = held(hash(n * 3 + idx)); st.gkg = 2 + hash(n * 5) * 3;
-          // (steg 125b, Jonas 14.11.2026, choice A: his fish come from a crate of bled fish beside him and go to a crate on his other side, HOLDT.gutbox. The side
-          // of the bled fish is the tub's, where the deck is free and nobody stands there; with no room for them he does as before)
-          if (LEMMER.on && st.task === 'gutw'){ const Gb = HOLDT.gutbox, tb = dkTub(G), s0 = (tb[0] - a.x) * R0[0] + (tb[2] - a.z) * R0[1] >= 0 ? 1 : -1, Mq = ST.M;
-            const at = s => [a.x + R0[0] * s * Gb.side + F0[0] * Gb.ahead, a.z + R0[1] * s * Gb.side + F0[1] * Gb.ahead], free = q => Mq && Mq.near(q[0], q[1], 0.25) >= 0 && !A.some(o => o !== a && o.mode === 'at' && Math.hypot(o.x - q[0], o.z - q[1]) < Gb.room);
-            for (const s of [s0, -s0]){ const src = at(s), out = at(-s); if (!free(src) || !free(out)) continue;
-              st.Bx = rel([src[0], a.y, src[1]]); st.Ox = rel([out[0], a.y, out[1]]); st.Ub = [st.Bx[0], st.Bx[1] + Gb.stack * Gb.h + Gb.grab + 0.14, st.Bx[2]]; st.Cr = st.Ox; st.crTop = Gb.h; break; } }
-          if (st.Bx){ /* (his own crate: the packer's is not where the fish lands) */ }
+          // (steg 125e, Jonas 15.11.2026: «Fisk teleporterer fra kar til sløyebenk»: with the new people his round begins when he takes a
+          // fish out of the bleeding tub, and only when there is one in it (deckcrew.js FISKVEI); while it is empty he waits at the table
+          // with his hands at rest. The tests that hold his clock still (SJOBEIN.test.t) keep the clock's round)
+          if (LEMMER.on && st.task === 'gutw' && !(SJT && SJT.t != null)){ const g = FISKVEI.gut(dkFv(), a.id, now); fvAt.add(a.id);
+            if (g){ st.gs = g.s; st.gn = g.n; st.gsp = held(hash(g.n * 3 + idx)); st.gkg = 2 + hash(g.n * 5) * 3; } else st.gs = 0; }
+          // (steg 125e: the gutted fish go down the open hatch where the hold is iced and nobody packs on deck, work.nopack; the
+          // crates of steg 125b beside him are out, HOLDT)
+          const Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at);
+          if (LEMMER.on && st.task === 'gutw' && Hh && G.hatchSize && G.work && G.work.nopack && hatchFishOpen()){ st.Cr = rel([Hh[0], Hh[1] - 0.3, Hh[2]]); st.crTop = 0; }
           else if (pkC){ st.Cr = rel(pkC.p); st.crTop = pkC.top; st.packId = pk.id; }
           // no packer on an open boat: he throws the gutted fish into the fish tub being filled himself (Jonas 04.11.2026)
           else if (tubs && tubs.length){ const ti = karFilling(vtype()); st.Cr = rel(tubs[ti].at); st.crTop = karTop(vtype(), ti); } }
@@ -212,15 +220,20 @@
           if (LEMMER.on){ const bin = st.Bin ? [IB[0], IB[2]] : [a.x + R0[0] * st.binR + F0[0] * VENT.bin, a.z + R0[1] * st.binR + F0[1] * VENT.bin], bl = Math.hypot(bin[0] - a.x, bin[1] - a.z) || 1, o = Math.min(VENT.own, bl) / bl, from = [a.x + (bin[0] - a.x) * o, a.z + (bin[1] - a.z) * o];   /* (from: the way begins where the blade is clear of himself, so one who stands by him and not by the ice is not waited for) */
             const busy = A.filter(q => q !== a && (q.mode === 'walk' || DKEV.some(e => e.who === q.id && now >= e.t0 && now - e.t0 < DKDUR[e.kind]))).map(q => [q.x, q.z]);
             if (SJT) a.shW = SJT.shW || 0; else if (!LEMMER.dry) a.shW = VENT.blend(a.shW || 0, VENT.inWay(from, bin, busy, VENT.shovel), now - (a.shT || now)); a.shT = now; st.shW = a.shW || 0; } }
-        else if (a.task === 'egn' || a.task === 'strip'){ const PLs = CREW3D.places() || {tubs:[]}, T0 = PLs.tubs[(a.goal && a.goal.tub || 0) % 8]; if (T0) st.Tu = rel([T0[0], (PLs.tubY != null ? PLs.tubY : a.y) + 0.38, T0[1]]); { const Eg = LEMMER.on ? HOLDT.egn.at : [-0.12, 0, 0.38]; st.Bk = rel([a.x + R0[0] * Eg[2] + F0[0] * Eg[0], a.y + Eg[1], a.z + R0[1] * Eg[2] + F0[1] * Eg[0]]); }   /* (the new people: the bucket on an upturned box by his right knee, where his hand reaches it; on the deck behind his seat it was 31 cm out of his reach) */
+        else if (a.task === 'egn' || a.task === 'strip'){ const PLs = CREW3D.places() || {tubs:[]}, T0 = PLs.tubs[(a.goal && a.goal.tub || 0) % 8]; if (T0) st.Tu = rel([T0[0], (PLs.tubY != null ? PLs.tubY : a.y) + 0.38, T0[1]]); { const Eg = LEMMER.on ? HOLDT.egn.at : [-0.12, 0, 0.38], up = st.stool ? HOLDT.krakk.H : Eg[1]; st.Bk = rel([a.x + R0[0] * Eg[2] + F0[0] * Eg[0], a.y + up, a.z + R0[1] * Eg[2] + F0[1] * Eg[0]]); }   /* (the new people: the bucket on an upturned box by his right knee, where his hand reaches it; on the deck behind his seat it was 31 cm out of his reach) */
           st.Of = rel([sg * ((G.beam || 3) / 2 + 1.4), -0.1, a.z]); if (a.task === 'strip' && ((t + idx * 3.1) % 25) < 2.2) DKGULL = [st.Of[0] + eye[0], (env.tide || 0), st.Of[2] + eye[2]]; }
         else if (a.task === 'mend') st.Nt = rel([a.x + F0[0] * 0.42, a.y + railH - 0.02, a.z + F0[1] * 0.42]);
         else if (a.task === 'jig' && !machines){ const rl = [a.x + F0[0] * 0.45, a.y + railH + 0.06, a.z + F0[1] * 0.45]; st.Rl = rel(rl); st.Wt = rel([rl[0] + F0[0] * 0.5, -0.8, rl[2] + F0[1] * 0.5]); } }
+      // (steg 125f: the line tub he lifts, carries or sets down, deckcrew.js lineTubs; k the share of the way up, 1 carried)
+      const tc = LTB && LTB.carry && LTB.carry.who === a.id && (LTB.carry.ph === 'dn' || LTB.carry.at) ? LTB.carry : null;
+      if (tc && LEMMER.on){ const q = LTB.T.find(x => x.id === tc.id) || {f:1, ry:0}, k = tc.ph === 'up' ? tc.u : tc.at ? 1 - tc.u : 1, e2 = ease(clamp((k - 0.25) / 0.75, 0, 1)), pb = tc.p, hh = pb[1] - a.y + HOLDT.tubc.lug, A0 = rel(pb), A1 = rel([pb[0] + Math.sin(q.ry), pb[1], pb[2] + Math.cos(q.ry)]);
+        st.task = 'carry'; st.crate = false; st.tubC = {P:A0, k, e:e2, ang0:Math.atan2(A1[0] - A0[0], A1[2] - A0[2]), f:q.f, cl:LTB.run && LTB.run.id === q.id ? LTB.run.f : null, squat:HOLDT.box.squat * clamp((0.75 - hh) / 0.45, 0, 1) * (1 - e2)}; }
       if (a.sub && a.sub.carry === 'crate'){ st.crate = true; st.csp = i => packed(hash(i * 7 + 1)); if (a.mode === 'at') st.s = ST.clk - (a.sub.done - (a.sub.hold || 2)); }
       // (alone in the white room: only the one the eye is on, the others out of the way; Jonas 14.11.2026: «Du har også lov å fjerne
       // de andre fra mannskapet om de er i veien på bildene». The count goes on, so his beat is the same with and without them)
       if (cam.solo && cam.whoId != null && a.id !== cam.whoId){ idx++; continue; }
       drawWorker(P, st, eye, ta, idx++); }
+    if (LEMMER.on && !LEMMER.dry && !(SJT && SJT.t != null)){ const L = dkFv(); for (const id of Object.keys(L.gut)) if (!fvAt.has(+id) && !fvAt.has(id)) FISKVEI.leave(L, id, now); }
     if (sjp0){ SJT.prof.ms += performance.now() - sjp0; SJT.prof.n += A.length; SJT.prof.f++; }
     dkBloodDraw(VP);
     if (HELM_KIT[vtype()] && G.skipperAt && cam.dist < 80) drawHelmKit(BMrel, eye, G);

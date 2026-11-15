@@ -298,7 +298,7 @@
     const now = FRAMEP || performance.now(), dt = Math.max(0, Math.min(0.1, (now - lastF) / 1000)), rdt = Math.max(1e-3, (now - lastF) / 1000); lastF = now;
     FPS.v = FPS.v ? FPS.v * 0.95 + 0.05 / rdt : 1 / rdt; FRAMEMS = FRAMEMS * 0.8 + Math.min(500, rdt * 1000) * 0.2; if (PROF.on) profBegin(rdt, j0F); if (BENCH.on){ if (BENCH.rec){ BENCH.sum += rdt; BENCH.cnt++; if (rdt > 1 / 50) BENCH.slow++; } } else if (!PROF.on) qualTick(dt, FPS.v, now); qmFrame(rdt, now); if (now - FPS.at > 500){ FPS.at = now; const fe = fpsEl(); if (fe) fe.textContent = Math.round(FPS.v) + ' bilder/s · ' + (1000 / FPS.v).toFixed(1) + ' ms · ' + ['Lav', 'Middels', 'Høy', 'Ultra'][QUAL.lvl]; }
     const t = (now - T0) / 1000, frac = currentFrac(), H = (S.t + frac) / 60;
-    computeEnv(H); updateBoat(dt, t, frac, rdt); updateWaves(dt, H); nfStep(); updateWake(); foamStep(dt, t); fftStep(t); updateNear(); ssStep(rdt); updateShadows(); updateChunks(CH.size ? 2 : 999);
+    computeEnv(H); updateBoat(dt, t, frac, rdt); updateWaves(dt, H); nfStep(); if (!STUDIO){ updateWake(); foamStep(dt, t); fftStep(t); updateNear(); ssStep(rdt); updateShadows(); updateChunks(CH.size ? 2 : 999); }   // (the white room needs no sea, no shadows and no land built: the boat and her people are what is looked at, Jonas 15.11.2026)
     gfxNaN(null);
     // camera
     let eye, V, kfov = 0;
@@ -371,6 +371,8 @@
     PMK('sky'); gl.viewport(0, 0, W, Hh); gl.clearColor(env.fog[0], env.fog[1], env.fog[2], 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     const SKP = PROF.skip; if (SKP.all){ profEnd(); return; }   // the profile's empty frame: what the browser and the screen give with nothing drawn
     gl.disable(gl.CULL_FACE); gl.disable(gl.BLEND); gl.depthMask(true);
+    if (STUDIO){ gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); }   // (the white room: no sky, no far land or sea)
+    else {
     // sky (behind the sea's plane where that is in the picture: skyMask, 17-draw.js)
     const farZ = QUAL.lvl === 3 ? 260000 : 170000, masked = skyMask(eye, V.m, fov, asp, farZ);
     if (masked) gl.depthMask(false); else gl.disable(gl.DEPTH_TEST); gl.useProgram(PK.p);
@@ -393,10 +395,11 @@
       else if (LIGHTS.length){ const n = Math.min(LIGHTS.length / 3, 4000); for (let i = 0; i < n; i++){ PB[i * 3] = LIGHTS[i * 3] - eye[0]; PB[i * 3 + 1] = LIGHTS[i * 3 + 1] - eye[1]; PB[i * 3 + 2] = LIGHTS[i * 3 + 2] - eye[2]; PA[i] = env.night * 0.9; } drawPts(n, gl.POINTS, VPf, [1, 0.78, 0.42], 5000, true); }
       gl.depthMask(true); gl.disable(gl.BLEND);
     }
+    }
     // near pass
     PMK('nearT'); gl.clear(gl.DEPTH_BUFFER_BIT);
     const VT = vtype(), VG = GEO(VT), ncrew = Math.min(crewAboard().length, (VG.crewSpots || []).length); if (VG.hand) useHand(VT);
-    if (!SKP.terr) drawTerrain(TM, eye, VPn, true); updateWater(eye); drawWater(VPn, eye); updateShore(eye); drawShore(VPn); drawRocks(VPn, eye); litSetup(VPn); drawLit(STAT, TM); drawTileStatics(TM, eye); drawBuildings(TM); glChk('nearT'); if (!SKP.trees){ drawTrees(VPn, eye); drawNear(VPn, eye, t); } glChk('trees'); drawVind(VPn, eye, dt, false); glChk('vind'); litSetup(VPn);
+    if (!STUDIO){ if (!SKP.terr) drawTerrain(TM, eye, VPn, true); updateWater(eye); drawWater(VPn, eye); updateShore(eye); drawShore(VPn); drawRocks(VPn, eye); litSetup(VPn); drawLit(STAT, TM); drawTileStatics(TM, eye); drawBuildings(TM); glChk('nearT'); if (!SKP.trees){ drawTrees(VPn, eye); drawNear(VPn, eye, t); } glChk('trees'); drawVind(VPn, eye, dt, false); glChk('vind'); } litSetup(VPn);
     // whoever works the deck leaves their place: alone, the skipper leaves the wheel
     // resting ashore in the naust or a rorbu (15-energy.js; Jonas 05.10.2026: «Ved hvile forsvinner skipperen fra båten») he is not aboard
     // never more people aboard than the crew list (tilbakemelding #24): the crew at the hauler and the one at the table leave their
@@ -416,19 +419,29 @@
     const DKON = !VG.hand && typeof CREW3D !== 'undefined' && CREW3D.on();
     if (DKON){ CREW3D.setJig(jigRail(VT, VG)); CREW3D.setSea(bv.roll, bv.pitch, bv.y, Math.hypot(WV.hs || 0, WV.swHs || 0)); CREW3D.setHelm(!!cam.helm); CREW3D.tick(dt); }
     if (SKP.boats){}
+    else if (VG.hand && STUDIO){ const E0 = {lightDir:env.lightDir, sunCol:env.sunCol, amb:env.amb, gnd:env.gnd, fog:env.fog, fogD:env.fogD};
+      // (the boat worked by hand in the white room: she and her people are one model, drawSkiff, so she is drawn whole in the even light,
+      // with her gear and the fish on it; the frame ends here as for the decked boats below)
+      { const dx = -eye[0] + (bv.x), dz = -eye[2] + (bv.z), l = Math.hypot(dx, dz) || 1, v = [-dx / l * 0.55 + dz / l * 0.3, 0.75, -dz / l * 0.55 - dx / l * 0.3], n = Math.hypot(v[0], v[1], v[2]); env.lightDir = [v[0] / n, v[1] / n, v[2] / n]; }
+      env.sunCol = [0.82, 0.82, 0.8]; env.amb = [0.62, 0.63, 0.66]; env.gnd = [0.5, 0.5, 0.5]; env.fog = [1, 1, 1]; env.fogD = 0;
+      try { drawSkiff(BMrel, VPn, dt, !cam.helm && !awaySk, deckCrew > 0); gl.useProgram(PL.p); if (PM) drawDeck(BMrel, eye, VPn, t, DECKACT); drawGearOp(BMrel, eye, VPn, t); } finally { Object.assign(env, E0); }
+      if (PROF.on) profEnd(); return; }
     else if (VG.hand){ drawSkiff(BMrel, VPn, dt, !cam.helm && !awaySk, deckCrew > 0); gl.useProgram(PL.p); }
     // jigging from a boat with a wheelhouse, the skipper leaves the wheel for the rail (the hand-worked boats do the same in drawSkiff),
     // also with crew aboard: he tends the jig while they gut (tilbakemelding #62: on a sjark with two hands he stood in the wheelhouse
     // while one hand looked on); he stays at the wheel only when the crew fill every deck place
     else { const jig = S.boat.status === 'fishing' && !S.boat.gop && !S.boat.deckStop;
-      if (!(DKON && STUDIO)){ drawVessel(VT, VG, BMrel, VPn, !DKON && !cam.helm && !awaySk, DKON ? 0 : deckCrew, !DKON && jig, hullLiv(S.boat), true); drawJigRail(BMrel, VPn, VT, VG, dt); }   // (the white room draws no boat)
+      // (the white room draws her, her deck and her gear too and wipes the frame after: the gaffed fish and the fish let fall are made
+      // there, in drawGearOp, and without it the white room saw one fish come in and no more, steg 125e)
+      drawVessel(VT, VG, BMrel, VPn, !DKON && !cam.helm && !awaySk, DKON ? 0 : deckCrew, !DKON && jig, hullLiv(S.boat), true); drawJigRail(BMrel, VPn, VT, VG, dt);
       gl.disableVertexAttribArray(2); gl.useProgram(PL.p);
       // (the white room, Jonas 14.11.2026: «et helt hvit rom uten noen hindringer … der du har godt lys»: «#studio» in the address, or
       // G3._debug.studio(true). The frame is wiped white here and only the people on deck are drawn, with what they hold, in an even
       // light; nothing of the boat, the sea or the land stands in the way. With cam.who the eye turns round one of them. The frame ends
       // here: a tool for the session and the tests, not for the game)
-      if (DKON && STUDIO){ const E0 = {lightDir:env.lightDir, sunCol:env.sunCol, amb:env.amb, gnd:env.gnd, fog:env.fog, fogD:env.fogD};
-        gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      if (DKON && STUDIO){ if (PM) drawDeck(BMrel, eye, VPn, t, DECKACT); drawGearOp(BMrel, eye, VPn, t);   // (and the deck and the gear, wiped below: their events are the work)
+        const E0 = {lightDir:env.lightDir, sunCol:env.sunCol, amb:env.amb, gnd:env.gnd, fog:env.fog, fogD:env.fogD};
+        if (STUDIO !== 2){ gl.clearColor(1, 1, 1, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); }   // (studio 2 keeps the boat drawn above)
         // (the light from over the eye's shoulder, so the side that is looked at is lit wherever the eye stands)
         { const dx = -eye[0] + (bv.x), dz = -eye[2] + (bv.z), l = Math.hypot(dx, dz) || 1, v = [-dx / l * 0.55 + dz / l * 0.3, 0.75, -dz / l * 0.55 - dx / l * 0.3], n = Math.hypot(v[0], v[1], v[2]); env.lightDir = [v[0] / n, v[1] / n, v[2] / n]; }
         env.sunCol = [0.82, 0.82, 0.8]; env.amb = [0.62, 0.63, 0.66]; env.gnd = [0.5, 0.5, 0.5]; env.fog = [1, 1, 1]; env.fogD = 0;

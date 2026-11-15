@@ -1,7 +1,8 @@
 """Clips of the new people at work, a frame at a time (Jonas 14.11.2026; CLAUDE.md «bildeklipp»): the software GPU draws a frame in
 10 to 40 s, so a recording in real time is useless. Here the man's own clock is set to a moment (SJOBEIN.test.t), the frame is drawn
 and saved, and the clock is moved one step on; the frames are sewn to a clip with ffmpeg. The boat, the deck and what stands on it
-are drawn (not the white room: whether a hand is on the table or the rail must be seen), the sea and the terrain are left out for speed.
+are drawn (the white room with the boat in it, G3._debug.studio(2): whether a hand is on the table or the rail must be seen), the sea, the
+terrain, the sky and the shadows are left out for speed.
 Not in run.py: a tool, as folk2live.py.
 
   python3 tests/folk2klipp.py <name> <scene> <task> <t0> <t1> [--fps 8] [--lay] [--dist 3.4] [--pitch 0.35] [--face 0.6]
@@ -9,6 +10,9 @@ Not in run.py: a tool, as folk2live.py.
       --lay: the moments are the packer's laying of a fish (SJOBEIN.test.lay), not the round
       --still 0.7,1.0,1.6: only these moments, as pictures on one sheet and no clip (a frame with the whole deck takes a minute)
       --ev gaff: the moments are of the last event of that kind, played again (gaff, bleed, jigup)
+      --lock: the whole deck on one locked clock (steg 125e): the page's performance.now is held and moved one step a frame, so the
+              events, the account of the fish (FISKVEI) and everyone's work go on together; t1 - t0 is the clip's length
+      --boat sjark: that boat (else the middle one of BOATS); --wait gut: first on until a gutter takes a fish out of the tub
   -> tests/out/klipp/<name>.mp4 and <name>_ark.jpg (every fourth frame on one sheet, for the session's own eyes)
 """
 import asyncio, json, os, subprocess, sys, time
@@ -24,24 +28,36 @@ async def main():
     a = sys.argv[1:]; name, scene, task, t0, t1 = a[0], a[1], a[2], float(a[3]), float(a[4]); o = {'fps': 8, 'dist': 3.4, 'pitch': 0.35, 'face': 0.6}; lay = '--lay' in a
     for k in o:
         if '--' + k in a: o[k] = float(a[a.index('--' + k) + 1])
+    lock = '--lock' in a; boat = a[a.index('--boat') + 1] if '--boat' in a else None; wait = a[a.index('--wait') + 1] if '--wait' in a else None
     still = [float(x) for x in a[a.index('--still') + 1].split(',')] if '--still' in a else None; ev = a[a.index('--ev') + 1] if '--ev' in a else None
     n = len(still) if still else int(round((t1 - t0) * o['fps'])) + 1; d = os.path.join(OUT, name); os.makedirs(d, exist_ok=True)
     async with async_playwright() as p:
         br = await p.chromium.launch(args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
         pg = await br.new_page(viewport={'width': 640, 'height': 400}); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
-        await boot(pg, GAME + ('' if ',folk2' in GAME else ',folk2')); await pg.wait_for_function("G3.isActive()", timeout=120000); await pg.wait_for_timeout(2000)
-        t = (await pg.evaluate(BOATS))[1]; await pg.evaluate(SET, [t, scene, 1, -0.9, 0.3, 6])
+        await boot(pg, GAME + ('' if ',folk2' in GAME else ',folk2') + (',rawclock' if lock else '')) await pg.wait_for_function("G3.isActive()", timeout=120000); await pg.wait_for_timeout(2000)
+        t = boat or (await pg.evaluate(BOATS))[1] await pg.evaluate(SET, [t, scene, 1, -0.9, 0.3, 6])
         await pg.evaluate("S.crew.forEach((c, i) => { c.sex = 'm'; c.age = 30 + i * 7; }); CREW3D.reset()"); await frames(pg, t, 2)
         await pg.wait_for_function("(k) => CREW3D.agents().some(a => a.task === k && a.mode === 'at')", arg=task, timeout=400000)
         if ev: n0 = await pg.evaluate("G3._debug.dk.n"); await pg.wait_for_function("([k, n0]) => G3._debug.dk.n[k] > (n0[k] || 0)", arg=[ev, n0], timeout=400000)   # (an event is played again only once it has been played)
         who = await pg.evaluate("(k) => CREW3D.agents().findIndex(a => a.task === k && a.mode === 'at')", task)
         # (the HUD away, the sea and the land not drawn: the deck and the people are what is looked at)
         await pg.add_style_tag(content="body * { visibility: hidden !important; } canvas { visibility: visible !important; }")
+        await pg.evaluate("G3._debug.studio(2)")   # (the white room with the boat and her deck: no sea, land, sky or shadows; after her model is in)
         await pg.evaluate("([w, d, p, f]) => G3._debug.camOn(w, d, p, f, false)", [who, o['dist'], o['pitch'], o['face']])
         t_0 = time.time(); files = []
+        if lock:
+            # (the clock held: rawclock makes the frame's time the page's performance.now, which is ours now)
+            await pg.evaluate("() => { const r = performance.now.bind(performance); window.__T = r(); performance.now = () => window.__T; }")
+            if wait == 'gut':
+                for _ in range(400):
+                    await pg.evaluate("() => { window.__T += 200; }"); await frames(pg, t, 2, 600000)
+                    g = await pg.evaluate("() => Object.values(G3._debug.dk.fv.g || {})")
+                    if any(0 <= x < 0.25 for x in g): break
+                print('venter ferdig etter %.0f s' % (time.time() - t_0), flush=True)
         for k in range(n):
             tt = still[k] if still else t0 + k / o['fps']
-            await pg.evaluate("([tt, lay, ev]) => { SJOBEIN.test = ev ? {roll:0, pitch:0, T:103.1, t:tt, ev} : lay ? {roll:0, pitch:0, T:103.1, t:0, lay:tt} : {roll:0, pitch:0, T:103.1, t:tt, lay:-1}; }", [tt, lay, ev]); await frames(pg, t, 2, 600000)
+            if lock: await pg.evaluate("(s) => { window.__T += s; }", 1000 / o['fps'] if k else 0); await frames(pg, t, 2, 600000)
+            else: await pg.evaluate("([tt, lay, ev]) => { SJOBEIN.test = ev ? {roll:0, pitch:0, T:103.1, t:tt, ev} : lay ? {roll:0, pitch:0, T:103.1, t:0, lay:tt} : {roll:0, pitch:0, T:103.1, t:tt, lay:-1}; }", [tt, lay, ev]); await frames(pg, t, 2, 600000)
             f = os.path.join(d, '%03d.png' % k); await pg.screenshot(path=f, timeout=400000); files.append(f)
             if k == 0: print('første bilde etter %.0f s' % (time.time() - t_0), flush=True)
         await pg.evaluate("SJOBEIN.test = null"); print('%d bilder på %.0f s' % (n, time.time() - t_0), 'sidefeil', errs[:2], flush=True); await br.close()

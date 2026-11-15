@@ -1,4 +1,4 @@
-from _env import GAME
+from _env import GAME3D_MIN as GAME  # (GAME3D_MIN: the 3D scene without the parts this test does not look at, CLAUDE.md 15.11.2026)
 # Mooring (B2) and the fish plants (B3): a berth alongside the quay in every harbour, coming alongside with the lines going on, and casting off before moving.
 import asyncio, json
 from playwright.async_api import async_playwright
