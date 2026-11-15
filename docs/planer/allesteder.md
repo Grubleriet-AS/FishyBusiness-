@@ -4,6 +4,8 @@ Jonas 13.11.2026: «Test å start fra alle kaiplasser, butikker, verft, rorbuer,
 
 Valg: «Grense ved 15 m» for rorbuer og naust (13.11.2026; 5.25j i `docs/systemer/havner-og-mottak.md`).
 
+Valg 41 (15.11.2026): Jonas: **«Valg A»**: båten ligger inntil pælekaia ved naustet og rorbua, og sjøbunnen rett foran kaifronten mudres (bare foran fronten, ikke land bak, ingen vegger over vannet). T-brygga (B, bygd i femte kjøring) tas ut når A er bygd. Og samme dag: «Alle steder spillerens båt kan fortøye må være tilgjengelig via autonav både inn og ut av.» Det gjelder alle plassene: mottak, butikker, verft, rorbuer, naustet og havneplassene i havnene langs kysten (`havnBerths`, «Fortøy»), inn og ut.
+
 Valg 13.11.2026 (andre del): handelsstedene der kystbåten (21 m, 3,4 m) ikke kommer ut ved noe tidevann, fordi sjøkartet er grunt i innseilingen (Flekkerøy, Helligvær, Mandal verft, Arendal verft, Halden verft og de andre): Jonas: **«Flytt alle»**, til en kai der kystbåten kommer ut, også når det blir opptil 3 km fra det ekte stedet. Alle båter kan bruke alle steder (mot «Flytt, ellers avvis» og «Avvis, flytt ikke»).
 
 ## Ferdig når
