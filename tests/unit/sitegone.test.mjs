@@ -4,7 +4,7 @@
 // siteFits turns every boat away, and siteWhy says why in both languages.
 export default function (t){
   const K = t.K, RB = K.get('RBID'), list = K.get('RORBUER'), gone = [...K.get('RORBU_GONE')];
-  t.ok(['rb1', 'rb90', 'rb115', 'rb310', 'rb426'].every(i => gone.includes(i)), 'RORBU_GONE: Langvasseid, Austgulen, Indre Koiøyholman, Spåkenes og Nordøya er tatt bort', gone);
+  t.ok(['rb1', 'rb24', 'rb90', 'rb115', 'rb163', 'rb288', 'rb310', 'rb419', 'rb426', 'rb473'].every(i => gone.includes(i)), 'RORBU_GONE: de ti bortatte (Langvasseid, Austgulen, Indre Koiøyholman, Spåkenes, Nordøya, Lille Mårøya, Utskor, Sør-Gutvika, Klevald, Mølstrevåg) er tatt bort', gone);
   t.ok(gone.every(id => RB.get(id) && RB.get(id).gone), 'RBID: de bortatte står der fortsatt, merket gone');
   t.ok(gone.every(id => !list.some(R => R.id === id)), 'RORBUER: de bortatte er ikke med');
   t.ok(gone.every(id => K.siteGone(id)) && !K.siteGone('rb2') && !K.siteGone(null), 'siteGone: sant bare for de bortatte');
