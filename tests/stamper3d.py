@@ -64,6 +64,8 @@ async def run_op(pg, t, what, tub_s, secs, small):
             print('    SNAP', i / 10, rs[-2]['snap'], '->', r['snap'], 'før:', rs[-2]['op'], json.dumps(w), flush=True)
         if r['n'] != r['game'] or sum(r['w'].values()) != r['n']: bad += 1
         if r['w']['hand'] and i % 10 == 0:
+            # (LEMMER.redraw is made by a frame drawn with LEMMER.log set, view3d/20-trawl-seine.js: one frame with it, on this clock)
+            await pg.evaluate("() => { if (typeof LEMMER !== 'undefined') LEMMER.log = []; }"); await step(pg, 0)
             cm = await pg.evaluate(CLIP)
             if cm is not None: CLIPMAX[t] = max(CLIPMAX.get(t, 0), cm)
         # (KYST_TRACE=1: every 4 s of the held clock the account, the carry wanted now, who would take it and where he would stand at
