@@ -20,7 +20,7 @@ async def main():
         b = await p.chromium.launch(args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
         pg = await (await b.new_context(viewport={'width': 900, 'height': 640})).new_page(); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
-        await boot(pg)
+        await boot(pg, GAME3D_MIN)  # (GAME3D_MIN: the 3D scene without the parts this test does not look at, CLAUDE.md 15.11.2026)
         await pg.evaluate("G3.setHelm(true)"); await pg.wait_for_timeout(1500)
         rest = await pg.evaluate(SAMPLE, 30)
         # under way: a route out from the harbour

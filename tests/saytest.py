@@ -1,7 +1,7 @@
 """The crew's lines on dialect and over their heads (08.10.2026, tilbakemelding #44, core/14-crewlife.js crewDialect, view3d.js say3d): a hand
 from the west or the south says the lines in his own words, the Northern Norwegian ones stay as they are, and in 3D the line stands over the
 head of whoever says it for ten seconds, then goes. Prints OK or FEIL."""
-from _env import GAME, boot
+from _env import GAME3D_MIN as GAME, boot  # (GAME3D_MIN: the 3D scene without the parts this test does not look at, CLAUDE.md 15.11.2026)
 import asyncio, json
 from playwright.async_api import async_playwright
 

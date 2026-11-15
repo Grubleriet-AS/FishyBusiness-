@@ -1,4 +1,4 @@
-from _env import GAME, boot
+from _env import GAME3D_MIN, boot  # (GAME3D_MIN: the 3D scene without the parts this test does not look at, CLAUDE.md 15.11.2026)
 # Bunkering (B5): filling fuel takes the boat from the plant's quay over to the bunker quay, the pump runs at its rate and the boat
 # pays as it fills; landing from the bunker quay goes back first; Finnsnes fills where she lies; departures and standing plans wait.
 import asyncio, json
@@ -11,7 +11,7 @@ async def main():
         b = await p.chromium.launch(args=['--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist'])
         pg = await b.new_page(viewport={'width':900, 'height':800})
         errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
-        await boot(pg)
+        await boot(pg, GAME3D_MIN)
         r = await pg.evaluate("""(()=>{
           S.tut = 0; S.cash = 1e6; S.t = Math.round((Date.UTC(2027, 2, 9, 10) - EPOCH) / 6e4); const R = {}, b = S.boat, run = n => { for (let i = 0; i < n; i++) step(); };
           const at = pid => { const q = portById(pid); b.status = 'port'; b.port = pid; b.pos = {...q.p}; b.berth = 'main'; b.shift = b.fueling = b.land = b.after = null; S.plan = null; };
