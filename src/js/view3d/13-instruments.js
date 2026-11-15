@@ -333,7 +333,7 @@
     const now = performance.now() / 1000, s = Math.max(0, now - SKW.t0 - SKWUP) * SKWV, L = skPathLen(SKW.path), u = clamp(s / Math.max(0.01, L), 0, 1);
     const Q = skPathAt(SKW.path, s), P = Q.p, w = xf(BMrel, P), w2 = xf(BMrel, [P[0] + Q.d[0], P[1], P[2] + Q.d[1]]), eye = lastEye;
     const h = Math.atan2(w2[0] - w[0], -(w2[2] - w[2])), wy = w[1] + eye[1];
-    drawWorker({gy:() => wy, bare:true, spray:0, kit:'skipper', look:seaLook(lookMe())}, {x:w[0] + eye[0], z:w[2] + eye[2], h, walk:u > 0 && u < 1, s:0}, eye, now, 7); }
+    drawWorker({gy:() => wy, bare:true, spray:0, kit:'skipper', look:seaLook(lookLead())}, {x:w[0] + eye[0], z:w[2] + eye[2], h, walk:u > 0 && u < 1, s:0}, eye, now, 7); }
   // the top of the gunwale at z on one side (side +1 starboard), read from the hull's own points (the GLB's lod0): the highest of them
   // that far out at that length, and the middle of those within 1.5 cm of it across the gunwale. (Steg 125e, Jonas 15.11.2026: «ikke den
   // andre hånda plassert riktig på rekka, den er liksom i lufta over rekka»: the hand that holds on was placed off the reel, which stands

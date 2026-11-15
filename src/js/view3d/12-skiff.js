@@ -201,13 +201,13 @@
   const HANDA = ['sole', 'tub', 'fisher', 'haul', 'reel', 'mach', 'stack', 'filler', 'set', 'setter', 'coil', 'coilTub', 'moor', 'haulFoot', 'rail'];
   // the figures on the own boat (the skipper at the wheel, the crewman on the seat, the fisher at the rail and the fisher's arms) are built
   // once per boat kit with the look the skipper and the first hand have; when either changes (the wardrobe, a new hand) they are built again
-  const peopleSig = () => lookSig(seaLook(lookMe(), true)) + '|' + lookSig(seaLook(lookMe())) + '|' + (lookCrew(0) ? lookSig(seaLook(lookCrew(0))) : '');
+  const peopleSig = () => lookSig(seaLook(lookLead(), true)) + '|' + lookSig(seaLook(lookLead())) + '|' + (lookCrew(0) ? lookSig(seaLook(lookCrew(0))) : '');
   function refreshPeople(K){
     if (!K || !K.pp || !PERSON) return; const sig = peopleSig(); if (K.pSig === sig && (!K.mates || K.fisherC)) return; K.pSig = sig;
     // (the old buffers are left: boat kits made from each other share them, and a look changes rarely)
     const free = () => {};
     const build = (a, look) => { const b = NB(); PERSON(b, a[0], a[1], a[2], a[3], a[4], look); return b.mesh(); };
-    const me = seaLook(lookMe()), meH = seaLook(lookMe(), true), c0 = seaLook(lookCrew(0)) || 'crew';
+    const me = seaLook(lookLead()), meH = seaLook(lookLead(), true), c0 = seaLook(lookCrew(0)) || 'crew';
     if (K.pp.skipper){ free(K.skipper); K.skipper = build(K.pp.skipper, meH); }
     if (K.pp.crew){ free(K.crew); K.crew = build(K.pp.crew, c0); }
     if (K.pp.fisher){ free(K.fisher); K.fisher = build(K.pp.fisher, me); }
@@ -239,10 +239,10 @@
     // arms are drawn live, the right hand on the grip where the tiller has swung to, 13-instruments.js drawSkiff; hands false)
     K.tillerG = g || null; K.skAt = sk;
     const hands = g ? false : A.wheel ? [[A.wheel[0] - 0.14, A.wheel[1] + 0.14, A.wheel[2] + 0.05], [A.wheel[0] + 0.14, A.wheel[1] + 0.12, A.wheel[2] + 0.05]] : null;
-    const ps = NB(); PERSON(ps, sk[0], sk[1], sk[2], !!A.sit, hands, seaLook(lookMe(), true)); K.skipper = ps.mesh();
+    const ps = NB(); PERSON(ps, sk[0], sk[1], sk[2], !!A.sit, hands, seaLook(lookLead(), true)); K.skipper = ps.mesh();
     const pc = NB(); PERSON(pc, A.seat[0], A.seat[1], A.seat[2], true, null, seaLook(lookCrew(0)) || 'crew'); K.crew = pc.mesh();
-    K.pp = {skipper:[sk[0], sk[1], sk[2], !!A.sit, hands], crew:[A.seat[0], A.seat[1], A.seat[2], true, null], fisher:[0, 0, 0, false, false]}; K.pSig = peopleSig(); K.wk = wkMeshes(seaLook(lookMe()));
-    { const fb = NB(); PERSON(fb, 0, 0, 0, false, false, seaLook(lookMe())); K.fisher = fb.mesh(); }
+    K.pp = {skipper:[sk[0], sk[1], sk[2], !!A.sit, hands], crew:[A.seat[0], A.seat[1], A.seat[2], true, null], fisher:[0, 0, 0, false, false]}; K.pSig = peopleSig(); K.wk = wkMeshes(seaLook(lookLead()));
+    { const fb = NB(); PERSON(fb, 0, 0, 0, false, false, seaLook(lookLead())); K.fisher = fb.mesh(); }
     K.mates = !!(A.coil && A.setter); K.fisherC = K.setterC = K.wkC = null;   // (the hand at the gear only where the model has his places, OB1)
     const KA = Object.assign({}, HANDK.skiff.SKA); for (const k of HANDA) if (A[k]) KA[k] = A[k];
     return {SK:K, SKA:KA, CHARM:A.charm || HANDK.skiff.CHARM};
@@ -400,10 +400,10 @@
         B.tube([[x + sd * 0.21, sh - 0.04, z], el, hd], 0.052, JAC, 8); B.rbox(hd[0], hd[1] - 0.04, hd[2], 0.08, 0.08, 0.1, 0.035, SKN); }
       B.rbox(x, sh - 0.03, z, 0.13, 0.1, 0.13, 0.05, SKN); B.rbox(x, sh + 0.05, z, 0.22, 0.26, 0.24, 0.1, SKN); B.rbox(x, sh + 0.23, z, 0.235, 0.13, 0.25, 0.1, HAT);
     };
-    const pb = NB(); person(pb, 0, 0.2, 0.8, false, [[-0.12, 1.12, 0.05], [0.16, 1.1, 0.05]], lookMe());
+    const pb = NB(); person(pb, 0, 0.2, 0.8, false, [[-0.12, 1.12, 0.05], [0.16, 1.1, 0.05]], lookLead());
     const cb = NB(); person(cb, 0.26, 0.32, 1.16, true, null, lookCrew(0) || 'crew');
     // the fisher at the rail: body without arms (the arms are drawn live, reaching for rod, reel or line)
-    const fb = NB(); person(fb, 0, 0, 0, false, false, lookMe());
+    const fb = NB(); person(fb, 0, 0, 0, false, false, lookLead());
     const lb = NB(); lb.tube([[0, 0, 0], [0, 0, 1]], 1, [0.14, 0.26, 0.58, 0.25], 10);
     const hb = NB(); hb.rbox(0, -0.04, 0, 0.085, 0.085, 0.1, 0.035, [0.93, 0.74, 0.6, 0.25]);
     // hand jig reel (juksavinde) on the gunwale: a fixed frame with a roller, and a drum with crank turning about the fore-aft axis
@@ -448,7 +448,7 @@
       wheelAt:[0.02, 0.98, zb - 0.075], wheelTilt:0.42, leverAt:lvBox, motorAt:[0, 0.5, zs(0) + 0.02],
       needle:{rpm:0, fuel:0, temp:8, volt:12.6}, wheelA:0, headPrev:null, propA:0, tP:0, tG:0};
     SK.pp = {skipper:[0, 0.2, 0.8, false, [[-0.12, 1.12, 0.05], [0.16, 1.1, 0.05]]], crew:[0.26, 0.32, 1.16, true, null], fisher:[0, 0, 0, false, false]};
-    if (glbHas('worker')) SK.wk = wkMeshes(lookMe());      // the fisher's arms, drawn live
+    if (glbHas('worker')) SK.wk = wkMeshes(lookLead());      // the fisher's arms, drawn live
     // the detailed model from tools/boats (skiff59.py): hull, glass, the lid, the outboard and its propeller, the wheel from the GLB, and the
     // places from its anchors; the live plotter, gauges and VHF on the model's dash where it has them (skiff.scr)
     const GK = glbHas('skiff') ? geoOf('skiff') : null, A = GK && GK.skiff;
@@ -467,7 +467,7 @@
       // the live plotter, gauges and VHF on the screens of the model's dash (skiff.scr, Jonas 31.10.2026: «Blender + levende skjermer»)
       if (A.scr && A.scr.plot && A.scr.gauge){ SK.qPlot = texQuad(...A.scr.plot); SK.qGauge = texQuad(...A.scr.gauge); if (A.scr.vhf) SK.qVhf = texQuad(...A.scr.vhf); SK.live = true; }
       if (A.names) SK.qName = A.names.map(([B, T]) => texStrip(B, T));
-      const w = A.wheel, ps = NB(); person(ps, A.skipper[0], A.skipper[1], A.skipper[2], false, [[w[0] - 0.14, w[1] + 0.14, w[2] + 0.05], [w[0] + 0.14, w[1] + 0.12, w[2] + 0.05]], lookMe()); SK.skipper = ps.mesh();
+      const w = A.wheel, ps = NB(); person(ps, A.skipper[0], A.skipper[1], A.skipper[2], false, [[w[0] - 0.14, w[1] + 0.14, w[2] + 0.05], [w[0] + 0.14, w[1] + 0.12, w[2] + 0.05]], lookLead()); SK.skipper = ps.mesh();
       const pc = NB(); person(pc, A.seat[0], A.seat[1], A.seat[2], true, null, lookCrew(0) || 'crew'); SK.crew = pc.mesh();
       SK.pp = {skipper:[A.skipper[0], A.skipper[1], A.skipper[2], false, [[w[0] - 0.14, w[1] + 0.14, w[2] + 0.05], [w[0] + 0.14, w[1] + 0.12, w[2] + 0.05]]], crew:[A.seat[0], A.seat[1], A.seat[2], true, null], fisher:[0, 0, 0, false, false]};
       for (const k of HANDA) if (A[k]) SKA[k] = A[k];
