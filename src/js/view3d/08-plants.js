@@ -87,6 +87,8 @@
   // where a man is in his work's round: the clock and his own number (each a little after the one before him). The tests ask for a
   // moment itself (SJOBEIN.test.t: the sip at its top, the broom at its end), so one picture shows it; tests/folk2poses.py MOMENT
   const tOf = (T, idx) => SJOBEIN.test && SJOBEIN.test.t != null ? SJOBEIN.test.t : T + idx * 1.7;
+  // (steg 125e: the gutter's round is his fish's, from when he took it out of the bleeding tub, deckcrew.js FISKVEI; st.gs from drawDeckCrew. Else the clock's)
+  const gutS = (st, T, idx) => st.gs != null ? st.gs : tOf(T, idx) % 5.6;
   const tW = T => SJOBEIN.test && SJOBEIN.test.t != null ? SJOBEIN.test.t : T;   // (the world's clock for the rounds that run on it, egn strip mend gut binoc: the moment asked for in a test, steg 125)
   // (the seconds he has been lowering the box, st.s; the tests' moment when they ask for the pose)
   const stowS = st => st.s || (SJOBEIN.test && SJOBEIN.test.task === 'stow' && SJOBEIN.test.t) || 0;
@@ -107,7 +109,7 @@
     if (k === 'pick' || k === 'tend') return [0.05, 0.22];
     if (k === 'bleed' && e && e.deck){ const u = c < 0.25 ? c / 0.25 : c < 0.6 ? 1 : c < 1.0 ? 1 - (c - 0.6) / 0.4 : 0; return [(LEMMER.on ? HOLDT.bleed.dip : 0.62) * u, 0.12 + 0.42 * u]; }   // down to the fish on the deck and up with it
     if (k === 'bleedst') return [0, 0.14];
-    if (k === 'gutw'){ const s = (tOf(T, idx)) % 5.6, u = s < 0.9 ? Math.sin(s / 0.9 * Math.PI / 2) : s < 1.4 ? 1 - (s - 0.9) / 0.5 : 0; return [0.12 * u, 0.14 + 0.24 * u]; }
+    if (k === 'gutw'){ const s = gutS(st, T, idx), u = s < 0.9 ? Math.sin(s / 0.9 * Math.PI / 2) : s < 1.4 ? 1 - (s - 0.9) / 0.5 : 0; return [0.12 * u, 0.14 + 0.24 * u]; }
     if (k === 'pack'){ const L = st.lay; if (L != null && L >= 0 && L < 1.5){ const u = Math.sin(Math.min(1, L / 1.5) * Math.PI); return [0.4 * u, 0.22 + 0.3 * u]; } return [0, 0.22]; }
     if (k === 'egn' || k === 'strip') return [0, 0.3, 1];   // (sitting on an upturned bin at the tub)
     if (k === 'helmsit' || k === 'drive') return [0, 0.05, 1];   // (on the helm seat, where the boat is steered sitting, or the forklift's seat)
@@ -155,7 +157,7 @@
     const to = q => { if (!q) return 0; let d = Math.atan2(q[0] + eye[0] - st.x, -(q[2] + eye[2] - st.z)) - st.h; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return Math.abs(d) < 0.35 ? 0 : clamp(d, -1.3, 1.3); };
     const ez = u => u * u * (3 - 2 * u);
     if (st.task === 'hose' && st.deck && !st.walk) return 0.4 * Math.sin(T * 0.8 + idx);   // (the jet over the deck from side to side, deckcrew.js WASH_SW)
-    if (st.task === 'gutw' && st.Ub){ const s = (tOf(T, idx)) % 5.6, w = s < 0.4 ? ez(s / 0.4) : s < 0.95 ? 1 : s < 1.4 ? 1 - ez((s - 0.95) / 0.45) : 0; return w ? to(st.Ub) * w : 0; }
+    if (st.task === 'gutw' && st.Ub){ const s = gutS(st, T, idx), w = s < 0.4 ? ez(s / 0.4) : s < 0.95 ? 1 : s < 1.4 ? 1 - ez((s - 0.95) / 0.45) : 0; return w ? to(st.Ub) * w : 0; }
     // (the new people, steg 125: and to the fish on the deck first, while he goes down for it: it lay up to 0.9 m off to his side, and the hand was 27 cm short)
     if (LEMMER.on && st.task === 'bleed' && st.ev && st.ev.deck && st.ev.k < 1.0){ const c = st.ev.k, w = c < 0.25 ? ez(c / 0.25) : c < 0.6 ? 1 : 1 - ez((c - 0.6) / 0.4); return to(st.ev.R) * w; }
     if (st.task === 'bleed' && st.ev && st.ev.deck){ const c = st.ev.k, w = c < 1.7 ? 0 : c < 2.05 ? ez((c - 1.7) / 0.35) : c < 2.5 ? 1 : c < 2.9 ? 1 - ez((c - 2.5) / 0.4) : 0; return w ? to(st.ev.U) * w : 0; }
@@ -443,8 +445,8 @@
       // throat and the gills, the guts pulled out and over the rail (st.Of; the gulls come for them), the fish laid on the table (st.Tb),
       // the head cut off at a slant behind the gill cover and over the side, the belly scraped clean, and the fish on to the packer's
       // crate (st.Cr), else to the end of the table; 5.6 s a fish (about the simulation's 5 kg a minute at the game's pace)
-      case 'gutw': { const Gs = ((tOf(T, idx)) % 5.6), Tb = st.Tb || W(0.5, 0.88, 0), sh = W(0.1, 1.3 + dy, 0),   /* (no table given, a pose asked for in the tests: one before him) */
-        Ub = st.Bx ? st.Ub /* (steg 125b: the crate of bled fish beside him is where the hand goes, all the way: the body leans after it) */ : st.Ub ? lerp3(sh, st.Ub, Math.min(1, (LEMMER.on ? 0.5 : 0.68) / Math.max(0.01, Math.hypot(st.Ub[0] - sh[0], st.Ub[1] - sh[1], st.Ub[2] - sh[2])))) : W(0.45, 0.6, 0.5);
+      case 'gutw': { const Gs = gutS(st, T, idx), Tb = st.Tb || W(0.5, 0.88, 0), sh = W(0.1, 1.3 + dy, 0),   /* (no table given, a pose asked for in the tests: one before him) */
+        Ub = st.Ub ? lerp3(sh, st.Ub, Math.min(1, (LEMMER.on ? 0.5 : 0.68) / Math.max(0.01, Math.hypot(st.Ub[0] - sh[0], st.Ub[1] - sh[1], st.Ub[2] - sh[2])))) : W(0.45, 0.6, 0.5);
         const sc = st.gsc || 0.46, fH = [Tb[0] - R[0] * 0.2, Tb[1] + 0.05, Tb[2] - R[1] * 0.2], fT = [Tb[0] + R[0] * 0.2, Tb[1] + 0.05, Tb[2] + R[1] * 0.2], mid = lerp3(fH, fT, 0.5), rest = [W(0.36, 0.98, 0.18), W(0.36, 0.96, -0.12)], lo = [Ub[0], Ub[1] - 0.14, Ub[2]];
         const end = st.Cr ? [st.Cr[0], st.Cr[1] + (st.crTop || 0.3), st.Cr[2]] : [Tb[0] + F[0] * 0.05 + R[0] * 0.55, Tb[1] + 0.05, Tb[2] + F[1] * 0.05 + R[1] * 0.55];
         // the head held at the table's near edge, the fish hanging from it; the vent and the throat on its belly, towards him
@@ -484,7 +486,7 @@
         // the guts in flight: out of the hand at the throw, over the rail and down to the water
         if (Gs >= 3.15 && Gs < 4.3 && st.Of){ const u = (Gs - 3.15) / 1.15, A0 = [sh[0] + (st.Of[0] - sh[0]) * 0.3, sh[1] + 0.05, sh[2] + (st.Of[2] - sh[2]) * 0.3]; st.slo = {at:[A0[0] + (st.Of[0] - A0[0]) * u, A0[1] + 0.5 * 4 * u * (1 - u) * (1 - u) - (A0[1] - st.Of[1]) * u * u, A0[2] + (st.Of[2] - A0[2]) * u]}; }
         // the fish is in the crate: the packer lays it straight (DKLAY, once a fish)
-        if (st.packId && Gs >= 5.3){ const n = Math.floor((tOf(T, idx)) / 5.6), q = DKLAY[st.packId]; if (!q || q.n !== n + idx * 1e4){ DKLAY[st.packId] = {t:performance.now() / 1000, n:n + idx * 1e4}; } }
+        if (st.packId && Gs >= 5.3){ const n = st.gn != null ? st.gn : Math.floor((tOf(T, idx)) / 5.6), q = DKLAY[st.packId]; if (!q || q.n !== n + idx * 1e4){ DKLAY[st.packId] = {t:performance.now() / 1000, n:n + idx * 1e4}; } }
         break; }
       // ---- the breaks (Jonas 23.10.2026: «Husk at vi må ha animasjoner for alle handlinger og aktiviteter»; core/13-work.js idleAssign)
       // back to the rail: the arms crossed, or the elbows back on the rail
@@ -811,13 +813,6 @@
           if (need > 0){ if (d0 < 0.02){ const l = Math.hypot(dx, dz) || 1; nx = -dz / l; nz = dx / l; if (nx * R[0] + nz * R[1] < 0){ nx = -nx; nz = -nz; } } else { nx /= d0; nz /= d0; }
             const w = Math.min(Th[3], u * (1 - u) / (u0 * (1 - u0))) * need; ox = nx * w; oz = nz * w; } }
         lieCut([A0[0] + (B0[0] - A0[0]) * u + ox, A0[1] + (B0[1] - A0[1]) * u + 0.3 * 4 * u * (1 - u), A0[2] + (B0[2] - A0[2]) * u + oz], yaw + u * 0.6); } }
-    // (steg 125b: the gutter's crates, deckcrew.js HOLDT.gutbox: the bled fish on a stack beside him, the gutted in a crate on his other side)
-    if (st.Bx && st.Ox){ const Gb = HOLDT.gutbox, ry = M4.RY(-st.h + Math.PI / 2);
-      for (let i = 0; i < Gb.stack; i++) drawN(PM.fbox, chain(M4.T(st.Bx[0], st.Bx[1] + i * Gb.h, st.Bx[2]), ry));
-      const top = chain(M4.T(st.Bx[0], st.Bx[1] + (Gb.stack - 1) * Gb.h, st.Bx[2]), ry), OM = chain(M4.T(st.Ox[0], st.Ox[1], st.Ox[2]), ry);
-      if (fishy) for (let i = 0; i < 6; i++){ drawN(fishOf(st.gsp || 'torsk'), chain(top, M4.T(-0.24 + (i % 3) * 0.24, 0.1 + Math.floor(i / 3) * 0.06, (hash(i * 5 + 2) - 0.5) * 0.08), M4.RY(Math.PI / 2 + (i % 2 ? Math.PI : 0)), M4.RZ(Math.PI / 2), M4.S(0.4)));
-        if (i < 3) drawN(fishOf(st.gsp || 'torsk'), chain(OM, M4.T(-0.24 + i * 0.24, 0.08, (hash(i * 7 + 3) - 0.5) * 0.08), M4.RY(Math.PI / 2 + (i % 2 ? Math.PI : 0)), M4.RZ(Math.PI / 2), M4.S(0.4))); }
-      drawN(PM.fbox, OM); }
     if (st.task === 'pack'){ if (!st.Bin){ const bin = W0(0.15, 0, (st.binR || -0.5) * (LEMMER.on ? 1.3 : 1.15));   /* (the new people turn towards it: it stands clear of the thigh) */ drawN(PM.icebin, chain(M4.T(bin[0], bin[1], bin[2]), M4.RY(-st.h))); }
       // the crate on his right with the fish packed in it so far, in layers of three (st.fill); on an open boat the fish go in her tub
       if (!st.crTub){ const C = st.Cr || W(0.58, 0, 0), CM = chain(M4.T(C[0], C[1], C[2]), M4.RY(-st.h)); drawN(PM.fbox, CM); const n = fishy ? Math.round((st.fill || 0) * 9) : 0;

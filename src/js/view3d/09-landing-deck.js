@@ -483,6 +483,11 @@
   // an event at its place on the rail (boat frame); the nearest hand at work there plays it (drawWorker), so the fish he handles is the
   // one that came up. DKBLOOD: the drops of the cut, drawn as points after the people.
   const DKEV = [], DKDUR = {bleed:3.0, gaff:2.4, pick:2.4, jigup:2.2}, DKDROP = {gaff:1.75, pick:2.0}, DKBLOOD = [], DKWATER = [], DKSMOKE = [], DKDECK = [], DKF = {t:0, jig:{}}, DKN = {gaff:0, pick:0, jigup:0, bleed:0};   // DKN: the events played (the tests)
+  // (steg 125e: the account of the fish seen on deck, deckcrew.js FISKVEI: the bleeding tub is drawn with the fish bled into it, and the
+  // gutter takes his out of it. One for her own boat, begun again with another type; only behind LEMMER.on)
+  let DKFV = FISKVEI.fresh(), DKFVT = null;
+  const dkWaitKg = () => (S.hold || []).reduce((a, x) => a + (!x.gut && !x.iced && !(SPECIES[x.sp] || {}).live ? x.kg : 0), 0);
+  function dkFv(){ const vt = vtype(); if (DKFVT !== vt){ DKFV = FISKVEI.fresh(); DKFVT = vt; } return DKFV; }
   // a live fish (Jonas 13.11.2026: «fisken som kommer opp spreller litt helt til den er bløgget, snøret dras i litt ulike retninger og
   // fisken plasker litt i vannet når den kommer opp»): bursts of hard kicks with short rests between, each fish out of step with the
   // others (w its own phase), k how much life is left (1 alive, fading to 0 once the throat is cut). [the whole body's sweep, the head's
@@ -548,12 +553,17 @@
     || (LEMMER.on && DKEV.some(e => e.kind === 'bleed' && e.deckF && e.who != null && now - e.t0 < VENT.bleed)); };
   function dkTick(){
     const now = performance.now() / 1000;
+    // (steg 125e: a bled fish is counted in the tub when it lands there, FISKVEI.TOSS s into the bleeding; the account begun from the catch
+    // waiting in the game once, and emptied with it when nothing waits and nobody guts)
+    if (LEMMER.on){ const L = dkFv(), wk = dkWaitKg(); FISKVEI.seed(L, wk);
+      for (const e of DKEV) if (e.kind === 'bleed' && e.who != null && !e.inTub && now - e.t0 >= FISKVEI.TOSS && now - e.t0 <= DKDUR.bleed){ e.inTub = true; FISKVEI.bled(L); }
+      if (wk < 0.5 && !CREW3D.visible().some(a => a.task === 'gut' && a.mode === 'at')) FISKVEI.clear(L); }
     for (let i = DKEV.length - 1; i >= 0; i--){ const e = DKEV[i]; if (now - e.t0 > (e.who == null ? e.wait || DKDUR[e.kind] : DKDUR[e.kind]) + 4) DKEV.splice(i, 1); }
     for (const e of DKEV){ if (e.who == null || e.chained) continue; const age = now - e.t0;
       if ((e.kind === 'gaff' || e.kind === 'pick') && e.D && age >= DKDROP[e.kind]){ e.chained = true;
         // (the autoliner's: let fall at the chute, it slides on into its mouth to the bleeding tanks inside, nobody bleeds it in the station)
         if (e.chute){ ASLIDE.push({at:e.D.slice(), to:e.chute.slice(), t:now, sp:e.sp, kg:e.kg, yaw:Math.PI / 2 + (hash(Math.floor(now * 7)) - 0.5) * 0.6}); if (ASLIDE.length > 8) ASLIDE.shift(); continue; }
-        const bl = CREW3D.visible().find(a => a.st === 'blogg' && a.mode === 'at'), f = {at:e.D.slice(), sp:e.sp, kg:e.kg, t:now, yaw:hash(Math.floor(now * 7)) * 6.28};
+        const bl = (GEO(vtype()).work || {}).solo && LEMMER.on ? null : CREW3D.visible().find(a => a.st === 'blogg' && a.mode === 'at'), f = {at:e.D.slice(), sp:e.sp, kg:e.kg, t:now, yaw:hash(Math.floor(now * 7)) * 6.28};
         DKDECK.push(f); dkEvent('bleed', e.D, e.sp, e.kg, {for:bl ? bl.id : e.who, deckF:f, wait:20, t0:now + (bl ? 0.3 : 0.6)}); }
       else if (e.kind === 'jigup' && age >= DKDUR.jigup){ e.chained = true; dkEvent('bleed', e.at, e.sp, e.kg, {for:e.who, wait:12}); }
       else if (e.kind === 'bleed' && e.deckF && age >= 0.3){ e.chained = true; const i = DKDECK.indexOf(e.deckF); if (i >= 0) DKDECK.splice(i, 1); } }
@@ -953,12 +963,17 @@
     const D = {rim:D0.rim * s, floor:D0.floor * s, in_top:D0.in_top.map(v => v * s), in_floor:D0.in_floor.map(v => v * s)};
     const wait = x => !x.gut && !x.iced && !(SPECIES[x.sp] || {}).live, spec = {}; let kg = 0;
     for (const x of S.hold || []) if (wait(x)){ spec[x.sp] = (spec[x.sp] || 0) + x.kg; kg += x.kg; }
-    const f = clamp(kg / Math.max(20, BOAT.tubCap || 60), 0, 1);
+    // (steg 125e: on a boat worked by hand the fish still on the jig's line, waiting for the knife or in the air are not in it yet, 13-instruments.js SK.airKg)
+    if (GEO(vtype()).hand && SK && SK.airKg > 0) kg = Math.max(0, kg - SK.airKg);
+    let f = clamp(kg / Math.max(20, BOAT.tubCap || 60), 0, 1);
     let top = D.floor, n = 0, plan = null;
-    if (kg >= 0.5 && SK && SK.fishM){ plan = karPlan('blod:' + vtype(), Object.keys(spec).length ? spec : {torsk:1}, kg, D); n = Math.max(1, Math.ceil(plan.length * f - 1e-9)); n = Math.min(n, plan.length);
-      for (let i = 0; i < n; i++){ const q = plan[i]; if (q.y < (plan[n - 1].y - 0.14)) continue; const up = hash(i * 11 + 7) > 0.5 ? 1 : -1;
+    // (steg 125e: with the new people the fish in it are the account's, FISKVEI: those bled into it and not yet taken out, laid as a full tub would lie)
+    const fv = LEMMER.on && typeof CREW3D !== 'undefined' && CREW3D.on() ? FISKVEI.where(dkFv(), performance.now() / 1000).tub : -1;
+    if (fv > 0 && SK && SK.fishM){ plan = karPlan('blod:' + vtype(), Object.keys(spec).length ? spec : {torsk:1}, Math.max(20, BOAT.tubCap || 60), D); n = Math.min(fv, plan.length); f = n / Math.max(1, plan.length); }
+    else if (fv < 0 && kg >= 0.5 && SK && SK.fishM){ plan = karPlan('blod:' + vtype(), Object.keys(spec).length ? spec : {torsk:1}, kg, D); n = Math.max(1, Math.ceil(plan.length * f - 1e-9)); n = Math.min(n, plan.length); }
+    if (plan && n){ for (let i = 0; i < n; i++){ const q = plan[i]; if (q.y < (plan[n - 1].y - 0.14)) continue; const up = hash(i * 11 + 7) > 0.5 ? 1 : -1;
         drawN(fishOf(q.sp), chain(M0, M4.T(q.x, q.y, q.z), M4.RY(q.yaw + (q.flip ? Math.PI : 0)), M4.RZ(up * Math.PI / 2), M4.S(q.s))); }
-      if (n) top = plan[n - 1].y; }
+      top = plan[n - 1].y; }
     // the water: a third of the tub when it is empty, rising as the fish fill it, but under the top fish so they lie half in it
     if (KW){ const y = n ? Math.max(D.floor + 0.04, Math.min(D.floor + (D.rim - D.floor) * (0.35 + 0.4 * f), top + 0.005)) : D.floor + (D.rim - D.floor) * 0.35, w = karIn(D, y);
       drawN(KW, chain(M0, M4.T(0, y, 0), SCL(2 * w[0] - 0.04, 1, 2 * w[1] - 0.04))); }
@@ -1006,9 +1021,11 @@
     // the catch on deck (tools/fish): the round fish waiting for the knife lie in the bleeding tub (their species, about one for every 6 kg),
     // the gutted ones waiting for the icer at the end of the gutting table, and one on the table when nobody guts
     { const wait = x => !x.gut && !x.iced && !(SPECIES[x.sp] || {}).live, all = S.hold.reduce((a, x) => a + (wait(x) ? x.kg : 0), 0), n = Math.min(10, Math.ceil(all / 6)), ts = W && W.s || 1;
-      const gd = S.hold.reduce((a, x) => a + (x.gut && !x.iced ? x.kg : 0), 0), ng = SK && SK.fishM && !potRig ? Math.min(3, Math.ceil(gd / 4)) : 0;
+      // (steg 125e: with the new people the fish on the table are the gutter's own, FISKVEI, and none lies there from the game's kilos: they came and went with them)
+      const fvOn = LEMMER.on && typeof CREW3D !== 'undefined' && CREW3D.on();
+      const gd = S.hold.reduce((a, x) => a + (x.gut && !x.iced ? x.kg : 0), 0), ng = SK && SK.fishM && !potRig && !fvOn ? Math.min(3, Math.ceil(gd / 4)) : 0;
       for (let i = 0; i < ng; i++) drawN(fishOf(S.hold.find(x => x.gut && !x.iced).sp), chain(BMrel, M4.T(tx, topY, tz + (own ? 0.38 : 0.45) * (tz > d.z ? -1 : 1)), M4.T(0, i * 0.045, (hash(i * 3) - 0.5) * 0.12), M4.RY(0.15 + (i % 2) * Math.PI), M4.RZ(Math.PI / 2), M4.S(0.46)));
-      if (n > 0 && SK && SK.fishM && !potRig && !DK.on){ const sp0 = (S.hold.find(wait) || {sp:'torsk'}).sp; drawN(fishOf(sp0), chain(BMrel, M4.T(tx, topY, tz + (own ? 0 : 0.25)), M4.RY(0.2), M4.RZ(Math.PI / 2), M4.S(0.5))); } }
+      if (n > 0 && SK && SK.fishM && !potRig && !DK.on && !fvOn){ const sp0 = (S.hold.find(wait) || {sp:'torsk'}).sp; drawN(fishOf(sp0), chain(BMrel, M4.T(tx, topY, tz + (own ? 0 : 0.25)), M4.RY(0.2), M4.RZ(Math.PI / 2), M4.S(0.5))); } }
     if (!DK.on) return;
     const agents = !G.hand && typeof CREW3D !== 'undefined' && CREW3D.on();   // (the agents walk to the table and the tub themselves, deckcrew.js)
     const wl = xf(BMrel, [tx + 0.62, d.y, tz]), wy = wl[1] + eye[1], P = {gy:() => wy, bare:true, spray:0, kit:DK.me ? 'skipper' : null, look:seaLook(DK.me ? lookMe() : lookCrew(0))}, head = bv.head - Math.PI / 2;

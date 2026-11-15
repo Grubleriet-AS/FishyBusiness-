@@ -1260,11 +1260,8 @@ const HOLDT = {
   GAP:0.02,      // m between a thing and the body's clothes at the least
   FIST:0.045,    // m: half a fist round a handle (a hand's own point is its fist's middle)
   HAND:0.03,     // m a bare hand's point keeps ahead of the trunk (a hand laid on the chest, the arms crossed)
-  // the gutter's two crates (steg 125b, Jonas 14.11.2026, choice A: the bleeding tub stands 1.4 to 4.1 m from the gutting table on the coast's boats, behind him or
-  // across the deck, and no arm reaches it): a crate of bled fish on a stack of upturned ones beside him, and a crate on the deck on his other side for the gutted fish.
-  // side and ahead: m from where he stands to a crate's middle; stack: how many crates the bled fish stand on (their top at the table's height); h: a crate's
-  // height; grab: m over the crate's top his hand takes the fish; room: m a crate keeps from another man
-  gutbox:{side:0.8, ahead:0.12, stack:3, h:0.3, grab:0.08, room:0.5},
+  // (the gutter's two crates of steg 125b, gutbox, are out since steg 125e: Jonas 15.11.2026 «Jeg vil heller ikke at mannskapet bærer på
+  // kasser og sånt som ikke eksisterer»; the bleeding tub stands at his left hand on the decks laid out in 125d, and the account of the fish, FISKVEI)
   table:{bord:0.32, benk:0.55, off:0.15},   // m along the gutting table from its middle a gutter's own part of it may be (the plastic table is 1.15 m long, the steel bench 1.60, the fish 0.4), and how far past that he may stand and still reach it; further along he guts standing free
   SIDE:0.03,     // m inside the trunk's half width a hand's point still counts as by his side (the arm's matter, not moved out ahead)
   // rad his back may be bent (the pose's bend and what the reach adds) and still count as straight, for the poses named: only then is a hand before his belly
@@ -1333,6 +1330,80 @@ const VENT = {
   inWay(a, b, others, r){ for (const o of others) if (VENT.seg(o, a, b) < r) return true; return false; },
   // the wait's share (0 at work, 1 waiting) dt s on, towards waiting or back; closed in the time, so a slow tablet waits as long
   blend(w, wait, dt){ const d = Math.max(0, dt) / VENT.ease; return Math.max(0, Math.min(1, w + (wait ? d : -d))); }
+};
+// One fish all the way (steg 125e, Jonas 15.11.2026: «Fisk teleporterer fra kar til sløyebenk»; «hele hendelsesforløpet fra fisken
+// kommer ombord, bløgges, legges i bløggekar, hentes for sløying, sløyes, kastes i lasterom eller kar på dekk har animasjoner»): the
+// account of the fish that are seen on deck between the bleeding tub and the hatch. A bled fish lands in the tub (bled), the gutter takes
+// one out of it when there is one and only then (gut: his round of CYC s begins; with the tub empty he waits at the table), and the
+// gutted fish goes into the hatch or the fish tub at the end of his round (out). The tub is drawn with the fish the account has in it
+// (view3d/09-landing-deck.js drawBleedTub), not the game's kilos; the game's catch (core/13-work.js) is not changed by any of it: the
+// people are the view of the game. Only behind LEMMER.on. tests/unit/fiskvei.test.mjs keeps the account.
+const FISKVEI = {
+  CYC:5.6,       // s of one fish at the gutting table (view3d/08-plants.js gutw)
+  HAND:0.6,      // s into his round the fish is out of the tub and in his hand (until then it is counted in the tub)
+  TABLE:3.35,    // s into it the fish lies on the table (laid there from his hands)
+  THROW:5.0,     // s into it it leaves the table for the hatch or the tub
+  TOSS:2.45,     // s into a bleeding the bled fish lands in the bleeding tub (08-plants.js bleed: tossed from 2.05)
+  PER:6,         // kg of the game's catch to a fish in the tub, when the account begins from what is in the hold (about one fish to 6 kg, as the tub was drawn)
+  MAX:10,        // fish in the tub at the most when it begins so
+  fresh(){ return {tub:0, gut:{}, seeded:false, n:{seed:0, bled:0, taken:0, back:0, out:0, clear:0}}; },
+  // the account begun from the game's waiting catch (kg), once: the tub is not empty when you come aboard in the middle of a haul
+  seed(L, kg){ if (L.seeded) return; L.seeded = true; const n = Math.min(FISKVEI.MAX, Math.ceil(Math.max(0, kg) / FISKVEI.PER - 1e-9)); L.tub += n; L.n.seed += n; },
+  // a bled fish has landed in the tub
+  bled(L){ L.tub++; L.n.bled++; },
+  // the gutter id's round at now (s): the fish he works ({s, n}: s into his round, n the fish's number), or null while he waits for one.
+  // A round ended counts the fish out (in the hatch or the tub); the next is taken out of the tub only when there is a fish in it
+  gut(L, id, now){ let g = L.gut[id];
+    if (g && now - g.t0 >= FISKVEI.CYC){ L.n.out++; delete L.gut[id]; g = null; }
+    if (!g && L.tub > 0){ L.tub--; L.n.taken++; g = L.gut[id] = {t0:now, n:L.n.taken}; }
+    return g ? {s:now - g.t0, n:g.n} : null; },
+  // the gutter is not at the table any more (the game gave him other work): a fish he had not laid on the table goes back in the tub
+  // (it was by the tub or in his hand), one he had laid or thrown is out at its end
+  leave(L, id, now){ const g = L.gut[id]; if (!g) return; delete L.gut[id]; if (now - g.t0 < FISKVEI.TABLE){ L.tub++; L.n.back++; } else L.n.out++; },
+  // nothing waits in the game and nobody guts: the tub is emptied with it (the catch landed, the deck washed)
+  clear(L){ if (Object.keys(L.gut).length) return; L.n.clear += L.tub; L.tub = 0; },
+  // where every fish of the account is at now: in the tub (seen there: those a gutter is still reaching for too), in a hand, on a table,
+  // in the air on its way out, out
+  where(L, now){ const w = {tub:L.tub, hand:0, table:0, air:0, out:L.n.out + L.n.clear};
+    for (const id in L.gut){ const s = now - L.gut[id].t0; if (s < FISKVEI.HAND) w.tub++; else if (s < FISKVEI.TABLE) w.hand++; else if (s < FISKVEI.THROW) w.table++; else w.air++; }
+    return w; }
+};
+
+// The hand jig on the boats worked by hand (steg 125e, Jonas 15.11.2026, with a clip from the old wooden boat: «mange fisk som bare
+// teleporterer ombord, mens mannen står å bløgger andre fisker»; «den i alle fall visuelt burde sveives inn og kastes ut igjen når den er
+// helt oppe»; the pilk and ten hooks, his choice the same day): the line's round as the 3D view draws it (view3d/13-instruments.js
+// drawSkiff). The pilk goes down to the depth, he jigs, it is cranked up with the fish that are on, they are taken off at the roller
+// one by one (and bled, the reel standing meanwhile), and it goes down again once it is up. The fish the fishing step hooks (window.CATCHQ)
+// wait on the hooks for the next crank up: none is let go while he fishes. tests/unit/handjuksa.test.mjs keeps the account.
+const HANDJUKSA = {
+  HOOKS:11,      // the pilk and ten hooks above it
+  GAP:0.55,      // m between two hooks up the line
+  DEPTH:6,       // m the pilk is let down under the roller (the bottom is deeper; the line is seen to the water and a little under it)
+  DOWN:2.2,      // m/s it runs down off the reel
+  UP:1.6,        // m/s it comes up while he cranks
+  WAIT:2.5,      // s after the first bite he jigs on for more before he cranks up (or three fish on)
+  EMPTY:18,      // s he jigs with nothing on before he cranks up to look anyway
+  TOP:0.8,       // s it hangs at the roller before it goes down again
+  MAXQ:60,       // fish waiting at the most (a safety: only when the 3D view has been away a long time)
+  fresh(){ return {st:'down', t:0, d:0, fish:[], n:{up:0, empty:0}}; },
+  // the queue of hooked fish kept: emptied only when nobody fishes (mode null), never while he does
+  keep(Q, fishing){ if (!fishing){ Q.length = 0; return; } while (Q.length > HANDJUKSA.MAXQ) Q.shift(); },
+  // one step of dt s; busy: he has a fish in his hands (the reel stands). Returns the fish taken off at the roller in this step
+  step(A, Q, dt, busy){ const H = HANDJUKSA, out = []; A.t += dt;
+    if (A.st === 'down'){ A.d = Math.min(H.DEPTH, A.d + H.DOWN * dt); if (A.d >= H.DEPTH){ A.st = 'jig'; A.t = 0; } }
+    else if (A.st === 'jig'){ if ((Q.length && (Q.length >= 3 || A.t > H.WAIT)) || A.t > H.EMPTY){ A.fish = Q.splice(0, H.HOOKS); A.st = 'up'; A.t = 0; A.n.up++; if (!A.fish.length) A.n.empty++; } }
+    else if (A.st === 'up'){ if (busy){ A.t -= dt; return out; }
+      A.d = Math.max(0, A.d - H.UP * dt);
+      // (the fish on the hook nearest the roller first: hook i hangs i GAP over the pilk, so it is at the roller when the pilk is i GAP under it)
+      while (A.fish.length && A.d - (A.fish.length - 1) * H.GAP <= 0){ out.push(A.fish.pop()); break; }
+      if (A.d <= 0 && !A.fish.length){ A.st = 'top'; A.t = 0; } }
+    else if (A.st === 'top'){ if (busy) A.t = 0; else if (A.t > H.TOP){ A.st = 'down'; A.t = 0; } }
+    return out; },
+  // kg of the catch that is not in the tub yet: hooked and waiting below, on the line, in the air to the tub, and (since steg 125e) waiting
+  // to be bled and in his hands; the tub is drawn with the rest (before, the fish waiting for the knife were in the tub already)
+  air(A, Q, fly, bq, bl){ const kg = L => (L || []).reduce((a, f) => a + (f.kg || 0), 0); return kg(Q) + kg(A.fish) + kg(fly) + kg(bq) + (bl && bl.f ? bl.f.kg || 0 : 0); },
+  // the depth under the roller of hook i (0 the pilk) now
+  hookAt(A, i){ return A.d - i * HANDJUKSA.GAP; }
 };
 
 // one person's lengths (c: who; everyone the same until the builds, FB5b)
