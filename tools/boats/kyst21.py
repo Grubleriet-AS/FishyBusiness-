@@ -1451,7 +1451,8 @@ def anchors():
             # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
             'hatchSize': [round(v, 3) for v in (OPEN[3] - OPEN[2], OPEN[1] - OPEN[0])],
             'hatch': G((OPEN[0] + OPEN[1]) / 2, (OPEN[2] + OPEN[3]) / 2, z_md((OPEN[0] + OPEN[1]) / 2) + HATCH_H),   # (steg 125d: the open part)
-            'hatchCover': G((HATCH[0] + HATCH[1]) / 2, 0.0, z_md((HATCH[0] + HATCH[1]) / 2) + HATCH_H),   # (the whole cover: the hold's middle for the trim, where a pot is tipped) 'bunk': G(4.0, 1.2, md(4.0, 1.2) + 0.6), 'exhaust': G(FUN[0] - 0.12, 0, BD() + 0.06 + 2.65),
+            'hatchCover': G((HATCH[0] + HATCH[1]) / 2, 0.0, z_md((HATCH[0] + HATCH[1]) / 2) + HATCH_H),   # (the whole cover: the hold's middle for the trim, where a pot is tipped)
+            'bunk': G(4.0, 1.2, md(4.0, 1.2) + 0.6), 'exhaust': G(FUN[0] - 0.12, 0, BD() + 0.06 + 2.65),
             'deck': {'y': round(md(10.5, 2.0) - WL, 3), 'z': round(-(10.5 - XM), 3)}, 'gw': round(z_cap(10.5) - WL, 3),
             'stern': round(XM - XA, 3), 'bow': round(-(XF - XM), 3), 'side': round(BEAM / 2, 3), 'beam': BEAM, 'pl': 8.4, 'rl': 2.7, 'open': False, 'hand': False,
             'pole': G(px - 0.22, py, zp + 1.62), 'hauler': G(HX, -(ycap(HX) - 0.02), z_cap(HX) + 0.35), 'haulerFoot': G(HX, -(ybi(HX) - HFOOT), md(HX, 3.0)),

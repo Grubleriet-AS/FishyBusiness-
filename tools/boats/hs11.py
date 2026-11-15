@@ -1355,7 +1355,7 @@ def anchors():
     return {'bower': bower(G), 'eye': G(SKIP[0], SKIP[1], ZWH + EYE_H), 'skipperAt': G(SKIP[0], SKIP[1], ZWH), 'hp': HP, 'fov': FOV,
             # the hands: the fisher at the hauler in the starboard hauling port, the one who guts inboard of the bench to port, one by the
             # bleeding tub aft of the hauler, one forward of the hatch
-            'crewSpots': [G(HXR, -(ybw(HXR, -1) - 0.55), ZMD) + [1.57], G(TABLE[0], TABLE[1] - 0.62, ZMD) + [-1.57], G(TUB[0], TUB[1] + 0.62, ZMD) + [1.57],
+            'crewSpots': [G(HXR, -(ybw(HXR, -1) - 0.55), ZMD) + [1.57], G(GUT_AT[0], GUT_AT[1], ZMD) + [1.57], G(TUB[0], TUB[1] + 0.62, ZMD) + [1.57],
                           G(2.55, 0.30, ZMD) + [3.14]],
             # typed lights (B8): under 12 m an all-round white (on the mast's top) and the side lights, the stern light over the transom;
             # the fishing lights red over white on their arm (rule 26); the work lights under the roof's after edge

@@ -53,7 +53,7 @@ function crewSim(src){
     if (!(W && W.own)){ const tb = W ? W.table : [-(Bm / 2 - 0.42), d.y, d.z]; box(tb[0], tb[2], 0.62, benkOf(V, W) ? 1.6 : 1.15); }
     if (G.hauler) box(G.haulerFoot ? G.haulerFoot[0] : Bm / 2 - 0.2, G.hauler[2], 0.35, 0.4);
     // (the fish hold's open hatch, steg 125d: open while she fishes, so nobody's way goes over it; anchors.hatchSize)
-    { const Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at); if (Hh && G.hatchSize && W && W.nopack) box(Hh[0], Hh[2], G.hatchSize[0], G.hatchSize[1]); }   // (anchors.haulerFoot: where the model sets the post, 10-gear.js, OB12)
+    { const Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at); if (Hh && G.hatchSize && W && W.nopack){ const side = Math.abs(Hh[0]) > 0.5 ? Math.sign(Hh[0]) : G.hauler && G.hauler[0] < 0 ? 1 : -1; box(Hh[0] + side * 0.06, Hh[2], G.hatchSize[0] + 0.12, G.hatchSize[1]); } }   // (and the lid tipped up on its side edge, view3d/09-landing-deck.js hatchSide)   // (anchors.haulerFoot: where the model sets the post, 10-gear.js, OB12)
     // (the autoline hauler and its hook cleaner across the hauling station, from the port in to the cleaner; the line's guide arm over
     // the way along the back wall is high enough to pass under, H2d2)
     if (G.aline && G.aline.foot){ const F = G.aline.foot; box(F[0] + 0.05, F[2], 1.9, 0.62); }
@@ -395,7 +395,8 @@ function crewSim(src){
     const tub = W ? [W.tub[0], W.tub[2]] : [Bm / 2 - 0.62, d.z + 0.35];
     // the hauler shakes the fish off the hook onto the deck just inboard of him (drop); the bleeder stands aft of that, facing it
     const drop = [HP[0] - sg * 0.95, HP[2] + 0.4], bl = [drop[0] - sg * 0.3, drop[1] + 0.62];
-    const PL = {sg, tub, drop, hatch:[0, d.z],
+    const Hh0 = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at), PL = {sg, tub, drop, hatch:Hh0 ? [Hh0[0], Hh0[2]] : [0, d.z],   // (the model's hatch where she has one: on the kyst15 it lies by the side since steg 125d)
+
       haul:[[HP[0] - sg * 0.55, HP[2] + 0.2, sg * Math.PI / 2, 'haul'], [HP[0] - sg * 0.55, HP[2] - 0.55, sg * Math.PI / 2, 'haul']],
       pick:[HP[0] - sg * 0.62, HP[2] + 0.95, sg * Math.PI * 0.62, 'pick'], pot:[HP[0] - sg * 1.0, HP[2] + 0.9, sg * Math.PI * 0.5, 'tend'],
       bleed:[bl[0], bl[1], face(bl[0], bl[1], drop[0], drop[1]), 'bleedst']};

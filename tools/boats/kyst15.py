@@ -1167,7 +1167,7 @@ def anchors():
     return {'bower': bower(G), 'eye': G(SKIP[0], SKIP[1], fl + EYE_H), 'skipperAt': G(SKIP[0], SKIP[1], fl), 'hp': HP, 'fov': FOV,
             # the hands (kyst15-grunnlag kap. 6): the fisher at the hauler, the one who bleeds by the tub, the one who guts at the table,
             # one by the gear on the working deck aft (OB12; he stood on the shelter deck)
-            'crewSpots': [G(7.05, -2.55, ZMD) + [1.57], G(6.55, -1.70, ZMD) + [1.57], G(5.25, -1.95, ZMD) + [-1.57], G(2.9, -1.7, ZMD) + [1.57]],
+            'crewSpots': [G(7.05, -2.55, ZMD) + [1.57], G(6.45, -2.30, ZMD) + [1.57], G(5.25, -1.95, ZMD) + [-1.57], G(2.9, -1.7, ZMD) + [1.57]],   # (steg 125d: the second by the first jigging place, not in the tub)
             # typed lights (B8; 12-20 m): the masthead light on the mast's top, the side lights with their screens, the stern light on the
             # mizzen, the fishing lights red over white on their arms; the work lights
             'lights': [[G(MX, 0, white_z()), [1, 0.95, 0.85], 'masthead'],

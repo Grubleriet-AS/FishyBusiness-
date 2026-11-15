@@ -81,7 +81,7 @@ export default function (t){
     const ST = CREW3D._st, G = ST.G, M = ST.M0, PL = CREW3D.places(), V = VESSELS[vt], d = G.deck || {y:G.gw, z:0}, Bm = G.beam || 3, W = G.work, Kt = G.kit || {}, things = [];
     const add = (name, x, z, w, l, ry, fixed) => things.push({name, x:r2(x), z:r2(z), hw:r2(w / 2), hl:r2(l / 2), ry:r2(ry || 0), fixed:fixed !== false});
     const tu = W ? W.tub : [Bm / 2 - 0.62, d.y, d.z + 0.35], s = (W && W.s) || 1; add('bløggekar', tu[0], tu[2], 0.72 * s, 1.08 * s, W && W.ry);
-    if (!(W && W.own)){ const tb = W ? W.table : [-(Bm / 2 - 0.42), d.y, d.z]; add('sløyebord', tb[0], tb[2], 0.62, V.len >= 10 ? 1.6 : 1.15, 0); } else { const o = OWN[vt] || [0.3, 0.3]; add('sløyeplass (båtens egen)', W.table[0], W.table[2], o[0], o[1], 0); }
+    if (!(W && W.own)){ const tb = W ? W.table : [-(Bm / 2 - 0.42), d.y, d.z]; add('sløyebord', tb[0], tb[2], 0.62, V.len >= 10 && !(W && W.bord) ? 1.6 : 1.15, 0);   /* (work.bord: the plastic table on a bigger boat, steg 125d) */ } else { const o = OWN[vt] || [0.3, 0.3]; add('sløyeplass (båtens egen)', W.table[0], W.table[2], o[0], o[1], 0); }
     if (G.hauler) add('haler', G.haulerFoot ? G.haulerFoot[0] : Math.sign(G.hauler[0]) * (Bm / 2 - 0.2), G.hauler[2], 0.35, 0.4, 0);
     (Kt.tubs || []).forEach((q, i) => { const big = (q[4] || 460) > 300; add('fiskekar ' + (i + 1), q[0], q[2], big ? 1.0 : 0.72, big ? 1.2 : 1.08, q[3]); });
     if (Kt.iskasse){ const k = Kt.iskasse[4] || 1; add('iskasse', Kt.iskasse[0], Kt.iskasse[2], 0.72 * k, 1.08 * k, Kt.iskasse[3]); }
@@ -119,7 +119,7 @@ export default function (t){
       if (n === 'slipp'){ if (Math.hypot(B.drop[0] - v[0], B.drop[1] - v[1]) > 0.05) avvik.push(B.type + ': slippet ' + B.drop.join(',') + ' (forslaget ' + v.join(',') + ')'); continue; }
       const q = T[n] || S2[n] || (n === 'sløyebord' ? T['sløyeplass (båtens egen)'] : null); if (!q){ avvik.push(B.type + ': ' + n + ' finnes ikke'); continue; }
       const a = q.ry != null ? q.ry : q.h, da = Math.abs(Math.atan2(Math.sin(a - (v[2] || 0)), Math.cos(a - (v[2] || 0))));
-      if (Math.hypot(q.x - v[0], q.z - v[1]) > 0.05 || (da > 0.1 && Math.abs(da - Math.PI) > 0.1)) avvik.push(B.type + ': ' + n + ' står på ' + q.x + ',' + q.z + ' (forslaget ' + v[0] + ',' + v[1] + ')'); }
+      if (Math.hypot(q.x - v[0], q.z - v[1]) > 0.05 || (da > 0.1 && (q.h != null || Math.abs(da - Math.PI) > 0.1)))   /* (a box may be turned half round; a man may not) */ avvik.push(B.type + ': ' + n + ' står på ' + q.x + ',' + q.z + ' (forslaget ' + v[0] + ',' + v[1] + ')'); }
     for (const n of new Set([...(N.ut || []), ...(B.hold && B.hold.kind === 'rom' ? ['pakker', 'iskasse'] : [])])) if (T[n] || S2[n]) avvik.push(B.type + ': ' + n + ' er fortsatt på dekk'); }
   if (avvik.length) console.log('AVVIK fra forslaget: ' + avvik.join('\n       '));
   t.ok(!avvik.length, 'dekkene i modellene er lik forslagene (' + (avvik.length ? avvik.length + ' avvik' : 'alle åtte') + ')');

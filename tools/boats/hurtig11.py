@@ -972,7 +972,7 @@ def bower(G):
 # port rail and the way to the port steps stay clear of them (the code review, 10.11.2026: at y 1.30 the block reached 1.49)
 # (steg 125d, Jonas 15.11.2026, docs/planer/dekk/forslag.json: the bench along the starboard bulwark aft of the bleeding tub, the hauler's side,
 # the plastic table (work.bord, 1.15 m: «Kortere bord») between the tub and the crane's locker; the tub across her aft of the hauler)
-BENCH = 2.065; BENCH_Y = -1.47; TUB = (2.995, -1.24); GUT_AT = (1.995, -0.90); STAMP0 = (5.30, 0.95)
+BENCH = 2.045; BENCH_Y = -1.47; TUB = (2.995, -1.24); GUT_AT = (1.995, -0.90); STAMP0 = (5.30, 0.95)
 def stamp_box(rows=4):
     """the line tubs' block as the game bars it for the crew (deckcrew.js kitBoxes, ry 0): (x0, x1, y0, y1) in the model's frame, padded"""
     cx = STAMP0[0] - (rows - 1) * 0.25; hl = (rows * 0.5 + 0.02) / 2 + 0.06; cy = STAMP0[1] - 0.26; hw = 0.78 / 2 + 0.06

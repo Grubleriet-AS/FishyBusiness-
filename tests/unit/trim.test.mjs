@@ -43,11 +43,11 @@ export default function (t){
   { const St = K.stabOf('hurtigsjark', {hold:0, deck:0, gear:30 * 9, gp:{net:30 * 9}});
     t.ok(St.trim > 0.1 / DEG, 'hurtigsjark med 30 garn på hekken: hekken ned (' + (St.trim * DEG).toFixed(2) + '°)'); }
 
-  // ---- the havsjark's nets and line tubs stand in the starboard gangway aft, by the setting port in the stern (OB8, 10.11.2026; before,
-  // forward of the hatch to port): 30 nets trim her by the stern and heel her a little to starboard ----
+  // ---- the havsjark's nets and line tubs stand to port abreast of the hatch since steg 125d (15.11.2026: the starboard rail aft is the
+  // tub's and the bench's; OB8 had them in the starboard gangway aft): 30 nets heel her to port and trim her a little by the stern ----
   { const St = K.stabOf('sjark', {hold:0, deck:0, gear:30 * 9, gp:{net:30 * 9}});
-    t.ok(St.trim > 0.3 / DEG, 'sjark med 30 garn akter: hekken ned, over 0,3° (' + (St.trim * DEG).toFixed(2) + '°)');
-    t.ok(St.list > 0, 'sjark med 30 garn i styrbord gang akter: slagside mot styrbord (' + (St.list * DEG).toFixed(2) + '°)'); }
+    t.ok(St.trim > 0, 'sjark med 30 garn tvers av luka: hekken litt ned (' + (St.trim * DEG).toFixed(2) + '°)');
+    t.ok(St.list < 0, 'sjark med 30 garn om babord: slagside mot babord (' + (St.list * DEG).toFixed(2) + '°)'); }
 
   // ---- the line in the hauler heels her towards it (the hauler on the starboard rail) ----
   for (const type of ['sjark', 'plastsjark', 'kyst15']){
@@ -81,6 +81,13 @@ export default function (t){
     t.near(X.y, R.y0, 0.01, type + ': på samme høyde');
   }
 
+  // ---- steg 125d (15.11.2026): the decks laid out after the work moved the table, the tub, the line tubs and the nets on the three
+  // smallest too; their STAB_AT is read off the models the same way (the kontroll found them unread) ----
+  for (const [vt, f] of [['snekke', 'boat-snekke26.b64'], ['plastsjark', 'boat-plast31.b64'], ['sjark', 'boat-havsjark35.b64']]){ const A = anchorsOf(f), T = K.STAB_AT[vt], xz = p => [p[0], p[2]];
+    const pairs = {table:[T.table, xz(A.work.table)], deck:[T.deck, xz(A.work.tub)], tub:[T.tub, xz(A.kit.stamps.at)], net:[T.net, xz(A.kit.garn.at)]};
+    if (A.hatch) pairs.hatch = [T.hatch, A.hatch[2]];
+    for (const k in pairs){ const [a, b] = pairs[k], d = Array.isArray(a) ? Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) : Math.abs(a - b);
+      t.ok(d < 0.02, vt + ': STAB_AT.' + k + ' er modellens (' + JSON.stringify(a) + ' mot ' + JSON.stringify(b) + ')'); } }
   // ---- STAB_AT is read off the model (OB9, 10.11.2026, the used hurtigsjark): the bench moved aft abreast the hatch, the line tubs forward
   // under the shelter, and the game's waterline the empty boat's (WLE, 5 cm under the drawn one), so the deck stands 5 cm higher. Each
   // place the table holds for her against the exported anchors, within 2 cm ----
