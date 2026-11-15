@@ -48,7 +48,7 @@ async def main():
             for t in only:
                 L = await pg.evaluate("(t) => VESSELS[t].len", t); dist = (4.0 + L * 0.7) * (1.35 if tag == 'portrait' else 1)
                 # (the kyst15's working deck lies under her shelter deck: into the hauling station from the starboard side instead)
-                yaw, pitch = (1.35, 0.42) if t == 'kyst15' else (0.0, 1.2)
+                yaw, pitch = (-1.35, 0.42) if t == 'kyst15' else (0.0, 1.2)
                 n0 = await pg.evaluate("G3._debug.kitStat.n")
                 await pg.evaluate(SET, [t, 'line', yaw, pitch, dist * (0.75 if t == 'kyst15' else 1)])
                 await pg.wait_for_function("([t, n0]) => { const K = G3._debug.kitStat; return K.vt === t && K.n >= n0 + 4; }", arg=[t, n0], timeout=120000)
