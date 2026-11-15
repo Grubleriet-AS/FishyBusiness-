@@ -166,7 +166,10 @@ async function draftWay(start, goal, aPort, gPort, atN, port){
   // ends (Jonas 15.11.2026: «Alle steder spillerens båt kan fortøye må være tilgjengelig via autonav både inn og ut av»)
   if (res.why && gPort && gPort !== port && isRorbu(gPort)){ const bp = berthPose(gPort, S.boat.type, 'main');
     const way = bp && naustWay({x:bp.x, y:bp.y}, gPort, BOAT.draft + LEIA.minOver);
-    if (way && way.length > 1){ const e = way[way.length - 1], r2 = await leiaRoute({x:start.x, y:start.y}, {x:e.x, y:e.y}, aPort, null);
+    // (to where the way ends, else from there out to her and turned: the end of that way lies by the shore, and a route that ends in
+    // water that shallow is none, «For grunt der», while the route from it is found, Tømmervik)
+    if (way && way.length > 1){ const e = way[way.length - 1]; let r2 = await leiaRoute({x:start.x, y:start.y}, {x:e.x, y:e.y}, aPort, null);
+      if (r2.why){ const r4 = await leiaRoute({x:e.x, y:e.y}, {x:start.x, y:start.y}, null, aPort); if (!r4.why && r4.wps && r4.wps.length) r2 = {wps:r4.wps.slice(0, -1).reverse().concat([{x:e.x, y:e.y}]), nm:r4.nm, st:Object.assign({}, r4.st, {rev:true})}; }
       if (!r2.why && r2.wps && r2.wps.length){ const nm = r2.nm + dist(e, goal) / NM; res = {wps:r2.wps.concat(way.slice(1, -1).reverse(), [{x:goal.x, y:goal.y}]), nm, st:Object.assign({}, r2.st, {siteIn:way.length})}; } } }
   return res;
 }
