@@ -84,6 +84,9 @@ export default function (t){
   { const L = S.fresh(); L.per = 2; L.pri = i => Math.floor(i / 2) * 10 + (i % 2 ? 1 : 0); S.sync(L, {full:4, coil:0, empty:0, op:null}, 0);
     S.sync(L, {full:2, coil:0, empty:0, op:{key:'p', kind:'set', n:2, done:0, prog:0}}, 0); const took = L.op.ids.map(id => S.by(L, id).i);
     const H = S.fresh(); H.per = 2; H.pri = L.pri; S.sync(H, {full:0, coil:0, empty:3, op:null}, 1); const order = []; for (let k = 0; k < 3; k++){ const s2 = S.freeSlot(H); order.push(s2); H.T.push({id:100 + k, k:'coil', at:'slot', i:s2}); }
+    // (a slot that cannot be reached from where the work is, L.slotOk: the filled tub goes to one that can)
+    const U = S.fresh(); U.per = 2; U.pri = L.pri; U.slotOk = i => i % 2 === 1; S.sync(U, {full:0, coil:0, empty:1, op:null}, 1); const su = S.freeSlot(U);
+    t.ok(su === 1, 'en full stamp settes i en plass som kan nås fra arbeidsplassen (' + su + ')');
     t.ok(JSON.stringify(took) === '[3,2]' && JSON.stringify(order) === '[0,1,2]', 'stabelens rekkefølge: settingen tar fra den åpne siden først, halingen fyller den andre først (' + JSON.stringify([took, order]) + ')'); }
   // the deck ready for a set (L.stage): a full tub carried to the stern and left there, and the set runs from it from its first metre
   { const L = S.fresh(); S.sync(L, {full:3, coil:0, empty:0, op:null}, 2); L.stage = true; const j = S.want(L, null); S.begin(L, j, 'c', 0); S.take(L); S.put(L, 5);

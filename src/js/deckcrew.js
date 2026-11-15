@@ -316,6 +316,10 @@ function crewSim(src){
     if (!TUBL.pri || TUBL.priK !== ST.type + '|' + ST.MFk){ TUBL.priK = ST.type + '|' + ST.MFk; TUBL.per = stampPer(); const per = TUBL.per, open = j => { const p = tubSlot(j), M = ST.M; let n = 0; for (const [dx, dz] of [[0.55, 0], [-0.55, 0], [0, 0.55], [0, -0.55]]) if (M.ok(M.cellOf(p[0] + dx, p[2] + dz))) n++; return n; }, O = []; for (let j = 0; j < per; j++) O.push(open(j));
       TUBL.pri = i => Math.floor(i / per) * 10 + O[i % per]; }
     const P = tubSpots(); STAMPER.sync(TUBL, tg, P[kind === 'haul' ? 'haul' : 'set'].length, t);
+    // (the stack's slots that can be reached from the part of the deck the work spots in use are on: a filled tub is set there)
+    { const W = P[kind === 'haul' ? 'haul' : 'set'], key = TUBC.key + '|' + kind; if (TUBC.okK !== key){ TUBC.okK = key; const y0 = tubSlot(0)[1], wc = new Set(); for (const q of W) for (const c of tubComps(q, q[1])) wc.add(c);
+        const per = stampPer(), SC = []; for (let j = 0; j < per; j++) SC.push(tubComps(tubSlot(j), y0)); TUBC.slotOk = wc.size ? i => SC[i % per].some(c => wc.has(c)) : null; }
+      TUBL.slotOk = TUBC.slotOk; }
     const j0 = TUBL.job; if (j0){ const a = A.find(q => q.id === j0.who); if (!a || !a.sub || !a.sub.tub || a.sub.tub.id !== j0.id) STAMPER.drop(TUBL); return; }
     // (a carrier is looked for twice a second at most: the places to stand are looked for over the whole deck)
     if (t < (TUBC.next || 0)) return; const j = STAMPER.want(TUBL, tg.op); if (!j) return; TUBC.next = t + 0.5;
@@ -1603,8 +1607,10 @@ const STAMPER = {
   freeWork(L){ for (let w = 0; w < L.W; w++) if (!STAMPER.taken(L, 'work', w)) return w; return -1; },
   // (a free slot to set a tub in: with L.pri, the deck's order of the slots (the higher the sooner a tub is taken from it), the one
   // last in that order that has a tub under it or none to have; else the first free one)
+  // (L.slotOk, set by the deck: whether a slot can be reached from where the work is now; one that cannot is taken only when no other is free)
   freeSlot(L){ if (!L.pri || !L.per){ for (let s = 0; ; s++) if (!STAMPER.taken(L, 'slot', s)) return s; }
-    let best = -1, bv = Infinity; for (let s = 0; s < L.T.length + 2 * L.per; s++){ if (STAMPER.taken(L, 'slot', s) || (s >= L.per && !STAMPER.taken(L, 'slot', s - L.per))) continue; const v = L.pri(s); if (v < bv){ bv = v; best = s; } } return best; },
+    for (const reach of [true, false]){ let best = -1, bv = Infinity; for (let s = 0; s < L.T.length + 2 * L.per; s++){ if (STAMPER.taken(L, 'slot', s) || (s >= L.per && !STAMPER.taken(L, 'slot', s - L.per)) || (reach && L.slotOk && !L.slotOk(s))) continue; const v = L.pri(s); if (v < bv){ bv = v; best = s; } } if (best >= 0) return best; }
+    return 0; },
   nestTop(L){ return L.T.filter(q => q.at === 'nest').length + (L.job && L.job.to.at === 'nest' ? 1 : 0); },
   // the next carry the deck needs (null: none): {id, from:{at, i}, to:{at, i}}. The one the line is about to run from or into first,
   // then the work spots cleared (the empty tub to the nest, the filled one to the stack), then the next one fetched before it is needed
