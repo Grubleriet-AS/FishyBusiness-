@@ -34,6 +34,11 @@ READ = """((dp) => { const L = CREW3D.tubAccount(), g = S.boat.gop, pg = S.pgear
 RAFN = "(() => { if (!window.__RAFN){ window.__RAFN = 1; const f = () => { window.__RAFN++; requestAnimationFrame(f); }; requestAnimationFrame(f); } return window.__RAFN; })()"
 
 
+# (one full tub may stand ready at the stern after the work, deckcrew.js L.stage: baited tubs aboard and nothing hauled waiting; only
+# when every empty one is in the nest, so a set just over, its last tub not yet followed as empty, is not taken for it)
+def staged(r): return r['w']['work'] == 0 or (r['wk'] == 'full' and r['w']['nest'] == r['k']['empty'])
+
+
 async def step(pg, ms):
     """The held clock moved ms on and one frame drawn on it."""
     n0 = await pg.evaluate(RAFN); await pg.evaluate("(ms) => { window.__T += ms; }", ms)
@@ -49,7 +54,7 @@ CLIPMAX = {}
 
 async def run_op(pg, t, what, tub_s, secs, small):
     """secs of the held clock at 100 ms a frame, the work a tub in tub_s of it."""
-    rs, bad, snap0, shot, dp = [], 0, None, False, 0.1 / tub_s
+    rs, bad, snap0, shot, dp, prev_done = [], 0, None, False, 0.1 / tub_s, False
     for i in range(int(secs * 10)):
         await step(pg, 100); r = await pg.evaluate(READ, dp); rs.append(r)
         if snap0 is None: snap0 = r['snap']
@@ -74,7 +79,10 @@ async def run_op(pg, t, what, tub_s, secs, small):
                 await pg.set_viewport_size({'width': vw, 'height': vh}); await step(pg, 0); await step(pg, 0)
                 await pg.screenshot(path=os.path.join(OUT, f'stamper3d_{t}_{what}_{tag}.png'))
             await pg.set_viewport_size(small)
-        if not r['op'] and not r['job'] and (r['w']['work'] == 0 or r['wk'] == 'full') and r['w']['hand'] == 0 and i > 10: break   # (one full ready at the stern: L.stage)
+        # (done when it holds two readings running: the work is ended by the game inside READ, and the deck follows it at its next tick)
+        done = not r['op'] and not r['job'] and staged(r) and r['w']['hand'] == 0 and i > 10
+        if done and prev_done: break
+        prev_done = done   # (one full ready at the stern: L.stage)
     # (a few frames more: the account follows the game's end of the work at the next tick)
     for _ in range(5): await step(pg, 100)
     rs.append(await pg.evaluate(READ, 0))
@@ -110,7 +118,6 @@ async def main():
             # (a deck where the stern and the stack are on parts of the deck with no way between them, deckcrew.js tubSpots: the line runs
             # from the stack and the empty ones stand there until they are hauled; the sjark while she fishes, since steg 125d)
             # (one full tub may stand ready at the stern after it, deckcrew.js L.stage: baited tubs aboard and nothing hauled waiting)
-            staged = lambda r: r['w']['work'] == 0 or r['wk'] == 'full'
             if sp['set']: check(last['carried'] >= n and last['w']['nest'] >= n and staged(last) and last['w']['hand'] == 0, t + ': setting: de tomme står i hverandre i reiret, ingen igjen ved hekken', {'w': last['w'], 'wk': last['wk'], 'båret': last['carried'], 'op': last['op']})
             else: check(staged(last) and last['w']['hand'] == 0 and last['k']['empty'] == n, t + ': setting fra stabelen (ingen vei på dekk fra stabelen til hekken): de tomme står der lina gikk fra dem', {'w': last['w'], 'plasser': sp})
             c0 = last['carried']
