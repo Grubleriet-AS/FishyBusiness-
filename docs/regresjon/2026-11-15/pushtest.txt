@@ -1,0 +1,19 @@
+OK   without the VAPID key on the server the account card has no switch for notifications  {"has": false, "card": true, "key": null}
+OK   with the key the switch is there; turning it on asks the browser, subscribes with the key and tells the server  {"on": {"push": true, "asked": true, "opt": true, "checked": true}, "sub": {"endpoint": "https://fcm.googleapis.com/fcm/send/test", "p256dh": "BPtest", "auth": "authtest", "lang": "no"}}
+OK   nets set 18 game hours ago: the push comes when they have soaked 20 hours, 20 real minutes on  {"min": 20, "body": "Garnene har stått i 20 timer. Drar du dem før døgnet er gått, er fisken best.", "title": "T-753-LK"}
+OK   a boat on a route to Botnhamn: the push comes at the route's ETA in real time, with the fish when there is some and as «waits for you» when there is none  {"min": 27.265433333333334, "want": 27.26544159077102, "body": "T-753-LK er framme i Botnhamn med 120 kg fisk. Lever mens fisken er fersk."}
+OK   the plan is soonest first, within the next 40 real hours, and each item says when it stops mattering  2
+OK   fish in the hold: the push comes two game hours before it drops from E to A  {"min": 140, "body": "Fisken i lasterommet går snart ned fra E- til A-kvalitet. Lever den nå, så får du bedre betalt."}
+OK   the fitting done: the push comes when the work is, 30 real minutes on  {"min": 30, "body": "Monteringen er ferdig med montering av ekkolodd. Båten er klar til å gå ut."}
+OK   a route that ends at sea: the boat is done and waits for orders  "T-753-LK er ferdig med ruta og venter på ordre."
+FEIL the hold full while jigging: the push comes when the session's rate fills it  {"f": {}, "want": 66.66666666666667}
+OK   rested in the boathouse: the push comes when the energy is full  {"r": {"min": 48, "body": "Du er uthvilt. T-753-LK er klar til å gå ut."}, "want": 48}
+OK   a gale on the way while the boat is out: the push comes two game hours before it, in real time  {"min": 0, "body": "Storm på vei: vindstyrke 11 og bølger på 0,7 m. T-753-LK ligger ute."}
+OK   a tired crew while the boat is out: the push comes when the fatigue passes 70  {"min": 37.5, "body": "Mannskapet på T-753-LK begynner å bli sliten. Gå inn til kai og la dem hvile."}
+OK   with «Båten og driften» turned off, nothing is planned  0
+OK   to the background the plan goes up; back in the app it is cleared  [1, 0]
+OK   the account card lists the two groups when notifications are on, and turning the week's best fisher off tells the server  {"r": {"n": 2, "st": false}, "prefs": [{"top": false}]}
+OK   turning it off unsubscribes and tells the server  {"push": false, "sub": null}
+OK   a new player is asked; «Ikke nå» waits a day, and «Slå på varsler» asks the browser, subscribes and tells the server  {"u": true, "shown": true, "again": false, "later": true, "n": 2, "push": true, "asked": true, "hidden": true}
+OK   never a fourth time, never when turned off in Settings, and on without a question where the browser already allows it  {"fourth": false, "off": false, "push": true, "asked": 0, "sub": true}
+errors: []

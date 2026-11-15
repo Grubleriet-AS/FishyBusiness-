@@ -1,0 +1,14 @@
+    0 / 1045 5 s
+    25 / 1045 75 s
+    50 / 1045 170 s
+    75 / 1045 249 s
+    100 / 1045 368 s
+    125 / 1045 454 s
+    150 / 1045 534 s
+    175 / 1045 610 s
+    200 / 1045 675 s
+allesteder: port Molde verft [62.7361, 7.1586] {"why": "hull damaged on the way (struck [[\"merke\",6.2,62.88828,6.95398,10]] Hardt støt mot sjømerket, 6,2 knop. Skroget er skadet.) 20.34 km out", "to": "Bud", "nm": 18.7, "min": 123, "end": "port", "log": ["Hardt støt mot sjømerket, 6,2 knop. Skroget er skadet."], "hits": [["merke", 6.2, 62.88828, 6.95398, 10]], "clash": null, "asleep": null, "h": 238.15, "hands": 0}
+    225 / 1045 736 s
+    250 / 1045 802 s
+    275 / 1045 842 s
+allesteder: port Træna utstyrsbutikk [66.5434, 12.1585] {"why": "no headway for 40 min (idle, at {\"lat\":66.54168595840709,\"lon\":12.14448075011811}, leg -) 0.65 km out", "to": "Træna verft", "nm": 2.8, "min": 48, "end": "idle", "log": [], "hits": null, "clash": null, "asleep": null, "h": 298.1, "hands": 0}
