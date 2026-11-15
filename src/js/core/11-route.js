@@ -538,7 +538,22 @@ async function leiaRoute(a, b, aPort, bPort, opt){
         if (!r3 || r3.why || !r3.wps || !r3.wps.length) continue;
         const wps = end === 'in' ? r3.wps.concat(lane, [{x:b.x, y:b.y}]) : lane.slice().reverse().concat([{x:o.x, y:o.y}], r3.wps);
         r = {wps:wps.filter((q, i, l) => i === 0 || dist(q, l[i - 1]) > 0.001), nm:r3.nm, st:Object.assign({}, r3.st, {viaLane:end, firstWhy:r.why})}; } }
+    // the leg into a harbour, or out of it, across land where the route was pulled tight past its own way in (the search trusts the
+    // harbour's end, laneIn, and the straightening dropped the lane): the lane put back from its point nearest the leg's other end. A leg
+    // over land greys «Kast loss» (estimate().bad); Træna utstyrsbutikk from Træna verft and Selvær, 15.11.2026, tests/allesteder.py
+    if (r && !r.why && r.wps && r.wps.length) r.wps = leiaLaneMend(a, r.wps, aPort, bPort);
     if (r && r.st){ r.st.tide = +credit.toFixed(2); if (LEIA_ICE.on) r.st.ice = {cap:Math.round(LEIA_ICE.cap)}; } return r; } finally { back(); }
+}
+function leiaLaneMend(a, wps, aPort, bPort){
+  const lane = P => { let ap = []; try { ap = approachPath(portById(P)) || []; } catch (e){} return ap.filter(q => dist(q, portById(P).p) >= 0.002); };
+  const clear = L => { for (let i = 1; i < L.length; i++) if (!legClear(L[i - 1], L[i])) return false; return true; };
+  const near = (L, q) => { let k = 0, d = 1e9; L.forEach((p, i) => { const e = dist(p, q); if (e < d){ d = e; k = i; } }); return k; };
+  let W = wps.slice();
+  if (bPort && W.length){ const n = W.length, q = n > 1 ? W[n - 2] : a, g = W[n - 1];
+    if (!legClear(q, g)){ const L = lane(bPort); if (L.length){ const ins = L.slice(near(L, q)), T = [q].concat(ins, [g]); if (clear(T)) W = W.slice(0, -1).concat(ins.filter(p => dist(p, q) > 0.001), [g]); } } }
+  if (aPort && W.length){ const f = W[0];
+    if (!legClear(a, f)){ const L = lane(aPort).slice().reverse(); if (L.length){ const ins = L.slice(0, near(L, f) + 1), T = [a].concat(ins, [f]); if (clear(T)) W = ins.filter(p => dist(p, f) > 0.001).concat(W); } } }
+  return W;
 }
 // A long way among the islands with no route in one piece (KL1a 12.11.2026: an autoliner from Rørvik to Bodø, 3.8 m draught. The
 // fairway network's lane goes through a sound charted at 3.6 m, and the grid's coarse search for a way that long starts in a basin
