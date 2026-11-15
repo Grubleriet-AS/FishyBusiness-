@@ -1034,7 +1034,7 @@
     // (gutting: the fish from the bleeding tub onto the table, the guts over the rail, the gutted fish into the fish tub, 08-plants.js gutw)
     const DW = deckWork(G), gutting = {task:'gutw', Tb:xf(BMrel, DW.table), Ub:xf(BMrel, dkTub(G)), Of:xf(BMrel, DW.offal), Cr:kp.length ? xf(BMrel, kp[ki].at) : null, crTop:kp.length ? karTop(vt, ki) : 0.3,
       gsp:(S.hold.find(x => !x.gut && !x.iced) || {sp:'torsk'}).sp, gkg:2 + hash(Math.floor(t / 5.6)) * 3};
-    if (!agents) drawWorker(P, Object.assign({x:wl[0] + eye[0], z:wl[2] + eye[2], h:head, walk:false, s:0}, DK.task === 'gut' ? gutting : icing), eye, t, 7);
+    if (!agents && !(G.hand && DK.me && skWalking())) drawWorker(P, Object.assign({x:wl[0] + eye[0], z:wl[2] + eye[2], h:head, walk:false, s:0}, DK.task === 'gut' ? gutting : icing), eye, t, 7);   // (on his way to it or from it, 13-instruments.js SKW)
     // the skipper and a hand both on the deck work: the hand stands inboard of the bleeding tub, facing it
     // (OB1, F19 in docs/planer/om-bord.md: on the old wooden boat that put him on the one gutting at the table, the table and the tub being
     // 0.15 m apart along her: a model with a mate's place, work.mate [x, y, z], has him there, facing the tub, clear of the other)

@@ -264,6 +264,33 @@
       const s2 = sp || {g:'relax', n:[-sd * 0.9, -0.4, 0]}, Fr = handFrame(nrm3(f), s2, sd), gd = (HM.grip[s2.g] || HM.grip.relax)[sd > 0 ? 'R' : 'L'];
       drawN(HM[sd > 0 ? 'R' : 'L'][s2.g] || HM[sd > 0 ? 'R' : 'L'].relax, chain(BMrel, handMtx(Fr, Hc), M4.S(WK_S))); return add3(Hc, mul3(inFrame(Fr, gd.at), WK_S)); }
     drawN(SK.limb, chain(BMrel, limbM(Sw, E, 0.056))); drawN(SK.limb, chain(BMrel, limbM(E, Hc, 0.048))); drawN(SK.hand, chain(BMrel, M4.T(Hc[0], Hc[1], Hc[2]))); return Hc; }
+  // (steg 125e, Jonas 15.11.2026: «når han skal bruke juksa, må han fysisk gå fra roret til juksa, og når han skal sløye må han snu seg å
+  // gå de få stegene til sløyebordet»): alone aboard a boat worked by hand the skipper has one place at a time, the tiller, the rail
+  // where he fishes or the gutting table, and when the work changes he gets up and walks there on the floor boards (drawWorker's walk,
+  // as the people on deck walk), the length of the way at 0.9 m/s and half a second to get up; meanwhile nobody is at any of the three
+  // and the jig stands. SKW.at: where he is; walking from A to B (boat frame) from t0 for dur s
+  const SKW = {at:null, A:null, B:null, t0:0, dur:0, to:null};
+  const SKWV = 0.9, SKWUP = 0.5;
+  const skWalking = () => !!SKW.to && performance.now() / 1000 < SKW.t0 + SKW.dur;
+  function skSpot(k){ const G = GEO(vtype()), sole = SKA.sole != null ? SKA.sole : SKA.fisher[1];
+    if (k === 'helm') return SK && SK.skAt ? [SK.skAt[0], sole, SK.skAt[2]] : null;
+    if (k === 'rail') return [SKA.fisher[0], sole, SKA.fisher[2]];
+    if (k === 'table'){ const d = G.deck || {y:G.gw, z:2}, W = G.work || null, tx = W ? W.table[0] : -(G.beam / 2 - 0.42), tz = W ? W.table[2] : d.z; return [tx + 0.62, sole, tz]; }   // (where drawDeck has him at the table)
+    return null; }
+  // where he is wanted this frame (null: not aboard, at the wheel's camera, or others aboard: no walk, he is where the work draws him)
+  function skWalkStep(want){ const now = performance.now() / 1000;
+    if (SKW.to && now >= SKW.t0 + SKW.dur){ SKW.at = SKW.to; SKW.to = null; }
+    if (!want){ SKW.at = null; SKW.to = null; return; }
+    if (SKW.to){ if (want !== SKW.to){ const u = clamp((now - SKW.t0 - SKWUP) / Math.max(0.01, SKW.dur - SKWUP), 0, 1), P = [SKW.A[0] + (SKW.B[0] - SKW.A[0]) * u, SKW.A[1], SKW.A[2] + (SKW.B[2] - SKW.A[2]) * u], B = skSpot(want);
+        if (B){ SKW.A = P; SKW.B = B; SKW.to = want; SKW.t0 = now - SKWUP; SKW.dur = SKWUP + Math.hypot(B[0] - P[0], B[2] - P[2]) / SKWV; } } return; }   // (turned back on the way: from where he is)
+    if (!SKW.at || SKW.at === want){ SKW.at = want; return; }
+    const A = skSpot(SKW.at), B = skSpot(want); if (!A || !B){ SKW.at = want; return; }
+    SKW.A = A; SKW.B = B; SKW.to = want; SKW.t0 = now; SKW.dur = SKWUP + Math.hypot(B[0] - A[0], B[2] - A[2]) / SKWV; }
+  // the walker drawn on the way (the look and the walk as the people on deck have them, 08-plants.js drawWorker)
+  function skWalkDraw(BMrel){ if (!skWalking()) return; const now = performance.now() / 1000, u = clamp((now - SKW.t0 - SKWUP) / Math.max(0.01, SKW.dur - SKWUP), 0, 1);
+    const P = [SKW.A[0] + (SKW.B[0] - SKW.A[0]) * u, SKW.A[1], SKW.A[2] + (SKW.B[2] - SKW.A[2]) * u], w = xf(BMrel, P), w2 = xf(BMrel, SKW.B), w1 = xf(BMrel, SKW.A), eye = lastEye;
+    const h = Math.atan2(w2[0] - w1[0], -(w2[2] - w1[2])), wy = w[1] + eye[1];
+    drawWorker({gy:() => wy, bare:true, spray:0, kit:'skipper', look:seaLook(lookMe())}, {x:w[0] + eye[0], z:w[2] + eye[2], h, walk:u > 0 && u < 1, s:0}, eye, now, 7); }
   function drawSkiff(BMrel, VP, dt, showSkipper, showCrew){
     if (!SK) return; const b = S.boat;
     // wheel follows the turn rate, the outboard follows the wheel, the lever follows the speed
@@ -292,7 +319,11 @@
     const g0 = S.boat.gop, gearOn = mode === 'gear' && !!g0, setting = gearOn && g0.op === 'set', handNet = gearOn && g0.kind === 'garn' && !hasHauler('garn');
     const mate = showCrew && !!SK.fisherC && gearOn && !!SKA.coil && !!SKA.setter, atRail = !(setting && SKA.set);   // (a model without the places keeps the fisher at the rail)
     const moorI = SKA.moor && meAboard() && !cam.helm && (b.status === 'port' || b.status === 'unmooring') && (MO.phase === 'lines' || MO.phase === 'out') && MO.lines > 0.02 && MO.lines < 3.98 ? Math.min(3, Math.floor(MO.lines)) : -1;
-    if (((showSkipper && !fishing) || (setting && SKA.set && meAboard() && !cam.helm)) && moorI < 0){ const TG = SK.tillerG && SK.skAt && SK.skipper.fig2;
+    // (the walk between his places, alone aboard: SKW above)
+    const soloW = meAboard() && handsAboard() === 1 && !cam.helm;
+    skWalkStep(!soloW ? null : DECKACT.on && DECKACT.me ? 'table' : mode && atRail ? 'rail' : showSkipper && !fishing && moorI < 0 ? 'helm' : null);
+    const walkW = soloW && skWalking(); if (walkW) skWalkDraw(BMrel);
+    if (((showSkipper && !fishing) || (setting && SKA.set && meAboard() && !cam.helm)) && moorI < 0 && !walkW){ const TG = SK.tillerG && SK.skAt && SK.skipper.fig2;
       // (steg 125e, Jonas 15.11.2026: «Ser ut som han har hånda bak ryggen å styrer. Kanskje det blir bedre om han sitter litt skrått?»: at a
       // tiller he sits turned on the thwart so the grip is ahead of him to his right (SKEW off the way to it), the right hand on the grip as
       // the tiller swings about the rudder head, the left on his knee; the tiller as drawn below)
@@ -339,7 +370,7 @@
     // fish swung from the rail into the tub
     for (let i = A.fly.length - 1; i >= 0; i--){ const f = A.fly[i]; f.u += dt / 0.75; if (f.u >= 1){ A.fly.splice(i, 1); continue; }
       const u = f.u; hang(f.sp, f.kg, [f.a[0] + (TUB[0] - f.a[0]) * u, f.a[1] + (TUB[1] - f.a[1]) * u + Math.sin(Math.PI * u) * 0.45, f.a[2] + (TUB[2] - f.a[2]) * u], i, 0); }
-    if (mode && atRail){
+    if (mode && atRail && !walkW){
       const FP = chain(M4.T(F[0], F[1], F[2]), M4.RY(-Math.PI / 2)); drawN(SK.fisher, chain(BMrel, FP));
       const shY = SK.wk ? WK_SH : 1.3; let shR = xf(FP, [0.2, shY, 0]), shL = xf(FP, [-0.2, shY, 0]), hR, hL;
       A.t += dt;
