@@ -292,21 +292,30 @@
     const g0 = S.boat.gop, gearOn = mode === 'gear' && !!g0, setting = gearOn && g0.op === 'set', handNet = gearOn && g0.kind === 'garn' && !hasHauler('garn');
     const mate = showCrew && !!SK.fisherC && gearOn && !!SKA.coil && !!SKA.setter, atRail = !(setting && SKA.set);   // (a model without the places keeps the fisher at the rail)
     const moorI = SKA.moor && meAboard() && !cam.helm && (b.status === 'port' || b.status === 'unmooring') && (MO.phase === 'lines' || MO.phase === 'out') && MO.lines > 0.02 && MO.lines < 3.98 ? Math.min(3, Math.floor(MO.lines)) : -1;
-    if (((showSkipper && !fishing) || (setting && SKA.set && meAboard() && !cam.helm)) && moorI < 0){ const TG = SK.tillerG && SK.skAt;
-      drawN(SK.skipper, TG && SK.skipper.fig2 ? chain(BMrel, M4.T(SK.skAt[0], SK.skAt[1], SK.skAt[2])) : BMrel);
-      // (steg 125e: the right hand on the tiller's grip as it swings about the rudder head, the left on his knee; the tiller as drawn below)
-      if (TG && SK.tillerAt){ const P0 = SK.tillerAt, a = SK.wheelA * 0.3, c = Math.cos(a), sn = Math.sin(a), d = [SK.tillerG[0] - P0[0], SK.tillerG[1] - P0[1], SK.tillerG[2] - P0[2]],
-          gr = [P0[0] + c * d[0] + sn * d[2], SK.tillerG[1] + 0.03, P0[2] - sn * d[0] + c * d[2]], K0 = SK.skAt, sh = (SK.wk ? WK_SH : 1.3) * 0.72;
-        armTo(BMrel, SK.wk, [K0[0] + 0.2, K0[1] + sh, K0[2]], gr, 1, {g:'grip', a:[0, 0, -1]}); armTo(BMrel, SK.wk, [K0[0] - 0.2, K0[1] + sh, K0[2]], [K0[0] - 0.12, K0[1] + 0.56, K0[2] - 0.34], -1); } }
+    if (((showSkipper && !fishing) || (setting && SKA.set && meAboard() && !cam.helm)) && moorI < 0){ const TG = SK.tillerG && SK.skAt && SK.skipper.fig2;
+      // (steg 125e, Jonas 15.11.2026: «Ser ut som han har hånda bak ryggen å styrer. Kanskje det blir bedre om han sitter litt skrått?»: at a
+      // tiller he sits turned on the thwart so the grip is ahead of him to his right (SKEW off the way to it), the right hand on the grip as
+      // the tiller swings about the rudder head, the left on his knee; the tiller as drawn below)
+      let MS = BMrel;
+      if (TG && SK.tillerAt){ const K0 = SK.skAt, P0 = SK.tillerAt, a = SK.wheelA * 0.3, c = Math.cos(a), sn = Math.sin(a), d = [SK.tillerG[0] - P0[0], SK.tillerG[1] - P0[1], SK.tillerG[2] - P0[2]],
+          gr = [P0[0] + c * d[0] + sn * d[2], SK.tillerG[1] + 0.03, P0[2] - sn * d[0] + c * d[2]], vx = SK.tillerG[0] - K0[0], vz = SK.tillerG[2] - K0[2], SKEW = 0.75;
+        // (his heading to the grip at rest, turned SKEW to the side that leaves it at his right hand: RY(th) faces (-sin th, -cos th), his right is (cos th, -sin th))
+        const tv = Math.atan2(-vx, -vz), th = [tv + SKEW, tv - SKEW].find(q => Math.cos(q) * vx - Math.sin(q) * vz > 0) || tv;
+        const FM = chain(M4.T(K0[0], K0[1], K0[2]), M4.RY(th)), sh = (SK.wk ? WK_SH : 1.3) * 0.72; MS = chain(BMrel, FM);
+        drawN(SK.skipper, MS);
+        armTo(BMrel, SK.wk, xf(FM, [0.2, sh, 0]), gr, 1, {g:'grip', a:[0, 0, -1]}); armTo(BMrel, SK.wk, xf(FM, [-0.2, sh, 0]), xf(FM, [-0.12, 0.56, -0.34]), -1); }
+      else drawN(SK.skipper, BMrel); }
     if (showCrew && !mate) drawN(SK.crew, BMrel);
-    if (mode !== A.mode){ A.mode = mode; A.st = 'jig'; A.t = 0; A.fish = []; A.fly = []; A.mc = []; A.bq = []; A.bl = null; A.jk = HANDJUKSA.fresh(); }
     // fish reported by the fishing step; stale ones (3D was off) are dropped
     const Q = window.CATCHQ || (window.CATCHQ = []), nowT = performance.now();
     // (steg 125e: on the hand jig the fish hooked wait on the hooks for the next crank up, none is let go while he fishes, deckcrew.js HANDJUKSA)
-    if (mode === 'juksa') HANDJUKSA.keep(Q, true); else { while (Q.length && (nowT - Q[0].t > 15000 || Q.length > 12)) Q.shift(); if (!mode) Q.length = 0; }
+    // (and while he is away from it a moment, at the deck work, she still fishes with the jig: the fish wait on the hooks, the line where it was)
+    const jigOn = mode === 'juksa' || (!mode && S.boat.status === 'fishing' && S.boat.rig === 'juksa');
+    if (mode !== A.mode){ A.mode = mode; A.st = 'jig'; A.t = 0; A.fish = []; A.mc = []; if (!jigOn){ A.fly = []; A.bq = []; A.bl = null; A.jk = HANDJUKSA.fresh(); } }   // (steg 125e: the fish on their way to the knife and the tub are not let go while she jigs)
+    if (jigOn) HANDJUKSA.keep(Q, true); else { while (Q.length && (nowT - Q[0].t > 15000 || Q.length > 12)) Q.shift(); if (!mode) Q.length = 0; }
     const JK = A.jk || (A.jk = HANDJUKSA.fresh());
     // (and the fish waiting for the knife and in his hands are not in the tub yet: they were, and a fish came into the tub as he bled another)
-    const airKg = HANDJUKSA.air(mode === 'juksa' ? JK : A, Q, A.fly, A.bq, A.bl) + A.mc.reduce((a, m) => a + (m.fish || []).reduce((c, f) => c + f.kg, 0), 0);
+    const airKg = HANDJUKSA.air(jigOn ? JK : A, Q, A.fly, A.bq, A.bl) + A.mc.reduce((a, m) => a + (m.fish || []).reduce((c, f) => c + f.kg, 0), 0);
     SK.airKg = airKg;   // (and the bleeding tub of an open boat with tubs is drawn without it, 09-landing-deck.js drawBleedTub)
     // the catch in the tub: one fish per ~5 kg, species in proportion to the hold; fish still in the air are not in it yet
     // (in the kit's 300 l tub where the model has its place, tools/deck/fisk.py; else in the model's own box)
@@ -365,10 +374,13 @@
         const jig = JK.st === 'jig' ? Math.pow(Math.max(0, Math.sin(T * 2.4)), 3) : 0;
         drawN(SK.reelF, chain(BMrel, M4.T(C[0], C[1], C[2]))); drawN(SK.reelD, chain(BMrel, M4.T(C[0], C[1], C[2]), M4.RZ(A.th)));
         hR = [C[0] - KR * Math.sin(A.th), C[1] + KR * Math.cos(A.th), C[2] + KZ];
-        hL = JK.st === 'jig' ? [RL[0] - 0.02, RL[1] + 0.12 + 0.3 * jig, RL[2] - 0.02] : [RL[0] - 0.05, RL[1] + 0.06, RL[2]];
+        // (Jonas 15.11.2026: «Kanskje han skal holde seg i rekka med den andre hånda som han ikke sveiver med?»: while he cranks and while
+        // it hangs up at the roller, the left hand holds on to the gunwale beside the reel, on his left; jigging, it works the line)
+        const onLine = JK.st === 'jig' || JK.st === 'down';
+        hL = JK.st === 'jig' ? [RL[0] - 0.02, RL[1] + 0.12 + 0.3 * jig, RL[2] - 0.02] : onLine ? [RL[0] - 0.05, RL[1] + 0.06, RL[2]] : [C[0] - 0.02, C[1] + 0.03, C[2] - 0.42];
         const top = [RL[0], RL[1] + 0.04, RL[2]], sea = -0.3;
-        // the line from the spool through his left hand over the roller and down to the pilk; under the surface as far as it is seen
-        SK.lines.push([L2R([C[0] + 0.02, C[1] + 0.08, C[2]]), L2R(hL)], [L2R(hL), L2R(top)]);
+        // the line from the spool (through his left hand while he jigs) over the roller and down to the pilk; under the surface as far as it is seen
+        if (onLine) SK.lines.push([L2R([C[0] + 0.02, C[1] + 0.08, C[2]]), L2R(hL)], [L2R(hL), L2R(top)]); else SK.lines.push([L2R([C[0] + 0.02, C[1] + 0.08, C[2]]), L2R(top)]);
         const yOf = i => RL[1] - HANDJUKSA.hookAt(JK, i) - (JK.st === 'jig' ? 0.3 * jig : 0), seen = y => y > sea - 1.2;
         let low = null;
         for (let i = 0; i < HANDJUKSA.HOOKS; i++){ const y = yOf(i); if (y > RL[1] - 0.02 || !seen(y)) continue;

@@ -14,11 +14,11 @@ def check(ok, what, extra=''):
 
 SET = """((a) => { const [scene, yaw, pitch, dist] = a, b = S.boat, g = GROUNDS[0].p; S.tut = 0; S.t = Math.round((Date.UTC(2027, 2, 12, 11) - EPOCH) / 6e4);
   b.type = 'trebat'; applyVessel(); G3.vesselChanged(); S.boatName = 'Havbris'; S.equip = {}; S.jobs = []; S.cargo = []; b.gop = null; S.plan = null; S.crew = []; S.me = S.cur; S.myJob = null; S.rest = null;
-  b.port = null; b.pos = {x:g.x, y:g.y}; b.heading = 0.4; b.fuel = BOAT.fuelCap; b.deckStop = false; S.hold = [];
+  b.port = null; b.pos = {x:g.x, y:g.y}; b.heading = 0.4; b.fuel = BOAT.fuelCap; b.deckStop = false; S.hold = []; S.settings.gut = false; S.settings.ice = false;   // (nobody goes to gut: the one aboard jigs)
   window.CATCHQ = []; clearInterval(window.FEED); clearInterval(window.TURN);
   if (scene === 'jig'){ b.status = 'fishing'; b.fishUntil = S.t + 600; b.v = 0; b.rig = 'juksa'; b.gear = true; S.target = 'torsk'; window.jigActive = false;
-    // (the fishing step's fish, as it hooks them: a fish every 1.5 s, the kilos in the hold as the game puts them there)
-    window.FEED = setInterval(() => { const f = {sp:'torsk', kg:2 + Math.random() * 3, t:performance.now()}; window.CATCHQ.push(f); S.hold.push({sp:'torsk', cls:SPECIES.torsk.ref, kg:f.kg, n:1, bled:true, iced:false, hr:Math.floor(S.t / 60), fresh:100, gut:false, hook:true}); window.HOOKED = (window.HOOKED || 0) + 1; }, 1500); }
+    // (the fishing step's fish, as it hooks them, the kilos in the hold as the game puts them there)
+    window.FEED = setInterval(() => { const f = {sp:'torsk', kg:2 + Math.random() * 3, t:performance.now()}; window.CATCHQ.push(f); S.hold.push({sp:'torsk', cls:SPECIES.torsk.ref, kg:f.kg, n:1, bled:true, iced:false, hr:Math.floor(S.t / 60), fresh:100, gut:false, hook:true}); window.HOOKED = (window.HOOKED || 0) + 1; }, 4000); }   // (a fish every 4 s: more than the game hooks on a hand jig, less than one man can crank up and bleed)
   else { b.status = 'sailing'; b.v = 3; b.fishUntil = null; b.rig = 'juksa';
     // (she turns: the heading swung to and fro, so the tiller goes over)
     window.TURN = setInterval(() => { b.heading += 0.035 * Math.sign(Math.sin(performance.now() / 4000)); }, 100); }
@@ -52,7 +52,7 @@ async def main():
                 check(set(seen) >= {'down', 'jig', 'up', 'top'}, 'juksa går ned, nappes, sveives opp og er oppe', list(seen))
                 check(last and last['bled'] > 0, 'fisken sveives opp og bløgges', last)
                 check(lost == 0, 'ingen fisk er borte mellom kroken og karet (kroket = venter + på snøret + i hånda + bløgget)', {'brudd': lost, 'sist': last})
-            await pg.evaluate(SET, ['sail', -2.4, 0.3, 4.5]); await pg.wait_for_timeout(9000)
+            await pg.evaluate(SET, ['sail', -2.0, 0.5, 4.2]); await pg.wait_for_timeout(9000)
             await pg.screenshot(path=os.path.join(OUT, f'trebat125e_rorkult_{tag}.png'))
         await pg.evaluate("() => { clearInterval(window.FEED); clearInterval(window.TURN); }")
         check(not errs, 'ingen sidefeil', errs[:3])
