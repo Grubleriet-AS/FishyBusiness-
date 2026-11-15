@@ -50,8 +50,10 @@ function crewSim(src){
     const G = ST.G, d = G.deck || {y:G.gw, z:0}, W = G.work, K = G.kit || {}, Bm = G.beam || 3, V = VESSELS[ST.type] || {}, out = [];
     const box = (x, z, w, l, ry) => out.push([x, z, w / 2 + 0.06, l / 2 + 0.06, ry || 0, 0.06]);
     const tu = W ? W.tub : [Bm / 2 - 0.62, d.y, d.z + 0.35], s = (W && W.s) || 1; box(tu[0], tu[2], 0.72 * s, 1.08 * s, W && W.ry || 0);
-    if (!(W && W.own)){ const tb = W ? W.table : [-(Bm / 2 - 0.42), d.y, d.z]; box(tb[0], tb[2], 0.62, V.len >= 10 ? 1.6 : 1.15); }
-    if (G.hauler) box(G.haulerFoot ? G.haulerFoot[0] : Bm / 2 - 0.2, G.hauler[2], 0.35, 0.4);   // (anchors.haulerFoot: where the model sets the post, 10-gear.js, OB12)
+    if (!(W && W.own)){ const tb = W ? W.table : [-(Bm / 2 - 0.42), d.y, d.z]; box(tb[0], tb[2], 0.62, benkOf(V, W) ? 1.6 : 1.15); }
+    if (G.hauler) box(G.haulerFoot ? G.haulerFoot[0] : Bm / 2 - 0.2, G.hauler[2], 0.35, 0.4);
+    // (the fish hold's open hatch, steg 125d: open while she fishes, so nobody's way goes over it; anchors.hatchSize)
+    { const Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at); if (Hh && G.hatchSize && W && W.nopack){ const side = Math.abs(Hh[0]) > 0.5 ? Math.sign(Hh[0]) : G.hauler && G.hauler[0] < 0 ? 1 : -1; box(Hh[0] + side * 0.06, Hh[2], G.hatchSize[0] + 0.12, G.hatchSize[1]); } }   // (and the lid tipped up on its side edge, view3d/09-landing-deck.js hatchSide)   // (anchors.haulerFoot: where the model sets the post, 10-gear.js, OB12)
     // (the autoline hauler and its hook cleaner across the hauling station, from the port in to the cleaner; the line's guide arm over
     // the way along the back wall is high enough to pass under, H2d2)
     if (G.aline && G.aline.foot){ const F = G.aline.foot; box(F[0] + 0.05, F[2], 1.9, 0.62); }
@@ -305,7 +307,7 @@ function crewSim(src){
   // the one who gives the signs: at the rail to the quay (a lean place facing out that way), some two metres from the tub,
   // on the deck the tub stands on where there is such a place (1.5 m or more from the tub: the load goes up and out over the rail there)
   function lukePlace(id){ const T = landTub(), sd = quaySide(), M = ST.M, hq = sd * Math.PI / 2; let best = null, bv = 1e9;
-    for (const l of ST.PT.lean || []){ if (!M.ok(l.k) || !free(l.k, id)) continue; const p = M.at(l.k); if (Math.cos((l.h || 0) - hq) < 0.7 || p[0] * sd < 0) continue;
+    for (const l of ST.PT.leanAll || ST.PT.lean || []){ if (!M.ok(l.k) || !free(l.k, id)) continue; const p = M.at(l.k); if (Math.cos((l.h || 0) - hq) < 0.7 || p[0] * sd < 0) continue;
       const dz = T ? Math.hypot(p[0] - T.B[0], p[2] - T.B[2]) : 2.2, dy = T ? Math.abs(p[1] - T.B[1]) : 0; if (dz < 1.5) continue;
       // (a step back from a close rail, so the hand at his side is inside it)
       // (FB2: and a little further back where the raised arm's elbow would be in a high bulwark or what stands on it)
@@ -314,7 +316,11 @@ function crewSim(src){
       const v = Math.abs(dz - 2.2) + dy * 3 + (livePart(l.k) ? 0 : 4) + hits * 2; if (v < bv){ bv = v; best = {k:l.k, h, off, task:'signal', dyn:'luke'}; } }
     return best; }
   // the ice box on deck (the model's place, else by the packer's place as the view stands it: view3d/09-landing-deck.js iceBoxAt)
-  function iceBox(){ const K = (ST.G.kit || {}).iskasse; if (K) return [K[0], K[1], K[2], K[3] || 0, K[4] || 1]; const q = ST.PT.is; if (!q || !ST.M0.ok(q.k)) return null;
+  // (steg 125d: on a boat with a hold the ice goes down the open hatch into the hold, where the fish is iced; no ice box on deck. As a
+  // box [x, y, z, ry, scale] of the 0.72 x 1.08 m tub's size, for the one who takes it in)
+  function iceBox(){ const G = ST.G, W = G.work, Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at);
+    if (W && W.nopack && Hh && G.hatchSize){ const [aw, al] = G.hatchSize, sc = Math.min(aw / 0.72, al / 1.08), dy = (G.deck || {y:G.gw}).y; return [Hh[0], dy, Hh[2], 0, sc]; }   // (on the deck by the coaming)
+    const K = (G.kit || {}).iskasse; if (K) return [K[0], K[1], K[2], K[3] || 0, K[4] || 1]; const q = ST.PT.is; if (!q || !ST.M0.ok(q.k)) return null;
     const p = ST.M0.at(q.k), h = q.h || 0, F = [Math.sin(h), -Math.cos(h)], R = [Math.cos(h), Math.sin(h)]; return [p[0] - R[0] * 0.62 + F[0] * 0.1, p[1], p[2] - R[1] * 0.62 + F[1] * 0.1, -h, 0.75]; }
   // (the ice comes through the silo's hose, and he holds its end over the box, view3d/09-landing-deck.js drawPlant; where the hose
   // pose is not clear of everything by the box, under the gutting board of an open boat, he has his hands on its rim, or stands by it)
@@ -389,7 +395,8 @@ function crewSim(src){
     const tub = W ? [W.tub[0], W.tub[2]] : [Bm / 2 - 0.62, d.z + 0.35];
     // the hauler shakes the fish off the hook onto the deck just inboard of him (drop); the bleeder stands aft of that, facing it
     const drop = [HP[0] - sg * 0.95, HP[2] + 0.4], bl = [drop[0] - sg * 0.3, drop[1] + 0.62];
-    const PL = {sg, tub, drop, hatch:[0, d.z],
+    const Hh0 = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at), PL = {sg, tub, drop, hatch:Hh0 ? [Hh0[0], Hh0[2]] : [0, d.z],   // (the model's hatch where she has one: on the kyst15 it lies by the side since steg 125d)
+
       haul:[[HP[0] - sg * 0.55, HP[2] + 0.2, sg * Math.PI / 2, 'haul'], [HP[0] - sg * 0.55, HP[2] - 0.55, sg * Math.PI / 2, 'haul']],
       pick:[HP[0] - sg * 0.62, HP[2] + 0.95, sg * Math.PI * 0.62, 'pick'], pot:[HP[0] - sg * 1.0, HP[2] + 0.9, sg * Math.PI * 0.5, 'tend'],
       bleed:[bl[0], bl[1], face(bl[0], bl[1], drop[0], drop[1]), 'bleedst']};
@@ -402,7 +409,7 @@ function crewSim(src){
     if (LEMMER.on && ST.PT){ const M = ST.M, B = BLEED, pt = n => { const c = ST.PT[n]; return c && c.k != null && ST.M0.ok(c.k) ? [ST.M0.at(c.k)[0], ST.M0.at(c.k)[2], c.h || 0] : null; };
       // (the table and the ice under a shelter deck or below: nobody stands at those places on this deck, goalOf «below»)
       const wy = W ? W.table[1] : d.y, sq = ST.PT.sloy, under = wy != null && sq && sq.k != null && M.ok(sq.k) && Math.abs(M.at(sq.k)[1] - wy) > 0.5;
-      let ICE = null; const I = under ? null : pt('is'), Sl = under ? null : pt('sloy'), h0 = PL.haul[0], OB = [[h0[0], h0[1], B.room.haul], [PL.haul[1][0], PL.haul[1][1], B.room.haul2], [PL.pick[0], PL.pick[1], B.room.pick], [PL.pot[0], PL.pot[1], B.room.pick]], two = (((VESSELS[ST.type] || {}).stations || {}).hauler || 1) > 1, NEAR = [[PL.haul[1][0], PL.haul[1][1], B.drop2, two]];   /* (NEAR: [x, z, m clear, a person whose place it is]; the second hauler where the boat has two hauling) */
+      let ICE = null; const I = under || (W && W.nopack) ? null : pt('is'), Sl = under ? null : pt('sloy'), h0 = PL.haul[0], OB = [[h0[0], h0[1], B.room.haul], [PL.haul[1][0], PL.haul[1][1], B.room.haul2], [PL.pick[0], PL.pick[1], B.room.pick], [PL.pot[0], PL.pot[1], B.room.pick]], two = (((VESSELS[ST.type] || {}).stations || {}).hauler || 1) > 1, NEAR = [[PL.haul[1][0], PL.haul[1][1], B.drop2, two]];   /* (NEAR: [x, z, m clear, a person whose place it is]; the second hauler where the boat has two hauling) */
       if (Sl){ OB.push([Sl[0], Sl[1], B.room.is]); NEAR.push([Sl[0], Sl[1], B.drop, true]); }
       if (I){ const ih = I[2] + (((VESSELS[ST.type] || {}).hold || {}).kind !== 'dekk' ? Math.PI : 0), cr = [I[0] + Math.sin(ih) * 0.58, I[1] - Math.cos(ih) * 0.58]; OB.push([I[0], I[1], B.room.is], [cr[0], cr[1], B.room.box]); NEAR.push([I[0], I[1], B.drop, true], [cr[0], cr[1], B.drop]); }
       // (the ice box on deck, and the shovel's way from it to the packer's box: the fish is not let fall on it, and nobody stands in it)
@@ -433,6 +440,13 @@ function crewSim(src){
         if (m > av){ av = m; any = k; } if ((m < 0 || d >= bv) && m <= wv) continue; if (poseHits('bleedst', k, face(c[0], c[2], drop[0], drop[1]))) continue;   /* (his pose clear of the boat there, so fitWork leaves him where he was put) */
         if (m >= 0 && d < bv){ bv = d; best = k; } if (m > wv){ wv = m; wide = k; } }
       const kb = best >= 0 ? best : wide >= 0 ? wide : any; PL.tightB = best >= 0 ? 0 : wide >= 0 ? 1 : 2; if (kb >= 0){ const c = M.at(kb); PL.bleed = [c[0], c[2], face(c[0], c[2], drop[0], drop[1]), 'bleedst']; } }
+    // (steg 125d, Jonas 15.11.2026: the deck laid out after the work, boat by boat, docs/planer/arbeidsceller.md «Forslagene, båt for båt»:
+    // where the model says where the fish is let fall and where the bleeder stands (work.drop, work.bleed), that is where, not a search.
+    // work.solo: the hauler bleeds the fish himself and throws it in the tub, so nobody has the bleeder's place (the four smallest decks).
+    // work.nopack: nobody ices on deck (the icing is done in the hold, or there is no room): the packer is inside)
+    if (W && W.drop){ drop[0] = W.drop[0]; drop[1] = W.drop[2]; PL.tight = 0; PL.dropSide = true; }
+    if (W && W.bleed){ PL.bleed = [W.bleed[0], W.bleed[2], W.bleed[3] != null ? W.bleed[3] : face(W.bleed[0], W.bleed[2], drop[0], drop[1]), 'bleedst']; PL.tightB = 0; }
+    PL.solo = !!(W && W.solo); PL.noPack = !!(W && W.nopack);
     // the line tubs (rigAt: two across from the model's place, turned with it): one baiter or stripper to a tub, inboard of it, facing it
     const sp = K.stamps ? K.stamps : {at:[Bm / 2 * 0.25, d.y, d.z - 0.6], ry:0}, c = Math.cos(sp.ry || 0), s = Math.sin(sp.ry || 0);
     PL.tubY = sp.at[1]; PL.tubs = []; for (let i = 0; i < 8; i++){ const lx = (i % 2) * 0.52, lz = Math.floor(i / 2) * 0.5, x = sp.at[0] + lx * c + lz * s, z = sp.at[2] - lx * s + lz * c; PL.tubs.push([x, z]); }
@@ -604,6 +618,7 @@ function crewSim(src){
     if (st === 'haling' && (p.role === 'sett' || p.role === 'lang')){ const kind = !src && S.boat.gop ? S.boat.gop.kind : 'line', id = p.c ? 'c' + p.c.id : 'me';
       const q = p.role === 'sett' ? setPlace(kind, id) : langPlace(kind, id); return q || idleGoal(p, ctx, 'look'); }
     if ((st === 'haling' || st === 'blogg') && ST.G.hauler && PT.haling){ const dy = ST.G.hauler[1] - ST.M0.at(PT.haling.k)[1]; if (dy < -0.3 || dy > 1.7) return IN; }
+    if (!ctx.port && ((st === 'is' && Wk && Wk.nopack) || (st === 'blogg' && Wk && Wk.solo))) return IN;   // (steg 125d: no place for it on this deck; the hauler bleeds, the hold is iced below)
     if (st === 'sloy') return deckAt(PT.sloy, n, 'gut') || idleGoal(p, ctx, 'look');
     // (on a boat with a hold the packer turns his back to the bleeding tub: the box he packs stands on the deck before him, by the hatch)
     if (st === 'is'){ const g = deckAt(PT.is, n, 'pack'); if (g && ((VESSELS[ST.type] || {}).hold || {}).kind !== 'dekk') g.h = (g.h || 0) + Math.PI; return g || idleGoal(p, ctx, 'look'); }

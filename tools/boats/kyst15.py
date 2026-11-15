@@ -390,9 +390,14 @@ CEIL = 5.94                  # the station's ceiling (the shelter deck's undersi
 HXX = 7.30                   # the hauler at the opening's forward end, on the sill
 HFOOT = 0.20                 # its post's foot this far inside the hull's inside on the working deck (anchors.haulerFoot, OB12: the game set it 0.2 m
                              # inside her greatest beam, which is at the rail: the post came down outside the hull under the flare)
-TUB = (6.55, -2.35)          # the bleeding tub (the game's) just aft of the fisher at the hauler
+# (steg 125d, Jonas 15.11.2026, docs/planer/dekk/forslag.json and «Luka ut til rekka»: the one who gutted stood on the hatch in the middle
+# of the 1.2 m station. The hatch out to the side under the opening, the tub into the recess by the inboard wall forward of her own table
+# (which stays), the bleeder between the hauler and the hatch, the fish let fall at the hauler's side; the one who guts at the table's
+# outboard side with the hatch a step aft of him to starboard. The hold is not modelled (only the outside): the hatch is the lid in the deck)
+TUB = (6.395, -1.50)         # the bleeding tub (the game's), by the inboard wall forward of the table (6.55, -2.35 before, in the hauler's way)
+GUT_AT = (5.395, -1.90); BLEED_AT = (6.345, -2.20); DROP_AT = (6.595, -2.60)   # the one who guts, the bleeder, where the fish is let fall
 TABLE = (4.78, 5.78, -1.52, -0.96)   # her own gutting table along the inboard wall aft, across the hatch from the work at the side (B6)
-HOLD = (5.30, 6.10, -2.30, -1.70)    # the hold's hatch between the tub and the table: the gutted fish go down on ice
+HOLD = (5.30, 6.10, -2.80, -2.20)    # the hold's hatch by the side under the opening, aft of the bleeder: the fish go down on ice (steg 125d; -2.30, -1.70 before)
 LADDER = (7.02, 7.72, -1.56, -0.96)  # the companion ladder up to the shelter deck at the inboard forward corner (its foot aft, rising forward), its well over it
 IDOOR = (6.10, 6.80)         # the door in the inboard wall into the closed working deck
 def ybi(x): return y_at(x, ZMD, -1) - 0.07           # the hull's inside at the station (at the deck, where the side is narrowest: it flares out above)
@@ -412,7 +417,7 @@ STAMP = (4.06, 0.86)         # the line tubs' place: the block of eight (0.78 x 
                              # (deckcrew.js gearBoxes), along the inboard wall forward
 # the jigging places on the sills, in the order the machines are bolted on (anchors.jigZ, F21: an arm's length between them, clear of
 # the hauler at HXX and the bleeding tub at TUB): two in the station's opening aft of the tub, two in the after hatch
-JIG = [(1, 5.83), (1, 4.86), (1, 3.60), (1, 2.60)]
+JIG = [(1, 6.45), (1, 4.86), (1, 3.60), (1, 2.60)]   # (steg 125d: the hatch lies under the opening's after part now; the first between it and the hauler, where the bleeder stands when they haul: nobody hauls while they jig)
 
 
 # ---------- the openings: real holes, cut with a boolean and lined ----------
@@ -1162,7 +1167,7 @@ def anchors():
     return {'bower': bower(G), 'eye': G(SKIP[0], SKIP[1], fl + EYE_H), 'skipperAt': G(SKIP[0], SKIP[1], fl), 'hp': HP, 'fov': FOV,
             # the hands (kyst15-grunnlag kap. 6): the fisher at the hauler, the one who bleeds by the tub, the one who guts at the table,
             # one by the gear on the working deck aft (OB12; he stood on the shelter deck)
-            'crewSpots': [G(7.05, -2.55, ZMD) + [1.57], G(6.55, -1.70, ZMD) + [1.57], G(5.25, -1.95, ZMD) + [-1.57], G(2.9, -1.7, ZMD) + [1.57]],
+            'crewSpots': [G(7.05, -2.55, ZMD) + [1.57], G(6.45, -2.30, ZMD) + [1.57], G(5.25, -1.95, ZMD) + [-1.57], G(2.9, -1.7, ZMD) + [1.57]],   # (steg 125d: the second by the first jigging place, not in the tub)
             # typed lights (B8; 12-20 m): the masthead light on the mast's top, the side lights with their screens, the stern light on the
             # mizzen, the fishing lights red over white on their arms; the work lights
             'lights': [[G(MX, 0, white_z()), [1, 0.95, 0.85], 'masthead'],
@@ -1179,7 +1184,10 @@ def anchors():
             'names': name_strips(G),
             # the work at sea: the fisher at the hauler forward in the opening, the bleeding tub (the game's) just aft of him, her own
             # gutting table along the inboard wall aft, the hold's hatch between them for the gutted fish on ice
-            'work': {'table': G((TABLE[0] + TABLE[1]) / 2, (TABLE[2] + TABLE[3]) / 2, ZMD), 'tub': G(TUB[0], TUB[1], ZMD), 'own': True, 'top': round(ZMD + 0.90 - WL, 3), 'stand': 1},
+            'work': {'table': G((TABLE[0] + TABLE[1]) / 2, (TABLE[2] + TABLE[3]) / 2, ZMD), 'tub': G(TUB[0], TUB[1], ZMD), 'own': True, 'top': round(ZMD + 0.90 - WL, 3), 'stand': 1,
+                     'gut': G(GUT_AT[0], GUT_AT[1], ZMD) + [-1.571], 'bleed': G(BLEED_AT[0], BLEED_AT[1], ZMD) + [0.0], 'drop': G(DROP_AT[0], DROP_AT[1], ZMD), 'nopack': True},
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (HOLD[3] - HOLD[2], HOLD[1] - HOLD[0])],
             'hatch': G((HOLD[0] + HOLD[1]) / 2, (HOLD[2] + HOLD[3]) / 2, ZMD + 0.13), 'bunk': G(9.8, 1.0, ZMD + 0.6), 'exhaust': G(WX0 - 0.22, 2.05, WR + 1.30),
             'deck': {'y': round(ZMD - WL, 3), 'z': round(-(6.2 - XM), 3)}, 'gw': round(SILL - WL, 3),
             'stern': round(XM - XA, 3), 'bow': round(-(XF - XM), 3), 'side': round(BEAM / 2, 3), 'beam': BEAM, 'pl': 6.0, 'rl': 2.5, 'open': False, 'hand': False,
@@ -1243,8 +1251,8 @@ def check():
                 z_low(PROP[0] + 0.1) - tip > 0.10 and low - 0.10 > 0.05 and X_KA - PROP[0] - 0.10 > 0.15 and PROP[0] - 0.10 - RX_ > 0.15))
     # the work (kap. 19): the sill a rail for the hauler and the jigging machines (jigRail: 0.35-1.3 m over the deck), the places apart
     out.append(('haleplassens ripe %.2f m over arbeidsdekket (jigRail: 0.35-1.3); åpningen %.2f m høy, %.2f m lang' % (SILL - ZMD, HEAD - SILL, OP1 - OP0), 0.35 <= SILL - ZMD <= 1.3 and HEAD - SILL >= 0.8))
-    out.append(('haleren ved x %.2f, karet %.2f m akter for ham, luka mellom karet og bordet (%.2f-%.2f), bordet %.2f-%.2f langs innerveggen; juksaplassene %s, %.2f m fri av haleren' % (HXX, HXX - TUB[0], HOLD[0], HOLD[1], TABLE[0], TABLE[1], [x for _, x in JIG], HXX - max(x for _, x in JIG)),
-                HXX - TUB[0] >= 0.5 and HXX - max(x for _, x in JIG) > 0.6 and HOLD[3] < TABLE[2] - 0.15))
+    out.append(('haleren ved x %.2f, karet %.2f m akter for ham, luka ved sida akter for den som bløgger (%.2f-%.2f), bordet %.2f-%.2f langs innerveggen; juksaplassene %s, %.2f m fri av haleren' % (HXX, HXX - TUB[0], HOLD[0], HOLD[1], TABLE[0], TABLE[1], [x for _, x in JIG], HXX - max(x for _, x in JIG)),
+                HXX - TUB[0] >= 0.5 and HXX - max(x for _, x in JIG) > 0.6 and HOLD[3] < GUT_AT[1] - 0.25 - 0.05 and TABLE[1] < TUB[0] - 0.54))
     # ---- OB12: the after working deck, the setting port, the gear's places and the jigging places ----
     # (the pchip fault from H3d1: a table cached by id() gave stations the wrong curve, and the two sides differed 10.6 cm at the stem)
     dsy = max(abs(y_at(x, z, 1) - y_at(x, z, -1)) for x in [XA + (XF - XA) * i / 120 for i in range(121)] for z in (1.2, 2.0, 2.7, 3.0, 3.5, 4.2, 5.0, 5.8) if z_low(x) < z - 0.05)
@@ -1268,8 +1276,8 @@ def check():
     jx = sorted(x for _, x in JIG); gaps = [b - a for a, b in zip(jx, jx[1:])]
     inop = lambda x: AH0 + 0.45 <= x <= AH1 - 0.45 or OP0 + 0.25 <= x <= OP1 - 0.45
     tubx = (TUB[0] - 0.54 - m6, TUB[0] + 0.54 + m6)
-    out.append(('juksaplassene (F21): %d på styrbord terskel ved x %s, minst %.2f m mellom to (en armlengde, 0.95), alle i en åpning, %.2f m akter for blødekaret og %.2f for haleren; VESSELS.kyst15.jukseMax skal være %d (valg 31 A)'
-                % (len(JIG), jx, min(gaps), tubx[0] - max(jx), HXX - max(jx), len(JIG)), min(gaps) >= 0.95 and all(inop(x) for x in jx) and tubx[0] - max(jx) >= 0.10 and HXX - max(jx) > 0.6))
+    out.append(('juksaplassene (F21): %d på styrbord terskel ved x %s, minst %.2f m mellom to (en armlengde, 0.95), alle i en åpning, %.2f m fri av luka og %.2f for haleren; VESSELS.kyst15.jukseMax skal være %d (valg 31 A)'
+                % (len(JIG), jx, min(gaps), min(abs(x - (HOLD[0] + HOLD[1]) / 2) - (HOLD[1] - HOLD[0]) / 2 for x in jx), HXX - max(jx), len(JIG)), min(gaps) >= 0.95 and all(inop(x) for x in jx) and all(not (HOLD[0] - 0.35 < x < HOLD[1] + 0.35) for x in jx) and HXX - max(jx) > 0.6))
     hf = ybi(HXX) - HFOOT
     out.append(('halerens fot %.2f m fra midten på arbeidsdekket, %.2f innenfor skrogets innside (%.2f) og %.2f innenfor ytterhuden der; spillet satte den før ved %.2f, utenfor' % (hf, HFOOT, ybi(HXX), y_at(HXX, ZMD, -1) - hf, BEAM / 2 - 0.2),
                 hf < ybi(HXX) - 0.1 and BEAM / 2 - 0.2 > ybi(HXX)))

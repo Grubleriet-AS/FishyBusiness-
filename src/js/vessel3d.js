@@ -627,6 +627,9 @@ function vesselGeo(type, hs, sp, house, anch){
 }
 function vesselModel(type){ if (!(type in VMODEL)) VMODEL[type] = buildVesselModel(type, 1); return VMODEL[type]; }
 function geoOf(type){ const m = vesselModel(type); return m ? m.geo : null; }
+// the steel gutting bench (1.6 m) from 10 m, else the plastic table (1.15 m); work.bord: the plastic table on a bigger boat where the rail between
+// the hauler and the crane is short (the used fast sjark, steg 125d, Jonas 15.11.2026 «Kortere bord»)
+const benkOf = (V, W) => !!(V && V.len >= 10) && !(W && W.bord);
 // the local fleet in 3D: each boat gets the decked coastal model nearest her in length and beam (view3d.js scales it to her own
 // size), in one of four liveries for the hull and its stripe; near at lod 1, at middle distance at lod 0.3
 const LIVERY = [null, {hull:VC.navy, stripe:VC.white}, {hull:VC.red, stripe:VC.white, rail:VC.white}, {hull:VC.teal, stripe:VC.yellow}];
@@ -1799,7 +1802,9 @@ function deckPoints(type){
   // (work.stand: the side of the table one stands at, 1 to starboard of it, -1 to port; by default toward the middle of the boat, as at a
   // table on the bulwark. The 15 m shelter-decker's table stands along the hauling station's inboard wall, so she stands outboard of it)
   const sd = W && W.stand ? Math.sign(W.stand) : (tx < 0 ? 1 : -1);
-  put('sloy', tx + sd * 0.62, tz, sd > 0 ? -Math.PI / 2 : Math.PI / 2, far); if (W && W.pack) put('is', W.pack[0], W.pack[2], W.pack[3] != null ? W.pack[3] : 0, far); else put('is', ux + (ux > tx ? -0.62 : 0.62), uz, ux > tx ? Math.PI / 2 : -Math.PI / 2, far);   // (work.pack: the model's own place for the one who ices, 04.11.2026)
+  if (W && W.gut) put('sloy', W.gut[0], W.gut[2], W.gut[3] != null ? W.gut[3] : 0, far); else put('sloy', tx + sd * 0.62, tz, sd > 0 ? -Math.PI / 2 : Math.PI / 2, far);   // (work.gut: the model's own place for the gutter, steg 125d)
+  // (work.nopack, steg 125d: nobody ices on this deck, the hold is iced below: no packer's place)
+  if (W && W.nopack){} else if (W && W.pack) put('is', W.pack[0], W.pack[2], W.pack[3] != null ? W.pack[3] : 0, far); else put('is', ux + (ux > tx ? -0.62 : 0.62), uz, ux > tx ? Math.PI / 2 : -Math.PI / 2, far);   // (work.pack: the model's own place for the one who ices, 04.11.2026)
   if (G.hauler) put('haling', G.hauler[0] * 0.7, G.hauler[2], G.hauler[0] > 0 ? Math.PI / 2 : -Math.PI / 2, 1.6);
   // the helm, or the door when the house has no floor in the model. Not a cell over the wheel: the house's roof is deck in the map (joined
   // by the links), so the nearest cell over the wheel was the roof and the skipper steered from up there (the sjark and the havsjark,
@@ -1827,7 +1832,10 @@ function deckPoints(type){
   // map has her rail (the shelter-deckers, whose working deck under the shelter the map does not hold)
   // (OB12: a model whose working deck lies under a deck says which deck her rail is on, anchors.leanY: the kyst15's working deck runs aft to
   // the transom now, and the cells along the transom's inside counted as a rail, so the idle hands stood facing the wall under the shelter deck)
+  // (steg 125d: not by the fish hold's hatch, open while she fishes: on the kyst15 it lies at the side under the opening)
+  const Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at), HS = W && W.nopack && Hh && G.hatchSize, byHatch = l => { if (!HS) return false; const p = M.at(l.k); return Math.abs(p[0] - Hh[0]) < HS[0] / 2 + 0.35 && Math.abs(p[2] - Hh[2]) < HS[1] / 2 + 0.35; };
   const ly = typeof G.leanY === 'number' ? G.leanY : d.y, low = lean.filter(l => Math.abs(M.at(l.k)[1] - ly) < 0.6), rail = low.length >= 4 ? low : lean;
-  rail.sort((a, b) => M.at(a.k)[2] - M.at(b.k)[2]); const step = Math.max(1, Math.floor(rail.length / 10)); pt.lean = rail.filter((_, i) => i % step === 0).slice(0, 10);
+  rail.sort((a, b) => M.at(a.k)[2] - M.at(b.k)[2]); const step = Math.max(1, Math.floor(rail.length / 10)); pt.lean = rail.filter((_, i) => i % step === 0).slice(0, 10).filter(l => !byHatch(l));
+  Object.defineProperty(pt, 'leanAll', {value:rail, enumerable:false});   // (not among the places others go through; every place along her rail: the one who gives the crane signs looks for a free one there, steg 125d: on the breisjark the ten were all by the tub, the hauler and the table)
   DECKPTS[type] = pt; return pt;
 }

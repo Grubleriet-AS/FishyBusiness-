@@ -854,7 +854,7 @@ crew: people with skills, habits and moods
   - 722 `flyOut(c)`
   - 730 `flyTick()`
 
-## `src/js/core/05-vessels.js` (1458 linjer)
+## `src/js/core/05-vessels.js` (1463 linjer)
 
 ---------- other vessels (deterministic, so every player sees the same traffic) ----------
 
@@ -921,49 +921,49 @@ crew: people with skills, habits and moods
   - 832 `sail(H, W, hs)`
   - 869 `sailWaiting()`
   - 870 `sailReplan(pl, b, gp)`
-  - 906 `iceWhy(p, tried)`
-  - 908 `sailStop(pl, b, why)`
-  - 916 `haltPlan(need)`
-  - 926 `arrive(w)`
-  - 944 `unstuckWhy()`
-  - 950 `unstuckSpot()`
-  - 957 `unstuck()`
-- **971** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
-  - 979 `moorPhase(b)`
-  - 994 `dock(pid, berth)`
-  - 1022 `catchFactors(H, W, hs)`
-  - 1035 `stockDev(p, sp)`
-  - 1041 `fish(H, W, hs)`
-  - 1147 `endFishing(why)`
-  - 1168 `bycHere(how)`
-  - 1172 `bycAdd(sp, kg, how)`
-  - 1176 `bycConf()`
-  - 1179 `addCatch(sp, kg, cls, hook, opt)`
-- **1201** work on deck: gutting and icing take hands and time
-  - 1217 `deckHands()`
-  - 1220 `deckPending()`
-  - 1221 `deckEta(hands)`
-  - 1226 `moveKg(x, kg, patch)`
-  - 1234 `iceMinute()`
-  - 1241 `iceOut(out)`
-  - 1247 `deckMinute()`
-- **1272** lying to in a storm (H1b R8, 05.11.2026)
-  - 1289 `quayFar(b)`
-  - 1293 `lieTo(W, hs)`
-  - 1300 `lieToStep(W, hs)`
-  - 1310 `risk(W, hs)`
-  - 1338 `hullRepair()`
-  - 1341 `svcOverdue()`
-- **1342** the rescue boat (plan E3, 05.10.2026)
-  - 1368 `rescueBases()`
-  - 1377 `rescueBase(p)`
-  - 1384 `rescueAis(H)`
-  - 1388 `rescue(keepCatch)`
-  - 1413 `towSea(p)`
-  - 1418 `towRoutes(b)`
-  - 1429 `towStep(H)`
-  - 1441 `towDone(t)`
-  - 1447 `towPose(frac)`
+  - 911 `iceWhy(p, tried)`
+  - 913 `sailStop(pl, b, why)`
+  - 921 `haltPlan(need)`
+  - 931 `arrive(w)`
+  - 949 `unstuckWhy()`
+  - 955 `unstuckSpot()`
+  - 962 `unstuck()`
+- **976** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
+  - 984 `moorPhase(b)`
+  - 999 `dock(pid, berth)`
+  - 1027 `catchFactors(H, W, hs)`
+  - 1040 `stockDev(p, sp)`
+  - 1046 `fish(H, W, hs)`
+  - 1152 `endFishing(why)`
+  - 1173 `bycHere(how)`
+  - 1177 `bycAdd(sp, kg, how)`
+  - 1181 `bycConf()`
+  - 1184 `addCatch(sp, kg, cls, hook, opt)`
+- **1206** work on deck: gutting and icing take hands and time
+  - 1222 `deckHands()`
+  - 1225 `deckPending()`
+  - 1226 `deckEta(hands)`
+  - 1231 `moveKg(x, kg, patch)`
+  - 1239 `iceMinute()`
+  - 1246 `iceOut(out)`
+  - 1252 `deckMinute()`
+- **1277** lying to in a storm (H1b R8, 05.11.2026)
+  - 1294 `quayFar(b)`
+  - 1298 `lieTo(W, hs)`
+  - 1305 `lieToStep(W, hs)`
+  - 1315 `risk(W, hs)`
+  - 1343 `hullRepair()`
+  - 1346 `svcOverdue()`
+- **1347** the rescue boat (plan E3, 05.10.2026)
+  - 1373 `rescueBases()`
+  - 1382 `rescueBase(p)`
+  - 1389 `rescueAis(H)`
+  - 1393 `rescue(keepCatch)`
+  - 1418 `towSea(p)`
+  - 1423 `towRoutes(b)`
+  - 1434 `towStep(H)`
+  - 1446 `towDone(t)`
+  - 1452 `towPose(frac)`
 
 ## `src/js/core/05b-ferje.js` (197 linjer)
 
@@ -1374,7 +1374,7 @@ the fish tubs (docs/planer/fiskekar-dekk.md, Jonas 04.11.2026)
   - 59 `tubPack(dims, spec, seed)`
   - 92 `karRefund()`
 
-## `src/js/core/07-harbours.js` (689 linjer)
+## `src/js/core/07-harbours.js` (705 linjer)
 
 harbours: quays, berths and mooring
 
@@ -1383,56 +1383,57 @@ harbours: quays, berths and mooring
   - 32 `unitDredge(p, d)`
   - 42 `quayFace(pid, kind)`
 - **73** the NPC boats' berths at the quays of the map data (part 4 of the coast-wide plan; the user's wish 03.10.2026: the quays made
-  - 98 `sitePockE(s, x, z)`
-  - 109 `siteOut(s)`
-  - 116 `siteDredge(p, d)`
-- **123** L1 (01.11.2026; Jonas: «Båtene skal benytte seg av de ekte kaiene vi har laget modeller av og som vi har plassert rundt om i
-  - 131 `quayReal(f)`
-  - 146 `faceReserved(f)`
-  - 160 `quayFree(f)`
-  - 176 `quayOut(f, a, L, all)`
-  - 196 `hullDry(p, hd, L, B)`
-  - 201 `npcBerths(group, p, boats, R = 0.6)`
-  - 241 `apprClr(q)`
-  - 242 `clearLine(a, b)`
-  - 245 `quayLand(q)`
-  - 246 `quayLandLine(a, b)`
-  - 253 `quayLandLeg(a, b)`
-  - 267 `approachPath(pt)`
-  - 324 `exitWps(pt, to)`
-  - 325 `entryWps(pt, from)`
-  - 340 `berthPose(pid, type, kind = 'main')`
-- **374** the way in to a berth and out of it (the user's list 04.10.2026: «legge til og fra kai uten å gå gjennom landmasse og
-  - 379 `berthBlocked(p, m = 2)`
-  - 388 `berthClear(a, b, m)`
-  - 389 `berthPath(from, bp)`
-- **414** landing the catch
-  - 437 `landFreeze()`
-  - 443 `landPlan(type, kg, hold)`
-  - 462 `landState(L, t)`
-  - 471 `mottakOpen(H)`
-  - 473 `mottakNext(H)`
-  - 477 `mottakWhen(H, no, from)`
-- **483** The queue at the plant (docs/planer/etter-tonys-test.md K1–K4, K6; Jonas 07.11.2026, V2 A and V3 A)
-  - 494 `landSlots(pt)`
-  - 495 `landQueueOn()`
-  - 497 `landQueueAsk(force)`
-  - 517 `landQueueGo()`
-  - 524 `landQueueEnd()`
-  - 530 `landLook(pts)`
-  - 536 `startLanding(ops)`
-  - 550 `landStart(pt, lp, kg, ops)`
-  - 562 `finishLanding()`
-  - 571 `iceChute(kg)`
-- **573** the bunker quay: moving along the harbour and filling fuel
-  - 586 `quayPos(b)`
-  - 601 `portBusy(b)`
-  - 602 `startShift(to, after)`
-  - 612 `startFueling(ops)`
-  - 625 `quayMinute()`
-  - 642 `buyIce(kg, free)`
-- **652** the tackle shop on the quay, in every harbour: hand jig, ice and halibut gear
-  - 658 `shopBuy(k, kg, free)`
+  - 96 `siteWhy(type, pid, naust)`
+  - 114 `sitePockE(s, x, z)`
+  - 125 `siteOut(s)`
+  - 132 `siteDredge(p, d)`
+- **139** L1 (01.11.2026; Jonas: «Båtene skal benytte seg av de ekte kaiene vi har laget modeller av og som vi har plassert rundt om i
+  - 147 `quayReal(f)`
+  - 162 `faceReserved(f)`
+  - 176 `quayFree(f)`
+  - 192 `quayOut(f, a, L, all)`
+  - 212 `hullDry(p, hd, L, B)`
+  - 217 `npcBerths(group, p, boats, R = 0.6)`
+  - 257 `apprClr(q)`
+  - 258 `clearLine(a, b)`
+  - 261 `quayLand(q)`
+  - 262 `quayLandLine(a, b)`
+  - 269 `quayLandLeg(a, b)`
+  - 283 `approachPath(pt)`
+  - 340 `exitWps(pt, to)`
+  - 341 `entryWps(pt, from)`
+  - 356 `berthPose(pid, type, kind = 'main')`
+- **390** the way in to a berth and out of it (the user's list 04.10.2026: «legge til og fra kai uten å gå gjennom landmasse og
+  - 395 `berthBlocked(p, m = 2)`
+  - 404 `berthClear(a, b, m)`
+  - 405 `berthPath(from, bp)`
+- **430** landing the catch
+  - 453 `landFreeze()`
+  - 459 `landPlan(type, kg, hold)`
+  - 478 `landState(L, t)`
+  - 487 `mottakOpen(H)`
+  - 489 `mottakNext(H)`
+  - 493 `mottakWhen(H, no, from)`
+- **499** The queue at the plant (docs/planer/etter-tonys-test.md K1–K4, K6; Jonas 07.11.2026, V2 A and V3 A)
+  - 510 `landSlots(pt)`
+  - 511 `landQueueOn()`
+  - 513 `landQueueAsk(force)`
+  - 533 `landQueueGo()`
+  - 540 `landQueueEnd()`
+  - 546 `landLook(pts)`
+  - 552 `startLanding(ops)`
+  - 566 `landStart(pt, lp, kg, ops)`
+  - 578 `finishLanding()`
+  - 587 `iceChute(kg)`
+- **589** the bunker quay: moving along the harbour and filling fuel
+  - 602 `quayPos(b)`
+  - 617 `portBusy(b)`
+  - 618 `startShift(to, after)`
+  - 628 `startFueling(ops)`
+  - 641 `quayMinute()`
+  - 658 `buyIce(kg, free)`
+- **668** the tackle shop on the quay, in every harbour: hand jig, ice and halibut gear
+  - 674 `shopBuy(k, kg, free)`
 
 ## `src/js/core/07c-naust.js` (241 linjer)
 
@@ -1456,7 +1457,7 @@ Father's naust by the home harbour, and the shop on the Finnsnes quay: where the
   - 227 `naustWhy(k)`
   - 235 `naustBuy(k)`
 
-## `src/js/core/07d-rorbu.js` (85 linjer)
+## `src/js/core/07d-rorbu.js` (86 linjer)
 
 the rorbuer along the coast: a cheap bed ashore and a quay to lie at (05.10.2026)
 
@@ -1465,7 +1466,7 @@ the rorbuer along the coast: a cheap bed ashore and a quay to lie at (05.10.2026
   - 33 `rorbuSite(R)`
   - 58 `rorbuFace(pid)`
   - 64 `rorbuTarget(pt, r)`
-  - 77 `rorbuSoon(p, r)`
+  - 78 `rorbuSoon(p, r)`
 
 ## `src/js/core/07e-havn.js` (271 linjer)
 
@@ -2428,7 +2429,7 @@ MANUAL HELM (the user's wish 03.10.2026)
   - 63 `helmCast()`
   - 69 `helmCastDone(pid, kind)`
 
-## `src/js/core/16b-dyn.js` (897 linjer)
+## `src/js/core/16b-dyn.js` (901 linjer)
 
 HOW THE BOAT MOVES: a manoeuvring model (Fysikk 1; Jonas 18.10.2026)
 
@@ -2504,7 +2505,7 @@ HOW THE BOAT MOVES: a manoeuvring model (Fysikk 1; Jonas 18.10.2026)
   - 686 `dynAvoid(d, P)`
 - **712** the autopilot
   - 713 `dynAuto(d, dtG)`
-  - 896 `dynTrackView()`
+  - 900 `dynTrackView()`
 
 ## `src/js/core/16c-hull.js` (207 linjer)
 
@@ -2602,7 +2603,7 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 190 `chartNamesOf(pk, entry, sc, ox, oy)`
   - 203 `chartNamesSvg(vx0, vy0, vx1, vy1, u, taken, part)`
 
-## `src/js/ui/03-map.js` (918 linjer)
+## `src/js/ui/03-map.js` (920 linjer)
 
 ---------- map ----------
 
@@ -2658,7 +2659,7 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 872 `portByLabel(pt)`
   - 877 `addWaypoint(pt)`
 
-## `src/js/ui/03b-route.js` (293 linjer)
+## `src/js/ui/03b-route.js` (306 linjer)
 
 ---------- the route editor: waypoint names, a timeline for the list, undo and redo, moving and inserting points ----------
 
@@ -2688,14 +2689,15 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 126 `mapToClient(p)`
 - **128** «Autonav» (the button in the chart plotter, and the dock's Auto-nav): the next tap on the chart is where to go, and the route
   - 131 `leiaArm(on)`
-  - 137 `leiaTo(pt, buoy, act)`
-  - 207 `deepNear(p, maxKm)`
-  - 217 `leiaStops()`
-  - 222 `leiaCompare()`
-- **239** the sea along the route (Ø8, 06.11.2026): the wave height on each leg at the minute the boat is there, as the local forecast gives it
-  - 247 `draftSea(tl)`
-  - 266 `routeSeaWatch()`
-  - 271 `routeSeaDraw()`
+  - 141 `draftWay(start, goal, aPort, gPort, atN, port)`
+  - 165 `leiaTo(pt, buoy, act)`
+  - 220 `deepNear(p, maxKm)`
+  - 230 `leiaStops()`
+  - 235 `leiaCompare()`
+- **252** the sea along the route (Ø8, 06.11.2026): the wave height on each leg at the minute the boat is there, as the local forecast gives it
+  - 260 `draftSea(tl)`
+  - 279 `routeSeaWatch()`
+  - 284 `routeSeaDraw()`
 
 ## `src/js/ui/03g-planmap.js` (120 linjer)
 
@@ -2922,12 +2924,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **98** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 102 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1679 linjer)
+## `src/js/ui/phone/07-patch.js` (1681 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1667 `patch()`
+  - 1669 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (126 linjer)
 

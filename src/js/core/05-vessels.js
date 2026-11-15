@@ -897,6 +897,11 @@ function sailReplan(pl, b, gp){
     if (!res || res.why || !res.wps || !res.wps.length){ if (!gp.ice && typeof dynHandsOn === 'function' && dynHandsOn(PL)) return; sailStop(PL, S.boat, none); return; }
     const ins = res.wps.slice(0, -1).map(q => ({x:q.x, y:q.y, port:null, fish:0, leia:true, obs:true}));
     PL.rpNone = ins.length ? null : {t:S.t, tg};
+    // (the way round is the leg itself, from where she lies now: the model's line was drawn from where she was when the route last
+    // changed, and that first piece of it crossed the islet she stopped for, 30 m off her, while the leg from her is clear. The line is
+    // drawn again from her, 16b-dyn.js dynLineBuild; before, the same line met the same ground and she stopped, «fant ingen trygg vei
+    // rundt»: Træna utstyrsbutikk, 14.11.2026, steg 126)
+    if (!ins.length && typeof DYN !== 'undefined' && DYN.line && DYN.line.plan === PL && S.boat === b) DYN.line = null;
     PL.wps.splice(PL.idx, 0, ...ins); if (PL.unsafe) PL.unsafe.splice(PL.idx, 0, ...ins.map(() => false)); PL.obsK = null;
     log('Autonav fant en vei rundt. Går videre.', 'Autonav found a way round. Going on.', 'nav');   // (also when the way is the leg itself: she goes on along it, tests/dyntest.py 2c)
   })).catch(e => { done(); console.error(e); bound(() => { if (S.plan === PL && PL.replan){ PL.replan = null; sailStop(PL, S.boat, none); } }); });
@@ -997,7 +1002,7 @@ function dock(pid, berth){
   if (port.rorbu) rorbuSite(port);   // its berth is found before the boat is put there (07d-rorbu.js)
   if (isBerth(pid)){ havnHold(pid); b.hvDay = null; }   // a berth in a harbour: hers while she lies there, the day's due paid (07e-havn.js)
   b.anch = null; b.status = 'port'; b.port = pid; b.v = 0; b.fishUntil = null; b.pos = {x:port.p.x, y:port.p.y}; b.moorT = S.t; b.castT = null; b.shift = b.fueling = b.after = null;
-  b.berth = berth === 'naust' && siteFits(b.type) && quayFace(pid, 'naust') ? 'naust' : 'main';   // a route can end at Father's naust (07c-naust.js)
+  b.berth = berth === 'naust' && siteFits(b.type, pid) && quayFace(pid, 'naust') ? 'naust' : 'main';   // a route can end at Father's naust (07c-naust.js)
   if (typeof achVisitPort === 'function') achVisitPort(pid);
   if (typeof PTOW !== 'undefined') PTOW.docked(pid);   // moored with another player's boat in tow: the tow is done (ui/10o-ptow.js)   // «Havner besøkt» and the rest (09f-merker.js)
   const wasOps = S.plan && S.plan.ops, opsK = S.plan && S.plan.opsK;

@@ -10,12 +10,13 @@ export const data = true;
 
 export default function (t){
   const K = t.K; K.set('S', K.newState()); const S = K.get('S'), {VESSELS, CREW3D, applyVessel, LEMMER} = K, b = S.boat;
-  const BOATS = ['snekke', 'plastsjark', 'sjark', 'hurtigsjark', 'sjarkny', 'breisjark', 'kyst15', 'kyst21'], TIGHT = {kyst15:0.45, breisjark:0.8}   /* (breisjark, steg 125b: with the fish let fall to the hauler's side along the rail the bleeder has 0.84 m to him; one of the two tightest decks) */;
+  const BOATS = ['snekke', 'plastsjark', 'sjark', 'hurtigsjark', 'sjarkny', 'breisjark', 'kyst15', 'kyst21'], TIGHT = {kyst15:0.45, breisjark:0.8, kyst21:0.75}   /* (kyst21, steg 125d: the bleeder inboard of where the fish falls between the hauler and the tub, 0.77 m from the hauler; 0.75 is the rule between two men) */   /* (breisjark, steg 125b: with the fish let fall to the hauler's side along the rail the bleeder has 0.84 m to him; one of the two tightest decks) */;
   const d = (a, c) => Math.hypot(a[0] - c[0], a[1] - c[1]), was = LEMMER.on;
   for (const on of [false, true]){ LEMMER.on = on; const bad = [], seen = [];
     for (const vt of BOATS){ S.tut = 0; S.me = S.cur; b.type = vt; applyVessel(); CREW3D.reset(); if (!CREW3D.on()){ bad.push(vt + ': ikke noe dekk'); continue; }
+      const W0 = CREW3D._st.G.work || {}; if (W0.solo){ seen.push(vt + ' haleren bløgger selv'); continue; }   // (steg 125d: the hauler bleeds himself, nobody has the bleeder's place)
       const ST = CREW3D._st, PL = CREW3D.places(), q = ST.PT.is, I = q && q.k != null && ST.M0.ok(q.k) ? [ST.M0.at(q.k)[0], ST.M0.at(q.k)[2]] : null, H = PL.haul[0], B = PL.bleed, D = PL.drop;
-      if (!on){ if (Math.abs(d(H, B) - 1.08) > 0.01 || Math.abs(d(D, B) - 0.69) > 0.01 || Math.abs(d(H, D) - 0.45) > 0.01) bad.push(vt + ': flyttet uten merket'); continue; }
+      if (!on){ if (W0.bleed) continue;   /* (steg 125d: the model gives the places, with or without the new people) */ if (Math.abs(d(H, B) - 1.08) > 0.01 || Math.abs(d(D, B) - 0.69) > 0.01 || Math.abs(d(H, D) - 0.45) > 0.01) bad.push(vt + ': flyttet uten merket'); continue; }
       seen.push(vt + ' ' + (I ? d(I, B).toFixed(2) : '-') + '/' + d(H, B).toFixed(2) + (PL.tight || PL.tightB ? ' trangt' + (PL.tight || 0) + (PL.tightB || 0) : ''));
       if (I && d(I, B) < (TIGHT[vt] || 0.8) - 0.005) bad.push(vt + ': bløggeren ' + d(I, B).toFixed(2) + ' m fra pakkeren');
       if (I && d(I, D) < 0.6 - 0.005) bad.push(vt + ': fisken slippes ' + d(I, D).toFixed(2) + ' m fra pakkeren');

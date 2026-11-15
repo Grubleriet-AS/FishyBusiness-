@@ -18,6 +18,9 @@ drawWorker, the break poses chosen by core/13-work.js idleAssign).
     spole    a hose reel on its stand, standing on the deck: a red drum turning on x with the green hose wound on it, from the middle of its
              foot; the hose leaves the drum at +z low down
     hode     a cod's head as it comes off behind the gill cover, about 0.15 m, the snout along -z, from the middle of the cut
+    krakk    a wooden stool to sit on when baiting or on a break (steg 125d, Jonas 15.11.2026: «en trekrakk (Blender) i stedet for de
+             hvite kassene»): a square seat of three boards 0.34 m across at 0.46 m, four legs splayed out to 0.42 m at the deck, two rungs
+             each way; from the middle of its foot on the deck, the seat's boards along z
 
 What I chose myself: every measure (from the pictures and from ordinary kit, no maker's drawing), the colours, and the plain snus can and
 lighter with nothing on them. No brand names on anything.
@@ -69,6 +72,8 @@ def colours():
     C['codbelly'] = mat('codbelly', (0.88, 0.86, 0.80), 0.45)
     C['gill'] = mat('gill', (0.62, 0.12, 0.10), 0.5)
     C['eye'] = mat('eye', (0.05, 0.05, 0.05), 0.9)
+    C['stool'] = mat('stool', (0.52, 0.38, 0.22), 0.3)
+    C['stool2'] = mat('stool2', (0.44, 0.31, 0.18), 0.25)
 
 one = lambda m: (lambda z: m)
 
@@ -222,11 +227,31 @@ def hode():
         acyl(A, sphere_c - V((0, 0, 0)), sphere_c + gb(s * 0.006, 0, 0) - gb(0, 0, 0), 0.010, one(C['eye']), seg=10)
     return A.done(40)
 
+def krakk():
+    """the wooden stool (steg 125d), in the game's frame through gb(): the seat three boards along z with 4 mm between them, a frame
+    under the seat, four legs from under its corners splayed out to the deck, two rungs each way at 0.16 m"""
+    A = Acc('krakk'); H = 0.46; T = 0.026; S2 = 0.17; F2 = 0.21          # seat height, board thickness, seat's half width, feet's half spread
+    w = (2 * S2 - 2 * 0.004) / 3
+    for k in range(3):
+        x0 = -S2 + k * (w + 0.004); abox(A, x0, x0 + w, -S2, S2, H - T, H, C['stool'])
+    # the frame under the seat (the aprons), 6 cm deep, inset 2 cm
+    for sx in (-1, 1):
+        abox(A, sx * (S2 - 0.02) - 0.011, sx * (S2 - 0.02) + 0.011, -(S2 - 0.02), S2 - 0.02, H - T - 0.06, H - T, C['stool2'])
+        abox(A, -(S2 - 0.02), S2 - 0.02, sx * (S2 - 0.02) - 0.011, sx * (S2 - 0.02) + 0.011, H - T - 0.06, H - T, C['stool2'])
+    leg = lambda u, v: (V((u * (S2 - 0.035), v * (S2 - 0.035), H - T)), V((u * F2, v * F2, 0.0)))
+    for u in (-1, 1):
+        for v in (-1, 1):
+            a, b = leg(u, v); beam(A, b, a, 0.034, 0.034, C['stool2'], up=(1, 0, 0))
+    hr = 0.16; f = hr / (H - T); at = lambda u, v: V((u * (F2 + (S2 - 0.035 - F2) * f), v * (F2 + (S2 - 0.035 - F2) * f), hr))
+    for u in (-1, 1): beam(A, at(u, -1), at(u, 1), 0.02, 0.02, C['stool2'])
+    for v in (-1, 1): beam(A, at(-1, v), at(1, v), 0.02, 0.02, C['stool2'])
+    return A.done(30)
+
 def main():
     os.makedirs(OUT, exist_ok=True)
     reset(); colours()
     objs = {'termos': termos(), 'krus': krus(), 'bryne': bryne(), 'snus': snus(), 'lighter': lighter(), 'sig': sig(), 'tlf': tlf(), 'tlf2': tlf2(),
-            'kikk': kikk(), 'mat': mat_(), 'kosthode': kosthode(), 'spole': spole(), 'hode': hode()}
+            'kikk': kikk(), 'mat': mat_(), 'kosthode': kosthode(), 'spole': spole(), 'hode': hode(), 'krakk': krakk()}
     setup_render(64, 64, samples=8)
     for nm, o in objs.items():
         for p in bpy.context.scene.objects:
@@ -242,8 +267,10 @@ def main():
     r4 = lambda v: round(v, 4)
     ex = {'frame': 'kystfiske break props: metres, x right, y up, z aft (towards the one holding it); each from the point named in tools/deck/pause.py',
           'size': {nm: [r4(hi[k] - lo[k]) for k in range(3)] for nm, (lo, hi) in sz.items()}}
-    glb = os.path.join(OUT, 'deck-pause.glb'); nb = write_glb(glb, parts, ex)
-    open(os.path.join(ROOT, 'src', 'data', 'deck-pause.b64'), 'w').write(base64.b64encode(open(glb, 'rb').read()).decode())
+    glb = os.path.join(OUT, 'deck-pause.glb'); nb = write_glb(glb, parts, ex); b64 = os.path.join(ROOT, 'src', 'data', 'deck-pause.b64')
+    if 'add' in sys.argv:       # keep the parts src/data has byte for byte (the baked shade differs a little from run to run), add the new ones
+        import glbadd; print('added to deck-pause.b64:', glbadd.add_parts(b64, glb, b64))
+    else: open(b64, 'w').write(base64.b64encode(open(glb, 'rb').read()).decode())
     print('break props GLB %.1f KB' % (nb / 1024))
     for nm, A, _ in parts:
         lo, hi = sz[nm]

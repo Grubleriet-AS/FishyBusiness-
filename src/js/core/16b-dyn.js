@@ -687,12 +687,12 @@ function dynAvoid(d, P){
   const idx = obsIndex();
   const C = HIND.C, sn = Math.sin(d.psi), c = Math.cos(d.psi), look = Math.max(2 * P.L, P.L + Math.max(0, d.u) * 12), need = P.B / 2 + 4;
   const i0 = Math.floor((d.X - look) / C), i1 = Math.floor((d.X + look) / C), j0 = Math.floor((d.Y - look) / C), j1 = Math.floor((d.Y + look) / C), seen = new Set();
-  let dh = 0, n = 0;
+  let dh = 0, n = 0, aMin = 1e9;   // (aMin: how far ahead the nearest fixed thing is that she must bear away from)
   for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++){ const L = idx.get(i * 1048576 + j); if (!L) continue;
     for (const o of L){ if (o.t !== 0 || seen.has(o)) continue; seen.add(o);
       const dx = o.x - d.X, dz = o.z - d.Y, a = dx * sn - dz * c, l = dx * c + dz * sn; if (a < -P.L / 2 || a > look) continue;
       const gap = Math.abs(l) - (o.r || 0); if (gap >= need) continue;
-      dh -= (l >= 0 ? 1 : -1) * Math.atan2(need - gap, Math.max(a, P.L / 2)); n++; } }
+      dh -= (l >= 0 ? 1 : -1) * Math.atan2(need - gap, Math.max(a, P.L / 2)); n++; if (a < aMin) aMin = a; } }
   // (and a vessel lying still near her way, a ferry waiting at her quay or a boat stopped: her hull as circles of half her beam along
   // her length, steered round as a pier is. Under way the rules have them (sjvEval), but not in a harbour, where a ferry lying still at
   // Sørarnøy stood 17 m off the way in to the plant and the coastal vessel ran into her, 14.11.2026, tests/allesteder.py, steg 126)
@@ -707,7 +707,7 @@ function dynAvoid(d, P){
       const dx = ox - d.X, dz = oz - d.Y, a = dx * sn - dz * c, l = dx * c + dz * sn; if (a < -P.L / 2 || a > look) continue;
       const gap = Math.abs(l) - r; if (gap < need && (!best || gap < best.gap)) best = {gap, a, l}; }
     if (best){ dh -= (best.l >= 0 ? 1 : -1) * Math.atan2(need - best.gap, Math.max(best.a, P.L / 2)); n++; } }
-  return n ? {dh:clamp(dh, -0.7, 0.7), n} : null;
+  return n ? {dh:clamp(dh, -0.7, 0.7), n, a:aMin} : null;
 }
 // ---- the autopilot ----
 function dynAuto(d, dtG){
@@ -815,6 +815,10 @@ function dynAuto(d, dtG){
     // lines take, nor while she backs or turns off the shore)
     // (her speed is left as the corners have it: slowed down for it, her rudder lost its bite and she swung wider onto it, Vannvåg)
     if (!(T.achk-- > 0)){ T.achk = Math.round(0.5 / h); T.av = !T.bow && !(stopW && stopW.port && ds < 3 * L) ? dynAvoid(d, P) : null; }
+    // (a mark, a pile or a bridge's pier close across her way ahead: she takes it at manoeuvring speed, three knots or the least her rudder
+    // bites at, as a skipper takes a pier in a winding lead. At seven knots the push came too late and the coastal vessel on 14.99 m struck
+    // the pier of the bridge by Bergen verft from Veo and from Ytre Bruvik, 14.11.2026, tests/allesteder.py, steg 126)
+    if (T.av && T.av.a < 1e8) vG = Math.min(vG, Math.max(vTmin, 3 * KN_MS));
     const sj = sjvAuto(d, h, ds, T); if (sj) vG = Math.min(vG, sj.v);
     // (away from a stop never under the speed her rudder bites at, vTmin: in a following stream stronger than a corner's speed
     // she would else be told to go astern through it; into a stop she may, to stand on the point)

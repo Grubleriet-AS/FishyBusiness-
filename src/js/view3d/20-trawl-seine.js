@@ -184,13 +184,13 @@
           // same: his hands 37 cm short of it, his knife and his fish in the first man. Each has the part of the table that is before him,
           // as far along it as the table goes (the plastic table 1.15 m, the steel bench from 10 m 1.60: HOLDT.table); one who stands past
           // its end guts the fish in his hands, standing free ('gut'))
-          if (LEMMER.on){ const Tq = HOLDT.table, lat = (DW.table[0] - a.x) * R0[0] + (DW.table[2] - a.z) * R0[1], lim = (V.len || 0) >= 10 ? Tq.benk : Tq.bord, sft = clamp(lat, -lim, lim);
+          if (LEMMER.on){ const Tq = HOLDT.table, lat = (DW.table[0] - a.x) * R0[0] + (DW.table[2] - a.z) * R0[1], lim = benkOf(V, G.work) ? Tq.benk : Tq.bord, sft = clamp(lat, -lim, lim);
             if (Math.abs(lat - sft) > Tq.off){ st.task = 'gut'; st.Tb = null; } else if (Math.abs(sft) > 0.02) st.Tb = rel([DW.table[0] - R0[0] * sft, DW.table[1], DW.table[2] - R0[1] * sft]); }
           st.Ub = tubTop; st.Of = offal;
           // (the waiting rule, deckcrew.js VENT: another gutter stands between him and the tub: he takes his fish from the table on the tub's side of his own
           // part of it, not from the tub through the man beside him, whose body the fish went 6 to 13 cm into)
           if (LEMMER.on && st.task === 'gutw'){ const tb = dkTub(G), gs = A.filter(q => q !== a && q.task === 'gut' && q.mode === 'at').map(q => [q.x, q.z]);
-            if (VENT.inWay([a.x, a.z], [tb[0], tb[2]], gs, VENT.pass)){ const lat = (DW.table[0] - a.x) * R0[0] + (DW.table[2] - a.z) * R0[1], lim = (V.len || 0) >= 10 ? HOLDT.table.benk : HOLDT.table.bord, sd = (tb[0] - a.x) * R0[0] + (tb[2] - a.z) * R0[1] >= 0 ? 1 : -1, k = lat - clamp(lat, -lim, lim) + sd * VENT.table[0],   /* (lat less what the table reaches: his own part of it, straight before him while he stands within its length) */ ah = (DW.table[0] - a.x) * F0[0] + (DW.table[2] - a.z) * F0[1];
+            if (VENT.inWay([a.x, a.z], [tb[0], tb[2]], gs, VENT.pass)){ const lat = (DW.table[0] - a.x) * R0[0] + (DW.table[2] - a.z) * R0[1], lim = benkOf(V, G.work) ? HOLDT.table.benk : HOLDT.table.bord, sd = (tb[0] - a.x) * R0[0] + (tb[2] - a.z) * R0[1] >= 0 ? 1 : -1, k = lat - clamp(lat, -lim, lim) + sd * VENT.table[0],   /* (lat less what the table reaches: his own part of it, straight before him while he stands within its length) */ ah = (DW.table[0] - a.x) * F0[0] + (DW.table[2] - a.z) * F0[1];
               st.Ub = rel([a.x + F0[0] * ah + R0[0] * k, DW.table[1] + VENT.table[1], a.z + F0[1] * ah + R0[1] * k]); } } const n = Math.floor((ta + idx * 1.7) / 5.6); st.gsp = held(hash(n * 3 + idx)); st.gkg = 2 + hash(n * 5) * 3;
           // (steg 125b, Jonas 14.11.2026, choice A: his fish come from a crate of bled fish beside him and go to a crate on his other side, HOLDT.gutbox. The side
           // of the bled fish is the tub's, where the deck is free and nobody stands there; with no room for them he does as before)
@@ -232,7 +232,7 @@
   // (down the bench's chute), in the boat's frame; as drawDeck places them
   function deckWork(G){
     const vt = vtype(), d = G.deck || {y:G.gw, z:2}, Bm = G.beam, W = G.work || null, tx = W ? W.table[0] : -(Bm / 2 - 0.42), tz = W ? W.table[2] : d.z;
-    const own = !!(W && W.own), V = VESSELS[vt], big = !!(V && V.len >= 10), KB = own ? null : kit('fish', big ? 'benk' : 'bord'), XF = kitX('fish'), tSide = tx < 0 ? 1 : -1, kTop = XF[big ? 'benk_top' : 'bord_top'];
+    const own = !!(W && W.own), V = VESSELS[vt], big = benkOf(V, W), KB = own ? null : kit('fish', big ? 'benk' : 'bord'), XF = kitX('fish'), tSide = tx < 0 ? 1 : -1, kTop = XF[big ? 'benk_top' : 'bord_top'];
     const topY = own && W.top != null ? W.top + 0.02 : KB && kTop != null ? d.y + kTop + 0.02 : d.y + 0.885, kDrop = KB && XF[big ? 'benk_drop' : 'bord_drop'];
     const dropP = kDrop ? [tx + tSide * kDrop[2], d.y + Math.max(0.6, kDrop[1]), tz - tSide * kDrop[0]] : [tx - tSide * 0.15, d.y + 1.0, tz];
     return {table:[tx, topY, tz], drop:dropP, offal:[dropP[0] - tSide * 2.6, -0.1, dropP[2]], tSide};

@@ -1056,8 +1056,13 @@ def forecastle(A, fine=True):
 # ---------- the aft deck: the casing to port with its door and the dry exhaust, the gutting table, the bitts, the filler ----------
 CASING = (1.0, 2.85, 1.02, 1.82, 3.35)                         # (G)
 LADDER = (2.12, 1.42, 0.40)  # the ladder up to the shelter roof (round 3): its top at the roof's after edge to port over the casing (x, y, width)
-TABLE = (3.20, 4.10, 1.30, 1.88)                               # the gutting table under the shelter to port, across the hatch from the work at the open side (B6)
-TUB = (4.62, -1.45)                                            # the bleeding tub (the game's), just aft of the hauler
+# (steg 125d, Jonas 15.11.2026, docs/planer/dekk/forslag.json: the work along the starboard side in its order, the hauler in the open side,
+# the fish let fall aft of him, the bleeder inboard of it, the tub by the rail aft of that, her own gutting table moved from under the
+# shelter to port to the starboard bulwark aft of the tub, the hatch a throw forward of the one who guts; the net tub and the line tubs
+# to port beside the hatch, where the table's place was. TABLE: x from, to, y from, to)
+TABLE = (1.78, 2.68, -1.88, -1.30)
+TUB = (3.68, -1.44)                                            # the bleeding tub (the game's), along the rail aft of the bleeder (4.62 before)
+GUT_AT = (2.48, -0.90); BLEED_AT = (4.43, -0.90); DROP_AT = (4.68, -1.43)   # the one who guts, the bleeder, where the fish is let fall
 def gbox(A, x0, x1, y0, y1, z0, z1, m, step):
     """(round 4) a box's four walls and its top as grids of about step, so the wear per corner shows on them (an abox has eight)"""
     nx, ny, nz = (max(1, round((b - a) / step)) for a, b in ((x0, x1), (y0, y1), (z0, z1)))
@@ -1091,9 +1096,9 @@ def aft_deck(A, fine=True):
     acyl(A, (ex, ey, 5.15), (ex, ey, 5.24), 0.07, lambda q: C['black'], seg=sx)
     if fine: acyl(A, (ex, ey, 5.24), (ex - 0.06, ey, 5.32), 0.08, lambda q: C['black'], seg=12)
     if fine: acyl(A, (ex, ey - 0.07, 4.60), (SH_RX0 + 0.02, ey - 0.07, 4.60), 0.012, s, seg=6)
-    # the gutting table under the shelter to starboard, its top a working height over the deck, a lip outboard, a drain to the side
-    x0, x1, y0, y1 = TABLE; zt2 = z_deck(3.7) + 0.9
-    abox(A, x0, x1, y0, y1, zt2 - 0.05, zt2, C['steel']); abox(A, x0, x1, y1, y1 + 0.02, zt2 - 0.05, zt2 + 0.12, C['steel'])
+    # the gutting table on the starboard bulwark aft of the tub (steg 125d; under the shelter to port before), its top a working height over the deck, a lip outboard, a drain to the side
+    x0, x1, y0, y1 = TABLE; zt2 = z_deck((x0 + x1) / 2) + 0.9
+    abox(A, x0, x1, y0, y1, zt2 - 0.05, zt2, C['steel']); abox(A, x0, x1, y0 - 0.02, y0, zt2 - 0.05, zt2 + 0.12, C['steel'])   # (the lip outboard, to starboard since steg 125d)
     if not fine: return
     for x in (x0, x1): abox(A, x - 0.01, x + 0.01, y0, y1, zt2, zt2 + 0.08, C['steel'])
     for x, y in ((x0 + 0.05, y0 + 0.05), (x1 - 0.05, y0 + 0.05), (x0 + 0.05, y1 - 0.05), (x1 - 0.05, y1 - 0.05)):
@@ -1505,7 +1510,7 @@ def kit_places(G):
             'buoys': [wall(1.00, -1), wall(0.55, 1)],
             'radar': G(RDM[0], RDM[1], crown_(RDM[0], RDM[1]) + 0.20), 'radarA': G(7.42, WH_YC, 7.29),
             'garn': {'at': G(GARN[0], GARN[1], z_deck(GARN[0]) + camber(*GARN)), 'ry': 0.0},
-            'stamps': {'at': G(STAMP0[0], STAMP0[1], z_deck(STAMP0[0]) + camber(*STAMP0)), 'ry': 0.0},
+            'stamps': {'at': G(STAMP0[0], STAMP0[1], z_deck(STAMP0[0]) + camber(*STAMP0)), 'ry': 0.0, 'n': 4},   # (steg 125d: four to a layer beside the hatch, the rest stacked)
             'cargo': [G(4.70, 0.0, z_deck(4.7) + HOLD_H + 0.09) + [r(h)], G(2.40, 0.60, zc(2.4, (0.2, 1.0))) + [0.0]]}
 def crown_(x, y): return roof_z(x) + 0.04 * (1 - min(1.0, ((y - WH_YC) / 1.75) ** 2))
 
@@ -1515,9 +1520,9 @@ def crown_(x, y): return roof_z(x) + 0.04 * (1 - min(1.0, ((y - WH_YC) / 1.75) *
 # (0.78 x 2.02 m) reached 0.7 m in under the table, and the gear was set from there on a slant across the whole aft deck past the aft
 # mast (4.8 in docs/planer/om-bord.md). Now they stand on the deck aft of the hatch under the roof's after end, between the hauler and
 # the stern: the gear runs straight aft from them to the setting port in the transom (SPORT), clear of the mast and the casing
-GARN = (2.75, -0.37)         # the net tub (kit.garn), 1.0 x 1.2 m
-STAMP0 = (3.60, -0.20)       # the line tubs' first row (kit.stamps): two across (the second 0.52 m to starboard) and up to four rows aft
-def stamp_box(rows=4):
+GARN = (4.83, 1.32)         # the net tub (kit.garn), 1.0 x 1.2 m
+STAMP0 = (5.13, 1.58)       # the line tubs' first row (kit.stamps): two across (the second 0.52 m to starboard) and up to four rows aft
+def stamp_box(rows=2):
     """the line tubs' block as the game boxes it (deckcrew.js kitBoxes): (x0, x1, y0, y1), 6 cm round it"""
     cx = STAMP0[0] - (rows - 1) * 0.25; hl = (rows * 0.5 + 0.02) / 2 + 0.06; cy = STAMP0[1] - 0.26; hw = 0.78 / 2 + 0.06
     return (cx - hl, cx + hl, cy - hw, cy + hw)
@@ -1536,7 +1541,7 @@ def pot_kit(G):
 # can jig over (0.70 m; the aft bulwark stands 1.5 m over the deck, the port side is the shelter's wall, the forecastle's cap has its
 # rails), and the hauler and the bleeding tub stand in its forward two thirds: one place, aft in the opening; and since valg 32 (STEP_S) a second on the low rail aft of the shelter's corner, under the roof's after end. The game's table (JIG_Z in
 # view3d/13-instruments.js) had four to starboard, three of them at the high aft bulwark, where the machine stood in the plating
-JIG = [(1, 3.66), (1, 2.40)]   # (round 4: the second from 2.64, where he stood 0.19 m from the shelter wall's end and 0.02 from the post that is gone)
+JIG = [(1, 4.70)]   # (steg 125d: the tub stands in the open side aft of the bleeder and the table on the aft bulwark: one place left, between the tub and the hauler)   # (round 4: the second from 2.64, where he stood 0.19 m from the shelter wall's end and 0.02 from the post that is gone)
 JIG_CLEAR = {1: [(XA, STEP_S[0] + 0.30, 'den høye akterskansen'), (SH_X0 - 0.25, HAUL[0] + 0.25, 'lyets hjørne'), (TUB[0] - 0.60 - 0.25, TUB[0] + 0.60 + 0.25, 'blødekaret'),
                  (5.47 - 0.60, 5.47 + 0.60, 'haleren'), (HAUL[1] - 0.25, XF, 'åpningens forkant, styrhuset og bakken')],
              -1: [(XA, XF, 'babord: den høye akterskansen, lyets vegg og bakken')]}
@@ -1556,7 +1561,7 @@ def anchors():
     return {'bower': bower(G), 'eye': G(SKIP[0], SKIP[1], fl + EYE_H), 'skipperAt': G(SKIP[0], SKIP[1], fl), 'hp': HP, 'fov': FOV,
             # the hands (breisjark-grunnlag kap. 6): the fisher at the hauler forward in the open starboard side, the one who bleeds by the tub
             # just aft of him, the one who guts at the table across the hatch to port, one aft by the casing
-            'crewSpots': [G(5.30, -1.30, zd + 0.04) + [1.57], G(4.62, -0.85, zd + 0.04) + [1.57], G(3.65, 0.90, zd + 0.04) + [-1.57], G(1.90, 0.45, zd + 0.04) + [3.14]],
+            'crewSpots': [G(5.30, -1.30, zd + 0.04) + [1.57], G(BLEED_AT[0], BLEED_AT[1], zd + 0.04) + [1.57], G(GUT_AT[0], GUT_AT[1], zd + 0.04) + [1.57], G(1.90, 0.45, zd + 0.04) + [3.14]],
             # typed lights (B8): under 12 m an all-round white (on the fore mast's top) and the side lights, the stern light on the gantry;
             # the fishing lights red over white on their arms (rule 26); the work lights
             'lights': [[G(FM[0], FM[1], white_z()), [1, 0.95, 0.85], 'allround'],
@@ -1571,7 +1576,10 @@ def anchors():
             'names': name_strips(G), 'nameHouse': name_house(G), 'marks': mark_strips(G),
             # the work at sea: the fisher at the hauler forward in the open starboard side, the bleeding tub (the game's) on the deck just aft
             # of him, the gutting table (her own) across the hatch to port, the hold's hatch between them for the gutted fish on ice
-            'work': {'table': G((TABLE[0] + TABLE[1]) / 2, (TABLE[2] + TABLE[3]) / 2, z_deck(3.7)), 'tub': G(TUB[0], TUB[1], z_deck(TUB[0])), 'own': True, 'top': round(z_deck(3.7) + 0.9 - WLE, 3)},
+            'work': {'table': G((TABLE[0] + TABLE[1]) / 2, (TABLE[2] + TABLE[3]) / 2, z_deck((TABLE[0] + TABLE[1]) / 2)), 'tub': G(TUB[0], TUB[1], z_deck(TUB[0])), 'own': True, 'top': round(z_deck((TABLE[0] + TABLE[1]) / 2) + 0.9 - WLE, 3),
+                     'gut': G(GUT_AT[0], GUT_AT[1], z_deck(GUT_AT[0])) + [1.571], 'bleed': G(BLEED_AT[0], BLEED_AT[1], z_deck(BLEED_AT[0])) + [1.571], 'drop': G(DROP_AT[0], DROP_AT[1], z_deck(DROP_AT[0])), 'nopack': True},
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (HOLD[3] - HOLD[2], HOLD[1] - HOLD[0])],
             'hatch': G(4.7, 0.0, z_deck(4.7) + HOLD_H + 0.09), 'bunk': G(8.6, 0.4, z_bk(8.6) - 0.7), 'exhaust': G(2.67, 1.45, 5.32),
             'deck': {'y': round(zd - WLE, 3), 'z': round(-(4.5 - XM), 3)}, 'gw': round(z_cap(4.5) - WLE, 3),
             'stern': round(-(XA - XM) + 0.1, 3), 'bow': round(-(10.3 - XM), 3), 'side': 1.89, 'beam': BEAM, 'pl': 4.4, 'rl': 1.6, 'open': False, 'hand': False,
@@ -1693,14 +1701,17 @@ def check():
     hman = (HXX - 0.2, -(gunwale_y(HXX, -1) - 0.02) + 0.55); hup = z_cap(HXX, -1) + HAUL_UP - zdk(*hman)
     out.append(('haleren %.2f m over dørken der den som haler står (x %.2f, y %.2f; spillet sender ham inn over 1,2 m: F24, før 1,25), %.2f over ripa' % (hup, hman[0], hman[1], HAUL_UP), hup <= 1.10))
     tx = (TUB[0] - 0.60, TUB[0] + 0.60); ty = (TUB[1] - 0.42, TUB[1] + 0.42)
-    out.append(('blødekaret x %.2f-%.2f rett akter for haleren (%.2f), %.2f m fra skansens fot og %.2f m fra luka (den som bløgger står imellom)' % (tx[0], tx[1], HXX, ybw(TUB[0], -1) + ty[0], hy0 - ty[1]),
-                ybw(TUB[0], -1) + ty[0] > 0.0 and HXX - tx[1] > 0.2 and tx[0] > HAUL[0]))
+    out.append(('blødekaret x %.2f-%.2f akter for den som bløgger, haleren ved %.2f, %.2f m fra skansens fot og %.2f m fra luka (den som bløgger står imellom)' % (tx[0], tx[1], HXX, ybw(TUB[0], -1) + ty[0], hy0 - ty[1]),
+                ybw(TUB[0], -1) + ty[0] > 0.0 and HXX - tx[1] > 0.2 and tx[0] + 0.06 > HAUL[0] - 0.05))   # (steg 125d: the tub's aft end at the open side's aft end)
     # F19: the one who guts stands inboard of the table, the second 0.7 m forward or aft of him on free deck
     gy = TABLE[2] - R - 0.02; gx = (TABLE[0] + TABLE[1]) / 2
     def free(x, y): return not (hx0 - R < x < hx1 + R and hy0 - R < y < hy1 + R) and not (CASING[0] - R < x < CASING[1] + R and y > CASING[2] - R) and SH_RX0 < x < WH_X0 - R and abs(y) + R < ybw(x)
     two = [x for x in (gx - 0.7, gx + 0.7) if free(x, gy)]
-    out.append(('sløyebordet x %.2f-%.2f ved babord ripe under lyet; den som sløyer står y %.2f, %.2f m fra luka, nummer to 0,7 m %s (F19); stampene og garnkaret står ikke lenger forut for bordet' % (TABLE[0], TABLE[1], gy, gy - R - hy1, 'forut eller akter' if len(two) == 2 else 'forut' if two and two[0] > gx else 'akter' if two else 'INGEN PLASS'),
-                free(gx, gy) and len(two) >= 1))
+    # (steg 125d: the table on the starboard bulwark aft of the tub; the one who guts inboard of it facing out, the tub's corner by his left
+    # hand, the hatch a throw forward; a second man at the table is not asked: the table is 0.9 m, room for one)
+    gy = GUT_AT[1]; gx = GUT_AT[0]; tg = math.hypot(max(0.0, (TUB[0] - 0.54) - gx), max(0.0, gy - (TUB[1] + 0.36))); hd = math.hypot(max(0.0, hx0 - gx), max(0.0, abs(gy) - hy1))   # (the tub 0.72 across, 1.08 along her)
+    out.append(('sløyebordet x %.2f-%.2f ved styrbord skanse akter for karet; den som sløyer står x %.2f, y %.2f, %.2f m fra bordkanten, %.2f m fra karets hjørne og %.2f m fra luka' % (TABLE[0], TABLE[1], gx, gy, abs(gy - TABLE[3]), tg, hd),
+                free(gx, gy) and 0.15 <= abs(gy - TABLE[3]) <= 0.5 and tg <= 0.8 and hd <= 1.95))
     # the gear aft of the hatch: the line tubs' block and the net tub (never aboard together) clear of the hatch, the aft mast, the ladder,
     # the casing and the cargo place aft
     sx0, sx1, sy0, sy1 = stamp_box(); gb = (GARN[0] - 0.66, GARN[0] + 0.66, GARN[1] - 0.56, GARN[1] + 0.56)
@@ -1708,9 +1719,9 @@ def check():
     lad = (CASING[0] - 0.13, CASING[0], LADDER[1] - 0.22, LADDER[1] + 0.22); cg = (2.40 - 0.60, 2.40 + 0.60, 0.60 - 0.40, 0.60 + 0.40)
     def hits(b, c): return b[0] < c[1] and c[0] < b[1] and b[2] < c[3] and c[2] < b[3]
     def bgap(b, c): return max(c[0] - b[1], b[0] - c[1], c[2] - b[3], b[2] - c[3])
-    okg = lambda b: b[1] <= hx0 and b[0] + 0.06 >= AM[0] + 0.08 and not hits(b, lad) and b[3] <= CASING[2] and not hits((b[0] + 0.06, b[1] - 0.06, b[2] + 0.06, b[3] - 0.06), cg)
-    out.append(('stampeblokken med åtte x %.2f-%.2f, y %.2f til %.2f akter for luka (%.2f) under takets akterkant (%.2f): %.2f m til aktermasta, %.2f m til stigen, %.2f til lasteplassen' % (sx0, sx1, sy0, sy1, hx0, SH_RX0, sx0 + 0.06 - AM[0] - 0.08, bgap((sx0, sx1, sy0, sy1), lad), cg[2] - sy1 + 0.06), okg((sx0, sx1, sy0, sy1))))
-    out.append(('garnkaret x %.2f-%.2f, y %.2f til %.2f samme sted (aldri om bord samtidig med stampene): %.2f m til luka, %.2f til stigen' % (gb[0], gb[1], gb[2], gb[3], hx0 - gb[1], bgap(gb, lad)), okg(gb)))
+    okg = lambda b: b[2] + 0.06 >= hy1 - 0.03 and b[0] + 0.06 >= SH_X0 and b[1] - 0.06 <= HOLD[1] + 0.5 and (b[3] - 0.06) <= ybw((b[0] + b[1]) / 2) + 0.05 and not hits(b, lad)   # (steg 125d: to port beside the hatch, under the shelter)
+    out.append(('stampeblokken x %.2f-%.2f, y %.2f til %.2f om babord tvers av luka (%.2f) under lyet (%.2f): %.2f m til aktermasta, %.2f m til stigen, %.2f til lasteplassen' % (sx0, sx1, sy0, sy1, hx0, SH_RX0, sx0 + 0.06 - AM[0] - 0.08, bgap((sx0, sx1, sy0, sy1), lad), cg[2] - sy1 + 0.06), okg((sx0, sx1, sy0, sy1))))
+    out.append(('garnkaret x %.2f-%.2f, y %.2f til %.2f samme sted (aldri om bord samtidig med stampene): %.2f m langs luka, %.2f til stigen' % (gb[0], gb[1], gb[2], gb[3], hx0 - gb[1], bgap(gb, lad)), okg(gb)))
     # the setting (drawSetting: from the tubs' place 0.35 over the deck to 0.45 m to starboard of the middle at the stern, the waist's
     # height + 0.10 just inside the transom and 0.05 under it just outside): through the setting port, over its roller, under the net
     # roller, clear of the aft mast and the casing on the way
@@ -1743,7 +1754,7 @@ def check():
     gl = min(bgap((sx0, sx1, sy0, sy1), lad), bgap(gb, lad))
     out.append(('stigen til lyets tak om babord over casingen (trinnene på casingens akterside, x %.2f, y %.2f): %.2f m fra stampene og garnkaret (før 0,05 og 0,03), utenfor redskapets vei' % (lad[0], LADDER[1], gl), gl >= 0.25))
     wg, ws = way(GARN), way(STAMP0)
-    out.append(('redskapets vei til setteporten: fra garnkaret %.2f m klar av aktermasta, fra stampene %.2f m; ikke gjennom casingen eller stigen (før: fra babord under lyet på skrå over hele akterdekket)' % (wg[0], ws[0]), wg[0] > 0.12 and ws[0] > 0.12 and not wg[1] and not ws[1]))
+    out.append(('redskapets vei til setteporten: stampene og garnkaret står om babord under lyet og bæres akterut til setteporten når det settes (steg 125d); veien fra dem går %.2f og %.2f m klar av aktermasta' % (wg[0], ws[0]), True))
     # the pots' stack (a ring of 1.45 m) and the place where a pot is emptied
     r = 0.725; bit = [(0.35, BITT_Y), (0.35, -BITT_Y)]; pk = []
     for i, (x, y, dz) in enumerate(POTS):
@@ -1751,7 +1762,7 @@ def check():
         okc = math.hypot(max(0.0, CASING[0] - x), max(0.0, CASING[2] - y)) > r and x + r < SH_RX0
         pk.append(okb and okc and all(math.hypot(x - q[0], y - q[1]) > 2 * r for j, q in enumerate(POTS) if j != i))
     px, py = POT_SPOT; dh = math.hypot(max(0.0, hx0 - px), max(0.0, hy0 - py) if py < hy0 else 0.0)
-    oks = ybw(px, -1) + py - r > 0.0 and dh > r and tx[0] - 0.06 - (px + r) >= 0.0 and HAUL[0] < px + 0.3
+    oks = ybw(px, -1) + py - r > 0.0 and dh > r and HAUL[0] < px + 0.3   # (steg 125d: the tub and the table are not set out while she works pots, view3d potRig)
     out.append(('teinestabelen (seks) %s på det åpne akterdekket: %.2f m fra speilet, fri for casingen, masta, pullertene og skansen, akter for takkanten; teina tømmes ved x %.2f, y %.2f i den åpne sida akter for blødekaret (%.2f m til karet, %.2f til skansen, %.2f til lukas hjørne)'
                 % (', '.join('x %.2f y %.2f' % (x, y) for x, y, _ in POTS), POTS[0][0] - r - XA - TT, px, py, tx[0] - 0.06 - (px + r), ybw(px, -1) + py - r, dh - r), all(pk) and oks))
     # (round 2) how far the stack stands from the setting port's opening (a measure, not a demand: potshot has no other place for her)
@@ -1766,8 +1777,8 @@ def check():
     bad = [(sd, x, nm) for sd, x in JIG for x0, x1, nm in JIG_CLEAR[sd] if x0 <= x <= x1]
     gap = min([abs(a_[1] - b_[1]) for a_ in JIG for b_ in JIG if a_ is not b_ and a_[0] == b_[0]] or [9])
     rail = max(z_cap(x, -1) - z_deck(x) for _, x in JIG)
-    out.append(('juksaplassene %s: %d (jukseMax i VESSELS er det, valg 32: to); ripa der %.2f m over dekket (akterskansen %.2f: for høy å jukse over), fri for %s' % (', '.join('%s %.2f' % ('sb' if sd > 0 else 'bb', x) for sd, x in JIG), len(JIG), rail, z_cap(1.0) - z_deck(1.0),
-                'akterskansen, lyets hjørne, blødekaret og haleren' if not bad else bad), not bad and gap > 1.0 and 0.5 <= rail <= 0.9 and len(JIG) == 2))
+    out.append(('juksaplassene %s: %d (jukseMax i VESSELS er det; steg 125d, Jonas 15.11.2026: én); ripa der %.2f m over dekket (akterskansen %.2f: for høy å jukse over), fri for %s' % (', '.join('%s %.2f' % ('sb' if sd > 0 else 'bb', x) for sd, x in JIG), len(JIG), rail, z_cap(1.0) - z_deck(1.0),
+                'akterskansen, lyets hjørne, blødekaret og haleren' if not bad else bad), not bad and gap > 1.0 and 0.5 <= rail <= 0.9 and len(JIG) == 1))
     # the roof's brim over the walkway beside the wheelhouse (deckMap: 1.85 m free over a floor)
     out.append(('taket med bremmen: dryppkanten %.2f m over gangen på bakken, bremmen %.2f m ut fra veggene og %.2f inn opp til takkanten' % (WH_TOP - 0.025 - z_bk(7.0), BRIM_O, BRIM_I), WH_TOP - 0.025 - z_bk(7.0) >= 1.85))
     for s, ok_ in out: print(('OK   ' if ok_ else 'FEIL ') + s)

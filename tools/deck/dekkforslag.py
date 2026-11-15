@@ -1,4 +1,8 @@
-"""Proposals for where the bleeding tub, the gutting table, the gutter and the bleeder stand on each of the coast's boats (steg 125c,
+"""LAID ASIDE (15.11.2026): the search was tuned four times and gave the tub in the middle of the deck or no place at all. The proposals
+are made by hand (docs/planer/dekk/forslag.json) and held to the rules by tests/unit/dekkplan.test.mjs; running this would overwrite
+them, so it stops at once. Kept for its rules (R) and its notes.
+
+Proposals for where the bleeding tub, the gutting table, the gutter and the bleeder stand on each of the coast's boats (steg 125c,
 Jonas 15.11.2026: the places shall follow the work). The work as it is done (Matis' handling guide, Mattilsynet): the fish is bled as
 it comes aboard, bleeds out in a tub, is gutted on a bench as soon as it has bled, and goes to the hold or to a fish tub. So on deck:
 hauler -> where the fish is let fall at his side -> the bleeder -> the bleeding tub within a short throw -> the gutting table by the
@@ -8,7 +12,8 @@ docs/planer/dekk/forslag.json; tools/deck/dekkplan.py draws it in green. A propo
 
   node tests/unit/run.mjs dekkplan && python3 tools/deck/dekkforslag.py && python3 tools/deck/dekkplan.py docs/planer/dekk/forslag.json
 """
-import json, math, os
+import json, math, os, sys
+sys.exit('dekkforslag.py er lagt bort: forslagene lages for hånd i docs/planer/dekk/forslag.json (se toppkommentaren)')
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 D = json.load(open(os.path.join(ROOT, 'tests', 'out', 'dekkplan.json')))
 R = {'toss': (0.7, 1.6), 'reach': 1.1, 'stand': 0.5, 'throw': 2.2, 'apart': 0.75, 'clear': 0.28, 'side': 1.92}   # m, and rad to either side of ahead
