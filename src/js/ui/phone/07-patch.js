@@ -1,5 +1,8 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['jukse-151126', '15.11.2026', 'Juksa når du er sliten', 'The jig when you are tired', [
+       ['Alene om bord står du ved rekka og jukser også når energien er lav. Før tok du pause, og juksa fisket ingenting til du kom i land.', 'Alone aboard, you stay at the rail and jig even when your energy is low. Before, you took a break, and the jig caught nothing until you got ashore.'],
+       ['«Jukse selv» vises også når du tar en pust i bakken mens mannskapet jukser.', '«Jig yourself» also shows while you take a breather and the crew jig.']]],
     ['steder-141126', '14.11.2026', 'Vei ut fra alle steder', 'A way out from every place', [
        ['Femten mottak, butikker og verft der den eldre kystbåten ikke kom ut ved noe tidevann, har fått nye kaier med vei ut, blant dem Helligvær, Flekkerøy, Tustna, Mandal, Arendal, Halden og Træna.', 'Fifteen plants, shops and yards the older coastal vessel could not get out of at any tide have new quays with a way out, among them Helligvær, Flekkerøy, Tustna, Mandal, Arendal, Halden and Træna.'],
        ['Rorbuer som lå innestengt for båter opp til 15 m, er flyttet dit de kommer ut.', 'Rorbuer that were shut in for boats up to 15 m have moved to where they can get out.'],

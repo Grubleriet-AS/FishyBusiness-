@@ -4783,3 +4783,7 @@
 2026-11-15 20:10	ccr-as1-alle	df7ae66+	obstest	OK	11	lite	samtidig	
 2026-11-15 20:10	ccr-as1-alle	df7ae66+	autonavtest	OK	34	lite	samtidig	
 2026-11-15 20:11	ccr-as1-alle	df7ae66+	trip2	OK	41	lite	samtidig	
+2026-11-12 17:12	claude/admiring-cray-o29dfv	45772c56	worktest	OK	30	lite	samtidig	
+2026-11-12 17:12	claude/admiring-cray-o29dfv	45772c56	selfcrew	OK	9	lite	samtidig	
+2026-11-12 17:13	claude/admiring-cray-o29dfv	45772c56	docktest	OK	65	lite	samtidig	
+2026-11-12 17:26	claude/admiring-cray-o29dfv	45772c56	tut	OK	764	lite	alene	
