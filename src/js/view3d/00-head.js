@@ -41,6 +41,20 @@ const G3 = (() => {
     // your boat's versions by her length in the drawing's pixels (F1, 30.10.2026, 19-wildlife-npc.js ownTier): near over the first, middle over
     // the second, far under it; ultra keeps the near one 1.8 times further out, like everything else there
     blod:[[300, 75], [270, 68], [240, 60], [135, 34]]};
+  // Low on a big screen that still cannot keep up: fewer pixels, a step at a time (tilbakemelding #112 and #113, 04.11.2026: an iMac
+  // with a Radeon HD 6970M held 21 frames a second on High and 26 on Low at 1868 x 1251, since Low drew nearly as many pixels). Only
+  // at the lowest level and under px0, so nothing changes where the frames are there. Each step is a trial: if the frame rate does not
+  // rise by 8 % within 6 s, the pixels were not what held it back (the processor or the driver), the step is taken back and no more
+  // are tried this session. pxK goes back up a step after 10 s well over 45 frames a second.
+  QUAL.pxK = 1; QUAL.pxMin = 0.5;
+  const PXS = {bad:0, good:0, tryAt:0, fps0:0, prev:1, no:false};
+  function pxTick(dt, fps, now){
+    if (QUAL.lvl !== 0 || QUAL.fix || !fps) { PXS.bad = PXS.good = 0; return; }
+    if (PXS.tryAt){ if (now - PXS.tryAt < 6000) return; if (fps < PXS.fps0 * 1.08){ QUAL.pxK = PXS.prev; PXS.no = true; } PXS.tryAt = 0; PXS.bad = PXS.good = 0; return; }
+    if (fps < 26){ PXS.bad += dt; PXS.good = 0; if (PXS.bad > 5 && !PXS.no && QUAL.pxK > QUAL.pxMin){ PXS.prev = QUAL.pxK; QUAL.pxK = Math.max(QUAL.pxMin, QUAL.pxK * 0.75); PXS.fps0 = fps; PXS.tryAt = now; PXS.bad = 0; } }
+    else if (fps > 45){ PXS.good += dt; PXS.bad = 0; if (PXS.good > 10 && QUAL.pxK < 1){ QUAL.pxK = Math.min(1, QUAL.pxK / 0.75); PXS.good = 0; } }
+    else PXS.bad = PXS.good = 0;
+  }
   let UINT = false;
   function qualSet(){ const v = S.settings.q3d || 'auto'; if (QUAL.fix) QUAL.lvl = 2; else if (v !== 'auto') QUAL.lvl = v === 'ultra' && !UINT && gl ? 2 : {low:0, mid:1, high:2, ultra:3}[v]; return v; }
   // one frame's step of the automatic quality (dt s, fps the frame rate); returns the level
@@ -90,6 +104,7 @@ const G3 = (() => {
   }
   function qualTick(dt, fps, now){
     if (!QM.chk){ QM.chk = true; qmCrashCheck(); }
+    pxTick(dt, fps, now);
     if (qualSet() !== 'auto' || QUAL.fix || !fps) return QUAL.lvl;
     if (QUAL.lvl > QM.cap){ QUAL.lvl = QM.cap; QUAL.cap = Math.min(QUAL.cap, QM.cap); }
     if (QUAL.lvl === 3){

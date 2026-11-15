@@ -211,14 +211,18 @@
   // a side light or the stern light only within its arc (rule 21: the sides «fra rett forover til 22,5 grader aktenfor tvers», the stern
   // «67,5 grader på hver side av fartøyet fra rett akterover»; vedlegg I 9 a). M is the boat's frame relative to the eye (her bow to -z, her
   // starboard to +x); lp the light in it. The glow drew them all round, so the green showed from the port bow through the wheelhouse
+  // How much of it shows (0 to 1), not just whether: at the edge of an arc a boat that rolls and yaws a degree or two swung the light
+  // fully on and off, so the others' lanterns blinked from every angle (tilbakemelding #116, 06.11.2026). Vedlegg I 9 a: the sides'
+  // light falls to a practical cut-off between 1 and 3 degrees outside their arcs forward, so a side fades out from 1 to 3 degrees
+  // across the bow, and the sides aft and the stern light over 3 degrees beyond the edges of their arcs.
   function lampArc(M, lp, lk){
-    if (lk !== 'side' && lk !== 'stern') return true;
+    if (lk !== 'side' && lk !== 'stern') return 1;
     const q = xf(M, lp), f = xf(M, [lp[0], lp[1], lp[2] - 1]), r = xf(M, [lp[0] + 1, lp[1], lp[2]]);
     const fw = -((f[0] - q[0]) * q[0] + (f[1] - q[1]) * q[1] + (f[2] - q[2]) * q[2]), sb = -((r[0] - q[0]) * q[0] + (r[1] - q[1]) * q[1] + (r[2] - q[2]) * q[2]);
     const ang = Math.atan2(Math.abs(sb), fw) * 180 / Math.PI;
-    if (lk === 'side' && (ang > 112.5 || (lp[0] < 0 ? sb > 0.05 : sb < -0.05) && ang > 1)) return false;
-    if (lk === 'stern' && ang < 180 - 67.5) return false;
-    return true;
+    if (lk === 'side'){ const across = lp[0] < 0 ? sb > 0 : sb < 0;   // (the eye on the other side of her: a port light seen from starboard)
+      return across ? clamp((3 - ang) / 2, 0, 1) : clamp((115.5 - ang) / 3, 0, 1); }
+    return clamp((ang - 109.5) / 3, 0, 1);
   }
   // the lights over the rest that the view adds to vessel3d.js lanterns: restricted in her ability to manoeuvre red, white, red (27 b i),
   // constrained by her draught three reds (28), and the coast guard's blue all-round light on her highest masthead while she is on her
@@ -244,8 +248,8 @@
       const M = n.K ? (n.rev ? chain(n.M, n.K.S, M4.RY(Math.PI)) : chain(n.M, n.K.S)) : n.M, px = n.K ? (n.K.geo && n.K.geo.ship ? 900 : n.L < 14 ? 260 : 600) : NPCM.lightPx[n.type] || 900;
       const G = n.K ? n.K.geo : (() => { const LG = NPCM.lanG || (NPCM.lanG = {}); return LG[n.type] || (LG[n.type] = {lights:(NPCM.lights[n.type] || (SHIPTY[n.type] ? NPCM.lights.ferry : LEISM[n.type] ? NPCM.lights.sjark : null) || []).map(([lx, ly, lz, c]) => [[lx, ly, lz], NLC[c]])}); })();
       for (const [p, col, lk] of lampsMore(lanterns(G, {len, vmax:n.K ? 10 : 12}, stN), stN, len)){
-        if (!lampArc(M, p, lk)) continue;
-        const q = xf(M, p), a = A0 * lampFade(Math.hypot(q[0], q[1], q[2]), lk === 'side' || lk === 'stern' || lk === 'kv' ? lk : lk === 'masthead' || lk === 'masthead2' ? 'masthead' : 'allround', len, LF);
+        const arc = lampArc(M, p, lk); if (!arc) continue;
+        const q = xf(M, p), a = A0 * arc * lampFade(Math.hypot(q[0], q[1], q[2]), lk === 'side' || lk === 'stern' || lk === 'kv' ? lk : lk === 'masthead' || lk === 'masthead2' ? 'masthead' : 'allround', len, LF);
         if (a < 0.01) continue;
         ANCHAL.npcLit++; if (lk === 'kv') ANCHAL.kvLit++;
         PB[0] = q[0]; PB[1] = q[1]; PB[2] = q[2]; PA[0] = a; drawPts(1, gl.POINTS, VP, col, px, true); } }
