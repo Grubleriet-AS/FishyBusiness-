@@ -894,6 +894,8 @@ function addWaypoint(pt){
   if (!near && !nt) near = portByLabel(pt);
   if (nt && atN && !S.draft.length){ toast(t('already_here')); return; }
   if (!nt && near && draftPort() === near.id && !S.draft.length && !atN){ toast(t('already_here')); return; }
+  // (a tap by one of the coast's harbours, shut to the players: says why, and a tap on its water is a point of the route as before)
+  if (!near && !nt && view.z >= 2 && havnShutAt(pt, r)){ toast(S.lang === 'en' ? HAVN_WHY[1] : HAVN_WHY[0]); if (isLandUI(pt)) return; }
   if (!near && !nt && sillR && isLandUI(pt)){ const why = siteWhy(S.boat.type, sillR.id); toast(S.lang === 'en' ? why[1] : why[0]); return; }
   if (!near && !nt && isLandUI(pt)){ toast(t('on_land')); return; }
   draftEdit(() => {

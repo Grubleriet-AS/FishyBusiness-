@@ -11,7 +11,13 @@
 // rest well there only aboard a boat with bunks (Jonas 23.10.2026, B). A day there costs the harbour due by the boat's length
 // (HAVN.due: Herøy kommune's rates for working vessels 2026, 190, 380 and 590 kr a started day under 12 m, 12-15 m and over 15 m; the
 // guest harbours take about the same, Brosundet in Ålesund 200, 375 and 500 kr).
-const HAVN = {r:0.5, molo:3, dockMax:15, due:[[12, 190], [15, 380], [1e9, 590]], margin:0.5, step:2};
+// shut: the coast's harbours are the coast's own boats' only, not the players' (Jonas 15.11.2026: «de 3300 kaiene skal ikke være
+// tilgjengelige for ekte brukere»): the players moor at the plants, the shops, the yards, the naust and the rorbuer, the places
+// tests/allesteder.py sails in to and out from at the lowest tide. The berths below stay as they are (false opens them again, as havntest does)
+const HAVN = {r:0.5, molo:3, dockMax:15, due:[[12, 190], [15, 380], [1e9, 590]], margin:0.5, step:2, shut:true};
+const HAVN_WHY = ['Havnene er for kystens egne båter. Legg til ved et mottak, en butikk, et verft, naustet eller en rorbu.', "The harbours are for the coast's own boats. Moor at a plant, a shop, a yard, the boathouse or a rorbu."];
+// a tap by a harbour while they are shut (the chart says why, ui/03-map.js and ui/03b-route.js)
+const havnShutAt = (pt, r) => !!HAVN.shut && havnsNear(pt, Math.max(r, 0.15)).length > 0;
 const HVH = new Map();   // the harbours seen: id → {id, name, x, y}
 const HVS = new Map();   // the berths as places: id → {id, name, p, coast, face, key, hid, vtype, …}
 const havnDue = L => HAVN.due.find(d => L < d[0])[1];
@@ -194,18 +200,19 @@ function havnPrune(keep){
 function havnFace(pid){ const B = havnPlace(pid); return B ? B.face : null; }
 // the nearest free berth for the bound vessel within r km of p: {H, b, place} or null
 function havnFind(p, r, type){
-  type = type || S.boat.type; const vid = S.cur;
+  type = type || S.boat.type; const vid = S.cur; if (HAVN.shut) return null;
   for (const H of havnsNear(p, r)){ const L = havnBerths(H, type, vid, 1); if (L.length) return {H, b:L[0], place:havnPlaceOf(H, L[0], type)}; havnAsk(H.id); }
   return null;
 }
 // a tap in the chart near a harbour (its middle within r km): a free berth there for the bound vessel, as a place, or null (the routes end at it)
 function havnTapNear(pt, r){
+  if (HAVN.shut) return null;
   for (const H of havnsNear(pt, Math.max(r, 0.15))){ const L = havnBerths(H, S.boat.type, S.cur, 1); havnAsk(H.id); if (L.length) return havnPlaceOf(H, L[0], S.boat.type); }
   return null;
 }
 // the berths the bound vessel could take in the harbours within r km: one each, [{H, place, kind}] (the plan's Home, the dock's «Fortøy»)
 function havnOptions(p, r, type){
-  type = type || S.boat.type; const out = [];
+  type = type || S.boat.type; const out = []; if (HAVN.shut) return out;
   for (const H of havnsNear(p, r)){ havnAsk(H.id); const L = havnBerths(H, type, S.cur, 1); if (L.length) out.push({H, place:havnPlaceOf(H, L[0], type), kind:L[0].kind}); }
   return out;
 }

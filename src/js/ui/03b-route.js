@@ -206,6 +206,8 @@ async function leiaTo(pt, buoy, act){   // buoy: to a set's buoy, to haul it (th
   const nt = naustTarget(pt, r);
   if (nt && atN){ toast(t('already_here')); return; }
   if (!nt && near && aPort === near.id && !atN){ toast(t('already_here')); return; }
+  // (a tap by one of the coast's harbours, shut to the players: says why, and a tap on its water is a point of the route as before)
+  if (!near && !nt && !buoy && view.z >= 2 && havnShutAt(pt, r)){ toast(S.lang === 'en' ? HAVN_WHY[1] : HAVN_WHY[0]); if (isLandUI(pt)) return; }
   if (!near && !nt && !buoy && sillR && isLandUI(pt)){ const why = siteWhy(S.boat.type, sillR.id); toast(S.lang === 'en' ? why[1] : why[0]); return; }
   if (!near && !nt && isLandUI(pt)){ toast(t('on_land')); return; }
   // a tap in water too shallow for the boat (by the shore): the nearest point within 500 m that is deep enough, with a word about it;

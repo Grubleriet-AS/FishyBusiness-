@@ -309,8 +309,20 @@ if (BOOTG.safe) bootgSafe();   // the starts before locked (BOOTG above): the ro
     // (and a standing plan with that rorbu as home: stopped, said why; its trips home went there while the game was closed, the kontroll
     // of steg 126. The player sets a new home in it)
     const o = S.ops; if (o && o.home && siteGone(o.home)){ const w = siteWhy(S.boat.type, o.home) || ['', '']; o.on = false; o.home = null; log(w[0] + ' Driftsplanen er stoppet; velg et nytt hjemsted i den.', w[1] + ' The operating plan is stopped; choose a new home in it.'); } };
-  if (!(S.fleet && S.fleet.length)){ siteOut(); goneWay(); }
-  if (S.fleet && S.fleet.length){ ensureFleet(); for (const v of S.fleet) withVessel(v, () => { siteOut(); goneWay(); if (S.boat.status === 'port' && !portById(S.boat.port)) S.boat.port = nearestPort(S.boat.pos && isFinite(S.boat.pos.x) ? S.boat.pos : PORTS[0].p).id;   /* (the fleet's other vessels as the boat above, 13.11.2026) */ if (S.boat.status === 'port' && portById(S.boat.port)){ const pp = portById(S.boat.port).p; S.boat.pos = {x:pp.x, y:pp.y}; } }); } else ensureFleet(); }
+  // (a boat, a route or a standing plan's home at a berth in one of the coast's harbours, shut to the players since 15.11.2026, Jonas: «de
+  // 3300 kaiene skal ikke være tilgjengelige for ekte brukere», 07e-havn.js HAVN.shut: the boat moved to the nearest place that takes
+  // her, the route ending off the shore, the plan stopped for a new home; the berth let go, each told in the log)
+  const berthOut = () => { if (!HAVN.shut) return; const b = S.boat, held = new Set();
+    if (b.status === 'port' && isBerth(b.port)){ const B = portById(b.port), at = B ? B.p : b.pos, old = b.port;
+      const q = PORTS.filter(p => !p.rorbu && portFits(p, b.type)).sort((x, y) => dist(x.p, at) - dist(y.p, at))[0];
+      if (q){ b.port = q.id; b.berth = 'main'; b.pos = {x:q.p.x, y:q.p.y}; b.dyn = null; b.anch = null; if (b === S.boat) S.trail = [{x:q.p.x, y:q.p.y, port:q.id}]; held.add(old);
+        log(HAVN_WHY[0] + ' «' + (S.boatName || '') + '» er flyttet til ' + q.name + '.', HAVN_WHY[1] + ' «' + (S.boatName || '') + '» was moved to ' + q.name + '.'); } }
+    for (const L of [S.plan && S.plan.wps, S.draft]){ const e = L && L.length ? L[L.length - 1] : null; if (!e || !isBerth(e.port)) continue;
+      held.add(e.port); e.port = null; e.leia = true; delete e.berth; if (L !== S.draft) log(HAVN_WHY[0] + ' Ruta ender der den gikk, utenfor.', HAVN_WHY[1] + ' The route ends where it went, off the shore.'); }
+    const o = S.ops; if (o && isBerth(o.home)){ held.add(o.home); o.on = false; o.home = null; log(HAVN_WHY[0] + ' Driftsplanen er stoppet; velg et nytt hjemsted i den.', HAVN_WHY[1] + ' The operating plan is stopped; choose a new home in it.'); }
+    for (const id of held) havnFree(id); };
+  if (!(S.fleet && S.fleet.length)){ siteOut(); goneWay(); berthOut(); }
+  if (S.fleet && S.fleet.length){ ensureFleet(); for (const v of S.fleet) withVessel(v, () => { siteOut(); goneWay(); berthOut(); if (S.boat.status === 'port' && !portById(S.boat.port)) S.boat.port = nearestPort(S.boat.pos && isFinite(S.boat.pos.x) ? S.boat.pos : PORTS[0].p).id;   /* (the fleet's other vessels as the boat above, 13.11.2026) */ if (S.boat.status === 'port' && portById(S.boat.port)){ const pp = portById(S.boat.port).p; S.boat.pos = {x:pp.x, y:pp.y}; } }); } else ensureFleet(); }
 // every vessel gets its gear locker (saves from before passive gear have none, also on vessels that are not bound)
 for (const v of S.fleet) withVessel(v, () => { if (!S.pgear) S.pgear = newPGear(); });
 // 08.10.2026: one pot only, the big one («Krabbeteiner»); small pots aboard and in the sea become big ones
