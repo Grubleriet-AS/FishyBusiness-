@@ -291,12 +291,15 @@
     const moorI = SKA.moor && meAboard() && !cam.helm && (b.status === 'port' || b.status === 'unmooring') && (MO.phase === 'lines' || MO.phase === 'out') && MO.lines > 0.02 && MO.lines < 3.98 ? Math.min(3, Math.floor(MO.lines)) : -1;
     if (((showSkipper && !fishing) || (setting && SKA.set && meAboard() && !cam.helm)) && moorI < 0) drawN(SK.skipper, BMrel);
     if (showCrew && !mate) drawN(SK.crew, BMrel);
-    if (mode !== A.mode){ A.mode = mode; A.st = 'jig'; A.t = 0; A.fish = []; A.fly = []; A.mc = []; A.bq = []; A.bl = null; }
+    if (mode !== A.mode){ A.mode = mode; A.st = 'jig'; A.t = 0; A.fish = []; A.fly = []; A.mc = []; A.bq = []; A.bl = null; A.jk = HANDJUKSA.fresh(); }
     // fish reported by the fishing step; stale ones (3D was off) are dropped
     const Q = window.CATCHQ || (window.CATCHQ = []), nowT = performance.now();
-    while (Q.length && (nowT - Q[0].t > 15000 || Q.length > 12)) Q.shift();
-    if (!mode) Q.length = 0;
-    const airKg = Q.reduce((a, f) => a + f.kg, 0) + A.fish.reduce((a, f) => a + f.kg, 0) + A.fly.reduce((a, f) => a + f.kg, 0) + A.mc.reduce((a, m) => a + (m.fish || []).reduce((c, f) => c + f.kg, 0), 0);
+    // (steg 125e: on the hand jig the fish hooked wait on the hooks for the next crank up, none is let go while he fishes, deckcrew.js HANDJUKSA)
+    if (mode === 'juksa') HANDJUKSA.keep(Q, true); else { while (Q.length && (nowT - Q[0].t > 15000 || Q.length > 12)) Q.shift(); if (!mode) Q.length = 0; }
+    const JK = A.jk || (A.jk = HANDJUKSA.fresh());
+    // (and the fish waiting for the knife and in his hands are not in the tub yet: they were, and a fish came into the tub as he bled another)
+    const airKg = HANDJUKSA.air(mode === 'juksa' ? JK : A, Q, A.fly, A.bq, A.bl) + A.mc.reduce((a, m) => a + (m.fish || []).reduce((c, f) => c + f.kg, 0), 0);
+    SK.airKg = airKg;   // (and the bleeding tub of an open boat with tubs is drawn without it, 09-landing-deck.js drawBleedTub)
     // the catch in the tub: one fish per ~5 kg, species in proportion to the hold; fish still in the air are not in it yet
     // (in the kit's 300 l tub where the model has its place, tools/deck/fisk.py; else in the model's own box)
     // (an open boat with her fish tubs, core/07f-kar.js: drawDeck draws them with the catch, and the round fish in the bleeding tub)
@@ -345,25 +348,29 @@
         // (the juksahjul's eye at the end of its wire arm and the knob on its spool, from the model where it is in the page, tools/gear/vinde.py)
         const C = SKA.reel, RX = SK.reelX, EY = RX && RX.eye, RL = EY ? [C[0] + EY[0], C[1] + EY[1] + 0.02, C[2] + EY[2]] : [C[0] + 0.14, C[1] - 0.05, C[2]], WX = EY ? RL[0] + 0.03 : C[0] + 0.3;
         const KR = RX && RX.crank ? RX.crank[0] : 0.13, KZ = RX && RX.crank ? RX.crank[2] : 0.26;
-        if (A.st === 'jig' && Q.length && (Q.length >= 3 || nowT - Q[0].t > 2500)){ A.fish = Q.splice(0, 5); A.st = 'haul'; A.t = 0; A.d0 = -1.6 - 0.55 * A.fish.length; }
-        let jig = 0; if (A.st === 'jig') jig = Math.pow(Math.max(0, Math.sin(T * 2.4)), 3); else A.th += dt * 10;
+        // (steg 125e, Jonas 15.11.2026: the pilk and ten hooks let down, jigged, cranked up with what is on and let down again once it is up,
+        // deckcrew.js HANDJUKSA; the reel stands while he has a fish in his hands)
+        const busyJ = !!A.bl || A.bq.length > 0;
+        for (const f of HANDJUKSA.step(JK, Q, dt, busyJ)) A.bq.push({...f, a:[WX - 0.05, RL[1], C[2]], u:0});
+        A.st = JK.st === 'up' || JK.st === 'top' ? 'haul' : 'jig';   // (for the tests that read it, tests/animshot.py)
+        if (JK.st === 'up' && !busyJ) A.th += dt * 10; else if (JK.st === 'down') A.th -= dt * HANDJUKSA.DOWN / 0.16;   // (cranked in; spun back as the line runs out)
+        const jig = JK.st === 'jig' ? Math.pow(Math.max(0, Math.sin(T * 2.4)), 3) : 0;
         drawN(SK.reelF, chain(BMrel, M4.T(C[0], C[1], C[2]))); drawN(SK.reelD, chain(BMrel, M4.T(C[0], C[1], C[2]), M4.RZ(A.th)));
         hR = [C[0] - KR * Math.sin(A.th), C[1] + KR * Math.cos(A.th), C[2] + KZ];
-        hL = A.st === 'jig' ? [RL[0] - 0.02, RL[1] + 0.12 + 0.3 * jig, RL[2] - 0.02] : [RL[0] - 0.05, RL[1] + 0.06, RL[2]];
-        const top = [RL[0], RL[1] + 0.04, RL[2]];
-        if (A.st === 'jig'){ SK.lines.push([L2R([C[0] + 0.02, C[1] + 0.08, C[2]]), L2R(hL)], [L2R(hL), L2R(top)], [L2R(top), L2R([WX, -0.3, C[2]])]); }
-        else {
-          const end = A.d0 + A.t * 1.6;       // the pilk comes up at about 1.6 m/s
-          SK.lines.push([L2R([C[0] + 0.02, C[1] + 0.08, C[2]]), L2R(top)]);
-          let low = null;
-          for (let i = A.fish.length - 1; i >= 0; i--){ const f = A.fish[i], y = end + i * 0.55;       // pilk at the end, fly hooks above it
-            if (y >= RL[1] - 0.1){ A.bq.push({...f, a:[WX - 0.05, RL[1], C[2]], u:0}); A.fish.splice(i, 1); continue; }
-            // (the fish pulls the line to the sides on its way up, the most deep down, and splashes as it breaks the surface)
-            const w = fw(f), tg = tug(T, w, 0.14 * clamp((RL[1] - y) / 1.5, 0.15, 1)), P = [WX + tg[0], y, C[2] + tg[1]]; fishSurf(f, y, L2R(P), f.kg, T, w);
-            if (y > -0.2) hang(f.sp, f.kg, P, w); low = low || P; }
-          SK.lines.push([L2R(top), L2R(low || [WX, Math.min(RL[1], end), C[2]])]);
-          if (!A.fish.length && A.t > 0.8){ A.st = 'jig'; A.t = 0; }
-        }
+        hL = JK.st === 'jig' ? [RL[0] - 0.02, RL[1] + 0.12 + 0.3 * jig, RL[2] - 0.02] : [RL[0] - 0.05, RL[1] + 0.06, RL[2]];
+        const top = [RL[0], RL[1] + 0.04, RL[2]], sea = -0.3;
+        // the line from the spool through his left hand over the roller and down to the pilk; under the surface as far as it is seen
+        SK.lines.push([L2R([C[0] + 0.02, C[1] + 0.08, C[2]]), L2R(hL)], [L2R(hL), L2R(top)]);
+        const yOf = i => RL[1] - HANDJUKSA.hookAt(JK, i) - (JK.st === 'jig' ? 0.3 * jig : 0), seen = y => y > sea - 1.2;
+        let low = null;
+        for (let i = 0; i < HANDJUKSA.HOOKS; i++){ const y = yOf(i); if (y > RL[1] - 0.02 || !seen(y)) continue;
+          const f = JK.fish[i], w = f ? fw(f) : i, tg = f ? tug(T, w, 0.14 * clamp((RL[1] - y) / 1.5, 0.15, 1)) : [0, 0], P = [WX + tg[0], y, C[2] + tg[1]];
+          if (f){ fishSurf(f, y, L2R(P), f.kg, T, w); if (y > -0.2) hang(f.sp, f.kg, P, w); }
+          // the pilk (a bar of steel) at the end, a hook with its red tuft on a short snood for each of the ten above it
+          if (PM && PM.wire){ if (!i) drawN(PM.wire, chain(BMrel, limbM([P[0], P[1], P[2]], [P[0], P[1] - 0.16, P[2]], 0.013)));
+            else drawN(PM.wire, chain(BMrel, limbM([P[0], P[1], P[2]], [P[0] + 0.05, P[1] - 0.03, P[2]], 0.004))); }
+          if (!low || y < low[1]) low = P; }
+        SK.lines.push([L2R(top), L2R(low || [WX, Math.max(sea - 1.2, RL[1] - JK.d), C[2]])]);
       } else {
         // jigging machines on the rail work by themselves; the fisher takes the fish off as they come up
         const n = Math.min(SKA.mach.length, S.equip.jukse);
