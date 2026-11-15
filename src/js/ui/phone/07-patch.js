@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['kystbat-151126', '15.11.2026', 'Kystbåten på 21 m: dekkshuset uten mørke striper', 'The 21 m coastal vessel: the deckhouse without dark streaks', [
+       ['Skyggen under båtdekkets kant på den eldre kystbåten på 21 m rant ned som mørke striper mot koøyene i dekkshuset. Nå holder den seg under kanten.', 'The shade under the boat deck\'s edge on the older 21 m coastal vessel ran down as dark streaks towards the portholes in the deckhouse. Now it stays under the edge.']]],
     ['jukse-151126', '15.11.2026', 'Juksa når du er sliten', 'The jig when you are tired', [
        ['Alene om bord står du ved rekka og jukser også når energien er lav. Før tok du pause, og juksa fisket ingenting til du kom i land.', 'Alone aboard, you stay at the rail and jig even when your energy is low. Before, you took a break, and the jig caught nothing until you got ashore.'],
        ['«Jukse selv» vises også når du tar en pust i bakken mens mannskapet jukser.', '«Jig yourself» also shows while you take a breather and the crew jig.']]],
