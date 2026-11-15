@@ -39,6 +39,8 @@ LOW = os.environ.get('KYST_ALLE_TIDE', 'cd') != 'live'
 # and in (Jonas 15.11.2026: «Alle steder spillerens båt kan fortøye må være tilgjengelig via autonav både inn og ut av»): from a point
 # 1-3 km out she sails back in and lies at the place again. KYST_ALLE_INN=0 only out
 INN = os.environ.get('KYST_ALLE_INN', '1') != '0'
+# KYST_ALLE_ROUTE=1: the routes only, out and in, not sailed (a quick look over the coast for where Autonav finds no way at all)
+ROUTE = os.environ.get('KYST_ALLE_ROUTE') == '1'
 
 SETUP = r"""([type, hh, low]) => { TAB.held = true; if (low){ tideH = (H, p) => -tideZC(p); window.ALS_LOW = true; } const b = S.boat; S.tut = 0; S.cash = Math.max(S.cash, 1e9);
   b.type = type; if (!S.owned.includes(type)) S.owned.push(type); applyVessel(); b.fuel = BOAT.fuelCap;
@@ -121,7 +123,7 @@ SETUP = r"""([type, hh, low]) => { TAB.held = true; if (low){ tideH = (H, p) => 
     // the way in: from open water 1-3 km out (deeper than 15 m, 300 m from the coast, as the way out's open point) back to the place, as a
     // tap on it in the chart plotter asks it (ui/03b-route.js leiaTo: draftWay to the place's point, the naust's berth from naustTarget),
     // and sailed with the boat model till she lies there
-    async back(kind, pid, at, outPt){ const b = S.boat, R = {}, pt = kind === 'rorbu' ? RBID.get(pid) : portById(pid);
+    async back(kind, pid, at, outPt, only){ const b = S.boat, R = {}, pt = kind === 'rorbu' ? RBID.get(pid) : portById(pid);
       // (the point on her own way out 1.5 km off, where she sailed it; else open water 1-3 km off as the way out asks it, then any water
       // there deep enough for her, 150 m from the coast)
       let open = outPt || null; for (let rr = 1; rr <= 3 && !open; rr += 0.25) for (let a = 0; a < 6.28; a += 0.26){ const c = {x:at.x + Math.cos(a) * rr, y:at.y + Math.sin(a) * rr}; try { if (!isLand(c) && depthF(c) > 15 && coastDist(c) > 0.3){ open = c; break; } } catch (e){} }
@@ -136,14 +138,14 @@ SETUP = r"""([type, hh, low]) => { TAB.held = true; if (low){ tideH = (H, p) => 
       R.nm = +r.nm.toFixed(1); const last = nt ? {x:nt.x, y:nt.y, port:pid, berth:'naust', fish:0} : {x:pt.p.x, y:pt.p.y, port:pid, fish:0};
       S.plan = {wps:r.wps.map((q, i) => i === r.wps.length - 1 ? last : {x:q.x, y:q.y, port:null, fish:0, leia:true}), idx:0, speed:BOAT.vcruise, returning:false};
       const to = {id:pid, name:pt.name, p:nt ? {x:nt.x, y:nt.y} : pt.p, berth:kind === 'naust' ? 'naust' : null};
-      await ALS.sail(R, r, to, open); if (R.why) R.why = 'in: ' + R.why; return R; },
+      if (only) return R; await ALS.sail(R, r, to, open); if (R.why) R.why = 'in: ' + R.why; return R; },
     // she is put at the place: in port, at its berth (main; the naust's for the naust)
     put(pid, kind){ const b = S.boat, pt = portById(pid); S.plan = null; S.draft = []; S.jobs = []; b.status = 'port'; b.port = pid; b.berth = kind; b.v = 0; b.land = null; b.landQ = null; b.anch = null; b.dyn = null; b.fuel = BOAT.fuelCap; b.damage = 0; b.dmg = null; b.tow = null; b.tripBad = false; b.engineUntil = null; b.prev = null; b.engH = 0; b.svcAt = 0; b.hits = [];   /* (one boat sails a thousand trips here: her engine hours are not what is tested) */
       S.energy = 100; S.sleep = null; S.drowsy = false; S.rest = null;   /* (nor the skipper's sleep: a thousand trips without rest put him to sleep at the helm, «Du sovnet av utmattelse», and the boat drifted: Ålesund 13.11.2026) */
       b.pos = {x:pt.p.x, y:pt.p.y}; S.trail = [{x:pt.p.x, y:pt.p.y, port:pid}]; ALS.clear(); DYN.line = null; }
   }; return true; }"""
 
-ONE = r"""async ([kind, id, type, big, inn]) => { const R = {kind, id, type}; let pt;
+ONE = r"""async ([kind, id, type, big, inn, only]) => { const R = {kind, id, type}; let pt;
   if (S.boat.type !== type){ S.boat.type = type; if (!S.owned.includes(type)) S.owned.push(type); applyVessel(); }
   try { pt = await ALS.place(kind, id); } catch (e){ R.why = 'map: ' + String(e && e.message).slice(0, 80); return R; }
   if (!pt){ R.skip = 'no shore found for it'; return R; }
@@ -163,9 +165,9 @@ ONE = r"""async ([kind, id, type, big, inn]) => { const R = {kind, id, type}; le
     b.type = t0; applyVessel(); }
   if (R.sill != null){ if (!type){ R.noBoat = true; return R; } S.boat.type = type; if (!S.owned.includes(type)) S.owned.push(type); applyVessel(); }
   R.h = +((S.t - Math.round((Date.UTC(2027, 5, 15, 11) - EPOCH) / 6e4)) / 60).toFixed(2); ALS.put(pid, berth); R.lie = ALS.lie(pid, berth);
-  try { Object.assign(R, await ALS.go(pid)); } catch (e){ R.why = 'error: ' + String(e && e.message).slice(0, 100); }
+  try { Object.assign(R, await ALS.go(pid, only)); } catch (e){ R.why = 'error: ' + String(e && e.message).slice(0, 100); }
   // and back in from 1-3 km out, put at the place afresh first
-  if (inn && !R.noBoat){ ALS.put(pid, berth); const at = {...S.boat.pos}; try { const I = await ALS.back(kind, pid, at, R.outPt); R.inn = {why:I.why, nm:I.nm, min:I.min, end:I.end, hands:I.hands, hits:I.hits, clash:I.clash, log:I.log, berthAt:I.berthAt}; if (I.why && !R.why) R.why = I.why; } catch (e){ R.inn = {why:'in: error: ' + String(e && e.message).slice(0, 100)}; if (!R.why) R.why = R.inn.why; } }
+  if (inn && !R.noBoat){ ALS.put(pid, berth); const at = {...S.boat.pos}; try { const I = await ALS.back(kind, pid, at, R.outPt, only); R.inn = {why:I.why, nm:I.nm, min:I.min, end:I.end, hands:I.hands, hits:I.hits, clash:I.clash, log:I.log, berthAt:I.berthAt}; if (I.why && !R.why) R.why = I.why; } catch (e){ R.inn = {why:'in: error: ' + String(e && e.message).slice(0, 100)}; if (!R.why) R.why = R.inn.why; } }
   return R; }"""
 
 # the coast's harbours (07e-havn.js): every harbour of the vec packs, by tile; [tx, ty, hi, x, y]
@@ -220,7 +222,7 @@ async def main():
             if kind == 'naust':
                 if not await pg.evaluate(NAUST, pid): res.append({'kind': 'naust', 'id': pid, 'skip': 'no naust found'}); continue
             if kind == 'havn': r = await pg.evaluate(ONE_HAVN, [pid[3], pid[4], TYPE, i % SAIL == 0])
-            else: r = await pg.evaluate(ONE, [kind, pid, TYPE if kind == 'port' else SMALL, None if kind == 'port' else TYPE, INN])
+            else: r = await pg.evaluate(ONE, [kind, pid, TYPE if kind == 'port' else SMALL, None if kind == 'port' else TYPE, INN, ROUTE])
             res.append(r)
             bad = r.get('why') or (r.get('lie', {}).get('land') if r.get('lie') else None)
             if bad: print('allesteder:', kind, r.get('name'), r.get('ll'), json.dumps({k: r.get(k) for k in ('why', 'to', 'nm', 'min', 'end', 'log', 'hits', 'clash', 'asleep', 'h', 'hands', 'inn')}, ensure_ascii=False), flush=True)
