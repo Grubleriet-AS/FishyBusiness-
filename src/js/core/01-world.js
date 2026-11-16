@@ -1,4 +1,14 @@
-const EPOCH = Date.UTC(2027, 2, 1, 6, 0, 0);
+const WCLOCK = {off:0, on:typeof location === 'undefined' ? false : !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || /(^#|[#,])world\b/.test(location.hash)};
+// The calendar (16.11.2026, docs/planer/kalender-2026.md; Jonas: «jeg vil at spillet starter fra 1.januar fra nå», so new players
+// come in at the start of 2026 and play the year with its real quotas and rules, «slik at de ikke kommer rett inn i 2027»). The
+// game's minutes are untouched: only the date a minute is called moves. On the shared clock game minute 0 is 21 April 2025 06:00
+// (EPOCH_WORLD), which makes it 1 January 2026 06:00 at 17.11.2026 03:00 UTC in real time (255 game days after WORLD_T0); before, it
+// was 1 March 2027 06:00, and that is still the calendar of a local build and of the tests (EPOCH_LOCAL), which keep their own clock
+// from 0. The hour of the day is the same in both (06:00 at minute 0), so day and night did not move. The years a save has stored
+// follow once (calMigrate, core/03-simulation.js), and the server's year the same way (the migration 20261117000000_kalender_2026.sql).
+const EPOCH_LOCAL = Date.UTC(2027, 2, 1, 6, 0, 0), EPOCH_WORLD = Date.UTC(2025, 3, 21, 6, 0, 0), CAL_YEARS = -2;   // (every year stored before the move: 2027 is 2025)
+const calEpoch = world => world ? EPOCH_WORLD : EPOCH_LOCAL;
+const EPOCH = calEpoch(WCLOCK.on);
 // the wall clock as the 3D frame being drawn sees it (tilbakemelding #106, 01.11.2026: «litt hakkete» in Firefox on a 240 Hz screen):
 // Date.now() moves in whole milliseconds, so at 4.2 ms a frame the boat's pose between the model's steps (dynPose) and the game time
 // between the minutes (currentFrac) moved 4 or 5 ms a frame, a judder of a fifth. While a 3D frame is drawn (view3d/24-cinema.js frame)
@@ -16,7 +26,6 @@ const GAME_RATE = 6;
 // one seed (WORLD_SEED) instead of one per player. The game itself steps on to the world's minute (ui/08-actions.js tick), plays the
 // time away when it is behind, and goes at half pace when a save from before is ahead, until the world has caught up with it.
 const WORLD_T0 = Date.UTC(2026, 9, 5, 15, 0, 0), WORLD_SEED = 20270301;
-const WCLOCK = {off:0, on:typeof location === 'undefined' ? false : !/^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || /(^#|[#,])world\b/.test(location.hash)};
 // #seed=N in the address (tests/_env.py puts it there, KYST_SEED) swaps Math.random for a seeded generator (mulberry32, the one the tests
 // used inside their own evaluate blocks), so a test run repeats: the weather, the catch, the crew, the orders and S.qseed come out the
 // same every time, and a red test is a bug and not a bad roll (29.10.2026). Nothing in the game sets it; a player's address never has it.

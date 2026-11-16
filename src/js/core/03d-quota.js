@@ -365,7 +365,7 @@ const HPK = {torsk:KPK, hyse:Math.round(KPK * 20 / 42), sei:Math.round(KPK * 20 
 // time it came (October 2027 in the game, the total quota for 2028 above the year's). So it stays 260 up to 15 November 2027 on the shared
 // clock (about 18 November 2026 in real time), whenever the release comes before that, and glides from 260 to the living price over four
 // game weeks from there. A release after that date gives a part of the jump at once; then move start.
-const KPKL = {lo:0.7, hi:1.4, days:28, adv:[6, 26], tac:[10, 17], start:Date.UTC(2027, 10, 15), glide:28};
+const KPKL = {lo:0.7, hi:1.4, days:28, adv:[6, 26], tac:[10, 17], start:EPOCH + (Date.UTC(2027, 10, 15) - EPOCH_LOCAL), glide:28};   // (the same minute on the shared clock after the calendar moved, 16.11.2026: 5 January 2026 there)
 const kpkLukket = tac => codChain(norQuota('torsk', tac)).lukket;
 // the outlook for year y's quota as known at H: 1 before 26 June, and for a day of the year before (the new year's quota is known then)
 function kpkOut(H, y){

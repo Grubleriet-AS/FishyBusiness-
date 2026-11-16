@@ -289,27 +289,27 @@ def main():
         R['posAnon'] = sql("select public.pos_near(850, 350, 20)", {}, 'anon', expect_err=True)
         R['posOff'] = sql("select public.pos_off()", A, 'authenticated', expect_err=True)   # no hiding the boat (20261007130000_seen.sql)
         # the shared world V2: one quota, one market and one sea (20261006000000_world_v2.sql)
-        sql("""select public.land_put(1000, 2027, 'finnsnes', 'open', '[{"sp":"torsk","kg":500,"kgq":500},{"sp":"hyse","kg":100,"kgq":0}]')""", A, 'authenticated')
-        sql("""select public.land_put(1000, 2027, 'finnsnes', 'open', '[{"sp":"torsk","kg":300,"kgq":300}]')""", B, 'authenticated')
-        R['wB'] = json.loads(sql("select public.world_get(0, 2027, 1010)", B, 'authenticated'))
-        R['wA'] = json.loads(sql("select public.world_get(0, 2027, 1000)", A, 'authenticated'))
-        sql("""select public.land_put(1001, 2027, 'senjahopen', 'open', '[{"sp":"torsk","kg":90000,"kgq":90000}]')""", A, 'authenticated')
+        sql("""select public.land_put(1000, 2025, 'finnsnes', 'open', '[{"sp":"torsk","kg":500,"kgq":500},{"sp":"hyse","kg":100,"kgq":0}]')""", A, 'authenticated')
+        sql("""select public.land_put(1000, 2025, 'finnsnes', 'open', '[{"sp":"torsk","kg":300,"kgq":300}]')""", B, 'authenticated')
+        R['wB'] = json.loads(sql("select public.world_get(0, 2025, 1010)", B, 'authenticated'))
+        R['wA'] = json.loads(sql("select public.world_get(0, 2025, 1000)", A, 'authenticated'))
+        sql("""select public.land_put(1001, 2025, 'senjahopen', 'open', '[{"sp":"torsk","kg":90000,"kgq":90000}]')""", A, 'authenticated')
         sql("update public.world_agg set at = now() - interval '2 minutes'")   # B4: the year's shared picture is at most a minute old
-        R['wCap'] = json.loads(sql("select public.world_get(0, 2027, 1001)", B, 'authenticated'))
+        R['wCap'] = json.loads(sql("select public.world_get(0, 2025, 1001)", B, 'authenticated'))
         R['wOtherY'] = json.loads(sql("select public.world_get(0, 2028, 1001)", B, 'authenticated'))
         sql("select public.catch_put(1000, '[[549755813890, 200], [549755813891, 50]]')", A, 'authenticated')
-        R['cB'] = json.loads(sql("select public.world_get(0, 2027, 1000)", B, 'authenticated'))
-        R['cB2'] = json.loads(sql("select public.world_get(%d, 2027, 1000)" % R['cB']['cur'], B, 'authenticated'))
-        R['cA'] = json.loads(sql("select public.world_get(0, 2027, 1000)", A, 'authenticated'))
+        R['cB'] = json.loads(sql("select public.world_get(0, 2025, 1000)", B, 'authenticated'))
+        R['cB2'] = json.loads(sql("select public.world_get(%d, 2025, 1000)" % R['cB']['cur'], B, 'authenticated'))
+        R['cA'] = json.loads(sql("select public.world_get(0, 2025, 1000)", A, 'authenticated'))
         # the open group's leaderboard (20261006020000_toplist.sql): game week 5 is game hours 840-1008, so A's landings above are in it
-        sql("""select public.land_put(1002, 2027, 'botnhamn', 'open', '[{"sp":"torsk","kg":200,"kgq":200}]', 'Fjordbris')""", B, 'authenticated')
-        sql("""select public.land_put(1003, 2027, 'botnhamn', 'lukket', '[{"sp":"torsk","kg":9999,"kgq":0}]', 'Fjordbris', 'Fjordbris <b>Fiskeri</b> AS')""", B, 'authenticated')
-        sql("""select public.land_put(1005, 2027, 'finnsnes', 'open', '[{"sp":"torsk","kg":100,"kgq":100}]', 'Havbris')""", A, 'authenticated')
+        sql("""select public.land_put(1002, 2025, 'botnhamn', 'open', '[{"sp":"torsk","kg":200,"kgq":200}]', 'Fjordbris')""", B, 'authenticated')
+        sql("""select public.land_put(1003, 2025, 'botnhamn', 'lukket', '[{"sp":"torsk","kg":9999,"kgq":0}]', 'Fjordbris', 'Fjordbris <b>Fiskeri</b> AS')""", B, 'authenticated')
+        sql("""select public.land_put(1005, 2025, 'finnsnes', 'open', '[{"sp":"torsk","kg":100,"kgq":100}]', 'Havbris')""", A, 'authenticated')
         R['topB'] = json.loads(sql("select public.world_top(5)", B, 'authenticated')); R['topA'] = json.loads(sql("select public.world_top(5)", A, 'authenticated'))
         R['top4'] = json.loads(sql("select public.world_top(4)", B, 'authenticated'))
         R['topL'] = json.loads(sql("select public.world_top(5, 'lukket')", A, 'authenticated'))
         R['topAnon'] = sql("select public.world_top(5)", {}, 'anon', expect_err=True)
-        sql("""select public.land_put(1200, 2027, 'botnhamn', 'open', '[{"sp":"torsk","kg":50,"kgq":50}]', '<i>Ond</i>')""", B, 'authenticated')
+        sql("""select public.land_put(1200, 2025, 'botnhamn', 'open', '[{"sp":"torsk","kg":50,"kgq":50}]', '<i>Ond</i>')""", B, 'authenticated')
         R['topEvil'] = json.loads(sql("select public.world_top(7)", A, 'authenticated'))['rows']
         sql("select public.pos_put(860, 350, 0, 0, 'sailing', '<img src=x>Ond', 'skiff')", B, 'authenticated')
         R['posEvil'] = [q['boat'] for q in json.loads(sql("select public.pos_near(860, 350, 20)", A, 'authenticated'))]
@@ -347,8 +347,8 @@ def main():
         sql("select public.push_plan('%s')" % json.dumps([item(-30, 'old', -5)]), B, 'authenticated')
         R['pStale'] = sql(DUE + "select count(*) from public.push_claim(10)", None, 'service_role') + '/' + sql("select count(*) from public.push_queue where tag = 'old' and dropped")
         # the leaderboard's «passed you» is gone, and the week's message goes once a week to everyone who has it on: the best fisher in each group
-        sql("""select public.land_put(2000, 2027, 'botnhamn', 'open', '[{"sp":"torsk","kg":300,"kgq":300}]', 'Fjordbris')""", B, 'authenticated')
-        sql("""select public.land_put(2001, 2027, 'finnsnes', 'open', '[{"sp":"torsk","kg":500,"kgq":500}]', 'Havbris')""", A, 'authenticated')
+        sql("""select public.land_put(2000, 2025, 'botnhamn', 'open', '[{"sp":"torsk","kg":300,"kgq":300}]', 'Fjordbris')""", B, 'authenticated')
+        sql("""select public.land_put(2001, 2025, 'finnsnes', 'open', '[{"sp":"torsk","kg":500,"kgq":500}]', 'Havbris')""", A, 'authenticated')
         R['pPass'] = sql("select count(*) from public.push_queue where tag = 'top-pass'")
         sql("select public.push_prefs(false)", B, 'authenticated')
         R['pWeekOff'] = sql("select public.push_week(true)", None, 'service_role')
@@ -364,10 +364,10 @@ def main():
         R['pWeekTitle'] = sql("select string_agg(distinct title, '|') from public.push_queue where tag = 'top-week'")
         R['pWeekPl'] = sql("select public.push_week(true)", A, 'authenticated', expect_err=True)
         R['pPaper'] = sql("select public.push_paper()", None, 'service_role')   # Kystposten sends no push (20261008000000_push_ops.sql)
-        R['wBadT'] = sql("select public.land_put('NaN', 2027, 'x', 'open', '[]')", A, 'authenticated', expect_err=True)
+        R['wBadT'] = sql("select public.land_put('NaN', 2025, 'x', 'open', '[]')", A, 'authenticated', expect_err=True)
         R['wBadC'] = sql("select public.catch_put(1, (select jsonb_agg(jsonb_build_array(i, 1)) from generate_series(1, 601) i))", A, 'authenticated', expect_err=True)
         R['wRead'] = sql("select count(*) from public.landings", A, 'authenticated', expect_err=True)
-        R['wAnon'] = sql("select public.world_get(0, 2027, 1)", {}, 'anon', expect_err=True)
+        R['wAnon'] = sql("select public.world_get(0, 2025, 1)", {}, 'anon', expect_err=True)
         R['wAdmPl'] = sql("select public.admin_world()", A, 'authenticated', expect_err=True)
         # the welcome gift (HS1, 20261110150000_reg_gift.sql): tm_hello makes one grant per account however often it is called, the game
         # takes it from shop_pending and says done, and it never comes again; it is no product to buy (the guest and the merge further down)
@@ -823,15 +823,15 @@ def main():
         sql("select public.save_put2('KYST2:guest', '2026-10-06T10:00:00Z', 100, null, false, '{\"day\":3}')", G, 'authenticated')
         # Ø6 funn 2 og 3 (20261105130000_guest_world.sql): what a guest lands and catches is the guest's alone until the account is made:
         # not in the open group's quota or the boats, the plants' market, the cells or the season's event list (the guest sees its own)
-        wgA = lambda since=0: (sql("delete from public.world_agg"), json.loads(sql("select public.world_get(%d, 2027, 1500)" % since, A, 'authenticated')))[1]
+        wgA = lambda since=0: (sql("delete from public.world_agg"), json.loads(sql("select public.world_get(%d, 2025, 1500)" % since, A, 'authenticated')))[1]
         wA0 = wgA()
-        sql("""select public.land_put(1500, 2027, 'finnsnes', 'open', '[{"sp":"torsk","kg":700,"kgq":700}]', 'Gjest', '', 'skrei')""", G, 'authenticated')
+        sql("""select public.land_put(1500, 2025, 'finnsnes', 'open', '[{"sp":"torsk","kg":700,"kgq":700}]', 'Gjest', '', 'skrei')""", G, 'authenticated')
         sql("select public.catch_put(1500, '[[549755813999, 400]]')", G, 'authenticated')
         wA1 = wgA(wA0['cur'])
         GW = {'open': wA1['open'] - wA0['open'], 'boats': wA1['boats'] - wA0['boats'], 'mkt': sorted(map(tuple, wA1['mkt'])) == sorted(map(tuple, wA0['mkt'])),
               'cells': [c for c in wA1['cells'] if c[0] == 549755813999], 'wy': sql("select count(*) from public.world_year where player_id = '%s'" % G['sub']),
-              'evA': [r['boat'] for r in json.loads(sql("select public.ev_top('skrei', 2027)", A, 'authenticated'))['rows']],
-              'evG': [r['boat'] for r in json.loads(sql("select public.ev_top('skrei', 2027)", G, 'authenticated'))['rows'] if r['me']]}
+              'evA': [r['boat'] for r in json.loads(sql("select public.ev_top('skrei', 2025)", A, 'authenticated'))['rows']],
+              'evG': [r['boat'] for r in json.loads(sql("select public.ev_top('skrei', 2025)", G, 'authenticated'))['rows'] if r['me']]}
         gNoShop = sql("select public.shop_quote('trim_turbo')", G, 'authenticated', expect_err=True)
         gNotGuest = sql("select public.guest_claim()", A, 'authenticated', expect_err=True)
         code = sql("select public.guest_claim()", G, 'authenticated')
@@ -852,9 +852,9 @@ def main():
         gAgain = json.loads(sql("select public.guest_merge('%s')" % code, C, 'authenticated'))
         # with the account the guest's landings count (guest_merge), and for everyone: no landing ahead of the shared clock, the year from
         # the game hour and not from the call, the plant and the species cleaned (Ø6 funn 2c)
-        GW['wyC'] = sql("select coalesce(sum(kgq), 0) from public.world_year where player_id = 'user_01GGG' and y = 2027 and acc = 'open' and sp = 'torsk'")
+        GW['wyC'] = sql("select coalesce(sum(kgq), 0) from public.world_year where player_id = 'user_01GGG' and y = 2025 and acc = 'open' and sp = 'torsk'")
         GW['openAfter'] = wgA()['open'] - wA0['open']
-        GW['ahead'] = sql("""select public.land_put(%s, 2027, 'finnsnes', 'none', '[{"sp":"torsk","kg":1}]')""" % sql("select public.world_gh() + 100"), C, 'authenticated', expect_err=True)
+        GW['ahead'] = sql("""select public.land_put(%s, 2025, 'finnsnes', 'none', '[{"sp":"torsk","kg":1}]')""" % sql("select public.world_gh() + 100"), C, 'authenticated', expect_err=True)
         sql("""select public.land_put(1600, 2031, '<b>mØF50</b>', 'none', '[{"sp":"<i>torsk","kg":1}]')""", C, 'authenticated')
         GW['clean'] = sql("select y || '/' || port || '/' || sp from public.landings where player_id = 'user_01GGG' order by id desc limit 1")
         gRead = sql("select count(*) from public.guest_links", A, 'authenticated', expect_err=True)
@@ -869,7 +869,7 @@ def main():
                  and RG['again'] == 0 and RG['old'] == 'user_01GGG=false,user_01OLD=true' and RG['oldPend'] == []),
               'the welcome gift: tm_hello makes one grant per account however often it is called and answers as before, given and done once and never again, not for sale, never two rows; a guest gets none and the merge adds none, the account one at its first hello; the accounts there when the migration runs count as given, the guests do not (HS1)', RG)
         print(ok(abs(GW['open']) < 0.01 and GW['boats'] == 0 and GW['mkt'] and GW['cells'] == [] and GW['wy'] == '0' and 'Gjest' not in GW['evA'] and GW['evG'] == ['Gjest']
-                 and GW['wyC'] == '700' and abs(GW['openAfter'] - 700) < 0.01 and GW['ahead'][0] and 'ahead' in GW['ahead'][1] and GW['clean'] == '2027/bmØF50b/itorsk'),
+                 and GW['wyC'] == '700' and abs(GW['openAfter'] - 700) < 0.01 and GW['ahead'][0] and 'ahead' in GW['ahead'][1] and GW['clean'] == '2025/bmØF50b/itorsk'),
               "a guest's landings and catch are the guest's alone (not in the open group's quota, the boats, the market, the cells or the event list) until the account is made, and then they count; no landing ahead of the shared clock, the year from the game hour, the plant and species cleaned (Ø6 funn 2 og 3)",
               {k: (v[1][:60] if isinstance(v, tuple) else v) for k, v in GW.items()})
         # the player's name (20261007120000_names.sql): an account takes one, unique whatever the case; a guest cannot; the admin takes an
@@ -916,8 +916,8 @@ def main():
         V['nearC'] = json.loads(sql("select public.pos_near(900, 300, 20)", C, 'authenticated'))
         V['nearG'] = json.loads(sql("select public.pos_near(900, 300, 20)", G2, 'authenticated'))
         V['flag'] = sql("select string_agg(id || '=' || guest, ',' order by id) from public.players where id in ('user_01BBB', '%s')" % G2['sub'])
-        sql("""select public.land_put(1200, 2027, 'finnsnes', 'open', '[{"sp":"torsk","kg":800,"kgq":800}]', 'Gjestebåt')""", G2, 'authenticated')
-        sql("""select public.land_put(1201, 2027, 'finnsnes', 'open', '[{"sp":"torsk","kg":300,"kgq":300}]', 'Fjordbris')""", B, 'authenticated')
+        sql("""select public.land_put(1200, 2025, 'finnsnes', 'open', '[{"sp":"torsk","kg":800,"kgq":800}]', 'Gjestebåt')""", G2, 'authenticated')
+        sql("""select public.land_put(1201, 2025, 'finnsnes', 'open', '[{"sp":"torsk","kg":300,"kgq":300}]', 'Fjordbris')""", B, 'authenticated')
         V['topG'] = json.loads(sql("select public.world_top(7)", G2, 'authenticated'))
         V['topB'] = json.loads(sql("select public.world_top(7)", B, 'authenticated'))
         nb = [q for q in V['nearC'] if q['boat'] == 'Fjordbris']
@@ -1108,7 +1108,7 @@ def main():
         # bought by one is gone from the NPC owners for the others; refused when none is left; a holder who neither lands nor buys for
         # 90 days gives the place back; the world brings the register, the open group's active players and the others' catch per group;
         # the stock comes from the server only when the admin turns it on; only the admin with the second factor reaches the switches
-        G = {}; wg = lambda who: json.loads(sql("select public.world_get(0, 2027, 1000)", who, 'authenticated'))
+        G = {}; wg = lambda who: json.loads(sql("select public.world_get(0, 2025, 1000)", who, 'authenticated'))
         G['r0'] = wg(A)['reg']['h9']
         G['a1'] = json.loads(sql("select public.reg_take('h9')", A, 'authenticated'))['h9']
         G['b1'] = json.loads(sql("select public.reg_take('h9')", B, 'authenticated'))['h9']
@@ -1128,8 +1128,8 @@ def main():
         G['cfgBad'] = sql("select public.admin_cfg_set('share_limit', '7')", AD2, 'authenticated', expect_err=True)[0]
         sql("select public.admin_stock_set('torsk', 2028, 400000, 330000, 320000)", AD2, 'authenticated')
         G['stockOn'] = wg(B)['stock']
-        G['shareA'] = sql("select public.admin_share(2027)", A, 'authenticated', expect_err=True)[0]
-        SH = json.loads(sql("select public.admin_share(2027)", AD2, 'authenticated')); G['share'] = sorted(SH.keys())
+        G['shareA'] = sql("select public.admin_share(2025)", A, 'authenticated', expect_err=True)[0]
+        SH = json.loads(sql("select public.admin_share(2025)", AD2, 'authenticated')); G['share'] = sorted(SH.keys())
         G['tables'] = all(sql("select * from public.%s" % t, A, 'authenticated', expect_err=True)[0] for t in ('reg_held', 'reg_rights', 'world_cfg', 'world_stock'))
         print(ok(G['r0'] == 200 and G['a1'] == 199 and G['b1'] == 198 and G['seenA'] == G['seenB'] == 198),
               'the register is one for all: 200 NPC owners at 9-9.9 m, 199 after a purchase by one account and 198 after the other, the same seen by both', G)
@@ -1551,7 +1551,7 @@ def main():
         hid = lambda k: 'user_01HS' + k
         for k in H: sql("select public.tm_hello('{}')", H[k], 'authenticated')
         hsave = lambda k, cash, typ='trebat', fleet=1: json.loads(sql("select public.save_put4('x', now(), 100, null, true, '{\"cash\":%d,\"type\":\"%s\",\"fleet\":%d}', 'devH', 'H', false)" % (cash, typ, fleet), H[k], 'authenticated'))
-        hland = lambda k, gh, port, kg, boat, acc='open', ev='', reg='nord': sql("""select public.land_put(%s, 2027, '%s', '%s', '[{"sp":"torsk","kg":%s,"kgq":%s}]', '%s', '', '%s', '%s')""" % (gh, port, acc, kg, kg, boat, ev, reg), H[k], 'authenticated')
+        hland = lambda k, gh, port, kg, boat, acc='open', ev='', reg='nord': sql("""select public.land_put(%s, 2025, '%s', '%s', '[{"sp":"torsk","kg":%s,"kgq":%s}]', '%s', '', '%s', '%s')""" % (gh, port, acc, kg, kg, boat, ev, reg), H[k], 'authenticated')
         flags = lambda k, kind=None: json.loads(sql("select coalesce(jsonb_agg(jsonb_build_object('kind', kind, 'over', over, 'n', n, 'why', data ->> 'why', 'open', cleared_at is null) order by id), '[]'::jsonb)::text from public.cheat_flags where player_id = '%s'%s" % (hid(k), " and kind = '%s'" % kind if kind else '')))
         # the kroner: a million too much between two saves is marked, and the save is taken
         hsave('1', 15000); HS['cashPut'] = hsave('1', 1400000).get('ok'); HS['cash'] = flags('1')
@@ -1593,17 +1593,17 @@ def main():
         hsave('5', 15000); sql("select public.save_put4('x', now(), 100, null, true, '{\"day\":5}', 'devH', 'H', false)", H['5'], 'authenticated'); hsave('5', 2000000); HS['nocash'] = [f['kind'] for f in flags('5')]
         sql("delete from public.cheat_flags where player_id = '%s'" % hid('5'))
         # crab is never reported as catch, so crab landed is not held against the catch
-        for i in range(7): sql("""select public.land_put(%d, 2027, 'hs5ekte', 'none', '[{"sp":"krabbe","kg":500,"kgq":0}]', 'Krabbe')""" % (3000 + i), H['8'], 'authenticated')
+        for i in range(7): sql("""select public.land_put(%d, 2025, 'hs5ekte', 'none', '[{"sp":"krabbe","kg":500,"kgq":0}]', 'Krabbe')""" % (3000 + i), H['8'], 'authenticated')
         sql("update public.landings set at = now() - interval '2 hours' where player_id = '%s'; update public.cheat_bucket set at = now() - interval '2 hours' where player_id = '%s'" % (hid('8'), hid('8')))
-        sql("""select public.land_put(3010, 2027, 'hs5ekte', 'none', '[{"sp":"krabbe","kg":100,"kgq":0}]', 'Krabbe')""", H['8'], 'authenticated'); HS['crab'] = flags('8', 'land')
+        sql("""select public.land_put(3010, 2025, 'hs5ekte', 'none', '[{"sp":"krabbe","kg":100,"kgq":0}]', 'Krabbe')""", H['8'], 'authenticated'); HS['crab'] = flags('8', 'land')
         # the switch off: the mark is only written, the marked account is in every list
         sql("select public.lag_join('hs5lag')", H['3'], 'authenticated'); sql("select public.lag_join('hs5lag')", H['4'], 'authenticated')
         sql("select public.push_sub('https://fcm.googleapis.com/fcm/send/hs5', 'BPkeyH', 'authkeyH', 'no')", H['5'], 'authenticated')
         sql("select public.push_sub('https://fcm.googleapis.com/fcm/send/hs3', 'BPkeyH3', 'authkeyH3', 'no')", H['3'], 'authenticated')
         def lists(who):
             wt = json.loads(sql("select public.world_top(20, 'open')", H[who], 'authenticated')); bt = json.loads(sql("select public.bygde_top(20)", H[who], 'authenticated')).get('nord') or {}
-            et = json.loads(sql("select public.ev_top('hs5ev', 2027)", H[who], 'authenticated'))
-            sql("update public.world_agg set at = now() - interval '2 minutes'"); ag = json.loads(sql("select public.world_agg_get(2027)"))
+            et = json.loads(sql("select public.ev_top('hs5ev', 2025)", H[who], 'authenticated'))
+            sql("update public.world_agg set at = now() - interval '2 minutes'"); ag = json.loads(sql("select public.world_agg_get(2025)"))
             sql("delete from public.push_queue where tag = 'top-week'"); sql("select public.push_week(true)", None, 'service_role')
             pw = sql("select coalesce(string_agg(body, ' | '), '') from public.push_queue where tag = 'top-week' and player_id = '%s'" % hid(who))
             return {'top': 'JuksA' in [r['boat'] for r in wt['rows']], 'topMine': (wt.get('mine') or {}).get('kg'), 'bygd': 'hs5juks' in [r['port'] for r in bt.get('rows') or []],
@@ -1719,10 +1719,10 @@ def main():
         LA['denyP'] = sql("select public.admin_founders_set(true)", L1, 'authenticated', expect_err=True)[0]; LA['deny1'] = sql("select public.admin_founders_set(true)", AD1, 'authenticated', expect_err=True)[0]
         LA['on'] = json.loads(sql("select public.admin_founders_set(true)", AD2, 'authenticated'))
         sql("select pg_sleep(0.05)"); sql("select public.tm_hello('{}')", L2, 'authenticated'); sql("select public.tm_hello('{}')", L3, 'authenticated')
-        land = lambda who, kg, kr: sql("""select public.land_put(1000, 2027, 'finnsnes', 'open', '[{"sp":"torsk","kg":%s,"kgq":0,"kr":%s}]')""" % (kg, kr), who, 'authenticated')
+        land = lambda who, kg, kr: sql("""select public.land_put(1000, 2025, 'finnsnes', 'open', '[{"sp":"torsk","kg":%s,"kgq":0,"kr":%s}]')""" % (kg, kr), who, 'authenticated')
         land(L1, 100, 3000); land(L2, 100, 3000); land(L3, 50, 5000); land(L2, 1, 1e9)
         # (one group list for both, Jonas 16.11.2026: L1's closed-group landing counts on the same list, with the company)
-        sql("""select public.land_put(1000, 2027, 'finnsnes', 'lukket', '[{"sp":"sei","kg":5,"kgq":0,"kr":100}]', 'Kvitbjørn', 'Kvitbjørn AS')""", L1, 'authenticated')
+        sql("""select public.land_put(1000, 2025, 'finnsnes', 'lukket', '[{"sp":"sei","kg":5,"kgq":0,"kr":100}]', 'Kvitbjørn', 'Kvitbjørn AS')""", L1, 'authenticated')
         LA['f'] = sql("select string_agg(player_id || ':' || no, ',' order by no) from public.founders where player_id like 'user_01LA%'")
         LA['cap'] = sql("select kr from public.landings where player_id = 'user_01LA2' and kg = 1")
         hid = lambda who: sql("select left(md5('dsb' || '%s'), 10)" % who['sub'])
@@ -1958,7 +1958,7 @@ def main():
             # the periods (Jonas 16.11.2026: «ukentlig, månedlig, og all-time»; «selskapsverdi MÅ vises på total»): a game month as h0..h1,
             # all time by kilos ('tkg'), and the company's worth on the all time lists only
             sql("insert into public.players (id) values ('tm_a'), ('tm_b'), ('tm_c') on conflict do nothing")
-            sql("insert into public.landings (player_id, gh, y, port, sp, acc, kg, kgq, kr) values ('tm_a', 905100, 2027, 'finnsnes', 'torsk', 'open', 50, 0, 100), ('tm_b', 905100, 2027, 'finnsnes', 'torsk', 'open', 10, 0, 900), ('tm_c', 904000, 2027, 'finnsnes', 'torsk', 'open', 99, 0, 9999)")
+            sql("insert into public.landings (player_id, gh, y, port, sp, acc, kg, kgq, kr) values ('tm_a', 905100, 2025, 'finnsnes', 'torsk', 'open', 50, 0, 100), ('tm_b', 905100, 2025, 'finnsnes', 'torsk', 'open', 10, 0, 900), ('tm_c', 904000, 2025, 'finnsnes', 'torsk', 'open', 99, 0, 9999)")
             sql("insert into public.player_tot (player_id, kg, kr, ports) values ('tm_a', 9e8, 1, 1), ('tm_b', 1, 9e10, 1) on conflict (player_id) do update set kg = excluded.kg, kr = excluded.kr")
             sql("insert into public.profiles (player_id, worth) values ('tm_a', 123456) on conflict (player_id) do update set worth = excluded.worth")
             hd = {sql("select left(md5('dsb' || '%s'), 10)" % x): x for x in ('tm_a', 'tm_b', 'tm_c')}
@@ -1982,17 +1982,17 @@ def main():
         if NL:
             t0 = time.time()
             sql("insert into public.players (id) select 'last_' || g from generate_series(1, %d) g on conflict do nothing" % NL)
-            sql("insert into public.landings (player_id, gh, y, port, sp, acc, kg, kgq) select 'last_' || (g %% %d + 1), 1000 + g * 0.01, 2027, 'p' || (g %% 300), case g %% 3 when 0 then 'torsk' when 1 then 'sei' else 'hyse' end, case when g %% 5 = 0 then 'lukket' else 'open' end, 300 + g %% 400, 300 + g %% 400 from generate_series(1, %d) g" % (NL, NL * 40))
+            sql("insert into public.landings (player_id, gh, y, port, sp, acc, kg, kgq) select 'last_' || (g %% %d + 1), 1000 + g * 0.01, 2025, 'p' || (g %% 300), case g %% 3 when 0 then 'torsk' when 1 then 'sei' else 'hyse' end, case when g %% 5 = 0 then 'lukket' else 'open' end, 300 + g %% 400, 300 + g %% 400 from generate_series(1, %d) g" % (NL, NL * 40))
             sql("insert into public.reg_held (player_id, id) select 'last_' || g, (array['u7','h7','h8','h9','h10','h14','h20'])[g %% 7 + 1] from generate_series(1, %d) g where g %% 5 = 0 on conflict do nothing" % NL)
             fill = time.time() - t0; sql("analyze")
             t0 = time.time(); k = 20; wg(A)
             for _ in range(k): wg(A)
             per = (time.time() - t0) / k
             t0 = time.time(); [sql("select public.reg_free_counts()") for _ in range(k)]; regs = (time.time() - t0) / k
-            parts = {'select1': "select 1", 'open': "select coalesce(sum(s),0) from (select least(sum(l.kgq), 60000) s from landings l where l.y = 2027 and l.acc = 'open' and l.sp = 'torsk' and l.player_id <> 'x' group by l.player_id) a",
-                     'boats': "select count(distinct l.player_id) from landings l where l.y = 2027 and l.player_id <> 'x'",
-                     'agg_fresh': "update public.world_agg set at = now() - interval '2 minutes'; select public.world_agg_get(2027)", 'agg_cached': "select public.world_agg_get(2027)",
-                     'grp': "select count(*) from (select l.acc, l.sp, sum(l.kg) from landings l where l.y = 2027 and l.acc in ('open','lukket') and l.sp in ('torsk','hyse','sei') and l.player_id <> 'x' group by l.acc, l.sp) a",
+            parts = {'select1': "select 1", 'open': "select coalesce(sum(s),0) from (select least(sum(l.kgq), 60000) s from landings l where l.y = 2025 and l.acc = 'open' and l.sp = 'torsk' and l.player_id <> 'x' group by l.player_id) a",
+                     'boats': "select count(distinct l.player_id) from landings l where l.y = 2025 and l.player_id <> 'x'",
+                     'agg_fresh': "update public.world_agg set at = now() - interval '2 minutes'; select public.world_agg_get(2025)", 'agg_cached': "select public.world_agg_get(2025)",
+                     'grp': "select count(*) from (select l.acc, l.sp, sum(l.kg) from landings l where l.y = 2025 and l.acc in ('open','lukket') and l.sp in ('torsk','hyse','sei') and l.player_id <> 'x' group by l.acc, l.sp) a",
                      'reg': "select public.reg_free_counts()", 'mkt': "select count(*) from landings l where l.at > now() - interval '1 day'"}
             PT = {}
             for nm, q in parts.items():
