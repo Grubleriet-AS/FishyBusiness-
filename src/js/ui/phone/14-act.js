@@ -103,6 +103,7 @@
     else if (a === 'salgW'){ sub.salgW = d.s; }
     else if (a === 'salgG'){ sub.salgG = d.s; }
     else if (a === 'tow'){ rescue(true); toast(L('Redningsskøyta er på vei.', 'The rescue boat is on its way.')); }
+    else if (a === 'agfree'){ const why = agFree(); toast(why ? L(why[0], why[1]) : L('Båten ligger på trygt vann, med skroget som før.', 'The boat lies on safe water, with the hull as before.')); save(); if (typeof refreshAll === 'function') refreshAll(); }
     else if (a === 'unstuck'){ const why = unstuck(); toast(why ? L(why[0], why[1]) : L('Båten ligger nå på trygt vann.', 'The boat now lies on safe water.')); if (!why && typeof refreshAll === 'function') refreshAll(); }
     else if (a === 'mayday'){ confirmMayday = true; }
     else if (a === 'mayday0'){ confirmMayday = false; }

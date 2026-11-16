@@ -250,8 +250,55 @@ const FEEDBACK = (() => {
     if (typeof cloudEv === 'function') cloudEv('fb_nudge', {why});
     return true;
   }
+  // Aground (Jonas 16.11.2026, before the launch: «Ved grunnstøting får spillere på opp en boks med spørsmål om grunnstøtingen var spillets
+  // skyld slik at vi kan følge det opp (men vi må også automatisk lagre data fra øyeblikket), de skal også få muligheten til å flytte båten
+  // ut på havet igjen uten skade på skrog»): every time, not held back as the reminders are. runAground (core/01-world.js) kept the moment
+  // in S.agRep; it goes to us as a feedback (topic bug, meta.ag) with the player's answer and a picture of the game, and if the game is
+  // closed before the answer or the network is away, the report waits in the save and goes later (agFlush) with the answer «none».
+  // Then the way out: agFree (core/05-vessels.js) puts her on safe water with the hull as before, also from the Redning app.
+  const AG_ANS = {ja:['Ja, spillets feil', 'Yes, the game\'s fault'], nei:['Nei, min feil', 'No, my fault'], vet:['Vet ikke', 'Not sure']};
+  let agShot = null, agBusy = false, agAns = null;
+  async function agSend(){
+    const R = S.agRep; if (!R || agBusy || !CLOUD.on || !CLOUD.user) return false;
+    agBusy = true; const img = agShot ? await agShot : null; agShot = null;
+    let im = null; if (img){ try { const el = new Image(); await new Promise(q => { el.onload = q; el.onerror = q; el.src = img; }); im = el.naturalWidth ? shrink(el, el.naturalWidth, el.naturalHeight) : null; } catch (e){} }
+    const a = R.ans || 'ingen', body = '[Grunnstøting] Spillerens svar: ' + (AG_ANS[a] ? AG_ANS[a][0] : 'ikke svart') + '. ' + (R.how ? 'Styrt av: ' + R.how + '. ' : '') +
+      (R.v != null ? R.v + ' knop. ' : '') + (R.dAt != null ? 'Kartdybde der: ' + R.dAt + ' m, dypgang ' + R.draft + ' m.' : '');
+    const rep = {...R}; delete rep.wall;
+    try { await cloudRpc('fb_send2', {topic:'bug', body, rating:null, imgs:im ? [im.url] : [], meta:{...meta(), ag:rep}}); if (S.agRep === R) S.agRep = null; save(); if (typeof cloudEv === 'function') cloudEv('aground_ans', {ans:a}); agBusy = false; return true; }
+    catch (e){ agBusy = false; return false; }
+  }
+  // a report not answered in ten real minutes (the dialog shut, the game closed), or answered and not yet sent, goes now
+  function agFlush(){ const R = S.agRep; if (!R || agBusy) return; if (R.ans == null && Date.now() - (R.wall || 0) < 10 * 60e3) return; agSend(); }
+  setInterval(() => { try { agFlush(); } catch (e){} }, 60e3);
+  function agOut(){ const m = $('modal');
+    if (typeof agCan !== 'function' || !agCan()){ m.hidden = true; return; }
+    m.innerHTML = '<div class="box" role="dialog" aria-modal="true"><div class="ob fb-nudge"><h2>' + L2('Flytte båten ut?', 'Move the boat out?') + '</h2><p>' +
+      L2('Spillet er nytt, og vi vil ikke at en feil hos oss skal koste deg båten. Du kan flytte henne ut på trygt vann med skroget som før grunnstøtingen. Det koster ingenting.',
+        'The game is new, and we do not want a mistake on our side to cost you the boat. You can move her out to safe water with the hull as it was before she ran aground. It costs nothing.') + '</p>' +
+      (agAns === 'ja' ? '<p class="note">' + L2('Vil du fortelle mer, for eksempel hva kartet viste? Skriv det i Tilbakemelding-appen.', 'Want to tell us more, for instance what the chart showed? Write it in the Feedback app.') + '</p>' : '') +
+      '<div class="btns"><button class="btn" id="agStay">' + L2('La henne stå', 'Leave her') + '</button><button class="btn primary" id="agGo">' + L2('Flytt båten ut', 'Move the boat out') + '</button></div></div></div>';
+    m.hidden = false;
+    $('agStay').onclick = () => { m.hidden = true; toast(L2('Du kan flytte båten ut senere i Redning-appen.', 'You can move the boat out later in the Redning app.'), 6000); };
+    $('agGo').onclick = () => { m.hidden = true; const why = agFree(); toast(why ? L2(why[0], why[1]) : L2('Båten ligger på trygt vann, med skroget som før.', 'The boat lies on safe water, with the hull as before.'), 6000); save(); if (typeof refreshAll === 'function') refreshAll(); };
+    $('agGo').focus();
+  }
+  function aground(n = 0){
+    const R = S.agRep; if (!R || R.ans != null) return false;
+    R.wall = R.wall || Date.now();
+    const m = $('modal');
+    // (another dialog or the phone up: asked when it is shut, for up to two minutes; then the report goes without the answer)
+    if (!m || !m.hidden || (typeof PHONE !== 'undefined' && PHONE.isOpen())){ if (n < 40) setTimeout(() => aground(n + 1), 3000); return false; }
+    agShot = typeof G3 === 'undefined' || !G3.isActive() || !G3.snap ? null : G3.snap(900).catch(() => null);
+    modal('<div class="ob fb-nudge"><h2>' + L2('Du gikk på grunn', 'You ran aground') + '</h2><p>' +
+      L2('Spillet er nytt, og en grunnstøting kan skyldes en feil hos oss: kartet, dybden, ruta eller Autonav. Det som skjedde, er lagret og blir sendt til oss. Var det spillets skyld?',
+        'The game is new, and running aground may be a mistake on our side: the chart, the depth, the route or Autonav. What happened has been saved and will be sent to us. Was it the game\'s fault?') + '</p>' +
+      '<div class="btns">' + Object.keys(AG_ANS).map(k => '<button class="btn' + (k === 'ja' ? ' primary' : '') + '" data-ag="' + k + '">' + L2(AG_ANS[k][0], AG_ANS[k][1]) + '</button>').join('') + '</div></div>');
+    m.querySelectorAll('[data-ag]').forEach(el => { el.onclick = () => { const k = el.dataset.ag; if (S.agRep === R){ R.ans = k; save(); agSend(); } agAns = k; agOut(); }; });
+    return true;
+  }
   // typing keeps the text between redraws (the page is drawn anew on every tap), and the count follows
   function input(v){ D.body = String(v).slice(0, MAXTXT); D.done = false; const n = document.querySelector('#phone .fb-n'); if (n) n.textContent = D.body.length + ' / ' + MAXTXT;
     const b = document.querySelector('#phone .fb-send'); if (b) b.disabled = !canSend(); }
-  return {page, act, input, pick, meta, nudge, TOPICS, LIM, get draft(){ return D; }};
+  return {page, act, input, pick, meta, nudge, aground, agFlush, TOPICS, LIM, get draft(){ return D; }};
 })();

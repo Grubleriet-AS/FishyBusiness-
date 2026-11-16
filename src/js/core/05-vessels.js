@@ -962,6 +962,23 @@ function unstuckSpot(){
   for (const r of [0.3, 0.5, 0.75, 1, 1.5, 2, 3, 4]) for (let i = 0; i < 24; i++){ const a = i * Math.PI / 12, q = {x:from.x + Math.sin(a) * r, y:from.y - Math.cos(a) * r}; if (ok(q)) return q; }
   return null;
 }
+// Aground in the first weeks (Jonas 16.11.2026, before the launch: «de skal også få muligheten til å flytte båten ut på havet igjen uten
+// skade på skrog da det er en stor sannsynlighet for at skaden skyldes spillet, ikke brukeren nå i startfasen»): every time, the hull
+// as it was before she ran aground (S.agSnap, runAground in 01-world.js) and the boat out on safe water as «Sitter båten fast?» puts her.
+// AG.free false takes the offer away again.
+const AG = {free:true};
+const agCan = () => AG.free && S.boat.status === 'aground' && !!S.agSnap;
+function agFree(){
+  if (!agCan()) return ['Båten står ikke på grunn.', 'The boat is not aground.'];
+  const b = S.boat, A = S.agSnap, dmg0 = b.dmg, at0 = S.unstuckAt;
+  b.dmg = A.dmg ? JSON.parse(JSON.stringify(A.dmg)) : null; if (typeof hullSync === 'function') hullSync(b);
+  S.unstuckAt = 0; const why = unstuck();
+  if (why){ b.dmg = dmg0; if (typeof hullSync === 'function') hullSync(b); S.unstuckAt = at0; return why; }   // (no safe water near: as she was)
+  b.tripBad = A.tripBad; S.agSnap = null;
+  const inc = (S.incidents || []).filter(i => i.k === 'aground').pop(); if (inc) inc.freed = true;
+  log('Skroget er som før grunnstøtingen.', 'The hull is as it was before she ran aground.', 'nav');
+  return null;
+}
 function unstuck(){
   const why = unstuckWhy(); if (why) return why;
   const b = S.boat, to = unstuckSpot(); if (!to) return ['Fant ikke trygt vann i nærheten.', 'Found no safe water near by.'];
