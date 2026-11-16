@@ -34,7 +34,7 @@ JS = r"""(async () => { TAB.held = true;
   // Start from port: made with plan3Make, on; what the plan chose, the day with the search, and «Nå»
   act('p2-start'); for (let k = 0; k < 400 && !o.on; k++) await new Promise(r => setTimeout(r, 100)); R.on = {on:o.on, made:plan2Made(o), err:o.err, home:o.home, M:o.M, places:o.places.length};
   for (let i = 0; i < 30; i++){ DYN.on = false; step(); }
-  const t3 = text(); R.chosen = ['Planen valgte', 'Hjem', 'Levering', 'Rytme', 'Vær', 'Fører båten', 'Søket'].every(k => t3.includes(k)); R.day = /I dag/.test(t3) && /Søker etter fisken i ringen/.test(t3); R.now = (t3.match(/Nå: [^.]*?(?=Sted|$)/) || [''])[0].slice(0, 160);
+  const t3 = text(); R.chosen = ['Planen valgte', 'Hjem', 'Levering', 'Rytme', 'Vær', 'Fører båten', 'Søket'].every(k => t3.includes(k)); R.day = /I dag/.test(t3) && /Søker etter fisken i ringen/.test(t3); R.now = (t3.match(/Nå: .{0,160}/) || [''])[0].slice(0, 160);
   R.noEstimate = !/forventet|ventet fangst/i.test(t3);
   // locked while she runs: the gear row says so and a change is refused
   if (!/Ett redskap|Sett planen på pause for å bytte/.test(text())) act('p2-row', {k:'gear'}); R.locked = {said:/Sett planen på pause for å bytte redskap/.test(text()), refused:PLAN2UI.act('p2-g3', {g:'juksa'}) === false && o.rig === 'line'};

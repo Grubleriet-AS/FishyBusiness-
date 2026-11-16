@@ -29,7 +29,7 @@ async def main():
           R.quotaLine = view().includes('Torskekvoten 95 % fisket'); R.quotaAlert = view().includes('nesten brukt opp');
           // an alert opens the right app on the right vessel, without changing the vessel you follow
           const go = [...document.querySelectorAll('[data-pa="goto"]')].find(x => x.dataset.id === v2.id && x.dataset.a === 'drift'); go.click();
-          R.goto = {app:DOCK.page, sel:PHONE.sel, cur:S.cur, crewShown:document.getElementById('drawerBody').innerText.includes(vget(v2, 'crew')[0].name.split(' ')[0])};
+          R.goto = {app:DOCK.page, sel:PHONE.sel, cur:S.cur, crewShown:document.getElementById('drawerBody').innerText.includes('«' + vget(v2, 'boatName') + '»')};   // (the second vessel's own page: its name in the title; the Crew row went with Driftsplan 3, DP3-3)
           // equipment bought with the selector on the second vessel is fitted there (in the equipment shop, with her at its quay:
           // docs/handelssteder.md)
           const bu = PORTS.filter(p => p.sted === 'butikk').sort((x, y) => dist(x.p, v2.boat.pos) - dist(y.p, v2.boat.pos))[0]; await mapNeed(bu.p, 3); withVessel(v2, () => dock(bu.id));
