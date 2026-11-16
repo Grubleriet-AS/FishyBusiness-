@@ -74,6 +74,16 @@ eller ett om gangen: `python trailer/tools/film.py trailer/shots/<klipp>.json --
 | `19-online-kai` | kystnotbåten og fire andre spilleres båter | Mange båter ved samme kai: det skal se ut som et sted der flere spiller. De tre nye båtene (`peers` 2–4) er plassert uten å ha vært sett; flytt `along`/`off` eller fjern en som ligger i en annen båt eller på land | `14-side-om-side` |
 | `16-slutt` | kystnotbåten | Bakgrunnen til sluttkortet: solstripa | – |
 
+**Målet er 10/10 og filmatisk** (Jonas 16.11.2026: «du står fritt til å velge en helt annen tilnærming til klipping, design, teksting og alt sånt så lenge det blir knallbra, cinematisk og 10/10»). Du har frihet til å endre hvert klipp innenfor tida, etter disse reglene:
+
+- **Lyset velger klippet.** Lav sol, blå time, natt eller vær. Er et klipp tatt midt på dagen under flat blå himmel, flytt `when` til morgen eller kveld samme dag (sola regnes der båten er). Byklippene `15a`–`15f` står på 09:00 og 16:30 i juli; prøv 21:00–23:00 UTC for lavt lys.
+- **Lavt, nært og lang linse.** Kameraet i høyde med rekka eller lavere (`pitch` nær 0–8°, liten `dist`), `fov` 18–30°, båten fyller bildet og fjellene trekkes inn bak. Som filmet fra en annen båt. Ingen høye dronebilder der båten blir en prikk.
+- **Én rolig bevegelse per klipp:** en sakte sving rundt båten eller en sakte vei inn eller ut. Klippene gir farten.
+- **Stående bilde bygges i høyden:** himmel, fjell, båt, speiling. Båten i den nedre midtre delen; teksten står i øvre tredjedel.
+- **Én varm ting i hvert bilde:** sola, lys i vinduer, oransje oljehyre.
+
+Er du i tvil mellom et finere klipp og å bli ferdig, velg å bli ferdig. Stilarket med tekstene på bilder: `trailer/stil/stilark-2-m3.jpg`.
+
 **Båtene som ikke skal være i bildet:** plastsjark 31 fot (`plastsjark`) og kystbåt 14,99 (`kyst15`) er de svakeste modellene. `15a-hvaler` har `plastsjark` og `15d-tromso` har `kyst15`: bytt `boat` til `breisjark` i `15a` og `snekke` i `15d` før du filmer dem.
 
 **Ingen klipp med grensesnitt** i denne utgaven: det rekkes ikke i dag. Ikke bruk tid på det.
