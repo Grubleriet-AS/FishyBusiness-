@@ -165,14 +165,14 @@ Jonas 16.11.2026: Laksebaronen selger mest av sin dyreste booster (79 kr), og sp
   - **Turbotrim** (dobbel fart) og **Skippertak** varer 2 t, 8 t, 24 t eller 3 døgn i ekte tid (`BOOSTS` t2–t72 og `SKIP` s2–s72). Samme sort legger til tid (`boostKind`).
   - De gamle trimmene og skippertakene (`old`) selges ikke lenger, men det som er kjøpt, virker.
   - Det største trinnet merkes «Mest for pengene», og det stemmer per time og per haill.
-- **Sesongpakken** koster 249 kr (`PACKS.sesong`, verdi 454 kr med haill til enkeltpris, «Spar 45 %») og gir 4 haill, Turbotrim 24 t og Skippertak 24 t. «Spar X %» regnes fra de ekte prisene (`packWorth`). Innholdet er kjent før kjøpet, så det er ingen loot box.
+- **Sjøværspakken** (først kalt Sesongpakken; Jonas: «et sjøvær [betyr] en fisketur eller fangstekspedisjon på sjøen») koster 249 kr (`PACKS.sesong`, verdi 454 kr med haill til enkeltpris, «Spar 45 %») og gir 4 haill, Turbotrim 24 t og Skippertak 24 t. «Spar X %» regnes fra de ekte prisene (`packWorth`). Innholdet er kjent før kjøpet, så det er ingen loot box.
 - **Trim gjelder hele flåten** (`S.trim`, `trimRec`), også båter på driftsplan. En gammel lagring med trim på én båt (`b.trim`) virker til den går ut.
 - **Serveren** (`supabase/migrations/20261116180000_prisstige.sql`):
   - `grants.n`: ett kjøp kan gi flere leveringer.
   - `shop_paid` gir `n` haill, eller én levering per del av en pakke, med kjøpets data (båten) i hver.
   - De nye produktene ligger der.
 - **Kaiboden i ett vindu** (`kbShop` i `ui/phone/01-haill-fiske-service.js`):
-  - **Boostere:** Sesongpakken øverst, så én rad per sort.
+  - **Boostere:** Sjøværspakken øverst, så én rad per sort.
   - **Utseende:** Malerverkstedet og Garderoben.
   - **Mine boostere (N):** haill på lager med «Aktiver», og trim og skippertak som er på.
   - Haill, trim og skippertak åpner samme vindu. «Bruk haill» åpner Mine boostere.

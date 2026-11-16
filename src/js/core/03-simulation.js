@@ -1326,7 +1326,7 @@ HAILL.takk = {no:'Takk-haill', en:'Thank-you luck', nok:0, reward:true, steps:[[
 // dabbe av»): the same haill, more of them, each switched on when the player wants (the server gives one grant each, n in the product)
 const HAILL_PACKS = {h1:{n:1, nok:39}, h3:{n:3, nok:99}, h8:{n:8, nok:229, best:true}};   // (raised 16.11.2026 with the trims)
 // the season pack («Jeg er også enig i at en samlepakke kan være et alternativ»): its content known before it is bought, no chance in it
-const PACKS = {sesong:{nok:249, haill:4, trim:'t24', skip:'s24', no:'Sesongpakken', en:'The season pack'}};
+const PACKS = {sesong:{nok:249, haill:4, trim:'t24', skip:'s24', no:'Sjøværspakken', en:'The fishing trip pack'}};   // (renamed: Jonas 16.11.2026, «et sjøvær [er] en fisketur eller fangstekspedisjon på sjøen»; the key stays)
 const packWorth = P => HAILL_PACKS.h1.nok * P.haill + BOOSTS[P.trim].nok + SKIP[P.skip].nok;   // what the parts cost one by one (a haill at the single price)
 const HAILL_STAGE = [[2, 'Luksushaill', 'Luxury luck'], [1, 'Fersk haill', 'Fresh luck'], [0.5, 'Mellomhaill', 'Middle luck'], [0.25, 'Gammelhaill', 'Old luck']];
 const haillAge = () => S.haill ? (S.t - S.haill.t0) / 60 : 1e9;   // hours since it was switched on

@@ -58,7 +58,7 @@ async def main():
                   await new Promise(r => setTimeout(r, 600)); const its = [...document.querySelectorAll('.shoprc .shoprc-it')].map(p => p.textContent); document.getElementById('modal').hidden = true;
                   return {its, msg:(S.msgs[S.msgs.length - 1] || {}).no || ''}; })()""")
                 check(len(r['its']) == 2 and r['its'][0].count('229 kr') == 1 and r['its'][1].count('249 kr') == 1 and r['msg'].count('229 kr') == 1 and r['msg'].count('249 kr') == 1,
-                      '4c. kvitteringen: en pakke er ett kjøp, én linje med prisen én gang (Haill × 8 for 229 kr, Sesongpakken for 249 kr)', r)
+                      '4c. kvitteringen: en pakke er ett kjøp, én linje med prisen én gang (Haill × 8 for 229 kr, Sjøværspakken for 249 kr)', r)
             # Kaiboden: one window (Jonas 16.11.2026), the season pack first, a row a kind, the largest marked, a test purchase
             r = await pg.evaluate("""(async () => { S.tut = 0; PHONE.show(true, 'home'); await new Promise(r => setTimeout(r, 300)); const R = {};
               R.grid = ['kaiboden', 'haill', 'trim'].map(a => !!document.querySelector('#phone .ph-app[data-a=' + a + ']'));
@@ -75,7 +75,7 @@ async def main():
             await pg.evaluate("(async () => { const b = document.querySelector('#phone .kb-shop-tabs button[data-s=boost]'); if (b) b.click(); })()"); await pg.wait_for_timeout(400); await pg.screenshot(path='kaiboden_boost_%s.png' % tag)
             await pg.evaluate("(async () => { const b = document.querySelector('#phone .kb-shop-tabs button[data-s=mine]'); if (b) b.click(); })()"); await pg.wait_for_timeout(400); await pg.screenshot(path='kaiboden_mine_%s.png' % tag)
             ok = r['grid'] == [True, False, False] and r['tabs'] == ['boost', 'utseende', 'mine'] and 'Kaiboden' in (r['title'] or '') and r['hero'] and r['rows'] == 3
-            check(ok, '5a. %s: Kaiboden i rutenettet (ikke Haill og Trim), tre faner, Sesongpakken øverst og én rad per slag' % tag, r)
+            check(ok, '5a. %s: Kaiboden i rutenettet (ikke Haill og Trim), tre faner, Sjøværspakken øverst og én rad per slag' % tag, r)
             check(sorted(r['best']) == ['hp_h8', 'sk_s72', 't72'] and r['bought'] and 'Kaiboden' in (r['title3'] or '') and r['tab3'] in ('boost', 'mine'), '5b. %s: «Mest for pengene» på den største av hvert slag; testkjøp gir Skippertak; PHONE.open(\'haill\') åpner Kaiboden' % tag, r)
             check(r['tabH'] >= 36 and r['tabRight'] <= r['W'] and r['cardRight'] <= r['W'], '5c. %s: fanene er store nok for en finger, fanene og kortene er innenfor skjermen' % tag, {k: r[k] for k in ('tabH', 'tabRight', 'cardRight', 'W')})
             await ctx.close()

@@ -4,7 +4,7 @@
 -- switched on when the player wants, as before); and the season pack with its content known before it is bought. Raised the same evening
 -- (Jonas: «Laksebaronen selger boostere som bare varer 8 timer til 79kr stykk»; «Vi må ikke bli for billige»; «Greit, kjør det ut»):
 -- 2 / 8 / 24 hours and 3 days for 29 / 79 / 149 / 299 kr, haill 39 kr, 3 for 99, 8 for 229, luxury luck 79 kr, the season pack 249 kr.
--- Safe to run again, and over the first version of this file (its products are switched off below).
+-- The pack is called Sjøværspakken (Jonas: a «sjøvær» is a fishing trip at sea); its id stays pakke_sesong. Safe to run again, and over the first version of this file (its products are switched off below).
 --
 --   grants.n            a purchase may now give several grants (a pack of haill, the season pack): n numbers them, unique per purchase
 --   shop_paid(sid, pi)  as in 20261007100000_designs.sql, but a product with data.items gives one grant for each item, and an item (or
@@ -59,7 +59,7 @@ insert into public.products (id, kind, name_no, name_en, price_nok, data) values
   ('skip_8', 'booster', 'Skippertak, 8 timer', 'Skippertak, 8 hours', 79, '{"give":"skip","k":"s8"}'),
   ('skip_24', 'booster', 'Skippertak, 24 timer', 'Skippertak, 24 hours', 149, '{"give":"skip","k":"s24"}'),
   ('skip_72', 'booster', 'Skippertak, 3 døgn', 'Skippertak, 3 days', 299, '{"give":"skip","k":"s72"}'),
-  ('pakke_sesong', 'booster', 'Sesongpakken: 4 haill, Turbotrim og Skippertak i 24 timer', 'The season pack: 4 luck, Turbo tune and Skippertak for 24 hours', 249,
+  ('pakke_sesong', 'booster', 'Sjøværspakken: 4 haill, Turbotrim og Skippertak i 24 timer', 'The fishing trip pack: 4 luck, Turbo tune and Skippertak for 24 hours', 249,
     '{"items":[{"give":"haill","type":"haill","n":4},{"give":"trim","k":"t24"},{"give":"skip","k":"s24"}]}')
 on conflict (id) do update set kind = excluded.kind, name_no = excluded.name_no, name_en = excluded.name_en, price_nok = excluded.price_nok, active = true, data = excluded.data;
 
