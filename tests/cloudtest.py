@@ -207,7 +207,7 @@ async def main():
         # the open group's leaderboard: the players under their boats' names, and a name that tries to make markup is not markup
         replies['top_list'] = 404   # (a database before 20261116120000_lansering.sql: the kilos from world_top, as before)
         replies['world_top'] = {'rows': [{'rank': 1, 'boat': '<b onclick=x>Snøgg</b>', 'port': 'botnhamn', 'kg': 900, 'me': False}, {'rank': 2, 'boat': 'Havbris', 'port': 'finnsnes', 'kg': 120, 'me': True}], 'mine': {'rank': 2, 'kg': 120}, 'n': 2}
-        t = await pg.evaluate("""async () => { S.boatName = 'Havbris'; PHONE.open('salg'); document.querySelector('#phone [data-pa=sub][data-s=top]').click();
+        t = await pg.evaluate("""async () => { S.boatName = 'Havbris'; PHONE.open('salg');
           for (let i = 0; i < 40 && !document.querySelector('#phone .ph-tbl td'); i++) await new Promise(r => setTimeout(r, 100));
           await new Promise(r => setTimeout(r, 200)); const tb = document.querySelector('#phone .ph-tbl'), rows = tb ? [...tb.querySelectorAll('tr')].slice(1).map(r => r.innerText.replace(/\\s+/g, ' ').trim()) : [];
           const out = {rows, img:tb ? tb.querySelectorAll('td b, td img').length : -1, xss:!!window.__xss, me:tb && tb.querySelector('tr.me') ? tb.querySelector('tr.me').innerText : null, head:document.querySelector('#phone .ph-card h4') && document.querySelector('#phone .ph-card h4').textContent};
@@ -216,7 +216,7 @@ async def main():
         # same list as the open group's, asked for with grp 'all'
         replies['top_list'] = {'kind': 'kg', 'grp': 'all', 'rows': [{'rank': 1, 'hid': 'aaaaaaaaaa', 'boat': 'Nordkapp', 'user': 'Kari', 'company': 'Nordkapp Havfiske AS', 'port': 'botnhamn', 'kg': 24000, 'kr': 0, 'f': 3, 'me': False},
           {'rank': 2, 'hid': 'bbbbbbbbbb', 'boat': 'Havbris', 'user': '', 'company': '', 'port': 'finnsnes', 'kg': 120, 'kr': 0, 'f': None, 'me': True}], 'mine': {'rank': 2, 'kg': 120, 'kr': 0}, 'n': 2}
-        tl = await pg.evaluate("""async () => { for (const k in WTOP) delete WTOP[k]; WTOP_NEW.off = 0; PHONE.open('salg'); document.querySelector('#phone [data-pa=sub][data-s=top]').click();
+        tl = await pg.evaluate("""async () => { for (const k in WTOP) delete WTOP[k]; WTOP_NEW.off = 0; PHONE.open('salg');
           for (let i = 0; i < 40 && !(document.querySelector('#phone .ph-tbl td') && /Nordkapp/.test(document.querySelector('#phone .ph-tbl').innerText)); i++) await new Promise(r => setTimeout(r, 100));
           const tb = document.querySelector('#phone .ph-tbl'), out = {head:document.querySelector('#phone .ph-card h4').textContent, row:tb ? tb.querySelectorAll('tr')[1].innerText.replace(/\\s+/g, ' ') : null, badge:!!(tb && tb.querySelector('.pf-fb'))}; PHONE.show(false); return out; }""")
         tq = [c[1] for c in calls if c[0] == 'top_list']

@@ -40,8 +40,8 @@ async def main():
             await boot(pg, GAME + ',no3d')
             await pg.evaluate(STUB)
             await pg.evaluate("() => { PHONE.open('salg'); }")
-            # Salgslaget's leaderboard tab
-            tab = await pg.evaluate("() => { const b = [...document.querySelectorAll('#phone [data-pa=sub]')].find(x => /Toppliste|Leaderboard/.test(x.textContent)); if (b) b.click(); return !!b; }")
+            # the app Toppliste ('salg') is the leaderboard alone, with no tabs for prices or landings (Jonas 16.11.2026)
+            tab = await pg.evaluate("() => PHONE.app === 'salg' && !document.querySelector('#phone [data-pa=sub]') && /Toppliste|Leaderboard/.test(document.querySelector('#phone').textContent)")
             hid0 = await pg.evaluate("() => ({kinds:document.querySelectorAll('#phone [data-pa=salgK]').length, groups:document.querySelectorAll('#phone [data-pa=salgG]').length, filt:!!document.querySelector('#phone [data-pa=salgF]'), table:!!document.querySelector('#phone table.pf-top')})")
             got = {}
             for k in ('kg', 'kr', 'tot', 'fs'):

@@ -295,7 +295,7 @@ function panelPort(){
   (b.status === 'port' && plantFor(portById(b.port), b.type) ? [portById(b.port)] : plantsNear(S.boat.pos, 3).map(x => x.pt)).forEach(p => h.push('<tr' + (b.port === p.id && b.status === 'port' ? ' class="here"' : '') + '><td>' + p.name + '</td>' + SP.map(sp => '<td>' + fmt(price(p, sp, H), 0) + '</td>').join('') + '</tr>'));
   h.push('</tbody></table></div><p class="note">' + t('prices_n') + '</p>');
   // (D4, Jonas 13.11.2026 «Enig»: the accounts stand in Kystbanken and Rederi only; the harbour has the prices where you are, and
-  // Salgslaget the whole coast)
+  // Kvote › Priser the whole coast)
   // («Start på nytt» stood here under the accounts; it is in Innstillinger, in red, UI review 04.11.2026)
   return h.join('');
 }
@@ -370,7 +370,7 @@ function portSlip(){
     // an ordinary trip: how it went and why (Ø8b S2, V2 A: core/04-crew.js tripWhy, made at the landing; the same line is in the deck log)
     if (!tutOn() && ls.why) h.push('<p class="note tripwhy">' + LN(ls.why[0], ls.why[1]) + '</p>');
     if (tutOn() && typeof WSH !== 'undefined' && WSH.mkt && WSH.mkt[ls.port]){ const m = Object.entries(WSH.mkt[ls.port]).sort((a, b) => b[1] - a[1]);
-      if (m.length && SPECIES[m[0][0]]) h.push('<p class="note tutpeers">' + LN('Andre fiskere har også levert her det siste døgnet, mest ' + SPECIES[m[0][0]].no.toLowerCase() + '. Topplista står i Salgslaget.', 'Other fishermen have landed here in the last day too, mostly ' + SPECIES[m[0][0]].en.toLowerCase() + '. The top list is in the sales organisation.') + '</p>'); }
+      if (m.length && SPECIES[m[0][0]]) h.push('<p class="note tutpeers">' + LN('Andre fiskere har også levert her det siste døgnet, mest ' + SPECIES[m[0][0]].no.toLowerCase() + '. Topplista står i Toppliste-appen.', 'Other fishermen have landed here in the last day too, mostly ' + SPECIES[m[0][0]].en.toLowerCase() + '. The leaderboard is in the Leaderboard app.') + '</p>'); }
     if (S2 && F && F.sum > 0) h.push('<p class="note">' + LN('Felleskostnadene ble betalt fra kontoen da de oppsto. Her trekkes de bare fra før fangsten deles, slik oppgjørsavtalene sier, og ikke fra kassa en gang til.', 'The common costs were paid from the account when they came. Here they only come off before the catch is shared, as the settlement agreements say, not from the cash box again.') + '</p>');
     if (ls.crabFine) h.push('<p class="note">' + LN('Overtredelsesgebyr fra Fiskeridirektoratet for krabbe under minstemålet: ', 'Fine from the Directorate of Fisheries for undersized crab: ') + kr(ls.crabFine) + LN('. Det står ikke på sluttseddelen, men er trukket fra kassa.', '. It is not on the landing note, but has been taken from the cash box.') + '</p>');
     for (const o of (ls.ord || [])) h.push('<p class="note">' + LN('Bestilling fra ' + o.cust + ': ' + fmt(o.kg, 0) + ' kg ' + SPECIES[o.sp].no.toLowerCase() + ', tillegg ' + kr(Math.round(o.kr)) + (o.done ? ', ferdig levert, bonus ' + kr(o.bonus) : ', ' + fmt(o.left, 0) + ' kg igjen') + '.', 'Order from ' + o.cust + ': ' + fmt(o.kg, 0) + ' kg ' + SPECIES[o.sp].en.toLowerCase() + ', premium ' + kr(Math.round(o.kr)) + (o.done ? ', fully delivered, bonus ' + kr(o.bonus) : ', ' + fmt(o.left, 0) + ' kg left') + '.') + '</p>');

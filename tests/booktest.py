@@ -113,10 +113,10 @@ async def run(p, w, h, tag):
               'papirene står i Kvote; med rederiet stiftet står foretaket som AS i Rederi og ikke lenger i Kvote, og de oppdiktede sertifikatene er borte', [x in y for x, y in [('blad B', t2), ('Ervervstillatelse', t2), ('Foretaket', t2), ('Foretaket', t), ('Aksjeselskap', t), ('Ervervstillatelse', t3), ('Foretaket', t3)]])
         await pg.screenshot(path='book_papirer.png')
         # a landing note in the phone opens the same note in the book
-        await pg.evaluate("PHONE.open('salg')"); await pg.wait_for_timeout(200)
+        await pg.evaluate("PHONE.open('kvote')"); await pg.wait_for_timeout(200)
         await pg.evaluate("document.querySelector('#phone [data-pa=sub][data-s=land]').click()"); await pg.wait_for_timeout(300)
         r = json.loads(await pg.evaluate("JSON.stringify((() => { const i = S.sales.length - 1; document.querySelector('#phone [data-pa=book][data-i=\"' + i + '\"]').click(); return {tab:BOOK.tab, idx:BOOK.idx, want:BOOK.pages > 0 ? (window.innerWidth >= 760 ? Math.floor(i / 2) : i) : -1, phone:PHONE.isOpen()}; })())"))
-        check(r['tab'] == 'salg' and r['idx'] == r['want'] and not r['phone'], 'sluttseddelen i Salgslaget åpner samme sluttseddel i dekksdagboka', r)
+        check(r['tab'] == 'salg' and r['idx'] == r['want'] and not r['phone'], 'sluttseddelen i Kvote › Landinger åpner samme sluttseddel i dekksdagboka', r)
     check(errs == [], 'ingen sidefeil', errs)
     await b.close()
 

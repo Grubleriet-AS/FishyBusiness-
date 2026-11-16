@@ -91,9 +91,9 @@ const HB = [
   // 4: the routine, after the third landing
   {id:'drift', ch:4, t:['Driftsplanen', 'The operations plan'], when:() => hbLand() >= 3 && S.crew.length > 0, show:() => phoneApp('drift'),
     no:'Driftsplanen lar båten fiske, levere og hvile på egen hånd, også når spillet er lukket. Du velger to ting: et sted, en ring du setter med ett trykk i kartplotteren, og et redskap fra det som er om bord. Trykk Start, så finner planen resten selv: hjem, mottak, vær og rytme. Den kan startes fra hvor som helst. Uten deg om bord trenger den en skipper og en styrmann.', en:'The operations plan lets the boat fish, land and rest on her own, also while the game is closed. You choose two things: a place, a ring you set with one tap on the chart plotter, and a gear from what is aboard. Tap Start, and the plan finds the rest itself: the home, the plant, the weather and the rhythm. It can be started from anywhere. Without you aboard it needs a skipper and a mate.'},
-  {id:'topp', ch:4, t:['Salgslaget og topplista', 'Sales and the top list'], when:() => hbLand() >= 1 && hbPort(),   // right after the first landing (Onboarding 2, O4: the others on the coast)
+  {id:'topp', ch:4, t:['Topplista', 'The leaderboard'], when:() => hbLand() >= 1 && hbPort(),   // right after the first landing (Onboarding 2, O4: the others on the coast)
  show:() => phoneApp('salg'),
-    no:'Salgslaget viser prisene i dag, det du har levert, og topplista over kysten denne uka.', en:'The sales organisation shows today’s prices, what you have landed, and the week’s top list along the coast.'},
+    no:'Toppliste viser de beste langs hele kysten: kilo og kroner denne uka, totalt siden start og fartstid. Prisene i dag og det du har levert, står i Kvote.', en:'Leaderboard shows the best along the whole coast: kilos and kroner this week, the total since the start and sea time. Today’s prices and what you have landed are in Kvote.'},
   {id:'merker', ch:4, t:['Milepæler', 'Milestones'], when:() => hbLand() >= 3, show:() => phoneApp('merker'),
     no:'Milepæler samler alt du har oppnådd, og hvert merke gir en gave fra noen på kysten.', en:'Milestones gather everything you have achieved, and each badge gives a gift from someone on the coast.'},
   // the level and your own skills (RANK1, docs/planer/rank1.md, 16.11.2026)

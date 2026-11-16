@@ -66,9 +66,9 @@ async def main():
         await pg.evaluate("tab = 'port'; renderPanel()"); await pg.wait_for_timeout(300)
         row = await pg.evaluate("[...document.querySelectorAll('#panel td')].some(td => /Innloggingsbonus \\+20 %/.test(td.textContent))")
         check(row, 'sluttseddelen har en egen bonuslinje')
-        await pg.evaluate("PHONE.open('salg')"); await pg.wait_for_timeout(300)
+        await pg.evaluate("PHONE.open('kvote'); document.querySelector('#phone [data-pa=sub][data-s=pris]').click();"); await pg.wait_for_timeout(300)
         card = await pg.evaluate("document.querySelector('#phone .ph-card h4').textContent")
-        check('Innloggingsbonus' in card and '+20' in card, 'Salg-appen viser bonusen', card)
+        check('Innloggingsbonus' in card and '+20' in card, 'Kvote › Priser viser bonusen', card)
         await pg.screenshot(path='streak_salg.png')
 
         # an old save with coffee state: unused free pub rounds are paid out, tubs and clean hull are gone

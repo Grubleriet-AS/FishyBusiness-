@@ -53,8 +53,8 @@ async def main():
           // the pub: a player in the harbour has the button
           PEERS.length = 0; const pt = portById(b.port); if (pt) PEERS.push({id:'ffffffffff', boat:'Måke', vtype:'trebat', x:pt.p.x + 0.2, y:pt.p.y, hd:0, v:0, st:'port', user:'Anne', fs:0, at:Date.now()});
           R.pub = b.status === 'port' && pt ? /Legg til som venn/.test(PUBSOC.whoHtml()) : 'skip';
-          // Salgslaget has the regulars' bonus
-          PHONE.open('salg'); R.salg = /Fast kunde/.test(document.getElementById('phView').innerText);
+          // Kvote › Priser has the regulars' bonus (Salgslaget's prices moved there 16.11.2026)
+          PHONE.open('kvote'); document.querySelector('#phone [data-pa=sub][data-s=pris]').click(); R.salg = /Fast kunde/.test(document.getElementById('phView').innerText);
           // a database without the functions
           miss = true; FRIENDS._F.off = false; FRIENDS.fetch(true); await wait(100); PHONE.open('folk'); R.off404 = FRIENDS._F.off && /ikke klare/.test(document.getElementById('phView').innerText);
           window.cloudRpc = real; CLOUD.on = c0.on; CLOUD.user = c0.user; PEERS.length = 0; PHONE.show(false); return R; })()""".replace('APPS_LABEL()', "[...document.querySelectorAll('#phone .ph-app')].some(x => x.dataset.a === 'folk' && /Venner/.test(x.textContent))"))
@@ -67,7 +67,7 @@ async def main():
         print(ok(r['cardAdd'] and r['cardAsk'] == 'eeeeeeeeee' and r['cardFriend']), 'the AIS card of a player\'s boat asks to be friends, and says «Venn» for a friend', [r['cardAdd'], r['cardAsk'], r['cardFriend']])
         print(ok(r['show']), '«Vis i kartet» opens the chart on the friend')
         print(ok(r['pub'] is True or r['pub'] == 'skip'), 'a player in the pub can be added as a friend', r['pub'])
-        print(ok(r['salg'] and r['off404']), 'the regulars\' bonus is in Salgslaget, and a database without the functions is left alone', [r['salg'], r['off404']])
+        print(ok(r['salg'] and r['off404']), 'the regulars\' bonus is in Kvote › Priser, and a database without the functions is left alone', [r['salg'], r['off404']])
         print('errors:', errs[:3]); await br.close()
 
 asyncio.run(main())

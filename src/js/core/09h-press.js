@@ -146,7 +146,7 @@ function pressTop(){
       h:['Ukas toppfisker i ' + gn[0] + ' gruppe: ' + w[0], 'Top boat of the week in the ' + gn[1] + ' group: ' + w[1]],
       ing:[w[0] + ' landet ' + fmt(a.kg, 0) + ' kg forrige uke' + (q ? ', mest til ' + q : '') + '.', w[1] + ' landed ' + fmt(a.kg, 0) + ' kg last week' + (q ? ', mostly at ' + q : '') + '.'],
       body:[rows.length > 1 ? ['Bak fulgte ' + rows.slice(1, 3).map(r => pressWho(r)[0] + ' med ' + fmt(r.kg, 0) + ' kg').join(' og ') + '.', 'Behind came ' + rows.slice(1, 3).map(r => pressWho(r)[1] + ' with ' + fmt(r.kg, 0) + ' kg').join(' and ') + '.'] : null,
-        ['Hele topplista for kysten står i Salgslaget.', 'The whole leaderboard for the coast is in the Sales app.']].filter(Boolean)}); }
+        ['Hele topplista for kysten står i Toppliste-appen.', 'The whole leaderboard for the coast is in the Leaderboard app.']].filter(Boolean)}); }
   return out;
 }
 // the village contest (docs/planer/oppdrag-2.md F3): last week's plant with most landed in each part of the coast (ui/10h-world.js bygdeTop)

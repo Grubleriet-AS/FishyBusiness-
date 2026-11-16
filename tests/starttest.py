@@ -17,7 +17,7 @@ async def main():
         r = await pg.evaluate("""(() => { const C = PORTS.filter(q => q.coastal && q.mottak), ids = new Set(PORTS.map(q => q.id));
           const faces = C.filter(q => quayFace(q.id, 'main')).length, named = C.filter(q => q.name && q.name.length > 1).length, pf = C.map(q => q.pf);
           const merged = PORTS.filter(q => !q.coastal && q.mk).map(q => q.id), near = plantsNear(portById('finnsnes').p, 10).map(x => x.pt.name);
-          PHONE.open('salg'); const rows = document.querySelectorAll('.ph-appv .ph-tbl tr.here, .ph-appv .ph-tbl tr').length;
+          PHONE.open('kvote'); document.querySelector('#phone [data-pa=sub][data-s=pris]').click(); const rows = document.querySelectorAll('.ph-appv .ph-tbl tr.here, .ph-appv .ph-tbl tr').length;
           const txt = document.querySelector('.ph-appv').innerText;
           return {n:C.length, unique:ids.size === PORTS.length, faces, named, pfMin:Math.min(...pf), pfMax:Math.max(...pf), merged, near, nearest:txt.includes('Nærmeste mottak'), rows}; })()""")
         print(json.dumps(r, ensure_ascii=False))

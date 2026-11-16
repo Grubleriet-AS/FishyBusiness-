@@ -413,7 +413,7 @@ async def krabbe(pg, town, la, lo, live=False):
         else:
             print(ok(h['started'] and L.get('kar') and h['done'] and h['left'] == 0), town + ' (levende): losset %s kg levende krabbe i %s kar på %s timer' % (L.get('lv'), L.get('kar'), L.get('h')), L)
             print(ok(h['total'] > 0 and h['conf'] == 0 and h['q1'][1] - h['q0'][1] > 0 and any(str(x[0]).startswith('Levende') for x in h['lines'])), town + ' (levende): sluttseddelen %s kr; %s kg på tilleggskvoten, %s kg på fartøykvoten' % (h['total'], h['q1'][1] - h['q0'][1], h['q1'][0] - h['q0'][0]), h['lines'])
-        await pics(pg, 'krabbe-' + town + '-' + tag, 'levert', "(() => { if (S.sleep) wakeUp(); HT.shot('salg'); const t = [...document.querySelectorAll('#phView button')].find(x => /Mine landinger/.test(x.textContent)); if (t) t.click(); })()")
+        await pics(pg, 'krabbe-' + town + '-' + tag, 'levert', "(() => { if (S.sleep) wakeUp(); HT.shot('kvote'); const t = [...document.querySelectorAll('#phView button')].find(x => /^Landinger$|^Landings$/.test(x.textContent)); if (t) t.click(); })()")
 
 async def pics(pg, town, what, js):
     # both formats: 1280×800 and 800×1280, the phone open on what the step shows
@@ -449,5 +449,5 @@ async def tur(pg, town, la, lo):
     print(ok(h['atPlant'] and h['portWhy'] is None and not h['home'].get('why')), town + ': hjem med Autonav til ' + r['plant'], h['home'])
     print(ok(h['started'] and h['land'] and h['land']['kind'] == 'pall' and h['done'] and h['left'] == 0), town + ': losset på %s paller (%s t produkt) på %s timer' % (h['land'] and h['land']['n'], h['land'] and round((h['land']['pk'] or 0) / 1000, 1), h['land'] and h['land']['h']))
     print(ok(h['total'] > 0 and abs(h['kg'] - h['round']) < 0.02 * h['round'] + 5 and h['fz'] and h['dl'] and h['dl'][0] == 15), town + ': sluttseddelen på %s kg rund vekt, fryst, %s kr (inndratt %s kg), lott etter § 6 (%s mann, %s)' % (h['kg'], h['total'], h['conf'], h['dl'] and h['dl'][0], h['dl'] and h['dl'][1]), h['lines'])
-    await pics(pg, town, 'levert', "(() => { if (S.sleep) wakeUp(); HT.shot('salg'); const t = [...document.querySelectorAll('#phView button')].find(x => /Mine landinger/.test(x.textContent)); if (t) t.click(); })()")
+    await pics(pg, town, 'levert', "(() => { if (S.sleep) wakeUp(); HT.shot('kvote'); const t = [...document.querySelectorAll('#phView button')].find(x => /^Landinger$|^Landings$/.test(x.textContent)); if (t) t.click(); })()")
 asyncio.run(main())

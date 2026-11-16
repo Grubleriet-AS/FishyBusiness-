@@ -1,7 +1,10 @@
   // the Kvote app: your quotas, the open group's season, the stocks, and the market for rights (core/03d-quota.js)
   // (KM3: Marked is Kvotemarkedet, kvMkt in 04b-kvotemarked.js; what stood here is its first tab, Registeret, kvReg below)
-  function kvote(){ const t = ['mine', 'open', 'stock', 'mkt'].includes(sub.kvote) ? sub.kvote : 'mine', H = S.t / 60;
-    const top = subs('kvote', [['mine', 'Mine kvoter', 'My quotas'], ['open', 'Åpen gruppe', 'Open group'], ['stock', 'Bestand', 'Stock'], ['mkt', 'Marked', 'Market']]);
+  // (Jonas 16.11.2026: «Legg prisene fra salgslaget og landingene inn i en annen app» → «Kvote»: Priser and Landinger are tabs here,
+  // drawn by salg('pris') and salg('land') in 09-vaer-post-salg-redning.js; the app 'salg' is Toppliste)
+  function kvote(){ const t = ['mine', 'pris', 'land', 'open', 'stock', 'mkt'].includes(sub.kvote) ? sub.kvote : 'mine', H = S.t / 60;
+    const top = subs('kvote', [['mine', 'Mine kvoter', 'My quotas'], ['pris', 'Priser', 'Prices'], ['land', 'Landinger', 'Landings'], ['open', 'Åpen gruppe', 'Open group'], ['stock', 'Bestand', 'Stock'], ['mkt', 'Marked', 'Market']]);
+    if (t === 'pris' || t === 'land') return top + salg(t);
     if (t === 'mine') return top + '<div class="ph-c">' + '<h4 style="margin:4px 2px 6px">' + L('Papirer', 'Papers') + '</h4>' + papBladB() + papPermit() + papZlic() + kvSor() + papKv() + (rederiOpen() ? '' : papBiz()) + '</div>' + salg('kvote');
     return top + '<div class="ph-c">' + (t === 'open' ? kvOpen(H) : t === 'stock' ? kvStock(H) : kvMkt(H)) + '</div>'; }
   // Ø10c: the caps south of 62° N (core/03d-quota.js SORQ): the open group's 3 tonnes of cod in the North Sea and the jig exception's 3 tonnes

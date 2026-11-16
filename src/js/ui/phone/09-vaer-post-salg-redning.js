@@ -36,7 +36,8 @@
   // the company's name while it is being typed on the sheet (a render must not lose it), and a name to offer
   let coDraft = null; const coDefault = () => (S.boatName || 'Havbris') + L(' Fiskeri', ' Fishing');
   function salg(s){
-    const H = S.t / 60, s0 = s || (['pris', 'land', 'top'].includes(sub.salg) ? sub.salg : 'pris'), h = [s ? '' : subs('salg', [['pris', 'Priser', 'Prices'], ['land', 'Mine landinger', 'My landings'], ['top', 'Toppliste', 'Leaderboard']]), '<div class="ph-c">'];
+    // (Jonas 16.11.2026: the app is Toppliste and shows only the leaderboard; Priser and Landinger are tabs of Kvote, 04-kvote.js)
+    const H = S.t / 60, s0 = s || 'top', h = ['<div class="ph-c">'];
     if (s0 === 'pris'){
       { const st = streakState(), p0 = st.pct;
         // the days are real calendar days by the device's clock (dayKey in 02-format-state.js, streakTouch in 03-simulation.js), not game days,

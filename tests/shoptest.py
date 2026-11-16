@@ -96,7 +96,7 @@ async def main():
         await pg.set_viewport_size({'width': 1000, 'height': 700}); await pg.wait_for_timeout(200)
 
         # A8: minimum prices with two decimals
-        await pg.evaluate("PHONE.open('salg')"); await pg.wait_for_timeout(200)
+        await pg.evaluate("PHONE.open('kvote'); document.querySelector('#phone [data-pa=sub][data-s=pris]').click();"); await pg.wait_for_timeout(200)
         mins = await pg.evaluate("[...document.querySelectorAll('#phone .ph-tbl')][0].querySelectorAll('tr').length > 1 ? [...[...document.querySelectorAll('#phone .ph-tbl')][0].querySelectorAll('tr')].slice(1).map(r => r.lastElementChild.textContent) : []")
         check(len(mins) > 3 and all(re.fullmatch(r'\d+,\d\d', m) for m in mins), 'minsteprisene har to desimaler', mins)
         await pg.evaluate("PHONE.show(false)")

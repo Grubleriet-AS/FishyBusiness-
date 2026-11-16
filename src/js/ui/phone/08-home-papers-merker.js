@@ -21,14 +21,14 @@
       '<div class="ph-grid">' + grp.filter(x => x[3].length).map(([k, no, en, as]) => '<section class="ph-grp" data-g="' + k + '"><h5>' + L(no, en) + '</h5><div class="ph-tiles">' + as.map(tile).join('') + '</div></section>').join('') + '</div></div>';
   }
   // «Nå» on the home screen (U7, docs/planer/ui-redesign.md, V4 A): the phone answers before it is asked. Each card opens the app that has
-  // the rest: the rules where the boat is (Regler), the best price for cod among the nearest plants (Salgslaget), and the company when it
+  // the rest: the rules where the boat is (Regler), the best price for cod among the nearest plants (Kvote › Priser), and the company when it
   // needs you (Rederi). Spilltest 2: the Regler and Kvote apps were never opened, though their content was what the player needed
   function nowCards(na){
     const out = [], b = S.boat;
     try { if (b.status !== 'port' && typeof RU !== 'undefined' && RU.ok){ const r = ruNow(), it = r.items.find(i => i.v === r.v && i.v !== 'ok');
       out.push('<button class="ph-now ' + (r.v === 'no' ? 'r2' : r.v === 'warn' ? 'r1' : 'r0') + '" data-pa="open" data-a="regler"><span>' + L('Regler her', 'Rules here') + '</span><b>' + (r.v === 'no' ? '✕ ' : r.v === 'warn' ? '! ' : '✓ ') + (it ? ruShort(it) : L('Du kan fiske her', 'You may fish here')) + '</b></button>'); } } catch (e){}
     try { const H = S.t / 60, best = plantsNear(b.pos, 4).map(x => ({pt:x.pt, v:price(x.pt, 'torsk', H)})).sort((a, c) => c.v - a.v)[0];
-      if (best) out.push('<button class="ph-now" data-pa="open" data-a="salg"><span>' + L('Best betalt torsk', 'Best price for cod') + '</span><b>' + fmt(best.v, 2) + ' kr/kg · ' + best.pt.name + '</b></button>'); } catch (e){}
+      if (best) out.push('<button class="ph-now" data-pa="open" data-a="kvote" data-s="pris"><span>' + L('Best betalt torsk', 'Best price for cod') + '</span><b>' + fmt(best.v, 2) + ' kr/kg · ' + best.pt.name + '</b></button>'); } catch (e){}
     if (na > 0 && rederiOpen()) out.push('<button class="ph-now r1" data-pa="open" data-a="rederi"><span>' + L('Rederiet', 'The company') + '</span><b>' + L('Trenger deg (' + na + ')', 'Needs you (' + na + ')') + '</b></button>');
     return out.length ? '<div class="ph-nowc">' + out.join('') + '</div>' : '';
   }
