@@ -140,3 +140,5 @@ async function hopDeliver(id, d){
   } finally { HOPUI.pend.delete(id); }
 }
 $('hopBtn').onclick = hopOpen;
+// Kaiboden one tap away in 3D (Jonas 16.11.2026; the button over the hop, index.html #kbBtn)
+if ($('kbBtn')) $('kbBtn').onclick = () => { if (typeof cloudEv === 'function') cloudEv('shop_view', {pg:'kb3d'}); PHONE.open('kaiboden'); };

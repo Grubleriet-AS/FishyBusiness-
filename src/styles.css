@@ -794,7 +794,11 @@ body.v3d.helm #helmThr,body.v3d.helm #helmJoy{display:block}
 .ov.kino2[hidden],body.vplot .ov.kino,body.vplot .ov.kino2{display:none}
 /* hopp over resten av ruta (HO2, ui/10u-hopp.js): the fast-forward button under the camera and the cinema, only while a route is sailed;
    not in the chart, the cinema's clean view, or while the cinema's own button is in its place */
-.ov.hop{top:calc(env(safe-area-inset-top,0px) + 114px);right:10px;width:46px;height:46px;border-radius:14px}
+/* Kaiboden in 3D under the camera's buttons, the hop under it while she sails (Jonas 16.11.2026: «en knapp som åpner kaiboden øverst
+   til høyre under kameraknappene, så kommer den kontekstuelle "hopp"-knappen opp når man starter å seile») */
+.ov.kb{top:calc(env(safe-area-inset-top,0px) + 114px);right:10px;width:46px;height:46px;border-radius:14px;color:#e8c96a}
+.ov.kb[hidden],body.vplot .ov.kb,body.kino-clean .ov.kb,#kinoHud:not([hidden])~.ov.kb{display:none}
+.ov.hop{top:calc(env(safe-area-inset-top,0px) + 166px);right:10px;width:46px;height:46px;border-radius:14px}
 .ov.hop[hidden],body.vplot .ov.hop,body.kino-clean .ov.hop,#kinoHud:not([hidden])~.ov.hop{display:none}
 #hopFade{position:fixed;inset:0;background:#05101a;opacity:0;pointer-events:none;z-index:30;transition:opacity .35s ease}
 #hopFade.on{opacity:1;pointer-events:auto}
@@ -1737,7 +1741,7 @@ body.v3d #hud{z-index:6} body.v3d #plotMin{z-index:7}   /* (the chart's fold but
    bli forvirrende for spillerne om knappene er helt borte»; «Svake, trykk virker»): they stand where they stood and a tap on one works
    at once (the touch that wakes the calm is taken first, ui/10c-dock.js calmTouch). The strip, the little chart, the compass, the phone
    and the deck log's tab are not touched */
-#dock > .dk-b,.ov.cam,.ov.kino,.ov.kino2,.ov.hop{transition:opacity .25s ease}
+#dock > .dk-b,.ov.cam,.ov.kino,.ov.kino2,.ov.hop,.ov.kb{transition:opacity .25s ease}
 body.calm #dock > .dk-b:not(.hero):not(.stay):not([data-dk="beh"]),body.calm .ov.cam,body.calm .ov.kino,body.calm .ov.kino2,body.calm .ov.hop{opacity:.2;transition:opacity .6s ease}
 /* «Båten og utstyret» (OPP4, ui/phone/10-fartoy.js kitCard; Jonas 07.11.2026 on the first version: «så mye tekst … Det må gjøres mer
    intuitivt»): a row per ladder with the picture, the name and the dots, one short gain in green, and the price as the button to the
@@ -2054,7 +2058,7 @@ body.vplot #hud{background:rgba(11,23,32,.78)!important}
 @media (min-width:561px) and (min-height:521px) and (orientation:landscape){
   #phone{top:max(12px,calc(100vh - 972px));left:max(12px,calc(var(--ph-hr,0px) + 14px),calc(100vw - 1092px))}
   /* the camera buttons in the corner the phone covers lying down, and the compass line its top edge would cut */
-  body.ph-on :is(#camBtn,#kinoBtn,#compass3d){visibility:hidden}
+  body.ph-on :is(#camBtn,#kinoBtn,#kbBtn,#compass3d){visibility:hidden}
 }
 /* (beside the apps only where the surface itself is wide enough for both, .ph-wide from place(); a narrower one has the block above them) */
 @media (min-width:561px) and (min-height:521px){
