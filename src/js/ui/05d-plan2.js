@@ -96,7 +96,7 @@ const PLAN2UI = (() => {
   }
   // the gear: what is aboard and can be rigged (plan3Gear), and under it the bait, the line's kind or the jig's tackle
   const gName = g => g.gk === 'auto' ? L('Autoline', 'Autoline') : g.gk === 'sno' ? L('Snøkrabbeteiner', 'Snow crab pots') : g.rig === 'juksa' ? L('Juksa', 'Jigging') : rigName(g.rig);
-  const gSub = g => { const k = RIGS[g.rig].kind; if (!k) return L('Juksa om bord', 'Jigs aboard'); if (g.gk === 'auto'){ const u = p2Units('line', 'auto'); return u + ' ' + unitName('line', u, 'auto') + L(' på magasinene', ' on the magazines'); } const n = ownedUnits(k); return n + ' ' + unitName(k, n) + L(' om bord', ' aboard'); };
+  const gSub = g => { const k = RIGS[g.rig].kind; if (!k) return L('Juksa om bord', 'Jigs aboard'); if (g.gk === 'sno'){ const u = p2Units('teine'); return u + L(' lenker à 200 (' + fmt(ownedUnits('teine'), 0) + ' teiner) om bord', ' strings of 200 (' + fmt(ownedUnits('teine'), 0) + ' pots) aboard'); } if (g.gk === 'auto'){ const u = p2Units('line', 'auto'); return u + ' ' + unitName('line', u, 'auto') + L(' på magasinene', ' on the magazines'); } const n = ownedUnits(k); return n + ' ' + unitName(k, n) + L(' om bord', ' aboard'); };
   const gearOf = o => plan3Gear().find(g => g.rig === o.rig) || null;
   function gearVal(o){
     const g = gearOf(o); if (!g) return L('ikke om bord', 'not aboard');
@@ -117,15 +117,17 @@ const PLAN2UI = (() => {
   }
   // the catch gutted aboard or landed round (R1 V1 A, docs/planer/etter-tonys-test.md: on the plan's page as on Om bord, 07-guide.js gutChoice)
   const gutRow = () => typeof gutChoice === 'function' && gutChoice() ? '<div class="ph-kv dr-kv"><span>' + L('Fangsten', 'The catch') + '</span><span>' + T('p2-gut', L('Sløyd om bord', 'Gutted aboard'), S.boat.gutAboard !== false, 'data-v="1"') + T('p2-gut', L('Rund', 'Round'), S.boat.gutAboard === false, 'data-v="0"') + '</span></div>' : '';
+  // the snow crab frozen or live for the trip (H3b, 10d-snokrabbe.js snoSetMode; on the plan's page as before, under Levering)
+  const snoRow = () => typeof snoVessel === 'function' && snoVessel() && snoTanks() ? '<div class="ph-kv dr-kv"><span>' + L('Krabben', 'The crab') + '</span><span>' + T('p2-sno', L('Fryste klør', 'Frozen clusters'), !snoLive(), 'data-v="frys"') + T('p2-sno', L('Levende krabbe', 'Live crab'), snoLive(), 'data-v="lev"') + '</span></div>' : '';
   // what the plan chose (once it is made): the home, the landing, the rhythm, the weather, who sails her and reads the sounder
   function chosen(o){
-    if (!o.places.length || !o.home) return '<div class="ph-card"><h4>' + L('Resten finner planen selv', 'The plan finds the rest itself') + '</h4><p class="ph-note">' + L('Når du trykker Start, velger planen hjem, mottak, vær og rytme etter båten og mannskapet, og søker etter fisken i ringen med ekkoloddet før redskapet settes. Den kan startes fra hvor som helst.', 'When you tap Start, the plan chooses the home, the plant, the weather and the rhythm by the boat and the crew, and searches the ring for the fish with the echo sounder before the gear goes out. It can be started from anywhere.') + '</p>' + gutRow() + '</div>';
+    if (!o.places.length || !o.home) return '<div class="ph-card"><h4>' + L('Resten finner planen selv', 'The plan finds the rest itself') + '</h4><p class="ph-note">' + L('Når du trykker Start, velger planen hjem, mottak, vær og rytme etter båten og mannskapet, og søker etter fisken i ringen med ekkoloddet før redskapet settes. Den kan startes fra hvor som helst.', 'When you tap Start, the plan chooses the home, the plant, the weather and the rhythm by the boat and the crew, and searches the ring for the fish with the echo sounder before the gear goes out. It can be started from anywhere.') + '</p>' + gutRow() + snoRow() + '</div>';
     const R = plan3Reader(), T3 = P3TIER[plan3Tier()], sk = meAboard() ? L('du', 'you') : (crewSkipper() || {}).name || (p2Lag() ? L('skipperen', 'the skipper') : '–');
     const kv = (k, v) => '<div class="ph-kv"><span>' + k + '</span><span>' + v + '</span></div>';
     const rh = o.rhythm === 'watch' ? L('Døgndrift', 'Round the clock') : o.rhythm === 'multi' ? L('Flerdøgnstur', 'Trips of days') : L('Dagdrift: ut om morgenen, fersk fisk levert samme dag', 'Day trips: out in the morning, the fish landed fresh the same day');
     const lv = (o.land || {}).when === 'trip' ? L('hver tur', 'every trip') : (o.land || {}).when === 'days' ? L('turens siste døgn', 'on the trip\'s last day') : L('når lasten er full', 'when the hold is full');
     return '<div class="ph-card"><h4>' + L('Planen valgte', 'The plan chose') + '</h4>' + kv(L('Hjem', 'Home'), nm(o.home)) + kv(L('Levering', 'Landing'), (o.M ? nm(o.M) : L('nærmeste mottak', 'the nearest plant')) + ', ' + lv) + kv(L('Rytme', 'Rhythm'), rh) +
-      kv(L('Vær', 'Weather'), L('inntil ', 'up to ') + o.wx.wind + ' m/s ' + L('og ', 'and ') + fmt(o.wx.hs, 1) + ' m') + kv(L('Fører båten', 'Sails her'), sk) + kv(L('Søket', 'The search'), L(T3[0].charAt(0).toUpperCase() + T3[0].slice(1), T3[1].charAt(0).toUpperCase() + T3[1].slice(1)) + ', ' + (R.who ? L(R.who + ' leser bildet', R.who + ' reads the picture') : L('du leser bildet', 'you read the picture'))) + gutRow() + '</div>';
+      kv(L('Vær', 'Weather'), L('inntil ', 'up to ') + o.wx.wind + ' m/s ' + L('og ', 'and ') + fmt(o.wx.hs, 1) + ' m') + kv(L('Fører båten', 'Sails her'), sk) + kv(L('Søket', 'The search'), L(T3[0].charAt(0).toUpperCase() + T3[0].slice(1), T3[1].charAt(0).toUpperCase() + T3[1].slice(1)) + ', ' + (R.who ? L(R.who + ' leser bildet', R.who + ' reads the picture') : L('du leser bildet', 'you read the picture'))) + gutRow() + snoRow() + '</div>';
   }
   // the check before Start: a ring and a gear; once made, Driftsplan 2's own check (the crew, the quota, the rules)
   function check3(o){
@@ -226,6 +228,7 @@ const PLAN2UI = (() => {
     if (a === 'p2-fetch'){ fetch(o); return true; }
     if (a === 'p2-fix'){ const f = o.stop && o.stop.fix; if (f === 'mannskap'){ PHONE.open('arbeid'); return false; } if (f === 'quota'){ PHONE.open('kvote'); return false; } open = f === 'rig' ? 'gear' : 'sted'; return true; }
     if (a === 'p2-crew'){ PHONE.open('arbeid'); return false; }
+    if (a === 'p2-sno'){ snoSetMode(d.v); return true; }   // (frozen or live for the trip, H3b; the plan follows it, H3c)
     if (a === 'p2-gut'){ if (d.v === '1') delete S.boat.gutAboard; else S.boat.gutAboard = false; return true; }   // (R1; the boat's own setting, also while the plan runs)
     if (a === 'p2-go'){ const g = d.go; if (g === 'mannskap'){ PHONE.open('arbeid'); return false; } if (g === 'quota'){ PHONE.open('kvote'); return false; }
       open = g === 'gear' || g === 'rig' ? 'gear' : 'sted'; return true; }

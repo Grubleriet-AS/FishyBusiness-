@@ -32,14 +32,14 @@ const p2SnoKm = () => SNOC.lenke * GEAR.teine.km;
 const p2SnoH = () => { const P = POTS.sno; return {set:SNOC.lenke * P.set / 60, haul:SNOC.lenke * P.haul / 60, bait:SNOC.lenke * P.bait}; };
 function p2SnoLenke(q, k){
   const D = DRP2.sno, W = Math.max(1, Math.min(q.n, D.cols)), r = Math.floor(k / W), c = k % W, h = q.hdg != null ? q.hdg : 0, km = p2SnoKm();
-  const ux = Math.sin(h), uy = -Math.cos(h), vx = Math.cos(h), vy = Math.sin(h), off = (c - (W - 1) / 2) * D.col, al = r * D.row;
-  const a = {x:q.x + vx * off + ux * al, y:q.y + vy * off + uy * al};
+  const ux = Math.sin(h), uy = -Math.cos(h), vx = Math.cos(h), vy = Math.sin(h), off = (c - (W - 1) / 2) * D.col, al = r * D.row, m = q.at || q;   // (round the spot the search found, Driftsplan 3 DP3-4, else the field's point)
+  const a = {x:m.x + vx * off + ux * al, y:m.y + vy * off + uy * al};
   return {k, a, b:{x:a.x + ux * km, y:a.y + uy * km}, hdg:h, fid:q.id + '#' + k};
 }
 // (cached by the field's place, size and heading; a pack not in yet says nothing and is not kept)
 const P2SNO_FIT = new Map();
 function p2SnoFit(q, k){
-  const key = [q.x.toFixed(3), q.y.toFixed(3), q.n, q.hdg, k].join('|'); if (P2SNO_FIT.has(key)) return P2SNO_FIT.get(key);
+  const m = q.at || q, key = [q.x.toFixed(3), q.y.toFixed(3), m.x.toFixed(3), m.y.toFixed(3), q.n, q.hdg, k].join('|'); if (P2SNO_FIT.has(key)) return P2SNO_FIT.get(key);
   const L = p2SnoLenke(q, k), H = p2SnoSeason(S.t / 60, 0).openAt; let why = null;
   try {
     if (isLand(L.a) || isLand(L.b) || !legClear(q, L.a) || !setGeomExact(L.a, L.hdg, p2SnoKm())) why = ['land eller grunt på veien', 'land or shallows in the way'];
@@ -124,6 +124,8 @@ function planDaySno(o, H0, st){
   if (!end && atPort && M && (atPort === o.M ? bait < tripBait() * 0.9 : bait < A.bait * Math.max(1, Z.nL))){ if (atPort !== o.M){ steps.push({t, k:'avgang', from:atPort}); go(M, o.M); } steps.push({t, k:'agn', port:o.M, kg:Math.ceil(tripBait() - bait), sno:true}); t += DRP2.stockH; bait = Math.max(bait, tripBait()); }
   if (!steps.length || steps[steps.length - 1].k !== 'avgang') steps.push({t, k:'avgang', from:atPort});
   if (st.lag) steps.push({t, k:'lagvakt', me:!!st.me.aboard});
+  // (Driftsplan 3, DP3-4: the search with the echo sounder in the ring before the strings go out, as on the coast, planDay)
+  if (o.v === DRV3 && !end && !o.fetch){ const ids = plan3SokNeed(o, st); if (ids.length){ const E = plan3SokEst(o); go(o.places[0]); steps.push({t, k:'sok', pids:ids, h:E.h, km:E.km, l:E.l, tier:E.tier, who:E.who}); t += E.h; at = plan3SokEnd0(o, E.tier); atPort = null; } }
   // the quota's budget: what may still be landed less a string's catch for each standing (a new set, or a string set out again, takes one)
   let budget = Z.q - sets.length * D.lenkeKg;
   const iceAt = (a, b, H) => snoIceOf(a, b, H), iceComes = (a, b, Ha, Hb, lim) => { for (let h = Ha; h <= Hb + 1e-9; h += 12) if (iceAt(a, b, h) >= lim) return h; return null; };

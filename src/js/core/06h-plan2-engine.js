@@ -321,7 +321,8 @@ function plan2Trip(o, D, i0){
   const here = plan2Here(o), kind = p2Kind(o), auto = !!D.auto, wps = [], need = [], pts = [here.p]; let prev = here.p, prevPort = here.port, h = 0, to = i0, kindK = 'fish', noJig = false, ended = false;
   // (Driftsplan 3, DP3-2: the gear stands at the spot the search found, q.at, a straight hop in clean water from the field's fixed point,
   // whose legs are kept; she goes to the point, hops to the spot, and back to the point before the next leg. atQ: the place she is at the spot of)
-  const v5 = o.v === DRV3 && !auto && !D.sno, vv5 = Math.max(1, BOAT.vcruise || 7); let atQ = null, sokAt = null, sokIds = null, sokEnd = null;
+  // (the autoline too since DP3-4; the snow crab's strings stand round the spot themselves, p2SnoLenke)
+  const v5 = o.v === DRV3 && !D.sno, vv5 = Math.max(1, BOAT.vcruise || 7); let atQ = null, sokAt = null, sokIds = null, sokEnd = null;
   // (the spot is where the string starts, q.st, laid with its middle where the fish stood, q.at; a jig place has q.at only)
   const spot = q => q.st || q.at;
   // (at the far end of a field's string, where a haul ends and a trip cut after a haul that fell begins, plan3HaulWatch: back along the

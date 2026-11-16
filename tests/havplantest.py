@@ -47,7 +47,8 @@ H = r"""window.HPT = (() => {
     return {plant:plant.name, F:F.map(q => LL(q)), n:F.length};
   }
   const felt = (id, q, n, soak) => ({id, k:'felt', x:q.x, y:q.y, n, soak, hdg:null, lk:'auto'});
-  function plan(over){ const o = S.ops = plan2New(Object.assign({home:plant.id, rig:'line', places:[felt('f1', F[0], 4, 6), felt('f2', F[1], 4, 6)], land:{mode:'port', port:plant.id, when:'full', days:42}}, over || {})); return o; }
+  // (a Driftsplan 3 plan, v5, with the fields given and a ring round the first: the engine's loop is what these parts test, so no search, o.sok)
+  function plan(over){ const o = S.ops = plan2New(Object.assign({v:DRV3, ring:{x:F[0].x, y:F[0].y, r:plan3RingKm('line')}, home:plant.id, rig:'line', places:[felt('f1', F[0], 4, 6), felt('f2', F[1], 4, 6)], land:{mode:'port', port:plant.id, when:'full', days:42}}, over || {})); return o; }
   const make = o => new Promise(res => plan2Make(o, res));
   const st = (b, o) => { const pl = S.plan, r = o.run; return (pl && pl.ops ? pl.opsK : pl ? 'own' : '-') + ':' + b.status + (b.port ? '@' + (portById(b.port) || {}).name : '') + (b.gop ? '/' + b.gop.op : '') + (b.hove ? '/bi' : '') + (b.land ? '/land' : '') + (r && r.wait ? '?' + r.wait.k : '') + (o.stop ? '!stop:' + o.stop.k : '') + (!o.on ? '!off' : ''); };
   // play n minutes: 'open' steps with the page let go every ten minutes, 'closed' as catchUp (playMinutes)
@@ -108,7 +109,7 @@ HS = r"""window.SNO = (() => {
     S.me = 'ashore'; LOG = [];
     return {plant:plant.name, F:F.map(q => LL(q)), n:F.length, depth:F.map(q => Math.round(depthF(q)))};
   }
-  const plan = over => { const o = S.ops = plan2New(Object.assign({home:plant.id, rig:'teiner', places:F.map((q, i) => ({id:'s' + i, k:'felt', x:q.x, y:q.y, n:20, soak:168, hdg:null})), land:{mode:'port', port:plant.id, when:'days', days:20}}, over || {})); return o; };
+  const plan = over => { const o = S.ops = plan2New(Object.assign({v:DRV3, ring:{x:F[0].x, y:F[0].y, r:plan3RingKm('teiner')}, home:plant.id, rig:'teiner', places:F.map((q, i) => ({id:'s' + i, k:'felt', x:q.x, y:q.y, n:20, soak:168, hdg:null})), land:{mode:'port', port:plant.id, when:'days', days:20}}, over || {})); return o; };
   // the strings of the plan already in the sea, stood `days` (one an hour after the other), as the plan sets them (p2SnoLenke)
   function stand(o, days){ const pg = S.pgear, T1 = S.t - days * 1440; let n = 0;
     for (const q of o.places) for (let k = 0; k < q.n; k++){ const L = p2SnoLenke(q, k); S.sets.push({id:'k' + n, vid:S.cur, fid:L.fid, kind:'teine', pot:'sno', n:200, a:{...L.a}, b:{...L.b}, tSet:T1 + n * 60, acc:{}, dead:0, bait:'blekksprut', cond:1, heavy:true, depth:Math.round(depthF(L.a)), warn:0}); n++; }
@@ -132,6 +133,19 @@ HS = r"""window.SNO = (() => {
   }
   return {reset, plan, stand, hand, T0, TF, get LOG(){ return LOG; }, get F(){ return F; }, get plant(){ return plant; }};
 })();"""
+
+# part 11 (DP3-4): a ring plan for the autoliner or the snow crab vessel, made, searched and played two days closed
+P11 = r"""async kind => { const H = kind === 'auto' ? HPT : SNO; await (kind === 'auto' ? HPT.reset(7, 'port') : SNO.reset(7, 'port', SNO.TF)); const F = H.F; if (!F || !F.length) return {err:'ingen felt'};
+  const o = S.ops = plan3New({x:F[0].x, y:F[0].y}, kind === 'auto' ? 'line' : 'teiner'), t0 = performance.now(), err = await new Promise(res => plan3Make(o, e => res(e || null))); if (err) return {err};
+  const R = {ms:Math.round(performance.now() - t0), r:o.ring.r, fields:o.places.map(q => q.n), km:o.sok && o.sok.km, cand:o.sok && o.sok.cand.length, tier:plan3Tier(), lay:o.sok && Object.values(o.sok.lay || {}).map(L => Object.keys(L).length)};
+  const d = planDay(o, S.t / 60, plan2StateOf(o)); R.day = planDayText(o, d).map(x => x[0] + ' ' + x[1]).slice(0, 8); R.sokStep = !!d.steps.find(x => x.k === 'sok');
+  let sokT = null; const sok = [], seen = {}; plan2Start(o);
+  await HPT.run(2 * 1440, 'closed', () => { const pl = S.plan; if (pl && pl.sok != null && pl.idx >= pl.sok){ if (sokT == null) sokT = S.t; } else if (sokT != null){ sok.push(S.t - sokT); sokT = null; } for (const s of mySets()) if (!seen[s.id]) seen[s.id] = {fid:s.fid, a:{...s.a}, b:{...s.b}}; });
+  const inR = p => kmTrue(p, o.ring) <= o.ring.r + 0.05, mid = s => ({x:(s.a.x + s.b.x) / 2, y:(s.a.y + s.b.y) / 2}), fieldOf = s => o.places.find(q => q.id === String(s.fid).split('#')[0]), S2 = Object.values(seen);
+  R.after = {sokN:o.sokN || 0, last:o.sokLast, at:o.places.map(q => !!q.at), atIn:o.places.every(q => !q.at || inR(q.at)), sets:S2.length, sokMin:sok,
+    midOnAt:kind === 'auto' ? S2.map(s => { const q = fieldOf(s); return q && q.at ? +kmTrue(mid(s), q.at).toFixed(2) : null; }) : null,
+    snoNear:kind === 'sno' ? S2.map(s => { const q = fieldOf(s); return q && q.at ? +kmTrue(s.a, q.at).toFixed(1) : null; }).slice(0, 8) : null, on:o.on, stop:o.stop, kg:Math.round(holdTotal())};
+  return R; }"""
 
 async def main():
     async with async_playwright() as p:
@@ -297,37 +311,29 @@ async def main():
             await pg.evaluate("""(async () => { await SNO.reset(5, 'port', SNO.TF); const o = SNO.plan(); await HPT.make(o); TAB.held = false; })()""")
             for w, h in [(800, 1280), (1280, 800)]:
                 await pg.set_viewport_size({'width': w, 'height': h})
-                for row in [None, 'rig', 'places', 'land']:
+                for row in [None, 'gear']:
                     if row: await pg.evaluate("PHONE.dact('drift', 'p2-row', {k:'%s'})" % row)
                     await pg.evaluate("DOCK.open('drift')"); await pg.wait_for_timeout(600)
-                    if row: await pg.evaluate("(() => { const e = document.querySelector('.dr-row.on'); if (!e) return; let d = e.parentElement; while (d && d !== document.body && !(d.scrollHeight > d.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(d).overflowY))) d = d.parentElement; if (d) d.scrollTop = e.offsetTop - 8; })()")
-                    await pg.wait_for_timeout(200)
                     await pg.screenshot(path=os.path.join(OUT, 'havplan-sno-%dx%d%s.png' % (w, h, '-' + row if row else '')))
                     if row: await pg.evaluate("PHONE.dact('drift', 'p2-row', {k:'%s'})" % row)
-                ov = await pg.evaluate("(() => { const d = document.getElementById('drawerBody'); return {w:d.scrollWidth, cw:d.clientWidth, txt:d.innerText}; })()")
+                await pg.evaluate("PHONE.dact('drift', 'p2-row', {k:'gear'}); DOCK.open('drift')"); await pg.wait_for_timeout(500)
+                ov = await pg.evaluate("(() => { const d = document.getElementById('drawerBody'); return {w:d.scrollWidth, cw:d.clientWidth, txt:d.innerText, sno:[...d.querySelectorAll('[data-pa=\"p2-sno\"]')].map(x => x.innerText.trim() + (x.classList.contains('on') ? '*' : ''))}; })()")
+                await pg.evaluate("PHONE.dact('drift', 'p2-row', {k:'gear'}); DOCK.close()")
                 print(ok(ov['cw'] > 0 and ov['w'] <= ov['cw'] + 1), 'no sideways overflow at %d px' % w, {'w': ov['w'], 'cw': ov['cw']})
                 if w == 800: print('  ', ov['txt'].replace('\n', ' | ')[:900])
-                txt = ov['txt']
-                print(ok('lenker à 200' in txt and 'døgn' in txt), 'the page speaks of strings of 200 and the soak in days (%d px)' % w)
-                await pg.evaluate("DOCK.close()")
-                # the land row with the choice of frozen or live, and the chart window with every string of the fields
-                await pg.evaluate("PHONE.dact('drift', 'p2-row', {k:'land'})"); await pg.evaluate("DOCK.open('drift')"); await pg.wait_for_timeout(400)
-                lv = await pg.evaluate("(() => { const b = [...document.querySelectorAll('[data-pa=\"p2-sno\"]')]; return b.map(x => x.innerText.split('\\n')[0] + (x.classList.contains('on') ? '*' : '')); })()")
-                print(ok(len(lv) == 2 and lv[0].endswith('*')), 'Levering: «Fryste klør» or «Levende krabbe», frozen chosen', lv)
-                await pg.evaluate("PHONE.dact('drift', 'p2-row', {k:'land'})"); await pg.evaluate("DOCK.close()")
+                print(ok('lenker à 200' in ov['txt'] and len(ov['sno']) == 2 and ov['sno'][0].endswith('*')), 'the page: Redskap in strings of 200, and the crab «Fryste klør» or «Levende krabbe», frozen chosen (%d px)' % w, ov['sno'])
+                # the chart: the ring, and every string of the fields round their spot
                 await pg.evaluate("PLANMAP.open(S.cur)"); await pg.wait_for_timeout(1500)
-                # (zoomed in on the fields, and the first field's pin chosen, so the card with its strings and days shows)
-                await pg.evaluate("(() => { const o = S.ops, q = o.places[0], r = o.places[1] || q; view.cx = (q.x + r.x) / 2; view.cy = (q.y + r.y) / 2 - 4; view.z = Math.min(ZMAX, view.z * 4); applyView(); scheduleStatic(); PLANMAP.tap({x:q.x, y:q.y}, 4); })()"); await pg.wait_for_timeout(3000)
                 await pg.screenshot(path=os.path.join(OUT, 'havplan-sno-kart-%dx%d.png' % (w, h)))
-                mp = await pg.evaluate("(() => ({lines:document.querySelectorAll('.pm-string').length, card:(document.getElementById('pmCard') || {}).innerText || ''}))()")
-                print(ok(mp['lines'] >= 40), 'the chart draws every string of the fields (%d)' % mp['lines'], mp['card'].replace('\n', ' | ')[:200])
-                await pg.evaluate("PLANMAP.close ? PLANMAP.close() : null"); await pg.wait_for_timeout(300)
+                mp = await pg.evaluate("(() => ({lines:document.querySelectorAll('.pm-string').length, ring:document.querySelectorAll('.pm-ring').length}))()")
+                print(ok(mp['lines'] >= 40 and mp['ring'] == 1), 'the chart draws the ring and every string of the fields (%d)' % mp['lines'], mp)
+                await pg.evaluate("PLANMAP.close()"); await pg.wait_for_timeout(300)
         if want('6'):
             print('== 6: siden i begge formater')
             await pg.evaluate("""(async () => { await HPT.reset(5, 'port'); const o = HPT.plan(); await HPT.make(o); TAB.held = false; })()""")
             for w, h in [(800, 1280), (1280, 800)]:
                 await pg.set_viewport_size({'width': w, 'height': h})
-                for row in [None, 'places', 'land', 'wx']:
+                for row in [None, 'sted', 'gear']:
                     if row: await pg.evaluate("PHONE.dact('drift', 'p2-row', {k:'%s'})" % row)
                     await pg.evaluate("DOCK.open('drift')"); await pg.wait_for_timeout(600)
                     if row: await pg.evaluate("(() => { const e = document.querySelector('.dr-row.on'); if (!e) return; let d = e.parentElement; while (d && d !== document.body && !(d.scrollHeight > d.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(d).overflowY))) d = d.parentElement; if (d) d.scrollTop = e.offsetTop - 8; })()")
@@ -338,6 +344,21 @@ async def main():
                 print(ok(ov['cw'] > 0 and ov['w'] <= ov['cw'] + 1), 'no sideways overflow at %d px' % w, {'w': ov['w'], 'cw': ov['cw']})
                 if w == 800: print('  ', ov['txt'].replace('\n', ' | ')[:600])
                 await pg.evaluate("DOCK.close()")
+        if want('11'):
+            # DP3-4 (steg 132): the ocean vessels with a ring of 8 nm: the plan made from the ring and the gear only (plan3Make), the
+            # search with the echo sounder before the gear goes out (its length and time measured), the spots in the ring, and the gear
+            # set round them; two days played closed. The autoline in fields of two lenker laid with their middle on the spot; the snow
+            # crab's strings in their pattern round it
+            print('== 11: ringen og søket for havbåtene (DP3-4)')
+            for kind in ['auto', 'sno']:
+                R = await pg.evaluate(P11, kind)
+                print('  %s:' % kind, json.dumps(R, ensure_ascii=False)[:1500])
+                if R.get('err'): print('FEIL %s: planen ble ikke laget: %s' % (kind, R['err'])); continue
+                a = R['after']
+                print(ok(R['sokStep'] and a['sokN'] >= 1 and all(a['at']) and a['atIn']), '%s: the plan from the ring (8 nm) and the gear, searched with the echo sounder before the gear goes out, every field with its spot in the ring' % kind, [R['sokStep'], a['sokN'], a['at']])
+                print(ok(a['sets'] >= 1 and not a['stop']), '%s: the gear set after the search, and the plan goes on' % kind, [a['sets'], a['stop'], a['kg']])
+                if kind == 'auto': print(ok(a['midOnAt'] and all(x is not None and x <= 0.2 for x in a['midOnAt'])), 'auto: each field\'s string of lenker lies with its middle on the spot the search found', a['midOnAt'])
+                else: print(ok(a['snoNear'] and all(x is not None and x <= 25 for x in a['snoNear'])), 'sno: the strings stand in their pattern round the spot the search found', a['snoNear'])
         print('sidefeil:', errs[:5])
         await b.close()
 asyncio.run(main())

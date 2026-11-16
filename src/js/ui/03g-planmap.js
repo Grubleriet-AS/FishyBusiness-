@@ -60,6 +60,8 @@ const PLANMAP = (() => {
     // (the label up to the right, or every second field's down to the left, so two fields close together do not write over each other)
     const pin = (p, s, col, left) => { g.push('<circle cx="' + n(p.x) + '" cy="' + n(p.y) + '" r="' + n(6.5 * u) + '" fill="' + col + '" stroke="#fff" stroke-width="' + n(2 * u) + '"/>'); g.push(txt(left ? {x:p.x - 9 * u, y:p.y + 18 * u} : {x:p.x + 9 * u, y:p.y - 7 * u}, s, 'wpn', 12 * u, 'stroke-width="' + (3 * u) + '"' + (left ? ' text-anchor="end"' : ''))); };
     if (o.places.length){ const fi = {felt:0, juks:0};
+      // (the snow crab vessel's strings, side by side round the spot, 06i-plan2-sno.js p2SnoLenke)
+      if (p2Sno(o)) for (const q of o.places) if (q.k === 'felt') for (let k = 0; k < q.n; k++){ const L2 = p2SnoLenke(q, k); g.push('<line x1="' + n(L2.a.x) + '" y1="' + n(L2.a.y) + '" x2="' + n(L2.b.x) + '" y2="' + n(L2.b.y) + '" stroke="#d9822b" stroke-width="' + n(2 * u) + '" stroke-linecap="round" class="pm-string"/>'); }
       for (const q of o.places) if (q.st && q.at){ const e = {x:2 * q.at.x - q.st.x, y:2 * q.at.y - q.st.y}; g.push('<line x1="' + n(q.st.x) + '" y1="' + n(q.st.y) + '" x2="' + n(e.x) + '" y2="' + n(e.y) + '" stroke="#d9822b" stroke-width="' + n(3 * u) + '" stroke-linecap="round" class="pm-string"/>'); }
       for (const q of o.places){ fi[q.k]++; pin(spot(q), q.k === 'felt' ? L('Felt ', 'Field ') + fi[q.k] : L('Juksplass ', 'Jig place ') + fi[q.k], q.k === 'felt' ? '#d9822b' : '#b05ad6', fi[q.k] % 2 === 0); }
       const hp = portById(o.home), mp = o.M ? portById(o.M) : null; if (hp && on) pin(o.homeA || hp.p, L('Hjem', 'Home'), '#29a36a'); if (mp && on && mp.id !== o.home) pin(mp.p, mp.name, '#2f7fd0'); }

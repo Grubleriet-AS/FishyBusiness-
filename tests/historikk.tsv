@@ -4899,3 +4899,7 @@
 2026-11-16 04:09	claude/blissful-cannon-ctb8e9	a92ddf90	docktest	OK	61	lite	samtidig	
 2026-11-16 04:11	claude/blissful-cannon-ctb8e9	a92ddf90	csptest	OK	91	lite	samtidig	
 2026-11-16 04:13	claude/blissful-cannon-ctb8e9	210c8179	driftsplan2test	OK	112	lite	alene	
+2026-11-16 04:31	claude/blissful-cannon-ctb8e9	600b3019+	havplantest	FEIL	77	lite	samtidig	FEIL three days without you aboard: the lenker set, hauled and set again, the catch aboard [0, 0]
+2026-11-16 04:33	claude/blissful-cannon-ctb8e9	600b3019+	driftsplan2kyst	FEIL	200	lite	samtidig	FEIL Bergen: B the plan made from the page (line 2 + 2, a jig place) is made and starts [None, None, ['Velg minst én juksplass.']]
+2026-11-16 04:35	claude/blissful-cannon-ctb8e9	600b3019+	havplantest	FEIL	26	lite	samtidig	avsluttet med kode 1
+2026-11-16 04:36	claude/blissful-cannon-ctb8e9	600b3019+	driftsplan2kyst	FEIL	41	lite	samtidig	FEIL Bergen: the plan page and the town's run threw: Page.evaluate: ReferenceError: atQ is not defined

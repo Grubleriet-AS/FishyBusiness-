@@ -154,4 +154,19 @@ export default function (t){
       S.ops = null; o.run = null; }
     if (!had) delete globalThis.fmt;
   }
+
+  // ---- DP3-4: the ocean vessels. The autoline in fields of two lenker (13 km, along a chord of the 8 nm ring); the snow crab's strings
+  // round the spot the search found; a field whose strings stand («f1#3») is not searched
+  { const {plan3Split, plan3SokNeed, p2SnoLenke, p2Units, applyVessel, plan2State} = K;
+    const b = S.boat, t0 = b.type; b.type = 'autoliner'; applyVessel(); S.lag = null; S.ops = null; S.sets = [];
+    const oa = plan3New({x:500, y:300}, 'line'), sp = plan3Split(oa), u = p2Units('line', 'auto');
+    t.ok(oa.ring.r === DRP3.ring.auto * NM / 2 && sp.n.length === Math.ceil(u / DRP3.autoPer) && sp.n.every(n => n <= DRP3.autoPer) && sp.n.reduce((a, n) => a + n, 0) === u, 'autolineren: ringen på 8 nm, ' + u + ' lenker i felt på høyst ' + DRP3.autoPer + ' (' + JSON.stringify(sp.n) + ')');
+    b.type = t0; applyVessel();
+    const q = {id:'f1', x:500, y:300, n:9, hdg:0, at:{x:503, y:302}}, L0 = p2SnoLenke(q, 0), Lc = p2SnoLenke(Object.assign({}, q, {at:null}), 0);
+    t.ok(Math.abs((L0.a.x - Lc.a.x) - 3) < 1e-9 && Math.abs((L0.a.y - Lc.a.y) - 2) < 1e-9, 'snøkrabbelenkene står i mønsteret sitt rundt plassen søket fant, ikke rundt feltets faste punkt');
+    const o2 = plan3New({x:500, y:300}, 'line', {lk:'hyse'}); o2.places = [{id:'f1', k:'felt', x:500, y:300, n:2, soak:8, lk:'hyse'}]; o2.sok = {cand:[[500, 300]], reach:{f1:[0]}, track:{}, seen:{}, km:{}};
+    S.pgear.lines.hyse.n = 4; S.pgear.lines.hyse.baited = 4; S.ops = o2;
+    S.sets = [{vid:S.cur, kind:'line', n:2, fid:'f1#3', id:'s9', a:{x:500, y:300}, b:{x:501, y:300}, tSet:S.t}]; const n1 = plan3SokNeed(o2, plan2State(o2)).length;
+    S.sets = []; const n2 = plan3SokNeed(o2, plan2State(o2)).length; S.ops = null;
+    t.ok(n1 === 0 && n2 === 1, 'et felt med en lenke i sjøen («f1#3») søkes ikke; uten søkes det (' + n1 + ', ' + n2 + ')'); }
 }

@@ -207,6 +207,8 @@ function planDayAuto(o, H0, st){
   // in port and the trip is over before it began (the gear fetched, nothing in the sea, the hold empty): home
   if (end && atPort && !st.sets.length){ if (atPort !== o.home && o.home){ go(plan2P(o, 'H'), plan2Port(o, 'H')); steps.push({t, k:'hjem', port:o.home, anchor:!!o.homeA}); }
     return {t0:H0, steps, end:t, home:null, why:end, skipped, dayMax:24, auto:true}; }
+  // (Driftsplan 3, DP3-4: the search with the echo sounder in the ring before the lenker go out, as on the coast, planDay)
+  if (o.v === DRV3 && !end && !o.fetch){ const ids = plan3SokNeed(o, st); if (ids.length){ const E = plan3SokEst(o); go(o.places[0]); steps.push({t, k:'sok', pids:ids, h:E.h, km:E.km, l:E.l, tier:E.tier, who:E.who}); t += E.h; const Q = plan3SokEnd0(o, E.tier); at = Q; atPort = null; } }
   const readyN = () => Math.min(n0, Math.floor(bait / A.bait + 1e-9)), cyc = [], until = H0 + DRP2.hav.look;
   // pass 1: the fields in the player's order: what stands is hauled when due (pass 2); an empty field gets its lenker, if any are ready
   for (const q of F){

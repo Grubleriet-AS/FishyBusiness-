@@ -15,7 +15,7 @@ const DRP3 = {
   // the depths each gear is set in, metres (the band the places are picked in before the echo sounder search of DP3-2; estimates:
   // the jig and nets on the banks and edges, the line deeper, crab pots shallow, the snow crab from 120 m, 06i-plan2-sno.js)
   depth:{juksa:[15, 150], line:[30, 400], garn:[10, 200], teiner:[5, 60], auto:[150, 1200], sno:[120, 500]},
-  fieldsMax:4, perField:{line:4, teiner:15}, jigPlaces:2, spaceKm:0.4,
+  fieldsMax:4, perField:{line:4, teiner:15}, jigPlaces:2, spaceKm:0.4, autoPer:2,
   // the home: how much worse (in km) a home is where the crew do not rest well, where you do not, and the rorbu's price (an estimate)
   homeKm:{noRest:40, noMe:20, rorbu:3}, homeR:40,
   // the search with the echo sounder (DP3-2, chapter 3 of the plan; start values for the play tests, measured in tests/unit/plan3.test.mjs):
@@ -65,7 +65,7 @@ function plan3Spots(o){
     const q = {x:c.x + dx, y:c.y + dy}; let d;
     try { if (isLand(q)) continue; d = depthF(q); } catch (e){ continue; }
     if (!(d >= band[0] && d <= band[1])) continue;
-    const why = kind ? ruBlockMsg({p:q, len:BOAT.len, gear:o.rig === 'teiner' ? 'teiner' : kind, sp:kind === 'teine' ? potSp() : null, H:p2Sno(o) ? p2SnoSeason(S.t / 60, 0).openAt : S.t / 60})
+    const why = kind ? ruBlockMsg({p:q, len:BOAT.len, gear:o.rig === 'teiner' ? 'teiner' : kind, sp:kind === 'teine' ? potSp() : null, egn:p2Auto(o), H:p2Sno(o) ? p2SnoSeason(S.t / 60, 0).openAt : S.t / 60})
       : ruBlockMsg({p:q, len:BOAT.len, gear:'juksa', sp:o.tackle === 'kveite' ? 'kveite' : null, hand:!(S.equip && S.equip.jukse > 0)});
     if (why) continue;
     // (the middle of the band first: the log of the depth against the log of the band's middle, as depthFactor reads a depth)
@@ -77,7 +77,7 @@ function plan3Spots(o){
 function plan3Split(o){
   const gk = plan3GearKey(o.rig), kind = p2Kind(o);
   if (!kind) return {k:'juks', n:[], places:DRP3.jigPlaces};
-  if (gk === 'sno' || gk === 'auto'){ const u = p2Units(kind, gk === 'auto' ? 'auto' : null); if (u < 1) return {k:'felt', n:[]}; if (gk === 'sno') return {k:'felt', n:[u]}; const f = Math.min(2, u); return {k:'felt', n:split(u, f)}; }
+  if (gk === 'sno' || gk === 'auto'){ const u = p2Units(kind, gk === 'auto' ? 'auto' : null); if (u < 1) return {k:'felt', n:[]}; if (gk === 'sno') return {k:'felt', n:[u]}; const f = Math.min(DRP3.fieldsMax * 2, Math.ceil(u / DRP3.autoPer)); return {k:'felt', n:split(u, f)}; }   // (the autoline in fields of DRP3.autoPer lenker: a field is one string, 6.5 km a lenke, and two lie along a chord of the 8 nm ring; DP3-4)
   if (kind === 'garn'){ const nets = (S.pgear && S.pgear.nets) || [], per = Math.max(1, (nets[0] || {n:6}).n), u = ownedUnits('garn'); const f = Math.max(1, Math.min(DRP3.fieldsMax, Math.floor(u / per))); return {k:'felt', n:u < 1 ? [] : split(Math.min(u, f * per), f)}; }
   const u = kind === 'line' ? p2Units('line', o.lk || 'hyse') : ownedUnits(kind); if (u < 1) return {k:'felt', n:[]};
   const f = Math.max(1, Math.min(DRP3.fieldsMax, Math.ceil(u / DRP3.perField[kind === 'line' ? 'line' : 'teiner'])));
@@ -173,7 +173,7 @@ function plan3Apply(o){
 async function plan3Make(o, cb){
   if (!o.ring){ const w = gL('Velg et sted for planen: trykk i kartplotteren der båten skal fiske.', 'Choose a place for the plan: tap the chart plotter where the boat is to fish.'); o.err = w; if (cb) cb(w); return; }
   // (out to where a string laid with its middle at the ring's edge ends, plan3Heads)
-  { const S3 = plan3Split(o), L = Math.max(0, ...(S3.n || []).map(n => plan3StrKm(o, {n, lk:o.lk}))); try { await mapNeed(o.ring, o.ring.r + 2 + L / 2); } catch (e){} }
+  { const S3 = plan3Split(o), D = DRP2.sno, L = p2Sno(o) ? 2 * (6 + D.row * Math.ceil(Math.max(...(S3.n || [1])) / D.cols) + D.cols * D.col / 2) : Math.max(0, ...(S3.n || []).map(n => plan3StrKm(o, {n, lk:p2Auto(o) ? 'auto' : o.lk}))); try { await mapNeed(o.ring, o.ring.r + 2 + L / 2); } catch (e){} }
   // (the skipper and the mate the plan names, put back when the plan is not made)
   const was = (S.crew || []).map(c => [c, !!c.sk, !!c.mate]), back = () => { for (const [c, sk, mt] of was){ if (sk) c.sk = true; else delete c.sk; if (mt) c.mate = true; else delete c.mate; } };
   const why = plan3Derive(o); if (why){ back(); o.err = why; o.made = null; if (cb) cb(why); return; }
@@ -294,11 +294,18 @@ function plan3SokPrep(o, spots){
   // where the boat will be when she reads the search, outside the waters loaded round her, MAPD.simR); the search then only keeps the
   // strings from crossing each other, so it reads nothing of the map and plays the same open and closed
   const lay = {};
-  if (p2Kind(o)) for (const q of A) if (q.k === 'felt'){ lay[q.id] = {}; for (const i of reach[q.id]){ const hs = plan3Heads(o, q, P(i)); if (hs.length) lay[q.id][i] = hs.map(h => +h.toFixed(4)); } }
+  if (p2Kind(o)) for (const q of A) if (q.k === 'felt'){ lay[q.id] = {}; for (const i of reach[q.id]){ const hs = p2Sno(o) ? (plan3SnoFits(o, q, P(i)) ? [0] : []) : plan3Heads(o, q, P(i)); if (hs.length) lay[q.id][i] = hs.map(h => +h.toFixed(4)); } }
   return {cand:pts, reach, track, end:ends, seen, km, lay};
 }
 // where the search's pattern ends (a place's fixed point) for the sounder the boat has
 function plan3SokEnd0(o, tier){ const K = o.sok, id = K && K.end ? K.end[tier || plan3Tier()] : null; return o.places.find(q => q.id === id) || o.places[0]; }
+// the snow crab's strings round a spot (06i-plan2-sno.js p2SnoLenke, its pattern side by side and in rows): the corners of the pattern fit
+// (land, depth, the rules, a clean way from the field's point: p2SnoFit), so the whole field can stand there
+function plan3SnoFits(o, q, at){
+  const D = DRP2.sno, n = Math.max(1, q.n || 1), W = Math.max(1, Math.min(n, D.cols)), t = {id:q.id, x:q.x, y:q.y, n, hdg:q.hdg, at};
+  for (const k of [...new Set([0, W - 1, n - W, n - 1].filter(k => k >= 0 && k < n))]){ if (p2SnoFit(t, k)) return false; }
+  return true;
+}
 // the string's length on a field (a line of its tubs, a string of nets or pots), true km
 function plan3StrKm(o, q){ const kind = p2Kind(o); if (!kind || !q || !(q.n > 0)) return 0; if (kind === 'line'){ const lk = q.lk || o.lk || 'hyse'; return lineKm(lk, q.n * (LINE_KINDS[lk] || LINE_KINDS.hyse).hooks); } return q.n * GEAR[kind].km; }
 // the string laid with its middle on the spot the search found: the catch is reckoned at the string's middle (10-gear.js soakHour, setMid),
@@ -314,7 +321,7 @@ function plan3Heads(o, q, at){
   for (const dh of [0, 0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.57]) for (const flip of [0, Math.PI]){
     const h = ((h0 + dh + flip) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI), {st, e} = plan3Ends(o, q, at, h);
     try { if (isLand(st) || isLand(e) || depthF(st) < 5 || depthF(e) < 5 || !legClear(st, e) || !plan3Clean(q, st)) continue;
-      if (ruBlockMsg({p:st, len:BOAT.len, gear, sp})) continue; } catch (err){ continue; }
+      if (ruBlockMsg({p:st, len:BOAT.len, gear, sp, egn:p2Auto(o)})) continue; } catch (err){ continue; }
     out.push(h); if (out.length >= 6) break;
   }
   return out;
@@ -335,11 +342,12 @@ function plan3SokEst(o){
 // the places that want a search before the gear goes out: a field with nothing standing whose gear is ready, never searched or with a
 // haul that fell (q.move); a jig place never searched. None on the ocean vessels (their day is DP3-4's) or when the plan has no search kept
 function plan3SokNeed(o, st){
-  if (!o.sok || !o.sok.cand || !o.sok.cand.length || p2Auto(o) || p2Sno(o)) return [];
-  const kind = p2Kind(o), out = [];
+  if (!o.sok || !o.sok.cand || !o.sok.cand.length) return [];
+  const kind = p2Kind(o), hav = p2Auto(o) || p2Sno(o), out = [], mine = (x, q) => x.fid === q.id || String(x.fid || '').startsWith(q.id + '#');
   for (const q of o.places){
     if (q.k === 'juks'){ if (!kind && q.sokT == null) out.push(q.id); continue; }
-    if (!kind || st.sets.some(x => x.fid === q.id) || (q.sokT != null && !q.move) || plan2Ready(kind, st, q.lk) < 1) continue;
+    // (the ocean vessels' gear is ready by their own day: the lenker on the magazines, the strings of pots; DP3-4)
+    if (!kind || st.sets.some(x => mine(x, q)) || (q.sokT != null && !q.move) || (!hav && plan2Ready(kind, st, q.lk) < 1)) continue;
     out.push(q.id);
   }
   return out;
@@ -364,7 +372,7 @@ function plan3Search(o, ids, H, opt){
     const ok = (K.reach[q.id] || []).filter(i => Rn[i] != null && !(bad && kmTrue(bad, P(i)) < DRP3.spaceKm));
     // (the best by the reading that the gear will lie at: the string with its middle there, plan3Lay; opt.lay false in the unit test, no map)
     let best = -1, lay = null; for (const g of [gap, DRP3.spaceKm, 0]){ const L = ok.filter(i => mine.every(z2 => kmTrue(z2, P(i)) >= g - 1e-9)).sort((a, b) => Rn[b] - Rn[a] || a - b);
-      for (const i of L){ const y = q.k === 'juks' || opt.lay === false ? {st:P(i), e:P(i), hdg:null} : K.lay ? (K.lay[q.id] && K.lay[q.id][i] ? plan3Lay(o, q, P(i), segs, K.lay[q.id][i]) : null) : plan3Lay(o, q, P(i), segs); if (y){ best = i; lay = y; break; } } if (best >= 0) break; }
+      for (const i of L){ const y = q.k === 'juks' || opt.lay === false ? {st:P(i), e:P(i), hdg:null} : p2Sno(o) ? (!K.lay || (K.lay[q.id] && K.lay[q.id][i]) ? {st:P(i), e:P(i), hdg:null} : null) : K.lay ? (K.lay[q.id] && K.lay[q.id][i] ? plan3Lay(o, q, P(i), segs, K.lay[q.id][i]) : null) : plan3Lay(o, q, P(i), segs); if (y){ best = i; lay = y; break; } } if (best >= 0) break; }
     q.at = best >= 0 ? P(best) : null; q.st = lay && lay.hdg != null ? {x:lay.st.x, y:lay.st.y} : null; q.hdg = lay && lay.hdg != null ? lay.hdg : null; q.move = false; q.q1 = null; q.sokT = S.t; q.sokN = n;
     if (q.k !== 'juks'){ put.push(q.at || q); if (lay) segs.push(lay); }
     out.push({id, i:best, v:best >= 0 ? Rn[best] : null, at:q.at});
