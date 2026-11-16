@@ -1,5 +1,9 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['roret-161126', '16.11.2026', 'Ingen ved roret, ingen fart', 'Nobody at the helm, no way on', [
+       ['Står ingen ved roret, går ikke båten for egen maskin. Alene ved rekka driver du videre med vinden; har du mannskap, tar en av dem roret og kjører opp igjen over feltet.', 'With nobody at the helm, the boat does not go under her own power. Alone at the rail you drift on with the wind; with crew aboard, one of them takes the helm and runs back up over the ground.'],
+       ['Ligger båten i ro, dreier hun sakte etter vinden til hun ligger på tvers av den (de store med styrhuset forut med baugen mer mot le), fortere jo mer det blåser.', 'Lying still, the boat turns slowly with the wind until she lies across it (the big ones with the wheelhouse forward with the bow further downwind), faster the harder it blows.'],
+       ['På anker legger hun seg på skrå av ankertauet når vind og strøm drar hver sin vei, og svaier mer.', 'At anchor she lies at an angle to the rode when the wind and the current pull opposite ways, and sheers more.']]],
     ['lys-151126', '15.11.2026', 'Rolige lanterner og jevnere bilde på store skjermer', 'Steady lanterns and a smoother picture on big screens', [
        ['Lanternene på de andre båtene blinker ikke lenger av og på når båtene ruller i kanten av lysets sektor. De toner ut over et par grader, som ekte lanterner.', 'The other boats\' lanterns no longer blink on and off as the boats roll at the edge of a light\'s sector. They fade out over a couple of degrees, like real lanterns.'],
        ['På Lav grafikk tegner spillet færre punkter på en stor skjerm når bildet fortsatt hakker, og går tilbake når det ikke hjelper.', 'On Low graphics the game draws fewer pixels on a big screen when the picture still stutters, and goes back when that does not help.']]],
