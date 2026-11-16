@@ -7,9 +7,13 @@ and the guards included), at 1.2 m/s on a level deck and at 0.78 m/s in a roll o
 drawDeckCrew takes a figure with the gait off and on. «#fot0» (KYST_FOT=0) is the old gait: the same measure is red there.
 
   python3 tests/fotgli.py          the checks (prints OK or FEIL)
+  python3 tests/fotgli.py bilder   the pictures: three boats with someone walking, the gait off (as before) and on, both formats,
+                                   to docs/okter/2026-11-16-121/<av|paa>_<boat>_<format>.jpg (the agents stepped on the same beat both times)
   KYST_FOT=0 python3 tests/fotgli.py    with #fot0: the «before»
 """
-from _env import boot, GAME3D_MIN as GAME
+from _env import boot, GAME3D_MIN, GAME as GAME_FULL
+import sys
+GAME = GAME_FULL if 'bilder' in sys.argv[1:] else GAME3D_MIN   # (the pictures with the whole scene; the checks without what they do not look at)
 import asyncio, json, math, os
 from playwright.async_api import async_playwright
 
@@ -112,10 +116,36 @@ async def walking(pg, t, secs, roll, test):
     return run
 
 
+async def shots(pg):
+    """Three boats, both formats, someone on his way from the breaks to the work: the agents stepped by the test (as the checks), the
+    same steps with the gait off and on (FOT.on), and a frame drawn for each."""
+    import sys
+    out = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'docs', 'okter', '2026-11-16-121'); os.makedirs(out, exist_ok=True)
+    boats = await pg.evaluate(BOATS)
+    for vw, vh, fmt in [(1280, 800, 'liggende'), (800, 1280, 'staaende')]:
+        await pg.set_viewport_size({'width': vw, 'height': vh})
+        for t in boats:
+            L = await pg.evaluate("(t) => VESSELS[t].len", t)
+            for tag, on in (('av', False), ('paa', True)):
+                await pg.evaluate(SET, [t, 'pause']); await pg.evaluate("([d]) => { const c = G3._debug.cam; c.dist = d; c.pitch = 0.5; c.yaw = -0.9; }", [(3.2 + L * 0.42) * (1.45 if fmt == 'staaende' else 1)])
+                await frames(pg, t, 2); await pg.evaluate("LEMMER.log = []"); await frames(pg, t, 1)
+                await pg.evaluate("(on) => { FOT.on = on; }", on); await pg.evaluate(STEPS, [60, 1 / 30]); await pg.evaluate(WORK, True)
+                # (to the first moment someone walks, a second in at most)
+                for k in range(12):
+                    await pg.evaluate(STEPS, [10, 1 / 30])
+                    if await pg.evaluate("CREW3D.visible().some(a => a.mode === 'walk' && (a.v || 0) > 0.5)"): break
+                await pg.evaluate("window.HOLD = true"); await frames(pg, t, 2)
+                path = os.path.join(out, '%s_%s_%s.jpg' % (tag, t, fmt)); await pg.screenshot(path=path, type='jpeg', quality=60)
+                print(tag, t, fmt, await pg.evaluate("CREW3D.visible().map(a => a.mode + ':' + (a.v || 0).toFixed(2))"), flush=True)
+                await pg.evaluate("window.HOLD = false; FOT.on = true")
+
+
 async def main():
     async with async_playwright() as p:
         br = await p.chromium.launch(); pg = await br.new_page(viewport={'width': 640, 'height': 400}); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
         await boot(pg, URL)
+        if 'bilder' in sys.argv[1:]:
+            await shots(pg); await br.close(); return
         boats = await pg.evaluate(BOATS); boats = [b for b in boats if not os.environ.get('KYST_FOTBAT') or b in os.environ['KYST_FOTBAT'].split(',')]; print('båter:', boats, flush=True)
         med = lambda A: sorted(A)[len(A) // 2] if A else 0
         allv = {}
