@@ -8,8 +8,7 @@ const PLANMAP = (() => {
   const L = (no, en) => S.lang === 'no' ? no : en;
   let on = false, vid = null, busy = false, msg = null;
   const bar = document.createElement('div'); bar.id = 'pmBar'; bar.hidden = true;
-  const card = document.createElement('div'); card.id = 'pmCard'; card.hidden = true;   // (kept for the layout's rules in styles.css)
-  { const host = $('aisCard'); host.after(bar); host.after(card); }
+  $('aisCard').after(bar);
   const ops = () => { const o = typeof plan2Ops === 'function' ? plan2Ops() : null; return o && o.v === DRV3 && vid === S.cur ? o : null; };
   const mine = () => { const o = typeof plan2Ops === 'function' ? plan2Ops() : null; return o && o.v === DRV3 ? o : null; };
   const spot = q => q.at || q;
@@ -29,18 +28,18 @@ const PLANMAP = (() => {
     openPlotter(); fit(o); render(); renderDyn(); return true;
   }
   // «Ferdig»: back to the page
-  function close(){ if (!on) return; on = false; msg = null; bar.hidden = card.hidden = true; document.body.classList.remove('pm'); if (typeof save === 'function') save(); renderDyn(); scheduleStatic(); if (typeof DOCK !== 'undefined' && DOCK.open) DOCK.open('drift'); else if (typeof PHONE !== 'undefined' && PHONE.open) PHONE.open('drift'); }
+  function close(){ if (!on) return; on = false; msg = null; bar.hidden = true; document.body.classList.remove('pm'); if (typeof save === 'function') save(); renderDyn(); scheduleStatic(); if (typeof DOCK !== 'undefined' && DOCK.open) DOCK.open('drift'); else if (typeof PHONE !== 'undefined' && PHONE.open) PHONE.open('drift'); }
   // a catch mark under a field's pin or the ring's middle hides its label (03-map.js, GUI review P2)
   const covers = (p, r) => { const o = mine(); if (!o || !o.ring) return false; return dist(o.ring, p) < r || o.places.some(q => dist(spot(q), p) < r); };
   function render(){
-    const o = ops(); if (!on || !o){ bar.hidden = card.hidden = true; return; }
-    bar.hidden = false; card.hidden = true;
+    const o = ops(); if (!on || !o){ bar.hidden = true; return; }
+    bar.hidden = false;
     const d = fmt(DRP3.ring[plan3GearKey(o.rig)], 1), where = o.ring ? L('Ringen ligger ' + PLAN2UI.ringName(o.ring) + '. Trykk et annet sted for å flytte den.', 'The ring lies ' + PLAN2UI.ringName(o.ring) + '. Tap elsewhere to move it.') : L('Trykk i sjøen der båten skal fiske.', 'Tap the sea where the boat is to fish.');
     bar.innerHTML = '<div class="pm-h"><b>' + L('Driftsplan: stedet for «', 'Operations plan: the place for «') + S.boatName + '»</b><button type="button" data-pm="done">' + L('Ferdig', 'Done') + '</button></div>' +
       '<div class="pm-t"><span class="pm-hint">' + (busy ? L('Sjekker ringen …', 'Checking the ring …') : where) + ' ' + L('Ringen er ' + d + ' nm over for ' + plan3GearWord(o.rig)[0] + '.', 'The ring is ' + d + ' nm across for ' + plan3GearWord(o.rig)[1] + '.') + '</span></div>' +
       (msg ? '<div class="pm-day pm-why">' + msg + '</div>' : '');
   }
-  for (const el of [bar]) el.addEventListener('click', e => { const b = e.target.closest('[data-pm]'); if (b && !b.disabled && b.dataset.pm === 'done') close(); });
+  bar.addEventListener('click', e => { const b = e.target.closest('[data-pm]'); if (b && !b.disabled && b.dataset.pm === 'done') close(); });
   // ---- the chart: a tap sets or moves the ring (03-map.js pointer handlers); nothing is dragged
   function tap(mp){
     const o = ops(); if (!on || !o) return false; if (busy) return true;
