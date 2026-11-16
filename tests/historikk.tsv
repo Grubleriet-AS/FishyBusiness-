@@ -3863,6 +3863,36 @@
 2026-11-13 15:03	plan/2026-11-13-108	40b12986	boottest	OK	42	lite	samtidig	
 2026-11-13 15:04	plan/2026-11-13-108	40b12986	fasittest	OK	52	lite	samtidig	
 2026-11-13 15:05	plan/2026-11-13-108	40b12986	docktest	OK	67	lite	samtidig	
+2026-11-13 15:52	plan/2026-11-13-109	844418fb+	maletest	OK	22	lite	alene	
+2026-11-13 15:57	plan/2026-11-13-109	a4a5526d+	kjoptest	OK	202	lite	samtidig	
+2026-11-13 15:57	plan/2026-11-13-109	a4a5526d+	fasittest	OK	53	lite	samtidig	
+2026-11-13 15:57	plan/2026-11-13-109	a4a5526d+	maletest	OK	25	lite	samtidig	
+2026-11-13 15:57	plan/2026-11-13-109	a4a5526d+	regnrtest	OK	15	lite	samtidig	
+2026-11-13 15:57	plan/2026-11-13-109	a4a5526d+	sponsor2test	OK	21	lite	samtidig	
+2026-11-13 15:57	plan/2026-11-13-109	a4a5526d+	vesseltest	OK	24	lite	samtidig	
+2026-11-13 15:57	plan/2026-11-13-109	a4a5526d+	walktest	FEIL	19	lite	samtidig	FEIL autoliner    152 cells   6.1 m2 of 474.4, places sloy,is,haling,door, rail 0 (0 behind a wall), 6 ways (longest 4), 0 through the house between 1 parts, 17
+2026-11-13 15:57	plan/2026-11-13-109	a4a5526d+	crewclip	FEIL	33	lite	samtidig	FEIL nor a body on the way between them (shoulders, chest and back, every tenth of a second) {'snokrabbe': [47, 5142, ['f:3.23:walk', 'rlf:3.12:walk', 'lfb:3.01
+2026-11-13 15:57	plan/2026-11-13-109	a4a5526d+	regmarktest	OK	6	lite	samtidig	
+2026-11-13 15:58	plan/2026-11-13-109	a4a5526d+	docktest	OK	63	lite	samtidig	
+2026-11-13 15:58	plan/2026-11-13-109	a4a5526d+	dockrow	OK	44	lite	samtidig	
+2026-11-13 16:00	plan/2026-11-13-109	a4a5526d+	roetest	OK	126	lite	samtidig	
+2026-11-13 16:00	plan/2026-11-13-109	a4a5526d+	hudtest	OK	98	lite	samtidig	
+2026-11-13 16:02	plan/2026-11-13-109	a4a5526d+	uishots	OK	88	lite	samtidig	
+2026-11-13 16:02	plan/2026-11-13-109	a4a5526d+	navbarshot	OK	32	lite	samtidig	
+2026-11-13 16:02	plan/2026-11-13-109	a4a5526d+	lanterntest	OK	18	lite	samtidig	
+2026-11-13 16:16	plan/2026-11-13-109	5df26318	boottest	OK	35	lite	samtidig	
+2026-11-13 16:16	plan/2026-11-13-109	5df26318	maletest	OK	21	lite	samtidig	
+2026-11-13 16:16	plan/2026-11-13-109	5df26318	sponsor2test	OK	20	lite	samtidig	
+2026-11-13 16:16	plan/2026-11-13-109	5df26318	cloudtest	FEIL	54	lite	samtidig	FEIL TP2: a code longer than 160 goes up whole with the home port and the name's lettering last, and another player's lettering and home port (Båtsfjord) come d
+2026-11-13 16:18	plan/2026-11-13-109	5df26318	kjoptest	OK	165	lite	samtidig	
+2026-11-13 16:19	plan/2026-11-13-109	5df26318	dbg23o	OK	47	3d	alene	
+2026-11-13 16:48	plan/2026-11-13-109	c4553748	navnshot	FEIL	1752	3d	alene	FEIL kyst15 med marineblått skrog: antikva i gull (fargen leses mot malingen)  [{"txt": "Havbris", "line": "name", "kind": "house", "f": "a", "ink": "#111214", 
+2026-11-13 17:22	plan/2026-11-13-109	640f33cf	flaggshot	OK	2020	3d	alene	
+2026-11-13 17:23	plan/2026-11-13-109	54c5068c	cloudtest	OK	40	lite	samtidig	
+2026-11-13 17:23	plan/2026-11-13-109	54c5068c	maletest	OK	22	lite	samtidig	
+2026-11-13 17:47	plan/2026-11-13-109	54c5068c	navnshot	OK	1464	3d	alene	
+2026-11-13 17:49	plan/2026-11-13-109	b90cc5ca	maletest	OK	17	lite	alene	
+2026-11-13 18:15	plan/2026-11-13-109	3fa4cfa8	navnshot	OK	1549	3d	alene	
 2026-11-13 16:59	ccr-432150cd-kkjoez	4fc2ffc+	stedertest	OK	8	lite	samtidig	
 2026-11-13 16:59	ccr-432150cd-kkjoez	4fc2ffc+	placetest	OK	7	lite	samtidig	
 2026-11-13 17:01	ccr-432150cd-kkjoez	4fc2ffc+	starttest	OK	155	lite	samtidig	
@@ -5287,3 +5317,12 @@
 2026-11-16 21:27	claude/production-release-prep-cn15pt	97c05302	worktest	OK	26	lite	samtidig	
 2026-11-16 21:27	claude/production-release-prep-cn15pt	97c05302	sleeptest	OK	13	lite	samtidig	
 2026-11-16 21:27	claude/production-release-prep-cn15pt	97c05302	errtest	OK	47	lite	samtidig	
+2026-11-13 18:19	plan/2026-11-13-109	f04274cd	boottest	OK	36	lite	samtidig	
+2026-11-13 18:19	plan/2026-11-13-109	f04274cd	maletest	OK	23	lite	samtidig	
+2026-11-13 18:20	plan/2026-11-13-109	6d074680	docktest	OK	64	lite	samtidig	
+2026-11-13 18:21	plan/2026-11-13-109	6d074680	uishots	OK	87	lite	samtidig	
+2026-11-13 18:21	plan/2026-11-13-109	6d074680	navbarshot	OK	29	lite	samtidig	
+2026-11-13 18:21	plan/2026-11-13-109	6d074680	dockrow	OK	43	lite	samtidig	
+2026-11-13 18:23	plan/2026-11-13-109	6d074680	roetest	OK	124	lite	samtidig	
+2026-11-13 18:23	plan/2026-11-13-109	6d074680	hudtest	OK	91	lite	samtidig	
+2026-11-13 18:23	plan/2026-11-13-109	6d074680	sponsor2test	OK	16	lite	samtidig	
