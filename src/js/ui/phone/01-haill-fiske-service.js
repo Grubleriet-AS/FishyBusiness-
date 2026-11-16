@@ -26,6 +26,9 @@
   // Boostere: the season pack first as one big card with what it saves (from the real prices), then one row a kind with four like cards
   // (one effect, four amounts, the dearest marked «Mest for pengene», which it is per hour or per haill); Utseende: the paint shop and
   // the wardrobe; Mine boostere: what is in store and what is on now, with «Slå på». The consent line once, under the cards.
+  // a picture for every product in Kaiboden (Jonas 16.11.2026: «Sørg også for at alle produktene har forskjellige bilder»): the 2, 8 and
+  // 24 hour lengths the three tunings and the three cans painted before, the rest from the price ladder's sheet (tools/ui/butikkbilder.py)
+  const KB_PIC = {hp_h1:'haill', hp_h3:'hp3', hp_h8:'hp8', luksus:'luksus', t2:'pump', t8:'ic', t24:'turbo', t72:'t72', sk_s2:'sk_light', sk_s8:'sk_std', sk_s24:'sk_max', sk_s72:'s72', pk_sesong:'pakke'};
   function kbShop(){
     const inv = haillStock(S.haillInv, S.haillSrv, S.haillUsed), nMine = (inv.haill || 0) + (inv.luksus || 0) + (inv.takk || 0) + (haillStage() ? 1 : 0) + (trimOn(S.boat) ? 1 : 0) + (skipOn() ? 1 : 0);
     const tab = ['boost', 'utseende', 'mine'].includes(sub.kaiboden) ? sub.kaiboden : 'boost';
@@ -43,16 +46,16 @@
       '</p><button class="ph-btn alt" data-pa="trim0">' + L('Avbryt', 'Cancel') + '</button></div>' : '';
     if (tab === 'boost'){
       const P = PACKS.sesong, save = Math.round((1 - P.nok / packWorth(P)) * 100);
-      body += '<div class="kbs-hero"><div><span class="kbs-tag hero">' + L('Spar ' + save + ' %', 'Save ' + save + ' %') + '</span><h4>' + L(P.no, P.en) + '</h4><p>' +
+      body += '<div class="kbs-hero"><span class="kbs-hpic">' + kbPic(KB_PIC.pk_sesong) + '</span><div><span class="kbs-tag hero">' + L('Spar ' + save + ' %', 'Save ' + save + ' %') + '</span><h4>' + L(P.no, P.en) + '</h4><p>' +
         L(P.haill + ' haill, Turbotrim og Skippertak i 24 timer. Alt du trenger for en lang økt på feltet.', P.haill + ' luck, Turbo tune and Skippertak for 24 hours. All you need for a long run on the grounds.') + '</p>' +
         '<p class="ph-note">' + L('Kjøpt hver for seg: ', 'Bought one by one: ') + fmt(packWorth(P), 0) + ' kr</p></div><button class="ph-btn p kbs-buy" data-pa="kbbuy" data-k="pk_sesong">' + (live ? L('Kjøp · ', 'Buy · ') + realKr(P.nok) : shopLabel(P.nok)) + '</button></div>' + (/^pk_/.test(trimPend || '') ? pend : '');
       body += row(L('Haill · dobbel fangst', 'Luck · double catch'), L('Full kraft de første ' + fmt(HAILL.haill.steps[0][0] / GAME_RATE, 0) + ' timene, så svakere til den er borte etter ' + fmt(HAILL.haill.steps[HAILL.haill.steps.length - 1][0] / GAME_RATE, 0) + ' timer. Ligger i Mine boostere til du slår den på.', 'Full strength the first ' + fmt(HAILL.haill.steps[0][0] / GAME_RATE, 0) + ' hours, then weaker till it is gone after ' + fmt(HAILL.haill.steps[HAILL.haill.steps.length - 1][0] / GAME_RATE, 0) + ' hours. Waits in My boosters till you switch it on.'),
-        Object.entries(HAILL_PACKS).map(([k, X]) => card('×' + X.n, L(X.n === 1 ? ' haill' : ' haill', ' luck'), X.n === 1 ? L('Én haill', 'One luck') : X.n + L(' haill', ' luck'), fmt(X.nok / X.n, 0) + L(' kr per haill', ' kr each'), 'hp_' + k, X.nok, X.best, 'haill')).join('') +
+        Object.entries(HAILL_PACKS).map(([k, X]) => card('×' + X.n, L(X.n === 1 ? ' haill' : ' haill', ' luck'), X.n === 1 ? L('Én haill', 'One luck') : X.n + L(' haill', ' luck'), fmt(X.nok / X.n, 0) + L(' kr per haill', ' kr each'), 'hp_' + k, X.nok, X.best, KB_PIC['hp_' + k] || 'haill')).join('') +
         card('+200', ' %', HAILL.luksus[S.lang], L('Tredobbel fangst de første ' + fmt(HAILL.luksus.steps[0][0] / GAME_RATE, 0) + ' timene', 'Triple catch the first ' + fmt(HAILL.luksus.steps[0][0] / GAME_RATE, 0) + ' hours'), 'luksus', HAILL.luksus.nok, false, 'luksus'));
       body += row(L('Turbotrim · dobbel fart', 'Turbo tune · double speed'), L('Gjelder alle båtene i flåten, også de som går på driftsplan. Kjøper du mer, legges tida til.', 'For every boat in the fleet, those on the operations plan too. Buy more and the time is added.'),
-        Object.entries(BOOSTS).filter(([, B]) => !B.old).map(([k, B]) => card(hrs(B.h).split(' ')[0], ' ' + hrs(B.h).split(' ')[1], L('Dobbel fart', 'Double speed'), fmt(B.nok / (B.h / GAME_RATE), 1) + L(' kr per time', ' kr an hour'), k, B.nok, B.best, 'turbo')).join(''), BOOSTS[trimPend] ? pend : '');
+        Object.entries(BOOSTS).filter(([, B]) => !B.old).map(([k, B]) => card(hrs(B.h).split(' ')[0], ' ' + hrs(B.h).split(' ')[1], L('Dobbel fart', 'Double speed'), fmt(B.nok / (B.h / GAME_RATE), 1) + L(' kr per time', ' kr an hour'), k, B.nok, B.best, KB_PIC[k] || 'turbo')).join(''), BOOSTS[trimPend] ? pend : '');
       body += row(L('Skippertak · uthvilt hele flåten', 'Skippertak · the whole fleet rested'), L('Du og mannskapet på alle båtene trenger ikke hvile. Kjøper du mer, legges tida til.', 'You and the crews of every boat need no rest. Buy more and the time is added.'),
-        Object.entries(SKIP).filter(([, X]) => !X.old).map(([k, X]) => card(hrs(X.h).split(' ')[0], ' ' + hrs(X.h).split(' ')[1], L('Uthvilt', 'Rested'), fmt(X.nok / (X.h / GAME_RATE), 1) + L(' kr per time', ' kr an hour'), 'sk_' + k, X.nok, X.best, 'sk_max')).join(''));
+        Object.entries(SKIP).filter(([, X]) => !X.old).map(([k, X]) => card(hrs(X.h).split(' ')[0], ' ' + hrs(X.h).split(' ')[1], L('Uthvilt', 'Rested'), fmt(X.nok / (X.h / GAME_RATE), 1) + L(' kr per time', ' kr an hour'), 'sk_' + k, X.nok, X.best, KB_PIC['sk_' + k] || 'sk_max')).join(''));
       if (tutFree('haill')) body = '<div class="ph-card haillc"><h4>' + L('Første luksushaill er gratis', 'The first luxury luck is free') + '</h4><button class="ph-btn p" data-pa="haillbuy" data-k="luksus">' + L('Hent den', 'Take it') + '</button></div>' + body;
       body += shopFine();
     } else if (tab === 'utseende'){

@@ -608,3 +608,6 @@ Jonas 16.11.2026, før lanseringen 17.11. Migreringen er `supabase/migrations/20
   - Den har sin egen grense på 40 om dagen og teller ikke mot spillerens 20 tilbakemeldinger.
   - Se fysikk-og-styring.md.
 - **Personvernerklæringen:** utkastet står i `docs/planer/personvern-profil-utkast.md` og venter på Jonas (`src/legal/` går som PR).
+
+- **Ferdighetene på profilen** (Jonas 16.11.2026: «Ferdigheter skal vises inne i spillerprofilen»; `supabase/migrations/20261116210000_profil_ferdigheter.sql`): spillet sender de sju ferdighetene (`fsSkills`, én desimal) som `sk` med profilens andre tall (`prof_put`), og `profile_get` gir dem til alle. Profilen viser dem som søyler til 5; milepælene og de største fiskene har fått sitt eget kort. Et spill fra før sender ingen `sk`, og da står det at ferdighetene vises når spilleren har vært inne i en nyere versjon.
+- **Kildelinja er ute av lastesiden** (Jonas 16.11.2026): kildene står i Innstillinger › Kilder (`src/legal/kilder.html`, med OpenStreetMap og ODbL-lenka). OSMFs retningslinjer godtar for spill «the credits page, in the menu, or in another suitable location». Kartplotteren beholder sin linje i hjørnet.
