@@ -9,6 +9,8 @@
        ['Vinden står i statusboksen igjen, med retning, styrke og en pil den veien den blåser.', 'The wind is back in the status box, with its direction, strength and an arrow the way it blows.'],
        ['Alle appene er på telefonen fra første dag.', 'Every app is on the phone from the first day.'],
        ['Flagget er oppe hele døgnet.', 'The flag flies day and night.'],
+       ['Sluttseddelen i dekksdagboka er nytt oppsett: ett skjema med kjøper, fartøy og dato, og hele fangsten i én tabell.', 'The landing note in the deck log has a new layout: one form with the buyer, the vessel and the date, and the whole catch in one table.'],
+       ['Salgslaget, redningstjenesten, forskningen og fondet i spillet har fått egne navn: Kystens Fiskesalgslag, Kystredningen, Havinstituttet og Kystfondet.', 'The sales organisation, the rescue service, the research institute and the fund in the game have names of their own: Kystens Fiskesalgslag, Kystredningen, the Ocean Institute and Kystfondet.'],
        ['Kystbanken gir kassekreditt til enkeltpersonforetak når du har 5 års fartstid. Et aksjeselskap får den med en gang.', 'Kystbanken gives a sole proprietor an overdraft at 5 years of sea time. A limited company gets it at once.']]],
     ['roret-161126', '16.11.2026', 'Ingen ved roret, ingen fart', 'Nobody at the helm, no way on', [
        ['Står ingen ved roret, går ikke båten for egen maskin. Alene ved rekka driver du videre med vinden; har du mannskap, tar en av dem roret og kjører opp igjen over feltet.', 'With nobody at the helm, the boat does not go under her own power. Alone at the rail you drift on with the wind; with crew aboard, one of them takes the helm and runs back up over the ground.'],
