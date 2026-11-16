@@ -341,7 +341,7 @@ function showIntro(namesOnly){
 // was missed, no countdown, nothing made up (docs/engasjement.md); a tap closes it. A short absence with nothing new shows nothing.
 let AWAYR = null;
 const awayGearKg = () => (S.sets || []).filter(s => !s.lost).reduce((a, s) => a + Object.values(s.acc || {}).reduce((b, x) => b + (x.kg || 0), 0), 0);
-function awayStart(mins, realMs){ AWAYR = {mins, realMs, idx:S.log.length, t0:S.t, rev:S.stats.revenue, kg:S.stats.kg, cash:S.cash, fs:fsState().p, gear:awayGearKg(),
+function awayStart(mins, realMs){ AWAYR = {mins, realMs, idx:S.log.length, t0:S.t, rev:S.stats.revenue, kg:S.stats.kg, cash:S.cash, fs:fsState().p, sk:Object.assign({}, fsSkills()), gear:awayGearKg(),
   jobs:(S.jobs || []).filter(j => j.until != null && j.until > S.t).map(j => ({no:j.no, en:j.en, until:j.until})), unread:(S.msgs || []).filter(m => !m.read).length,
   ev:typeof seasonNow === 'function' ? seasonNow(S.t / 60) : null};
   FS_AWAY = true; fsRested(realMs);
@@ -376,6 +376,9 @@ function showAway(A){
   if (evNew) T.push(['★', L2(evNew[0], evNew[1])]);
   if (Math.abs(dP) >= 0.02) T.push([(dP > 0 ? '+' : '−') + fmt(Math.abs(dP) * 100, 0) + ' %', L2('torskeprisen siden sist', 'the cod price since last time')]);
   if (rank) T.push(['#' + rank, L2('på topplista denne uka', 'on the leaderboard this week')]);
+  // a skill of yours that went over a whole number while you were away (RANK1-b)
+  if (A.sk){ const sk = fsSkills(), up = FSK.keys.filter(k => Math.floor(sk[k]) > Math.floor(A.sk[k] || 0));
+    for (const k of up.slice(0, 1)) T.push([String(Math.floor(sk[k])), L2(FSK_NAME[k][0].toLowerCase() + ': du har blitt flinkere', FSK_NAME[k][1].toLowerCase() + ': you have got better')]); }
   if (rest > 0 && big.k !== 't') T.push([rest + ' t', L2('uthvilt: dobbel fartstid til sjøs', 'rested: double sea time at sea')]);
   if (unread > 0) T.push([String(unread), L2(unread === 1 ? 'ny melding' : 'nye meldinger', unread === 1 ? 'new message' : 'new messages')]);
   if (haillN > 0) T.push([String(haillN), L2('haill klar til bruk', 'luck ready to use')]);

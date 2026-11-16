@@ -74,7 +74,7 @@ const PROF = (() => {
     const mine = me ? avMine() : null, img = d.img || (me && mine && mine.img) || '';
     const pic = /^data:image\/(jpeg|png|webp);base64,/.test(img) ? '<img class="pf-img" alt="" src="' + img + '">' : '<span class="pf-img pf-none">' + esc((d.user || '?').slice(0, 1).toUpperCase()) + '</span>';
     h.push('<div class="ph-card pf-head">' + pic + '<div><h4 style="margin:0">' + esc(d.user || L2('Uten navn', 'No name')) + '</h4>' + badge(d.f) +
-      '<p class="ph-note" style="margin:4px 0 0">' + (typeof fsText === 'function' ? esc(fsText(d.fs || 0, true)) : '') + (d.since ? ' · ' + L2('med siden ', 'since ') + new Date(d.since).toLocaleDateString(S.lang === 'en' ? 'en-GB' : 'nb-NO') : '') + '</p></div></div>');
+      '<p class="ph-note" style="margin:4px 0 0">' + (typeof fsText === 'function' ? esc((typeof fsLvlText === 'function' ? fsLvlText(d.fs || 0) + ' · ' : '') + fsText(d.fs || 0, true)) : '') + (d.since ? ' · ' + L2('med siden ', 'since ') + new Date(d.since).toLocaleDateString(S.lang === 'en' ? 'en-GB' : 'nb-NO') : '') + '</p></div></div>');
     if (me){ const st = mine && mine.state;
       h.push('<div class="ph-card"><h4>' + L2('Profilbilde', 'Profile picture') + '</h4><p class="ph-note">' + (st === 'wait' ? L2('Bildet ditt venter på godkjenning. Til da ser de andre forbokstaven din.', 'Your picture is waiting for approval. Until then the others see your initial.')
         : st === 'no' ? L2('Bildet ble ikke godkjent. Velg et annet.', 'The picture was not approved. Choose another.') : st === 'ok' ? L2('Bildet ditt er godkjent og synlig for alle.', 'Your picture is approved and visible to all.')

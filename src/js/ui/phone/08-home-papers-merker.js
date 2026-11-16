@@ -95,11 +95,18 @@
   }
   // the sea time (core/09e-fartstid.js): the years and days, the bar to the next year, and the rest built up while away
   function fsChip(){ const F = fsState(), o = fsOf(F.p), rest = Math.round(F.rest / 60);
-    return '<button class="ph-goal ph-fs" data-pa="open" data-a="merker" data-s="merker"><span><b>' + fsText(F.p, true) + '</b></span><small>' + (rest > 0 ? L('Uthvilt: ' + rest + ' t med dobbel fartstid', 'Rested: ' + rest + ' h of double sea time') : L('Neste år: ' + (365 - o.d) + ' døgn igjen', 'Next year: ' + (365 - o.d) + ' days to go')) + '</small><span class="gb"><i style="width:' + (o.f * 100).toFixed(1) + '%"></i></span></button>'; }
-  function fsCard(){ const F = fsState(), o = fsOf(F.p), rest = Math.round(F.rest / 60);
-    return '<div class="ph-card"><h4>' + L('Fartstid', 'Sea time') + '</h4><div class="ph-big">' + fsText(F.p, true) + '</div><span class="gb fsbar"><i style="width:' + (o.f * 100).toFixed(1) + '%"></i></span>' +
+    return '<button class="ph-goal ph-fs" data-pa="open" data-a="merker" data-s="merker"><span><b>' + fsLvlText(F.p) + '</b> · ' + fsText(F.p, true) + '</span><small>' + (rest > 0 ? L('Uthvilt: ' + rest + ' t med dobbel fartstid', 'Rested: ' + rest + ' h of double sea time') : L('Neste år: ' + (365 - o.d) + ' døgn igjen', 'Next year: ' + (365 - o.d) + ' days to go')) + '</small><span class="gb"><i style="width:' + (o.f * 100).toFixed(1) + '%"></i></span></button>'; }
+  // the level and your skills (RANK1-b, docs/planer/rank1.md): the level is the years, the xp the points to the next; each skill a bar to
+  // 5 with the ceiling of the level marked
+  function fsCard(){ const F = fsState(), o = fsOf(F.p), rest = Math.round(F.rest / 60), X = fsXp(F.p), sk = fsSkills(), cap = fsCapNow(), en = S.lang === 'en';
+    const n1 = v => en ? v.toFixed(1) : v.toFixed(1).replace('.', ',');
+    const rows = FSK.keys.map(k => { const v = sk[k], nm = FSK_NAME[k][en ? 1 : 0];
+      return '<div class="rk-sk"><span class="rk-n">' + nm + '</span><span class="rk-bar"><i style="width:' + (v / FSK.top * 100).toFixed(1) + '%"></i><s class="rk-lock" style="left:' + (cap / FSK.top * 100).toFixed(1) + '%"></s><b class="rk-cap" style="left:' + (cap / FSK.top * 100).toFixed(1) + '%"></b></span><span class="rk-v">' + n1(v) + '</span></div>'; }).join('');
+    return '<div class="ph-card"><h4>' + L('Nivå og ferdigheter', 'Level and skills') + '</h4><div class="ph-big">' + fsLvlText(F.p) + '</div><p class="ph-note" style="margin:0">' + fsText(F.p, true) + '</p><span class="gb fsbar"><i style="width:' + (o.f * 100).toFixed(1) + '%"></i></span>' +
+      '<p class="ph-note rk-xp">' + fmt(X.have) + ' / ' + fmt(X.need) + ' xp ' + L('til neste nivå', 'to the next level') + '</p>' +
       '<p class="ph-note">' + L('Fartstid tjenes om bord: hver time til sjøs og hver levering. Det mannskapet gjør mens du er borte, teller en firedel. Når du har vært borte, gir de neste timene til sjøs dobbel fartstid.', 'Sea time is earned aboard: every hour at sea and every landing. What the crew does while you are away counts a quarter. After time away, the next hours at sea give double sea time.') +
-      (rest > 0 ? ' <b>' + L('Uthvilt: ' + rest + ' t igjen.', 'Rested: ' + rest + ' h left.') + '</b>' : '') + '</p></div>'; }
+      (rest > 0 ? ' <b>' + L('Uthvilt: ' + rest + ' t igjen.', 'Rested: ' + rest + ' h left.') + '</b>' : '') + '</p>' +
+      '<div class="rk-list">' + rows + '</div><p class="ph-note">' + L('Ferdighetene vokser med jobben du gjør om bord, opp til taket for nivået ditt (den gule streken; det skraverte åpner seg med årene). Taket stiger med hvert år. Erfaringen din er taket: den leser ekkoloddet når driftsplanen søker med deg om bord.', 'Your skills grow with the work you do aboard, up to the ceiling of your level (the yellow line; the hatched part opens with the years). The ceiling rises with every year. Your experience is the ceiling: it reads the echo sounder when the plan searches with you aboard.') + ' ' + L('Taket nå: ', 'The ceiling now: ') + n1(cap) + '.</p>' + '</div>'; }
   // the Milepæler app (Jonas 09.10.2026: «alt av achievements ... samles i en enkelt app som kalles milepæler»): the week's milestones,
   // the long badges with the sea time, the record fish (the wall itself is in Father's naust), the old ways and the tattoos.
   // The app keeps its id 'merker'.

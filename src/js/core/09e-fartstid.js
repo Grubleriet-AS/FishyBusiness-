@@ -105,3 +105,7 @@ function fsSkillMinute(st){
 }
 // the ceilings a new year lifts, for the year's line: «taket for sløying 2,6»
 function fsYearSkills(y){ const a = fsCap(y - 1), b = fsCap(y); return b > a ? Math.round(b * 10) / 10 : 0; }
+// for the card (RANK1-b): the skills' names, the level as text («Nivå 12», «Nivå 40 ★3») and the xp within the year
+const FSK_NAME = {juksa:['Juksa', 'Jigging'], line:['Line', 'Longline'], garn:['Garn', 'Nets'], teiner:['Teiner', 'Pots'], sloy:['Sløying', 'Gutting'], is:['Ising', 'Icing'], sort:['Krabbesortering', 'Crab sorting']};
+function fsLvlText(p){ const o = fsOf(p), en = S.lang === 'en'; return (en ? 'Level ' : 'Nivå ') + Math.min(o.y, FS.MAX) + (o.star ? ' ★' + o.star : ''); }
+function fsXp(p){ const o = fsOf(p), a = fsNeed(o.y), b = fsNeed(o.y + 1); return {have:Math.max(0, Math.round((p || 0) - a)), need:Math.round(b - a)}; }
