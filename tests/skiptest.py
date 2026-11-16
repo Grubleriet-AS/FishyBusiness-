@@ -52,6 +52,13 @@ async def main():
                   const h = Object.values(HAILL_PACKS).map(X => X.n / X.nok), t = Object.values(BOOSTS).filter(B => !B.old).map(B => (B.x - 1) * B.h / B.nok), s = Object.values(SKIP).filter(X => !X.old).map(X => X.h / X.nok);
                   const top = a => a.indexOf(Math.max(...a)) === a.length - 1; return {h, t, s, ok:top(h) && top(t) && top(s)}; })()""")
                 check(r['ok'], '4b. «Mest for pengene» stemmer: den største pakken av haill, trim og Skippertak gir mest per krone', r)
+                # the receipt (kontrollen 16.11.2026): a pack is one purchase, one line with its price once, not once per grant it gave
+                r = await pg.evaluate("""(async () => { const g = (id, product, data) => ({g:{id, product, data}, no:'levert', en:'delivered'}); const m0 = S.msgs.length;
+                  shopThanks([...Array(8)].map((_, i) => g(100 + i, 'haill_8', {give:'haill', type:'haill'})).concat([g(200, 'pakke_sesong', {give:'haill', type:'haill'}), g(201, 'pakke_sesong', {give:'haill', type:'haill'}), g(202, 'pakke_sesong', {give:'haill', type:'haill'}), g(203, 'pakke_sesong', {give:'haill', type:'haill'}), g(204, 'pakke_sesong', {give:'trim', k:'t24'}), g(205, 'pakke_sesong', {give:'skip', k:'s24'})]));
+                  await new Promise(r => setTimeout(r, 600)); const its = [...document.querySelectorAll('.shoprc .shoprc-it')].map(p => p.textContent); document.getElementById('modal').hidden = true;
+                  return {its, msg:(S.msgs[S.msgs.length - 1] || {}).no || ''}; })()""")
+                check(len(r['its']) == 2 and r['its'][0].count('129 kr') == 1 and r['its'][1].count('149 kr') == 1 and r['msg'].count('129 kr') == 1 and r['msg'].count('149 kr') == 1,
+                      '4c. kvitteringen: en pakke er ett kjøp, én linje med prisen én gang (Haill × 8 for 129 kr, Sesongpakken for 149 kr)', r)
             # Kaiboden: one window (Jonas 16.11.2026), the season pack first, a row a kind, the largest marked, a test purchase
             r = await pg.evaluate("""(async () => { S.tut = 0; PHONE.show(true, 'home'); await new Promise(r => setTimeout(r, 300)); const R = {};
               R.grid = ['kaiboden', 'haill', 'trim'].map(a => !!document.querySelector('#phone .ph-app[data-a=' + a + ']'));

@@ -188,6 +188,10 @@
     // (another kind than the one on takes its place and the rest of its time: asked first, as the haill is; the same kind adds its hours)
     // Kaiboden's one window (kbShop): the packs of haill, the season pack; a trim or Skippertak goes the way it went before
     else if (a === 'kbbuy'){ const k = d.k;
+      // (the first luxury luck is free: taken first, as haillbuy asks; and a pack whose trim would take the place of an old one of another
+      // kind on now asks first, as trimbuy does: trimPend, the note at the top of kbShop)
+      if (/^hp_/.test(k) && tutFree('haill')){ toast(L('Hent den gratis luksushaillen først.', 'Take the free luxury luck first.')); return true; }
+      if (/^pk_/.test(k) && PACKS[k.slice(3)]){ const on = trimOn(S.boat); if (on && boostKind(trimRec(S.boat).k) !== boostKind(PACKS[k.slice(3)].trim) && trimPend !== k){ trimPend = k; return true; } trimPend = null; }
       if (/^hp_/.test(k) && HAILL_PACKS[k.slice(3)]){ const P = HAILL_PACKS[k.slice(3)]; payBuy(k, () => { for (let i = 0; i < P.n; i++) giveHaill('haill', 'shop'); toast(L(P.n + ' haill ligger i Mine boostere. Slå på når du vil.', P.n + ' luck wait in My boosters. Switch on when you want.')); }); }
       else if (k === 'luksus') return act0('haillbuy', {k:'luksus'});
       else if (/^pk_/.test(k) && PACKS[k.slice(3)]){ const P = PACKS[k.slice(3)]; payBuy(k, () => { for (let i = 0; i < P.haill; i++) giveHaill('haill', 'shop'); const w = trimWords(P.trim, trimSet(P.trim)); log(w.no, w.en); giveSkip(P.skip); toast(L(P.no + ': haill i Mine boostere, Turbotrim og Skippertak er på.', P.en + ': luck in My boosters, Turbo tune and Skippertak are on.')); }); }

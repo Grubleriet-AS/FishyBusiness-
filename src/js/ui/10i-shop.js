@@ -122,8 +122,13 @@ function shopGive(g, srv){
 // so, without a price. It waits while another window is open
 function shopThanks(rc){
   const L = shopL, gift = rc.every(r => (r.g.data || {}).comp);
-  const its = rc.map(r => { const k = Object.keys(SHOP_PRODUCT).find(x => SHOP_PRODUCT[x] === r.g.product), w = k ? shopWhat(k, r.g) : null;
-    return {nm:w ? w.name : String(r.g.product || ''), nok:(r.g.data || {}).comp ? 0 : w ? w.nok : 0, no:r.no, en:r.en}; });
+  // (a pack is one purchase that gives several grants, 20261116180000_prisstige.sql: the grants of one product are one line, with the
+  // price once per purchase, never once per grant; the purchases are the grants over what one purchase gives, rounded up)
+  const per = k => /^hp_/.test(k) && HAILL_PACKS[k.slice(3)] ? HAILL_PACKS[k.slice(3)].n : /^pk_/.test(k) && PACKS[k.slice(3)] ? PACKS[k.slice(3)].haill + 2 : 1;
+  const grp = new Map(); for (const r of rc){ const k = Object.keys(SHOP_PRODUCT).find(x => SHOP_PRODUCT[x] === r.g.product), key = String(r.g.product || '') + ((r.g.data || {}).comp ? ':comp' : '') + (k && per(k) > 1 ? '' : ':' + r.g.id); if (!grp.has(key)) grp.set(key, []); grp.get(key).push(r); }
+  const its = [...grp.values()].map(rs => { const r = rs[0], k = Object.keys(SHOP_PRODUCT).find(x => SHOP_PRODUCT[x] === r.g.product), w = k ? shopWhat(k, r.g) : null, n = Math.ceil(rs.length / (k ? per(k) : 1));
+    const uniq = a => [...new Set(a)].join(' ');
+    return {nm:(w ? w.name : String(r.g.product || '')) + (n > 1 ? ' × ' + n : ''), nok:(r.g.data || {}).comp ? 0 : w ? w.nok * n : 0, no:uniq(rs.map(x => x.no)), en:uniq(rs.map(x => x.en))}; });
   const head = gift ? ['En gave fra Det Store Blå', 'A gift from Det Store Blå'] : ['Takk for kjøpet!', 'Thank you for your purchase!'];
   const lead = gift ? ['Vi har gitt deg dette, og det er levert i spillet:', 'We have given you this, and it is delivered in the game:'] : ['Betalingen er gjennomført, og kjøpet er levert i spillet:', 'The payment went through, and the purchase is delivered in the game:'];
   msg('Det Store Blå', head[0] + ' ' + its.map(x => x.nm + (x.nok ? ' (\u{1F48E} ' + x.nok + ' kr)' : '') + ': ' + x.no).join(' '), head[1] + ' ' + its.map(x => x.nm + (x.nok ? ' (\u{1F48E} ' + x.nok + ' kr)' : '') + ': ' + x.en).join(' '));
@@ -270,7 +275,7 @@ function srvApply(st){
   const ev = (what, x) => { if (typeof cloudEv === 'function') cloudEv('srv_fix', Object.assign({what}, x)); };
   // (new: delivered by this very answer, or within the last minutes and not confirmed here yet, should that answer have been lost)
   const isNew = g => !!g.held && !given.includes(g.id) && (g.new === true || wn - ms(g) < 120000);
-  const snap = () => JSON.stringify([S.haillSrv, S.haillInv, S.haill, S.skip, S.yardSrv, S.yardCredit, S.hopVoid, S.cos, S.pubE, (S.fleet || []).map(v => (v.id === S.cur ? S.boat : v.boat || {}).trim || null)]), was = snap();
+  const snap = () => JSON.stringify([S.trim || null, S.haillSrv, S.haillInv, S.haill, S.skip, S.yardSrv, S.yardCredit, S.hopVoid, S.cos, S.pubE, (S.fleet || []).map(v => (v.id === S.cur ? S.boat : v.boat || {}).trim || null)]), was = snap();
   let thanks = 0, gifts = 0;
   // 1. the haill in store: the server's unused, never one switched on here. The game's own numbers are gone (srvImport)
   const had = S.haillSrv || []; S.haillSrv = haillMirror(list.filter(g => g.held), S.haillUsed); S.haillInv = {haill:0, luksus:0}; S.haillOld = [];

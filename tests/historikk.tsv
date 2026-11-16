@@ -5049,3 +5049,10 @@
 2026-11-16 17:14	ccr-5e1ba2f4-pusvyd	615db1fc	havnstengt	FEIL	40	lite	samtidig	FEIL a berth in Bodø to put the boat at (vec packs in the build?) {'err': 'no berth'}
 2026-11-16 17:21	ccr-349425a1-raf94t	fe832d7	skiptest	OK	16	lite	samtidig	
 2026-11-16 17:21	ccr-349425a1-raf94t	fe832d7	docktest	OK	61	lite	samtidig	
+2026-11-16 17:25	ccr-349425a1-raf94t	b1d06aa+	skiptest	OK	15	lite	alene	
+2026-11-16 17:25	ccr-349425a1-raf94t	b1d06aa+	skiptest	FEIL	15	lite	alene	FEIL 4c. kvitteringen: en pakke er ett kjøp, én linje med prisen én gang (Haill × 8 for 129 kr, Sesongpakken for 149 kr)  {"its": ["Haill × 8 · 💎 129 krlevert",
+2026-11-16 17:33	ccr-349425a1-raf94t	b1d06aa+	kjoptest	OK	196	lite	samtidig	
+2026-11-16 17:33	ccr-349425a1-raf94t	b1d06aa+	hailltest	LES	32	lite	samtidig	
+2026-11-16 17:33	ccr-349425a1-raf94t	b1d06aa+	boostklokke	OK	60	lite	samtidig	
+2026-11-16 17:33	ccr-349425a1-raf94t	b1d06aa+	skiptest	OK	19	lite	samtidig	
+2026-11-16 17:34	ccr-349425a1-raf94t	b1d06aa+	telefonflate	OK	158	lite	samtidig	
