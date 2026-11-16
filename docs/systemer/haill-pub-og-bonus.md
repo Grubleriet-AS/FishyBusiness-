@@ -178,3 +178,5 @@ Jonas 16.11.2026: Laksebaronen selger mest av sin dyreste booster (79 kr), og sp
   - **Mine boostere (N):** haill på lager med «Aktiver», og trim og skippertak som er på.
   - Haill, trim og skippertak åpner samme vindu. «Bruk haill» åpner Mine boostere.
 - **Ekte penger:** endringen går som PR til Jonas og rulles ikke ut før han har sett den. Migreringen kjøres på testprosjektet før PR-en flettes.
+
+- **Innloggingsbonusen synker gradvis** (Jonas 16.11.2026: «innloggingsbonusen synker gradvis, og sånn blir det»). Avgjort; spørsmålet om den strider mot «ingen straff for fravær» er lukket.

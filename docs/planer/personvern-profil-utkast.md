@@ -1,5 +1,7 @@
 # Utkast: personvernerklæringen for profilen, topplista og grunnstøtingsrapporten (16.11.2026)
 
+**Lagt inn i `src/legal/personvern.html` 16.11.2026** (Jonas: «oppdater personvernteksten»), med ferdighetene i profilen i tillegg. Teksten under er utkastet slik det var.
+
 Lanseringen (16.11.2026) gjør profilen åpen for alle (Jonas: «Alt åpent, ikke valgbart»), legger fangstverdien i kroner på topplista, sender en rapport ved hver grunnstøting, og tar imot et profilbilde. `src/legal/` endres bare gjennom en PR Jonas har sett (CLAUDE.md), så teksten står her til han sier ja. Den skal inn i `src/legal/personvern.html` etter kortet «Fangsten din i den felles verdenen». Sist i fila står én endring i det kortet.
 
 ## Profilen din (nytt kort)
