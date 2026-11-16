@@ -15,7 +15,7 @@
 --   avatars, av_put(img), av_mine()
 --                          the profile picture, shown to others only when the admin has approved it (Jonas 16.11.2026: «Eget bilde
 --                          med godkjenning»; players from 13 years); admin_av_list(), admin_av_set(hid, ok)
---   profile_get(hid)       one player's profile: name, sea time, founders' number, the picture if approved, the boats and the worth,
+--   profile_get(hid)       one player's profile ('me': the caller's own): name, sea time, founders' number, the picture if approved, the boats and the worth,
 --                          the catch landed in all and the place on the total list. Never a guest's; haill never.
 
 -- ---------- 1. the value of a landing ----------
@@ -237,7 +237,8 @@ create or replace function public.profile_get(hid text) returns jsonb language p
 declare p text := pid(); q text; co boolean := cheat_on();
 begin
   if p is null then raise exception 'not signed in'; end if;
-  select pl.id into q from players pl where left(md5('dsb' || pl.id), 10) = profile_get.hid and (not pl.guest or pl.id = p);
+  if profile_get.hid = 'me' then q := p;   -- (the caller's own, who does not know the public id)
+  else select pl.id into q from players pl where left(md5('dsb' || pl.id), 10) = profile_get.hid and (not pl.guest or pl.id = p); end if;
   if q is null then return null; end if;
   return (
     with mine as (select sum(least(l.kg, 60000)) kg, sum(least(l.kr, 60000000)) kr, count(distinct l.port) ports from landings l where l.player_id = q),
@@ -247,7 +248,7 @@ begin
               group by l.player_id),
     rk as (select player_id, rank() over (order by kr desc) r from tot)
     select jsonb_build_object(
-      'hid', profile_get.hid, 'me', q = p,
+      'hid', left(md5('dsb' || q), 10), 'me', q = p,
       'user', coalesce((select nm.name from names nm where nm.player_id = q and nm.removed_at is null), ''),
       'fs', (select round(pl.fs::numeric) from players pl where pl.id = q),
       'since', (select pl.created_at from players pl where pl.id = q),

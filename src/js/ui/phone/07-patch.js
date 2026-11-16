@@ -3,6 +3,9 @@
     ['lansering-161126', '16.11.2026', 'Klar for flere skippere', 'Ready for more skippers', [
        ['Går du på grunn, spør spillet om det var spillets skyld, og det som skjedde, sendes til oss. Du kan flytte båten ut på trygt vann med skroget som før, også senere i Redning-appen.', 'If you run aground, the game asks whether it was the game\'s fault, and what happened is sent to us. You can move the boat out to safe water with the hull as before, also later in the Redning app.'],
        ['Sammenstøt med andre båter gir ikke skade på noen av dem.', 'Collisions with other boats do no damage to either.'],
+       ['Topplista i Salgslaget har tre faner: kilo og kroner denne uka, og totalt siden start. Trykk på en båt for å se profilen til den som fisker.', 'The leaderboard in Sales has three tabs: kilos and kroner this week, and the total since the start. Tap a boat to see the fisher\'s profile.'],
+       ['Ny app: Profil. Den viser navnet, fartstiden, båtene, selskapsverdien, fangsten, plassen på topplista og de største fiskene dine, og kan ses av alle. Du kan velge et profilbilde; andre ser det når det er godkjent.', 'New app: Profile. It shows your name, sea time, boats, company worth, catch, place on the leaderboard and your biggest fish, and everyone can see it. You can choose a profile picture; others see it once it is approved.'],
+       ['De 100 første som leverer fisk etter lanseringen, får Founder-merket med nummeret sitt.', 'The first 100 who land fish after the launch get the Founder badge with their number.'],
        ['Vinden står i statusboksen igjen, med retning, styrke og en pil den veien den blåser.', 'The wind is back in the status box, with its direction, strength and an arrow the way it blows.'],
        ['Alle appene er på telefonen fra første dag.', 'Every app is on the phone from the first day.'],
        ['Flagget er oppe hele døgnet.', 'The flag flies day and night.'],

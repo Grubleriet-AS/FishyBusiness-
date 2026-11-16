@@ -1,4 +1,4 @@
-  const NAV = new Set(['open', 'home', 'back', 'close', 'lang', 'sub', 'shop0', 'salgW', 'salgG', 'vsel', 'goto', 'vfollow', 'vboard', 'vname', 'vsell']);
+  const NAV = new Set(['open', 'home', 'back', 'close', 'lang', 'sub', 'shop0', 'salgW', 'salgG', 'salgK', 'vsel', 'goto', 'vfollow', 'vboard', 'vname', 'vsell']);
   function act(a, d){
     const was = app, done = SEL_APPS.includes(app) && !NAV.has(a) ? withSel(() => act0(a, d)) : act0(a, d);
     // a link to a page that lives in the drawer now (Neste mål, Rederi's «Åpne») closes the phone and opens the drawer
@@ -39,6 +39,7 @@
     const b = S.boat;
     if (a !== 'shop' && a !== 'equip' && a !== 'propup') shopPend = null;
     if ((/^adm/.test(a) || (a === 'open' && d.a === 'admin')) && !adminOk()) return false;   // the Admin app is only Jonas's (adminOk)
+    if (a === 'open' && d.a === 'profil') PROF.want = d.s || null;   // (the player's own from the home screen; another's from the leaderboard, ui/10v-profil.js)
     if (a === 'open' && d.a === 'garderobe'){ show(false); WARD.open(); return; }      // the wardrobe is a sheet of its own (ui/10g-wardrobe.js)
     if (a === 'open' && d.a === 'nett'){ sub.nett = d.s || 'home'; if (sub.nett === 'shop' && typeof cloudEv === 'function') cloudEv('shop_view', {pg:'nett'}); }
     if (a === 'sub' && app === 'nett' && d.s === 'shop' && typeof cloudEv === 'function') cloudEv('shop_view', {pg:'nett'});
@@ -103,6 +104,8 @@
     else if (a === 'salgW'){ sub.salgW = d.s; }
     else if (a === 'salgG'){ sub.salgG = d.s; }
     else if (a === 'tow'){ rescue(true); toast(L('Redningsskøyta er på vei.', 'The rescue boat is on its way.')); }
+    else if (a === 'pfav'){ PROF.avAsk(); }
+    else if (a === 'salgK'){ sub.salgK = d.s; }
     else if (a === 'agfree'){ const why = agFree(); toast(why ? L(why[0], why[1]) : L('Båten ligger på trygt vann, med skroget som før.', 'The boat lies on safe water, with the hull as before.')); save(); if (typeof refreshAll === 'function') refreshAll(); }
     else if (a === 'unstuck'){ const why = unstuck(); toast(why ? L(why[0], why[1]) : L('Båten ligger nå på trygt vann.', 'The boat now lies on safe water.')); if (!why && typeof refreshAll === 'function') refreshAll(); }
     else if (a === 'mayday'){ confirmMayday = true; }

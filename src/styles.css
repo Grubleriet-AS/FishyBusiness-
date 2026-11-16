@@ -2110,3 +2110,10 @@ body.vplot #hud{background:rgba(11,23,32,.78)!important}
 .tat-img.off{filter:grayscale(1);opacity:.35}
 /* the strip on a narrow phone: six figures with the wind, seven with the bleeding tub (16.11.2026); last, so it holds over the 3D view's */
 @media (max-width:420px){#hud .hs2,body.v3d #hud .hs2{gap:1px} #hud .g2,body.v3d #hud .g2{gap:1px} #hud .g2 svg,body.v3d #hud .g2 svg{width:10px;height:10px} #hud .hs2,body.v3d #hud .hs2{font-size:9.5px}}
+/* the profile and the founders' badge (ui/10v-profil.js, 16.11.2026) */
+.pf-fb{display:inline-block;margin:2px 0 0 6px;padding:1px 6px;border-radius:9px;background:linear-gradient(135deg,#e8c96a,#b8872c);color:#2a1c05;font:700 10px/1.5 var(--sans);letter-spacing:.02em;vertical-align:middle;white-space:nowrap}
+.pf-head{display:flex;gap:12px;align-items:center}
+.pf-img{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none;background:#28507f}
+.pf-none{display:inline-flex;align-items:center;justify-content:center;color:#fff;font:700 26px/1 var(--sans)}
+.pf-top tr.pf-tap{cursor:pointer}
+.pf-ais{margin-top:6px}

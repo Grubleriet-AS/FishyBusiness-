@@ -35,6 +35,7 @@ LITE = ['havnstengt', 'd4dorer', 'jobbstripe', 'telefonflate', 'stromtest', 'ska
 # the session hooks and the deny list in .claude/ (Ø17, 06.11.2026): no browser, about a second. On a line of its own, so the sessions
 # that add tests to LITE above do not meet it in a merge
 LITE += ['hooktest']
+LITE += ['profiltest']   # topplista og profilen ved lanseringen (16.11.2026)
 LITE += ['hopptest']   # hopp over resten av ruta, kjernen (HO1, steg 104)
 LITE += ['brottaar']   # brottsjøen gjennom et år på tre steder (Ø9 F7; trenger hele kysten)
 # OPP1 (07.11.2026): the knives and the gaff in tiers at the tackle shop
@@ -161,7 +162,7 @@ D3 += ['kapplopshot']   # kappløpet på skjermen i begge formater (KL2, steg 11
 LONG['kapplopshot'] = 2400
 COVER['src/js/ui/05l-kapplop.js'] = ['kapplopshot']; COVER['tests/kapplopshot.py'] = ['kapplopshot']
 for _f in ('src/js/ui/05f-turer.js', 'src/js/ui/phone/02-havn-last-agn-ordre.js', 'src/js/ui/03e-miniplot.js', 'src/js/ui/04-panels-instruments.js', 'src/js/ui/06d-season-folk.js', 'src/js/ui/03-map.js', 'src/js/ui/08-actions.js', 'src/js/ui/phone/14-act.js'): COVER.setdefault(_f, []).append('kapplopshot')
-COVER['src/js/ui/10u-hopp.js'] = ['hopptest', 'hoppshot', 'fasittest']; COVER['supabase/migrations/20261112200000_hopp.sql'] = ['sqltest', 'fasittest']; COVER['tests/hoppshot.py'] = ['hoppshot']; COVER['src/js/core/06j-hopp.js'] += ['hoppshot']
+COVER['src/js/ui/10u-hopp.js'] = ['hopptest', 'hoppshot', 'fasittest']; COVER['src/js/ui/10v-profil.js'] = ['profiltest']; COVER['supabase/migrations/20261116120000_lansering.sql'] = ['sqltest']; COVER['tests/profiltest.py'] = ['profiltest']; COVER['supabase/migrations/20261112200000_hopp.sql'] = ['sqltest', 'fasittest']; COVER['tests/hoppshot.py'] = ['hoppshot']; COVER['src/js/core/06j-hopp.js'] += ['hoppshot']
 D3 += ['hoppshot']   # spoleknappen, kortet og hoppet i 3D i begge formater (HO2, steg 105)
 LONG['hoppshot'] = 2400   # (both formats, and the first frames after a hop draw every pack round the stop: minutes in SwiftShader; out on time at 900 s 12.11.2026)
 for _f in ('src/js/ui/07-guide.js', 'src/js/ui/08-actions.js', 'src/js/ui/05d-plan2.js'): COVER.setdefault(_f, []).append('rundshot')
