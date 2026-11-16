@@ -4892,3 +4892,9 @@
 2026-11-16 03:59	claude/blissful-cannon-ctb8e9	13d01497+	csptest	FEIL	43	lite	alene	FEIL it talks only to itself, the channel's Supabase project, WorkOS and the relay (cloud.json); the local build also has the tests' stand-ins  {"connect-src": 
 2026-11-16 04:01	claude/blissful-cannon-ctb8e9	13d01497+	docktest	OK	63	lite	samtidig	
 2026-11-16 04:01	claude/blissful-cannon-ctb8e9	13d01497+	csptest	OK	92	lite	samtidig	
+2026-11-16 04:07	claude/blissful-cannon-ctb8e9	a92ddf90	driftsplan3test	OK	90	lite	samtidig	
+2026-11-16 04:07	claude/blissful-cannon-ctb8e9	a92ddf90	driftsplan2ui	OK	85	lite	samtidig	
+2026-11-16 04:09	claude/blissful-cannon-ctb8e9	a92ddf90	driftsplan2gui	OK	141	lite	samtidig	
+2026-11-16 04:09	claude/blissful-cannon-ctb8e9	a92ddf90	driftsplan2map	OK	75	lite	samtidig	
+2026-11-16 04:09	claude/blissful-cannon-ctb8e9	a92ddf90	docktest	OK	61	lite	samtidig	
+2026-11-16 04:11	claude/blissful-cannon-ctb8e9	a92ddf90	csptest	OK	91	lite	samtidig	
