@@ -240,7 +240,7 @@ body.in-pub #dock,body.in-pub #dockFan,body.in-pub #dockInfo,body.in-pub .ov,bod
 #jigUI .jig-bar .jn{position:absolute;top:-2px;bottom:-2px;width:4px;margin-left:-2px;background:var(--m-card,#fff);border-radius:2px;box-shadow:0 0 6px #fff}
 #jigUI .jig-btn{pointer-events:auto;width:96px;height:96px;border-radius:50%;border:3px solid rgba(255,255,255,.85);background:#1d5f8a;color:#fff;font:800 18px var(--sans);touch-action:none;user-select:none;-webkit-user-select:none;box-shadow:0 6px 18px rgba(0,0,0,.35)}
 #jigUI[data-st=bite] .jig-btn{background:#d62828;border-color:var(--m-line,#fff);box-shadow:0 0 0 6px rgba(214,40,40,.35),0 6px 18px rgba(0,0,0,.35)} #jigUI .jig-btn:disabled{opacity:.5}
-.ops-days button{min-width:28px;padding:3px 4px;margin:1px} .ph-kv button.on,.ops-days button.on{background:#1e8c6e;color:#fff;border-color:var(--m-ok,#1e8c6e)} #aisCard .ai-h{display:flex;justify-content:space-between;align-items:center;font-size:15px} #aisCard .ai-h button{background:none;border:0;color:#cde;font-size:16px;cursor:pointer} #aisCard .ai-t{color:#8fc7e4;font-size:11.5px;margin-bottom:5px} #aisCard .ai-r{display:flex;justify-content:space-between;gap:10px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.07)} #aisCard .ai-r span:first-child{color:#9bb6c4} #aisCard .ai-n{font-size:10.5px;color:#8fa6b2;margin-top:5px}
+.ph-kv button.on{background:#1e8c6e;color:#fff;border-color:var(--m-ok,#1e8c6e)} #aisCard .ai-h{display:flex;justify-content:space-between;align-items:center;font-size:15px} #aisCard .ai-h button{background:none;border:0;color:#cde;font-size:16px;cursor:pointer} #aisCard .ai-t{color:#8fc7e4;font-size:11.5px;margin-bottom:5px} #aisCard .ai-r{display:flex;justify-content:space-between;gap:10px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.07)} #aisCard .ai-r span:first-child{color:#9bb6c4} #aisCard .ai-n{font-size:10.5px;color:#8fa6b2;margin-top:5px}
 body.v3d #aisCard{display:none} .lbl-ais{font-family:var(--sans);font-weight:600;fill:#1f9a67;paint-order:stroke;stroke:var(--sea)}
 #map.plot .ais{fill:rgba(120,255,190,.15);stroke:#7dffc0} #map.plot .lbl-ais{fill:#b8ffd9;stroke:#0b1a2a}
 /* the other players stand out from the coast's own boats (Jonas 07.10.2026): gold, larger, a ring round them and their names early */
@@ -1252,14 +1252,6 @@ body.vplot .depc{display:none}
 .dr-now{padding:10px 12px;border-radius:10px;background:rgba(30,140,110,.12);margin:6px 0;font-size:14px;line-height:1.35}
 .dr-now.wait{background:rgba(230,160,30,.16)}
 .dr-now.bad{background:rgba(200,40,30,.13);color:var(--m-bad,#8c1d18)}
-.dr-pl{padding:8px 0;border-top:1px dashed rgba(120,140,160,.3)}
-.dr-plh b{display:block;font-size:14px}.dr-plh small{display:block;font-size:12.5px;opacity:.8;margin-top:1px}
-.dr-plc{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;margin-top:6px}
-.dr-plc>span{display:flex;gap:4px;align-items:center}
-.dr-plc button,.dr-st button{min-width:38px;min-height:36px;background:var(--m-card2,#e3eaee);color:var(--m-ink,#15252f);border:1px solid var(--m-line,#b9c7cf);border-radius:8px;font-weight:600;padding:0 10px}
-.dr-plc button:disabled{opacity:.4}
-.dr-st{display:inline-flex;align-items:center;gap:6px}.dr-st output{min-width:64px;text-align:center;font-weight:600;font-size:13.5px}
-.dr-add{margin:4px 0 8px}
 .dr-pv{margin:8px 0}
 .dr-ev{display:flex;gap:10px;padding:3px 0;font-size:13px}
 .dr-ev span:first-child{min-width:46px;font-variant-numeric:tabular-nums;font-weight:600}
@@ -1269,7 +1261,7 @@ body.vplot .depc{display:none}
 .dr-w7 i{flex:1;background:#2f7fd0;border-radius:4px 4px 0 0}
 .dr-w7l{display:flex;gap:6px;margin-bottom:6px}.dr-w7l span{flex:1;text-align:center;font-size:11px;opacity:.7}
 .dr-line{display:flex;justify-content:space-between;align-items:center;gap:10px}.dr-line b{display:block}.dr-line small{display:block;font-size:12.5px;opacity:.8;margin-top:2px}.dr-line .ph-btn{margin:0;flex:0 0 auto}
-.dr-kv{flex-wrap:wrap;gap:4px 8px}.dr-kv>span:last-child{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;align-items:center;max-width:100%}.dr-kv>span:last-child .ops-days{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end}
+.dr-kv{flex-wrap:wrap;gap:4px 8px}.dr-kv>span:last-child{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;align-items:center;max-width:100%}
 
 /* the anchor alarm in 3D (view3d.js ANCHAL) */
 .anchal{position:absolute;left:50%;top:18%;transform:translateX(-50%);padding:8px 16px;border-radius:8px;background:rgba(120,10,10,.85);color:#fff;font-weight:700;letter-spacing:.04em;font-size:15px;white-space:nowrap;pointer-events:none;border:2px solid #ff5a4a;opacity:.55;transition:opacity .12s}
@@ -1277,8 +1269,8 @@ body.vplot .depc{display:none}
 @media (prefers-reduced-motion:reduce){.anchal{transition:none}}
 #autoTo{min-height:32px}
 /* the plan's toggles (Driftsplan): off reads as a choice you can press, not as a locked one; a locked one is dashed */
-.dr-kv button,.ops-days button{background:var(--m-card2,#e3eaee);color:var(--m-ink,#15252f);border:1px solid var(--m-line,#b9c7cf);border-radius:8px;font-weight:600}
-.dr-kv button.on,.ops-days button.on{background:#1e8c6e;color:#fff;border-color:var(--m-ok,#1e8c6e)}
+.dr-kv button{background:var(--m-card2,#e3eaee);color:var(--m-ink,#15252f);border:1px solid var(--m-line,#b9c7cf);border-radius:8px;font-weight:600}
+.dr-kv button.on{background:#1e8c6e;color:#fff;border-color:var(--m-ok,#1e8c6e)}
 .dr-kv button:disabled{background:transparent;color:var(--m-muted,#6c7d87);border:1px dashed var(--m-line,#9aabb4);opacity:1}
 /* the plan's choices (ui/05d-plan2.js): big buttons for a finger */
 .dr-big{display:block;width:100%;text-align:left;margin:6px 0;padding:12px 14px;border:1px solid var(--m-line,#b9c7cf);border-radius:12px;background:var(--m-card,#f4f7f9);color:var(--m-ink,#15252f);font:inherit;cursor:pointer}
@@ -1432,20 +1424,16 @@ body.in-naust #dock,body.in-naust #dockFan,body.in-naust #dockInfo,body.in-naust
 /* Driftsplan 2 (ui/05d-plan2.js): the statistics table and the day's skipped lines */
 .p2-stat{width:100%;border-collapse:collapse;font-size:13px;margin:4px 0 8px}.p2-stat th{font-weight:600;text-align:right;color:var(--m-muted,#6b7580);padding:2px 4px}.p2-stat th:first-child{text-align:left}.p2-stat td{padding:3px 4px;text-align:right;font-variant-numeric:tabular-nums;border-top:1px solid rgba(0,0,0,.06)}.p2-stat td:first-child{text-align:left}
 .dr-ev.skip span:last-child{color:var(--m-muted,#8a94a0)}.dr-ev.skip span:first-child{min-width:46px}
-/* Driftsplan 2, the plotter in plan mode (ui/03g-planmap.js): the bar over the chart and the place's card */
+/* Driftsplan 3, the plotter in plan mode (ui/03g-planmap.js): the bar over the chart */
 #pmBar{position:absolute;z-index:7;left:8px;right:8px;top:8px;background:rgba(10,22,32,.94);color:#e7f4ee;border:1px solid var(--m-warn,#6b5a1e);border-radius:10px;padding:8px 10px;font:12.5px var(--sans);box-shadow:0 6px 18px rgba(0,0,0,.35)} #pmBar[hidden],body.v3d #pmBar{display:none}
 #pmBar .pm-h{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:14px} #pmBar .pm-h button{background:#2b8a5c;border:0;color:#fff;font:600 14px var(--sans);padding:8px 16px;border-radius:8px;min-height:40px;cursor:pointer}
-#pmBar .pm-t{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:6px} #pmBar .pm-t button{background:#0d2230;border:1px solid var(--m-link,#2c5870);color:#cde;font:600 13px var(--sans);padding:7px 12px;border-radius:8px;min-height:36px;cursor:pointer} #pmBar .pm-t button.on{background:#ffd95e;color:var(--m-ink,#1a1200);border-color:#ffd95e} #pmBar .pm-hint{color:#8fc7e4;font-size:12px}
-#pmCard{position:absolute;z-index:7;left:8px;bottom:14px;width:270px;background:rgba(10,22,32,.94);color:#e7f4ee;border:1px solid var(--m-warn,#6b5a1e);border-radius:10px;padding:8px 10px;font:12.5px var(--sans);box-shadow:0 6px 18px rgba(0,0,0,.35)} #pmCard[hidden],body.v3d #pmCard{display:none}
-#pmCard .ai-h{display:flex;justify-content:space-between;align-items:center;font-size:15px} #pmCard .ai-h button{background:none;border:0;color:#cde;font-size:20px;cursor:pointer;padding:0 4px}
-#pmCard .pm-kv{display:flex;justify-content:space-between;align-items:center;margin:4px 0} #pmCard .pm-kv span:last-child{display:flex;align-items:center;gap:6px} #pmCard .pm-kv button,#pmCard .pin-b button{background:#0d2230;border:1px solid var(--m-link,#2c5870);color:#fff;font:600 15px var(--sans);min-width:36px;min-height:36px;border-radius:8px;cursor:pointer} #pmCard .pin-b{display:flex;gap:6px;margin-top:6px} #pmCard .pin-b button[disabled]{opacity:.5} #pmCard .ai-t{color:#8fc7e4;font-size:12px;margin:4px 0}
-@media (max-width:700px){#pmCard{width:auto;right:8px}}
+#pmBar .pm-t{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:6px} #pmBar .pm-hint{color:#8fc7e4;font-size:12px}
 body.pm #hud,body.pm #pinCard{visibility:hidden}
 /* GUI review U6 A: Autonav, Søk and Vis båten are not needed in plan mode (Ferdig takes you back), and the card stood over them on a phone */
 body.pm :is(#rAuto,#zsearch,#zboat){display:none!important}
 /* P1: the ECDIS line under the plan bar shone through it */
 body.pm #ecdisTop{visibility:hidden}
-#pmBar .pm-day{margin-top:6px;color:#ffd95e;font-size:13px} #pmCard .pm-w{min-width:0;padding:0 10px;font-size:13px} #pmCard .pm-kv small{color:#8fc7e4;font-weight:400}
+#pmBar .pm-day{margin-top:6px;color:#ffd95e;font-size:13px}
 /* the item card (M1, ui/05a-itemcard.js): a picture, the name, one line with numbers, the price with its anchor, the state and the buttons */
 .ph-card.ic{display:grid;grid-template-columns:clamp(72px,30%,150px) 1fr;gap:10px;align-items:start}
 .ic-pic{background:var(--m-tint-link,#eef3f6);border-radius:10px;aspect-ratio:8/5;display:flex;align-items:center;justify-content:center;padding:4px}
@@ -1650,19 +1638,13 @@ body.kino-clean #catchFeed,body.hudoff #catchFeed{display:none!important}
 .slip-first small{display:block;font-size:13px;color:var(--m-warn,#6b5320)}
 @keyframes sfIn{from{opacity:0;transform:scale(.92)}}
 @media (prefers-reduced-motion:reduce){.slip-first{animation:none}}
-/* GUI review U7 A (05.11.2026): every tap target on the plan's page and in the chart's card is at least 44 × 44 CSS px
-   (docs/planer/ui-redesign.md), the card's × a button of its own, and more room between one stepper and the next */
-.dr-plc button,.dr-st button{min-width:44px;min-height:44px}
-.dr-plc{gap:8px 18px}.dr-st{gap:8px}
-.dr-kv button,#drawerBody .ops-days button{min-width:44px;min-height:44px;padding:0 10px}
+/* GUI review U7 A (05.11.2026): every tap target on the plan's page and on the plan's bar over the chart is at least 44 × 44 CSS px
+   (docs/planer/ui-redesign.md) */
+.dr-kv button{min-width:44px;min-height:44px;padding:0 10px}
 #drawerBody .ph-sub button,#drawerTabs button{min-height:44px}
 /* UI 2, U2-2 (06.11.2026): Om bord's five tabs (Redskap, Rigg, Lasterom, Båten, Mannskap) on one row in the drawer on a phone (390 px) and at its side (380 px) */
 #drawerBody .ph-sub{gap:4px} #drawerBody .ph-sub button{padding:7px 9px}
-#pmBar .pm-h button,#pmBar .pm-t button{min-height:44px}
-@media (min-width:701px){#pmCard{width:300px}}
-#pmCard .ai-h button{width:44px;height:44px;margin:-6px -8px -6px 0;padding:0;font-size:24px;line-height:1;border-radius:8px}
-#pmCard .pm-kv button,#pmCard .pin-b button{min-width:44px;min-height:44px}
-#pmCard .pin-b button{flex:1}
+#pmBar .pm-h button{min-height:44px}
 /* GUI review U8 A (05.11.2026): on the plan's page one colour says «go on» (Start, Lag driftsplan, Velg i kartet, the way to the shop),
    green and filled as the plan's own «På»; a running plan reads as its state with the pause in it; Slett is a red outline, never the heaviest */
 .dr-page .ph-btn.p{background:#1e8c6e;border-color:var(--m-ok,#1e8c6e);box-shadow:0 2px 8px rgba(30,140,110,.25)}
@@ -1853,7 +1835,7 @@ body.booting #lopPop{visibility:hidden!important}
 .ph-appv .gd-now p b[style]{color:var(--m-ink)!important}
 /* ---- after the independent check (13.11.2026) ----
    one chosen state everywhere: the light one (tabs, chips, the months, the choices in the operations plan, Kaiboden's tabs) */
-:is(#drawer,.ph-appv:not(.ph-paper)) :is(.kb-tab.on,.chip-b.on,.gd-mon button.on,.ru-chips button.on,.ph-kv button.on,.dr-kv button.on,.ops-days button.on,.dr-big.on,.wk-more.on,.seg button.on){background:#EEF4F7;color:#0B1720;border-color:#EEF4F7}
+:is(#drawer,.ph-appv:not(.ph-paper)) :is(.kb-tab.on,.chip-b.on,.gd-mon button.on,.ru-chips button.on,.ph-kv button.on,.dr-kv button.on,.dr-big.on,.wk-more.on,.seg button.on){background:#EEF4F7;color:#0B1720;border-color:#EEF4F7}
 :is(#drawer,.ph-appv:not(.ph-paper)) .fl-more[open] summary{background:#EEF4F7;color:#0B1720}
 :is(#drawer,.ph-appv:not(.ph-paper)) .dr-big.on :is(small,.dr-k){color:#2C4656}
 /* fills that carry white text: dark enough for it */

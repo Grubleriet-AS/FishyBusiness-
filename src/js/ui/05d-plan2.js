@@ -11,17 +11,12 @@ const PLAN2UI = (() => {
   const B = (a, label, extra, cls) => '<button class="ph-btn' + (cls ? ' ' + cls : '') + '" data-pa="' + a + '"' + (extra ? ' ' + extra : '') + '>' + label + '</button>';
   const T = (a, label, on, extra) => '<button data-pa="' + a + '" class="' + (on ? 'on' : '') + '"' + (extra ? ' ' + extra : '') + '>' + label + '</button>';
   const BIG = (a, label, sub, on, extra, off) => '<button class="dr-big' + (on ? ' on' : '') + '" data-pa="' + a + '"' + (extra ? ' ' + extra : '') + (off ? ' disabled' : '') + '><b>' + label + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</button>';
-  const STEP = (a, val, extra) => '<span class="dr-st"><button data-pa="' + a + '" data-d="-1"' + (extra || '') + ' aria-label="−">−</button><output>' + val + '</output><button data-pa="' + a + '" data-d="1"' + (extra || '') + ' aria-label="+">+</button></span>';
-  const km = (p, q) => fmt(dist(p, q) / NM, 1) + ' nm';
   const ck = t => t == null ? '–' : driftClock(driftHod(t));
   function row(k, label, value, body, bad){
     const on = open === k && !!body;
     // (a row with something missing colours only its value, which says what is missing: GUI review U3; the global .bad made all of it red and small)
     return '<div class="dr-row' + (on ? ' on' : '') + (bad ? ' dr-bad' : '') + '"><button class="dr-rh" data-pa="p2-row" data-k="' + k + '"><span class="dr-rl">' + label + '</span><span class="dr-rv">' + value + '</span><span class="dr-rc">' + (body ? (on ? '▾' : '›') : '') + '</span></button>' + (on ? '<div class="dr-rb">' + body() + '</div>' : '') + '</div>';
   }
-  const kindName = id => { const p = portById(id); if (!p) return ''; if (id === (S.home || HOME0)) return L('naustet', 'the naust'); if (isRorbu(id)) return L('rorbu', 'rorbu');
-    if (isBerth(id)) return p.kind === 'dock' ? L('flytebrygge', 'floating dock') : L('kai', 'quay');
-    const k = portKind(p); return k === 'mottak' ? L('fiskemottak', 'fish plant') : k === 'verft' ? L('verft', 'yard') : k === 'butikk' ? L('butikk', 'shop') : L('kai', 'quay'); };
   // why a paused boat drifts instead of lying at anchor (Pause anchors where it can, plan2Pause): «: for dypt til å ankre», lower case
   const driftWhy = o => { const w = o.paused && o.paused.drift && anchorWhy[o.paused.drift]; return w ? [': ' + w[0].charAt(0).toLowerCase() + w[0].slice(1).replace(/\.$/, ''), ': ' + w[1].charAt(0).toLowerCase() + w[1].slice(1).replace(/\.$/, '')] : ['', '']; };
   // ---- Nå: the step she is on and when it ends, what she waits for and until when, or why she stopped
@@ -233,7 +228,6 @@ const PLAN2UI = (() => {
     if (a === 'p2-resume'){ plan2Resume(o); return true; }
     if (a === 'p2-fetch'){ fetch(o); return true; }
     if (a === 'p2-fix'){ const f = o.stop && o.stop.fix; if (f === 'mannskap'){ PHONE.open('arbeid'); return false; } if (f === 'quota'){ PHONE.open('kvote'); return false; } open = f === 'rig' ? 'gear' : 'sted'; return true; }
-    if (a === 'p2-crew'){ PHONE.open('arbeid'); return false; }
     if (a === 'p2-sno'){ snoSetMode(d.v); return true; }   // (frozen or live for the trip, H3b; the plan follows it, H3c)
     if (a === 'p2-gut'){ if (d.v === '1') delete S.boat.gutAboard; else S.boat.gutAboard = false; return true; }   // (R1; the boat's own setting, also while the plan runs)
     if (a === 'p2-go'){ const g = d.go; if (g === 'mannskap'){ PHONE.open('arbeid'); return false; } if (g === 'quota'){ PHONE.open('kvote'); return false; }
@@ -267,10 +261,3 @@ const PLAN2UI = (() => {
   function line(){ const o = plan2Ops(), n = o ? nowOf(o)[0] : L('Ingen driftsplan', 'No operations plan'); return '<div class="ph-card dr-line"><span><b>' + L('Driftsplan', 'Operations plan') + '</b><small>' + n + '</small></span><button class="ph-btn" data-pa="open" data-a="drift">' + L('Åpne', 'Open') + '</button></div>'; }
   return {page, act, line, nowOf, preview, fresh, ringPut, ringName, rerender};
 })();
-// the plan to another vessel of the company: the answers, made again there
-function plan2Copy(vid){
-  const o = plan2Ops(), v = vesselById(vid); if (!o || !v || v.id === S.cur) return false;
-  const copy = {home:o.home, anchor:o.anchor, rig:o.rig, jig:o.jig, places:o.places.map(q => ({...q, id:plan2Sid()})), wx:{...o.wx}, rhythm:o.rhythm, dep:o.dep, days:o.days, land:{...o.land}};
-  onVessel(v, () => { const n = plan2New(copy); n.on = false; S.ops = n; });
-  return true;
-}
