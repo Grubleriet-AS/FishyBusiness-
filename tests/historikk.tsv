@@ -4916,3 +4916,9 @@
 2026-11-16 11:24	claude/blissful-cannon-ctb8e9	e3cf04a1+	vesseltest	OK	20	lite	samtidig	
 2026-11-16 11:44	claude/blissful-cannon-ctb8e9	e3cf04a1+	havplantest	FEIL	1193	lite	alene	FEIL auto Vannareid: the search took about as long at sea as the day reckoned it (minutes, played closed in steps of 5) [310, 221]
 2026-11-16 12:09	claude/blissful-cannon-ctb8e9	18c80864	havplantest	FEIL	1329	lite	alene	FEIL auto Vannareid: the search took about as long at sea as the day reckoned it (minutes, played closed in steps of 5) [310, 221]
+2026-11-16 12:11	claude/blissful-cannon-ctb8e9	ff9c2eb4	driftsplan3test	OK	47	lite	samtidig	
+2026-11-16 12:12	claude/blissful-cannon-ctb8e9	ff9c2eb4	driftsplan2kyst	OK	126	lite	samtidig	
+2026-11-16 12:12	claude/blissful-cannon-ctb8e9	ff9c2eb4	opsowntest	OK	46	lite	samtidig	
+2026-11-16 12:12	claude/blissful-cannon-ctb8e9	ff9c2eb4	skipdrift	OK	27	lite	samtidig	
+2026-11-16 12:35	claude/blissful-cannon-ctb8e9	ff9c2eb4	havplantest	FEIL	1358	lite	samtidig	FEIL auto Ålesund: each field's string of lenker lies with its middle on the spot the search found [0, 0, 2.98, 0, 3.24, 0]
+2026-11-16 12:37	claude/blissful-cannon-ctb8e9	ff9c2eb4	driftsplan2test	FEIL	119	lite	alene	FEIL S9 30 h closed in the middle gives the same landings as open (kg within 2 %, kr within 3 %: the price follows the species and sizes, which vary a little be
