@@ -22,6 +22,7 @@ import argparse, json, os, re, subprocess, sys, tempfile
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ALLOW = re.compile(r'^(src/js/|src/styles\.css$|tests/|docs/)')
 DENY = re.compile(r'^(src/js/errtrap\.js|src/js/ui/10f-cloud\.js|src/js/ui/10i-shop\.js|src/js/ui/10q-buymoment\.js|src/js/ui/10g-push\.js|'
+                  r'src/js/ui/10u-hopp\.js|src/js/core/06j-hopp\.js|src/js/ui/10j-paint\.js|'   # (16.11.2026: the hop and the paint shop are real money too)
                   r'src/js/ui/06e-feedback\.js|src/js/lib/|tests/_env\.py|tests/run\.py|tests/unit/run\.mjs|docs/systemer/tilbakemelding-og-admin\.md)')
 MAX_LINES, MAX_FILES = 400, 15
 # the fix's own screenshots (tools/feedback/RUTINE.md, D4 26.10.2026: docs/pr/<branch>/staaende.jpg and liggende.jpg) are not lines of code:

@@ -3,9 +3,9 @@
 # list or a player's feedback. This runs the gate on it (tools/autofix/gate.py: the files a fix may touch, its size, no code that talks
 # to other hosts or runs text, and no test red that is green on the working branch), and when it passes, merges the PR and starts the
 # deploy (a merge made with this workflow's token does not start the push workflows by itself). Since L1a (10.11.2026) the working
-# branch goes to the test edition on test.detstorebla.no; the fix reaches the players on detstorebla.no with the next release, when main
-# is moved forward to the working branch (L1b: tools/release/slipp.py and «Slippet» in tools/plan/RUTINE.md; an urgent one the same
-# day, when Jonas says «slipp nå»).
+# branch goes to the test edition on test.detstorebla.no. Since 16.11.2026 the fix then goes to the players on detstorebla.no alone,
+# at once (the step «Slipper rettingen til spillerne» below; Jonas: «der brukerne er, altså på produksjonsutgaven»). One that cannot
+# go alone waits for the next release (tools/release/slipp.py and «Slippet» in tools/plan/RUTINE.md).
 # A PR the gate stops gets the label `autofix-stoppet` and a comment with why; it waits for Jonas as before.
 # Only a fix from the error list goes out by itself (Ø6 funn 8, 05.11.2026): a PR that names a player's feedback («tilbakemelding #12»)
 # builds on text anyone can write, and waits for Jonas whatever the gate says. The routine names the feedback a fix is for in the PR.
@@ -73,10 +73,51 @@ jobs:
           [ "$head" = "${{ github.event.pull_request.head.sha }}" ] || { echo "PR-en har fått nye commits; venter på neste kjøring"; exit 0; }
           # the text again, as it is now (it can be edited while the tests run)
           if gh pr view "$PR" --json title,body -q '.title + " " + .body' | grep -qiE 'tilbakemelding(en|ene|er)? *#[0-9]|feedback *#[0-9]'; then echo "PR-en viser nå til en tilbakemelding; venter på Jonas"; exit 0; fi
-          { echo "Porten slapp rettingen ut: filene, størrelsen, koden og testene holder."; echo; echo '```'; tail -n 3 gate.txt; echo '```'; echo; echo "Flettes inn og rulles ut til testutgaven (test.detstorebla.no) nå; til spillerne på detstorebla.no ved neste slipp."; echo; echo "---"; echo "_Automatisk retting (.github/workflows/autofix.yml)_"; } > body.md
+          { echo "Porten slapp rettingen ut: filene, størrelsen, koden og testene holder."; echo; echo '```'; tail -n 3 gate.txt; echo '```'; echo; echo "Flettes inn og rulles ut til testutgaven (test.detstorebla.no) nå; så slippes rettingen alene til spillerne på detstorebla.no når den holder mot deres versjon."; echo; echo "---"; echo "_Automatisk retting (.github/workflows/autofix.yml)_"; } > body.md
           gh pr comment "$PR" --body-file body.md
           gh pr merge "$PR" --squash --delete-branch
           gh workflow run deploy.yml --ref ${{ github.base_ref }}
+      # Straight to the players (Jonas 16.11.2026: «Jeg vil hovedsaklig at feilrettingen skjer der brukerne er, altså på
+      # produksjonsutgaven»; his choice the same day: only the fix, at once). The fix alone is picked onto a branch from main
+      # (slipp/auto-<PR>), the gate is run once more there (main's own copy of it, against main: the fix must hold on what the players
+      # have, not only on the working branch), and the workflow «Slipp» moves main to it. Nothing else of the working branch goes
+      # out. A fix that does not apply to main, or is red there, stays on the test edition and waits for the next release.
+      # Off switch: the repository variable AUTO_FIX_SLIPP set to off.
+      - name: Slipper rettingen til spillerne
+        if: steps.origin.outputs.fb == '0' && steps.gate.outputs.code == '0' && vars.AUTO_FIX_SLIPP != 'off'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          BASE: ${{ github.base_ref }}
+        run: |
+          sha=$(gh pr view "$PR" --json state,mergeCommit -q 'select(.state == "MERGED") | .mergeCommit.oid')
+          [ -n "$sha" ] || { echo "PR-en ble ikke flettet i denne kjøringen; ingenting å slippe."; exit 0; }
+          say(){ { echo "$1"; echo; echo "---"; echo "_Automatisk retting (.github/workflows/autofix.yml)_"; } > slipp-body.md; gh pr comment "$PR" --body-file slipp-body.md; }
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch -q origin main "$BASE"
+          git cat-file -e "$sha^{commit}" 2>/dev/null || git fetch -q origin "$sha"
+          br="slipp/auto-$PR"
+          git checkout -q -f -B "$br" origin/main
+          if ! git cherry-pick -x "$sha" > pick.txt 2>&1; then
+            git cherry-pick --abort 2>/dev/null || true
+            say "Rettingen ligger på testutgaven, men kunne ikke slippes alene til spillerne: den bygger på noe som ikke er sluppet ennå (den lar seg ikke legge rett på main). Den kommer til detstorebla.no med neste slipp."
+            exit 0
+          fi
+          set +e
+          python3 tools/autofix/gate.py --base origin/main --out gate-main.json > gate-main.txt 2>&1; code=$?
+          set -e
+          tail -n 20 gate-main.txt
+          if [ "$code" != 0 ]; then
+            say "Rettingen ligger på testutgaven, men porten stoppet den mot spillernes versjon (main), så den slippes ikke alene. Den kommer til detstorebla.no med neste slipp.
+
+          \`\`\`
+          $(tail -n 12 gate-main.txt | head -c 2500)
+          \`\`\`"
+            exit 0
+          fi
+          git push -f origin "$br"
+          gh workflow run slipp.yml --ref "$BASE" -f gren="$br" -f migreringer=ingen
+          say "Rettingen holder også mot spillernes versjon, og slippes nå alene til detstorebla.no (grenen \`$br\`, workflowen «Slipp»; lagringsporten kjører før opplastingen). main flettes tilbake i arbeidsgrenen etterpå."
       - name: Venter på Jonas (tilbakemelding)
         if: steps.origin.outputs.fb == '1'
         env:

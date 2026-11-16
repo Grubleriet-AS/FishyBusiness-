@@ -65,6 +65,19 @@ jobs:
           git merge-base --is-ancestor "$sha" HEAD || { echo "$sha ligger ikke på $GREN."; exit 1; }
           if git merge-base --is-ancestor "$sha" origin/main; then echo "Ingenting å slippe: main har alt $sha."; exit 1; fi
           git merge-base --is-ancestor origin/main "$sha" || { echo "main kan ikke flyttes rett fram til $sha: main har commits grenen ikke har. Flett main inn i grenen først."; exit 1; }
+          # an automatic fix alone (slipp/auto-<PR>, .github/workflows/autofix.yml, 16.11.2026): one commit on top of main, and only
+          # files a fix may touch, by the gate as the production has it (main's copy, not the branch's)
+          case "$GREN" in slipp/auto-*)
+            [ "$(git rev-list --count origin/main.."$sha")" = 1 ] || { echo "En automatisk retting er én commit oppå main: $GREN har $(git rev-list --count origin/main.."$sha")."; exit 1; }
+            git show origin/main:tools/autofix/gate.py > /tmp/gate_main.py
+            git diff --name-only origin/main "$sha" > /tmp/auto-files.txt
+            python3 - <<'PY'
+          import importlib.util, sys
+          sp = importlib.util.spec_from_file_location('gate_main', '/tmp/gate_main.py'); g = importlib.util.module_from_spec(sp); sp.loader.exec_module(g)
+          bad = [f for f in open('/tmp/auto-files.txt').read().split('\n') if f and (not g.ALLOW.match(f) or g.DENY.match(f))]
+          if bad: print('En automatisk retting får ikke røre: ' + ', '.join(bad)); sys.exit(1)
+          PY
+            ;; esac
           python3 tools/release/slipp.py --dry --json --no-fetch --offline --base origin/main --head "$sha" > slipp.txt
           tail -n 1 slipp.txt > slipp.json
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
@@ -136,3 +149,25 @@ jobs:
           if [ "$HOW" = token ]; then gh workflow run deploy.yml --ref main; echo "«Appen på Hetzner» startet på main."; fi
           if [ -n "$PR" ]; then gh pr edit "$PR" --remove-label jonas-har-sett 2>/dev/null || true; fi
           echo "Tilbakerulling: «Appen på Hetzner» på main med commit $OLD." >> "$GITHUB_STEP_SUMMARY"
+      # after a fix released alone, main is merged back into the working branch, so the next release is still a fast-forward
+      # (the same change is on both, so the merge changes no file; a push with the token starts no roll-out to the test edition)
+      - name: main tilbake i arbeidsgrenen
+        if: startsWith(inputs.gren, 'slipp/auto-')
+        env:
+          SHA: ${{ steps.what.outputs.sha }}
+          GREN: ${{ inputs.gren }}
+        run: |
+          git config user.name "github-actions[bot]"; git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          W=ccr-5e1ba2f4-pusvyd
+          for i in 1 2 3; do
+            git fetch -q origin "$W"
+            git checkout -q -f -B tilbake "origin/$W"
+            if git merge-base --is-ancestor "$SHA" HEAD; then echo "Arbeidsgrenen har alt $SHA."; exit 0; fi
+            if ! git merge --no-edit -m "Flett main tilbake etter slippet av $GREN" "$SHA"; then
+              git merge --abort || true
+              echo "main lot seg ikke flette tilbake i arbeidsgrenen uten konflikt. Rettingen er ute hos spillerne; flett main inn i $W for hånd før neste slipp." | tee -a "$GITHUB_STEP_SUMMARY"; exit 1
+            fi
+            if git push origin "tilbake:$W"; then echo "main er flettet tilbake i $W." | tee -a "$GITHUB_STEP_SUMMARY"; exit 0; fi
+            sleep 5
+          done
+          echo "Arbeidsgrenen flyttet seg tre ganger på rad; flett main inn i $W for hånd før neste slipp." | tee -a "$GITHUB_STEP_SUMMARY"; exit 1

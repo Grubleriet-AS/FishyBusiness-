@@ -112,6 +112,7 @@ Spillet skal tjene penger. Grunnlaget og arbeidslista står i `docs/engasjement.
 
 - **En push til arbeidsgrenen som endrer `src/`, går til `test.detstorebla.no`**, ikke til spillerne. «Rull ut» betyr «til testadressen»: sjekk at kjøringen «Appen på Hetzner» er grønn og at `https://test.detstorebla.no/version.json` har den nye versjonen og `"ch":"test"`.
 - **detstorebla.no endres bare av et slipp:** `main` flyttes fram av workflowen «Slipp», aldri av en økt (deny-lista) og aldri med fletteknappen. Rutinen slipper høyst én gang i døgnet (03–05 norsk tid) når porten og lagringsporten holder; Jonas kan si «slipp nå». Ekte penger og `src/legal/` krever merkelappen `jonas-har-sett`, som bare Jonas setter. `python3 tools/release/slipp.py` lager slipp-PR-en (`--dry` viser den). En økt som mener noe må ut nå, sier det til Jonas.
+- **En automatisk retting fra feillista slippes alene** (16.11.2026): porten fletter den, `autofix.yml` plukker bare den til `slipp/auto-<PR>` fra `main`, og «Slipp» tar den ut samme time når den holder mot `main`. Av-bryter: `AUTO_FIX_SLIPP=off`.
 - **Migreringer:** først på testprosjektet (`xlrjbqdhdymcdjkqkulx`), som Jonas kjører for hånd før pushen som trenger den (si fra til ham; Supabase-verktøyene i en økt går mot produksjonen). I produksjon rett før slippet som tar med koden, aldri etter og aldri ved utrulling til testadressen.
 - Artifacten oppdateres ikke og skal ikke slettes. GitHub Pages har bare flyttesiden.
 - Alt står i `docs/systemer/publisering.md` og «Slippet» i `tools/plan/RUTINE.md`.
