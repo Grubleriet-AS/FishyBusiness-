@@ -4829,3 +4829,99 @@
 2026-11-16 00:59	ccr-as1-alle	be908af6	trip2	OK	43	lite	samtidig	
 2026-11-16 00:59	ccr-as1-alle	be908af6	autonavtest	OK	34	lite	samtidig	
 2026-11-16 00:59	ccr-as1-alle	be908af6	havnstengt	OK	19	lite	samtidig	
+2026-11-16 01:23	regresjon/2026-11-16	b924e29	havnstengt	OK	29	lite	samtidig	
+2026-11-16 01:23	regresjon/2026-11-16	b924e29	d4dorer	OK	40	lite	samtidig	
+2026-11-16 01:25	regresjon/2026-11-16	b924e29	jobbstripe	OK	121	lite	samtidig	
+2026-11-16 01:26	regresjon/2026-11-16	b924e29	telefonflate	OK	182	lite	samtidig	
+2026-11-16 01:30	regresjon/2026-11-16	b924e29	stromtest	OK	283	lite	samtidig	
+2026-11-16 01:30	regresjon/2026-11-16	b924e29	skagtest	OK	32	lite	samtidig	
+2026-11-16 01:30	regresjon/2026-11-16	b924e29	sor62test	OK	91	lite	samtidig	
+2026-11-16 01:30	regresjon/2026-11-16	b924e29	gatetest	OK	19	lite	samtidig	
+2026-11-16 01:30	regresjon/2026-11-16	b924e29	jukseboot	OK	12	lite	samtidig	
+2026-11-16 01:30	regresjon/2026-11-16	b924e29	kotest	OK	19	lite	samtidig	
+2026-11-16 01:31	regresjon/2026-11-16	b924e29	driftsplan2kyst	OK	122	lite	samtidig	
+2026-11-16 01:31	regresjon/2026-11-16	b924e29	megletest	OK	27	lite	samtidig	
+2026-11-16 01:31	regresjon/2026-11-16	b924e29	kvotemarkedtest	OK	28	lite	samtidig	
+2026-11-16 01:32	regresjon/2026-11-16	b924e29	boostklokke	OK	59	lite	samtidig	
+2026-11-16 01:32	regresjon/2026-11-16	b924e29	draftlooptest	OK	19	lite	samtidig	
+2026-11-16 01:34	regresjon/2026-11-16	b924e29	bootgtest	OK	164	lite	samtidig	
+2026-11-16 01:34	regresjon/2026-11-16	b924e29	skipdrift	OK	26	lite	samtidig	
+2026-11-16 01:34	regresjon/2026-11-16	b924e29	haillplass	OK	8	lite	samtidig	
+2026-11-16 01:45	regresjon/2026-11-16	b924e29	colregtest	OK	735	lite	samtidig	
+2026-11-16 01:45	regresjon/2026-11-16	b924e29	rttest	OK	51	lite	samtidig	
+2026-11-16 01:45	regresjon/2026-11-16	b924e29	istest	OK	15	lite	samtidig	
+2026-11-16 01:45	regresjon/2026-11-16	b924e29	lybtest	OK	25	lite	samtidig	
+2026-11-16 01:45	regresjon/2026-11-16	b924e29	havtur	FEIL	109	lite	samtidig	FEIL Båtsfjord: sovner du om bord, tar vakta på broa over og lagene arbeider videre (ikke «driver») [['Du sovnet av utmattelse. Båten ligger og driver.', 'Du so
+2026-11-16 01:45	regresjon/2026-11-16	b924e29	snokrabbetest	OK	11	lite	samtidig	
+2026-11-16 01:45	regresjon/2026-11-16	b924e29	krabbefabrikktest	OK	20	lite	samtidig	
+2026-11-16 01:45	regresjon/2026-11-16	b924e29	autolinetest	OK	10	lite	samtidig	
+2026-11-16 01:45	regresjon/2026-11-16	b924e29	fabrikktest	OK	14	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	havplantest	FEIL	1018	lite	samtidig	FEIL the hold at 95 %: the strings hauled home, the landing at the plant, the other crew signs on [0, 1, 584714, [0, 1]]
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	sonetest	OK	8	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	uketest	OK	8	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	kystkarttest	OK	14	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	havflaate	OK	14	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	etikett	OK	217	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	sponsor2test	OK	17	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	sponsortest	OK	12	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	nettest	OK	37	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	itemcardtest	OK	24	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	kystvakttest	OK	10	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	lagtest	OK	8	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	eventtest	OK	7	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	boktest	FEIL	9	lite	samtidig	FEIL the bank shows the statement and the year's accounts (staende)
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	lotttest	OK	9	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	skattetest	OK	7	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	driftsplan2ui	OK	28	lite	samtidig	
+2026-11-16 01:56	regresjon/2026-11-16	b924e29	driftsplan2map	OK	15	lite	samtidig	
+2026-11-16 01:58	regresjon/2026-11-16	b924e29	driftsplan2gui	FEIL	380	lite	samtidig	FEIL s02-ikke-klar: U13: grunnen er en knapp, og et trykk på den åpner Mannskap-siden i samme skuff  {"grunnen": "Når du ikke er om bord, må både en skipper og 
+2026-11-16 01:58	regresjon/2026-11-16	b924e29	slidertest	OK	15	lite	samtidig	
+2026-11-16 01:58	regresjon/2026-11-16	b924e29	anchorswing	OK	7	lite	samtidig	
+2026-11-16 01:58	regresjon/2026-11-16	b924e29	selfcrew	OK	6	lite	samtidig	
+2026-11-16 01:58	regresjon/2026-11-16	b924e29	crewclip	FEIL	25	lite	samtidig	FEIL nor a body on the way between them (shoulders, chest and back, every tenth of a second) {'sjark': [3, 1121, ['l:0.17:walk', 'l:0.17:walk', 'l:0.17:walk']],
+2026-11-16 01:58	regresjon/2026-11-16	b924e29	regmarktest	OK	7	lite	samtidig	
+2026-11-16 01:58	regresjon/2026-11-16	b924e29	dockrow	OK	42	lite	samtidig	
+2026-11-16 01:59	regresjon/2026-11-16	b924e29	hulltest	OK	70	lite	samtidig	
+2026-11-16 02:03	regresjon/2026-11-16	b924e29	dyntest	FEIL	261	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-16 02:03	regresjon/2026-11-16	b924e29	crewlifetest	OK	11	lite	samtidig	
+2026-11-16 02:03	regresjon/2026-11-16	b924e29	crewwalk	FEIL	8	lite	samtidig	FEIL twenty seconds later everyone has arrived at their place {"walked": {"me": 3.6247648696752583, "ckr7kcbni": 0, "cktwdou5o": 0.17022416706734322}, "off": [[
+2026-11-16 02:03	regresjon/2026-11-16	b924e29	walktest	FEIL	15	lite	samtidig	FEIL snekke       135 cells   5.4 m2 of  21.3, places sloy,haling,ror,door,spot0,spot1,spot2,filler MISSING is, rail 10 (0 behind a wall), 153 ways (longest 9),
+2026-11-16 02:03	regresjon/2026-11-16	b924e29	tabtest	OK	109	lite	samtidig	
+2026-11-16 02:03	regresjon/2026-11-16	b924e29	navbarshot	OK	31	lite	samtidig	
+2026-11-16 02:03	regresjon/2026-11-16	b924e29	skiptest	OK	17	lite	samtidig	
+2026-11-16 02:03	regresjon/2026-11-16	b924e29	synctest	OK	74	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	installtest	OK	46	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	looktest	OK	15	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	hbtest	OK	19	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	naustclear	OK	18	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	rectest	OK	6	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	ptowtest	OK	7	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	seaworktest	OK	6	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	hailtest	OK	6	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	gbtest	OK	7	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	sharetest	OK	6	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	friendtest	OK	8	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	searchtest	OK	11	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	savestest	OK	10	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	caretest	OK	15	lite	samtidig	
+2026-11-16 02:04	regresjon/2026-11-16	b924e29	yardupgtest	OK	15	lite	samtidig	
+2026-11-16 02:05	regresjon/2026-11-16	b924e29	jigalongtest	OK	15	lite	samtidig	
+2026-11-16 02:05	regresjon/2026-11-16	b924e29	heatgeartest	OK	7	lite	samtidig	
+2026-11-16 02:05	regresjon/2026-11-16	b924e29	anchortest	OK	9	lite	samtidig	
+2026-11-16 02:05	regresjon/2026-11-16	b924e29	plantsaytest	OK	5	lite	samtidig	
+2026-11-16 02:05	regresjon/2026-11-16	b924e29	cashfxtest	OK	9	lite	samtidig	
+2026-11-16 02:05	regresjon/2026-11-16	b924e29	autonavtest	OK	28	lite	samtidig	
+2026-11-16 02:05	regresjon/2026-11-16	b924e29	placetest	FEIL	5	lite	samtidig	FEIL the rorbuer by the harbours stand 1.5-4 km from the plant 1 {'mottak': 161, 'butikk': 65, 'verft': 129, 'rorbu': 517, 'rorbu0': 148}
+2026-11-16 02:05	regresjon/2026-11-16	b924e29	sidetab	OK	15	lite	samtidig	
+2026-11-16 02:05	regresjon/2026-11-16	b924e29	guidetest	OK	10	lite	samtidig	
+2026-11-16 02:05	regresjon/2026-11-16	b924e29	stedertest	OK	7	lite	samtidig	
+2026-11-16 02:05	regresjon/2026-11-16	b924e29	icestep	OK	8	lite	samtidig	
+2026-11-16 02:06	regresjon/2026-11-16	b924e29	heatpick	OK	7	lite	samtidig	
+2026-11-16 02:06	regresjon/2026-11-16	b924e29	peergear	OK	6	lite	samtidig	
+2026-11-16 02:06	regresjon/2026-11-16	b924e29	turtest	OK	18	lite	samtidig	
+2026-11-16 02:06	regresjon/2026-11-16	b924e29	posttest	OK	27	lite	samtidig	
+2026-11-16 02:06	regresjon/2026-11-16	b924e29	merketest	OK	15	lite	samtidig	
+2026-11-16 02:06	regresjon/2026-11-16	b924e29	fartstidtest	OK	18	lite	samtidig	
+2026-11-16 02:06	regresjon/2026-11-16	b924e29	maletest	OK	21	lite	samtidig	
+2026-11-16 02:07	regresjon/2026-11-16	b924e29	climtest	OK	14	lite	samtidig	
+2026-11-16 02:19	regresjon/2026-11-16	b924e29	markettest	OK	729	lite	alene	
