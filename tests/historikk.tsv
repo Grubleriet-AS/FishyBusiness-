@@ -4931,3 +4931,7 @@
 2026-11-16 13:43	claude/blissful-cannon-ctb8e9	2ae99d7c	autolinetest	OK	14	lite	samtidig	
 2026-11-16 13:44	claude/blissful-cannon-ctb8e9	2ae99d7c	driftsplan2ui	OK	35	lite	samtidig	
 2026-11-16 13:44	claude/blissful-cannon-ctb8e9	2ae99d7c	driftsplan2map	OK	26	lite	samtidig	
+2026-11-16 14:06	claude/blissful-cannon-ctb8e9	c9e7a7ad	autonavtest	OK	29	lite	samtidig	
+2026-11-16 14:06	claude/blissful-cannon-ctb8e9	c9e7a7ad	obstest	OK	10	lite	samtidig	
+2026-11-16 14:11	claude/blissful-cannon-ctb8e9	c9e7a7ad	sitetest	FEIL	265	3d	alene	avsluttet med kode 1
+2026-11-16 14:12	claude/blissful-cannon-ctb8e9	c9e7a7ad	routetest	OK	47	lite	alene	

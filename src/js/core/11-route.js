@@ -599,7 +599,7 @@ async function leiaSplit(a, b, aPort, bPort, opt, r0){
       soft:((r1.st && r1.st.soft) || 0) + ((r2.st && r2.st.soft) || 0)});
     // one way: pulled tight over the point where the pieces meet, and round the things in the water as one
     let pts = [a].concat(r1.wps, r2.wps); try { pts = await leiaPull(pts, sd, st); } catch (e){ console.warn('leiaSplit pull', e); }
-    const wps = obsRoute(a, pts.slice(1)), nm = wps.reduce((acc, q, i) => acc + dist(i ? wps[i - 1] : a, q), 0) / NM;
+    const wps = obsRoute(a, pts.slice(1), true), nm = wps.reduce((acc, q, i) => acc + dist(i ? wps[i - 1] : a, q), 0) / NM;
     return {wps, nm, st};
   }
   return null;
@@ -748,7 +748,7 @@ async function leiaRoute0(a, b, aPort, bPort, pocket, opt0){
   if (!(opt0 && opt0.noPull)) safe = await leiaPull(safe, sd, st);
   // a leg that still passes a bridge's pier, a pier or a mark (the search's cells are 100 m and more) goes round it: under a bridge
   // between its piers, round the rest on the shorter side
-  const wps = obsRoute(a, safe.slice(1)), nm = wps.reduce((acc, q, i) => acc + dist(i ? wps[i - 1] : a, q), 0) / NM;
+  const wps = obsRoute(a, safe.slice(1), true), nm = wps.reduce((acc, q, i) => acc + dist(i ? wps[i - 1] : a, q), 0) / NM;
   st.ms = performance.now() - T0;
   return {wps, nm, st};
 }
