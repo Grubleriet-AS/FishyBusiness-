@@ -894,7 +894,22 @@ function sailReplan(pl, b, gp){
     PL.replan = null;
     // (no way round from here on a leg the route itself called safe: the hands take her on past the shallows along the line, the last way
     // out (Jonas 14.11.2026), where the manoeuvring model has her; else she stops and says so. Tvedestrand verft, 14.11.2026)
-    if (!res || res.why || !res.wps || !res.wps.length){ if (!gp.ice && typeof dynHandsOn === 'function' && dynHandsOn(PL)) return; sailStop(PL, S.boat, none); return; }
+    if (!res || res.why || !res.wps || !res.wps.length){ if (!gp.ice && typeof dynHandsOn === 'function' && dynHandsOn(PL)) return;
+      // (and before she stops: a new way from where she lies to the route's end, the rest of the route dropped, as a player would set it.
+      // At Tussøy utstyrsbutikk she lay 27 m short of a point of the route by the rocks, and no way to that point was found, while the way to
+      // the shop from there was open; allesteder-15, seed 3, 16.11.2026. Once a route, and not for one that fishes or works on the way)
+      const E = PL.wps[PL.wps.length - 1], rest = PL.wps.slice(PL.idx);
+      if (!gp.ice && E !== w && !PL.rpEnd && rest.every(q => !(q.fish > 0) && !q.act && !q.anchor)){ PL.rpEnd = true; PL.replan = {t:S.t, w:Date.now(), ice:null}; SAIL_RP.wait++;
+        let pr2; try { pr2 = leiaRoute({x:S.boat.pos.x, y:S.boat.pos.y}, {x:E.x, y:E.y}, null, E.port || null); } catch (e){ pr2 = Promise.resolve(null); }
+        pr2.then(r2 => bound(() => { SAIL_RP.wait = Math.max(0, SAIL_RP.wait - 1); if (S.plan !== PL || !PL.replan) return; PL.replan = null;
+          if (!r2 || r2.why || !r2.wps || !r2.wps.length){ sailStop(PL, S.boat, none); return; }
+          const nw = r2.wps.slice(0, -1).map(q => ({x:q.x, y:q.y, port:null, fish:0, leia:true})).concat([E]);
+          PL.wps.splice(PL.idx, PL.wps.length - PL.idx, ...nw); if (PL.unsafe) PL.unsafe.splice(PL.idx, PL.unsafe.length - PL.idx, ...nw.map(() => false)); PL.obsK = null;
+          if (typeof DYN !== 'undefined' && DYN.line && DYN.line.plan === PL) DYN.line = null;
+          log('Autonav fant en ny vei dit. Går videre.', 'Autonav found a new way there. Going on.', 'nav'); }))
+          .catch(e => { SAIL_RP.wait = Math.max(0, SAIL_RP.wait - 1); console.error(e); bound(() => { if (S.plan === PL && PL.replan){ PL.replan = null; sailStop(PL, S.boat, none); } }); });
+        return; }
+      sailStop(PL, S.boat, none); return; }
     const ins = res.wps.slice(0, -1).map(q => ({x:q.x, y:q.y, port:null, fish:0, leia:true, obs:true}));
     PL.rpNone = ins.length ? null : {t:S.t, tg};
     // (the way round is the leg itself, from where she lies now: the model's line was drawn from where she was when the route last
