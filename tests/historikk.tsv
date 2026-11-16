@@ -5135,3 +5135,6 @@
 2026-11-16 19:11	ccr-5e1ba2f4-pusvyd	9a6040c4+	admintest	OK	11	lite	samtidig	
 2026-11-16 19:11	ccr-5e1ba2f4-pusvyd	9a6040c4+	kapplop	FEIL	21	lite	samtidig	FEIL ruta Lindesnes–Bergen {"err": "Fant ingen rute dit."}
 2026-11-16 19:13	ccr-5e1ba2f4-pusvyd	d02aac6b+	docktest	OK	59	lite	alene	
+2026-11-16 19:38	ccr-349425a1-raf94t	56b52aa	sqltest	OK	60	lite	samtidig	
+2026-11-16 19:38	ccr-349425a1-raf94t	56b52aa	skiptest	OK	15	lite	samtidig	
+2026-11-16 19:40	ccr-349425a1-raf94t	56b52aa	kjoptest	OK	164	lite	samtidig	
