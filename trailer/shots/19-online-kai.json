@@ -13,16 +13,6 @@
    "off": 3.6
   },
   {
-   "vtype": "sjark",
-   "along": 52,
-   "off": 0
-  },
-  {
-   "vtype": "sjarkny",
-   "along": -40,
-   "off": 0
-  },
-  {
    "vtype": "breisjark",
    "along": 6,
    "off": 13
@@ -40,11 +30,11 @@
      "h": 6
     },
     "tgt": {
-     "x": 867.7394,
+     "x": 867.7334,
      "y": 366.182,
      "h": 4
     },
-    "fov": 44
+    "fov": 22
    },
    {
     "t": 4.7,
@@ -54,14 +44,15 @@
      "h": 14
     },
     "tgt": {
-     "x": 867.7394,
+     "x": 867.7334,
      "y": 366.182,
      "h": 6
     },
-    "fov": 44
+    "fov": 22
    }
   ]
  },
  "notes": "Som 14-side-om-side, med fire andre spilleres båter (PEERS). along/off er meter langs og ut fra kaia fra kystnotbåtens midte, som i 14; de tre nye er gjettet herfra uten GPU og må sees på kontaktarket. Ligger en båt i en annen eller på land: flytt along/off, eller fjern den. Holder ingen: bruk 14-side-om-side som det er.",
- "quality": "ultra"
+ "quality": "ultra",
+ "hash": "marina0"
 }
