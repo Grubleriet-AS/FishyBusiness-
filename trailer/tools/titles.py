@@ -42,9 +42,9 @@ def page(body, w, h, bg='transparent', pad=90):
 @font-face{{font-family:SS4;src:url(data:font/ttf;base64,{f}) format('truetype');}}
 html,body{{margin:0;width:{w}px;height:{h}px;background:{bg};overflow:hidden}}
 .t{{position:absolute;left:0;right:0;text-align:center;font-family:SS4;color:#f7f4ee;
-  text-shadow:0 1px 2px rgba(0,0,0,.28),0 0 22px rgba(0,0,0,.22)}}
+  text-shadow:0 0 2px rgba(0,0,0,.8),0 1px 3px rgba(0,0,0,.7),0 0 12px rgba(0,0,0,.6),0 0 30px rgba(0,0,0,.5),0 0 60px rgba(0,0,0,.35)}}   /* readable on bright sky and sun (Jonas 16.11.2026) */
 .cap{{text-transform:uppercase;letter-spacing:.42em;text-indent:.42em}}
-.band{{position:absolute;left:-10%;right:-10%;background:radial-gradient(ellipse 50% 50% at 50% 50%, rgba(11,23,32,.62), rgba(11,23,32,.32) 55%, rgba(11,23,32,0) 100%)}}
+.band{{position:absolute;left:-10%;right:-10%;background:radial-gradient(ellipse 50% 50% at 50% 50%, rgba(8,16,24,.74), rgba(8,16,24,.45) 55%, rgba(11,23,32,0) 100%)}}
 .c{{padding:0 {pad}px}}
 .rule{{position:absolute;left:50%;height:2px;background:rgba(247,244,238,.75);box-shadow:0 0 8px rgba(0,0,0,.25)}}
 </style></head><body>{body}</body></html>"""
@@ -75,7 +75,7 @@ async def main():
                                       f'<div class="t cap" style="top:{ys}px;font-size:{int(70 * k)}px">{txt}</div>'
                                       f'<div class="rule" style="top:{ys + int(108 * k)}px;width:{rw}px;margin-left:{-rw // 2}px"></div>'
                                       + (f'<div class="t cap" style="top:{ys + int(130 * k)}px;font-size:{int(28 * k)}px;letter-spacing:.24em;text-indent:.24em">{sub}</div>' if sub else ''), w, h))
-            await shot('tag', page(f'<div class="t cap" style="top:{int(h * 0.125)}px;font-size:{int(30 * k)}px;letter-spacing:.2em;text-indent:.2em">{T["tag"]}</div>', w, h))
+            await shot('tag', page(f'<div class="band" style="top:{int(h * 0.125) - int(70 * k)}px;height:{int(190 * k)}px"></div><div class="t cap" style="top:{int(h * 0.125)}px;font-size:{int(30 * k)}px;letter-spacing:.2em;text-indent:.2em">{T["tag"]}</div>', w, h))
         for key, txt in ({} if T else PLACES).items():
             rw = int(70 * k)
             await shot(key, page(f'<div class="t cap" style="top:{y}px;font-size:{int(62 * k)}px">{txt}</div>'
