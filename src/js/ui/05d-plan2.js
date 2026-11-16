@@ -41,6 +41,8 @@ const PLAN2UI = (() => {
       if (pl.opsK === 'rest') return [L('På vei for å hvile om bord', 'On the way to rest aboard'), ''];
       if (b.gop) return [(b.gop.op === 'set' ? L('Setter ', 'Setting ') : L('Trekker ', 'Hauling ')) + (b.gop.auto ? b.gop.n + ' ' + unitName('line', b.gop.n, 'auto') + L(' autoline', ' of autoline') : b.gop.sno ? L('en lenke med ' + b.gop.n + ' snøkrabbeteiner', 'a string of ' + b.gop.n + ' snow crab pots') : GEAR[b.gop.kind][S.lang === 'no' ? 'no' : 'en'].toLowerCase()), ''];
       if (b.status === 'fishing'){ const w = pl.wps[pl.idx - 1], i = w && w.jc ? w.jc : null, until = b.fishUntil != null ? ck(b.fishUntil / 60) : null; return [(pl.noJig ? L('Venter ved redskapet', 'Waiting by the gear') : L('Jukser', 'Jigging') + (i ? L(' på plass ', ' at place ') + i : '')) + (until ? L(' til kl. ', ' until ') + until : ''), '']; }
+      // (Driftsplan 3, DP3-2: the search with the echo sounder, a trip of its own)
+      if (pl.sok != null){ const T = P3TIER[plan3Tier()]; return pl.idx >= pl.sok ? [L('Søker etter fisken i ringen med ' + T[0], 'Searching the ring for the fish with ' + T[1]), ''] : [L('På vei ut til ringen for å søke med ' + T[0], 'On the way out to the ring to search with ' + T[1]), '']; }
       const left = pl.wps.slice(pl.idx).some(w => w.act || w.fish > 0); return left ? [L('På vei ut', 'On the way out'), ''] : [L('På vei til ', 'On the way to ') + (pl.wps[pl.wps.length - 1].port ? nm(pl.wps[pl.wps.length - 1].port) : L('ankerplassen', 'the anchorage')), ''];
     }
     if (r && r.wait) return [L(r.wait.no, r.wait.en), ['dep', 'rest', 'idle'].includes(r.wait.k) ? '' : 'wait'];

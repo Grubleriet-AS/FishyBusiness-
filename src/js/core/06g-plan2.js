@@ -278,6 +278,10 @@ function planDay(o, H0, st){
   const potsSea = kind === 'teine' ? st.sets.filter(x => x.kind === 'teine').reduce((a, x) => a + x.n, 0) : 0, baitRound = kind === 'teine' ? (st.aboard.teine + potsSea) * GPRICE.potBait : 0;
   const dueSoon = kind === 'teine' ? st.sets.filter(x => x.kind === 'teine' && (() => { const q = o.places.find(y => y.id === x.fid); return q && x.tSet / 60 + q.soak <= H0 + dayMax; })()).reduce((a, x) => a + x.n, 0) : 0;
   if (kind === 'teine' && dueSoon > 0 && st.aboard.bait < dueSoon * GPRICE.potBait - 1e-6 && plan2P(o, 'M') && !watch){ go(plan2P(o, 'M'), o.M); steps.push({t, k:'agn', port:o.M, kg:Math.ceil(baitRound * 2 - st.aboard.bait)}); t += DRP2.stockH; st = Object.assign({}, st, {aboard:Object.assign({}, st.aboard, {bait:baitRound * 2})}); }
+  // Driftsplan 3 (DP3-2, 06k-plan3.js): the search with the echo sounder in the ring before the gear goes out, when a field has never been
+  // searched or its haul fell. She sails the pattern from the first place to the nearest place it ends by; the engine reads it there (plan3SokEnd) and lays
+  // the day again with the spots found, so the sets after it in this day stand at the fixed points as an estimate
+  if (o.v === DRV3 && !fetch){ const ids = plan3SokNeed(o, st); if (ids.length){ const E = plan3SokEst(o), A0 = o.places[0]; go(A0); steps.push({t, k:'sok', pids:ids, h:E.h, km:E.km, l:E.l, tier:E.tier, who:E.who}); t += E.h; at = plan3SokEnd0(o, E.tier); atPort = null; } }
   // pass 1: the places in the player's order (Jonas 27.10.2026: the order is the player's). A field: haul what is due by arrival (and
   // set again), set what is empty if gear of its kind is ready, remember what is not yet due. The jig places before the first field get
   // the day's free hours first (jig most of the day, set the line before going home); those after the fields get the hours until the
@@ -394,6 +398,9 @@ function planDayText(o, day){
     else if (s.k === 'hvile'){ no = (s.where === 'anker' ? 'Hviler om bord' : s.where === 'kai' ? 'Hviler ved kaia' : 'Hviler') + ' til ' + kl(s.until); en = (s.where === 'anker' ? 'Rests aboard' : s.where === 'kai' ? 'Rests at the quay' : 'Rests') + ' until ' + at(s.until); }
     else if (s.k === 'vakt'){ no = 'Vakt ' + s.w + ' til ' + kl(s.until) + ': ' + s.who.join(', '); en = 'Watch ' + s.w + ' until ' + at(s.until) + ': ' + s.who.join(', '); }
     else if (s.k === 'ut'){ no = 'Ut igjen'; en = 'Out again'; }
+    else if (s.k === 'sok'){ const T = P3TIER[s.tier] || P3TIER.basic, m = Math.max(1, Math.round(s.h * 60)), fu = BOAT.diesel === false ? ['bensin', 'petrol'] : ['diesel', 'diesel'];
+      no = 'Søker etter fisken i ringen med ' + T[0] + ': ' + fmt(s.km, 1) + ' km, om lag ' + m + ' min og ' + fmt(s.l, 0) + ' l ' + fu[0] + ' (' + (s.who ? s.who + ' leser bildet' : 'du leser bildet') + ')';
+      en = 'Searches the ring for the fish with ' + T[1] + ': ' + (+s.km).toFixed(1) + ' km, about ' + m + ' min and ' + Math.round(s.l) + ' l of ' + fu[1] + ' (' + (s.who ? s.who + ' reads the picture' : 'you read the picture') + ')'; }
     out.push([c, no, en]);
   }
   const cap = x => x.charAt(0).toUpperCase() + x.slice(1);   // («Field 1: …», not «field 1: …», GUI review P6)

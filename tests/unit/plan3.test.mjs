@@ -70,4 +70,77 @@ export default function (t){
     v4.on = false; v4.stop = {no:'Fant ingen vei.', en:'Found no way.'}; const n0 = S.msgs.length;
     t.ok(plan2Ops() === null && S.ops === null && /kom ikke helt i mål: Fant ingen vei/.test((S.msgs[S.msgs.length - 1] || {}).no || ''), 'stoppet underveis: borte, og meldingen sier hvorfor og at redskapet står (' + ((S.msgs[S.msgs.length - 1] || {}).no || '').slice(0, 90) + ')');
     const o5 = plan3New({x:500, y:300}, 'juksa'); S.ops = o5; t.ok(plan2Ops() === o5, 'en v5-plan går også med DRIFT3 på'); K.set('DRIFT3', false); }
+
+  // ---- DP3-2: the search with the echo sounder (16.11.2026). A ring of candidates 0.5 km apart with a made-up sea (den): a dense school of
+  // saithe in one corner, the haddock thickest in another; the haddock line takes the haddock (SELQ line:hyse 2.6, saithe 0.15)
+  { const {plan3Search, plan3SokNeed, plan3Truth, plan3Take, plan3Sig, plan3HaulWatch, plan3SokEst, HEAT, planDay, planDayText, plan2State} = K;
+    S.ops = null; S.plan = null; S.sets = []; S.marks = []; S.boat.type = 'sjark'; applyVessel(); S.me = S.cur;
+    S.pgear.lines.hyse.n = 8; S.pgear.lines.hyse.baited = 8; S.pgear.lines.hyse.bt = {makrell:8};
+    const C = {x:500, y:300}, o = plan3New(C, 'line', {lk:'hyse', bait:'makrell'}), r = o.ring.r, cand = [];
+    for (let i = -4; i <= 4; i++) for (let j = -4; j <= 4; j++){ const p = {x:C.x + i * 0.45, y:C.y + j * 0.45}; if (kmTrue(p, C) <= r) cand.push([p.x, p.y]); }
+    o.places = [{id:'f1', k:'felt', x:cand[0][0], y:cand[0][1], n:4, soak:8, lk:'hyse'}, {id:'f2', k:'felt', x:cand[cand.length - 1][0], y:cand[cand.length - 1][1], n:4, soak:8, lk:'hyse'}];
+    const all = cand.map((c, i) => i), seenAll = {basic:all, chirp:all, sonar:all};
+    o.sok = {cand, reach:{f1:all, f2:all}, track:{basic:[], chirp:[], sonar:[]}, seen:seenAll, km:{basic:9, chirp:6, sonar:3}};
+    const SAI = {x:C.x + 1.2, y:C.y + 0.6}, HYS = {x:C.x - 0.9, y:C.y - 0.9}, H = S.t / 60;
+    const bump = (p, c, w) => Math.exp(-((p.x - c.x) ** 2 + (p.y - c.y) ** 2) / (w * w));
+    const den = (sp, p) => sp === 'sei' ? 0.05 + 3 * bump(p, SAI, 0.5) : sp === 'hyse' ? 0.02 + 0.4 * bump(p, HYS, 0.6) : 0.01;
+    const take = plan3Take(o, H), tv = i => plan3Truth({x:cand[i][0], y:cand[i][1]}, H, take, den), best = Math.max(...all.map(tv));
+    t.ok(take.hyse > 2 && take.sei < 0.3, 'hyselina tar hysa, nesten ikke seien (' + take.hyse.toFixed(2) + ', ' + take.sei.toFixed(2) + ')');
+    // (2) CHIRP finds denser fish for the gear than the simple sounder, in the same ring with the same seed: the simple one sees all fish and
+    // goes for the saithe; the CHIRP tells the species apart
+    const mean = (tier, erf, n) => { let a = 0, top = 0, over = 0; for (let k = 1; k <= n; k++){ for (const q of o.places){ q.at = null; q.move = false; } o.sokN = 0; const g = plan3Search(o, ['f1'], H, {lay:false, den, tier, erf, seed:k}), v = tv(g[0].i); a += v; if (v >= best - 1e-12) top++; if (v > best + 1e-12) over++; } return {m:a / n, top:top / n, over}; };
+    const B1 = mean('basic', 5, 1), C1 = mean('chirp', 5, 1);
+    t.ok(C1.m > B1.m * 1.5, 'CHIRP finner tettere fisk for lina enn det enkle ekkoloddet med samme frø (' + C1.m.toFixed(3) + ' mot ' + B1.m.toFixed(3) + ')');
+    const B = mean('basic', 3, 200), Cm = mean('chirp', 3, 200), Sm = mean('sonar', 3, 200);
+    t.ok(Cm.m > B.m * 1.5 && Sm.m > B.m * 1.5, 'i snitt over 200 frø: CHIRP ' + Cm.m.toFixed(3) + ' og sonaren ' + Sm.m.toFixed(3) + ' mot det enkle ' + B.m.toFixed(3) + ' (erfaring 3)');
+    // (3) the reader: experience 5 picks better spots than 1 on average over the seeds, and never better than the fish there
+    const E1 = mean('chirp', 1, 300), E5 = mean('chirp', 5, 300), Em = mean('chirp', DRP3.sok.meErf, 300);
+    t.ok(E5.m > E1.m * 1.1 && E5.top > E1.top, 'en skipper med erfaring 5 velger bedre ruter enn en med 1, i snitt over 300 frø (' + E5.m.toFixed(3) + ' mot ' + E1.m.toFixed(3) + '; den beste ruta ' + Math.round(E5.top * 100) + ' % mot ' + Math.round(E1.top * 100) + ' % av gangene)');
+    t.ok(E1.over === 0 && E5.over === 0 && Math.max(E1.m, E5.m) <= best + 1e-12, 'aldri bedre enn tettheten selv: ingen valgt rute over den beste i ringen (' + best.toFixed(3) + ')');
+    t.ok(Em.m <= mean('chirp', 3, 300).m && plan3Sig(DRP3.sok.meErf) > plan3Sig(3), 'du om bord leser som en fersk fisker (erfaring ' + DRP3.sok.meErf + ', spredning ' + plan3Sig(DRP3.sok.meErf).toFixed(2) + ' mot ' + plan3Sig(5).toFixed(2) + ' for erfaring 5): snitt ' + Em.m.toFixed(3));
+    // the same seed reads the same: the plan's own seed and the search's number
+    { const a = [], b = []; for (const L of [a, b]){ for (const q of o.places){ q.at = null; q.move = false; } o.sokN = 0; L.push(...plan3Search(o, ['f1', 'f2'], H, {lay:false, den, tier:'chirp', erf:2, seed:77}).map(g => g.i)); L.push(...plan3Search(o, ['f1'], H, {lay:false, den, tier:'chirp', erf:2, seed:77}).map(g => g.i)); }
+      t.ok(JSON.stringify(a) === JSON.stringify(b), 'samme frø og samme søk gir de samme plassene (' + JSON.stringify(a) + ')'); }
+    // two fields apart, inside the ring, and a field that fell moves off its spot
+    { for (const q of o.places){ q.at = null; q.move = false; } o.sokN = 0; plan3Search(o, ['f1', 'f2'], H, {lay:false, den, tier:'chirp', erf:5, seed:3}); const [f1, f2] = o.places;
+      t.ok(f1.at && f2.at && kmTrue(f1.at, f2.at) >= Math.max(DRP3.spaceKm, r / 3) - 1e-9 && kmTrue(f1.at, C) <= r + 1e-9 && kmTrue(f2.at, C) <= r + 1e-9, 'to felt står en tredel av ringen fra hverandre, og begge inne i ringen (' + kmTrue(f1.at, f2.at).toFixed(2) + ' km)');
+      const was = f1.at; f1.move = true; plan3Search(o, ['f1'], H, {lay:false, den, tier:'chirp', erf:5, seed:3});
+      t.ok(f1.at && kmTrue(f1.at, was) >= DRP3.spaceKm - 1e-9 && kmTrue(f1.at, C) <= r + 1e-9 && !f1.move && f1.q1 == null, 'et felt der fangsten falt, flytter seg minst ' + DRP3.spaceKm + ' km, og aldri ut av ringen (' + kmTrue(f1.at, was).toFixed(2) + ' km)'); }
+    // nothing seen: the field keeps its fixed point (the reserve)
+    { const q = o.places[0]; q.at = null; const k = o.sok.reach.f1; o.sok.reach.f1 = []; plan3Search(o, ['f1'], H, {lay:false, den, tier:'chirp', erf:5, seed:1}); t.ok(q.at === null, 'ser søket ingenting, står feltet på plassen dybden ga (reserven)'); o.sok.reach.f1 = k; }
+    // the string laid with its middle on the spot (the catch is reckoned at the string's middle, setMid), along the line through the ring's
+    // middle, and not across another field's string (a sea without land here: the map reads stubbed)
+    { const keep = ['isLand', 'depthF', 'legClear', 'ruBlockMsg', 'plan2TideMin'].map(k => [k, K.get(k)]);
+      K.set('isLand', () => false); K.set('depthF', () => 80); K.set('legClear', () => true); K.set('ruBlockMsg', () => null); K.set('plan2TideMin', () => 0);
+      const {plan3Lay, plan3StrKm} = K, q = o.places[0], at = {x:C.x + 1.0, y:C.y}, L = plan3StrKm(o, q), y = plan3Lay(o, q, at, []);
+      const mid = y && {x:(y.st.x + y.e.x) / 2, y:(y.st.y + y.e.y) / 2}, toC = y && Math.abs(Math.sin(y.hdg)) > 0.99;
+      t.ok(y && kmTrue(mid, at) < 1e-6 && Math.abs(kmTrue(y.st, y.e) - L) < 0.05 * L && toC, 'fire stamper hyseline (' + L.toFixed(2) + ' km) ligger med midten på plassen søket fant, langs linja gjennom ringens midte (' + (y ? (y.hdg * 180 / Math.PI).toFixed(0) + '°' : '–') + ')');
+      const other = {st:{x:C.x + 0.2, y:C.y - 1.0}, e:{x:C.x + 0.2, y:C.y + 1.0}}, y2 = plan3Lay(o, q, at, [other]), fc = (u, v, w) => (v.x - u.x) * (w.y - u.y) - (v.y - u.y) * (w.x - u.x);
+      t.ok(y2 && !(fc(y2.st, y2.e, other.st) * fc(y2.st, y2.e, other.e) < 0 && fc(other.st, other.e, y2.st) * fc(other.st, other.e, y2.e) < 0), 'en annen lenke over plassen: lina dreies så de ikke krysser (' + (y2 ? (y2.hdg * 180 / Math.PI).toFixed(0) + '°' : '–') + ')');
+      K.set('isLand', p => kmTrue(p, C) > 0.5); const y3 = plan3Lay(o, q, {x:C.x, y:C.y}, []); K.set('isLand', () => false);
+      t.ok(y3 === null, 'en vik på 1 km der lenka på 3,6 km skulle ligge: den legges ikke (søket tar den neste plassen)');
+      for (const [k, v] of keep) K.set(k, v); }
+    // (1) the search in the day: before the sets, with its length, its time and its fuel
+    const had = 'fmt' in globalThis; if (!had) globalThis.fmt = (x, d2) => (+x).toFixed(d2).replace('.', ',');   // (fmt is the UI's, ui/02-format-state.js)
+    { for (const q of o.places){ q.at = null; q.move = false; q.sokT = null; } o.home = PORTS.find(p => p.mottak).id; o.M = o.home; o.legs = {}; S.ops = o;
+      const st = plan2State(o); t.ok(JSON.stringify(plan3SokNeed(o, st)) === '["f1","f2"]', 'to felt som aldri er søkt, med lina egnet: begge søkes (' + JSON.stringify(plan3SokNeed(o, st)) + ')');
+      const d = planDay(o, H, st), ks = d.steps.map(x => x.k), sk = d.steps.find(x => x.k === 'sok');
+      t.ok(sk && ks.indexOf('sok') < ks.indexOf('sett') && sk.h > 0 && sk.km === o.sok.km.basic && sk.l > 0, 'dagen søker før lina settes, med lengden, tida og dieselen (' + ks.join(' ') + '; ' + (sk ? sk.km + ' km, ' + Math.round(sk.h * 60) + ' min, ' + sk.l + ' l' : '–') + ')');
+      const line = planDayText(o, d).find(x => /Søker etter fisken/.test(x[1])); t.ok(line && /ekkoloddet: .* km, om lag \d+ min og \d+ l diesel \(du leser bildet\)/.test(line[1]), 'teksten: «' + (line ? line[1] : '–') + '»');
+      o.places[0].sokT = S.t; o.places[1].sokT = S.t; t.ok(plan3SokNeed(o, st).length === 0, 'søkt én gang: ikke igjen før fangsten faller');
+      o.places[0].move = true; t.ok(JSON.stringify(plan3SokNeed(o, st)) === '["f1"]', 'et felt der fangsten falt, søkes igjen');
+      S.sets = [{vid:S.cur, kind:'line', n:4, fid:'f1', id:'s1', a:{x:500, y:300}, b:{x:500.5, y:300}}]; t.ok(plan3SokNeed(o, plan2State(o)).length === 0, 'men ikke mens redskapet står der');
+      S.sets = []; o.places[0].move = false; }
+    // (4) a haul under half of the field's first: the field is searched again before the gear goes out, and the trip is cut before the set
+    { const q = o.places[0]; q.q1 = null; S.boat.gop = null; const m0 = {x:q.x, y:q.y};
+      o.p3h = {sid:'s1', fid:'f1', m:m0, t:S.t}; S.marks = [{x:m0.x, y:m0.y, t:S.t, g:'line', kgu:80, q:1.2}]; plan3HaulWatch(o, H);
+      t.ok(q.q1 === 1.2 && !q.move, 'den første trekkingen på plassen er målet (' + q.q1 + ')');
+      o.p3h = {sid:'s2', fid:'f1', m:m0, t:S.t}; S.marks.push({x:m0.x, y:m0.y, t:S.t, g:'line', kgu:50, q:0.7}); plan3HaulWatch(o, H); t.ok(!q.move, 'over halvparten: blir stående');
+      o.run = {trip:{from:1, to:3}, day:{steps:[]}, i:1}; S.plan = {ops:true, p2:{}, idx:1, wps:[{x:0, y:0}, {x:q.x, y:q.y, act:{op:'cycle', only:'set', fid:'f1'}}]}; S.boat.status = 'fishing';
+      o.p3h = {sid:'s3', fid:'f1', m:m0, t:S.t}; S.marks.push({x:m0.x, y:m0.y, t:S.t, g:'line', kgu:30, q:0.5});
+      const cut = plan3HaulWatch(o, H);
+      t.ok(q.move && cut && S.plan === null && o.run.replan && S.boat.status === 'idle', 'under halvparten av den første: feltet søkes igjen, og turen kuttes før settingen (' + JSON.stringify([q.move, cut, S.plan, o.run.replan]) + ')');
+      S.ops = null; o.run = null; }
+    if (!had) delete globalThis.fmt;
+  }
 }
