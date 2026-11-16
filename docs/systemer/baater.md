@@ -321,3 +321,8 @@ Revisjonen av kystflåten båt for båt og operasjon for operasjon står i `docs
 
 **Jonas' svar på valgene fra OB0 (09.11.2026, valg 17–23 i køen):** skalaen for båtenes karakter er skrogutforming 20, detaljer 20, lanterner 5, styrhus 10, arbeidsflyt 25 og utforming av dekk 20 (grensen 75 står); `disp` er den tomme båten for alle båtene, som for kyst15; garn skal kunne trekkes for hånd på trebåten og skiffen; skiffen mister teinene som trebåten; fasene bruker offentlige bilder av samme type og sier hvilke, «slik at jonas har kontroll under prosessen»; kyst15 får «en åpning i hekken for setting av garn, liner» og «en garn-binge for oppbevaring av garn ombord»; plastsjarken: «Dette er kanskje den svakeste båten vi har. Du får frie tøyler til å lage en realistisk fiskebåt.» Ingenting av det er bygd ennå (fasene OB1–OB15 i `docs/planer/om-bord.md`).
 
+
+
+## Flagget hele døgnet (16.11.2026)
+
+Jonas 16.11.2026: «Flagg oppe hele døgnet». `FLAG.always` i `flagUp` (`core/03-simulation.js`) gjelder egen båt og de andre spillernes båter. `false` gir flaggforskriftens tider tilbake.

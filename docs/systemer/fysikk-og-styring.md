@@ -300,3 +300,23 @@ Jonas 09.11.2026: «Jeg ønsker jo at båten skal fungere så ekte som mulig». 
 ### Vann i båten på stripa, i boksen og i Håndboka (07.11.2026, etter Tonys spilltest)
 
 Jonas 07.11.2026: Tony «opplevde at båten tok inn vann, men visste ikke om det var noe å være bekymret for». Modellen (5.60) og toastene fantes; det som manglet, var et varsel som står. `hullWarn(b)` i `ui/04-panels-instruments.js`: gult «Lekkasje · pumpa holder unna · Verft ›» mens pumpa tar unna, rødt «VANN I BÅTEN · fullt om N min · Verft ›» mens vannet stiger (samme regnestykke som `hullMinute`), ingenting etter at motorrommet er fullt (da står «Venter på redningsskøyta» på linje 1). Linje 3 på stripa foran reglene og rullingen; i boksen en egen rad «Skroget» med knappen «Kjør til verft» (`hudGoYard`: Autonav til nærmeste verft som skuffens «Kjør dit» til blåsa, med en toast som sier hvor og at ruta må kastes loss). Håndboka får «Vann i båten» (kapittel 3, `lekk`) første gang skroget er skadet, med hva gult og rødt betyr og at mannskapet ringer skøyta selv når det er for sent. Båten ligger synlig dypere i 3D av vannet om bord fra F2 (07.11.2026, over): vekta er med i likevekten til skrogsnittene.
+
+
+## Grunnstøting i startfasen (16.11.2026)
+
+Jonas 16.11.2026: «Ved grunnstøting får spillere opp en boks med spørsmål om grunnstøtingen var spillets skyld … automatisk lagre data fra øyeblikket … muligheten til å flytte båten ut på havet igjen uten skade på skrog». Valget er «Hver gang, i startfasen».
+
+- **`runAground` (`core/01-world.js`):**
+  - Legger skroget før grunnstøtingen på båten (`b.agSnap`), så hver båt i flåten har sitt eget.
+  - Legger øyeblikket i køen `S.agQ`, høyst 10. Køen holder posisjon, hvor hun kom fra, kurs, fart, hvem som styrte, kartdybden, ruta, sporet, bunnen og skaden.
+- **Dialogen (`ui/06e-feedback.js aground`):**
+  - Vises bare når spilleren er om bord.
+  - Spør «Var det spillets skyld?» og sender rapporten med svaret og et bilde av skjermen (`ag_put`).
+  - En rapport uten svar går etter ti minutter.
+  - Et endelig nei fra serveren dropper rapporten; andre feil prøves igjen etter ti minutter.
+- **Flyttingen ut (`agFree`, `core/05-vessels.js`):**
+  - Setter skroget tilbake til slik det var før grunnstøtingen, og flytter båten ut på trygt vann som «Sitter båten fast?» (`unstuck`), uten ventetid.
+  - Den finnes også i Redning-appen.
+  - `AG.free = false` tar den bort.
+
+Ingen skade ved sammenstøt med andre båter: se sjofart-og-lover.md (`SJV.harm`).

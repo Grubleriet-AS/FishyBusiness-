@@ -711,3 +711,13 @@ En frist som løper ut mens spillet er lukket, koster ingenting utover oppgjøre
 - Drøftingen før oppsigelse (§ 5-1), formkravene (§ 5-3), søksmål (kap. 6) og fortrinnsrett er ikke med.
 - Havbåtenes anonyme lag (5.6c i `folk-om-bord.md`) har ingen avtale på kortet; lagene følger båten.
 
+
+
+## Ingen skade ved sammenstøt i startfasen (16.11.2026)
+
+Jonas 16.11.2026: «Fjern skade fra kollisjoner med andre brukere eller NPCer».
+
+- `SJV.harm = false` (`core/05e-sjovei.js`): et støt mot en annen båt gir ingen skade på eget skrog og ingen på den andre, og det blir ikke noe oppgjør.
+- Dagboka, skylda og § 164 står.
+- NPC-ene går spilleren allerede gjennom (`SJV.ghost`).
+- `true` gir skaden og betalingen tilbake.

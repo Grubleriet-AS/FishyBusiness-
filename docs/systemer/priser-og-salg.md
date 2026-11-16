@@ -108,3 +108,15 @@
 - **Tillegg:** Store mottak betaler 10–20 %, små kunder 20–40 %, ganget med omdømmet. Bonus ved fullført bestilling.
 - **Omdømme:** Fullført gir +8, tapt frist −10. Omdømmet vektlegger hvilke kunder som bestiller.
 - Fisk som oppfyller kravet går først til bestillingen når du leverer i riktig havn.
+
+
+## Kassekreditten kommer med fartstid (16.11.2026)
+
+Jonas 16.11.2026: «Fjerne kreditt for ENK? (forhindre nye spillere i å kjøpe alt med en gang)», og valget «Kassekreditt etter fartstid».
+
+- `kkOpen` (`core/03-simulation.js`): et enkeltpersonforetak får kassekreditt ved `BANK.kkFsY` = 5 års fartstid. Det er i første uke for den som spiller jevnt.
+- Et AS har den med en gang.
+- En lagring fra før som sto i minus ved første lasting, beholder den (`S.bank.kkOld`). Nye spill har `kkOld: false` fra `newState`.
+- Uten kassekreditt er `spendable()` lik brukskontoen. Renta på minus løper som før og vises på bankkortet.
+- Båtlånene står som før.
+- Dette er det ene stedet der fartstid åpner noe.
