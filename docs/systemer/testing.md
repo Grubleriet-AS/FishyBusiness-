@@ -11,6 +11,7 @@ Fra `CLAUDE.md` 26.10.2026 (Jonas 07.10.2026, «Spør før hver test»: «Dekker
 | `tut` | 40 min (ett format rundt 25 min) | veiledningen «Første tur», åpningen (brev, startsted) eller knappene den trykker på. Begge formater når tipsene eller knappene endres; ellers ett format med `KYST_TUT_ONE=liggende` eller `staaende` (Jonas 27.10.2026) |
 | `kartkorridortest` | 1 min | oppstartens lasting av kartet (`bootMapLoad` i `ui/11-boot.js`) eller det `lnetLoad`/`legReady` henter langs en etappe. Ruta Bodø–Husøy (341 km, etapper opp til 84 km) lagret som plan og som utkast, startet i en ny nettleser: én lasting og alle etappene klare. Krever hele kysten (`tools/map/out/game` eller `KYST_MAP`); står derfor bare i `COVER` for seg selv, ikke for `11-boot.js`. Rød før 07.11.2026 (siden lastet seg selv på nytt, én etappe ikke klar) |
 | `utfrakai` | 10–15 min | fars naust (`core/07c-naust.js` `naustWay`, `naustFind`), Autonav fra naustet (`ui/03b-route.js` `leiaTo`), feltet på første tur (`ui/08c-start.js` `chooseStart`) eller etappene over de forseglede havnenes fylling (`core/07-harbours.js` `quayLandLeg`, `legClearMemo`). Nytt spill i Averøy, Sleneset, Fosnavåg (to tider), Kvitsøy, Bodø, Vangshamn og Båtsfjord: naustet med vei ut, Autonav til ringen uten etappe over land, «Kast loss» og båten ut; og fra mottakskaia i Ålesund, Fosnavåg, Laukvik og Vengsøy. Trenger hele kysten og bygger `dist-vec/` selv (`KYST_NOBUILD=1` hopper over, `KYST_DIST_VEC` gir et annet bygg). Rød før 08.11.2026 |
+| `allesteder` | rundt 80 min (`KYST_ALLE=havn` flere timer) | stedene båten kan ligge og veien ut derfra: rorbuene og naustet (`core/07d-rorbu.js`, `07c-naust.js`, `SITE_MAXLEN` og `siteDredge` i `07-harbours.js`), ankomst og avgang med båtmodellen (`dynAuto` i `16b-dyn.js`) og hindrene langs rutene (`11b-obstacles.js`). Kystbåten på 21 m fra hver havn og den på 14,99 m fra hver rorbu og hvert naust; `KYST_ALLE_N=40` for en stikkprøve, `KYST_ALLE_ID` for enkeltsteder. Krever hele kysten (`dist-vec`). |
 | `lukket` | 3–5 min | havnene langs kysten (`src/data/mottak.json`, `steder.json`, `06b-coastports.js`, `06c-steder.js`, `approachPath` i `07-harbours.js`): ingen havn stengt inne av egen kai og fylling, alle har vei inn, de flyttede butikkene holder id-en, fars naust ved et flyttet mottak, og en lagring med en havn som er borte. Krever hele kysten (`dist-vec`). |
 | `enhetshot` | 5 min per sted | bakken ved havneenhetene (`unitTerr`, `unitPatch` i `view3d/03-berths-naust.js`): bilder fra land, nær og rett ovenfra (`tests/out/enhet_*.png`) og `G3._debug.unitEdge` langs bak- og sidene. 3D, alene, `dist-vec`; `KYST_ENHET=engenes,alesund` for et utvalg, `KYST_TAG` for før og etter. |
 | `tutcoast` | 15 min (`--all` rundt en time) | feltet og miksen for første tur (`tutFieldNear` i `08c-start.js`, `TUTB`/`tutBonus`), reglene (`03e-rules.js`) eller fiskemodellen. Krever hele kysten i bygget, og står ikke i `run.py` sine lister. Kjøres for seg: `python3 tests/tutcoast.py` |
@@ -42,6 +43,16 @@ Fra `CLAUDE.md` 26.10.2026 (Jonas 07.10.2026, «Spør før hver test»: «Dekker
 | `profshot`, `benchshot` | 3–5 min | profilen (`#prof`) og målebenken (`#bench`), merkene i bildeløkka |
 
 Hvilke tester som dekker hvilke filer, står i `COVER` i `tests/run.py`. Funksjonstestene og triksene står nedenfor (kapittel 11).
+
+## Hva testene laster, og hva som koster (15.11.2026)
+
+Målt i SwiftShader (4 kjerner, 1280×800) 15.11.2026, analysen i Claude-dokumentet «Effektivisering av testene», skriptene i prosjektfilene `testmaling/`:
+
+- **Oppvarmingen er det dyre:** hver ny side bruker 50–140 s på de seks første 3D-bildene, og spillets egen tråd står stille i over 90 % av den tida (den venter på at SwiftShader kompilerer og tegner). Etterpå tar et bilde 55–120 ms. En fast profilmappe for nettleseren (skyggerne i hurtigbufferen) ga ingenting.
+- **FFT-sjøen koster nesten ingenting** per bilde, og påvirker båtens bevegelse, så den står på i alle testene.
+- **`GAME3D_MIN`** i `_env.py` slår av trærne, dyrelivet, vinden, strandbåndet, skjærene, marinaene og nærtingene (`#trees0,life0,vind0,shore0,rocks0,marina0,near0`): 10–20 % kortere bilder. Brukes av 3D-testene som sjekker logikk: `trackfollow`, `helmjit`, `moortest`, `landtest`, `bunkertest`, `saytest`. Testene av grafikken og bildene noen ser på, har full scene.
+- **Ingen test snakker med produksjonen:** `_env.py` stopper alle kall til `*.supabase.co` (spillet spurte før om serverens minutt, `rpc/sp_now`, ved hver start). Testene av skyen bruker sin egen falske vert (`https://sb.test`). `KYST_NETT=1` slipper dem gjennom.
+- **Skriptene som ikke er tester** (målinger, bilder av én båtmodell, klippene av folkene, `tutcoast`) står i `HAND` i `run.py`. `python3 tests/run.py utenfor` skal være tom; `run.py` stopper også hvis samme fil står to ganger i `COVER`.
 
 ## 11. Testing
 

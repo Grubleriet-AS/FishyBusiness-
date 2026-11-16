@@ -24,7 +24,7 @@ async def main():
         br = await p.chromium.launch(args=['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'])
         # iPhone: steps in Settings and in the card after the first landing
         ctx, pg, errs = await new(br, IOS)
-        r = await pg.evaluate("(() => { S.tut = 0; PHONE.open('innst'); const t = document.getElementById('phView').innerText; PHONE.show(false); return {can:INSTALL.can(), t}; })()")
+        r = await pg.evaluate("(() => { S.tut = 0; (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); const t = document.getElementById('phView').innerText; PHONE.show(false); return {can:INSTALL.can(), t}; })()")
         check(r['can'] and 'Hjem-skjerm' in r['t'] and 'Del' in r['t'], 'iPhone: Settings has the card with Share and Add to Home Screen', r)
         await pg.evaluate("localStorage.removeItem('dsb_install'); S.tut = 0; S.landN = 1; S.regAsk = 1; INSTALL.ask('test')")
         m = await pg.evaluate("(() => { const m = document.getElementById('modal'); return {open:!m.hidden, t:m.innerText}; })()")
@@ -37,12 +37,12 @@ async def main():
         check(errs == [], 'sidefeil iPhone', errs); await ctx.close()
         # landscape tablet
         ctx, pg, errs = await new(br, IOS, 1280, 800)
-        await pg.evaluate("S.tut = 0; PHONE.open('innst')"); await pg.wait_for_timeout(500)
+        await pg.evaluate("S.tut = 0; (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render())"); await pg.wait_for_timeout(500)
         await pg.screenshot(path=OUT + 'install_ios_liggende.png'); await ctx.close()
         # Android: the browser's install dialog
         ctx, pg, errs = await new(br, AND)
         await pg.evaluate("(() => { const e = new Event('beforeinstallprompt'); e.prompt = () => { window.__prompted = 1; }; e.userChoice = Promise.resolve({outcome:'accepted'}); dispatchEvent(e); })()")
-        r = await pg.evaluate("(() => { S.tut = 0; PHONE.open('innst'); const b = document.querySelector('#phView [data-pa=installGo]'); const has = !!b; if (b) b.click(); PHONE.show(false); return {has}; })()")
+        r = await pg.evaluate("(() => { S.tut = 0; (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); const b = document.querySelector('#phView [data-pa=installGo]'); const has = !!b; if (b) b.click(); PHONE.show(false); return {has}; })()")
         await pg.wait_for_timeout(300)
         check(r['has'] and await pg.evaluate("window.__prompted === 1"), 'Android: the card has an install button that opens the browser\'s own dialog', r)
         await pg.screenshot(path=OUT + 'install_android.png')

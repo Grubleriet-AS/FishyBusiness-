@@ -49,7 +49,9 @@ def static_checks():
     check(len(inl) >= 5 and not miss and not other, 'every inline script has its hash in the policy, and there is no other kind of script', {'inline': len(inl), 'without': miss, 'other': other[:3]})
     # the hosts are cloud.json's for the build's channel, and nothing else
     raw = json.load(open(os.path.join(ROOT, 'src', 'data', 'cloud.json'), encoding='utf-8')); test = raw.pop('test', {})
-    cfg = {**raw, **test} if 'name="dsb-channel" content="test"' in page else raw
+    # (the channel as build.mjs writes it, with the robots tag after it: a comment in vessel3d.js quotes the channel's tag, and the page
+    # was read as the test channel for that, 16.11.2026)
+    cfg = {**raw, **test} if '<meta name="dsb-channel" content="test"><meta name="robots"' in page else raw
     sb = cfg['supabaseUrl'].rstrip('/'); want = {"'self'", sb, 'https://' + (cfg.get('workosApiHostname') or 'api.workos.com')} | {'wss://' + h + '/rt' for h in cfg['hosts']}
     local = {'https://sb.test', 'ws://127.0.0.1:*', 'ws://localhost:*'}
     server = os.path.exists(os.path.join(DIST, 'sw.js')); con = set(d.get('connect-src', []))
@@ -151,7 +153,7 @@ window.DSB_AUTHKIT = {createClient: async () => ({getUser: () => null, getAccess
     except Exception: pass
     await pg.wait_for_function("S.intro === true && CLOUD.on === true", timeout=30000)
     st = await pg.evaluate("""(async () => { S.tut = 0; document.getElementById('modal').hidden = true; const w = ms => new Promise(r => setTimeout(r, ms));
-      PHONE.show(true); PHONE.open('innst'); await w(400); const acc = document.getElementById('phView').innerText;
+      PHONE.show(true); (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); await w(400); const acc = document.getElementById('phView').innerText;
       PHONE.open('haill'); await w(600); const shop = document.getElementById('phView').innerText; PHONE.show(false);
       return {guest:CLOUD.guest === true, on:CLOUD.on, acc:acc.includes('Du spiller som gjest'), shop:shop.length > 40, mode:typeof shopMode === 'function' ? shopMode() : null}; })()""")
     await pg.wait_for_timeout(1500)

@@ -43,7 +43,7 @@ export default function (t){
     // (OB13 round 2: her own place where a hauled pot is emptied, on the hatch's cover: the ring and the pot tipped over its inboard edge
     // (view3d/10-gear.js tipM: to the smaller x, 0.7 m past the ring) on the cover (2.2 x 2.4 m round anchors.hatch), clear of the stacks;
     // without it the game's default stood on the tub and the table, and on the deck aft of the tub the tipped pot stood in the coaming)
-    const A = anchorsOf('boat-kyst21.b64'), S = A.kit.pots.spot, H = A.hatch;
+    const A = anchorsOf('boat-kyst21.b64'), S = A.kit.pots.spot, H = A.hatchCover || A.hatch;   // (hatchCover: the whole cover, steg 125d; hatch is its open part)
     t.ok(Array.isArray(S) && S[1] > A.deck.y + 0.4 && S[0] + 0.725 <= H[0] + 1.1 && S[0] - 0.725 - 0.7 >= H[0] - 1.1 && Math.abs(S[2] - H[2]) + 0.725 <= 1.2 && P.every(q => Math.hypot(q[0] - S[0], q[2] - S[2]) >= 1.45),
       'kyst21: teina tømmes på luka og tippes på lukedekselet, fri av stablene (kit.pots.spot ' + JSON.stringify(S) + ', luka ' + JSON.stringify(H) + ')'); }
   // (the breisjark, OB11: one stack on the open aft deck, and the place where a hauled pot is emptied is the model's own)

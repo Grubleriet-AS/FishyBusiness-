@@ -13,6 +13,8 @@ function plan2Here(o){
   if (b.status === 'port' || b.status === 'unmooring'){ const pt = portById(b.port); return {p:{x:pt.p.x, y:pt.p.y}, port:b.port}; }
   if (o.homeA && dist(b.pos, o.homeA) < 0.4) return {p:o.homeA, port:null};
   if (o.restA && dist(b.pos, o.restA) < 0.4) return {p:o.restA, port:null};
+  // (Driftsplan 3: at a field's fixed point, where the search's pattern ends, the kept legs go from the point itself, DP3-2)
+  if (o.v === DRV3) for (const q of o.places) if (dist(b.pos, q) < 0.05) return {p:{x:q.x, y:q.y}, port:null};
   return {p:{x:b.pos.x, y:b.pos.y}, port:null};
 }
 // a kept leg, checked point by point with the check the boat sails by (groundCheck): true when she can sail it without a way round
@@ -33,6 +35,7 @@ async function plan2Make(o, cb){
   try {
     const C = plan2Check(o); if (!C.ok) throw C.errors[0];
     const P = o.places, mid = {x:P.reduce((a, q) => a + q.x, 0) / P.length, y:P.reduce((a, q) => a + q.y, 0) / P.length}, home = portById(o.home), big = (BOAT.len || 0) >= DRP.bigLen;
+    if (home && home.rorbu && !siteFits(S.boat.type, home.id)){ const w = siteWhy(S.boat.type, home.id); throw gL(w[0] + ' Velg mottaket eller en havneplass som hjem.', w[1] + ' Choose the plant or a harbour berth as home.'); }   // (SITE_MAXLEN, SITE_SILL, 07-harbours.js)
     try { await mapNeed(mid, 14); await mapNeed(home.p, 6); for (const q of P) await mapNeed(q, p2Sno(o) ? 6 + DRP2.sno.row * Math.ceil(q.n / DRP2.sno.cols) + DRP2.sno.cols * DRP2.sno.col / 2 : 2); } catch (e){}
     // (the snow crab's strings, H3c: their room checked again now the map round them is in)
     if (p2Sno(o)){ P2SNO_FIT.clear(); const C2 = plan2Check(o); if (!C2.ok) throw C2.errors[0]; }
@@ -210,7 +213,7 @@ function plan2Step(H){
   if (!plan2Made(o)){ if (o.building) return; const C = plan2Check(o); if (!C.ok){ plan2Stop(o, 'check', C.errors[0], C.errors[0]); return; }
     plan2Wait(o, 'make', 'Lager planen på nytt …', 'Making the plan again …', H + 1 / 60); plan2Make(o, err => { if (err && o.on) plan2Stop(o, 'make', err, err); }); return; }
   // a trip that ended where it should (at anchor), or anywhere else (a stop at sea, a takeover): the day goes on from here
-  if (o.run && o.run.trip){ const tr = o.run.trip; o.run.trip = null; plan2Caught(o, tr); if (tr.anchor && b.anch) o.run.i = tr.to + 1; else o.run.replan = true; }
+  if (o.run && o.run.trip){ const tr = o.run.trip; o.run.trip = null; plan2Caught(o, tr); if (tr.sok) plan3SokEnd(o, tr, H); if (tr.anchor && b.anch) o.run.i = tr.to + 1; else o.run.replan = true; }
   P2_DEPTH = 0; plan2Decide(o, H);
 }
 function plan2Decide(o, H){
@@ -221,7 +224,7 @@ function plan2Decide(o, H){
   const next = () => { r.i++; r.wait = null; o.hold = 0; plan2Decide(o, H); };
   switch (s.k){
     case 'avgang': return plan2Go(o, H, r.i + 1);
-    case 'sett': case 'trekk': case 'juks': case 'vent': return plan2Go(o, H, r.i);
+    case 'sett': case 'trekk': case 'juks': case 'vent': case 'sok': return plan2Go(o, H, r.i);
     case 'lever':
       if (!atM) return plan2Go(o, H, r.i);
       if (holdTotal() < 0.5) return next();
@@ -258,7 +261,7 @@ function plan2MeRest(o, H){
 // (each vessel's own plan read where it lies, vget, without binding the vessel: a purchase must never fail on a vessel half made)
 function plan2SkipGiven(){
   for (const v of S.fleet && S.fleet.length ? S.fleet : [{id:S.cur}]){
-    const o = vget(v, 'ops'), pl = vget(v, 'plan'); if (!o || o.v !== DRV2 || !o.on) continue;
+    const o = vget(v, 'ops'), pl = vget(v, 'plan'); if (!o || !p2IsPlan(o) || !o.on) continue;
     o.hold = 0; const r = o.run; if (!r) continue;
     if (r.wait && ['rest', 'energy', 'dep'].includes(r.wait.k)) r.wait = null;
     const s = r.day && r.day.steps[r.i]; if (!(pl && pl.ops) && !r.trip && !(s && s.k === 'hvile')) r.replan = true;
@@ -273,7 +276,7 @@ function plan2Boundary(o, H){
   if (r && r.day && !r.replan && r.closed !== r.t0){ r.closed = r.t0; plan2CostDay(o, r); }
   if (r && !r.day && !r.replan && r.wait && r.wait.k === 'wx' && H < (r.wait.until || 0) - 1 / 60) return;
   // the gear fetched (o.fetch, the page): the plan is off when nothing stands in the sea, else another day of hauls, from now
-  if (o.fetch){ if (!mySets().length && holdTotal() < 0.5){ o.on = false; o.fetch = null; o.run = null; plan2Say(o, 'Redskapet er hentet. Driftsplanen er av.', 'The gear is fetched. The plan is off.'); return; } return plan2NewDay(o, H); }
+  if (o.fetch){ if (!mySets().length && holdTotal() < 0.5){ o.on = false; o.fetch = null; o.run = null; if (!o.retire) plan2Say(o, 'Redskapet er hentet. Driftsplanen er av.', 'The gear is fetched. The plan is off.'); return; } return plan2NewDay(o, H); }
   if (o.rhythm === 'watch') return plan2NewDay(o, H);
   // a day made again from where she lies (a shelter, a takeover, a port that was not the step's): at once while the crew and you have
   // a day's work left, else after the rest and at the hour, like any day (GUI review F2: a day made again late at night went out again)
@@ -300,6 +303,11 @@ function plan2NewDay(o, H){
   const st = plan2State(o), day = planDay(o, H, st), r0 = o.run;
   o.run = {day, i:0, t0:H, dayN:(r0 && r0.dayN || 0) + 1, cost0:S.stats.costs, trip:null, wait:day.auto && r0 && r0.wait && (r0.wait.k === 'wx' || (day.sno && r0.wait.k === 'idle')) ? r0.wait : null, closed:null};   // (the ocean vessel's wait for the weather is said once while it lasts, H2c; the snow crab's wait for the season, the quota or the soak too, H3c)
   if (o.t0 == null) o.t0 = S.t;
+  // (the ocean vessel's hold past DRP2.hav.full when the day is laid, not in the middle of a trip (plan2Sea): the same word to the player, once
+  // a full hold; o.fullSaid goes when she has landed)
+  const full = day.auto && !day.sno && st.hold >= DRP2.hav.full * st.cap, M = (portById(o.M) || {name:'mottaket'}).name, pc = Math.round(100 * st.hold / st.cap);
+  if (full && !o.fullSaid){ o.fullSaid = true; log('Lasten er ' + pc + ' % full. ' + (st.sets.length ? 'Trekker det som står inn på magasinene, så går skipet til ' : 'Skipet går til ') + M + '.', 'The hold is ' + pc + ' % full. ' + (st.sets.length ? 'Hauling what stands back to the magazines, then the ship goes to ' : 'The ship goes to ') + M + '.'); }
+  else if (!full) o.fullSaid = null;
   // a day with nothing to sail waits for the next: the reasons are the day's own
   if (!day.steps.some(s => ['sett', 'trekk', 'juks', 'vent', 'lever', 'agn'].includes(s.k) || (s.k === 'hjem' && !plan2Here(o).port))){
     const why = day.skipped.map(x => x.no).join('; ') || day.why[0], whyEn = day.skipped.map(x => x.en).join('; ') || day.why[1];
@@ -316,14 +324,29 @@ function plan2StatDay(o, d){ let D = o.stats.days.find(x => x.d === d); if (!D){
 // ---- a trip: the steps from i0 to the next port call, as waypoints on the kept legs
 function plan2Trip(o, D, i0){
   const here = plan2Here(o), kind = p2Kind(o), auto = !!D.auto, wps = [], need = [], pts = [here.p]; let prev = here.p, prevPort = here.port, h = 0, to = i0, kindK = 'fish', noJig = false, ended = false;
+  // (Driftsplan 3, DP3-2: the gear stands at the spot the search found, q.at, a straight hop in clean water from the field's fixed point,
+  // whose legs are kept; she goes to the point, hops to the spot, and back to the point before the next leg. atQ: the place she is at the spot of)
+  // (the autoline too since DP3-4; the snow crab's strings stand round the spot themselves, p2SnoLenke)
+  const v5 = o.v === DRV3 && !D.sno, vv5 = Math.max(1, BOAT.vcruise || 7); let atQ = null, sokAt = null, sokIds = null, sokEnd = null;
+  // (the spot is where the string starts, q.st, laid with its middle where the fish stood, q.at; a jig place has q.at only)
+  const spot = q => q.st || q.at;
+  // (at the far end of a field's string, where a haul ends and a trip cut after a haul that fell begins, plan3HaulWatch: back along the
+  // string to its start, which is clean, rather than a straight line from out there)
+  const endOf = q => q.st && q.at ? {x:2 * q.at.x - q.st.x, y:2 * q.at.y - q.st.y} : null;
+  if (v5 && !here.port){ let q = o.places.find(x => spot(x) && dist(here.p, spot(x)) < 0.05); if (q){ atQ = q; prev = {x:spot(q).x, y:spot(q).y}; }
+    else if ((q = o.places.find(x => endOf(x) && dist(here.p, endOf(x)) < 0.1))){ wps.push({x:q.st.x, y:q.st.y, port:null, fish:0, leia:true}); h += kmTrue(here.p, q.st) / (Math.max(1, BOAT.vcruise || 7) * NM); atQ = q; prev = {x:q.st.x, y:q.st.y}; } }
+  const back = () => { if (!atQ) return 0; const q = atQ; atQ = null; if (dist(prev, q) < 0.005) return 0; wps.push({x:prev.x, y:prev.y, port:null, fish:0, leia:true}); const hh = kmTrue(prev, q) / (vv5 * NM); prev = {x:q.x, y:q.y}; prevPort = null; return hh; };
   // (a leg from a place at sea begins at the place itself: she has drifted off it while fishing, and the kept leg is safe from the place, not from wherever she lies)
-  const leg = (p, port) => { let L = drLeg(o, prev, prevPort, p, port);
+  const leg = (p, port) => { const hb = back(); return hb + leg0(p, port); };
+  const leg0 = (p, port) => { let L = drLeg(o, prev, prevPort, p, port);
     // (from where she lies at sea with no kept leg (the ocean vessel's day is laid where her last string ended, kilometres off the place,
     // H2c): straight over open water to the nearest place with a kept leg on, rather than a search out there)
     if (!L && !prevPort && auto){ const via = o.places.map(q => ({q, d:dist(q, prev)})).sort((x, y) => x.d - y.d).find(x => { if (!drLeg(o, x.q, null, p, port)) return false; try { return !groundCheck(prev, x.q); } catch (e){ return false; } });
       if (via){ if (wps.length) wps.push({x:prev.x, y:prev.y, port:null, fish:0, leia:true}); const h0 = drH(dist(prev, via.q)); prev = {x:via.q.x, y:via.q.y}; prevPort = null; L = drLeg(o, prev, null, p, port);
         wps.push({x:prev.x, y:prev.y, port:null, fish:0, leia:true}); for (const q of L.w) wps.push({x:q[0], y:q[1], port:null, fish:0, leia:true}); prev = p; prevPort = port || null; return h0 + L.h; } }
     if (!L){ need.push({a:prev, ap:prevPort, b:p, bp:port || null}); prev = p; prevPort = port || null; return 0; } if (!prevPort && wps.length) wps.push({x:prev.x, y:prev.y, port:null, fish:0, leia:true}); for (const q of L.w) wps.push({x:q[0], y:q[1], port:null, fish:0, leia:true}); prev = p; prevPort = port || null; return L.h; };
+  // to a place: on its fixed point by the kept leg, then the hop to its spot; the point of the act is returned
+  const goQ = q => { const a = v5 ? spot(q) : null; if (!a){ h += leg(q); return q; } if (atQ && atQ.id === q.id) return a; h += leg(q); wps.push({x:q.x, y:q.y, port:null, fish:0, leia:true}); h += kmTrue(q, a) / (vv5 * NM); prev = {x:a.x, y:a.y}; prevPort = null; atQ = q; return a; };
   const P = id => o.places.find(q => q.id === id), jn = new Set(D.steps.slice(i0).filter(s => s.k === 'juks' && s.pid).map(s => s.pid)).size; let jc = 0;
   // (the snow crab vessel, H3c: the strings of a field lie a kilometre or so apart round its point, so she goes among them in straight
   // hops, to the field by its kept leg and away from it by its point again; fieldAt is the field she is among the strings of)
@@ -345,21 +368,30 @@ function plan2Trip(o, D, i0){
       continue;
     }
     if (sno && (s.k === 'lever' || s.k === 'agn' || s.k === 'hjem')) h += leave();
-    if (s.k === 'sett'){ const q = P(s.pid), pv = D.steps[i - 1]; if (pv && pv.k === 'trekk' && pv.pid === s.pid && (kind !== 'line' || s.again)) continue;   // nets, pots and the autoline are set again by the haul
-      h += leg(q); pts.push(q); wps.push({x:q.x, y:q.y, port:null, fish:0, act:{op:'cycle', kind, n:s.n, fid:s.pid, final:true, only:'set', spec:kind === 'line' ? {lk:s.lk || q.lk || 'hyse'} : null, hdg:q.hdg != null ? q.hdg : null}}); h += s.h; }
-    else if (s.k === 'trekk'){ const q = P(s.pid); h += leg(q); pts.push(q);
-      if (s.wait > 1 / 60){ wps.push({x:q.x, y:q.y, port:null, fish:Math.max(0.1, Math.round(s.wait * 10) / 10)}); if (!p2Jig(o)) noJig = true; h += s.wait; }   // she is there before the soak is up: jigs (or waits) by the gear until then
-      wps.push({x:q.x, y:q.y, port:null, fish:0, act:{op:'cycle', kind, n:s.n, fid:s.pid, final:!(s.reset && (kind !== 'line' || s.lk === 'auto')), only:'haul', due:s.due != null ? s.due : s.t}}); h += s.h; }
-    else if (s.k === 'juks'){ const q = s.pid ? P(s.pid) : null; if (q){ h += leg(q); pts.push(q); } const w = {x:prev.x, y:prev.y, port:null, fish:Math.max(0.1, Math.round(s.h * 10) / 10)}; if (jn > 1 && q){ w.jc = ++jc; w.jn = jn; } wps.push(w); h += s.h; }
-    else if (s.k === 'vent'){ const q = P(s.pid); h += leg(q); pts.push(q); wps.push({x:q.x, y:q.y, port:null, fish:Math.max(0.1, Math.round((s.until - s.t) * 10) / 10)}); noJig = true; h += s.until - s.t; }
+    // (Driftsplan 3: the haul and the set again are two visits, so a haul that fell can send her searching before the gear goes out, plan3HaulWatch)
+    // (the autoline is set again by the haul from the hauling port as before, also on Driftsplan 3: a field is one string of up to 13 km,
+    // and the haul that fell is not searched again on the ocean vessels)
+    if (s.k === 'sett'){ const q = P(s.pid), pv = D.steps[i - 1]; if ((!v5 || auto) && pv && pv.k === 'trekk' && pv.pid === s.pid && (kind !== 'line' || s.again)) continue;   // nets, pots and the autoline are set again by the haul
+      const a = goQ(q); pts.push(a); wps.push({x:a.x, y:a.y, port:null, fish:0, act:{op:'cycle', kind, n:s.n, fid:s.pid, final:true, only:'set', spec:kind === 'line' ? {lk:s.lk || q.lk || 'hyse'} : null, hdg:q.hdg != null ? q.hdg : null}}); h += s.h; }
+    else if (s.k === 'trekk'){ const q = P(s.pid), a = goQ(q); pts.push(a);
+      if (s.wait > 1 / 60){ wps.push({x:a.x, y:a.y, port:null, fish:Math.max(0.1, Math.round(s.wait * 10) / 10)}); if (!p2Jig(o)) noJig = true; h += s.wait; }   // she is there before the soak is up: jigs (or waits) by the gear until then
+      wps.push({x:a.x, y:a.y, port:null, fish:0, act:{op:'cycle', kind, n:s.n, fid:s.pid, final:(v5 && !auto) || !(s.reset && (kind !== 'line' || s.lk === 'auto')), only:'haul', due:s.due != null ? s.due : s.t}}); h += s.h; }
+    else if (s.k === 'juks'){ const q = s.pid ? P(s.pid) : null; if (q){ const a = goQ(q); pts.push(a); } const w = {x:prev.x, y:prev.y, port:null, fish:Math.max(0.1, Math.round(s.h * 10) / 10)}; if (jn > 1 && q){ w.jc = ++jc; w.jn = jn; } wps.push(w); h += s.h; }
+    else if (s.k === 'vent'){ const q = P(s.pid), a = goQ(q); pts.push(a); wps.push({x:a.x, y:a.y, port:null, fish:Math.max(0.1, Math.round((s.until - s.t) * 10) / 10)}); noJig = true; h += s.until - s.t; }
+    // (Driftsplan 3, DP3-2: the search, a trip of its own that ends in the ring when the pattern is sailed; plan3SokEnd reads it there)
+    else if (s.k === 'sok'){ const K = o.sok, A0 = o.places[0], tk = K && K.track[s.tier] ? s.tier : 'basic', tr0 = K && K.track[tk], E = plan3SokEnd0(o, tk); if (!A0 || !tr0) continue;
+      h += leg(A0); pts.push(A0); wps.push({x:A0.x, y:A0.y, port:null, fish:0, leia:true}); sokAt = wps.length; let p0 = A0;
+      for (const c of tr0){ const p = {x:c[0], y:c[1]}; wps.push({x:p.x, y:p.y, port:null, fish:0, leia:true}); h += kmTrue(p0, p) / (vv5 * NM); pts.push(p); p0 = p; }
+      wps[wps.length - 1].sok = true; prev = {x:E.x, y:E.y}; prevPort = null; sokIds = s.pids.slice(); sokEnd = E.id; ended = true; }
     else if (s.k === 'lever' || s.k === 'agn'){ const M = plan2P(o, 'M'); if (!M) continue; h += leg(M, o.M); pts.push(M); wps.push({x:M.x, y:M.y, port:o.M, fish:0}); kindK = wps.some(w => w.act || w.fish > 0) ? 'fish' : 'land'; ended = true; }
     else if (s.k === 'hjem'){ const Hp = plan2P(o, 'H'), hp = plan2Port(o, 'H'); h += leg(Hp, hp); pts.push(Hp); wps.push(hp ? {x:Hp.x, y:Hp.y, port:hp, fish:0} : {x:Hp.x, y:Hp.y, port:null, fish:0, anchor:true}); kindK = wps.some(w => w.act || w.fish > 0) ? 'fish' : 'home'; ended = true; }
     else if (s.k === 'hvile' && s.where === 'anker'){ const A = plan2P(o, 'A'); if (A){ h += leg(A); pts.push(A); wps.push({x:A.x, y:A.y, port:null, fish:0, anchor:true}); } kindK = wps.some(w => w.act || w.fish > 0) ? 'fish' : 'rest'; ended = true; }
     else if (s.k === 'hvile' && s.where === 'kai'){ const M = plan2P(o, 'M'); if (M){ h += leg(M, o.M); pts.push(M); wps.push({x:M.x, y:M.y, port:o.M, fish:0}); } kindK = wps.some(w => w.act || w.fish > 0) ? 'fish' : 'rest'; ended = true; }
     else if (s.k === 'ut'){ ended = true; to = i - 1; }
   }
-  if (!wps.some(w => w.act || w.fish > 0 || w.port || w.anchor)) return null;
+  if (!wps.some(w => w.act || w.fish > 0 || w.port || w.anchor || w.sok)) return null;
   if (need.length) return {need};
+  if (sokIds) return {wps, h, pts, to, kind:'fish', noJig:true, sok:sokAt, sokIds, sokEnd};
   // a trip with no port call after the fishing (the day ends at sea): home, or the plant round the clock
   const last = wps[wps.length - 1];
   // (the ocean vessel's day ends at sea, by her gear: the next is laid from there, planDayAuto)
@@ -405,7 +437,8 @@ function plan2Go(o, H, i0){
   const here = plan2Here(o);
   if (S.rest && S.rest.w === 'koye' && o.rhythm !== 'watch') restEnd();   // up from the bunk at anchor (ashore the departure ends the rest, depart)
   S.plan = {wps:T.wps, idx:0, speed:BOAT.vmax, full:true, returning:false, depAt:null, ops:true, opsK:T.kind, unsafe:[], noJig:!!T.noJig, p2:{from:i0, to:T.to, start:{x:here.p.x, y:here.p.y, port:here.port}}};
-  r.trip = {from:i0, to:T.to, t0:S.t, kg0:holdTotal(), anchor:!!T.wps[T.wps.length - 1].anchor}; r.wait = null; o.hold = 0; o.stop = null;
+  if (T.sokIds){ S.plan.sok = T.sok; S.plan.speed = Math.min(BOAT.vmax, BOAT.vcruise || BOAT.vmax); }   // (the first waypoint of the search's pattern, for «Nå»; the search at cruising speed, as the day reckons it)
+  r.trip = {from:i0, to:T.to, t0:S.t, kg0:holdTotal(), anchor:!!T.wps[T.wps.length - 1].anchor}; if (T.sokIds){ r.trip.sok = T.sokIds; r.trip.sokEnd = T.sokEnd; } r.wait = null; o.hold = 0; o.stop = null;
   if (T.kind === 'home') log('Går hjem til ' + (portById(o.home) || {name:'?'}).name + (o.homeA && T.wps[T.wps.length - 1].anchor ? ' og legger seg til ankers' : '') + '.', 'Going home to ' + (portById(o.home) || {name:'?'}).name + (o.homeA && T.wps[T.wps.length - 1].anchor ? ' to lie at anchor' : '') + '.');
   else if (T.kind === 'land') log('Går til ' + (portById(o.M) || {name:'mottaket'}).name + ' for å levere.', 'Going to ' + (portById(o.M) || {name:'the plant'}).name + ' to land.');
   else if (T.kind === 'rest') log('Går for å hvile om bord.', 'Going to rest aboard.');
@@ -416,6 +449,7 @@ function plan2Go(o, H, i0){
 // out on a trip: the soak is kept (a haul never starts before its hour), and a hold that fills lands before the day is over
 function plan2Sea(o, H){
   const b = S.boat, pl = S.plan; if (!pl || !pl.p2) return;
+  if (o.v === DRV3 && !p2Auto(o) && !p2Sno(o) && plan3HaulWatch(o, H)) return;   // (Driftsplan 3, DP3-2: a haul that fell, searched again before the set)
   if (pl.opsK === 'fish' && !pl.cut && !pl.returning && o.rhythm !== 'watch'){ if (meAboard() && S.energy != null && S.energy <= DRP2.enMin) plan2Cut(o, 'energy'); else if (drTired()) plan2Cut(o, 'tired'); }   // (round the clock: the watches rest, you in the bunk, plan2WatchTick)
   const nx = pl.wps[pl.idx];
   // (the jig before a haul ends when the soak is up, whether she came to the grounds early or late: the haul starts at its hour)
@@ -440,7 +474,7 @@ function plan2Sea(o, H){
     // the hold at DRP2.hav.full: nothing more is set, the lenker standing are hauled home to the magazines, and the next day is the way to
     // the plant (planDayAuto). A haul in hand finishes without setting again
     if (!pl.full && holdLoad() >= DRP2.hav.full * capHold() && (b.gop || pl.wps.slice(pl.idx).some(w => w.act))){
-      pl.full = true; if (b.gop && b.gop.op === 'haul') b.gop.reset = false;
+      pl.full = true; o.fullSaid = true; if (b.gop && b.gop.op === 'haul') b.gop.reset = false;
       const rest = pl.wps.slice(pl.idx).filter(w => !(w.act && w.act.only === 'set')).map(w => w.act ? Object.assign({}, w, {act:Object.assign({}, w.act, {final:true})}) : w);
       pl.wps = pl.wps.slice(0, pl.idx).concat(rest); if (pl.unsafe) pl.unsafe = pl.unsafe.slice(0, pl.idx).concat(rest.map(() => false));
       log('Lasten er ' + Math.round(100 * holdLoad() / capHold()) + ' % full. Trekker det som står inn på magasinene, så går skipet til ' + (portById(o.M) || {name:'mottaket'}).name + '.', 'The hold is ' + Math.round(100 * holdLoad() / capHold()) + ' % full. Hauling what stands back to the magazines, then the ship goes to ' + (portById(o.M) || {name:'the plant'}).name + '.');

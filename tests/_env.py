@@ -38,6 +38,16 @@ GAME = GAME_TUT + '#notut'
 # which is most of the time a test takes with SwiftShader
 if os.environ.get('KYST_LITE') == '1':
     GAME = GAME_TUT + '#notut,no3d'
+# KYST_MERKE=folk2 (steg 125): one more flag in the address of every test that opens GAME, so a test written without the new
+# people can be run with them (crewclip, workshot); several with a comma
+if os.environ.get('KYST_MERKE'):
+    GAME = GAME + ',' + os.environ['KYST_MERKE']
+# GAME3D_MIN (15.11.2026, testeffektiviseringen): the game as GAME, but without the parts of the 3D scene a test of logic does not look
+# at: the trees, the wildlife and the hull's life, the wind turbines and lines, the shore's band, the rocks and breakers, the marinas and
+# the near objects (#trees0, #life0, #vind0, #shore0, #rocks0, #marina0, #near0). Measured in SwiftShader 15.11.2026: 10-20 % less a
+# frame. The sea (FFT and all) stays: it moves the boat. For the 3D tests that check motion, mooring, landing and the like, never for the
+# tests of the graphics or a picture someone looks at (CLAUDE.md, «3D-tester tegner bare det de ser på»)
+GAME3D_MIN = GAME + ',trees0,life0,vind0,shore0,rocks0,marina0,near0'
 # the hand-drawn routes, in the national frame (km, UTM 33: x = (E + 250 km) / 1000, y = (8050 km - N) / 1000)
 ROUTES = os.path.join(HERE, 'routes.json')
 OUT = os.path.join(HERE, 'out')
@@ -73,6 +83,30 @@ def _csp_wait():
     wait_for_function._dsb = True
     Page.wait_for_function = wait_for_function
 try: _csp_wait()
+except ImportError: pass
+
+
+# No test talks to the live servers (15.11.2026): at start the game asks the production Supabase for the server's minute (rpc/sp_now),
+# and its error list and events go there too, so a test depended on the network and could leave its errors in the real list. Every
+# request to a *.supabase.co host is aborted, in every context a test opens, before its first page load; the game plays on as it does
+# offline. The tests that play the cloud stub their own fake host (https://sb.test), which this leaves alone. KYST_NETT=1 lets them through.
+def _no_live():
+    import re
+    from playwright.async_api import Page, BrowserContext
+    if getattr(Page.goto, '_dsb', False) or os.environ.get('KYST_NETT') == '1': return
+    LIVE = re.compile(r'^https?://[^/]*\.supabase\.co(/|$)')
+    async def guard(ctx):
+        if not getattr(ctx, '_dsb_live', False):
+            ctx._dsb_live = True
+            await ctx.route(LIVE, lambda route: route.abort())
+    goto0, reload0 = Page.goto, Page.reload
+    async def goto(self, url, **kw):
+        await guard(self.context); return await goto0(self, url, **kw)
+    async def reload(self, **kw):
+        await guard(self.context); return await reload0(self, **kw)
+    goto._dsb = True
+    Page.goto, Page.reload = goto, reload
+try: _no_live()
 except ImportError: pass
 
 

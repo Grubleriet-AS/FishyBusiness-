@@ -374,15 +374,20 @@ async function leiaLegFail(p, q, tick, endP, endQ, strict){
   const runs = legRuns(p, q, lim); let k = 0;
   for (const i of legIdx(runs, L, n, true)){ const pt = i === n ? q : {x:p.x + (q.x - p.x) * i / n, y:p.y + (q.y - p.y) * i / n}, s = L * i / n;
     if (isLand(pt) ? !(s < hp || L - s < hq || quayLand(pt)) : ((i & 1) === 0 && !inHarbour(pt) && depthF(pt) < lim)) return pt; if ((++k & 63) === 0 && tick) await tick(); }
-  if (inHarbour(q)) return null;
+  // (into a harbour: the rocks on the part of the leg outside it still, as groundCheck looks ahead at them from out there; before
+  // 15.11.2026 none were asked, and a leg in to Tussøy utstyrsbutikk passed 9 m from a rock 1 km out, where the boat stopped at the lowest
+  // tide, «Grunt vann forut, og Autonav fant ingen trygg vei rundt», and the hands do not take her past a rock; tests/allesteder.py)
+  if (inHarbour(q)){ let e = null; for (let i = n - 1; i >= 1; i--){ const pt = {x:p.x + (q.x - p.x) * i / n, y:p.y + (q.y - p.y) * i / n}; if (!inHarbour(pt)){ e = pt; break; } }
+    const rk = e && dist(p, e) > 0.004 ? rockOnLeg(p, e, strict ? 0.025 : 0.012) : null; return rk ? {x:rk[0], y:rk[1]} : null; }
   // a breakwater: the first 100 m of the leg that crosses it; a rock: the rock itself
   if (legSegHit(p, q, runs)){ const m = Math.max(1, Math.ceil(L / 0.1)); for (let i = 0; i < m; i++){ const a = {x:p.x + (q.x - p.x) * i / m, y:p.y + (q.y - p.y) * i / m}, b = {x:p.x + (q.x - p.x) * (i + 1) / m, y:p.y + (q.y - p.y) * (i + 1) / m}; if (coastSegHit(a, b)) return {x:(a.x + b.x) / 2, y:(a.y + b.y) / 2}; } return {x:(p.x + q.x) / 2, y:(p.y + q.y) / 2}; }
   const rk = rockOnLeg(p, q, strict ? 0.025 : 0.012); return rk ? {x:rk[0], y:rk[1]} : null;
 }
-// the first rock within r km of the leg (01-world.js rocksIn), or null
+// the first rock within r km of the leg (01-world.js rocksIn), or null; not one behind its start or abeam of it, which the leg goes
+// away from (the leg before had it ahead at its end; groundCheck the same)
 function rockOnLeg(a, b, r){
   const x0 = Math.min(a.x, b.x) - r, x1 = Math.max(a.x, b.x) + r, y0 = Math.min(a.y, b.y) - r, y1 = Math.max(a.y, b.y) + r, dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy || 1e-9;
-  for (const q of rocksAlong(a, b, r)){ if (q[0] < x0 || q[0] > x1 || q[1] < y0 || q[1] > y1) continue; const u = clamp(((q[0] - a.x) * dx + (q[1] - a.y) * dy) / L2, 0, 1); if (Math.hypot(a.x + dx * u - q[0], a.y + dy * u - q[1]) < r) return q; }
+  for (const q of rocksAlong(a, b, r)){ if (q[0] < x0 || q[0] > x1 || q[1] < y0 || q[1] > y1) continue; const u0 = ((q[0] - a.x) * dx + (q[1] - a.y) * dy) / L2; if (u0 <= 0) continue; const u = Math.min(1, u0); if (Math.hypot(a.x + dx * u - q[0], a.y + dy * u - q[1]) < r) return q; }
   return null;
 }
 // Every leg of the way once more, as the boat will sail it: a step between two cells was never checked as a line (land between two
@@ -515,7 +520,48 @@ async function leiaRoute(a, b, aPort, bPort, opt){
     // a long way that found none: split at a point on open, deep water out towards the goal (leiaSplit), only now, so a way found
     // today is the same
     if (r && r.why && LEIA_SPLIT.why.includes(r.why[0]) && !(opt && opt.noSplit) && kmTrue(a, b) >= LEIA_SPLIT.min){ const r2 = await leiaSplit(a, b, aPort, bPort, opt, r); if (r2) r = r2; }
+    // into a harbour, a rorbu or the naust from the sea, or out of one, where the search this way round found no way: the same way found
+    // the other way round and turned (steg 126, 15.11.2026: the way in to Averøy's plant from 1 km out failed at the mend, and the way
+    // out from the plant to that very point is there; the search and the mend are not the same both ways, and a harbour a boat sails out
+    // of must be one she sails into, Jonas 15.11.2026: «Alle steder spillerens båt kan fortøye må være tilgjengelig via autonav både inn og
+    // ut av»). Only on a way under LEIA_SPLIT.min, so a long search that finds nothing does not take twice as long
+    if (r && r.why && LEIA_SPLIT.why.includes(r.why[0]) && (aPort || bPort) && !(opt && opt.noRev) && kmTrue(a, b) < LEIA_SPLIT.min){
+      const r2 = await leiaRoute0(b, a, bPort, aPort, false, opt);
+      if (r2 && !r2.why && r2.wps && r2.wps.length){ const back = r2.wps.slice(0, -1).reverse().concat([{x:b.x, y:b.y}]); r = {wps:back, nm:r2.nm, st:Object.assign({}, r2.st, {rev:true, firstWhy:r.why})}; } }
+    // and where neither way round holds: to the harbour's own way in as a point of open water (its outer end), then in by it, which the
+    // search trusts at the harbour's end anyway (laneIn); out the same way turned. Averøy from 1.5 km out: the search failed at the mend
+    // both ways round, and the way to the lane's outer end and in by the lane is there (steg 126, 15.11.2026)
+    if (r && r.why && LEIA_SPLIT.why.includes(r.why[0]) && (aPort || bPort) && !(opt && opt.noRev) && kmTrue(a, b) < LEIA_SPLIT.min){
+      for (const [P, end] of [[bPort, 'in'], [aPort, 'out']]){ if (!P || !(r && r.why)) continue; let ap = []; try { ap = approachPath(portById(P)) || []; } catch (e){} if (!ap.length) continue;
+        const o = ap[0], lane = ap.slice(1).filter(q => dist(q, portById(P).p) >= 0.002);
+        // (the lane as the boat sails it: her draught under her outside the harbour at the tide now, as groundCheck has it, not the search's
+        // margin on top, which shut Averøy's lane at 3.9-4.1 m for the 3.4 m boat, allesteder-12-0.log;
+        // Trondheim verft's way in runs over 2 m at chart datum, and a 3.4 m boat is not sent in by it. Not at a rorbu: its point is the
+        // cabin on the shore, the lane's last metres over the shallows to it, and her berth by it the site's own, rorbuSite; Sand, Herdla
+        // and 60 more lost their only way out by it, allesteder-12-*.log)
+        const lim = BOAT.draft - tideCD(S.t / 60); let okLane = true; if (!RBID.has(P)) for (let i = 0, A0 = o; i <= lane.length && okLane; i++){ const B0 = i < lane.length ? lane[i] : portById(P).p, n = Math.max(1, Math.ceil(dist(A0, B0) / 0.004));
+          for (let k = 1; k <= n; k++){ const q = {x:A0.x + (B0.x - A0.x) * k / n, y:A0.y + (B0.y - A0.y) * k / n}; if (inHarbour(q)) continue; try { if (isLand(q) || depthF(q) < lim){ okLane = false; break; } } catch (e){ okLane = false; break; } } A0 = B0; }
+        if (!okLane) continue;
+        const r3 = end === 'in' ? await leiaRoute0(a, {x:o.x, y:o.y}, aPort, null, false, opt) : await leiaRoute0({x:o.x, y:o.y}, b, null, bPort, false, opt);
+        if (!r3 || r3.why || !r3.wps || !r3.wps.length) continue;
+        const wps = end === 'in' ? r3.wps.concat(lane, [{x:b.x, y:b.y}]) : lane.slice().reverse().concat([{x:o.x, y:o.y}], r3.wps);
+        r = {wps:wps.filter((q, i, l) => i === 0 || dist(q, l[i - 1]) > 0.001), nm:r3.nm, st:Object.assign({}, r3.st, {viaLane:end, firstWhy:r.why})}; } }
+    // the leg into a harbour, or out of it, across land where the route was pulled tight past its own way in (the search trusts the
+    // harbour's end, laneIn, and the straightening dropped the lane): the lane put back from its point nearest the leg's other end. A leg
+    // over land greys «Kast loss» (estimate().bad); Træna utstyrsbutikk from Træna verft and Selvær, 15.11.2026, tests/allesteder.py
+    if (r && !r.why && r.wps && r.wps.length) r.wps = leiaLaneMend(a, r.wps, aPort, bPort);
     if (r && r.st){ r.st.tide = +credit.toFixed(2); if (LEIA_ICE.on) r.st.ice = {cap:Math.round(LEIA_ICE.cap)}; } return r; } finally { back(); }
+}
+function leiaLaneMend(a, wps, aPort, bPort){
+  const lane = P => { let ap = []; try { ap = approachPath(portById(P)) || []; } catch (e){} return ap.filter(q => dist(q, portById(P).p) >= 0.002); };
+  const clear = L => { for (let i = 1; i < L.length; i++) if (!legClear(L[i - 1], L[i])) return false; return true; };
+  const near = (L, q) => { let k = 0, d = 1e9; L.forEach((p, i) => { const e = dist(p, q); if (e < d){ d = e; k = i; } }); return k; };
+  let W = wps.slice();
+  if (bPort && W.length){ const n = W.length, q = n > 1 ? W[n - 2] : a, g = W[n - 1];
+    if (!legClear(q, g)){ const L = lane(bPort); if (L.length){ const ins = L.slice(near(L, q)), T = [q].concat(ins, [g]); if (clear(T)) W = W.slice(0, -1).concat(ins.filter(p => dist(p, q) > 0.001), [g]); } } }
+  if (aPort && W.length){ const f = W[0];
+    if (!legClear(a, f)){ const L = lane(aPort).slice().reverse(); if (L.length){ const ins = L.slice(0, near(L, f) + 1), T = [a].concat(ins, [f]); if (clear(T)) W = ins.filter(p => dist(p, f) > 0.001).concat(W); } } }
+  return W;
 }
 // A long way among the islands with no route in one piece (KL1a 12.11.2026: an autoliner from Rørvik to Bodø, 3.8 m draught. The
 // fairway network's lane goes through a sound charted at 3.6 m, and the grid's coarse search for a way that long starts in a basin

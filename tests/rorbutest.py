@@ -22,7 +22,8 @@ async def main():
         # 1. the places
         r = await pg.evaluate("""(() => ({n:RORBUER.length, h:RORBUER.filter(R => R.kind === 0).length, named:RORBUER.filter(R => R.name !== 'Rorbua').length,
           looks:[...new Set(RORBUER.map(R => R.v))].sort().join(''), port:!!portById(RORBUER[0].id), inPorts:PORTS.some(q => q.rorbu)}))()""")
-        check(r['n'] > 450 and r['h'] > 150 and r['named'] > r['n'] * 0.95 and r['looks'] == 'orw' and r['port'] and not r['inPorts'],
+        # (h: 150 since 15.11.2026, when the rorbuer the 14.99 m boat cannot reach at the lowest tide were taken away, steg 126)
+        check(r['n'] > 450 and r['h'] >= 145 and r['named'] > r['n'] * 0.95 and r['looks'] == 'orw' and r['port'] and not r['inPorts'],
               'the rorbuer along the coast: one by each fishing harbour and more between, named, in three colours, known to portById but not harbours', r)
         # 2. their stretches of shore by Gryllefjord, and between
         r = await pg.evaluate("""(async () => { const g = portById('gryllefjord'), out = {};

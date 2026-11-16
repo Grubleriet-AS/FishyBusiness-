@@ -213,3 +213,54 @@ Hele beskrivelsen står i `docs/planer/design-ombygging.md` («D6»). Det som gj
 - **Testet:** `hudtest` (61 + 15 nye, de nye sett røde mot bygget før), `docktest` (118), `dockrow` (16), `uishots` (45), `navbarshot` (5), `roetest` (23), `kystkarttest` (5), `kontrast.py` 0, `tut.py` i begge formater (16 OK hver).
 - **Mann over bord-panelet** (`ui/10s-mob.js`) står ved siden av kartet og boksen på et stående nettbrett i 3D, ikke under stripa.
 
+## Designombyggingen D5: telefonen som stor flate på nettbrett (13.11.2026)
+
+Steg D5 i `docs/planer/design-ombygging.md` (Jonas 13.11.2026, valg 2 A: «telefonen blir en stor flate på nettbrett som beholder telefonens ramme og statuslinje»). Bygd i `src/styles.css` (blokka «D5» nederst), `ui/phone/06-render.js` (`show`, `place`, `shell`, `PAGE_HEAD`) og `ui/phone/08-home-papers-merker.js` (`home`, `.ph-nowcol`). **Endrer U2-6** («det samme stående og liggende, på nettbrett og PC»): det gjelder nå telefonen; nettbrett og PC har flata under.
+
+- **Når:** bredere enn 560 px og høyere enn 520 px (`@media (min-width:561px) and (min-height:521px)`). En telefon stående (opp til 560 px bred) og liggende (opp til 520 px høy) er som før: fyller skjermen uten ramme, én spalte.
+- **Hvor:** liggende står flata til høyre for statusboksen og det lille kartet, stående under dem. `place()` måler `#hud`, `#miniPlot` og `#gps3d` når telefonen åpnes, når skjermen snus, og når boksen endrer størrelse eller plass (`ResizeObserver`, og kroppens klasser), og setter `--ph-hr` (høyre kant) eller `--ph-hb` (underkant) på `#phone`. Ville det gitt en flate under 620 × 640 px (768 × 1024 stående, 900 × 700 liggende), tar flata skjermen i stedet (`.ph-full`) heller enn å ligge halvt over boksen: regelen står i `place()` og bare der. På en stor PC-skjerm stopper flata på 1080 × 1028 px liggende og 900 px bredde stående. `place()` gjør ingenting på en telefon.
+- **Oppsettet følger flatas bredde, ikke skjermens** (klasser på `#phone` fra `place()`): fra 640 px står gruppene og kortene to og to (`.ph-w2`), fra 880 px står «nå»-blokka ved siden av appene (`.ph-wide`). 1280 × 800 har begge; 1024 × 768 og stående har to spalter og blokka over; en flate under 640 px har én spalte.
+- **Knappelinja er skjult mens telefonen er åpen** (`body.ph-on`, satt i `show`): `#dock`, `#dockInfo` og `#dockFan`, og kameraknappene og kompasslinja som flata ville skåret over liggende, og dagbokfanen i hjørnet den dekker stående. Telefonen lukkes med ✕ i linja nederst eller Escape, som før. Statusboksen og det lille kartet står.
+- **Rammen:** den samme kroppen (`.ph-body`, 10 px kant, radius 34 px), kameraet øverst, statuslinja med klokka og dekningen, og linja nederst med tilbake, hjem og lukk (større trykkflater: 64 × 40 px).
+- **Den uavhengige kontrollen (13.11.2026)** bekreftet de fire punktene og at telefonformatene har de samme beregnede stilene som før (390 × 844, 560 × 900, 844 × 390, 1000 × 520; hjemskjermen og 18 apper), og fant fire ting som er rettet: hjemskjermen rullet sidelengs i små liggende vinduer, kompasslinja stakk 8 px opp over flata, `place()` målte boksen før den hadde lagt seg etter en størrelsesendring, og flata lå halvt over boksen på små stående nettbrett. Notatene over to spalter og Kystposten har også fått kortere linje. **Ikke endret:** i kartplotteren liggende ligger flata over høyre del av topplinja, slik den gamle telefonen lå over hjørnet.
+- **Gjennomgangen av koden** fant at flisene lå på hverandre ved 1024 px bredde (oppsettet fulgte skjermens bredde); derfor klassene over. Toasten ligger i linja nederst mens telefonen er åpen (trykk går gjennom den), og flata står 18 px opp så kartets kildelinje er hel (Gemini).
+- **Hjemskjermen:** klokka, datoen, været og kontoen, målraden og «Nå»-kortene er én blokk (`.ph-nowcol`; i en telefon `display:contents`, altså ingen boks). På en bred flate (`.ph-wide`) står den som en spalte til venstre for appene; ellers ligger den over dem med klokka til venstre og kortene til høyre. Gruppene (`GROUPS`, samme rekkefølge og navn) står to og to; flisene er 58 px.
+- **Kortene i rader (13.11.2026, etter Jonas' bilder fra nettbrettet: «mye luft i mellom mange av boksene», «Symmetrien og plassutnyttelsen er på en måte dårlig», «Det fremstår litt rotete»):** `pairCards` i `ui/phone/06-render.js` måler kortene i halv bredde hver gang siden tegnes og når flata endrer bredde; to kort deler en rad bare når det korteste er minst 60 % av det høyeste (`.ph-half`), og da er de like høye (rutenett med `align-items:stretch`); et kort alene eller ved siden av et mye høyere tar hele raden. Før sto kortene i to frie spalter (`column-count`) med hull og kort alene i en halv rad. Fanene inne i en side har luft under seg, Værs drivstoffkort har de samme kantene som resten, kantene er 22 px, og hjemskjermen står midt i flata.
+- **Appene:** `shell` setter `data-app` og `data-sub` på `.ph-appv`. Innholdet står i en spalte midt på flata (høyst 940 px), og kortene står i rader (se over); overskrifter, notater og faner går over hele bredden. Fiskeguiden har artene to og to. **Lesesidene** (Håndboka, Patchnotes, Meldinger, Regler › Lær mer) har én spalte på 32,5 rem og 15 px skrift: rundt 73 tegn per linje (målt i `telefonflate`). Tilbakemelding, Venner, Gjesteboka, Kystposten og naustets liste har én spalte på 37 rem.
+- **Rettet underveis:** naustets liste (`naustp`, siden som åpnes fra naustet uten WebGL) hadde mistet papiret da siden skiftet navn fra `notat` (skallet lette etter det gamle navnet), og tittellinja sa «naustp»; Gjesteboka sa «gbook». De har navn nå (`PAGE_HEAD`), og naustets liste er papir. «Hvor du er» i Regler rant ut av kortet (fjordlinjas navn og minstemålene på én linje), også på telefon.
+- **Jonas 13.11.2026, spurt etter utrullingen med bildene (A boksen står, B flata dekker alt, C dekker alt bare stående): «A: Boksen står».**
+- **Økta valgte:** HUD-en står ved siden av (liggende) og over (stående) flata, i stedet for at flata dekker alt. Snus ved å ta `--ph-hr` og `--ph-hb` ut av `#phone` i D5-blokka (da fyller flata skjermen). Knappelinja skjules i begge formater, også der flata ikke ville ligget over den, så regelen er én.
+
+
+
+## Lanseringen 16.11.2026: appene, vinden og Profil
+
+- **Alle appene fra start** (Jonas: «Gi tilgang til alle apper fra start»): `APPS_ALL` i `ui/07c-handbook.js` gjelder `appShown` og Rederi-appen. Tipsene merker fortsatt «ny».
+- **Vinden i statusboksen** (Jonas: «Vindretning og styrke må vises i statusboks (har blitt borte)»):
+  - I boksen står den som første rad: «↙ NØ 5 m/s», pila den veien vinden blåser, gul fra 11 m/s og rød fra 17.
+  - I stripa står den som siste tall.
+  - På telefoner opp til 420 px har stripa tettere mellomrom og skrift på 9,5 px. Til 380 px står sjøen som ikon alene mens bløggekaret vises (målt i verste fall på 360 px).
+- **Profil-appen** er ny, først i gruppa Deg (se skyen-og-felles-verden.md).
+
+## Innstillinger i faner og grafikkvalgene (16.11.2026)
+
+Jonas 16.11.2026: «Kan du fikse innstillinger-siden slik at den har faner øverst og ser mer proff ut? … skjule manuell styring … godt med grafikk-innstillinger slik at spillere kan prøve å justere selv».
+
+- **Fanene** (`sub.innst`, `ui/phone/05-rigg-innst-admin.js innst`):
+  - **Spill:** språk, HUD, hjemsted og sikkerhet.
+  - **Grafikk:** se under.
+  - **Lyd:** lyd og musikk.
+  - **Konto:** kontoen, installering, Om spillet, lagret spill og nullstilling.
+  - Admin-verktøyene står i Admin-appen, bare for Jonas (`adminOk`).
+- **Manuell styring** er ikke spillerens valg lenger. Jonas: «Jeg vil bare ikke at spillere skal ha mulighet til å manuelt kjøre båten selv. De skal bruke kartplotteren til å lage ruter».
+  - Kortet står i Admin-appen.
+  - `ui/11-boot.js` setter `S.settings.manual = false` for alle uten `adminOk`.
+- **Grafikkvalgene** (`PGFX` i `view3d/00-head.js`, `G3.gfx`):
+  - Valgene lagres per enhet i `localStorage['kystfiske_gfx']`, ikke i den delte lagringen.
+  - **Virker straks:**
+    - `res`: 50–100 % av nivåets piksler, i `18-setup.js resize`;
+    - `fps`: tak på 30, 45 eller 60 bilder/s, eller fri, i `24-cinema.js frame0`. Bilder holdt igjen av taket teller ikke som treg enhet for Auto (`qualTick`);
+    - `dist`: 0,7, 1 eller 1,4 × hvor langt bygg og havner tegnes i full detalj (`chunkR`, `lodK`);
+    - `shadow`: solskyggene i `01-shaders.js` og byggenes skygger i `04-vec-packs.js`.
+  - **Etter «Bruk og start 3D på nytt»** (siden lastes på nytt): `off.trees` (trær og vind), `off.life`, `off.foam` (skum, brottsjø og NPC-skum), `off.fft` (detaljerte bølger), `off.shore` (strand, skjær og marina) og `off.sun`. De er de samme bryterne som testenes `#trees0` og lignende.
+  - «Egendefinert» vises når noe er endret, og «Tilbake til standard» setter alt tilbake og Auto.

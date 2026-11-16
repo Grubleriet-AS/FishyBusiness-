@@ -454,6 +454,13 @@ def cut_holes(target, cuts=None):
     bm.to_mesh(me2); bm.free()
     for i in reversed(ci): me2.materials.pop(index=i)
     bpy.data.objects.remove(c)
+    # the fans of long triangles the cut leaves round each hole, split so its baked shade stays at the hole (tilbakemelding #5 fra
+    # testutgaven: the exhaust's shade ran as dark streaks across the transom)
+    rims = []
+    for o, u, v, poly, d in (cuts or cutters()):
+        o, u, v = V(o), V(u), V(v)
+        rims.append((o, u.cross(v), max(math.hypot(p, q) for p, q in poly) + 0.01, d + 0.01))
+    bpyutil.ease_cut_fans(target, rims)
 
 def tube(A, ring, d, depth, m, m_end=None):
     """the inside of a hole, from its outline ring along d, depth deep, its faces turned in; closed at the end with m_end (else open)"""
@@ -963,7 +970,9 @@ def bower(G):
 # and stood inside the first; the gutted fish go straight down the hatch beside it); the line tubs under the shelter to port forward of
 # it, two across and up to four rows aft (STAMP0: the first row's place, kit.stamps), inboard of the port walkway so the jiggers at the
 # port rail and the way to the port steps stay clear of them (the code review, 10.11.2026: at y 1.30 the block reached 1.49)
-BENCH = 2.40; STAMP0 = (5.30, 0.95)
+# (steg 125d, Jonas 15.11.2026, docs/planer/dekk/forslag.json: the bench along the starboard bulwark aft of the bleeding tub, the hauler's side,
+# the plastic table (work.bord, 1.15 m: «Kortere bord») between the tub and the crane's locker; the tub across her aft of the hauler)
+BENCH = 2.045; BENCH_Y = -1.47; TUB = (2.995, -1.24); GUT_AT = (1.995, -0.90); STAMP0 = (5.30, 0.95)
 def stamp_box(rows=4):
     """the line tubs' block as the game bars it for the crew (deckcrew.js kitBoxes, ry 0): (x0, x1, y0, y1) in the model's frame, padded"""
     cx = STAMP0[0] - (rows - 1) * 0.25; hl = (rows * 0.5 + 0.02) / 2 + 0.06; cy = STAMP0[1] - 0.26; hw = 0.78 / 2 + 0.06
@@ -975,15 +984,15 @@ def stamp_box(rows=4):
 # mast's struts. Three places for her three hands (jukseMax 6: the rest of the rail is the crane's, the hauler's, the bench's and the
 # steps'); more than a metre apart on a side (check())
 JIG = [(-1, 3.70), (1, 4.95), (-1, 4.75)]
-JIG_CLEAR = {1: [(0.0, 2.15, 'kranen'), (HP0 - 0.35, HP1 + 0.45, 'haleporten og haleren'), (X_STEP - 0.50, 9.0, 'trinnene og døra')],
-             -1: [(0.0, 1.90, 'flaggmasta og stagene'), (BENCH - 0.86, BENCH + 0.86 + 0.25, 'sløyebenken'), (X_STEP - 0.50, 9.0, 'trinnene')]}
+JIG_CLEAR = {1: [(0.0, 2.15, 'kranen'), (BENCH - 0.6, TUB[0] + 0.36 + 0.25, 'sløyebordet og karet'), (HP0 - 0.35, HP1 + 0.45, 'haleporten og haleren'), (X_STEP - 0.50, 9.0, 'trinnene og døra')],
+             -1: [(0.0, 1.90, 'flaggmasta og stagene'), (X_STEP - 0.50, 9.0, 'trinnene')]}
 def anchors():
     G = lambda x, y, z: [round(v, 3) for v in to_game((x, y, z))]
     qx, qy = aftm()
     return {'bower': bower(G), 'eye': G(SKIP[0], SKIP[1], ZFD + EYE_H), 'skipperAt': G(SKIP[0], SKIP[1], ZFD), 'hp': HP, 'fov': FOV,
             # the hands: the fisher at the hauler in the starboard hauling port, the one who guts at the bench to port, one by the bleeding
             # tub aft of the hauler, one aft of the hatch
-            'crewSpots': [G(HXR, -1.28, ZMD) + [1.57], G(BENCH, 1.05, ZMD) + [-1.57], G(3.05, -0.92, ZMD) + [3.14], G(1.45, -0.45, ZMD) + [0.0]],
+            'crewSpots': [G(HXR, -1.28, ZMD) + [1.57], G(GUT_AT[0], GUT_AT[1], ZMD) + [1.57], G(3.70, -0.30, ZMD) + [3.14], G(1.45, -0.45, ZMD) + [0.0]],
             # typed lights (B8): under 12 m an all-round white (on the mast's top) and the side lights, the stern light over the transom;
             # the fishing lights red over white on their arm (rule 26); the work lights under the roof's after edge
             'lights': [[G(MX, 0, white_z()), [1, 0.95, 0.85], 'allround'],
@@ -996,9 +1005,12 @@ def anchors():
             'doors': [{'at': G(5.00, (DOOR[0] + DOOR[1]) / 2, ZMD), 'w': round(DOOR[1] - DOOR[0], 2), 'h': round(DOOR[3] - DOOR[2], 2),
                        'in': G(WX0 + 0.6, (DOOR[0] + DOOR[1]) / 2, ZFD), 'to': 'helm', 'open': True}],
             'names': name_strips(G),
-            # the work at sea: the fisher at the hauler in the starboard hauling port; the bleeding tub on the deck just aft of him; the
-            # gutting bench (the game's) at the port bulwark abreast the hatch, the one who guts inboard of it; the fish go down the hatch
-            'work': {'table': G(BENCH, 1.55, ZMD), 'tub': G(3.05, -1.38, ZMD)},
+            # the work at sea (steg 125d): the fisher at the hauler in the starboard hauling port, who bleeds the fish himself and throws it
+            # in the tub across her just aft of him (solo); the gutting table (the game's plastic one, bord) along the starboard bulwark aft
+            # of that, the one who guts inboard of it facing out (gut), the hatch a step behind him; the fish are iced in the hold (nopack)
+            'work': {'table': G(BENCH, BENCH_Y, ZMD), 'tub': G(TUB[0], TUB[1], ZMD), 'ry': 1.571, 'gut': G(GUT_AT[0], GUT_AT[1], ZMD) + [1.571], 'bord': True, 'solo': True, 'nopack': True},
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (HOLD[3] - HOLD[2], HOLD[1] - HOLD[0])],
             'hatch': G(2.35, 0.0, ZMD + 0.05 + HOLD_H + 0.03),
             'deck': {'y': round(ZMD - WLE, 3), 'z': round(-(2.4 - XM), 3)}, 'gw': round(z_sh(3.0) - WLE, 3),
             'stern': round(XM - XA, 3), 'bow': round(-(XF - XM), 3), 'side': 1.95, 'beam': BEAM, 'pl': 4.2, 'rl': 1.6, 'open': False, 'hand': False,
@@ -1093,11 +1105,11 @@ def check():
         out.append(('%s i plan: største endring i stigningen %.3f m per 6 cm (ved x %.2f)' % (nm, wv[0], wv[1]), wv[0] < 0.02))
     # the gutting bench and the line tubs (F19, deckcrew.js kitBoxes: the bench 0.62 x 1.6 m, the tubs' block with eight aboard 0.78 x
     # 2.02 m, each padded 6 cm): apart, and the deck at the bench's side 0.7 m fore and aft of the one gutting free of both and the hatch
-    bx = (BENCH - 0.86, BENCH + 0.86); sx0, sx1, sy0, sy1 = stamp_box(); gy = 1.55 - 0.62; R = 0.25          # (R: a body's half width)
+    bx = (BENCH - 0.575, BENCH + 0.575); sx0, sx1, sy0, sy1 = stamp_box(); gy = GUT_AT[1]; R = 0.25          # (R: a body's half width)
     clear = lambda x, y: not (sx0 - R < x < sx1 + R and sy0 - R < y < sy1 + R)
-    free2 = all(clear(x, gy) for x in (BENCH - 0.7, BENCH + 0.7)) and gy - R > HOLD[3] + 0.06
-    out.append(('sløyebenken x %.2f-%.2f ved babord ripe tvers av luka, stampeblokken med åtte x %.2f-%.2f, y %.2f-%.2f forut for den (%.2f m imellom); nummer to ved benken har fritt dekk 0,7 m forut og akter for den første' % (bx[0], bx[1], sx0, sx1, sy0, sy1, sx0 - bx[1]),
-                sx0 - bx[1] > 0.0 and free2))
+    free2 = clear(GUT_AT[0], gy) and -gy - R > HOLD[3] + 0.06 and TUB[0] - 0.36 - bx[1] > -0.03
+    out.append(('sløyebordet x %.2f-%.2f ved styrbord ripe akter for karet (%.2f m imellom), stampeblokken x %.2f-%.2f, y %.2f-%.2f på babord; den som sløyer står fri av stampene og %.2f m fra luka' % (bx[0], bx[1], TUB[0] - 0.36 - bx[1], sx0, sx1, sy0, sy1, -gy - R - HOLD[3]),
+                free2))
     # the jigging places (F21): on both sides, over a metre apart on a side, clear of what stands on the rail
     bad = [(sd, x, nm) for sd, x in JIG for x0, x1, nm in JIG_CLEAR[sd] if x0 <= x <= x1]
     bad += [(sd, x, 'stampene') for sd, x in JIG if not clear(x, sd * -(ybw(x) - 0.45))]     # (the jigger 0.45 inboard of the rail, jigSpot)

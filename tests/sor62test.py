@@ -35,7 +35,7 @@ FISH = """(async ([lat, lon, out]) => { const a = P(lat, lon), H = S.t / 60; let
 # to the nearest plant with what is aboard: the quay's word before «Lever», then the landing
 LAND = """(() => { const b = S.boat, pt = PORTS.filter(q => q.mottak).sort((x, y) => dist(x.p, b.pos) - dist(y.p, b.pos))[0]; b.status = 'port'; b.port = pt.id; b.pos = {...pt.p}; S.fsess = null; delete b.land;
   const q = quotaState(), q0 = {nsjo:q.nsjo || 0, skag4:q.skag4 || 0, torsk:q.torsk}, C = landConf(S.t / 60, q, access()), d = document.createElement('div'); d.innerHTML = landWarn(pt); const txt = d.textContent, n0 = S.msgs.length;
-  const kv = kvCheck(b).items.map(i => i.k); sell(); const ls = S.lastSale, m = S.msgs.slice(n0).filter(x => x.from === 'Norges Råfisklag').map(x => x.no);
+  const kv = kvCheck(b).items.map(i => i.k); sell(); const ls = S.lastSale, m = S.msgs.slice(n0).filter(x => x.from === 'Kystens Fiskesalgslag').map(x => x.no);
   return {port:pt.name, acc:access(), sConf:+C.sConf.toFixed(1), zConf:+C.zConf.toFixed(1), codConf:+C.codConf.toFixed(1), sOk:C.sOk, warn:txt, rows:ls.confRows, ved:ls.vedKr, confKr:Math.round(ls.confKr), msg:m, kv,
     dq:{nsjo:Math.round((q.nsjo || 0) - q0.nsjo), skag4:Math.round((q.skag4 || 0) - q0.skag4), torsk:Math.round(q.torsk - q0.torsk)}, byc:b.byc || null}; })()"""
 
@@ -86,9 +86,9 @@ async def main():
             await pg.evaluate("sell(); PHONE.render()"); await pg.wait_for_timeout(2500)
             await pg.screenshot(path=os.path.join(OUT, 'sor62-seddel-' + tag + '.png'))
             t2 = await pg.evaluate("document.body.innerText.replace(/\\s+/g, ' ')")
-            m = await pg.evaluate("n0 => S.msgs.slice(n0).filter(x => x.from === 'Norges Råfisklag' && /Nordsjøen/.test(x.no)).length", n0)
+            m = await pg.evaluate("n0 => S.msgs.slice(n0).filter(x => x.from === 'Kystens Fiskesalgslag' && /Nordsjøen/.test(x.no)).length", n0)
             check('Nordsjøen' in t1 and '40 kg' in t1 and '15 %' in t1 and '20 %' in t1, tag + ': the quay says 40 kg over the 3 tonnes (15 % bycatch) before «Lever», and the 20 % compensation')
-            check('over 3 tonn i Nordsjøen' in t2 and 'Vederlag for ilandføring' in t2 and m == 1, tag + ': the landing note has the row «Inndratt: torsk over 3 tonn i Nordsjøen», the compensation, and Råfisklaget writes')
+            check('over 3 tonn i Nordsjøen' in t2 and 'Vederlag for ilandføring' in t2 and m == 1, tag + ': the landing note has the row «Inndratt: torsk over 3 tonn i Nordsjøen», the compensation, and Fiskesalgslaget writes')
             await pg.evaluate("PHONE.show(false)")
         await pg.set_viewport_size({'width': 1280, 'height': 800})
         # a vessel without access: bycatch only from the first kilo

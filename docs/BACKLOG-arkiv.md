@@ -2,6 +2,22 @@
 
 Flyttet hit fra `docs/BACKLOG.md` 12.11.2026, så backloggen bare har det som er åpent. Nye «Strøket»-avsnitt skrives øverst her (dato, steg, gren, commit). Les med `grep`; fila leses aldri hel.
 
+## Strøket 16.11.2026 (steg 132, Jonas' økt, gren `claude/blissful-cannon-ctb8e9`)
+
+- **`havplantest` «the hold at 95 %»** (rød siden 07.11.2026, i regresjonen 11., 13., 14. og 15.11.2026): meldingen om å trekke lenkene inn på magasinene kom bare når lasten passerte 95 % midt i en tur. Nå sier `plan2NewDay` den også når lasten er full når dagen legges, én gang per full last (`o.fullSaid`, `core/06h-plan2-engine.js`). Grønn i steg 132.
+- **`havplantest`, stikkprøven Egersund** (rød 06.11.2026, «Fant ingen vei mellom Egersund og felt 1»): grønn i steg 132 (del 7 og del 11 med ringen og søket fra Egersund).
+
+## Strøket 16.11.2026 (steg 131, Jonas' økt, gren `claude/blissful-cannon-ctb8e9`)
+
+- **Slippjobben og Ubuntus pakkespeil** (fra steg 102): `autonav.yml`, `ferje.yml`, `fly.yml` og `autofix.yml` bruker Playwright 1.63.0 og går videre når systempakkene ikke kommer, som `deploy.yml`. «Autonav langs hele kysten» stoppet 16.11.2026 fordi `ubuntu-latest` ble Ubuntu 26.04, som Playwright 1.56 ikke støtter.
+- **`csptest` og `docktest`** (røde på arbeidsgrenen 16.11.2026): `csptest` leste kanalen fra en kommentar i `vessel3d.js`; `docktest` kjente ikke Profil-appen og at alle apper står på telefonen fra start (`APPS_ALL`).
+
+## Strøket 15.11.2026 (testeffektiviseringen, gren `claude/test-effektivisering`)
+
+Testskriptene utenfor listene er gått gjennom (Jonas valgte «Alt, også reglene» 15.11.2026): `shot2`–`shot51`, `shore_*.py`, `dbg23`, `animshot_o`, `fleet2`, `fleetcheck`, `misstest` og `progtest` er slettet; `kartkorridortest` og `legmemotest` står i `LITE`; resten er verktøy som kjøres for hånd og står i `HAND` i `tests/run.py`, så `python3 tests/run.py utenfor` er tom.
+
+- **Rundt hundre testskript står utenfor listene i `run.py`** (Ø2 05.11.2026): `shot.py`, `shot2`–`shot51`, `shore_*.py`, `*shot.py` for enkeltbåter (`hs11shot`, `ky15shot`, `r38shot` …), `animshot`, `fasit`, `misstest`, `motiontest`, `progtest`, `leiaprobe` og flere, og de kjøres aldri. De fleste er engangsbilder fra da en modell eller kysten ble laget. `shot23.py` var utdatert (`#modeBtn`, salg i telefonen) og er slettet. Forslag: gå gjennom resten i én økt, ta ut det som ikke kjøres mot dagens spill, og legg det som skal bli, i `D3` eller `LITE`. Lista: `python3 tests/run.py utenfor` (`tutcoast` står utenfor med vilje).
+
 ## Strøket 13.11.2026 (kaiene ut av de lukkede bassengene, gren `ccr-432150cd-kkjoez`)
 
 Ingen havn er forseglet lenger (`tools/steder/lukkflytt.py`, `tests/lukket.py`), så oppstartens sjekk møter ikke fyllingen.
@@ -559,3 +575,6 @@ Rettet 24.10.2026 etter gjennomgangen: Senja-flåtens skrog på land ved kaia (`
 Kino-visningen (d0fdfc2) og ristingen i bro-visningen (dc1a5a6, 5.40) fra 04.10; hviletiden i hele timer (regelen fjernet 11.10); kveithaill (fjernet 04.10); fraværsfangsten før dybdedataene (5448b5a, 02.10); bare skiffen med konsoll i 3D (varmen og ekkoloddet vises i det lille kartet for alle båter); sonarens monteringstid (alle verftsjobber tar `YARD_H`); sekkeis på driftsplanen (isen fylles på mottaket); drivstoff i Finnsnes (diesel ved butikk og verft, `docs/handelssteder.md`); § 32 og grunnlinja (håndheves fra R2, 04.10, `03e-rules.js`); minsteprisene etter 21.09 (rundskriv 13/2026, kontrollert); G (136 549 kr fra 1. mai 2026); sertifikatene i Sjømann (fjernet 09.10); heattest-målingen (besto 21.10 med 1,0 s); tester som sovner; dobbel kyst i kartplotteren (4.19); artifacten uten vec (artifacten oppdateres ikke lenger, appen har alltid vec; testbygget `dist/` har ikke vec, bare `npctest`, `havntest` og `vectest` bygger `dist-vec/`).
 - 12.11.2026 (steg 89 OB11 runde 3, Jonas' økt, `claude/ob11-r3-breisjark`): **`vesseltest` rød etter HS3** lukket: sjekken «a bigger engine helps the sjark …» venter nå at skiffen tar trim som alle båter (Jonas 11.11.2026: «Trim-boost skal fungere på alle båter …») og fortsatt ikke større motor; rød før rettingen (`'skiff': (24, 24, 48, 24)`), grønn etter. En annen økt rettet det samme samtidig; deres utgave av testen står etter flettingen.
 - 12.11.2026 (steg 89 OB11 runde 3): **`worktest` rød** («asleep the screen is black with a countdown …») lukket: alene og sovende til sjøs tar brovaktsalarmen skjermen («Trykk ACK for å kvittere») før testen leste nedtellingen; testen leser nå nedtellingen når han sovner og godtar alarmen etterpå. Spillet var riktig. Rød før, grønn etter. En annen økt rettet det samme samtidig; deres utgave av testen står etter flettingen.
+
+- 16.11.2026 (Jonas' økt, gren ccr-349425a1-raf94t): strøket fra backloggen, rettet i `tests/cloudtest.py` (sjekken leser «mellomrom» uten å se på store bokstaver):
+  - **`cloudtest` rød på navnekortet (10.11.2026, ikke HS1):** sjekken «every account has a player name» leter etter «mellomrom» med liten m, og spillet svarer «Mellomrom går ikke: brukernavnet er ett ord.» (teksten sto slik på arbeidsgrenen før HS1; testen var sist grønn 06.11.2026). De 32 andre sjekkene er grønne. Rettes i `tests/cloudtest.py` (HS1 eide ikke fila).

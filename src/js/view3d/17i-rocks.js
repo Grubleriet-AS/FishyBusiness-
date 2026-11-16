@@ -18,7 +18,7 @@
   // 7 x 7 patch per rock (ROCK_FOAM by QUAL, none on low), lying on the sea: for the nearest within 180 m and inside the wave patch (ROCK_WAVE) on the
   // waves' own heights (seaH) at the sea mesh's own points, for the others flat, at the water's height at the rock inside the wave patch
   // and on the tide outside it. The foam's pattern is in the rock's own frame, so it never jumps as the eye moves. One draw call. #rocks0 in the address: no rocks and no breakers.
-  const ROCK0 = /rocks0/.test(location.hash);
+  const ROCK0 = /rocks0/.test(location.hash) || !!PGFX.off.shore;
   const ROCK_R = [500, 900, 1400, 2000], ROCK_SEG = [[3, 8], [4, 12], [6, 16], [8, 22]], ROCK_FOAM = [0, 24, 64, 128], ROCK_WAVE = [0, 3, 6, 10], ROCK_WR = 180, ROCK_G = 7, ROCK_FR = 800, ROCK_FOOT = -2.4;
   const ROCKS = {cells:new Map(), job:null, want:[], t:0, lvl:-1, ver:-1, foam:[], P:null, vb:null, ib:null, va:null, vn:0, fdrawn:0, waved:0, drawn:0, ms:0, fms:0, built:0, fail:0, off:false};
   // the spring tide's amplitude at p (M2 + S2, m; at least 0.35, so a rock on the Skagerrak, where the tide is a hand's breadth, still stands up)

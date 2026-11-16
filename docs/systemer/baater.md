@@ -225,8 +225,8 @@ Mister du juksa, fisker bare juksamaskinene til du kjøper ny i utstyrsbutikken.
 | Trinn (`HEAT.tiers`) | Utstyr | Varmekartet | Artsvalg |
 |---|---|---|---|
 | `basic` | Enkelt ekkolodd, alle båter har det | 1 nm i diameter, ruter på 100 m, fire trinn | Nei |
-| `chirp` | CHIRP-ekkolodd, 13 900 kr, 3 t å montere | 1,5 nm, ruter på 60 m, glatt | Alle, torsk, hyse, sei |
-| `sonar` | Sonar (søkelys), 150 000 kr, 16 t, båter fra 10 m | 3 nm, ruter på 80 m, oppdateres hvert 2. minutt, viser hvor stimene trekker | Alle, torsk, hyse, sei |
+| `chirp` | CHIRP-ekkolodd, 13 900 kr, 3 t å montere | 1,5 nm, ruter på 60 m, glatt | Alle, eller én art: torsk, hyse, sei, lyr, lange, brosme, uer, kveite, blåkveite eller kongekrabbe (`HEAT.sp`; Driftsplan 3 leser artene redskapet tar, `plan3See`) |
+| `sonar` | Sonar (søkelys), 150 000 kr, 16 t, båter fra 10 m | 3 nm, ruter på 80 m, oppdateres hvert 2. minutt, viser hvor stimene trekker | Alle, eller én art: torsk, hyse, sei, lyr, lange, brosme, uer, kveite, blåkveite eller kongekrabbe (`HEAT.sp`; Driftsplan 3 leser artene redskapet tar, `plan3See`) |
 
 - Sonarens pris og monteringstid er antakelser. Delene til en Furuno CH-37BB koster rundt 13 200 USD før montering (fant ingen norsk pris), og båten må på slipp for senkerøret.
 - Ekkoloddet og sonaren slås av og på i sidepanelet i plotteren (`S.settings.echo`, `S.settings.sonar`). Av betyr ingen varme, og ekkoloddet slutter å tegne. Fartøy-appen merker dem «(av)».
@@ -321,3 +321,8 @@ Revisjonen av kystflåten båt for båt og operasjon for operasjon står i `docs
 
 **Jonas' svar på valgene fra OB0 (09.11.2026, valg 17–23 i køen):** skalaen for båtenes karakter er skrogutforming 20, detaljer 20, lanterner 5, styrhus 10, arbeidsflyt 25 og utforming av dekk 20 (grensen 75 står); `disp` er den tomme båten for alle båtene, som for kyst15; garn skal kunne trekkes for hånd på trebåten og skiffen; skiffen mister teinene som trebåten; fasene bruker offentlige bilder av samme type og sier hvilke, «slik at jonas har kontroll under prosessen»; kyst15 får «en åpning i hekken for setting av garn, liner» og «en garn-binge for oppbevaring av garn ombord»; plastsjarken: «Dette er kanskje den svakeste båten vi har. Du får frie tøyler til å lage en realistisk fiskebåt.» Ingenting av det er bygd ennå (fasene OB1–OB15 i `docs/planer/om-bord.md`).
 
+
+
+## Flagget hele døgnet (16.11.2026)
+
+Jonas 16.11.2026: «Flagg oppe hele døgnet». `FLAG.always` i `flagUp` (`core/03-simulation.js`) gjelder egen båt og de andre spillernes båter. `false` gir flaggforskriftens tider tilbake.

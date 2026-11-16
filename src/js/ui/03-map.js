@@ -634,7 +634,7 @@ function aisInfo(n){
   const sw = typeof sjvWarn === 'function' ? sjvWarn() : null;
   if (sw && sw.id === n.id) rows.push([L('Vikeplikt', 'Right of way'), sjvSay(sw, 'strip') + ' · CPA ' + sw.cpa + ' m ' + sjvWhen(sw)]);
   rows.push([L('Status', 'Status'), st], [L('Navigasjonsstatus', 'Navigational status'), L(...colregAisSt(n))], [L('Fart (SOG)', 'Speed (SOG)'), fmt(n.v, 1) + ' kn'], [L('Kurs (COG)', 'Course (COG)'), n.v > 0.15 ? dg(n.cog !== undefined ? n.cog : n.hd) : '–'], [L('Styrekurs (HDG)', 'Heading (HDG)'), dg(n.hd)]);
-  return '<div class="ai-h"><b>' + n.name + '</b><button type="button" id="aisX" aria-label="Lukk">✕</button></div><div class="ai-t">' + (n.player ? L('Spiller', 'Player') : n.rs ? L('Redningsfartøy', 'Rescue vessel') : n.fleet || n.coast || n.hav ? L('Fiskefartøy', 'Fishing vessel') : n.type === 'coastal' ? L('Passasjerskip', 'Passenger ship') : n.ex === 1 ? L('Hurtigbåt', 'Express boat') : n.ex === 2 ? L('Passasjerbåt', 'Passenger ferry') : L('Ferje', 'Ferry')) + '</div>' + rows.map(r => '<div class="ai-r"><span>' + r[0] + '</span><span>' + r[1] + '</span></div>').join('') + (n.player && typeof FRIENDS !== 'undefined' ? FRIENDS.chip(String(n.id).slice(1)) : '') + (n.player && typeof HAIL !== 'undefined' ? HAIL.card(n) : '') + (n.player ? '' : '<div class="ai-n">' + L('Stiplet linje: sporet siste 24 timer', 'Dashed line: track over the last 24 hours') + '</div>');
+  return '<div class="ai-h"><b>' + n.name + '</b><button type="button" id="aisX" aria-label="Lukk">✕</button></div><div class="ai-t">' + (n.player ? L('Spiller', 'Player') : n.rs ? L('Redningsfartøy', 'Rescue vessel') : n.fleet || n.coast || n.hav ? L('Fiskefartøy', 'Fishing vessel') : n.type === 'coastal' ? L('Passasjerskip', 'Passenger ship') : n.ex === 1 ? L('Hurtigbåt', 'Express boat') : n.ex === 2 ? L('Passasjerbåt', 'Passenger ferry') : L('Ferje', 'Ferry')) + '</div>' + rows.map(r => '<div class="ai-r"><span>' + r[0] + '</span><span>' + r[1] + '</span></div>').join('') + (n.player && typeof FRIENDS !== 'undefined' ? FRIENDS.chip(String(n.id).slice(1)) : '') + (n.player && typeof PROF !== 'undefined' && CLOUD.on && CLOUD.user ? '<button type="button" class="ph-btn pf-ais" data-pfo="' + String(n.id).slice(1).replace(/[^a-f0-9]/g, '') + '">' + L('Se profilen', 'See the profile') + '</button>' : '') + (n.player && typeof HAIL !== 'undefined' ? HAIL.card(n) : '') + (n.player ? '' : '<div class="ai-n">' + L('Stiplet linje: sporet siste 24 timer', 'Dashed line: track over the last 24 hours') + '</div>');
 }
 // the warning of the rules of the road on the chart (Ø11.1, core/05e-sjovei.js): a ring round the other vessel, her vector and yours on to
 // the CPA, the line between the two there, and the CPA with the time to it; red when you give way, yellow when you hold on
@@ -724,7 +724,7 @@ function renderDyn(){
   }
   // passive gear in the sea
   g.push(gearSvg(u));
-  if (typeof PLANMAP !== 'undefined') g.push(PLANMAP.svg(u));   // Driftsplan 2's places in plan mode (ui/03g-planmap.js)
+  if (typeof PLANMAP !== 'undefined') g.push(PLANMAP.svg(u));   // the operations plan's ring and fields (ui/03g-planmap.js)
   // other vessels (AIS)
   const Hn = (S.t + liveFrac()) / 60;
   AISNOW = npcStates(Hn).filter(aisShown);
@@ -813,7 +813,7 @@ if (window.visualViewport){ visualViewport.addEventListener('resize', pinKb); vi
 const ptrs = new Map(); let drag = null, pinch = null;
 svg.addEventListener('pointerdown', e => {
   svg.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
-  if (ptrs.size === 1){ drag = {sx:e.clientX, sy:e.clientY, cx:view.cx, cy:view.cy, moved:false}; const mp = toMap(e.clientX, e.clientY); drag.set = setGrab(mp); drag.pm = !drag.set && typeof PLANMAP !== 'undefined' ? PLANMAP.grab(mp) : null; drag.wp = drag.set || drag.pm ? null : routeGrab(mp);   // (a plan's pin before a waypoint, ui/03g-planmap.js)
+  if (ptrs.size === 1){ drag = {sx:e.clientX, sy:e.clientY, cx:view.cx, cy:view.cy, moved:false}; const mp = toMap(e.clientX, e.clientY); drag.set = setGrab(mp); drag.pm = !drag.set && typeof PLANMAP !== 'undefined' ? PLANMAP.grab(mp) : null; drag.wp = drag.set || drag.pm ? null : routeGrab(mp);   // (PLANMAP.grab has nothing to drag since Driftsplan 3, ui/03g-planmap.js)
     // a finger held still sets your own mark: told at the lift by the events' own times, not by a timer, which on a slow frame ran
     // before the lift of a plain tap and turned a waypoint into a mark (tut.py, 06.10.2026)
     drag.t0 = e.timeStamp; drag.pin = !drag.set && !drag.wp && !drag.pm && !SETM; }
@@ -838,7 +838,7 @@ function ptrUp(e){
   if (drag && drag.wp){ const g = drag.wp; drag.wp = null; ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; if (ptrs.size === 0) drag = null; if (e.type === 'pointerup') routeDragEnd(g); else routeDragCancel(g); return; }
   const tap = drag && !drag.moved && ptrs.size === 1 && e.type === 'pointerup';
   ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null;
-  if (tap && typeof PLANMAP !== 'undefined' && PLANMAP.isOn()){ PLANMAP.tap(toMap(e.clientX, e.clientY), 16 / view.px); if (ptrs.size === 0) drag = null; return; }   // plan mode: every tap is a place or a pin (ui/03g-planmap.js)
+  if (tap && typeof PLANMAP !== 'undefined' && PLANMAP.isOn()){ PLANMAP.tap(toMap(e.clientX, e.clientY), 16 / view.px); if (ptrs.size === 0) drag = null; return; }   // plan mode: every tap sets or moves the plan's ring (ui/03g-planmap.js)
   if (tap && drag.pin && e.timeStamp - drag.t0 >= PIN_HOLD){ pinAdd(toMap(e.clientX, e.clientY)); if (ptrs.size === 0) drag = null; return; }
   if (tap && SETM){ setAim(toMap(e.clientX, e.clientY)); if (ptrs.size === 0) drag = null; return; }
   if (tap){ const mp = toMap(e.clientX, e.clientY), rr = 16 / view.px; const ph = (S.pins || []).find(q => dist(q, mp) < rr && !(q.until && q.until <= S.t)); if (ph){ pinOpen(ph.id); return; } if (typeof SHARE !== 'undefined' && SHARE.tap(mp, rr)) return; if (typeof PTOW !== 'undefined' && PTOW.tap(mp, rr)) return; const gh = gearHit(mp, rr * 0.8); if (gh){ gearTap(gh); renderDyn(); return; } let hit = null, bd = 1e9; for (const n of AISNOW){ const d = dist(n.p, mp); if (d < rr && d < bd){ bd = d; hit = n; } } if (hit && (hit.st === 'port' || hit.v === 0) && PORTS.some(q => dist(q.p, mp) < rr * 1.6)) hit = null; if (hit){ AISSEL = hit.id; renderDyn(); renderAisCard(); return; } const og = otherGearHit(mp, rr * 0.8); if (og){ otherGearCard(og); return; } tapName(mp, rr); addWaypoint(mp); }
@@ -885,7 +885,8 @@ function addWaypoint(pt){
   for (const p of PORTS){ if (ownT && !ownT.has(p.id)) continue; const d = dist(p.p, pt); if (d < r && d < bd){ bd = d; near = p; } }   // (only the places the chart shows)
   // a rorbu's quay (07d-rorbu.js), when the chart is close enough to show its name and not in «Første tur» (a tap in the field's ring
   // went to a rorbu by it)
-  if (view.z >= 2 && !tutOn()) for (const R of rorbuSites(pt, r + 0.05)){ const d = dist(R.p, pt); if (d < r && d < bd){ bd = d; near = R; } }
+  let sillR = null;   // (a rorbu the boat does not get out from at any tide, SITE_SILL: not a place to go; a tap on its shore says why)
+  if (view.z >= 2 && !tutOn() && siteFits(S.boat.type)) for (const R of rorbuSites(pt, r + 0.05)){ const d = dist(R.p, pt); if (d < r && d < bd){ if (!siteFits(S.boat.type, R.id)){ sillR = sillR || R; continue; } bd = d; near = R; } }
   // a harbour of the coast's packs: the route ends at a free berth there (07e-havn.js), when no place of the game is nearer
   if (view.z >= 2 && !tutOn() && !near){ const B = havnTapNear(pt, r); if (B) near = B; }
   // Father's naust: a route can end there (you sail to it; 07c-naust.js naustTarget)
@@ -893,6 +894,9 @@ function addWaypoint(pt){
   if (!near && !nt) near = portByLabel(pt);
   if (nt && atN && !S.draft.length){ toast(t('already_here')); return; }
   if (!nt && near && draftPort() === near.id && !S.draft.length && !atN){ toast(t('already_here')); return; }
+  // (a tap by one of the coast's harbours, shut to the players: says why, and a tap on its water is a point of the route as before)
+  if (!near && !nt && view.z >= 2 && havnShutAt(pt, r)){ toast(S.lang === 'en' ? HAVN_WHY[1] : HAVN_WHY[0]); if (isLandUI(pt)) return; }
+  if (!near && !nt && sillR && isLandUI(pt)){ const why = siteWhy(S.boat.type, sillR.id); toast(S.lang === 'en' ? why[1] : why[0]); return; }
   if (!near && !nt && isLandUI(pt)){ toast(t('on_land')); return; }
   draftEdit(() => {
     const wp = (q, auto) => S.draft.push({x:q.x, y:q.y, port:null, fish:0, auto});

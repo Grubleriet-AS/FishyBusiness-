@@ -1,0 +1,11 @@
+{"sales": [[27330, 1143, 9677], [27124, 1135, 9605], [27272, 1141, 9657]], "int": 575, "pumpOne": true, "cash": 147962, "led": 147962, "inn": 81726, "rev": 81726, "ut": 33183, "cost": 33183, "tax": 0, "tx": 0, "bal": 99419, "sum": 147962, "fisk": 80916, "trekk": -3419, "mannskap": -28939, "laan": 100000, "avdrag": -581, "renter": -575, "verft": 0, "saleTk": 3419, "saleLott": 28939, "landOne": ["fisk", "mannskap", "tillegg", "trekk"], "balOk": true, "mig": [12345, -2345, -500], "migRes": 10000}
+OK   three landings booked as fish [[27330, 1143, 9677], [27124, 1135, 9605], [27272, 1141, 9657]]
+OK   the cash moved as the statement and the year's sums say, to the krone (147962, 147962, 147962)
+OK   the old totals (revenue, costs, tax) follow the books (81726, 81726, 33183, 33183, 0, 0)
+OK   the levies and the shares on the notes are the books' levies and crew (-3419, 3419, -28939, 28939)
+OK   the loan in, the instalment split in interest (a cost) and instalment (not a cost), a job paid back nets to nothing (100000, -575, -581, 0)
+OK   a landing is one posting with its parts; the pump's litres add up to one; the statement carries the balance (['fisk', 'mannskap', 'tillegg', 'trekk'], True, True)
+OK   a save from before the books keeps this year as one line each ([12345, -2345, -500], 10000)
+FEIL the bank shows the statement and the year's accounts (staende)
+FEIL the bank shows the statement and the year's accounts (liggende)
+errors: []

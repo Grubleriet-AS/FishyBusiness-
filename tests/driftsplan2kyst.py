@@ -1,15 +1,14 @@
-"""Driftsplan 2 along the coast (Ø12 A+B, 07.11.2026; docs/planer/driftsplan-2/00-oppdrag.md kap. 4, the backlog's «Driftsplan 2: GUI-
+"""Driftsplan 2 and 3 along the coast (Driftsplan 3 since DP3-4, 16.11.2026: the plan from the page is a ring and a gear; Ø12 A+B, 07.11.2026; docs/planer/driftsplan-2/00-oppdrag.md kap. 4, the backlog's «Driftsplan 2: GUI-
 gjennomgangen, det som står igjen» and «stikkprøver langs kysten mangler»). Needs the whole coast in the build (tools/map/out/game, from
 release.py and game.py) and the vec packs (dist-vec: the harbours' berths come from them), without 3D (LITE). The same harness as
 driftsplan2test (D2: a fixed date, a seeded Math.random, the game's loop held).
 
   Per town (Bergen, Bodø, Hammerfest), from the plant nearest the town:
-    - B, the whole plan from the page: «Ny plan», line and jig, two fields and a jig place put in as the chart does (PLAN2UI.put), Start
-      (made with the legs), Levering every trip, and one day played closed: out once, set, jig, haul, land, home. One line per town.
-    - F2, the nearest rorbu in the home list as home, two days: out once a day, not again in the evening, and you rest at the rorbu.
-    - U14, the home list: the rorbuer nearest first, a harbour berth when the harbours have one, no yard, every line with its distance.
-    - A harbour berth as home (havnOptions), two days: she comes back to the berth, holds it and pays the due each day.
+    - Driftsplan 3 (DP3-4, 16.11.2026), the stikkprøve along the coast: the plan from the page as a player makes it (Lag driftsplan,
+      line with its bait, a ring by the plant set as a tap on the chart does, PLAN2UI.ringPut, Start), one day closed: out once, the
+      search with the echo sounder, the strings set in the ring, hauled after the soak, landed; the same with nets over two days.
     - Pause at sea: she anchors where anchorSpot lets her (4-40 m, 150 m from land), or drifts and says why; Start, and she goes on.
+    (The home list, a rorbu or a harbour berth as home, F2 and U14, went with Driftsplan 2's page: the plan chooses the home itself.)
   Over several days with the real rules, quota and weather, played as catchUp plays them (playMinutes), and the push that would go out:
     - G, nets at Ålesund with one field in Borgundfjorden (closed to all fishing 1.3-31.5, rules.json layer 24, the real regulation):
       from 29 February the plan stops on 1 March (closed longer than it waits), and push says so the day before and when it has; from
@@ -42,59 +41,42 @@ KY = r"""window.KY = (() => {
     return -n;
   }
   const page = () => PHONE.page('drift'), act = (a, d) => PHONE.dact('drift', a, d || {});
-  // the home list as the page shows it: [id, name, kind, the line under it]
-  const homes = () => { act('p2-row', {k:'home'}); const h = page(); act('p2-row', {k:'home'});
-    return [...h.matchAll(/data-pa="p2-home"[^>]*data-p="([^"]+)"[^>]*><b>([^<]*)<span class="dr-k">\(([^)]*)\)<\/span><\/b><small>([^<]*)<\/small>/g)].map(m => [m[1], m[2].trim(), m[3], m[4]]); };
   // the plant nearest the town, the boat there with you and one crew, the map and the vec packs in
   async function town(la, lo, seed, vt, n){
     D2.reset(seed); const c = P(la, lo), M = PORTS.filter(q => q.mottak && plantFor(q, vt || 'sjark')).sort((a, b) => dist(a.p, c) - dist(b.p, c))[0];
     D2.boat(vt || 'sjark', n == null ? 1 : n, true, M.id); S.lang = S.settings.lang = 'no'; window.confirm = () => true;
     await mapNeed(M.p, 16); const vec = await vecIn(M.p, 26); return {M, vec};
   }
-  // places as the chart puts them (PLAN2UI.put tries each against land, depth and the rules): k of a kind between r0 and r1 km from c
-  function put(o, kind, k, c, r0, r1){ const out = [];
-    for (let r = r0; r < r1 && out.length < k; r += 0.5) for (let a = 0; a < 24 && out.length < k; a++){ const q = {x:c.x + r * Math.sin(a * 0.26), y:c.y - r * Math.cos(a * 0.26)};
-      try { if (isLand(q) || depthF(q) < 20 || coastDist(q) < 0.4 || out.some(z => dist(z, q) < 1.2) || o.places.some(z => dist(z, q) < 1.2)) continue; const pl = PLAN2UI.put(o, kind, q); if (pl) out.push(q); } catch (e){} }
-    return out; }
+  // the ring as a tap on the chart sets it (PLAN2UI.ringPut checks land, depth and the rules): the first sea point 3-10 km from c it takes
+  async function ring(o, c){ for (let r = 3; r < 10; r += 0.5) for (let a = 0; a < 24; a++){ const q = {x:c.x + r * Math.sin(a * 0.26), y:c.y - r * Math.cos(a * 0.26)};
+      try { if (isLand(q) || depthF(q) < 30 || coastDist(q) < 0.8) continue; } catch (e){ continue; } const why = await new Promise(res => PLAN2UI.ringPut(o, q, res)); if (!why) return q; }
+    return null; }
   async function start(o){ act('p2-start'); for (let k = 0; k < 600 && !o.on && !o.err; k++) await new Promise(r => setTimeout(r, 100)); return {on:o.on, err:o.err, M:o.M, chk:plan2Check(o)}; }
   // the run's departures from home, per day, and how she ended
   const outs = L => { const d = {}; for (const e of L.ev) if (/^fish:unmooring@/.test(e[1])) { const k = e[0].split(' ')[0]; d[k] = (d[k] || 0) + 1; } return d; };
   const sum = (L, o) => ({ev:L.ev.slice(0, 60), days:L.days.map(d => d.at + ' | ' + d.text.slice(0, 10).join(' | ')), gear:L.gearLog, stats:o.stats.days.map(d => [d.d, Math.round(d.kg), Math.round(d.kr), d.out || 0, Math.round(d.conf || 0), Object.keys(d.port || {}).join(',')]), sum:o.stats.sum, fin:L.fin, ops:L.ops,
     msgs:L.msgs.filter(m => /venter|stengt|Stoppet|inndr|kvote/i.test(m[1])).slice(0, 8), log:L.log.filter(e => /rorbua|Havneavgift|inndr|Inndr|ankr|Ankr|anker|Lettet/.test(e[1])).slice(0, 12)});
-  return {vecIn, page, act, homes, town, put, start, outs, sum};
+  return {vecIn, page, act, town, ring, start, outs, sum};
 })();"""
 
-# ---- per town: B (the whole plan, two days), F2 (the rorbu), U14 (the home list), the harbour berth, the pause at sea
+# ---- per town (Driftsplan 3 since DP3-3/DP3-4, 16.11.2026): the plan made from the page as a player makes it, the ring by the plant and
+# the gear (line with its bait, then nets), Start, and played closed: out once, the search with the echo sounder, the gear set in the
+# ring, hauled, landed, home; and the pause at sea (anchors where it can, or drifts and says why), then Start again
 TOWN = r"""async ([nm, la, lo, seed]) => { const R = {nm}; const {M, vec} = await KY.town(la, lo, seed); R.M = [M.id, M.name]; R.vec = vec;
-  D2.gear('line', 4); S.pgear.bait = {makrell:60};
-  // B: a new plan from the page, as a player makes it: line and jig, the landing every trip (the default keeps the catch until the hold is full)
-  S.ops = null; KY.act('p2-new'); const o = S.ops; KY.act('p2-rig', {g:'line'}); KY.act('p2-jig', {v:'1'}); KY.act('p2-land-when', {v:'trip'});
-  const F = KY.put(o, 'felt', 2, M.p, 3, 12), J = KY.put(o, 'juks', 1, M.p, 2, 6);
-  for (const f of o.places.filter(q => q.k === 'felt')){ f.n = 2; f.soak = 6; }
-  R.places = o.places.map(q => [q.k, Math.round(dist(q, M.p) * 10) / 10, Math.round(depthF(q))]); R.home0 = [o.home, (portById(o.home) || {}).name, isRorbu(o.home) ? 'rorbu' : isBerth(o.home) ? 'havneplass' : portServices(portById(o.home)).mottak ? 'mottak' : 'kai'];
-  try { R.homes = KY.homes(); R.homesOk = true; } catch (e){ R.homes = []; R.homesOk = false; R.homesErr = String(e).slice(0, 200); return R; }
-  try { R.havn = havnOptions(M.p, 25).map(q => [q.place.id, q.place.name, q.kind, Math.round(dist(q.place.p, M.p) * 10) / 10]); } catch (e){ R.havnErr = String(e); }
-  const plan0 = JSON.stringify(o);
-  R.start = await KY.start(o); if (!o.on) return R;
-  const L = await D2.run(1440, 'closed', 'B' + nm); R.B = KY.sum(L, o); R.B.outs = KY.outs(L); R.B.home = o.home;
-  const zero = () => ({days:[], sum:{trips:0, kg:0, kr:0, lott:0, cost:0, conf:0, sp:{}, port:{}}});
-  const again = async (k) => { D2.reset(seed + k); D2.boat('sjark', 1, true, M.id); D2.gear('line', 4); S.pgear.bait = {makrell:60}; await KY.vecIn(M.p, 26);
-    const o2 = S.ops = JSON.parse(plan0); o2.on = false; o2.run = null; o2.made = null; o2.legs = {}; o2.err = null; o2.stats = zero(); return o2; };
-  // F2 (a rorbu) and a harbour berth as home: the same plan from each, two days closed
-  const home = async (k, pick) => { const o2 = await again(k), hl = KY.homes(), h = hl.find(pick); if (!h) return {none:true, kinds:hl.map(x => x[2])};
-    KY.act('p2-home', {p:h[0]}); const st = await KY.start(o2); const X = {h, chosen:o2.home === h[0], start:{on:st.on, err:st.err, errors:st.chk.errors}}; if (!o2.on) return X;
-    const L2 = await D2.run(2 * 1440, 'closed', 'H' + k); const sv = S.havn && S.havn.s[h[0]]; X.run = KY.sum(L2, o2); X.outs = KY.outs(L2);
-    X.end = {status:S.boat.status, port:S.boat.port, atHome:S.boat.port === h[0], held:!!(sv && sv.vid === S.cur), en:Math.round(S.energy)};
-    X.rorbu = L2.log.filter(e => /tok inn på rorbua/.test(e[1])).length; X.due = L2.log.filter(e => /Havneavgift/.test(e[1])).length; return X; };
-  R.F2 = await home(2, h => h[2] === 'rorbu');
-  R.H = await home(3, h => /^hs:/.test(h[0]));
+  const make = async (kind) => { D2.gear(kind, kind === 'line' ? 4 : 12); S.pgear.bait = {makrell:60}; S.ops = null; KY.act('p2-new'); const o = S.ops; KY.act('p2-g3', {g:kind}); if (kind === 'line') KY.act('p2-bait3', {v:'sild'}); const ring = await KY.ring(o, M.p); return {o, ring}; };
+  const one = async (kind, days, sd) => { if (sd) await KY.town(la, lo, sd); const {o, ring} = await make(kind), X = {ring:ring ? [Math.round(dist(ring, M.p) * 10) / 10, Math.round(depthF(ring))] : null}; if (!ring) return X;
+    X.start = await KY.start(o); if (!o.on) return X; const seen = {};
+    const L = await D2.run(days * 1440, 'closed', kind + nm, () => { for (const s of mySets()) if (!seen[s.id]) seen[s.id] = {a:{...s.a}, b:{...s.b}}; });
+    X.run = KY.sum(L, o); X.outs = KY.outs(L); X.sok = o.sokN || 0; X.last = o.sokLast; X.home = [o.home, (portById(o.home) || {}).name]; X.plant = o.M;
+    X.mids = Object.values(seen).map(s => +kmTrue({x:(s.a.x + s.b.x) / 2, y:(s.a.y + s.b.y) / 2}, o.ring).toFixed(2)); X.r = +o.ring.r.toFixed(2); return X; };
+  R.line = await one('line', 1); R.garn = await one('garn', 2, seed + 7);
   // the pause at sea: played until she fishes, then Pause; once where she happens to be, once where she can anchor; Start again
-  const pause = async (k, want) => { const o2 = await again(k); await KY.start(o2); let i = 0;
+  const pause = async (k, want) => { await KY.town(la, lo, seed + k); const {o: o2, ring} = await make('line'); if (!ring) return {none:true}; await KY.start(o2); let i = 0;
     for (; i < 1440 && !((S.boat.status === 'fishing' || (want && S.boat.status === 'sailing' && i > 30)) && !S.boat.gop && (!want || anchorSpot(S.boat.pos).ok)); i++){ DYN.on = false; step(); }
     if (i >= 1440) return {none:true};
     const at = {...S.boat.pos}, sp = anchorSpot(at), st0 = S.boat.status; KY.act('p2-pause'); const pp = KY.page(); for (let k = 0; k < 30; k++){ DYN.on = false; step(); }
-    const X = {st:st0, min:i, at:gDate(S.t / 60).toISOString().slice(11, 16), depth:Math.round(depthF(at)), spot:sp.ok ? 'ok' : sp.why, anch:!!S.boat.anch, drift:o2.paused && o2.paused.drift, moved:Math.round(dist(at, S.boat.pos) * 1000), says:(pp.match(/Nå: <\/b>([^<]*)/) || [])[1] || null};
-    KY.act('p2-start'); let gone = null; for (let k = 0; k < 900 && o2.on; k++){ DYN.on = false; step(); if (k % 10 === 9) await new Promise(r => setTimeout(r, 0)); if (gone == null && ['sailing', 'unmooring'].includes(S.boat.status)) gone = k; if (gone != null && k > gone + 5) break; }
+    const X = {st:st0, min:i, depth:Math.round(depthF(at)), spot:sp.ok ? 'ok' : sp.why, anch:!!S.boat.anch, drift:o2.paused && o2.paused.drift, moved:Math.round(dist(at, S.boat.pos) * 1000), says:(pp.match(/På pause[^<]*/) || [''])[0].slice(0, 160)};
+    KY.act('p2-start'); let gone = null; for (let k = 0; k < 900 && o2.on; k++){ DYN.on = false; step(); if (k % 10 === 9) await new Promise(r => setTimeout(r, 0)); if (gone == null && ['sailing', 'unmooring'].includes(S.boat.status) && !S.boat.anch) gone = k; if (gone != null) break; }
     X.after = {on:o2.on, anch:!!S.boat.anch, status:S.boat.status, gone, wait:o2.run && o2.run.wait && o2.run.wait.no}; return X; };
   R.P = await pause(4, false); R.PA = await pause(5, true);
   return R; }"""
@@ -112,7 +94,7 @@ REAL_G = r"""async () => { const R = {};
     try { if (isLand(q) || depthF(q) < 20 || coastDist(q) < 0.3) continue; if (!g1 && inB(q) && !ruBlockMsg({p:q, len:BOAT.len, gear:'garn', sp:null})) g1 = q; else if (!g2 && !inB(q) && !ruBlockMsg({p:q, len:BOAT.len, gear:'garn', sp:null}) && !ruBlockMsg({p:q, len:BOAT.len, gear:'garn', sp:null, H:Hc}) && dist(q, M.p) > 3) g2 = q; } catch (e){} }
   if (!g1 || !g2) return {err:'fant ikke felt i og utenfor Borgundfjorden', g1, g2};
   R.d = [Math.round(dist(g1, M.p) * 10) / 10, Math.round(dist(g2, M.p) * 10) / 10]; R.why = ruBlockMsg({p:g1, len:BOAT.len, gear:'garn', sp:null, H:Hc});
-  const o = S.ops = plan2New({home:M.id, rig:'garn', jig:false, places:[D2.felt('g1', g1, 6, 24), D2.felt('g2', g2, 6, 24)], dep:5, land:{mode:'near', port:null, when:'trip'}});
+  const o = S.ops = plan2New({v:DRV3, home:M.id, rig:'garn', jig:false, places:[D2.felt('g1', g1, 6, 24), D2.felt('g2', g2, 6, 24)], dep:5, land:{mode:'near', port:null, when:'trip'}});
   const err = await D2.make(o); if (err) return {err}; o.on = true;
   // 1. from 29 February: the closing on 1 March is longer than the plan waits (a month), so the plan stops, and push says so before and when it does
   await D2.run(60, 'open', 'G1a'); R.push1 = pz(/^ops-|^p2-/);
@@ -140,7 +122,7 @@ REAL_T = r"""async () => { const R = {};
   const {M} = await KY.town(67.285, 14.38, 81, 'sjarkny', 3); R.M = [M.id, M.name]; S.me = 'nobody'; setSkipper(S.crew[0].id); setMate(S.crew[1].id);
   D2.gear('teine', 12);
   const F = D2.spots(2, 4, 12, M.p);
-  const o = S.ops = plan2New({home:M.id, rig:'teiner', jig:false, places:[D2.felt('t1', F[0], 6, 48), D2.felt('t2', F[1], 6, 48)], dep:5, land:{mode:'near', port:null, when:'full'}});
+  const o = S.ops = plan2New({v:DRV3, home:M.id, rig:'teiner', jig:false, places:[D2.felt('t1', F[0], 6, 48), D2.felt('t2', F[1], 6, 48)], dep:5, land:{mode:'near', port:null, when:'full'}});
   const err = await D2.make(o); if (err) return {err}; o.on = true;
   // the first day open, then the app closed: what push would tell while it is away, then three days as catchUp plays them
   const L1 = await D2.run(1440, 'open', 'T1'); R.sets = mySets().map(s => [s.kind, s.n, gDate(s.tSet / 60).toISOString().slice(5, 16)]);
@@ -156,7 +138,7 @@ REAL_M = r"""async (N) => { N = N || 3; const R = {N};
   D2.gear('line', 4); S.pgear.bait = {makrell:60};
   const F = D2.spots(2, 5, 16, M.p), J = D2.spots(1, 3, 8, M.p);
   const rb = rorbuNear(M.p, 30)[0]; if (rb) rorbuSite(rb.R); const home = rb ? rb.R.id : M.id; R.home = [home, portById(home).name];
-  const o = S.ops = plan2New({home, rig:'line', jig:true, rhythm:'multi', days:3, places:[D2.felt('f1', F[0], 2, 6), D2.felt('f2', F[1], 2, 6), D2.juks('j1', J[0])], dep:5, land:{mode:'near', port:null, when:'days', days:N}});
+  const o = S.ops = plan2New({v:DRV3, home, rig:'line', jig:true, rhythm:'multi', days:3, places:[D2.felt('f1', F[0], 2, 6), D2.felt('f2', F[1], 2, 6), D2.juks('j1', J[0])], dep:5, land:{mode:'near', port:null, when:'days', days:N}});
   R.chk = plan2Check(o); R.cap = Math.round(capHold()); R.landVal = (PHONE.page('drift').match(/>Levering<\/span><span class="dr-rv">([^<]*)/) || [])[1] || null; const err = await D2.make(o); if (err) return {err, chk:R.chk}; o.on = true;
   const L = await D2.run(4 * 1440, 'closed', 'M'); R.run = KY.sum(L, o); R.outs = KY.outs(L);
   // where she lay each night at 01:00
@@ -164,8 +146,8 @@ REAL_M = r"""async (N) => { N = N || 3; const R = {N};
   return R; }"""
 
 # ---- the drawer over the 3D sea (with 3D drawn): the plan page at Bodø in each format
-SHOT = r"""async () => { const {M} = await KY.town(67.285, 14.38, 5); S.t = D2.T0 + 9 * 60; D2.gear('line', 4); S.ops = null; KY.act('p2-new'); const o = S.ops; KY.act('p2-rig', {g:'line'});
-  KY.put(o, 'felt', 2, M.p, 3, 10); KY.put(o, 'juks', 1, M.p, 2, 5); TAB.held = false; return {home:o.home, places:o.places.length, q:{...S.boat.pos}}; }"""
+SHOT = r"""async () => { const {M} = await KY.town(67.285, 14.38, 5); S.t = D2.T0 + 9 * 60; D2.gear('line', 4); S.ops = null; KY.act('p2-new'); const o = S.ops; KY.act('p2-g3', {g:'line'});
+  await KY.ring(o, M.p); TAB.held = false; return {home:o.home, ring:!!o.ring, q:{...S.boat.pos}}; }"""
 # the tile's 3D statics in (as vectest READY)
 READY = """(q) => { const v = G3._debug.vec, tx = Math.floor(q.x / 50), ty = Math.floor(q.y / 50); return !vecHas(tx, ty) || (v.statics.some(s => s.k === tx + ':' + ty) && v.chunks > 15); }"""
 
@@ -176,37 +158,22 @@ async def towns(pg, names):
         print('== ' + nm)
         try: r = await pg.evaluate(TOWN, [nm, la, lo, 11 + len(nm)])
         except Exception as e: print('FEIL', nm + ': the plan page and the town\'s run threw:', str(e).split('\n')[0][:300]); continue
-        print(ok(r.get('homesOk') is not False), nm + ': the Drift page draws its home list with the harbours as far as 25 km out, whose map may not be in yet (MAPD.simR is 4 km)', r.get('homesErr'))
-        print('  mottak', r['M'], 'vec', r['vec'], 'plassene', r.get('places'), 'hjem', r.get('home0'))
-        print('  hjem-lista:'); [print('    ', h) for h in r.get('homes', [])]
-        print('  havneplasser:', r.get('havn'), r.get('havnErr') or '')
-        st = r.get('start') or {}
-        print(ok(st.get('on') and not st.get('err')), nm + ': B the plan made from the page (line 2 + 2, a jig place) is made and starts', [st.get('err'), st.get('M'), (st.get('chk') or {}).get('errors')])
-        if not st.get('on'): continue
-        B = r['B']; print('  B (hjem ' + str(r['home0']) + '):'); [print('    ', d) for d in B['days']]; [print('    ', e) for e in B['ev'][:40]]
-        print('    redskap', [(g['set'], g['haul'], g['soak'], g['kg']) for g in B['gear']]); print('    stats', B['stats'], 'fin', B['fin']); print('    logg', B['log'][:6], 'meld', B['msgs'][:4])
-        hauls = [g for g in B['gear'] if g['haul']]; d1 = B['stats'][:1]
-        print(ok(len(B['gear']) >= 2 and len(hauls) >= 2 and all(6.0 <= g['soak'] <= 8.5 for g in hauls) and d1 and d1[0][1] > 0 and d1[0][5] == r['M'][0] and B['ops']['on'] and not B['ops']['stop'] and sum(B['outs'].values()) == 1), nm + ': B one day on the plan from the page: out once, both fields set and hauled after 6-8.5 h, landed at ' + r['M'][1] + ', home, the plan still on', [[(g['set'], g['soak']) for g in hauls], d1, B['outs'], B['fin']['port'], B['ops']['stop']])
-        hm = r['homes']; kinds = [h[2] for h in hm]; rb = [i for i, h in enumerate(hm) if h[2] == 'rorbu']; rest = [i for i, h in enumerate(hm) if h[2] != 'rorbu']
-        print(ok(hm and 'verft' not in kinds and rb and (not rest or max(rb) < min(rest)) and all(' nm ' in h[3] for h in hm)), nm + ': U14 the home list: the rorbuer first, no yard, every line says the distance', kinds)
-        hv = r.get('havn') or []
-        print(ok(not hv or any(h[0].startswith('hs:') for h in hm)), nm + ': U14 a harbour berth stands in the list when the harbours have one', [len(hv), [h[0] for h in hm if h[0].startswith('hs:')]])
-        for k, what in (('F2', 'F2 a rorbu as home'), ('H', 'a harbour berth as home')):
-            X = r.get(k) or {}
-            if X.get('none'): print('HOPP', nm + ': ' + what + ': ingen i hjem-lista', X.get('kinds')); continue
-            R2 = X.get('run') or {}; print('  ' + k + ':', json.dumps({q: X.get(q) for q in ('h', 'chosen', 'start', 'outs', 'end', 'rorbu', 'due')}, ensure_ascii=False)[:600])
-            [print('    ', d) for d in (R2.get('days') or [])[:2]]; print('    stats', R2.get('stats'))
-            st = R2.get('stats') or []; o_ = X.get('outs') or {}; e = X.get('end') or {}
-            base = X.get('chosen') and (X.get('start') or {}).get('on') and len(o_) == 2 and all(v == 1 for v in o_.values()) and len(st) == 2 and all(d[1] > 0 for d in st) and e.get('atHome')
-            if k == 'F2': print(ok(base and X.get('rorbu', 0) >= 2 and e.get('en', 0) >= 15), nm + ': F2 a rorbu as home (' + X['h'][1] + '): out once a day for two days, lands each day, back at the rorbu, and you rest there each night', [o_, [d[:2] for d in st], e, X.get('rorbu')])
-            else: print(ok(base and e.get('held') and X.get('due', 0) >= 2), nm + ': a harbour berth as home (' + X['h'][1] + '): out once a day for two days, lands, comes back to the berth it holds, and pays the due', [o_, [d[:2] for d in st], e, X.get('due')])
+        print('  mottak', r['M'], 'vec', r['vec'])
+        for kind, days, soak in (('line', 1, (7.5, 11)), ('garn', 2, (23.5, 28))):
+            X = r.get(kind) or {}; st = X.get('start') or {}
+            print(ok(X.get('ring') and st.get('on') and not st.get('err')), nm + ': %s, the plan made from the page (a ring by %s, %s) is made and starts from port' % (kind, r['M'][1], kind), [X.get('ring'), st.get('err'), (st.get('chk') or {}).get('errors')])
+            if not st.get('on'): continue
+            B = X['run']; print('  %s (hjem %s, mottak %s, søk %s):' % (kind, X.get('home'), X.get('plant'), X.get('last'))); [print('    ', d) for d in B['days'][:3]]; [print('    ', e) for e in B['ev'][:30]]
+            print('    redskap', [(g['set'], g['haul'], g['soak'], g['kg']) for g in B['gear']], 'midt fra ringens midte', X.get('mids'), 'r', X.get('r')); print('    stats', B['stats'], 'fin', B['fin'])
+            hauls = [g for g in B['gear'] if g['haul']]; land = [d for d in B['stats'] if d[1] > 0]
+            print(ok(X.get('sok', 0) >= 1 and B['gear'] and all(m <= X['r'] + 0.05 for m in X['mids'])), nm + ': %s, the search with the echo sounder before the gear went out, and every string with its middle in the ring' % kind, [X.get('sok'), X.get('mids')])
+            print(ok(hauls and all(soak[0] <= g['soak'] <= soak[1] for g in hauls) and land and B['ops']['on'] and not B['ops']['stop'] and sum(X['outs'].values()) <= days), nm + ': %s, %d day(s) closed: set, hauled after the soak, landed, and the plan still on; out once a day' % (kind, days), [[g['soak'] for g in hauls], [d[:2] for d in land], X.get('outs'), B['ops'].get('stop')])
         for k in ('P', 'PA'):
             P = r.get(k) or {}
             if P.get('none'): print('HOPP', nm + ': ingen fiskeplass i dag der hun kan ankre'); continue
             print('  pause ' + k + ':', P)
-            print(ok((P['anch'] if P['spot'] == 'ok' else (not P['anch'] and P['drift'] == P['spot'])) and P['says'] and ('ankers' in P['says'] if P['anch'] else 'driver' in P['says'])), nm + ': Pause at sea (' + str(P['depth']) + ' m, ' + str(P.get('st')) + '): ' + ('anchors where she can' if k == 'PA' else 'anchors or drifts and says why'), [P['depth'], P['spot'], P['anch'], P['drift'], P['says']])
+            print(ok((P['anch'] if P['spot'] == 'ok' else (not P['anch'] and P['drift'] == P['spot'])) and P['says'] and ('ankers' in P['says'] if P['anch'] else 'driver' in P['says'])), nm + ': Pause at sea (' + str(P['depth']) + ' m, ' + str(P.get('st')) + '): ' + ('she anchors where she is' if P['anch'] else 'she drifts and the page says why'), P.get('says'))
             print(ok(P['after']['on'] and not P['after']['anch'] and P['after']['gone'] is not None), nm + ': Start after the pause: she goes on' + (' and the anchor comes up when she goes' if P['anch'] else ''), P['after'])
-
 
 async def real(pg, names):
     if not names or 'G' in names:
@@ -254,7 +221,7 @@ async def real(pg, names):
             R = r['run']; [print('    ', d) for d in R['days']]; print('    netter', r['nights']); print('    stats', R['stats'], 'fin', R['fin'])
             st = R['stats']; got = [i + 1 for i, x in enumerate(st) if x[1] > 0]
             print(ok(len(st) >= 4 and got == [2, 3] and st[1][1] < 0.8 * r['cap'] and R['ops']['on'] and not R['ops']['stop']), 'M2 levering hvert 2. døgn på en tur på 3: levert dag 2 (lasten under 80 %, så etter regelen, ikke full last) og dag 3 (turens siste), ikke dag 1 eller 4 (Jonas 08.11.2026, valg 14: A)', [got, st, r['cap']])
-            print(ok(r.get('landVal') and 'hvert 2. døgn og turens siste dag' in r['landVal']), 'M2 Levering-raden sier «hvert 2. døgn og turens siste dag»', r.get('landVal'))
+            # (the Levering row went with Driftsplan 3's page, DP3-3: the engine's landing rule is what M2 checks)
             print(ok(r['nights'][1] and '@' + r['home'][0] not in r['nights'][1] and r['nights'][2] and '@' + r['home'][0] in r['nights'][2]), 'M2 leveringen dag 2 avslutter ikke turen: natta ute, hjem dag 3', r['nights'])
 
 async def shots(p):

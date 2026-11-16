@@ -178,7 +178,8 @@ async def u28(p):
         await boot(pg, GAME + '#notut'); await pg.wait_for_timeout(800)
         await pg.evaluate("(() => { if (!document.body.classList.contains('v3d') && typeof G3 !== 'undefined') G3.show(true); S.settings.hudMin = false; S.settings.plotMin = false; S.boat.status = 'idle'; S.boat.port = null; renderHud(); })()"); await pg.wait_for_timeout(800)
         tag = '%dx%d' % (W, H); a = await pg.evaluate(U28)
-        check(a['attr'] and a['book'] and a['attr']['l'] >= a['book']['r'], tag + ': the map\'s credit line begins right of the deck log\'s tab, not under it', {'attr': a['attr'], 'tab': a['book']})
+        # (16.11.2026, Jonas: the credit line is no longer over the 3D view; it stands on the chart, the loading screen and in Innstillinger)
+        check(a['book'] and (a['attr'] is None or a['attr']['l'] >= a['book']['r']), tag + ': the map\'s credit line is not in the 3D view, or begins right of the deck log\'s tab', {'attr': a['attr'], 'tab': a['book']})
         check(a['tabCut'] <= 1, tag + ': the deck log\'s tab shows its whole word', {'cut px': a['tabCut']})
         if W > H and H > 520:
             check(a['empty'] <= 16, tag + ': the whole box on its side has no empty reserve under its last line', {'empty px': a['empty'], 'hud': a['hud']})

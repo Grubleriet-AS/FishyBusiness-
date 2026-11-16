@@ -7,6 +7,8 @@
 // The plan in the game since 27.10.2026 (part 7): plan2Ops switches older plans off with a word (Jonas 26.10.2026, choice 5 C); the old
 // plan's code was taken out in part 8 (Ø12 C, 08.11.2026) and its last names in Ø12 D (12.11.2026).
 const DRV2 = 4;
+// a plan the engine runs: Driftsplan 2's v4, or Driftsplan 3's v5 (06k-plan3.js), which is a v4 with its ring on it
+const p2IsPlan = o => !!o && (o.v === DRV2 || o.v === DRV3);
 const DRP2 = {
   dayMax:14, minDay:2, tired:72, rested:25, late:8, fatH:5, enH:100 / 24, enMin:15,     // the day's length: 14 h, the crew at 72 with 5 an hour, you at 15 % with 4.2 an hour
   dayFrom:6, watch:12,                                                                 // the skipper's day watch 06–18, the mate's night (Jonas 26.10.2026)
@@ -87,7 +89,10 @@ function plan2New(over){
 // the plan the engine runs: a v4, and an older plan is switched off with a word
 function plan2Ops(){
   const o = S.ops; if (!o) return null;
-  if (o.v === DRV2){ if (o.rig === 'line' && o.places.some(q => q.k === 'felt' && !q.lk)){ for (const q of o.places) if (q.k === 'felt' && !q.lk){ q.lk = p2LineKind(o); q.n = Math.max(1, Math.min(q.n, p2Left(o, q))); } }   // (fields from before 27.10.2026: the line's kind and the tubs the boat owns)
+  // (Driftsplan 3, 16.11.2026: a v5 plan is a v4 plan with its ring; with DRIFT3 on an older v4 plan is switched off, after it has fetched
+  // its gear and landed when it runs, 06k-plan3.js plan3Retire)
+  if (o.v === DRV2 && DRIFT3) return plan3Retire(o);
+  if (o.v === DRV2 || o.v === DRV3){ if (o.rig === 'line' && o.places.some(q => q.k === 'felt' && !q.lk)){ for (const q of o.places) if (q.k === 'felt' && !q.lk){ q.lk = p2LineKind(o); q.n = Math.max(1, Math.min(q.n, p2Left(o, q))); } }   // (fields from before 27.10.2026: the line's kind and the tubs the boat owns)
     // (an ocean vessel, H2c: her teams' watches round the clock, no jig, and the fields of her autoline in lenker)
     if (p2Lag() || p2Hav()){ if (o.rhythm !== 'watch') o.rhythm = 'watch';   // (an ocean vessel round the clock only, Jonas 07.11.2026)
       if (o.jig && !p2Jig(o)) o.jig = false; if (o.land && o.land.when === 'trip') o.land.when = 'full';
@@ -202,6 +207,8 @@ function planDayAuto(o, H0, st){
   // in port and the trip is over before it began (the gear fetched, nothing in the sea, the hold empty): home
   if (end && atPort && !st.sets.length){ if (atPort !== o.home && o.home){ go(plan2P(o, 'H'), plan2Port(o, 'H')); steps.push({t, k:'hjem', port:o.home, anchor:!!o.homeA}); }
     return {t0:H0, steps, end:t, home:null, why:end, skipped, dayMax:24, auto:true}; }
+  // (Driftsplan 3, DP3-4: the search with the echo sounder in the ring before the lenker go out, as on the coast, planDay)
+  if (o.v === DRV3 && !end && !o.fetch){ const ids = plan3SokNeed(o, st); if (ids.length){ const E = plan3SokEst(o); go(o.places[0]); steps.push({t, k:'sok', pids:ids, h:E.h, km:E.km, l:E.l, tier:E.tier, who:E.who}); t += E.h; const Q = plan3SokEnd0(o, E.tier); at = Q; atPort = null; } }
   const readyN = () => Math.min(n0, Math.floor(bait / A.bait + 1e-9)), cyc = [], until = H0 + DRP2.hav.look;
   // pass 1: the fields in the player's order: what stands is hauled when due (pass 2); an empty field gets its lenker, if any are ready
   for (const q of F){
@@ -273,6 +280,10 @@ function planDay(o, H0, st){
   const potsSea = kind === 'teine' ? st.sets.filter(x => x.kind === 'teine').reduce((a, x) => a + x.n, 0) : 0, baitRound = kind === 'teine' ? (st.aboard.teine + potsSea) * GPRICE.potBait : 0;
   const dueSoon = kind === 'teine' ? st.sets.filter(x => x.kind === 'teine' && (() => { const q = o.places.find(y => y.id === x.fid); return q && x.tSet / 60 + q.soak <= H0 + dayMax; })()).reduce((a, x) => a + x.n, 0) : 0;
   if (kind === 'teine' && dueSoon > 0 && st.aboard.bait < dueSoon * GPRICE.potBait - 1e-6 && plan2P(o, 'M') && !watch){ go(plan2P(o, 'M'), o.M); steps.push({t, k:'agn', port:o.M, kg:Math.ceil(baitRound * 2 - st.aboard.bait)}); t += DRP2.stockH; st = Object.assign({}, st, {aboard:Object.assign({}, st.aboard, {bait:baitRound * 2})}); }
+  // Driftsplan 3 (DP3-2, 06k-plan3.js): the search with the echo sounder in the ring before the gear goes out, when a field has never been
+  // searched or its haul fell. She sails the pattern from the first place to the nearest place it ends by; the engine reads it there (plan3SokEnd) and lays
+  // the day again with the spots found, so the sets after it in this day stand at the fixed points as an estimate
+  if (o.v === DRV3 && !fetch){ const ids = plan3SokNeed(o, st); if (ids.length){ const E = plan3SokEst(o), A0 = o.places[0]; go(A0); steps.push({t, k:'sok', pids:ids, h:E.h, km:E.km, l:E.l, tier:E.tier, who:E.who}); t += E.h; at = plan3SokEnd0(o, E.tier); atPort = null; } }
   // pass 1: the places in the player's order (Jonas 27.10.2026: the order is the player's). A field: haul what is due by arrival (and
   // set again), set what is empty if gear of its kind is ready, remember what is not yet due. The jig places before the first field get
   // the day's free hours first (jig most of the day, set the line before going home); those after the fields get the hours until the
@@ -389,6 +400,9 @@ function planDayText(o, day){
     else if (s.k === 'hvile'){ no = (s.where === 'anker' ? 'Hviler om bord' : s.where === 'kai' ? 'Hviler ved kaia' : 'Hviler') + ' til ' + kl(s.until); en = (s.where === 'anker' ? 'Rests aboard' : s.where === 'kai' ? 'Rests at the quay' : 'Rests') + ' until ' + at(s.until); }
     else if (s.k === 'vakt'){ no = 'Vakt ' + s.w + ' til ' + kl(s.until) + ': ' + s.who.join(', '); en = 'Watch ' + s.w + ' until ' + at(s.until) + ': ' + s.who.join(', '); }
     else if (s.k === 'ut'){ no = 'Ut igjen'; en = 'Out again'; }
+    else if (s.k === 'sok'){ const T = P3TIER[s.tier] || P3TIER.basic, m = Math.max(1, Math.round(s.h * 60)), fu = BOAT.diesel === false ? ['bensin', 'petrol'] : ['diesel', 'diesel'];
+      no = 'Søker etter fisken i ringen med ' + T[0] + ': ' + fmt(s.km, 1) + ' km, om lag ' + m + ' min og ' + fmt(s.l, 0) + ' l ' + fu[0] + ' (' + (s.who ? s.who + ' leser bildet' : 'du leser bildet') + ')';
+      en = 'Searches the ring for the fish with ' + T[1] + ': ' + (+s.km).toFixed(1) + ' km, about ' + m + ' min and ' + Math.round(s.l) + ' l of ' + fu[1] + ' (' + (s.who ? s.who + ' reads the picture' : 'you read the picture') + ')'; }
     out.push([c, no, en]);
   }
   const cap = x => x.charAt(0).toUpperCase() + x.slice(1);   // («Field 1: …», not «field 1: …», GUI review P6)

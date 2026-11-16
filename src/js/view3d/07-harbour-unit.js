@@ -77,7 +77,7 @@
     if (!unitModel()) return; nSetup(VP);
     for (const U of UNITA){
       const d = Math.hypot(U.o[0] - eye[0], U.o[1] - eye[2]); if (d > far) continue; const M = unitModel(U.v);
-      const full = near && d / ZF() < 900 * QUAL.lodK[QUAL.lvl], UM0 = unitMat(U, eye); drawN(full ? M.near : M.far, UM0);
+      const full = near && d / ZF() < 900 * QUAL.lodK[QUAL.lvl] * (+PGFX.dist || 1), UM0 = unitMat(U, eye); drawN(full ? M.near : M.far, UM0);
       if (full && U.v === 'y') drawYardLift(U, eye, M, UM0);
       const P = full && U.id !== skip && PLANTS.find(q => q.id === U.id); if (P) drawUnitParts(P, eye, craneIdle(P, 0), fkRest(P), 0, P.chRest);
     }
@@ -121,7 +121,7 @@
     for (const s of sitesNow()){
       const d = Math.hypot(s.o[0] - eye[0], s.o[1] - eye[2]); if (d > Math.min(far, 4000)) continue;
       const M = siteModel(s.k === 'rorbu' ? 'rorbu:' + s.v : s.k); if (!M) continue; if (!set){ nSetup(VP); set = true; }
-      drawN(near && d / ZF() < 900 * QUAL.lodK[QUAL.lvl] ? M.near : M.far, chain(M4.T(s.o[0] - eye[0], (s.lev !== undefined ? s.lev - (QTOP - 0.1) : s.lift || 0) - eye[1], s.o[1] - eye[2]), M4.RY(Math.atan2(-s.u[1], s.u[0]))));
+      drawN(near && d / ZF() < 900 * QUAL.lodK[QUAL.lvl] * (+PGFX.dist || 1) ? M.near : M.far, chain(M4.T(s.o[0] - eye[0], (s.lev !== undefined ? s.lev - (QTOP - 0.1) : s.lift || 0) - eye[1], s.o[1] - eye[2]), M4.RY(Math.atan2(-s.u[1], s.u[0]))));
     }
     if (set){ gl.disableVertexAttribArray(2); gl.useProgram(PL.p); }
   }

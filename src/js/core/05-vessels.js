@@ -660,7 +660,8 @@ function newState(){
     equip:{vhf:false, ais:false, plotter:false, chirp:false, sonar:false, jukse:0, motor90:false}, crew:[], loan:null, member:false, msgs:[], sales:[], order:null, owned:['trebat'], lic:null, qseed:WCLOCK.on ? WORLD_SEED : Math.floor(Math.random() * 1e9), fm:{n:0, last:-1, kr:0, b:false}, haill:null, haillInv:{haill:0, luksus:0}, pubE:-1e9, target:'mix', streak:null, clothes:{olje:0, varme:0}, orders:null, rep:{}, bors:null, cevt:null, workLog:[], stock:initStock(), marks:[], navrows:[], incidents:[], lore:{}, tattoos:{}, tat:{}, pgear:newPGear(), sets:[], gseq:0, ops:null, company:'', boatName:'', tut:0, jobs:[], prep:{}, tripBuff:null, draftDep:null,
     plan:null, draft:[], draftSpeed:16, draftFull:true, trail:[{x:home.p.x, y:home.p.y, port:home.id}],
     settings:{deckFirst:true, autoOn:true, autoW:11, autoTo:'near', catchByWork:true, radarKit:true},
-    hold:[], log:[], market:{}, stats:{revenue:0, costs:0, trips:0, kg:0}, lastSale:null, fishPlanH:3, lastIceWarn:-1e9, intro:false};
+    hold:[], log:[], market:{}, stats:{revenue:0, costs:0, trips:0, kg:0}, lastSale:null, fishPlanH:3, lastIceWarn:-1e9, intro:false,
+    bank:{kkOld:false}};   // (a new game has no overdraft until the sea time; 03-simulation.js kkOpen)
 }
 const KEEP_MIN = 60 * 24 * 60;
 function log(no, en, k){ if (VTAG && S.fleet && S.fleet.length > 1 && S.boatName){ no = S.boatName + ': ' + no; en = S.boatName + ': ' + en; } S.log.push(k ? {t:S.t, no, en, k} : {t:S.t, no, en}); while (S.log.length > 4000 || (S.log.length && S.log[0].t < S.t - KEEP_MIN)) S.log.shift(); if (hooks.onLog) hooks.onLog(); }
@@ -857,7 +858,12 @@ function sail(H, W, hs){
 // back to the draft. Three tries a leg at most. (Tilbakemeldinger #47 and #48, 08.10.2026: a boat on Autonav must never end up on
 // land. The legs are checked when the route is made; this is the net under them, also after a drift, a pause or a tow.)
 // Returns true when she is held back here, false when the leg is the player's own unsafe one (then she grounds as before).
-const SAIL_RP = {n:0, at:'', wait:0, since:0};
+const SAIL_RP = {n:0, at:'', pl:null, wait:0, since:0, tgt:null, nT:0, gp:null};   // (the tries are counted per leg of this route: a new route with the same leg index and length begins at none)
+// (and per shallow on the way to a point of the route, past the ways round put in before it: each way round that is found puts points in
+// and begins the leg's count again, so one that leads back onto the same ground could go round for good. Eight ways round from within
+// 300 m of each other to one point at most; other shallows further on count anew)
+const SAIL_RPMAX = 8;
+const SAIL_NONE = ['Grunt vann forut, og Autonav fant ingen trygg vei rundt. Båten ligger stille. Legg en ny rute.', 'Shallow water ahead, and Autonav found no safe way round. The boat lies still. Set a new route.'];
 // a way round being found while the time away is played (ui/08-actions.js playMinutes): the minutes wait for it, as they wait for the
 // map, so a boat that meets shallow water with the game closed goes round and on instead of lying still for the rest of the time away
 // (tilbakemelding #97); a search that never answers holds them 20 s at most
@@ -867,10 +873,15 @@ function sailReplan(pl, b, gp){
   const w = pl.wps[pl.idx], d = dist(b.pos, gp);
   if (d > 0.03){ const f = (d - 0.025) / d, q = {x:b.pos.x + (gp.x - b.pos.x) * f, y:b.pos.y + (gp.y - b.pos.y) * f}; if (!groundCheck(b.pos, q)) b.pos = q; }
   b.v = 0;
-  const key = pl.idx + '|' + pl.wps.length; if (SAIL_RP.at !== key){ SAIL_RP.at = key; SAIL_RP.n = 0; }
-  const none = gp.ice ? iceWhy(gp, true) : ['Grunt vann forut, og Autonav fant ingen trygg vei rundt. Båten ligger stille. Legg en ny rute.', 'Shallow water ahead, and Autonav found no safe way round. The boat lies still. Set a new route.'];
-  if (++SAIL_RP.n > 3){ sailStop(pl, b, none); return true; }
-  pl.replan = {t:S.t};
+  const key = pl.idx + '|' + pl.wps.length; if (SAIL_RP.at !== key || SAIL_RP.pl !== pl){ SAIL_RP.at = key; SAIL_RP.pl = pl; SAIL_RP.n = 0; }
+  const none = gp.ice ? iceWhy(gp, true) : SAIL_NONE;
+  let j = pl.idx; while (j < pl.wps.length - 1 && pl.wps[j].obs) j++; const tg = pl.wps[j];
+  if (SAIL_RP.tgt !== tg || !SAIL_RP.gp || dist(SAIL_RP.gp, gp) > 0.3){ SAIL_RP.tgt = tg; SAIL_RP.nT = 0; } SAIL_RP.gp = {x:gp.x, y:gp.y};
+  // (the way round found on this leg was the leg itself, no point put in: the same search again gives the same. The hands take her on
+  // past the shallows along the line instead, the last way out, 16b-dyn.js dynHandsOn; Træna utstyrsbutikk, 14.11.2026)
+  if (!gp.ice && pl.rpNone && pl.rpNone.tg === tg && S.t - pl.rpNone.t < 20 && typeof dynHandsOn === 'function' && dynHandsOn(pl)){ pl.rpNone = null; return true; }
+  if (++SAIL_RP.n > 3 || ++SAIL_RP.nT > SAIL_RPMAX){ sailStop(pl, b, none); return true; }
+  pl.replan = {t:S.t, w:Date.now(), ice:gp.ice ? {x:gp.x, y:gp.y} : null};   // (ice: what she waits at is ice, for the words if the search never answers, 16b-dyn.js)
   if (gp.ice){ const w = seaIceWords(gp); log(w.no + ' Autonav stopper og finner en vei rundt.', w.en + ' Autonav stops and finds a way round.', 'nav'); }
   else log('Grunt vann forut. Autonav stopper og finner en vei rundt.', 'Shallow water ahead. Autonav stops and finds a way round.', 'nav');
   const from = {x:b.pos.x, y:b.pos.y}, to = {x:w.x, y:w.y}, PL = pl, vid = S.cur;
@@ -882,10 +893,33 @@ function sailReplan(pl, b, gp){
   pr.then(res => bound(() => { done();
     if (S.plan !== PL || !PL.replan) return;   // the route was changed meanwhile
     PL.replan = null;
-    if (!res || res.why || !res.wps || !res.wps.length){ sailStop(PL, S.boat, none); return; }
+    // (no way round from here on a leg the route itself called safe: the hands take her on past the shallows along the line, the last way
+    // out (Jonas 14.11.2026), where the manoeuvring model has her; else she stops and says so. Tvedestrand verft, 14.11.2026)
+    if (!res || res.why || !res.wps || !res.wps.length){ if (!gp.ice && typeof dynHandsOn === 'function' && dynHandsOn(PL)) return;
+      // (and before she stops: a new way from where she lies to the route's end, the rest of the route dropped, as a player would set it.
+      // At Tussøy utstyrsbutikk she lay 27 m short of a point of the route by the rocks, and no way to that point was found, while the way to
+      // the shop from there was open; allesteder-15, seed 3, 16.11.2026. Once a route, and not for one that fishes or works on the way)
+      const E = PL.wps[PL.wps.length - 1], rest = PL.wps.slice(PL.idx);
+      if (!gp.ice && E !== w && !PL.rpEnd && rest.every(q => !(q.fish > 0) && !q.act && !q.anchor)){ PL.rpEnd = true; PL.replan = {t:S.t, w:Date.now(), ice:null}; SAIL_RP.wait++;
+        let pr2; try { pr2 = leiaRoute({x:S.boat.pos.x, y:S.boat.pos.y}, {x:E.x, y:E.y}, null, E.port || null); } catch (e){ pr2 = Promise.resolve(null); }
+        pr2.then(r2 => bound(() => { SAIL_RP.wait = Math.max(0, SAIL_RP.wait - 1); if (S.plan !== PL || !PL.replan) return; PL.replan = null;
+          if (!r2 || r2.why || !r2.wps || !r2.wps.length){ sailStop(PL, S.boat, none); return; }
+          const nw = r2.wps.slice(0, -1).map(q => ({x:q.x, y:q.y, port:null, fish:0, leia:true})).concat([E]);
+          PL.wps.splice(PL.idx, PL.wps.length - PL.idx, ...nw); if (PL.unsafe) PL.unsafe.splice(PL.idx, PL.unsafe.length - PL.idx, ...nw.map(() => false)); PL.obsK = null;
+          if (typeof DYN !== 'undefined' && DYN.line && DYN.line.plan === PL) DYN.line = null;
+          log('Autonav fant en ny vei dit. Går videre.', 'Autonav found a new way there. Going on.', 'nav'); }))
+          .catch(e => { SAIL_RP.wait = Math.max(0, SAIL_RP.wait - 1); console.error(e); bound(() => { if (S.plan === PL && PL.replan){ PL.replan = null; sailStop(PL, S.boat, none); } }); });
+        return; }
+      sailStop(PL, S.boat, none); return; }
     const ins = res.wps.slice(0, -1).map(q => ({x:q.x, y:q.y, port:null, fish:0, leia:true, obs:true}));
+    PL.rpNone = ins.length ? null : {t:S.t, tg};
+    // (the way round is the leg itself, from where she lies now: the model's line was drawn from where she was when the route last
+    // changed, and that first piece of it crossed the islet she stopped for, 30 m off her, while the leg from her is clear. The line is
+    // drawn again from her, 16b-dyn.js dynLineBuild; before, the same line met the same ground and she stopped, «fant ingen trygg vei
+    // rundt»: Træna utstyrsbutikk, 14.11.2026, steg 126)
+    if (!ins.length && typeof DYN !== 'undefined' && DYN.line && DYN.line.plan === PL && S.boat === b) DYN.line = null;
     PL.wps.splice(PL.idx, 0, ...ins); if (PL.unsafe) PL.unsafe.splice(PL.idx, 0, ...ins.map(() => false)); PL.obsK = null;
-    log('Autonav fant en vei rundt. Går videre.', 'Autonav found a way round. Going on.', 'nav');
+    log('Autonav fant en vei rundt. Går videre.', 'Autonav found a way round. Going on.', 'nav');   // (also when the way is the leg itself: she goes on along it, tests/dyntest.py 2c)
   })).catch(e => { done(); console.error(e); bound(() => { if (S.plan === PL && PL.replan){ PL.replan = null; sailStop(PL, S.boat, none); } }); });
   return true;
 }
@@ -912,6 +946,9 @@ function haltPlan(need){
 }
 function arrive(w){
   const b = S.boat, pl = S.plan;
+  // (a berth in one of the coast's harbours, shut to the players since 15.11.2026, HAVN.shut: passed as a point, never moored at; a way home
+  // along the trail from before, or a plan from before, still named one, the kontroll of steg 126)
+  if (w.port && typeof HAVN !== 'undefined' && HAVN.shut && isBerth(w.port)){ w.port = null; delete w.berth; log(HAVN_WHY[0], HAVN_WHY[1]); }
   S.trail.push({x:w.x, y:w.y, port:w.port || null});
   if (w.port){ dock(w.port, w.berth); return true; }
   pl.idx++;
@@ -939,6 +976,23 @@ function unstuckSpot(){
   const ok = q => { try { return !isLand(q) && coastDist(q) >= 0.2 && depthF(q) >= sd + 1; } catch (e){ return false; } };
   if (near && dist(near.p, from) < 2){ let path = null; try { path = approachPath(near); } catch (e){} if (path && path.length && ok(path[0])) return path[0]; }
   for (const r of [0.3, 0.5, 0.75, 1, 1.5, 2, 3, 4]) for (let i = 0; i < 24; i++){ const a = i * Math.PI / 12, q = {x:from.x + Math.sin(a) * r, y:from.y - Math.cos(a) * r}; if (ok(q)) return q; }
+  return null;
+}
+// Aground in the first weeks (Jonas 16.11.2026, before the launch: «de skal også få muligheten til å flytte båten ut på havet igjen uten
+// skade på skrog da det er en stor sannsynlighet for at skaden skyldes spillet, ikke brukeren nå i startfasen»): every time, the hull
+// as it was before she ran aground (b.agSnap, runAground in 01-world.js) and the boat out on safe water as «Sitter båten fast?» puts her.
+// AG.free false takes the offer away again.
+const AG = {free:true};
+const agCan = () => AG.free && S.boat.status === 'aground' && !!S.boat.agSnap;
+function agFree(){
+  if (!agCan()) return ['Båten står ikke på grunn.', 'The boat is not aground.'];
+  const b = S.boat, A = b.agSnap, dmg0 = b.dmg, at0 = S.unstuckAt;
+  b.dmg = A.dmg ? JSON.parse(JSON.stringify(A.dmg)) : null; if (typeof hullSync === 'function') hullSync(b);
+  S.unstuckAt = 0; const why = unstuck();
+  if (why){ b.dmg = dmg0; if (typeof hullSync === 'function') hullSync(b); S.unstuckAt = at0; return why; }   // (no safe water near: as she was)
+  b.tripBad = A.tripBad; b.agSnap = null; S.unstuckAt = at0;   // (and «Sitter båten fast?» is not held back by it)
+  const inc = (S.incidents || []).filter(i => i.k === 'aground').pop(); if (inc) inc.freed = true;
+  log('Skroget er som før grunnstøtingen.', 'The hull is as it was before she ran aground.', 'nav');
   return null;
 }
 function unstuck(){
@@ -984,7 +1038,7 @@ function dock(pid, berth){
   if (port.rorbu) rorbuSite(port);   // its berth is found before the boat is put there (07d-rorbu.js)
   if (isBerth(pid)){ havnHold(pid); b.hvDay = null; }   // a berth in a harbour: hers while she lies there, the day's due paid (07e-havn.js)
   b.anch = null; b.status = 'port'; b.port = pid; b.v = 0; b.fishUntil = null; b.pos = {x:port.p.x, y:port.p.y}; b.moorT = S.t; b.castT = null; b.shift = b.fueling = b.after = null;
-  b.berth = berth === 'naust' && quayFace(pid, 'naust') ? 'naust' : 'main';   // a route can end at Father's naust (07c-naust.js)
+  b.berth = berth === 'naust' && siteFits(b.type, pid) && quayFace(pid, 'naust') ? 'naust' : 'main';   // a route can end at Father's naust (07c-naust.js)
   if (typeof achVisitPort === 'function') achVisitPort(pid);
   if (typeof PTOW !== 'undefined') PTOW.docked(pid);   // moored with another player's boat in tow: the tow is done (ui/10o-ptow.js)   // «Havner besøkt» and the rest (09f-merker.js)
   const wasOps = S.plan && S.plan.ops, opsK = S.plan && S.plan.opsK;
@@ -1349,7 +1403,7 @@ const RSTATIONS = [['Hvaler', 59.06, 11.02], ['Horten', 59.42, 10.48], ['Stavern
 // Who tows from a station: Redningsselskapet along the mainland coast, the Coast Guard at Svalbard (Jonas 05.11.2026, H1b R8: «Kystvakten
 // skal slepe båter ved svalbard»; Redningsselskapet has no station there, and the tow came 850 km from Tromsø). The Coast Guard's
 // ship sails from Longyearbyen in the game; the 3D view and the price are the rescue boat's for now (BACKLOG 10.3).
-const RSORG = {rs:{org:['Redningsselskapet', 'The Sea Rescue Society'], boat:['Redningsskøyta', 'The rescue boat']}, kv:{org:['Kystvakten', 'The Coast Guard'], boat:['Kystvaktskipet', 'The Coast Guard ship']}};
+const RSORG = {rs:{org:['Kystredningen', 'The Coast Rescue'], boat:['Redningsskøyta', 'The rescue boat']}, kv:{org:['Kystvakten', 'The Coast Guard'], boat:['Kystvaktskipet', 'The Coast Guard ship']}};
 const rsOrg = o => RSORG[o] || RSORG.rs;
 let RSBASES = null;
 function rescueBases(){
@@ -1379,7 +1433,10 @@ function rescue(keepCatch){
   const first = !S.member && freeFirst('tow'); if (first) keepCatch = true;
   // the tow goes to the nearest yard, where the hull is mended (Jonas 08.10.2026: a tow to a plant left a player stuck there, #48);
   // the nearest harbour of any kind only where there is no yard
-  const b = S.boat, port = nearestYard(b.pos) || nearestPort(b.pos), base = rescueBase(b.pos), fee = S.member || first ? 0 : keepCatch ? PRICE.tow : PRICE.rescue;
+  let b = S.boat, port = nearestYard(b.pos) || nearestPort(b.pos), base = rescueBase(b.pos), fee = S.member || first ? 0 : keepCatch ? PRICE.tow : PRICE.rescue;
+  // (no overdraft yet, 03-simulation.js kkOpen: the tow takes what is on the account and no more, so a new player is never left in the
+  // minus with nothing to buy diesel for; the economy check before the launch, 16.11.2026)
+  if (typeof kkOpen === 'function' && !kkOpen()) fee = Math.min(fee, Math.max(0, Math.floor(S.cash / 100) * 100));
   if (first) msg(rsOrg(base.org).org[0], 'Det første slepet er gratis, og fangsten får du beholde. Neste gang koster et slep ' + kr(PRICE.tow) + ', og et nødanrop i farlig sjø ' + kr(PRICE.rescue) + ' og fangsten. Hold øye med dieselen og værmeldingen. Som medlem slipper du å betale.',
     'The first tow is free, and you keep the catch. Next time a tow costs ' + kr(PRICE.tow) + ', and a distress call in dangerous seas ' + kr(PRICE.rescue) + ' and the catch. Keep an eye on the diesel and the forecast. Members pay nothing.');
   book('forsikring', -fee, 'Slep til havn', 'Tow to harbour');
@@ -1425,8 +1482,12 @@ function towStep(H){
   t.s = Math.min(R2.len, t.s + km(TOW.tow)); const a = atRoute(R2, t.s); b.pos = {x:a.p.x, y:a.p.y}; b.heading = a.hd; b.v = TOW.tow;
   if (R2.len - t.s < 0.02) towDone(t);
 }
+const TOW_FUEL = 20;
 function towDone(t){
   const b = S.boat, port = portById(t.port); b.tow = null; TOWBUSY.delete(t); dock(port.id); hullRepair();
+  // a tank too low to get anywhere: the rescue boat leaves 20 L, so nobody is stuck in harbour with no diesel and no money for it (the
+  // hand jig is aboard, and the next trip pays; the economy check before the launch, 16.11.2026)
+  if (b.fuel < TOW_FUEL){ const add = Math.min(BOAT.fuelCap, TOW_FUEL) - b.fuel; if (add > 0.5){ b.fuel += add; log('Redningsskøyta lot deg få ' + fmt(add, 0) + ' L diesel, så du kommer deg ut igjen.', 'The rescue boat left you ' + fmt(add, 0) + ' L of diesel, so you can get out again.'); } }
   if (t.keep) log('Slept inn til ' + port.name + '. Kostnad ' + t.fee + ' kr.', 'Towed to ' + port.name + '. Cost NOK ' + t.fee + '.');
   else log('Redningsskøyta slepte båten til ' + port.name + ' i farlig sjø. Kostnad ' + t.fee + ' kr, mistet ' + t.lost + ' kg fisk.', 'A rescue boat towed you to ' + port.name + ' in dangerous seas. Cost NOK ' + t.fee + ', lost ' + t.lost + ' kg of fish.');
 }

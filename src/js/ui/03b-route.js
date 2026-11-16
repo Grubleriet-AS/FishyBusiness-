@@ -134,6 +134,55 @@ function leiaArm(on){
   LEIA_ARM = on && canEditDraft(); if (LEIA_ARM) toast(S.lang === 'no' ? 'Autonav: trykk i kartet der du vil. Båten finner en trygg vei dit.' : 'Autonav: tap the chart where you want to go. The boat finds a safe way there.');
   panelDirty = true; renderPanel(); renderRouteTools();
 }
+// the way from where the route starts to the goal (gPort its harbour, or null), as a tap in the chart plotter finds it: Autonav's search
+// (leiaRoute), and from Father's naust (atN, port the plant's id) the harbour's own way, and from the naust or a rorbu the way by water
+// from the berth when that finds none. Out of the tap so tests/allesteder.py and tools/rorbu/siteout.py ask the way the game asks it (steg 126, 14.11.2026: the
+// test asked the search alone and found no way from the naust at Sørarnøy, Hidrasund, Tufjord and Gjesvær, where the chart plotter has one)
+async function draftWay(start, goal, aPort, gPort, atN, port, nt){   // (nt: Father's naust as the end, naustTarget, whose route is the plant's with its berth last)
+  let res = await leiaRoute({x:start.x, y:start.y}, goal, aPort, gPort);
+  // Father's naust in a basin the 100 m grid sees as shut to the sea (Øksfjord, tilbakemelding #39: no way found to the first trip's
+  // ring): the way out is then the harbour's own, by its approach path
+  // (from the naust a way with a leg over land counts as none: the route panel greys «Kast loss» for it, estimate().bad, and the first
+  // trip stood as fast as with no way; Fosnavåg 08.11.2026 with the field of 17.09.2027, where the sealed harbour's way out crosses its
+  // fill, approachPath pt.free)
+  // (a rorbu's berth the same way as the naust's: from the rorbu by its own approach the search found no way at Austein and Åsværgården,
+  // and from where the way by water from its berth ends it did, steg 126, 14.11.2026)
+  const site = atN || (!!aPort && isRorbu(aPort));
+  const legsOk = r => { let a = {x:start.x, y:start.y}; for (const w of r.wps){ if (!legClearMemo(a, w)) return false; a = w; } return true; }, fails = r => !!r.why || (site && !legsOk(r));
+  if (fails(res) && atN && port && approachPath(portById(port)).length){ const r = await leiaRoute({x:start.x, y:start.y}, goal, port, gPort); if (res.why || !fails(r)) res = r; }
+  // and where neither finds it (Averøy and Sleneset 08.11.2026: «Fant ingen trygg rute dit.» on the first trip, which then could not
+  // leave the quay): the way by water from the berth to the harbour or to open water (naustWay, core/07c-naust.js, the same test that
+  // places the naust), then on: from the harbour point the very route a boat at the plant's quay gets (her start, quayPos, is that
+  // point), else from where the way ends; the first whose legs all keep off land
+  if (fails(res) && site && port){ const way = naustWay({x:start.x, y:start.y}, port, BOAT.draft + LEIA.minOver), H = portById(port);   // (the water this boat needs: SITE_DRAFT, the default, is kyst15's)
+    if (way && way.length > 1){ const e = way[way.length - 1], to = goal, id = gPort, pre = way.slice(1), tries = [];
+      if (way.to === 'harbour') tries.push([pre.concat(dist(e, H.p) > 0.002 ? [{x:H.p.x, y:H.p.y}] : []), H.p, port], [pre, e, port]);
+      tries.push([pre, e, null]);
+      for (const [P0, from, ap] of tries){ const r2 = await leiaRoute({x:from.x, y:from.y}, to, ap, id); if (r2.why) continue;
+        const r3 = {wps:P0.concat(r2.wps), nm:r2.nm, st:r2.st}; if (res.why) res = r3; if (!fails(r3)){ res = r3; break; } } } }
+  // and the same the other way: into a rorbu, where the search finds no way to its point (the last leg to the berth fails at the mend in
+  // the shallow water by the shore: Mehamn, Kongsfjord, Havøysund and some forty more at the lowest tide, steg 126, 15.11.2026, tests/
+  // allesteder.py with the way in): the way by water out from its berth (naustWay, as above), turned, and the route to where that way
+  // ends (Jonas 15.11.2026: «Alle steder spillerens båt kan fortøye må være tilgjengelig via autonav både inn og ut av»)
+  if (res.why && gPort && gPort !== port && isRorbu(gPort)){ const bp = berthPose(gPort, S.boat.type, 'main');
+    const way = bp && naustWay({x:bp.x, y:bp.y}, gPort, BOAT.draft + LEIA.minOver);
+    // (to where the way ends, else from there out to her and turned: the end of that way lies by the shore, and a route that ends in
+    // water that shallow is none, «For grunt der», while the route from it is found, Tømmervik)
+    if (way && way.length > 1){ const e = way[way.length - 1]; let r2 = await leiaRoute({x:start.x, y:start.y}, {x:e.x, y:e.y}, aPort, null);
+      if (r2.why){ const r4 = await leiaRoute({x:e.x, y:e.y}, {x:start.x, y:start.y}, null, aPort); if (!r4.why && r4.wps && r4.wps.length) r2 = {wps:r4.wps.slice(0, -1).reverse().concat([{x:e.x, y:e.y}]), nm:r4.nm, st:Object.assign({}, r4.st, {rev:true})}; }
+      if (!r2.why && r2.wps && r2.wps.length){ const nm = r2.nm + dist(e, goal) / NM; res = {wps:r2.wps.concat(way.slice(1, -1).reverse(), [{x:goal.x, y:goal.y}]), nm, st:Object.assign({}, r2.st, {siteIn:way.length})}; } } }
+  // into Father's naust where it lies outside the plant's basin: the way along the quay from the plant's harbour point to its berth goes
+  // far round (Smøla nord, steg 126, 15.11.2026: the naust on the island's other side, berthPath 2.5 km round it into the shallows at the
+  // lowest tide, tests/allesteder.py with the way in). Then as a rorbu: the route to where the way by water out from its berth ends, and
+  // that way turned
+  if (nt && !res.why && res.wps && res.wps.length){ const bp = berthPose(nt.port, S.boat.type, 'naust');
+    const q = res.wps.length > 1 ? res.wps[res.wps.length - 2] : start, W = bp ? berthPath({x:q.x, y:q.y}, bp) : null, len = A => A.reduce((s, p, k) => k ? s + dist(A[k - 1], p) : 0, 0);
+    if (W && len(W) > 2 * dist(q, bp) + 0.2){ const way = naustWay({x:bp.x, y:bp.y}, nt.port, BOAT.draft + LEIA.minOver);
+      if (way && way.length > 1 && way.to !== 'harbour'){ const e = way[way.length - 1]; let r2 = await leiaRoute({x:start.x, y:start.y}, {x:e.x, y:e.y}, aPort, null);
+        if (r2.why){ const r4 = await leiaRoute({x:e.x, y:e.y}, {x:start.x, y:start.y}, null, aPort); if (!r4.why && r4.wps && r4.wps.length) r2 = {wps:r4.wps.slice(0, -1).reverse().concat([{x:e.x, y:e.y}]), nm:r4.nm, st:Object.assign({}, r4.st, {rev:true})}; }
+        if (!r2.why && r2.wps && r2.wps.length) res = {wps:r2.wps.concat(way.slice(1, -1).reverse(), [{x:goal.x, y:goal.y}]), nm:r2.nm + len(way) / NM, st:Object.assign({}, r2.st, {naustIn:way.length})}; } } }
+  return res;
+}
 async function leiaTo(pt, buoy, act){   // buoy: to a set's buoy, to haul it (the rules are not asked); act: what the boat does there (a haul)
   const b = S.boat; LEIA_ARM = false;
   if (!canEditDraft() || LEIA_BUSY) return;
@@ -143,7 +192,8 @@ async function leiaTo(pt, buoy, act){   // buoy: to a set's buoy, to haul it (th
   for (const p of PORTS){ if (ownT && !ownT.has(p.id)) continue; const d = dist(p.p, pt); if (d < r && d < bd){ bd = d; near = p; } }
   // a rorbu's quay (07d-rorbu.js), when the chart is close enough to show its name and not in «Første tur» (a tap in the field's ring
   // went to a rorbu by it)
-  if (view.z >= 2 && !tutOn()) for (const R of rorbuSites(pt, r + 0.05)){ const d = dist(R.p, pt); if (d < r && d < bd){ bd = d; near = R; } }
+  let sillR = null;   // (a rorbu the boat does not get out from at any tide, SITE_SILL: not a place to go; a tap on its shore says why)
+  if (view.z >= 2 && !tutOn() && siteFits(S.boat.type)) for (const R of rorbuSites(pt, r + 0.05)){ const d = dist(R.p, pt); if (d < r && d < bd){ if (!siteFits(S.boat.type, R.id)){ sillR = sillR || R; continue; } bd = d; near = R; } }
   // a harbour of the coast's packs: Autonav goes to a free berth there (07e-havn.js), when no place of the game is nearer
   if (view.z >= 2 && !tutOn() && !near && !buoy){ const B = havnTapNear(pt, r); if (B) near = B; }
   if (!near && !buoy) near = portByLabel(pt);
@@ -156,6 +206,9 @@ async function leiaTo(pt, buoy, act){   // buoy: to a set's buoy, to haul it (th
   const nt = naustTarget(pt, r);
   if (nt && atN){ toast(t('already_here')); return; }
   if (!nt && near && aPort === near.id && !atN){ toast(t('already_here')); return; }
+  // (a tap by one of the coast's harbours, shut to the players: says why, and a tap on its water is a point of the route as before)
+  if (!near && !nt && !buoy && view.z >= 2 && havnShutAt(pt, r)){ toast(S.lang === 'en' ? HAVN_WHY[1] : HAVN_WHY[0]); if (isLandUI(pt)) return; }
+  if (!near && !nt && !buoy && sillR && isLandUI(pt)){ const why = siteWhy(S.boat.type, sillR.id); toast(S.lang === 'en' ? why[1] : why[0]); return; }
   if (!near && !nt && isLandUI(pt)){ toast(t('on_land')); return; }
   // a tap in water too shallow for the boat (by the shore): the nearest point within 500 m that is deep enough, with a word about it;
   // none, no route (Autonav never ends on a shoal, 08.10.2026)
@@ -173,24 +226,7 @@ async function leiaTo(pt, buoy, act){   // buoy: to a set's buoy, to haul it (th
         toast(rb + L(' Autonav går til nærmeste sted der du kan fiske, ' + m + ' m unna. Trykk samme sted igjen for å gå helt dit.', ' Autonav goes to the nearest place where you may fish, ' + m + ' m away. Tap the same place again to go all the way.')); }
       else toast(rb + L(' Du kan seile dit, men ikke fiske der.', ' You may sail there, but not fish there.')); } }
   const before = JSON.stringify(S.draft); LEIA_BUSY = true; panelDirty = true; renderPanel(); renderRouteTools();
-  let res; try { res = await leiaRoute({x:start.x, y:start.y}, near ? near.p : goal, aPort, near ? near.id : null);
-    // Father's naust in a basin the 100 m grid sees as shut to the sea (Øksfjord, tilbakemelding #39: no way found to the first trip's
-    // ring): the way out is then the harbour's own, by its approach path
-    // (from the naust a way with a leg over land counts as none: the route panel greys «Kast loss» for it, estimate().bad, and the first
-    // trip stood as fast as with no way; Fosnavåg 08.11.2026 with the field of 17.09.2027, where the sealed harbour's way out crosses its
-    // fill, approachPath pt.free)
-    const legsOk = r => { let a = {x:start.x, y:start.y}; for (const w of r.wps){ if (!legClearMemo(a, w)) return false; a = w; } return true; }, fails = r => !!r.why || (atN && !legsOk(r));
-    if (fails(res) && atN && b.port && approachPath(portById(b.port)).length){ const r = await leiaRoute({x:start.x, y:start.y}, near ? near.p : goal, b.port, near ? near.id : null); if (res.why || !fails(r)) res = r; }
-    // and where neither finds it (Averøy and Sleneset 08.11.2026: «Fant ingen trygg rute dit.» on the first trip, which then could not
-    // leave the quay): the way by water from the berth to the harbour or to open water (naustWay, core/07c-naust.js, the same test that
-    // places the naust), then on: from the harbour point the very route a boat at the plant's quay gets (her start, quayPos, is that
-    // point), else from where the way ends; the first whose legs all keep off land
-    if (fails(res) && atN && b.port){ const way = naustWay({x:start.x, y:start.y}, b.port), H = portById(b.port);
-      if (way && way.length > 1){ const e = way[way.length - 1], to = near ? near.p : goal, id = near ? near.id : null, pre = way.slice(1), tries = [];
-        if (way.to === 'harbour') tries.push([pre.concat(dist(e, H.p) > 0.002 ? [{x:H.p.x, y:H.p.y}] : []), H.p, b.port], [pre, e, b.port]);
-        tries.push([pre, e, null]);
-        for (const [P0, from, ap] of tries){ const r2 = await leiaRoute({x:from.x, y:from.y}, to, ap, id); if (r2.why) continue;
-          const r3 = {wps:P0.concat(r2.wps), nm:r2.nm, st:r2.st}; if (res.why) res = r3; if (!fails(r3)){ res = r3; break; } } } } }
+  let res; try { res = await draftWay(start, near ? near.p : goal, aPort, near ? near.id : null, atN, b.port, nt); }
   finally { LEIA_BUSY = false; }
   if (JSON.stringify(S.draft) !== before){ routeChanged(); return; }   // the route was changed while the way was being found
   if (res.why){ toast(S.lang === 'no' ? res.why[0] : res.why[1]); routeChanged(); return; }

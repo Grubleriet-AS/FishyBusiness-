@@ -432,7 +432,7 @@ body.vplot #logbook{display:none}
 .lg td{border-bottom:1px solid rgba(138,118,84,.35);border-right:1px solid rgba(138,118,84,.25);padding:2px 3px;vertical-align:top;font-family:'Caveat',cursive;color:var(--m-link,#1f2f6e);font-size:14px;line-height:18px}
 .lg td:last-child{border-right:0} .lg tr.ev td{color:var(--m-bad,#6e1f1f)} .lg td.pos{font-size:10px;line-height:14px}
 .dr p{border-left:2px solid rgba(190,60,60,.45);padding-left:8px}
-.dr b{font-family:var(--serif);font-weight:600;color:var(--m-ink,#4a3d28);font-size:11.5px;margin-right:6px}
+.dr b{font-family:var(--serif);font-weight:600;color:var(--m-ink,#4a3d28);font-size:12px;margin-right:6px}
 .pg-sum{margin-top:12px;border-top:1px solid #8a7654;padding-top:6px;font:12px var(--serif);color:var(--m-ink,#3b3020)}
 .pg-n{position:absolute;bottom:5px;left:0;right:0;text-align:center;font:italic 10px var(--serif);color:var(--m-muted,#7a6a4a)}
 .bk-ctrl{display:flex;gap:8px;align-items:center;background:rgba(6,16,24,.7);border-radius:14px;padding:5px 8px;color:#fff;font:600 13px var(--sans)}
@@ -744,6 +744,7 @@ body.hudstrip #hud .hmin{position:absolute;top:0;right:0}
 #hud .hs2{justify-content:space-between;gap:4px;font-size:11px}
 #hud .g2{display:inline-flex;align-items:center;gap:3px;min-width:0;color:var(--t-on-dark)} #hud .g2 svg{width:12px;height:12px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.85} #hud .g2 b{font-weight:700;white-space:nowrap}
 #hud .g2.r1{color:#ffcf7a} #hud .g2.r2{color:#ff9b91}
+#hud .row.hwind b{display:inline-flex;align-items:center;gap:4px} #hud .row.hwind b.r1{color:#ffcf7a} #hud .row.hwind b.r2{color:#ff9b91} #hud .row.hwind svg{width:13px;height:13px;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 #hud .st.nx .l3{flex:1 1 auto;min-width:0} #hud .st.nx .l3d{flex:none;white-space:nowrap}
 #hud .st.nx .l3s{flex:0 1000 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.9em;opacity:.85}   /* (the real time gives way first: shrinks a thousand times faster than the event before it) */
 body.hudstrip #hud .st.nx{margin:0;min-height:15px;font-size:11px!important;line-height:1.25;gap:4px} body.hudstrip #hud .st.nx small{font-size:.9em} body.hudstrip #hud .st.nx .l3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* (!important: #hud .st sets 12.5px so) */
@@ -1452,7 +1453,7 @@ body.pm #ecdisTop{visibility:hidden}
 .ic-row{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .ic-more{display:inline-block;margin-top:6px;padding:4px 0;border:0;background:none;color:var(--m-link,#1f6fa8);font:600 12px var(--sans);cursor:pointer;min-height:30px}
 .ic-rows{margin-top:4px}
-@media (max-width:420px){.ph-card.ic{grid-template-columns:1fr}.ic-pic{max-width:180px}}
+@media (max-width:420px){.ph-card.ic{grid-template-columns:76px 1fr;gap:10px}}   /* (Jonas 14.11.2026: most play on the phone upright. The picture stood alone over the card, 180 px wide, and one item filled the screen; it is a small picture beside the name now, as on the tablet) */
 .ph-c > .ph-c{padding:0}  /* the shop's gear inside the tackle page (fiske() wraps redskap('kjop')) */
 /* the shop on the quay and the Net (M2, ui/phone/13b-nettet.js): the keeper, what is ordered here, what the boat needs, the web shop */
 .ph-card.shop-k{display:flex;gap:10px;align-items:flex-start}
@@ -1770,6 +1771,11 @@ body.calm #dock > .dk-b:not(.hero):not(.stay):not([data-dk="beh"]),body.calm .ov
 @media (orientation:portrait){body.vplot.dk-open:not(.hudoff) #drawer{top:max(12%, calc(var(--ecH) + 8px + 60px + 6px))}}
 /* the map's credit line clear of the deck log's tab in 3D (it began under the tab, at 6 px, in every size) */
 body.v3d .attr{left:44px;max-width:calc(100% - 108px)}   /* (as far from the right edge as before, 64 px) */
+/* (Jonas 16.11.2026: «Fjerne kartverket merke nederst på skjermen?»: the credit line stands on the chart plotter, where the map is what is
+   seen, on the loading screen and on the sources page (src/legal/kilder.html), and no longer over the 3D view; OSMF's guideline for
+   games allows a start screen or the credits. To bring it back in 3D: remove the next rule) */
+body.v3d:not(.vplot) .attr{display:none}
+.ld-attr{display:block;margin-top:10px;font:11px/1.35 var(--sans);color:rgba(238,244,247,.55);text-align:center}
 /* the phone button hides while the phone is open: on a tablet on its side and a PC the phone stands where the button is, and the
    button's corner showed behind the phone's rounded corner; the phone lies over the button in every size, so it could not be tapped
    anyway, and the phone closes with its own ✕ and ‹. A child :has, so only #app's own children are looked at when «hidden» changes) */
@@ -1990,3 +1996,148 @@ body.vplot #hud{background:rgba(11,23,32,.78)!important}
 .wd-side{background:rgba(11,23,32,.9);border-color:#2A4252}
 .wd-tab.on{background:#EEF4F7;color:#0B1720} .wd-chip.on{border-color:#EEF4F7;background:rgba(238,244,247,.14)}
 .wd-ok{background:var(--a-main)} .wd-sw.on{box-shadow:0 0 0 2px #EEF4F7} .wd-sub{color:#A9BEC8} .wd-note{color:#C6D6DE}
+
+/* (found in D5: «Hvor du er» in the Regler app ran out of its card, in the phone too: the fjord line's name and the minimum sizes are one long line) */
+.ph-appv[data-app=regler] .ph-kv span:last-child{white-space:normal;min-width:0;overflow-wrap:anywhere}
+/* (D5: the naust's list has its paper back; an empty place on the trophy wall is told by its dashed edge, not by text too faint to read) */
+.ph-paper .nb-rec.empty{opacity:1} .ph-paper .nb-rec.empty :is(b,span,small){color:#5a5247}
+/* ===== D5 (designombyggingen, 13.11.2026; Jonas, valg 2 A: «telefonen blir en stor flate på nettbrett som beholder telefonens ramme
+   og statuslinje») =====
+   On a tablet and a PC (wider than 560 px and taller than 520 px; a phone is as before, the two blocks «a phone upright» and «a phone
+   on its side» above) the phone is a surface of its own: beside the status box and the small chart lying down, under them standing
+   (ui/phone/06-render.js place() measures them), with the frame, the status line and the bar at the bottom it has in a phone. The dock is
+   hidden while it is open (body.ph-on), so no button lies half under it. The home screen has what matters now beside the apps lying down
+   and above them standing, and the groups in two columns; the apps have their cards in two columns, and the pages that are read have a
+   line of about 70 characters. */
+.ph-nowcol{display:contents}
+@media (min-width:561px) and (min-height:521px){
+  #phone{left:max(12px,calc(100vw - 912px));right:12px;bottom:18px;top:max(12px,calc(var(--ph-hb,0px) + 10px),calc(100vh - 1040px));width:auto;height:auto}
+  #phone.ph-full{left:12px;top:12px}   /* (no room for the box and the phone both, place(): the phone takes the screen) */
+  body.ph-on :is(#dock,#dockInfo,#dockFan){visibility:hidden}
+  /* (the chart's source line under the surface stays whole: 18 px; and a toast lies in the bar at the bottom, not on the tiles: a tap goes through it) */
+  body.ph-on #toast{bottom:calc(38px + env(safe-area-inset-bottom,0px))}
+  .ph-body{border-radius:34px;padding:10px} .ph-screen{border-radius:25px;font-size:15px}
+  .ph-status{padding:10px 28px 6px;font-size:13px} #phNet{font-size:12px}
+  .ph-nav{padding:6px 28px 10px} .ph-nav button{width:64px;height:44px;font-size:26px} .ph-nav .ph-home{width:150px;height:5px}
+  /* the home screen: the clock beside the weather, the goals and the «Nå» cards, then the groups two and two */
+  .ph-homescr{box-sizing:border-box;padding:24px 28px 28px;display:grid;grid-template-columns:minmax(0,1fr);gap:22px 30px;align-content:center}   /* (the air above and under the apps alike, not all of it under them)*/
+  .ph-nowcol{display:grid;grid-template-columns:minmax(150px,.42fr) minmax(0,1fr);grid-template-areas:"clock widget" "date goals" "date now";gap:8px 24px;align-items:start;min-width:0}
+  .ph-nowcol .ph-clock{grid-area:clock;margin:0;align-self:end;font-size:56px} .ph-nowcol .ph-date{grid-area:date;margin:0;font-size:14px}
+  .ph-nowcol .ph-widget{grid-area:widget;margin:0;font-size:14px;padding:11px 14px} .ph-nowcol .ph-goals{grid-area:goals;margin:0} .ph-nowcol .ph-nowc{grid-area:now;margin:0}
+  .ph-nowcol .ph-goal{font-size:13px;padding:10px 14px} .ph-nowcol .ph-now{padding:10px 14px}
+  #phone.ph-w2 .ph-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px 30px;align-items:start}
+  .ph-tiles{gap:16px 6px} .ph-app{font-size:12.5px;gap:6px} .ph-app .ic{width:58px;height:58px} .ph-app .ic svg{width:29px;height:29px}
+  /* the apps: the title bar and the tabs over the whole surface, the content in a column in the middle of it */
+  .ph-top{padding:12px 22px;font-size:18px} .ph-top .ic{width:32px;height:32px} .ph-top .ic svg{width:20px;height:20px}
+  .ph-appv{--phw:940px}
+  .ph-appv > :not(.ph-top){box-sizing:border-box;max-width:var(--phw);margin-left:auto;margin-right:auto}
+  .ph-appv > .ph-c{padding:12px 22px 22px} .ph-appv > :is(.ph-sub,.kb-tabs){padding-left:22px;padding-right:22px}
+  /* (a card straight in the app, outside its column, as Vær's fuel: the same edges as the cards in it) */
+  .ph-appv > .ph-card{width:calc(100% - 44px);max-width:calc(var(--phw) - 44px);margin-bottom:12px}
+  /* the cards in rows of two (pairCards in ui/phone/06-render.js marks .ph-half); a heading, a note, a row of tabs and a card alone go
+     across. Two cards in a row are as tall as each other. .ph-meas: while they are measured, each at its own height */
+  #phone.ph-w2 .ph-appv > .ph-c{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:12px;align-items:stretch}
+  #phone.ph-w2 .ph-appv > .ph-c > *,#phone.ph-w2 .ph-appv > .ph-c > .ph-c > *{grid-column:1 / -1;min-width:0}
+  #phone.ph-w2 .ph-appv > .ph-c :is(.ph-half){grid-column:auto}
+  #phone.ph-w2 .ph-appv > .ph-c > .ph-c{display:contents}
+  #phone.ph-w2 .ph-meas .ph-appv > .ph-c{align-items:start}
+  .ph-appv > .ph-c > .ph-sub{padding-left:0;padding-right:0;margin:2px 0 12px}   /* (a row of tabs inside the column: not on the card under it) */
+  .ph-appv > .ph-c > p{max-width:34rem}
+  .ph-appv[data-app=post] > .ph-sub{padding-left:0;padding-right:0}   /* (Kystposten's tabs under the masthead's edge, not 14 px in from it) */
+  /* the pages that are read: one column with a line that can be read */
+  .ph-appv:is([data-app=naustp],[data-app=tilbake],[data-app=folk],[data-app=gbook]){--phw:37rem}
+  .ph-appv:is([data-app=handbok],[data-app=patch],[data-app=meld],[data-app=post],[data-app=regler][data-sub=laer]){--phw:32.5rem}
+  #phone .ph-appv:is([data-app=handbok],[data-app=patch],[data-app=meld],[data-app=tilbake],[data-app=folk],[data-app=gbook],[data-app=regler][data-sub=laer]) > .ph-c .ph-half{grid-column:1 / -1}
+  /* (the text a little larger where it is read, which also gives the line its length) */
+  .ph-appv:is([data-app=handbok],[data-app=patch],[data-app=meld],[data-app=regler][data-sub=laer]) :is(.ph-card p,.patchc ul,.ph-note){font-size:15px;line-height:1.5}
+}
+@media (min-width:561px) and (min-height:521px) and (orientation:landscape){
+  #phone{top:max(12px,calc(100vh - 972px));left:max(12px,calc(var(--ph-hr,0px) + 14px),calc(100vw - 1092px))}
+  /* the camera buttons in the corner the phone covers lying down, and the compass line its top edge would cut */
+  body.ph-on :is(#camBtn,#kinoBtn,#compass3d){visibility:hidden}
+}
+/* (beside the apps only where the surface itself is wide enough for both, .ph-wide from place(); a narrower one has the block above them) */
+@media (min-width:561px) and (min-height:521px){
+  #phone.ph-wide .ph-homescr{grid-template-columns:minmax(260px,.46fr) minmax(0,1fr)}
+  #phone.ph-wide .ph-nowcol{display:block} #phone.ph-wide .ph-nowcol .ph-clock{text-align:left;margin:4px 0 4px} #phone.ph-wide .ph-nowcol .ph-date{text-align:left;margin:0 0 16px}
+  #phone.ph-wide .ph-nowcol .ph-widget{margin:0 0 10px} #phone.ph-wide .ph-nowcol .ph-goals{margin:0 0 10px} #phone.ph-wide .ph-nowcol .ph-nowc{margin:0}
+}
+/* and the deck log's tab in the corner it covers standing */
+@media (min-width:561px) and (min-height:521px) and (orientation:portrait){body.ph-on #logbook{visibility:hidden}}
+
+/* ===== FN1 (steg 127, 13.11.2026): «Arbeid på båten» at the top of the pages that make jobs, and in Om bord (ui/phone/01-haill-fiske-service.js
+   jobStrip). One band over the whole width (not a .ph-card: never paired), Styrhus' palette; the clock in tabular figures so it does not
+   jump as it counts; the bar the instruments' blue; «Ferdig nå» magenta as the other purchases (the D3 list, [data-pa=yardnow]) */
+.jstrip{margin:10px 14px 0;padding:10px 12px;border:1px solid var(--m-line,#D3DCDD);border-left:3px solid var(--m-link,#28507f);border-radius:var(--r-card);background:var(--m-card,#fff);color:var(--m-ink,#16323F)}
+.ph-appv > .jstrip{margin:12px 22px 0}
+.js-h{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin:0 0 4px}
+.js-h b{font:700 var(--fs-body)/1.25 var(--sans)} .js-h span{font:600 var(--fs-cap)/1.2 var(--sans);color:var(--m-muted,#5B727C)}
+.js-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:baseline;gap:2px 10px;padding:5px 0 3px;border-top:1px solid var(--m-line,#D3DCDD)}
+.js-h + .js-row{border-top:0}
+.js-n{min-width:0;font:600 13.5px/1.3 var(--sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.js-k{font:500 12px/1.3 var(--sans);color:var(--m-muted,#5B727C)}
+.js-t{min-width:5ch;text-align:right;font:700 16px/1.2 var(--sans);font-variant-numeric:tabular-nums}
+.js-b{grid-column:1 / -1;height:6px;border-radius:3px;background:var(--m-line,#D3DCDD);overflow:hidden}   /* (the track the line's colour: on the card's own second tone the bar at 0 % read as a divider, Gemini 13.11.2026) */
+.js-b i{display:block;height:100%;width:0;background:var(--m-link,#28507f)}
+.js-now{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;margin:8px 0 0;padding:8px 0 0;border-top:1px solid var(--m-line,#D3DCDD)}
+.js-now .ph-btn{flex:0 0 auto;width:auto;margin:0;min-height:44px} .js-now .js-k{flex:1 1 180px} .js-now .shop-fine{flex:1 0 100%;margin:0}
+
+/* ===== after Jonas saw the shop on the tablet (14.11.2026: «forskjellig størrelse på bokser») =====
+   the cards that share a row in the wide drawer are as tall as each other (the grid's align-items:start left each as tall as its text) */
+@media (orientation:landscape){body.dk-wide #drawerBody .ph-c > :is(.ph-card.ic,.ph-card.crewc,.ph-card.vcard){align-self:stretch}}
+/* another boat of the fleet is chosen and she does not lie here: one line that says so, and the way back to the boat at the quay */
+.pl-away{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;margin:10px 14px 0;padding:8px 12px;border:1px solid var(--m-warn,#b7791f);border-radius:var(--r-card);background:var(--m-tint-warn,#fdf3dc);color:var(--m-ink,#16323F);font:500 13px/1.35 var(--sans)}
+.pl-away span{flex:1 1 220px} .pl-away .ph-btn{flex:0 0 auto;width:auto;margin:0;min-height:40px}
+
+/* ===== D4 (14.11.2026): the deck log readable. Jonas 13.11.2026 kept the tabs Dagbok and Salg; the print in the book was 9.5–11.5 px
+   (the table's heads, the positions, the rows of the sales note), under what is read on a phone or a tablet held upright: 12 px least */
+.bk-gr,.bk-row,.pg-v,.bk-sub{font-size:12px} .bk-nw{font-size:11px}
+.lg th{font-size:12px;letter-spacing:.02em;padding:3px 2px} .lg td.pos{font-size:12px;line-height:15px}
+.pg-n{font-size:12px}
+
+/* ===== D4 (14.11.2026): the rig chosen in Om bord › Redskap: one card, a row a rig ===== */
+.rigc .rig-r{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid var(--m-line,#D3DCDD)} .rigc h4 + .rig-r{border-top:0}
+.rig-t{flex:1;min-width:0;display:flex;flex-direction:column} .rig-t b{font:700 14px/1.3 var(--sans)} .rig-t span{font:500 12.5px/1.35 var(--sans);color:var(--m-muted,#5B727C)}
+.rig-r.on .rig-t span{color:var(--m-ok,#1e8c6e);font-weight:600} .rig-on{flex:0 0 auto;color:var(--m-ok,#1e8c6e);font:700 18px/1 var(--sans);padding:0 8px}
+.rigc .rig-r .ph-btn{flex:0 0 auto;width:auto;margin:0;min-height:40px}
+
+/* D4: the accounts' three figures first, the rest under «Detaljer» */
+.acc3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px} .acc3 div{min-width:0} .acc3 span{display:block;font:600 var(--fs-cap)/1.2 var(--sans);letter-spacing:.04em;text-transform:uppercase;color:var(--m-muted,#5B727C)}
+.acc3 b{display:block;margin-top:2px;font:700 16px/1.25 var(--sans);overflow-wrap:anywhere}
+@media (max-width:420px){.acc3{grid-template-columns:1fr} .acc3 div{display:flex;justify-content:space-between;align-items:baseline;gap:10px}}
+.acc-more > summary{list-style:none;cursor:pointer;margin:0 0 10px;padding:10px 12px;min-height:44px;border:1px solid var(--m-line,#D3DCDD);border-radius:var(--r-card);background:var(--m-card,#fff);font:700 14px/1.6 var(--sans);color:var(--m-ink,#16323F)}
+.acc-more > summary::-webkit-details-marker{display:none} .acc-more > summary::after{content:' ▾';color:var(--m-muted,#5B727C)} .acc-more[open] > summary::after{content:' ▴'}
+/* Kaiboden's pictures (14.11.2026): the painted tile at the top of each card, the same light tile as the shop's */
+.kb-pic{display:flex;justify-content:center;margin:0 0 8px;--m-card:initial;--m-card2:initial;--m-tint-link:initial}
+.kb-pic .ic-img{max-width:260px;border-radius:10px}
+/* the tattoos as painted flash (14.11.2026, ui/05-tattoo-art.js): on the flash's own paper; one not earned yet is a grey stencil */
+.tat-img{flex:none;width:64px;height:64px;border-radius:10px;background:#fbf6ea var(--tat-atlas) no-repeat}
+.tat-img.off{filter:grayscale(1);opacity:.35}
+/* the strip on a narrow phone: six figures with the wind, seven with the bleeding tub (16.11.2026); last, so it holds over the 3D view's */
+@media (max-width:420px){#hud .hs2,body.v3d #hud .hs2{gap:1px} #hud .g2,body.v3d #hud .g2{gap:1px} #hud .g2 svg,body.v3d #hud .g2 svg{width:10px;height:10px} #hud .hs2,body.v3d #hud .hs2{font-size:9.5px}}
+/* the profile and the founders' badge (ui/10v-profil.js, 16.11.2026) */
+.pf-fb{display:inline-block;margin:2px 0 0 6px;padding:1px 6px;border-radius:9px;background:linear-gradient(135deg,#e8c96a,#b8872c);color:#2a1c05;font:700 10px/1.5 var(--sans);letter-spacing:.02em;vertical-align:middle;white-space:nowrap}
+.pf-head{display:flex;gap:12px;align-items:center}
+.pf-img{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none;background:#28507f}
+.pf-none{display:inline-flex;align-items:center;justify-content:center;color:#fff;font:700 26px/1 var(--sans)}
+.pf-top tr.pf-tap{cursor:pointer}
+.pf-ais{margin-top:6px}
+.pf-filt{display:flex;align-items:center;gap:10px;padding:0 0 8px} .pf-filt .ph-btn{margin:0;width:auto;flex:none;padding:6px 14px} .pf-filt .ph-note{margin:0}
+.pf-fbox{padding-top:10px;padding-bottom:10px}
+/* the landing note as a form (06b-book-tabs.js bookSales, 16.11.2026: our own page, no fish drawn) */
+.bk-form{border:1.5px solid var(--m-warn,#5a4a30);border-radius:3px;margin:0 0 8px}
+.bk-ft{display:flex;justify-content:space-between;align-items:baseline;padding:4px 8px;border-bottom:1.5px solid var(--m-warn,#5a4a30);font:700 12px/1.2 var(--serif);letter-spacing:.12em;color:var(--m-warn,#5a4a30)} .bk-ft span{letter-spacing:0;font-weight:600}
+.bk-fg{display:grid;grid-template-columns:1fr 1fr;gap:0} .bk-fg span{display:flex;flex-direction:column;padding:3px 8px;border-right:1px solid rgba(90,74,48,.35);border-bottom:1px solid rgba(90,74,48,.35)} .bk-fg span:nth-child(2n){border-right:0} .bk-fg span:nth-child(n+3){border-bottom:0}
+.bk-fg i{font:normal 12px/1.2 var(--serif);text-transform:uppercase;letter-spacing:.06em;color:var(--m-warn,#5a4a30)} .bk-fg b{font-weight:400;font-size:16px;line-height:1.15}
+.bk-one tr.bk-new td{border-top:1px solid rgba(90,74,48,.45)} .bk-one td.hw{font-size:15px}
+/* Innstillinger in tabs (ui/phone/05-rigg-innst-admin.js, 16.11.2026): the tab bar and the rows of name and control */
+.st-tabs{position:sticky;top:0;z-index:2;display:flex;gap:4px;padding:4px;margin:0 0 10px;border-radius:12px;background:rgba(10,20,30,.85);backdrop-filter:blur(6px)}
+.st-tabs button{flex:1;padding:9px 6px;border:0;border-radius:9px;background:none;color:var(--t-on-dark-2,#b9c6cf);font:600 14px/1.2 var(--sans);cursor:pointer}
+.st-tabs button.on{background:rgba(238,244,247,.92);color:#10202c}
+.st-card h4{display:flex;align-items:center;gap:8px} .st-tag{font:600 11px/1.6 var(--sans);padding:0 8px;border-radius:9px;background:rgba(232,201,106,.2);color:#e8c96a}
+.st-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid rgba(238,244,247,.08)} .st-row:first-of-type{border-top:0}
+.st-l{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1} .st-l b{font:600 14px/1.25 var(--sans)} .st-l small{font:12px/1.35 var(--sans);color:var(--t-on-dark-2,#b9c6cf)}
+.st-seg{display:inline-flex;flex:none;gap:2px;padding:3px;border-radius:10px;background:rgba(238,244,247,.08)} .st-seg button{padding:6px 10px;border:0;border-radius:7px;background:none;color:inherit;font:600 13px/1.2 var(--sans);cursor:pointer;white-space:nowrap}
+.st-seg button.on{background:rgba(143,211,255,.9);color:#0b1d2a}
+.st-now{margin:8px 0 0;font:12px/1.4 var(--sans);color:var(--t-on-dark-2,#b9c6cf)}
+@media (max-width:560px){.st-row{flex-direction:column;align-items:stretch}.st-seg{align-self:flex-start;flex-wrap:wrap}}

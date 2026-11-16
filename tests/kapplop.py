@@ -261,7 +261,7 @@ async def main():
         check(o['moved'] > 3 and o['st'] == 'run' and o['pen'] == ['fart', 'vik'], '6. løpsbåten seiler videre på Autonav mens du er om bord i en annen båt, og tilleggene telles på henne', o)
         await J("() => rescue(true)"); await J(SAIL, {'n': 2, 'untilEnd': True}); r = await J(RUN)
         h0 = r['hist'][0] if r['hist'] else {}
-        check(r['st'] is None and h0.get('st') == 'dnf' and h0.get('how') == 'slep', '6. slep fra Redningsselskapet: forsøket er brutt', h0)
+        check(r['st'] is None and h0.get('st') == 'dnf' and h0.get('how') == 'slep', '6. slep fra Kystredningen: forsøket er brutt', h0)
         # a tow called from the quay as she casts off (rescue() docks her at once, no 'tow' is ever seen): broken too
         await J(AT, {'k': 0}); await J("() => lopStart()"); await J(ROUTE, 1); await J("() => depart()")
         q = await J("() => { const st = S.boat.status; rescue(true); const h = S.lop.hist[0] || {}; return {st, run:!!S.lop.run, how:h.how, id:h.id}; }")

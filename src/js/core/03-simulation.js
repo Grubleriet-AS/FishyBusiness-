@@ -180,8 +180,15 @@ function trimWords(k, how){
 function trimEnd(){ const v0 = BOAT.vmax; delete S.boat.trim; applyVessel(); trimRescale(v0); }
 function powerX(b){ const V = VESSELS[b.type || 'skiff']; return 1 + (b.engLv && !V.outboard ? ENGUP[b.engLv - 1].p : 0); }
 const speedOfPower = (P, planing) => planing ? Math.sqrt(P) : Math.min(1.12, Math.cbrt(P));
+// every key a vessel type or a piece of equipment's boost can give BOAT (made once, applyVessel)
+let BOAT_KEYS = null;
 function applyVessel(){
-  const b = S.boat; Object.assign(BOAT, VESSELS[b.type || 'skiff']);
+  const b = S.boat, Vt = VESSELS[b.type || 'skiff'];
+  // (a key the type before left, a switch in the fleet: back to what a fresh load of this type gives, the skiff's or none, before the type
+  // goes on; DP3-4 16.11.2026: the autoliner after the snow crab vessel kept its pots, tanks, ice class and provisions)
+  if (!BOAT_KEYS){ BOAT_KEYS = new Set(); for (const ty in VESSELS) for (const k in VESSELS[ty]) BOAT_KEYS.add(k); for (const k in EQUIP) if (EQUIP[k].boost) for (const j in EQUIP[k].boost) BOAT_KEYS.add(j); }
+  for (const k of BOAT_KEYS) if (!(k in Vt)){ if (k in VESSELS.skiff) BOAT[k] = VESSELS.skiff[k]; else delete BOAT[k]; }
+  Object.assign(BOAT, Vt);
   reqFill(S.equip, b.type || 'skiff');   // the gear the rules ask for is always aboard (V6 A, Ø11.5)
   for (const k in EQUIP) if (EQUIP[k].boost && S.equip && S.equip[k] && equipFits(k, b.type || 'skiff')) Object.assign(BOAT, EQUIP[k].boost);
   BOAT.fuelK = fuelKOf(BOAT);   // the boat burns BOAT.lph at cruising speed, with the engine the boosts gave her
@@ -232,6 +239,12 @@ function jigMeShare(){
   const F = workTeam('fiske', 'juksa', 'fishing'), per = jigPer(), jk = Math.min(S.equip ? S.equip.jukse : 0, F.n * per);
   if (F.n - Math.ceil(jk / per) < 1) return 0;
   const tot = effortOf(F.n, jk, JIG.hand) * F.eff; return tot > 0 ? clamp(JIG.hand * meEff() / tot, 0, 1) : 0;
+}
+// your share if you went to the rail now: «Jukse selv» puts you there (window.jigActive, workAssign), so the button asks this and not
+// where you stand this minute (feedback #4 from the test edition, 12.11.2026: a skipper on a break with the crew jigging never saw it)
+function jigMeCan(){
+  if (typeof window === 'undefined' || window.jigActive) return jigMeShare();
+  window.jigActive = true; try { return jigMeShare(); } finally { window.jigActive = false; }
 }
 const GM = {E:1.05, A:1.0, B:0.85, X:0.6, V:0};
 
@@ -458,7 +471,11 @@ function sunTimes(H, p){
 // the ensign's hours (flaggforskriften, 1927: hoisted at 08 from March to October and at 09 from November to February, lowered at sunset
 // and at 21 at the latest; in Nordland, Troms and Finnmark from 10 to 15 from November to February). The pennant has no hours: it flies
 // day and night, the year round (Jonas 07.10.2026)
+// Jonas 16.11.2026, before the launch: «Flagg oppe hele døgnet»: the ensign flies day and night on every boat (FLAG.always); false gives
+// the hours of flaggforskriften back
+const FLAG = {always:true};
 function flagUp(H, p){
+  if (FLAG.always) return true;
   p = p || herePos(); const m = gDate(H).getUTCMonth(), h = hodOf(H), winter = m >= 10 || m <= 1;
   if (winter && LL(p).lat > 65) return h >= 10 && h < 15;
   return h >= (winter ? 9 : 8) && h < 21 && !(h >= 12 && sunAt(H, p).el < -0.83);
@@ -764,8 +781,9 @@ function wshOpen(y){ return WSH.y === y ? WSH.open : 0; }
 function wshSat(pid, sp, H){ const m = WSH.mkt[pid]; return m && m[sp] ? m[sp] * Math.pow(0.97, Math.max(0, H - WSH.mH)) : 0; }
 function wshTake(k, kg){ if (S.stock && kg > 0) stkSet(S.stock, k, Math.max(0.12, stkGet(S.stock, k) - kg / STK.K)); }
 // a sale for the others: kilos a species, and the cod counted on the open group's quota
-function wshLand(port, H, acc, kgSp, codQ){ if (!WSH.rec) return; const Q = wq(); if (Q.l.length >= 200) return;
-  const items = Object.entries(kgSp).filter(([, kg]) => kg > 0.01).slice(0, 24).map(([sp, kg]) => ({sp, kg:+kg.toFixed(1), kgq:sp === 'torsk' && acc === 'open' ? +codQ.toFixed(1) : 0}));
+// (krSp: the value of each species at the plant, for the leaderboard in kroner, Jonas 16.11.2026; 20261116120000_lansering.sql)
+function wshLand(port, H, acc, kgSp, codQ, krSp){ if (!WSH.rec) return; const Q = wq(); if (Q.l.length >= 200) return;
+  const items = Object.entries(kgSp).filter(([, kg]) => kg > 0.01).slice(0, 24).map(([sp, kg]) => ({sp, kg:+kg.toFixed(1), kgq:sp === 'torsk' && acc === 'open' ? +codQ.toFixed(1) : 0, kr:Math.max(0, Math.round((krSp && krSp[sp]) || 0))}));
   // the boat's name goes with it for the open group's leaderboard (and the company's in the closed group, whose leaderboard shows it:
   // Jonas 05.10.2026); there is no hiding from the others (07.10.2026)
   const ev = typeof evAt === 'function' ? evAt(H, port, items.map(i => i.sp)) : '';   // the shared event it falls in (09c-seasons.js)
@@ -804,7 +822,7 @@ const SST = [3.6,3.1,3.2,3.9,5.6,8.2,10.8,11.4,9.8,7.8,6.0,4.6];
 // where a harbour unit stands (07-harbours.js) its quay is dry and its basin dredged
 // the depth below chart datum (m): the tiles' depth where they have it, else the sea floor offshore from the core, else the model
 // (openness and the distance to the shore)
-function depthF(p){ return unitDredge(p, isLand(p) ? 0 : DEPTH && mapSimAt(p) && depthHas(p) ? Math.max(0.8, tileDepth(p, depthWater(p))) : offDepth(p)); }
+function depthF(p){ return siteDredge(p, unitDredge(p, isLand(p) ? 0 : DEPTH && mapSimAt(p) && depthHas(p) ? Math.max(0.8, tileDepth(p, depthWater(p))) : offDepth(p))); }   // (the rorbuer's and the naust's berths: siteDredge, 07-harbours.js)
 // whether the four cells depthWater reads at p all lie in blocks some pack has: at a tile's seaward edge the next cell's block can be
 // one no pack covers (open sea), and that is the model's water, not an error (Autonav over open sea threw «depth block has no
 // pack», 08.10.2026). A block a pack has but is not loaded yet still throws, as it should.
@@ -941,7 +959,7 @@ const MVA = {rate:0.1111, limit:50000};
 const ACCT = {
   fisk:{s:'in', no:'Fisk levert', en:'Fish landed'}, tillegg:{s:'in', no:'Tillegg, lever og rogn', en:'Premiums, liver and roe'}, oppdrag:{s:'in', no:'Oppdrag', en:'Missions'},
   rente:{s:'in', no:'Renteinntekter', en:'Interest earned'}, annet:{s:'in', no:'Andre inntekter', en:'Other income'},
-  trekk:{s:'out', no:'Trekk til Råfisklaget og staten', en:'Sales organisation and state levies'}, mannskap:{s:'out', no:'Mannskap (lott)', en:'Crew (shares)'},
+  trekk:{s:'out', no:'Trekk til Fiskesalgslaget og staten', en:'Sales organisation and state levies'}, mannskap:{s:'out', no:'Mannskap (lott)', en:'Crew (shares)'},
   kvote:{s:'out', no:'Kvotesamarbeid', en:'Quota cooperation'}, diesel:{s:'out', no:'Drivstoff', en:'Fuel'}, is:{s:'out', no:'Is', en:'Ice'}, agn:{s:'out', no:'Agn og egning', en:'Bait and baiting'},
   redskap:{s:'out', no:'Redskap og utstyr', en:'Gear and equipment'}, verft:{s:'out', no:'Verft og verksted', en:'Yard and workshop'}, havn:{s:'out', no:'Havneavgift', en:'Harbour dues'}, proviant:{s:'out', no:'Proviant', en:'Provisions'},
   forsikring:{s:'out', no:'Forsikring og slep', en:'Insurance and towing'}, renter:{s:'out', no:'Rentekostnader', en:'Interest paid'}, regnskap:{s:'out', no:'Regnskap og gebyrer', en:'Books and fees'},
@@ -986,9 +1004,16 @@ function bookResult(y){ bookYear(); const Y = S.stats.y[y] || {}; let inc = 0, c
 // interest, takes a fixed share of each landing if the player wants, and counts as equity when a vessel is bought. The overdraft
 // (kassekreditt) lets the current account go below zero to a limit, at a higher rate; below the limit nothing can be bought. The rates are
 // estimates (V4 A): savings 3,5 %, the overdraft 10 %, its limit 10 % of the fleet's value and at least 20 000 kr.
-const BANK = {kkMin:20000, kkF:0.10, kkRate:0.10, spRate:0.035, autoMax:0.5, pcts:[0.3, 0.4, 0.5], spPcts:[0, 0.1, 0.2, 0.3]};
-function bankS(){ const B = S.bank || (S.bank = {}); for (const [k, v] of [['skatt', 0], ['spare', 0], ['auto', true], ['pct', 0.4], ['spPct', 0], ['kkAcc', 0], ['spAcc', 0], ['spYr', 0], ['warnD', -1]]) if (B[k] == null) B[k] = v; return B; }
-const kkLimit = () => Math.max(BANK.kkMin, Math.round((S.fleet || []).reduce((a, v) => a + vesselValue(v), 0) * BANK.kkF / 1000) * 1000);
+// The overdraft comes with sea time (Jonas 16.11.2026, before the launch: «Fjerne kreditt for ENK? (forhindre nye spillere i å kjøpe alt
+// med en gang)», and his choice «Kassekreditt etter fartstid»): a sole proprietor gets none until kkFsY years of sea time (09e-fartstid.js;
+// the fifth year comes in the first week for one who plays steadily); a company (AS) has it as before. The one place sea time opens
+// something.
+const BANK = {kkMin:20000, kkF:0.10, kkRate:0.10, kkFsY:5, spRate:0.035, autoMax:0.5, pcts:[0.3, 0.4, 0.5], spPcts:[0, 0.1, 0.2, 0.3]};
+function bankS(){ const B = S.bank || (S.bank = {}); if (B.kkOld == null) B.kkOld = S.cash < 0; for (const [k, v] of [['skatt', 0], ['spare', 0], ['auto', true], ['pct', 0.4], ['spPct', 0], ['kkAcc', 0], ['spAcc', 0], ['spYr', 0], ['warnD', -1]]) if (B[k] == null) B[k] = v; return B; }
+// (a game from before 16.11.2026 that stood below zero when it was first loaded keeps its overdraft, kkOld: nobody is locked out by the
+// change; a new game has kkOld false from newState)
+const kkOpen = () => S.form === 'AS' || !!bankS().kkOld || fsOf(fsState().p).y >= BANK.kkFsY;
+const kkLimit = () => !kkOpen() ? 0 : Math.max(BANK.kkMin, Math.round((S.fleet || []).reduce((a, v) => a + vesselValue(v), 0) * BANK.kkF / 1000) * 1000);
 // what can be spent now: the current account and the overdraft not yet used
 const spendable = () => S.cash + kkLimit();
 // the equity a purchase can use: the current account above zero and the savings
@@ -1022,7 +1047,8 @@ function bankDay(H){
     if (B.spAcc >= 1){ const s0 = Math.round(B.spAcc); B.spAcc = 0; B.spare += s0; bookAll({rente:s0, spare:-s0}, 'Renter på sparekontoen', 'Interest on savings'); }
   }
   const day = Math.floor(H / 24); if (S.cash < -kkLimit() && B.warnD !== day){ B.warnD = day;
-    msg('Kystbanken', 'Brukskontoen er ' + kr(-S.cash) + ' i minus, over rammen på kassekreditten (' + kr(kkLimit()) + '). Til den er under rammen igjen, kan du ikke kjøpe noe. Lever fisk, eller flytt penger fra sparekontoen.', 'The current account is NOK ' + (-Math.round(S.cash)) + ' overdrawn, over the overdraft limit (NOK ' + kkLimit() + '). Until it is within the limit again, nothing can be bought. Land fish, or move money from the savings.'); }
+    if (!kkOpen()) msg('Kystbanken', 'Brukskontoen er ' + kr(-S.cash) + ' i minus, og du har ikke kassekreditt ennå (den kommer med ' + BANK.kkFsY + ' års fartstid). Til kontoen er i pluss igjen, kan du ikke kjøpe noe. Lever fisk, eller flytt penger fra sparekontoen.', 'The current account is NOK ' + (-Math.round(S.cash)) + ' overdrawn, and you have no overdraft yet (it comes with ' + BANK.kkFsY + ' years of sea time). Until the account is above zero again, nothing can be bought. Land some fish, or move money from savings.');
+    else msg('Kystbanken', 'Brukskontoen er ' + kr(-S.cash) + ' i minus, over rammen på kassekreditten (' + kr(kkLimit()) + '). Til den er under rammen igjen, kan du ikke kjøpe noe. Lever fisk, eller flytt penger fra sparekontoen.', 'The current account is NOK ' + (-Math.round(S.cash)) + ' overdrawn, over the overdraft limit (NOK ' + kkLimit() + '). Until it is within the limit again, nothing can be bought. Land fish, or move money from the savings.'); }
 }
 // Income tax (E4 04.10.2026; Økonomi 2, Ø4 27.10.2026: the terms and the settlement as in life, docs/planer/okonomi/02-design.md).
 // The year's profit is the income less the costs in the books (the levies, the shares, fuel, gear, interest ...; not the instalments, the
@@ -1207,7 +1233,7 @@ function mvaCheck(total){
   const yr = (S.sales || []).filter(s => s.t > S.t - 365 * 1440).reduce((a, s) => a + (s.total || 0), 0) + total;
   if (yr < MVA.limit) return false;
   S.mva = {t:S.t, org:900000000 + Math.floor(h2(S.t % 100000, 77) * 99999999)};
-  msg('Brønnøysundregistrene', 'Salget ditt har passert 50 000 kr på tolv måneder. Fisket ditt er registrert som enkeltpersonforetak i Enhetsregisteret, og foretaket er ført i Merverdiavgiftsregisteret. Fra nå legger Råfisklaget 11,11 % MVA på oppgjøret, og du betaler den videre til staten. Se Papirer i Kvote-appen.',
+  msg('Brønnøysundregistrene', 'Salget ditt har passert 50 000 kr på tolv måneder. Fisket ditt er registrert som enkeltpersonforetak i Enhetsregisteret, og foretaket er ført i Merverdiavgiftsregisteret. Fra nå legger Fiskesalgslaget 11,11 % MVA på oppgjøret, og du betaler den videre til staten. Se Papirer i Kvote-appen.',
     'Your sales have passed NOK 50,000 in twelve months. Your fishing is registered as a sole proprietorship in the Central Coordinating Register and in the VAT register. From now the sales organisation adds 11.11 % VAT to the settlement, which you pass on to the state. See Papers in the Quota app.');
   return true;
 }
@@ -1220,11 +1246,11 @@ function fmInit(){ const F = {n:0, last:-1, kr:0, b:false}; for (const s of S.sa
   F.b = !!(S.lic || (S.fleet || []).some(v => v.lic)) || (F.n >= BLADB.days && F.kr >= BLADB.kr); return F; }
 function fmLand(total){ const F = S.fm || (S.fm = fmInit()), d = Math.floor(S.t / 1440); if (d !== F.last){ F.n++; F.last = d; } F.kr += total;
   if (!F.b && F.n >= BLADB.days && F.kr >= BLADB.kr){ F.b = true;
-    msg('Fiskeridirektoratet', 'Du er ført på blad B i fiskermanntallet: fiske er hovedyrket ditt. Nå kan du kjøpe en båt med deltakeradgang i lukket gruppe, og Innovasjon Norge kan toppfinansiere det første kjøpet. Se Båthandel under Verft.', 'You are on blad B of the fishermen\'s register: fishing is your main occupation. You can now buy a boat with a closed-group right, and Innovasjon Norge can top up the financing of the first one. See the boat market in the yard.'); } }
+    msg('Fiskeridirektoratet', 'Du er ført på blad B i fiskermanntallet: fiske er hovedyrket ditt. Nå kan du kjøpe en båt med deltakeradgang i lukket gruppe, og Kystfondet kan toppfinansiere det første kjøpet. Se Båthandel under Verft.', 'You are on blad B of the fishermen\'s register: fishing is your main occupation. You can now buy a boat with a closed-group right, and Kystfondet can top up the financing of the first one. See the boat market in the yard.'); } }
 const bladB = () => !!(S.fm && S.fm.b);
 // loans: Kystbanken lends against the fleet; Innovasjon Norge tops up the first closed-group purchase with a risk loan at a higher rate
 // (the share and the rate are estimates, not checked against their terms)
-const LOANS = {loan:{who:'Kystbanken', rate:0.069}, loanIN:{who:'Innovasjon Norge', rate:0.089}};
+const LOANS = {loan:{who:'Kystbanken', rate:0.069}, loanIN:{who:'Kystfondet', rate:0.089}};
 const debt = () => (S.loan ? S.loan.bal : 0) + (S.loanIN ? S.loanIN.bal : 0);
 const innOK = () => bladB() && !S.inUsed && !S.fleet.some(v => vget(v, 'lic'));
 function takeLoan(amount, months, k){ k = k || 'loan'; const C = LOANS[k], r = C.rate / 12, n = months || 120, O = S[k], bal = (O ? O.bal : 0) + amount;

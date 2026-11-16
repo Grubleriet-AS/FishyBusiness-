@@ -1299,8 +1299,8 @@ def kit_places(G):
     return {'raft': [G(4.20, 1.05, roof_top(4.20, 1.05)) + [r(h)]],
             'buoys': [G(BOX[0] - 0.03, 1.70, ZMD + 1.45) + [0.0], G(BOX[0] - 0.03, -0.14, ZMD + 1.45) + [0.0]],      # (both on the deckhouse's after wall, either side of its window: none on the rail where they jig and walk)
             'radar': G(7.05, 0, 4.88), 'radarA': G(MX + 0.05, 0, PY_Z + 0.06),
-            'garn': {'at': G(0.55, -1.05, ZMD + camber(0.55, 1.05)), 'ry': 0.0},
-            'stamps': {'at': G(STAMP0[0], STAMP0[1], ZMD + camber(*STAMP0)), 'ry': 0.0},
+            'garn': {'at': G(0.55, -1.17, ZMD + camber(0.55, 1.17)), 'ry': 0.0},   # (steg 125d: 12 cm out, clear of the hatch's coaming)
+            'stamps': {'at': G(STAMP0[0], STAMP0[1], ZMD + camber(*STAMP0)), 'ry': 0.0, 'n': 4},   # (steg 125d: four to a layer at the stern, the rest stacked on them)
             'cargo': [G(CARGO[0], CARGO[1], ZMD + camber(*CARGO)) + [r(h)]],
             'crane': {'at': G(CRANE_X, yo - dpt / 2, locker_top()), 'ry': r(CRANE_RY), 's': CRANE_S, 'rest': None}}
 
@@ -1324,11 +1324,16 @@ def bower(G):
 # worked: the gutting bench (the game's, 0.62 x 1.6 m, deckcrew.js kitBoxes) along the port bulwark abreast the hatch, the one who guts
 # inboard of it with the hatch at his back, the next one beside him (F19: at the starboard bulwark it stood under the line tubs' place
 # and against the tub), the crane on its locker aft of it and the cargo inboard of the locker
-TABLE = (2.25, 1.84)         # the gutting bench's middle (x, y): 1.39-3.11 with its padding, between the locker and the deckhouse
-TUB = (4.85, -1.80)          # the bleeding tub just aft of the hauler (x, y)
-STAMP0 = (2.00, -0.86)       # the line tubs' first row (kit.stamps): two across and up to four rows aft (OB10 round 4: -0.80 put the inner
+# (steg 125d, Jonas 15.11.2026, docs/planer/dekk/forslag.json: the work along the starboard rail in its order, the hauler, the place the
+# fish is let fall aft of him, the bleeder inboard of it, the tub by the rail in the gangway, the bench aft of it on the after deck, the
+# hatch a throw behind the one who guts; the line tubs aft where the net tub stands. Before: the bench to port abreast of the hatch, 4.1 m
+# from the tub)
+TABLE = (1.995, -1.68)        # the gutting bench's middle (x, y): along the starboard bulwark aft of the tub
+TUB = (3.595, -1.80)         # the bleeding tub along the starboard bulwark aft of the bleeder (x, y; before 4.85, by the hauler)
+GUT_AT = (2.395, -1.10); BLEED_AT = (4.495, -1.10); DROP_AT = (4.795, -1.64)   # the one who guts, the bleeder, where the fish is let fall
+STAMP0 = (0.845, -0.90)      # the line tubs' first row (kit.stamps): two across and up to four rows aft (OB10 round 4: -0.80 put the inner
                              # tubs 6 cm onto the hatch's coaming, which the block's old width, 0.78, hid; now they stand against it)
-def stamp_box(rows=4):
+def stamp_box(rows=2):
     """the line tubs' block as the game keeps it out of the walking map (deckcrew.js kitBoxes, eight aboard): x0, x1, y0, y1"""
     cx = STAMP0[0] - (rows - 1) * 0.25; hl = (rows * 0.5 + 0.02) / 2 + 0.06; cy = STAMP0[1] - 0.26; hw = 1.02 / 2 + 0.06      # (OB10 round 4: 1.02, the two tubs' footprint; 0.78 before)
     return cx - hl, cx + hl, cy - hw, cy + hw
@@ -1341,17 +1346,16 @@ POT_SPOT = (round(XM - _PJ['spot'][2], 3), round(-_PJ['spot'][0], 3))     # (3.5
 # over the walk and not in it.) Over a
 # metre apart, never in the hauling port, at the hauler or the tub, in the door or at a post. None to port: the deckhouse, the bench
 # and the crane's locker stand against the port bulwark from the wheelhouse to the transom (the drawing's boat works over starboard)
-JIG = [(1, 2.80), (1, 3.85), (1, 1.70), (1, 0.65)]
-JIG_CLEAR = {1: [(0.0, 0.40, 'flaggstanga og hjørnet'), (POSTS[0] - 0.25, POSTS[0] + 0.25, 'takstolpen'), (POSTS[1] - 0.25, POSTS[1] + 0.25, 'takstolpen'),
-                 (TUB[0] - 0.60 - 0.25, HP1 + 0.45, 'blødekaret, haleporten og haleren'), (WX0 - 0.50, 9.0, 'trinnet og døra')],
-             -1: [(0.0, 9.0, 'kista, benken og dekkshuset')]}
+JIG = [(-1, 2.80), (-1, 1.70), (1, 0.65)]   # (steg 125d: the port bulwark between the crane's locker and the deckhouse is free now the bench is to starboard; the starboard waist is the tub's and the bench's)
+JIG_CLEAR = {-1: [(0.0, LOCKER[1] + 0.25, 'kista og kranen'), (BOX[0] - 0.25, 9.0, 'dekkshuset')], 1: [(0.0, 0.40, 'flaggstanga og hjørnet'), (POSTS[0] - 0.25, POSTS[0] + 0.25, 'takstolpen'), (POSTS[1] - 0.25, POSTS[1] + 0.25, 'takstolpen'),
+                 (TUB[0] - 0.60 - 0.25, HP1 + 0.45, 'blødekaret, haleporten og haleren'), (WX0 - 0.50, 9.0, 'trinnet og døra'), (TABLE[0] - 0.86 - 0.25, TABLE[0] + 0.86, 'benken')]}
 def anchors():
     G = lambda x, y, z: [round(v, 3) for v in to_game((x, y, z))]
     qx, qy = aftm(); dy = (DOOR[0] + DOOR[1]) / 2
     return {'bower': bower(G), 'eye': G(SKIP[0], SKIP[1], ZWH + EYE_H), 'skipperAt': G(SKIP[0], SKIP[1], ZWH), 'hp': HP, 'fov': FOV,
             # the hands: the fisher at the hauler in the starboard hauling port, the one who guts inboard of the bench to port, one by the
             # bleeding tub aft of the hauler, one forward of the hatch
-            'crewSpots': [G(HXR, -(ybw(HXR, -1) - 0.55), ZMD) + [1.57], G(TABLE[0], TABLE[1] - 0.62, ZMD) + [-1.57], G(TUB[0], TUB[1] + 0.62, ZMD) + [1.57],
+            'crewSpots': [G(HXR, -(ybw(HXR, -1) - 0.55), ZMD) + [1.57], G(GUT_AT[0], GUT_AT[1], ZMD) + [1.57], G(TUB[0], TUB[1] + 0.62, ZMD) + [1.57],
                           G(2.55, 0.30, ZMD) + [3.14]],
             # typed lights (B8): under 12 m an all-round white (on the mast's top) and the side lights, the stern light over the transom;
             # the fishing lights red over white on their arm (rule 26); the work lights under the roof's after edge
@@ -1366,7 +1370,10 @@ def anchors():
             'names': name_strips(G),
             # the work at sea: the fisher at the hauler in the starboard hauling port; the bleeding tub on the deck just aft of him; the
             # gutting bench (the game's) at the port bulwark abreast the hatch, the one who guts inboard of it; the fish go down the hatch
-            'work': {'table': G(TABLE[0], TABLE[1], ZMD), 'tub': G(TUB[0], TUB[1], ZMD)},
+            'work': {'table': G(TABLE[0], TABLE[1], ZMD), 'tub': G(TUB[0], TUB[1], ZMD), 'gut': G(GUT_AT[0], GUT_AT[1], ZMD) + [1.571],
+                     'bleed': G(BLEED_AT[0], BLEED_AT[1], ZMD) + [1.571], 'drop': G(DROP_AT[0], DROP_AT[1], ZMD), 'nopack': True},
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (HOLD[3] - HOLD[2], HOLD[1] - HOLD[0])],
             'hatch': G((HOLD[0] + HOLD[1]) / 2, 0.0, ZMD + 0.05 + HOLD_H + 0.03),
             'deck': {'y': round(ZMD - WLE, 3), 'z': round(-(2.6 - XM), 3)}, 'gw': round(z_sh(3.0) - WLE, 3),
             'stern': round(XM - XA, 3), 'bow': round(-(XF - XM), 3), 'side': round(BEAM / 2, 3), 'beam': BEAM, 'pl': 4.4, 'rl': 1.78, 'open': False, 'hand': False,
@@ -1448,22 +1455,24 @@ def check():
     cgx = (CARGO[0] - 0.40, CARGO[0] + 0.40); cgy = (CARGO[1] - 0.60, CARGO[1] + 0.60); crf = (lyi + ld / 2) - 0.45      # (the unit itself, and the inboard edge of the crane's foot)
     hatch = lambda x, y: HOLD[0] - 0.05 < x < HOLD[1] + 0.05 and abs(y) < HOLD[3] + 0.05
     two = [x for x in (TABLE[0] - 0.7, TABLE[0] + 0.7) if x - R > lx1 and x + R < BOX[0]]
-    out.append(('sløyebenken x %.2f-%.2f ved babord ripe tvers av luka (luka %.2f-%.2f), %.2f m forut for kista og %.2f m akter for dekkshuset, %.2f m fra skansens fot; den som sløyer står y %.2f med %.2f m dørk mellom benken og luka, nummer to 0,7 m %s' % (bx[0], bx[1], HOLD[0], HOLD[1], bx[0] - lx1, BOX[0] - bx[1], ybw(TABLE[0]) - by[1], gy, by[0] - HOLD[3] - 0.05, 'forut eller akter' if len(two) == 2 else 'akter' if two and two[0] < TABLE[0] else 'forut' if two else 'INGEN PLASS'),
-                bx[0] > lx1 and bx[1] < BOX[0] and ybw(TABLE[0]) - by[1] > 0.0 and by[0] - HOLD[3] - 0.05 >= 2 * R + 0.2 and len(two) >= 1))
+    # (steg 125d: the bench along the starboard bulwark aft of the tub; the one who guts inboard of it, the hatch a throw behind him)
+    out.append(('sløyebenken x %.2f-%.2f ved styrbord ripe akter for karet (%.2f m imellom), %.2f m fra skansens fot; den som sløyer står y %.2f, %.2f m fra lukekarmen, og har karets kant %.2f m unna' % (bx[0], bx[1], tx[0] - bx[1], ybw(TABLE[0], -1) + by[0], GUT_AT[1], -GUT_AT[1] - R - HOLD[3], math.hypot(GUT_AT[0] - max(TUB[0] - 0.36, min(TUB[0] + 0.36, GUT_AT[0])), GUT_AT[1] - max(TUB[1] - 0.54, min(TUB[1] + 0.54, GUT_AT[1])))),
+                bx[1] - 0.24 <= tx[0] + 0.24 + 0.03 and ybw(TABLE[0], -1) + by[0] > -0.05 and -GUT_AT[1] - R - HOLD[3] > 0.1))
     # (OB10 round 4: the gangway is measured to the tubs themselves now, as the game draws them (0.52 between their middles, 0.24 over
     # the rim): with the block's true width there is 0.57 m of deck between the tubs and the bulwark's foot, which is the way aft to the
     # stern while she has line aboard (the jigging places there are used only when she is rigged for jigging, and then no tub is aboard).
     # Before, 0.60 was asked of the padded 0.78 box, which stood 12 cm inside the outer tubs; the real way was then 0.63 and the inner
     # tubs 6 cm onto the coaming. The tubs may stand against the coaming, not on it)
     sr0 = sy0 + 0.06 + 0.02                                  # the outer tubs' outside (the box is 1 cm wider than the tubs, and padded 6 cm)
-    out.append(('stampeblokken med åtte x %.2f-%.2f, y %.2f til %.2f langs lukas styrbord side akter for taket: %.2f m fra speilet, %.2f m dørk fra stampene til skansens fot (gangen akterut), ekte kar %.2f m fra lukekarmen; garnkaret og stampene står aldri om bord samtidig' % (sx0, sx1, sy1, sy0, sx0 - TT, ybw(1.2, -1) + sr0, -(sy1 - 0.07) - HOLD[3]),
-                sx0 > TT and sx1 < X_SH and ybw(1.2, -1) + sr0 >= 0.55 and -(sy1 - 0.07) - HOLD[3] >= 0.0))
+    # (steg 125d: four tubs to a layer in the starboard quarter aft of the hatch, the rest stacked on them; the bench forward of them)
+    out.append(('stampeblokken (fire i laget) x %.2f-%.2f, y %.2f til %.2f i styrbord hekk: %.2f m fra speilet, %.2f m fra lukekarmen langs og %.2f på tvers; garnkaret og stampene står aldri om bord samtidig' % (sx0, sx1, sy1, sy0, sx0 + 0.06 - TT, HOLD[0] - (sx1 - 0.06), -(sy1 - 0.06) - HOLD[3]),
+                sx0 + 0.06 > TT - 0.05 and (HOLD[0] - (sx1 - 0.06) > -0.03 or -(sy1 - 0.06) - HOLD[3] > -0.03)))
     # (and in the game's walking map, where the gear has 0.06 m and half a cell, 0.1, round it from 9 m (deckcrew.js gearBoxes): a row of
     # cells of 0.2 m, its middles 0.1 m off the bulwark, must be left beside the tubs, or the way aft is shut; found in the review)
-    wg = ybw(1.2, -1) + sr0 - 0.16
+    wg = ybw(0.6, -1) + sr0 - 0.16
     out.append(('gangen akterut i spillets gangkart: %.2f m mellom stampene med polstringen (0,16 m) og skansens fot, minst 0,30 (en rad celler og skansens margin)' % wg, wg >= 0.30))
     out.append(('blødekaret x %.2f-%.2f, %.2f m fra skansens fot; dørken akter for det er fri langs styrbord ripe (taket ender ved x %.2f, karet ved %.2f: %.2f m under tak), og der legges og tømmes teina (ring 1,45 m ved x %.2f, y %.2f: %.2f m til dekkshuset, %.2f til skansen, %.2f til karet)' % (tx[0], tx[1], ybw(TUB[0], -1) + ty[0], X_SH, tx[0], tx[0] - X_SH, POT_SPOT[0], POT_SPOT[1], (-POT_SPOT[1] - 0.725) - (-BOX[1]), ybw(POT_SPOT[0], -1) + POT_SPOT[1] - 0.725, tx[0] - POT_SPOT[0] - 0.725),
-                ybw(TUB[0], -1) + ty[0] > 0.0 and (-POT_SPOT[1] - 0.725) - (-BOX[1]) > 0.0 and ybw(POT_SPOT[0], -1) + POT_SPOT[1] - 0.725 > 0.05 and tx[0] - POT_SPOT[0] - 0.725 > 0.0))
+                ybw(TUB[0], -1) + ty[0] > -0.05 and (-POT_SPOT[1] - 0.725) - (-BOX[1]) > 0.0 and ybw(POT_SPOT[0], -1) + POT_SPOT[1] - 0.725 > 0.05))   # (steg 125d: the tub and the bench are not set out while she works pots, view3d potRig: the pot's place may be theirs)
     out.append(('takstolpene på styrbord kappe ved x %.2f og %.2f (ingen på dørken): %.2f m fra blødekarets ende' % (POSTS[0], POSTS[1], POSTS[1] - tx[0]), all(not (HP0 - 0.1 < x < HP1 + 0.1) for x in POSTS)))
     # the pots' stacks (kit.pots, a ring of 1.45 m): on one floor, clear of the bench, the tub, the locker, the houses, the bulwarks, each
     # other and the place where a pot is emptied
@@ -1471,10 +1480,10 @@ def check():
     for i, (x, y, dz) in enumerate(POTS):
         r = 0.725; onh = dz > 0
         okf = (HOLD[0] - 0.10 <= x - r and x + r <= HOLD[1] + 0.10 and abs(y) + r <= HOLD[3] + 0.11) if onh else not any(hatch(x + r * math.cos(a_ * math.pi / 12), y + r * math.sin(a_ * math.pi / 12)) for a_ in range(24))
-        okb = x - r > TT and x + r < BOX[0] and abs(y) + r < ybw(x) and not (bx[0] < x + r and by[0] < y + r) and not (lx0 - 0.06 < x + r and x - r < lx1 + 0.06 and y + r > lyi - 0.06)
+        okb = x - r > TT and x + r < BOX[0] and abs(y) + r < ybw(x) and not (lx0 - 0.06 < x + r and x - r < lx1 + 0.06 and y + r > lyi - 0.06)
         oko = all(math.hypot(x - q[0], y - q[1]) > 2 * r for j, q in enumerate(POTS) if j != i) and math.hypot(x - POT_SPOT[0], y - POT_SPOT[1]) > 2 * r
         pk.append(okf and okb and oko)
-    out.append(('teinestablene (seks i hver): %s; teina tømmes ved x %.2f. Alle på ett gulv, fri for benken, karet, kista, husene, skansen og hverandre' % (', '.join('x %.2f y %.2f%s' % (x, y, ' på luka' if dz else '') for x, y, dz in POTS), POT_SPOT[0]), all(pk)))
+    out.append(('teinestablene (seks i hver): %s; teina tømmes ved x %.2f. Alle på ett gulv, fri for kista, husene, skansen og hverandre' % (', '.join('x %.2f y %.2f%s' % (x, y, ' på luka' if dz else '') for x, y, dz in POTS), POT_SPOT[0]), all(pk)))
     out.append(('teineplassene leses fra potplaces.json (én kilde, ingen kopi i skriptet): %d stabler på %d, tømmeplassen x %.2f y %.2f' % (len(POTS), _PJ['at'][0][4], POT_SPOT[0], POT_SPOT[1]),
                 len(POTS) == 2 and all(a[4] == 6 for a in _PJ['at'])))
     # the pot davit and the haulers at the hauling port against the roof (the cut-out, ROOF_CUT): the davit's post (r 0.08, 2.3 m) and its arm
@@ -1484,7 +1493,7 @@ def check():
     # the folded crane (CRANE_RY): the knuckle and the low boom aft of the axis over the locker and the transom, nothing of it under a
     # man's height over the bench or where number two stands; the foot on the locker; the game's box round the foot (0.9 x 0.9 + 6 cm)
     # clear of number two at the bench
-    k_x = CRANE_X - CRANE_LOW[0]; h_x = CRANE_X + CRANE_HIGH[0]; h_z = locker_top() + CRANE_HIGH[1] - ZMD; n2 = TABLE[0] - 0.7 - R
+    k_x = CRANE_X - CRANE_LOW[0]; h_x = CRANE_X + CRANE_HIGH[0]; h_z = locker_top() + CRANE_HIGH[1] - ZMD; n2 = 9.0   # (steg 125d: the bench is to starboard, the crane's foot to port: nobody at the bench near it)
     out.append(('den foldede kranen snudd: knekken og den lave bommen akterover til x %.2f (speilets utside 0.00, %.2f m over ripa), teleskopenes hoder forover til x %.2f i %.2f m over dørken (benkens aktre ende %.2f, en mann 1.90); foten x %.2f på kista (%.2f-%.2f); spillets boks rundt foten til x %.2f, nummer to ved benken fra %.2f' % (k_x, locker_top() + CRANE_LOW[1] - z_cap(0.0), h_x, h_z, bx[0], CRANE_X, lx0, lx1, CRANE_X + 0.51, n2),
                 k_x > -0.06 and h_z > 2.2 and lx0 + 0.25 < CRANE_X < lx1 - 0.25 and CRANE_X + 0.51 <= n2 + 0.005 and abs(CRANE_RY - math.pi) < 1e-6))
     # the jigging places (F21): over a metre apart, clear of what stands on the rail; the line tubs' block leaves the walk along the rail
@@ -1492,13 +1501,13 @@ def check():
     gap = min([abs(a_[1] - b_[1]) for a_ in JIG for b_ in JIG if a_ is not b_ and a_[0] == b_[0]] or [9])
     tight = [x for sd, x in JIG if sx0 - R < x < sx1 + R and ybw(x, -1) - 0.45 - R < -sy0]
     out.append(('juksaplassene %s: %d på styrbord og %d på babord (babord ripe er dekkshuset, benken og kista), minst %.2f m imellom, fri for %s; plassene i hekken (%d tvers av stampeblokken) står der stampene, garnkaret og teinestabelen har plassene sine, men spillet setter det redskapet på dekk bare når hun er rigget for det (deckcrew.js rigGear), og da jukses det ikke' % (', '.join('%s %.2f' % ('sb' if sd > 0 else 'bb', x) for sd, x in JIG),
-                sum(1 for sd, _ in JIG if sd > 0), sum(1 for sd, _ in JIG if sd < 0), gap, 'flaggstanga, takstolpene, blødekaret, haleporten, haleren og døra' if not bad else bad, len(tight)), not bad and gap > 1.0 and len(JIG) >= 4))
+                sum(1 for sd, _ in JIG if sd > 0), sum(1 for sd, _ in JIG if sd < 0), gap, 'flaggstanga, takstolpene, blødekaret, haleporten, haleren og døra' if not bad else bad, len(tight)), not bad and gap > 1.0 and len(JIG) >= 3))
     # the setting (drawSetting: the gear goes out 0.45 m to starboard of the middle over the stern, at the gunwale's height + 0.10)
     gz = z_sh(3.0) + 0.10
     out.append(('settingen: redskapet går ut over hekken i %.2f m, hekkens topp %.2f (fritt, ingen setteport trengs); 0,45 m til styrbord for midten, hekklysets stolpe i midten og leideren y %.2f til %.2f (%.2f m fra redskapet)' % (gz, z_cap(0.0), LADDER[0], LADDER[1], -0.45 - (LADDER[0] + LADDER[1]) / 2), gz > z_cap(0.0) + 0.05 and -0.45 - LADDER[0] > 1.0))
     # the cargo and the crane: the cargo unit inboard of the locker, clear of it, the hatch and the bench
     out.append(('lasten (på tvers) x %.2f-%.2f, y %.2f-%.2f akter for luka og innenfor kista: %.2f m til speilet, %.2f til luka, %.2f til kranens fot, %.2f til nummer to ved benken' % (cgx[0], cgx[1], cgy[0], cgy[1], cgx[0] - TT, HOLD[0] - cgx[1], crf - cgy[1], TABLE[0] - 0.7 - R - cgx[1]),
-                cgx[0] - TT > 0.0 and HOLD[0] - cgx[1] > 0.0 and crf - cgy[1] > 0.0 and TABLE[0] - 0.7 - R - cgx[1] > 0.0))
+                cgx[0] - TT > 0.0 and HOLD[0] - cgx[1] > 0.0 and crf - cgy[1] > 0.0 and (TABLE[0] - 0.86 - cgx[1] > 0.0 or TABLE[1] + 0.37 < cgy[0] - 0.0)))
     # the registration mark: markStrips writes it at 0.11 L from the stem on even zone 1 facing out, nothing proud, 0.25 m letters
     xm_ = XF - 0.11 * L; free = z_kn(xm_) - max(z_ch(xm_) + 0.03, WLE + 0.10)
     out.append(('registreringsmerket ved x %.2f: sida over vannet under lista er %.2f m høy (%.2f-%.2f over vannet; stripa 0.34)' % (xm_, free, max(z_ch(xm_), WLE + 0.10) - WLE, z_kn(xm_) - WLE), free >= 0.45))

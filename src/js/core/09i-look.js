@@ -92,7 +92,12 @@ function lookOf(c){
   return c.look = best;
 }
 const lookMe = () => S.look ? lookClean(S.look) : lookDefault();
-const lookCrew = i => lookOf(crewAboard()[i]);
+// who is drawn in the skipper's place (at the wheel or tiller, at the rail, on his way between them): you when you are aboard, else the
+// crew's acting skipper (actingSkipper, core/13-work.js), or the first aboard when none is named; and the hands are the others aboard.
+// (Before 15.11.2026 the skipper's place always had your own look, also on a boat you only follow: tilbakemelding #10 fra testutgaven.)
+function leadAboard(){ if (meAboard()) return null; const C = crewAboard(), k = actingSkipper(); return k && C.includes(k) ? k : C[0] || null; }
+const lookLead = () => { const c = leadAboard(); return c ? lookOf(c) : lookMe(); };
+const lookCrew = i => { const L = leadAboard(); return lookOf(crewAboard().filter(c => c !== L)[i]); };
 
 // the people on a quay: each at a place has his own look from the place and his number (a hard hat mostly, and work clothes)
 const LOOK_Q = new Map();

@@ -41,12 +41,12 @@ async def main():
           const spot = window.CRABSPOT; atSea(spot); b.status = 'fishing'; b.fishUntil = S.t + 480; for (let i = 0; i < 480; i++) step();
           R.jigCrab = S.hold.filter(x => x.sp === 'krabbe').length; R.jigKg = Math.round(holdTotal()); S.hold = [];
           b.status = 'port'; b.port = 'finnsnes'; b.pos = {...portById('finnsnes').p}; S.pgear = newPGear(); const c0 = S.cash;
-          S.equip.linehaler = S.equip.garnhaler = S.equip.teinehaler = true; PHONE.open('redskap'); document.querySelector('[data-pa=sub][data-s=kjop]').click();
+          S.equip.linehaler = S.equip.garnhaler = S.equip.teinehaler = true; DOCK.open('fiske');
           const click = sel => { const e = document.querySelector(sel); if (e && !e.disabled) e.click(); return !!(e && !e.disabled); };
           R.clicked = [click('[data-pa=grbuy][data-w=net][data-s="156"]'), click('[data-pa=grbuy][data-w=stamp][data-s=hyse]'), click('[data-pa=grbuy][data-w=pot][data-s=big]'), click('[data-pa=grbuy][data-w=kit]')];
           // the bait is bought at the plant, not in the shop (Jonas 07.10.2026): over to Botnhamn for it, and the page is drawn again
-          const q = portById('botnhamn'); b.port = 'botnhamn'; b.pos = {x:q.p.x, y:q.p.y}; PHONE.open('redskap'); document.querySelector('[data-pa=sub][data-s=kjop]').click(); PHONE.open('agn'); R.clicked.push(click('[data-pa=grbuy][data-w=bait][data-n="20"]'));
-          b.port = 'finnsnes'; b.pos = {...portById('finnsnes').p}; PHONE.open('redskap'); document.querySelector('[data-pa=sub][data-s=kjop]').click();
+          const q = portById('botnhamn'); b.port = 'botnhamn'; b.pos = {x:q.p.x, y:q.p.y}; DOCK.open('fiske'); PHONE.open('agn'); R.clicked.push(click('[data-pa=grbuy][data-w=bait][data-n="20"]'));
+          b.port = 'finnsnes'; b.pos = {...portById('finnsnes').p}; DOCK.open('fiske');
           R.pg = {nets:S.pgear.nets.map(l => l.n), hyse:S.pgear.lines.hyse.n, pots:S.pgear.pots.big, kits:S.pgear.kits.n, bait:baitKg(S.pgear)};
           R.spent = Math.round(c0 - S.cash); R.potRoom = BOAT.gearMax.teine || 0; R.potWhy = (buyGate('pot', 'big') || [''])[0]; R.expect = 6 * GPRICE.net + 4 * LINE_KINDS.hyse.price + R.potRoom * POTS.big.price + GPRICE.kit + 20 * GPRICE.bait;
           R.fullNets = document.querySelector('[data-pa=grbuy][data-w=net]').disabled;
@@ -131,7 +131,7 @@ async def main():
         print('haul:', json.dumps(r, ensure_ascii=False))
         print(ok(r['afterNet']['hook'] and r['afterNet']['kg'] > 50 and r['afterNet']['pend'] > 0 and r['afterNet']['left'] == 1 and r['afterNet']['nets'][0][1] < 1), 'nets come up: net fish is not hook-caught, it goes to the bleeding tub, the nets are aboard again and worn a little')
         print(ok(r['afterLine']['hook'] and r['afterLine']['kg'] > 20 and r['afterLine']['un'] == 2), 'line comes up hook-caught, and the tubs are unbaited')
-        print(ok(r['potSet'] is None and r['crab']['n'] >= 20 and r['crab']['clsOk'] and len(r['crab']['cls']) >= 4), 'king crab: all of it is kept (J-138-2026 § 5) and sorted by sex, weight and damage into Råfisklaget’s classes')
+        print(ok(r['potSet'] is None and r['crab']['n'] >= 20 and r['crab']['clsOk'] and len(r['crab']['cls']) >= 4), 'king crab: all of it is kept (J-138-2026 § 5) and sorted by sex, weight and damage into Fiskesalgslaget’s classes')
         mk = r.get('marks') or []
         print(ok(len(mk) == 2 and mk[0]['g'] == 'line' and mk[1]['g'] == 'teine' and -0.05 < mk[1]['kgu'] - r['crab']['kg'] / 40 < 0.6 and mk[0]['kgu'] >= mk[1]['kgu'] and all(m['q'] is not None for m in mk)),
               'the catch mark gives kilos per line (the whole line) and per pot', mk, r['crab']['kg'])
@@ -181,7 +181,7 @@ async def main():
           S.t = Math.round(t0 * 60) - 30; b.type = 'sjark'; applyVessel(); S.equip.garnhaler = true; b.rig = 'garn'; b.fuel = BOAT.fuelCap; b.port = 'husoy'; b.pos = {...portById('husoy').p}; b.status = 'port'; b.gop = null;
           S.crew = [hand(), hand()]; setSkipper(S.crew[0].id); setMate(S.crew[1].id); S.me = 'nobody'; S.pgear = newPGear(); S.pgear.nets.push({id:'np', mesh:180, n:30, cond:1}); S.pgear.kits.n = 2;
           const rt = FLEET.find(f => f.home === 'husoy' && f.L < 15).rt[0], end = rt[rt.length - 1];
-          const o = S.ops = plan2New({home:'husoy', rig:'garn', jig:false, places:[{id:'g', k:'felt', x:end[0], y:end[1], n:30, soak:24}], dep:5, wx:{wind:16, hs:3.5}, land:{mode:'near', port:null, when:'trip'}});   // (Driftsplan 2 since Ø12 C 08.11.2026)
+          const o = S.ops = plan2New({v:DRV3, home:'husoy', rig:'garn', jig:false, places:[{id:'g', k:'felt', x:end[0], y:end[1], n:30, soak:24}], dep:5, wx:{wind:16, hs:3.5}, land:{mode:'near', port:null, when:'trip'}});   // (Driftsplan 2 since Ø12 C 08.11.2026)
           const err = await new Promise(r => plan2Make(o, r)); o.on = true;
           const s0 = S.sales.length, days = []; for (let d = 0; d < 3; d++){ for (let i = 0; i < 1440; i++){ DYN.on = false; step(); if (i % 240 === 0) await new Promise(r => setTimeout(r, 0)); } days.push(S.sets.filter(s => !s.lost).map(s => Math.round((S.t - s.tSet) / 60))); }
           const R = {err, days, sales:S.sales.slice(s0).map(x => x.kg), stop:o.stop};
@@ -210,7 +210,7 @@ async def main():
           b.status = 'port'; b.port = 'husoy'; b.pos = {...portById('husoy').p}; R.inSea = (rigBlock('teiner') || [''])[0];
           // an old save with pots in the sea and no rig: rigged for pots
           S.sets[0].kind = 'teine'; delete b.rig; R.guess = rigOf(); S.sets = [];
-          DOCK.open('rigg'); const dr = document.getElementById('drawerBody'); R.page = dr.querySelectorAll('[data-pa=rig]').length; R.pageOn = (dr.querySelector('.rig.on h4') || {}).textContent || '';
+          DOCK.open('rigg'); const dr = document.getElementById('drawerBody'); R.page = dr.querySelectorAll('[data-pa=rig]').length; R.pageOn = (dr.querySelector('.rig-r.on .rig-t') || {}).textContent || '';
           dr.querySelector('[data-pa=rig][data-r=line]').click(); R.byTap = rigOf(); DOCK.close();
           b.type = 'sjark'; applyVessel(); b.rig = 'juksa'; S.equip.linehaler = false; R.sjarkLine = (rigBlock('line') || [''])[0]; b.type = 'skiff'; applyVessel(); return R; })()""")
         print('rig:', json.dumps(r, ensure_ascii=False))

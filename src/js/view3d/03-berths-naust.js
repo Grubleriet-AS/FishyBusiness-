@@ -77,7 +77,7 @@
   // The shop's yard (anchors.apron, from the deck's back to 27.5 m in) is levelled 0.1 m under the deck and goes back within 12 m. The
   // map's houses on their ground go (onSite, in bldOnUnit) and so do the scattered trees. Drawn in full within 900 m, simply to 4 km.
   const SHOP_APRON = [-19, 19, 9.6, 27.5];
-  let SITES = null, SITEK = '';
+  let SITES = null, SITEK = '', SITENAN = [];   // (SITENAN: the sites whose quay out, siteOut, was not known yet when they were made)
   // the rorbuer near the boat, looked up again when she has moved 500 m or one more has been found (at most one new one is worked out
   // in a frame: rorbuSoon)
   const RBNEAR = {x:NaN, z:NaN, ver:-1, l:[], key:''};
@@ -89,8 +89,10 @@
   }
   function sitesNow(){
     const n = typeof naustSite === 'function' ? naustSite() : null, key = (n ? n.o.join(',') + (siteReady(n.o) ? '' : 'w') : '-') + '|' + rorbuNow() + RBNEAR.l.map(R => siteReady(R.site.o) ? '' : 'w').join('') + '|' + S.boat.type;
-    if (SITES && SITEK === key) return SITES;
-    SITEK = key; SITES = [];
+    // (a site's quay out not known when they were made, the fine coast not in: made again once it is known, so the pit reaches as far as
+    // the simulation's pocket)
+    if (SITES && SITEK === key && !SITENAN.some(o => { const q = siteOut(o); return q === q; })) return SITES;
+    SITEK = key; SITES = []; SITENAN = [];
     const sh = shopSite(); if (sh && glbHas('shop')) SITES.push({k:'shop', o:sh.o, u:sh.u, n:[-sh.u[1], sh.u[0]], clear:[[SHOP_APRON[0], SHOP_APRON[2] - 2, SHOP_APRON[1], SHOP_APRON[3]]]});
     // the shop by the naust along the coast (07c-naust.js shopNear): its yard levelled at the ground's own height there (not the deck's),
     // and the model lifted to it; the ground's height is read before the site is in SITES (terrRaw goes through siteTerr)
@@ -100,13 +102,17 @@
       if (hs.length === 9){ hs.sort((a, b) => a - b); SITES.push({k:'shop', near:true, o:sn.o, u:sn.u, n:nn, lev:clamp(hs[4], 1.2, 30), clear:[[SHOP_APRON[0], 0, SHOP_APRON[1], SHOP_APRON[3]]]}); }
       else SITEK = '';   // the ground is not in yet: try again next frame
     }
-    const V = VESSELS[S.boat.type] || {}, pit = a => ({d:Math.max(3, (V.draft || 1.5) + 1), w:(V.beam || 3) + 8, a});
+    // (the pit as deep as the simulation dredges the berth, SITE_DRAFT and half a metre at the lowest tide, below mean sea level: siteDredge,
+    // 13.11.2026; a boat up to 15 m lies there whatever she draws)
+    // (and out as far as the quay is built to her, siteOut, as the pocket is: the naust on Kvitsøy, 14.11.2026; not known till the fine
+    // coast is in, and then the sites are made again)
+    const V = VESSELS[S.boat.type] || {}, pit = (a, o) => { const q = siteOut(o); if (q !== q) SITENAN.push(o); return {d:Math.max(3, (V.draft || 1.5) + 1, SITE_DRAFT + 0.5 + tideZC()), w:Math.max((V.beam || 3) + 8, SITE_POCK.w) + (q === q ? q : 0), a}; };
     if (n && glbHas('naust')){ const nn = [-n.u[1], n.u[0]];
-      SITES.push({k:'naust', o:n.o, u:n.u, n:nn, lift:siteLift(SFOOT.naust, n.o, n.u, nn), pit:pit(16), clear:[[-14, -1, 14, 16]]}); }
+      SITES.push({k:'naust', o:n.o, u:n.u, n:nn, lift:siteLift(SFOOT.naust, n.o, n.u, nn), pit:pit(16, n), clear:[[-14, -1, 14, 16]]}); }
     // the rorbuer within 4 km of the boat (07d-rorbu.js; tools/harbour/rorbu.py), each in its colour; the model's 'clear' is where the
     // map's houses go
     if (glbHas('rorbu')) for (const R of RBNEAR.l){ const o = R.site.o, u = R.site.u, n = [-u[1], u[0]], M = siteModel('rorbu:' + R.v);
-      SITES.push({k:'rorbu', v:R.v, id:R.id, o, u, n, lift:siteLift(SFOOT.rorbu, o, u, n), pit:pit(14), clear:[[-15, -1, 15, 21]]});
+      SITES.push({k:'rorbu', v:R.v, id:R.id, o, u, n, lift:siteLift(SFOOT.rorbu, o, u, n), pit:pit(14, R.site), clear:[[-15, -1, 15, 21]]});
       // its bollards (the model's anchors, x along the face and z out to sea) take the mooring lines (drawMooring)
       if (M && M.A.bollards) QB[faceKey({x:o[0], z:o[1]})] = M.A.bollards.map(q => ({x:o[0] + u[0] * q[0] + n[0] * q[2], z:o[1] + u[1] * q[0] + n[1] * q[2], a:q[0]})); }
     // a site that came after the ground round it was built: those terrain chunks and the near mesh are made again with its ground
@@ -138,9 +144,14 @@
       if (Math.abs(x - s.o[0]) > 70 || Math.abs(z - s.o[1]) > 70) continue;
       const [lx, y] = siteL(s, x, z), ax = Math.abs(lx);
       if (s.pit){   // the naust and the rorbuer: on the map's ground as it is (lifted over it: s.lift); only the sea bed in front of the quay goes down
-        if (y >= 0.4 || h >= NPIT.wet) continue; const P = s.pit, d = Math.hypot(Math.max(0, ax - P.a + Math.min(0, y) * 10 / (P.w + 6)), Math.max(0, -P.w - y)); if (d >= 8) continue;
-        const cap = y <= -1 ? -P.d : -P.d + (y + 1) * (P.d - 0.5) / 1.4;
-        return h <= cap ? h : cap + (h - cap) * sstep(0, 8, d);
+        // (valg 41 A, Jonas 15.11.2026: «Valg A»: the boat lies inside the pile quay, and the bank in front of its face is dredged, also
+        // where the 3D shore stood over the sea there (2 m at the fine coast's line, falling 1 in 3): in front of the face (y < 0) down to
+        // the pit's depth, and under the deck (y 0.4-3.4, its piles) a steep bank up to the ground as it is at the back of the deck, so no
+        // wall stands over the water and nothing behind the quay is dug; at the deck's ends it comes up again over 3 m)
+        if (y >= 3.4) continue; const P = s.pit, d = Math.hypot(Math.max(0, ax - P.a + Math.min(0, y) * 10 / (P.w + 6)), Math.max(0, -P.w - y)); if (d >= 8) continue;
+        if (y >= -1 && ax > 11) continue;
+        const cap = y <= -1 ? -P.d : -P.d + (y + 1) * (Math.max(h, -P.d) + P.d) / 4.4, k = y >= -1 ? Math.max(sstep(0, 8, d), sstep(8, 11, ax)) : sstep(0, 8, d);
+        return h <= cap ? h : cap + (h - cap) * k;
       }
       const A = SHOP_APRON, d = Math.hypot(Math.max(0, A[0] - lx, lx - A[1]), Math.max(0, A[2] - y, y - A[3])); if (d >= 12) continue;
       if (s.lev !== undefined && y < A[2] - 4) continue;   // by the naust: the shore in front of the yard stays as it is

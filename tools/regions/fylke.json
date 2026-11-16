@@ -354,8 +354,8 @@
 "mM162": {
 "fylke": "Møre og Romsdal",
 "kommune": "Aure",
-"lat": 63.15867,
-"lon": 7.93201,
+"lat": 63.15427,
+"lon": 7.94525,
 "nr": "15",
 "off": 0
 },
@@ -842,8 +842,9 @@
 "mN893": {
 "fylke": "Nordland",
 "kommune": "Bodø",
-"lat": 67.40687,
-"lon": 13.90303,
+"lat": 67.41226,
+"lon": 13.89408,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "18",
 "off": 0
 },
@@ -1066,8 +1067,9 @@
 "mST72": {
 "fylke": "Trøndelag",
 "kommune": "Åfjord",
-"lat": 64.17773,
-"lon": 10.35492,
+"lat": 64.17728,
+"lon": 10.3583,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "50",
 "off": 0
 },
@@ -1306,8 +1308,9 @@
 "mTL41": {
 "fylke": "Trøndelag",
 "kommune": "Åfjord",
-"lat": 64.0401,
-"lon": 10.05959,
+"lat": 64.03919,
+"lon": 10.05179,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "50",
 "off": 0
 },
@@ -1338,8 +1341,8 @@
 "mVA204": {
 "fylke": "Agder",
 "kommune": "Kristiansand",
-"lat": 58.07828,
-"lon": 8.01323,
+"lat": 58.08798,
+"lon": 8.01056,
 "nr": "42",
 "off": 0
 },
@@ -1562,8 +1565,8 @@
 "sb262723_1571672": {
 "fylke": "Agder",
 "kommune": "Farsund",
-"lat": 58.17669,
-"lon": 6.70137,
+"lat": 58.1791,
+"lon": 6.62397,
 "nr": "42",
 "off": 0
 },
@@ -1586,8 +1589,8 @@
 "sb309606_1596130": {
 "fylke": "Agder",
 "kommune": "Lindesnes",
-"lat": 58.00705,
-"lon": 7.53848,
+"lat": 58.00527,
+"lon": 7.54556,
 "nr": "42",
 "off": 0
 },
@@ -1642,16 +1645,16 @@
 "sb445075_959755": {
 "fylke": "Trøndelag",
 "kommune": "Frøya",
-"lat": 63.80637,
-"lon": 8.80116,
+"lat": 63.80688,
+"lon": 8.80248,
 "nr": "50",
 "off": 0
 },
 "sb457085_976958": {
 "fylke": "Trøndelag",
 "kommune": "Hitra",
-"lat": 63.6628,
-"lon": 9.07617,
+"lat": 63.66327,
+"lon": 9.06954,
 "nr": "50",
 "off": 0
 },
@@ -1698,8 +1701,9 @@
 "sb623865_666688": {
 "fylke": "Nordland",
 "kommune": "Træna",
-"lat": 66.54318,
-"lon": 12.15942,
+"lat": 66.54357,
+"lon": 12.15935,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "18",
 "off": 0
 },
@@ -2098,8 +2102,9 @@
 "sv216830_1340454": {
 "fylke": "Vestland",
 "kommune": "Bjørnafjorden",
-"lat": 60.17173,
-"lon": 5.36802,
+"lat": 60.17129,
+"lon": 5.37147,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "46",
 "off": 0
 },
@@ -2282,8 +2287,8 @@
 "sv304428_1592512": {
 "fylke": "Agder",
 "kommune": "Lindesnes",
-"lat": 58.03425,
-"lon": 7.44514,
+"lat": 58.01918,
+"lon": 7.46514,
 "nr": "42",
 "off": 0
 },
@@ -2370,8 +2375,8 @@
 "sv384041_1555088": {
 "fylke": "Agder",
 "kommune": "Arendal",
-"lat": 58.44091,
-"lon": 8.72567,
+"lat": 58.42588,
+"lon": 8.755,
 "nr": "42",
 "off": 0
 },
@@ -2386,16 +2391,17 @@
 "sv399239_1536012": {
 "fylke": "Agder",
 "kommune": "Tvedestrand",
-"lat": 58.62388,
-"lon": 8.95509,
+"lat": 58.60949,
+"lon": 8.95379,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "42",
 "off": 0
 },
 "sv407723_1521514": {
 "fylke": "Agder",
 "kommune": "Risør",
-"lat": 58.76008,
-"lon": 9.0784,
+"lat": 58.73106,
+"lon": 9.06221,
 "nr": "42",
 "off": 0
 },
@@ -2442,8 +2448,9 @@
 "sv443667_978429": {
 "fylke": "Trøndelag",
 "kommune": "Hitra",
-"lat": 63.63855,
-"lon": 8.80954,
+"lat": 63.64243,
+"lon": 8.82537,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "50",
 "off": 0
 },
@@ -2546,8 +2553,8 @@
 "sv487712_1488978": {
 "fylke": "Vestfold",
 "kommune": "Færder",
-"lat": 59.1074,
-"lon": 10.41835,
+"lat": 59.08811,
+"lon": 10.4172,
 "nr": "39",
 "off": 0
 },
@@ -2674,8 +2681,9 @@
 "sv520573_1007674": {
 "fylke": "Trøndelag",
 "kommune": "Trondheim",
-"lat": 63.43534,
-"lon": 10.39898,
+"lat": 63.43751,
+"lon": 10.3965,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "50",
 "off": 0
 },
@@ -2706,8 +2714,8 @@
 "sv538400_1491817": {
 "fylke": "Østfold",
 "kommune": "Halden",
-"lat": 59.11026,
-"lon": 11.30416,
+"lat": 59.11642,
+"lon": 11.32272,
 "nr": "31",
 "off": 0
 },

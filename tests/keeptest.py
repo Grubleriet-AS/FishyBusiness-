@@ -3,7 +3,7 @@
  - on deck, not iced, they keep worse by (1 + 0.1 T)^2 (FAO), T between the sea's and the air's temperature; the vessel's minute does it
  - a freezer hold (bunntral) freezes what the crew put down, with no ice, and frozen fish keep their grade
  - an RSW hold (pelagisk) chills the catch as it comes aboard
- - at the plant frozen fish is paid as fresh at its grade (Råfisklaget: the same minimum price for frozen as for fresh, uke 31 2026),
+ - at the plant frozen fish is paid as fresh at its grade (Fiskesalgslaget: the same minimum price for frozen as for fresh, uke 31 2026),
    marked frozen on the landing note, and kept out of the fresh-fish scheme (J-161-2026 § 25)
 Prints OK or FEIL."""
 import asyncio, json

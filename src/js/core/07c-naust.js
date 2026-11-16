@@ -83,13 +83,16 @@ function naustVecOk(cx, cz){
 // way. The points from `from` on, with .to 'harbour' (by the harbour point), 'lane' (on its way in) or 'open', or null. Tried on all 162 start places 08.11.2026: none but those two
 // lack it (Smøla nord reaches open water, not the harbour), about 20 ms median and 250 ms at most
 const NAUST_WAY = {km:1.2, m:1.5, rock:0.0135, want:null};
-function naustWay(from, pid){
+// (lim: the water a cell needs, m at chart datum; for a naust or a rorbu the deepest draught of the boats they take, SITE_DRAFT, so a
+// boat up to 15 m gets out from it whatever she draws, Jonas 13.11.2026)
+// (site: the place's quay {o, u} when it is not yet the naust or a rorbu's: its pocket counts as dredged, siteDredge)
+function naustWay(from, pid, lim = SITE_DRAFT + LEIA.minOver, site = null){
   const pt = portById(pid); if (!pt || !from || !(MAPD.L && MAPD.L.mask)) return null;
-  const c = MAPD.L.mask.c, m = NAUST_WAY.m, lim = BOAT.draft + LEIA.minOver, K = (i, j) => i * 262144 + j, ctr = (i, j) => ({x:(i + 0.5) * c, y:(j + 0.5) * c});
+  const c = MAPD.L.mask.c, m = NAUST_WAY.m, K = (i, j) => i * 262144 + j, ctr = (i, j) => ({x:(i + 0.5) * c, y:(j + 0.5) * c});
   let ap = []; try { ap = approachPath(pt) || []; } catch (e){}
   const atH = q => dist(q, pt.p) < 0.045 ? 'harbour' : ap.some(a => dist(q, a) < 0.03) ? 'lane' : null;
   const open = q => { try { return mapSimAt(q) && rcell(MAPD.L.dc, Math.floor(q.x / 0.1), Math.floor(q.y / 0.1)) > 0 && coastDist(q) >= LANE.clear; } catch (e){ return false; } };
-  const deep = (q, r) => { if (inHarbour(q)) return true; try { return depthF(q) >= lim && !rockOnLeg(q, q, r); } catch (e){ return false; } };
+  const deep = (q, r) => { if (inHarbour(q) || (site && sitePockE(site, q.x * 1000, q.y * 1000) === 0)) return true; try { return depthF(q) >= lim && !rockOnLeg(q, q, r); } catch (e){ return false; } };
   const B = new Map(), blocked = (i, j) => { const k = K(i, j); let v = B.get(k); if (v === undefined){ const q = ctr(i, j); try { v = berthBlocked(q, m) || !deep(q, NAUST_WAY.rock); } catch (e){ v = true; } B.set(k, v); } return v; };
   const i0 = Math.floor(from.x / c), j0 = Math.floor(from.y / c), R = Math.ceil(NAUST_WAY.km / c), prev = new Map([[K(i0, j0), -1]]), Q = [[i0, j0]];
   let end = -1, to = null;
@@ -126,7 +129,7 @@ function naustFind(pid){
   const f = quayFace(pid, 'main'), cx = f ? f.x : pt.p.x * 1000, cz = f ? f.z : pt.p.y * 1000;
   const base = (x, z) => PORTS.some(q => Math.hypot(q.p.x * 1000 - x, q.p.y * 1000 - z) < 70) || unitNear(x, z, 110);
   const strict = (x, z, ux, uz, nx, nz) => base(x, z) || !!naustClash(x, z, ux, uz, nx, nz, true), hard = (x, z, ux, uz, nx, nz) => base(x, z) || !!naustClash(x, z, ux, uz, nx, nz, false);
-  const way = (x, z, ux, uz, nx, nz) => !!naustWay(naustWayFrom(x, z, nx, nz), pid);
+  const way = (x, z, ux, uz, nx, nz) => !!naustWay(naustWayFrom(x, z, nx, nz), pid, undefined, {o:[x + nx * 4, z + nz * 4], u:[ux, uz]});
   // clear of everything first; failing that, clear of quays, piers, breakwaters and boats and with a house or two to take away
   const sp = shoreSpot(cx, cz, 60, 360, {half:15, bend:6, out:[8, 16, 30], inl:[6, 14, 25], avoid:strict, ok:way, pref:120})
     || shoreSpot(cx, cz, 60, 360, {half:12, bend:9, out:[8, 16], inl:[6, 14], avoid:strict, ok:way, pref:120})
@@ -138,7 +141,7 @@ function naustFind(pid){
   return {port:pid, ver:3, o:o.map(v => Math.round(v * 10) / 10), u:sp.u.map(v => Math.round(v * 1e4) / 1e4)};
 }
 // whether the boat gets out by water from a naust already found ({o, u}: the face's middle, 4 m out from the shoreline)
-function naustWayOk(n, pid){ const N = [-n.u[1], n.u[0]]; return !!naustWay(naustWayFrom(n.o[0] - N[0] * 4, n.o[1] - N[1] * 4, N[0], N[1]), pid); }
+function naustWayOk(n, pid){ const N = [-n.u[1], n.u[0]]; return !!naustWay(naustWayFrom(n.o[0] - N[0] * 4, n.o[1] - N[1] * 4, N[0], N[1]), pid, undefined, n); }
 // Father's naust at the home harbour: {o, u} or null where none was found (or its map is not in yet)
 function naustSite(){
   const pid = S.home || HOME0;
@@ -169,7 +172,10 @@ function naustSite(){
 function naustFace(pid){
   if (pid !== (S.home || HOME0)) return null;
   const n = naustSite(); if (!n) return null;
-  return {x:n.o[0] - n.u[0] * 0.5, z:n.o[1] - n.u[1] * 0.5, ux:n.u[0], uz:n.u[1], nx:-n.u[1], nz:n.u[0], hl:8.1, depth:3.4, naust:true};
+  // (the quay out to her the same for every boat up to 15 m, siteOut, so she lies in the pocket dredged for the deepest of them; till the
+  // fine coast is in, berthPose works it out for her and does not keep it)
+  const F = {x:n.o[0] - n.u[0] * 0.5, z:n.o[1] - n.u[1] * 0.5, ux:n.u[0], uz:n.u[1], nx:-n.u[1], nz:n.u[0], hl:8.1, depth:3.4, naust:true}, out = siteOut(n);
+  if (out === out) F.out = out; else F.nocache = true; return F;   // (till it is known, berthPose does not keep the berth it works out)
 }
 // The tackle shop by Father's naust where the home is not Finnsnes (Jonas 05.10.2026: «Utstyrbutikken må alltid være i nærheten av
 // naustet slik at det går ganske fort å gå dit uansett hvor man er i landet»): a stretch of shore near the
@@ -191,7 +197,8 @@ function shopNear(){
 // Father's naust as where a route can end (the chart plotter and Autonav): the berth's point (km) when (x, y) is within r km of it
 // and nearer than any harbour point; {x, y, port, berth:'naust'} or null. You sail there and back; nothing moves the boat for you.
 function naustTarget(pt, r){
-  const pid = S.home || HOME0, bp = quayFace(pid, 'naust') && berthPose(pid, S.boat.type, 'naust'); if (!bp) return null;
+  const pid = S.home || HOME0; if (!siteFits(S.boat.type, pid)) return null;   // (a boat over 15 m, or one that draws more than gets out from it: the plant's quay, SITE_MAXLEN, SITE_SILL)
+  const bp = quayFace(pid, 'naust') && berthPose(pid, S.boat.type, 'naust'); if (!bp) return null;
   const d = dist(pt, bp); if (d >= r || PORTS.some(q => dist(q.p, pt) < d)) return null;
   return {x:bp.x, y:bp.y, port:pid, berth:'naust'};
 }

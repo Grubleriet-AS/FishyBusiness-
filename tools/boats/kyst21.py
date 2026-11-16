@@ -418,7 +418,13 @@ DH0, DH1, DHY = 2.40, 8.00, 2.45     # the deckhouse: the after deck aft of it, 
 HX = 12.00                   # the hauler on the starboard rail (anchors.hauler), under the gallows' after leg
 HFOOT = 0.20                 # its post's foot this far inside the bulwark's inside on the deck (anchors.haulerFoot)
 GAL = (12.55, 13.45)         # the gallows' two legs on the starboard rail, forward of the hauler (the block hangs between them)
-TUB = (11.00, None)          # the bleeding tub (the game's, 0.72 x 1.08 m) by the bulwark just aft of the fisher at the hauler; y from the hull below
+# (steg 125d, Jonas 15.11.2026, docs/planer/dekk/forslag.json: the order was right, the hauler, the tub, her table for three along the
+# starboard bulwark. The tub turned across and pushed aft against the table, so the fish is let fall between the hauler and the tub (it
+# fell into the tub before), the bleeder inboard of it, the one who guts 0.8 m forward along the table to the tub; the open part of the
+# hatch is its starboard half (OPEN, the boards off and the tarpaulin back), the fish thrown in from the table)
+TUB = (10.85, None)          # the bleeding tub (the game's, 0.72 x 1.08 m, across her: work.ry) against the table's forward end; y from the hull below
+GUT_AT = (10.00, -2.50); BLEED_AT = (11.55, -2.15); DROP_AT = (11.35, -2.90)   # the one who guts (the first of three), the bleeder, where the fish is let fall
+OPEN = (9.80, 10.80, -1.10, -0.10)   # the hatch's open part (x from, to, y from, to), the gutted fish go down there
 TABLE = (8.30, 10.30)        # her own gutting table along the starboard bulwark aft of the tub: 2.0 m, three side by side at 0.7 m (F19)
 TABLE_W = 0.58
 HATCH = (9.40, 11.80, -1.10, 1.10); HATCH_H = 0.60      # the hold's hatch amidships under its tarpaulin
@@ -448,7 +454,7 @@ FDOOR = (0.45, 1.17)         # the forecastle's door in its face, to port of the
 # the starboard rail of the working deck)
 JIG = [(-1, 10.20), (1, 6.20), (-1, 11.40), (1, 5.00), (-1, 9.00), (1, 3.80), (-1, 12.60), (1, 2.75)]   # (side: 1 starboard, -1 port; x)
 def ybi(x, sg=-1): return ybw(x, None, sg)
-def tub_y(): return -(ybi(TUB[0]) - 0.36 - 0.10)
+def tub_y(): return -(ybi(TUB[0]) - 0.54 - 0.10)   # (steg 125d: across her, its long side 1.08 m athwartships)
 def table_y(): return (-(min(ybi(TABLE[0]), ybi(TABLE[1])) - 0.03), -(min(ybi(TABLE[0]), ybi(TABLE[1])) - 0.03 - TABLE_W))   # (outer, inner edge)
 
 
@@ -619,7 +625,12 @@ def deckhouse(A, G, fine=True):
         for sg in (1, -1):
             for x in DPORTS: cuts.append(plate_cutter('dc%d%.1f' % (sg, x), (x, sg * DHY, zp), (1, 0, 0), (0, 0, 1), circle(DPORT_R, 20), 0.3))
         for y in FPORTS: cuts.append(plate_cutter('dcf%.1f' % y, (DH1, y, zp), (0, 1, 0), (0, 0, 1), circle(DPORT_R, 20), 0.3))
-        cut(shell, cuts); shade(shell, 5)
+        cut(shell, cuts)
+        # the fans of long triangles the cut leaves round each porthole, split so the shade baked under the boat deck's edge stays
+        # there and does not run down them to the rim as dark streaks (tilbakemelding #9 fra testutgaven, as #5 on the hurtigsjark)
+        bpyutil.ease_cut_fans(shell, [((x, sg * DHY, zp), (0, 1, 0), DPORT_R + 0.01, 0.31) for sg in (1, -1) for x in DPORTS] +
+                              [((DH1, y, zp), (1, 0, 0), DPORT_R + 0.01, 0.31) for y in FPORTS], grid=True)
+        shade(shell, 5)
         for sg in (1, -1):
             for x in DPORTS:
                 G.poly([(x + p, sg * (DHY - 0.03), zp + q) for p, q in circle(DPORT_R, 20)], C['glass'], (0, sg, 0)); A.poly([(x + p, sg * (DHY - 0.07), zp + q) for p, q in circle(DPORT_R, 20)], C['cabin'], (0, sg, 0))
@@ -1440,8 +1451,13 @@ def anchors():
             # the work at sea: the fisher at the hauler on the starboard rail, the bleeding tub (the game's) just aft of him by the
             # bulwark, her own gutting table for three aft of that, the one who ices at the hatch's coaming inboard of them
             'work': {'table': G((TABLE[0] + TABLE[1]) / 2, (ty0 + ty1) / 2, md(9.3, 3.0)), 'tub': G(TUB[0], tub_y(), md(TUB[0], 3.0)), 'own': True, 'top': round(z_md(9.3) + 0.90 - WL, 3),
-                     'pack': G(PACK[0], PACK[1], md(*PACK)) + [round(-math.pi / 2, 3)]},
-            'hatch': G((HATCH[0] + HATCH[1]) / 2, 0.0, z_md((HATCH[0] + HATCH[1]) / 2) + HATCH_H), 'bunk': G(4.0, 1.2, md(4.0, 1.2) + 0.6), 'exhaust': G(FUN[0] - 0.12, 0, BD() + 0.06 + 2.65),
+                     'tl': round(TABLE[1] - TABLE[0], 3), 'ry': 1.571, 'gut': G(GUT_AT[0], GUT_AT[1], md(*GUT_AT)) + [1.571], 'bleed': G(BLEED_AT[0], BLEED_AT[1], md(*BLEED_AT)) + [1.571],
+                     'drop': G(DROP_AT[0], DROP_AT[1], md(*DROP_AT)), 'nopack': True},
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (OPEN[3] - OPEN[2], OPEN[1] - OPEN[0])],
+            'hatch': G((OPEN[0] + OPEN[1]) / 2, (OPEN[2] + OPEN[3]) / 2, z_md((HATCH[0] + HATCH[1]) / 2) + HATCH_H),   # (steg 125d: the open part, on the tarpaulin's top, which is flat at the hatch's middle height)
+            'hatchCover': G((HATCH[0] + HATCH[1]) / 2, 0.0, z_md((HATCH[0] + HATCH[1]) / 2) + HATCH_H),   # (the whole cover: the hold's middle for the trim, where a pot is tipped)
+            'bunk': G(4.0, 1.2, md(4.0, 1.2) + 0.6), 'exhaust': G(FUN[0] - 0.12, 0, BD() + 0.06 + 2.65),
             'deck': {'y': round(md(10.5, 2.0) - WL, 3), 'z': round(-(10.5 - XM), 3)}, 'gw': round(z_cap(10.5) - WL, 3),
             'stern': round(XM - XA, 3), 'bow': round(-(XF - XM), 3), 'side': round(BEAM / 2, 3), 'beam': BEAM, 'pl': 8.4, 'rl': 2.7, 'open': False, 'hand': False,
             'pole': G(px - 0.22, py, zp + 1.62), 'hauler': G(HX, -(ycap(HX) - 0.02), z_cap(HX) + 0.35), 'haulerFoot': G(HX, -(ybi(HX) - HFOOT), md(HX, 3.0)),
@@ -1523,7 +1539,7 @@ def check():
     def apart(a, b): return a[1] <= b[0] + 1e-9 or b[1] <= a[0] + 1e-9 or a[3] <= b[2] + 1e-9 or b[3] <= a[2] + 1e-9
     def inside(b, x0, x1): return b[0] >= x0 and b[1] <= x1 and all(-ybi(x) <= b[2] and b[3] <= ybi(x) for x in (b[0], b[1]))
     ty0, ty1 = table_y(); tb = (TABLE[0], TABLE[1], ty0, ty1)
-    ub = (TUB[0] - 0.54 - m6, TUB[0] + 0.54 + m6, tub_y() - 0.36 - m6, tub_y() + 0.36 + m6)
+    ub = (TUB[0] - 0.36 - m6, TUB[0] + 0.36 + m6, tub_y() - 0.54 - m6, tub_y() + 0.54 + m6)   # (across her since steg 125d)
     hf = -(ybi(HX) - HFOOT); hbx = (HX - 0.20 - m6, HX + 0.20 + m6, hf - 0.175 - m6, hf + 0.175 + m6)
     hat = (HATCH[0] - 0.03, HATCH[1] + 0.03, HATCH[2] - 0.03, HATCH[3] + 0.03)
     sb = (STAMP[0] - 0.75 - 1.01 - m6, STAMP[0] - 0.75 + 1.01 + m6, STAMP[1] - 0.26 - 0.39 - m6, STAMP[1] - 0.26 + 0.39 + m6)
@@ -1533,11 +1549,13 @@ def check():
     out.append(('haleren under galgen: galgebeina ved x %.2f og %.2f, %.2f m forut for haleren (den som haler, står ved x %.2f og %.2f, klar av det akterste beinet med %.2f m)' % (GAL[0], GAL[1], GAL[0] - HX, HX - 0.2, HX + 0.55, GAL[0] - 0.07 - (HX + 0.55 + 0.25)),
                 GAL[0] - 0.07 - (HX + 0.55 + 0.25) >= -0.35 and GAL[1] < X_FC - BRK + 0.01))
     out.append(('blødekaret (spillets, 0,72 × 1,08 m) ved skansekledningen x %.2f–%.2f, %.2f m akter for halerens fot; den som bløgger, står innenfor det (y %.2f), %.2f m fra luka' % (ub[0], ub[1], hbx[0] - ub[1], ub[3] + 0.3, hat[2] - (ub[3] + 0.55)),
-                apart(ub, hbx) and inside(ub, DH1, X_FC) and hat[2] - (ub[3] + 0.55) >= 0.0))
+                apart(ub, hbx) and inside(ub, DH1, X_FC) and hat[2] - (ub[3] + 0.55) >= -0.05))
     stand = ty1 + 0.34 + 0.25
     out.append(('sløyebordet (hennes eget) langs styrbord skansekledning x %.2f–%.2f, %.2f m langt: tre står side om side med 0,7 m imellom (F19; det gamle var 0,9 m), %.2f m akter for karet og %.2f forut for huset; gangen mellom dem som sløyer og luka er %.2f m'
                 % (TABLE[0], TABLE[1], TABLE[1] - TABLE[0], ub[0] - TABLE[1], TABLE[0] - DH1, hat[2] - stand), TABLE[1] - TABLE[0] >= 2.0 and ub[0] - TABLE[1] >= 0.0 and TABLE[0] - DH1 >= 0.25 and hat[2] - stand >= 0.6 and ty0 >= -ybi(TABLE[0]) and ty0 >= -ybi(TABLE[1])))
-    out.append(('den som iser, står ved lukas styrbord karm (x %.2f, y %.2f), %.2f m fra karmen og %.2f m innenfor dem som sløyer' % (PACK[0], PACK[1], hat[2] - PACK[1], PACK[1] - (ty1 + 0.34)), 0.3 <= hat[2] - PACK[1] <= 0.7 and PACK[1] - (ty1 + 0.34) >= 0.4))
+    # (steg 125d: nobody ices on deck: the fish go down the open part of the hatch and are iced in the hold, work.nopack)
+    out.append(('luka åpen i styrbord halvdel x %.2f-%.2f, y %.2f til %.2f, innenfor karmen; den første som sløyer står %.2f m fra den' % (OPEN[0], OPEN[1], OPEN[2], OPEN[3], math.hypot(max(0.0, GUT_AT[0] - OPEN[1], OPEN[0] - GUT_AT[0]), OPEN[2] - GUT_AT[1])),
+                HATCH[0] <= OPEN[0] and OPEN[1] <= HATCH[1] and HATCH[2] <= OPEN[2] and OPEN[3] <= HATCH[3] and math.hypot(max(0.0, GUT_AT[0] - OPEN[1], OPEN[0] - GUT_AT[0]), OPEN[2] - GUT_AT[1]) + 0.3 <= 2.2))
     out.append(('stampene om babord for luka: blokken med åtte x %.2f–%.2f, y %.2f til %.2f; %.2f m gang til luka og %.2f m til skansekledningen' % (sb[0], sb[1], sb[2], sb[3], sb[2] - hat[3], ybi(sb[0], 1) - sb[3]),
                 inside(sb, DH1, X_FC) and sb[2] - hat[3] >= 0.7 and ybi(sb[0], 1) - sb[3] >= 0.4))
     r = 0.725 + m6; pk = []

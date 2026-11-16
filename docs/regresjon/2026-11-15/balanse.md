@@ -1,0 +1,17 @@
+# Balansesjekken 2026-11-15 (arbeidsgrenen 55ca193, bygget 6467957e5d66, hele kysten med kart-31, frø 1; forrige natt 14.11.2026 i parentes)
+
+`simday` og `progweek` er lest fra kjøringen i del 2 av regresjonen (ikke kjørt en gang til); `fiskeplay` ble kjørt alene etterpå (loggen i `fiskeplay.txt`).
+
+**Over 15 % fra forrige natt:**
+
+- `fiskeplay` kysten, Finnmark: **56 kg på 3,0 t (2 kg på 0,2 t)**. Tilbake der den sto 13.11.2026 (53 kg): juksinga gikk de tre timene ut, uten «Motorstopp i grov sjø» som stoppet den forrige natt. Ikke undersøkt hva som snudde det.
+- `simday` juli Husøy torsk **47 kg (59, −20 %)**; totalen 314 kg (324, −3 %). Tallene i `simday` er til kiloet de samme som 13.11.2026.
+- `simday`, bare én fisk eller to: mai Malangsgapet lange 10 kg (4) og brosme 2 kg (1); juli Husøy lange 5 kg (4) og brosme 6 kg (5); Gryllefjord brosme 3 kg (2); jukse 2 brosme 2 kg (0). Totalene: Malangsgapet 193 kg (182, +6 %), Gryllefjord 492 kg (492).
+- `fiskeplay` kanter «full»: 16 kg på 1,9 t (16 kg på 1,4 t), 9 mot 11 kg/t (−18 %); kiloene er de samme, tida til lasten sto full er lengre.
+
+**Blad B:** en tur hver tredje dag etter **11 turer** (11), to turer tidligere enn 13–16; annenhver dag etter 12 (12) og hver dag etter 11 (11), som før. Ingen over to turer utenfor.
+
+- **simday** (500 kg tak, juksa, 10. mars 2028): Husøy 500 kg (500): torsk 448 (445)/sei 43 (45)/hyse 7 (8)/lyr 2 (2); Gryllefjord 492 kg (492): torsk 395 (395)/sei 46 (48)/hyse 42 (41)/lyr 6 (6)/brosme 3 (2); juli Husøy 314 kg (324): hyse 152 (155)/sei 97 (92)/torsk 47 (59, −20 %)/uer 7 (8)/brosme 6 (5)/lange 5 (4)/lyr 0 (1); mai Malangsgapet 193 kg (182): sei 88 (86)/torsk 37 (38)/lyr 31 (29)/hyse 25 (25)/lange 10 (4)/brosme 2 (1); stang 0 kg (0); jukse 2: 500 kg, torsk 445 (446)/sei 45 (46)/hyse 8 (8)/brosme 2 (0). errors: [].
+- **progweek** (uten 3D): en tur hver tredje dag: blad B etter 11 turer, dag 35 (11, dag 35), 326 kg (326) og 15 121 kr (15 121) per tur, inngangen innen rekkevidde etter 12 turer (12). En tur annenhver dag: blad B etter 12 turer, dag 32 (12, dag 32), 314 kg (314) og 12 988 kr (12 988) per tur, inngangen etter 12 turer. Hver dag: blad B etter 11 turer, dag 15 (11, dag 15), 309 kg (309) og 9 508 kr (9 507) per tur, inngangen etter 13 turer; kassen etter 56 dager 234 431 kr (237 544, −1 %). Kvoteprisen 260 kr/kg hele tida. Torsken står på 3 534 av 3 400 kg i hver dag-løpet (3 534). errors: [].
+- **fiskeplay** (liggende, uten 3D): alle ni scenarioene kjørt, pageerrors 0 i hvert. Maskin mars 580 kg på 3,2 t, 178 kg/t (545 kg på 3,0 t, +6 %); juni kveite 41 kg på 4,2 t (40); juni mark 364 kg på 3,1 t, 118 kg/t (361 kg); kanter «full» 16 kg på 1,9 t til lasten sto på 500 (16 kg på 1,4 t); kysten: Lofoten 70 kg på 3,1 t (75, −7 %), Vestlandet 97 kg på 3,0 t (101, −4 %), **Finnmark 56 kg på 3,0 t (2)**; teiner: krabbe, krabbe60 og senja ga 0 kg i lasten (0, som de tre forrige nettene; ikke undersøkt).
+- **Commiter siden forrige rapport (14.11.2026, d5facb9) som rører fangsten, prisene eller turene** (`03-simulation.js`, `05-vessels.js`, `10-gear.js`, `03f-fiske.js`, `03j-felt.js`, `02-species-gear.js`): 44bc082 (Autopiloten: hendene rundt hårnålssvingen, unna merker og pilarer), og seks fra steg 126: 0c49ec8, e6e05ee, 2360f1c, 8e7e4e0, 43a99c5, 7ed4b30 (veien rundt grunna, funnene fra kontrollene). Ingen av dem er sett i sammenheng med tallene over; ikke undersøkt.

@@ -86,6 +86,10 @@
     for (let k = 0; k < 5; k++) drawN(fishOf('snokrabbe'), chain(M, M4.T((hash(j * 13 + k * 5) - 0.5) * 0.6, w, (hash(j * 7 + k * 11 + 3) - 0.5) * 0.8), M4.RY(hash(j + k * 3) * 6.3), M4.S(0.42))); }
   // how far open your boat's cargo hatch is (0 shut, 1 open; anchors.hatch, H2d): open while she lands pallets, from the crane's first move
   // over to the last pallet ashore, shut at sea
+  // the fish hold's hatch is open while she fishes and the catch goes down it (steg 125d): at sea fishing, not in port or under way home
+  // the side of the hold's hatch its lid is tipped up on (1 starboard, -1 port): the side's own where the hatch lies by it, else away from the hauler
+  function hatchSide(G, Hh){ const sg = G.hauler && G.hauler[0] < 0 ? -1 : 1; return Math.abs(Hh[0]) > 0.5 ? Math.sign(Hh[0]) : -sg; }
+  function hatchFishOpen(){ const b = S.boat; return !!b && ((b.status === 'fishing' && !b.land) || (b.status !== 'port' && (S.hold || []).some(x => !x.iced)) || (b.status === 'port' && (b.iceUntil || 0) > S.t)); }   // (and on the way in while there is fish on deck that is not yet down)   // (and in port while the ice is taken in: it goes down into the hold)
   function hatchOpenK(){ const b = S.boat, L = b && b.land; if (!L || L.kind !== 'pall' || b.status !== 'port') return 0;
     const e = S.t + currentFrac() - L.t0, end = landLiftT(L, (L.np > 0 && L.np < L.lifts ? L.np : L.lifts) - 1) + liftMin(L); return clamp(e / (LANDING.prep * 0.8), 0, 1) * (1 - clamp((e - end) / LANDING.prep, 0, 1)); }
   // the tubs of an open boat off her deck at a landing now (on the hook, on the quay, in the plant)
@@ -386,6 +390,45 @@
     return [crs3(y, z), y, z]; }
   const inFrame = (Fr, v) => [Fr[0][0] * v[0] + Fr[1][0] * v[1] + Fr[2][0] * v[2], Fr[0][1] * v[0] + Fr[1][1] * v[1] + Fr[2][1] * v[2], Fr[0][2] * v[0] + Fr[1][2] * v[1] + Fr[2][2] * v[2]];
   const handMtx = (Fr, o) => new Float32Array([Fr[0][0], Fr[0][1], Fr[0][2], 0, Fr[1][0], Fr[1][1], Fr[1][2], 0, Fr[2][0], Fr[2][1], Fr[2][2], 0, o[0], o[1], o[2], 1]);
+  // ---- nothing through a person (Jonas 13.11.2026: «Sørg for at objekter ikke kan clippe inn i menneskene»; the tests' measure of
+  // it, tests/folk2deck.py): every thing drawn with the workers (LEMMER.things: the knife, the gaff, the fish, the boxes, the shovel,
+  // the cup …) tried against every body drawn the same time (LEMMER.bodies: the new figure's joints). A body is its core: the trunk
+  // from the hips to the chest and on to the neck, the head, the thighs, the shins and the upper arms as rounded rods (the forearms
+  // and the hands hold the things, and are left out). A thing is its mesh's corners and points over its triangles, read back from
+  // the buffer once (WebGL 2). With the new figure the trunk and the head are their own profiles, both from the mesh
+  // that is drawn (figpose.js figProfile, figHead), not rods. Returns what is deeper in than tol (m): [{task, own (his own thing), name, part, cm, n points}].
+  const THINGCPU = new Map();
+  function thingPts(m){
+    let P = THINGCPU.get(m); if (P) return P; P = [];
+    if (GL2 && m.pb && m.n){ const a = new Float32Array(m.n * 3); gl.bindBuffer(gl.ARRAY_BUFFER, m.pb); gl.getBufferSubData(gl.ARRAY_BUFFER, 0, a);
+      for (let t = 0; t + 8 < a.length; t += 9){ const A = [a[t], a[t + 1], a[t + 2]], B = [a[t + 3], a[t + 4], a[t + 5]], C = [a[t + 6], a[t + 7], a[t + 8]];
+        const L = Math.max(Math.hypot(...sub3(A, B)), Math.hypot(...sub3(B, C)), Math.hypot(...sub3(C, A))), n = Math.min(8, Math.max(1, Math.ceil(L / 0.05)));
+        for (let i = 0; i <= n; i++) for (let j = 0; i + j <= n; j++){ const u = i / n, v = j / n, w = 1 - u - v; P.push(A[0] * w + B[0] * u + C[0] * v, A[1] * w + B[1] * u + C[1] * v, A[2] * w + B[2] * u + C[2] * v); } } }
+    P = new Float32Array(P); THINGCPU.set(m, P); return P; }
+  function thingName(m){ for (const k in PM){ const v = PM[k]; if (v === m) return k; if (v && typeof v === 'object' && !v.pb) for (const q in v) if (v[q] === m) return k + '.' + q; } for (const k in KITM) if (KITM[k] === m) return k; if (HANDM) for (const k of ['tape']) if (HANDM[k] === m) return 'hånd.' + k; return m.n + ' hjørner'; }
+  // (the things' own measures: each mesh drawn with a worker by its name, its box in its own frame [min, max] in cm; the tests and
+  // the session read the grips' places off them, deckcrew.js HOLDT)
+  function thingBox(){ const out = {}; for (const th of LEMMER.things || []){ const nm = thingName(th.m); if (out[nm]) continue; const P = thingPts(th.m), mn = [1e9, 1e9, 1e9], mx = [-1e9, -1e9, -1e9];
+      for (let i = 0; i < P.length; i += 3) for (let k = 0; k < 3; k++){ if (P[i + k] < mn[k]) mn[k] = P[i + k]; if (P[i + k] > mx[k]) mx[k] = P[i + k]; } out[nm] = [mn.map(v => Math.round(v * 1000) / 10), mx.map(v => Math.round(v * 1000) / 10)]; } return out; }
+  function thingClip(tol){
+    tol = tol == null ? 0.01 : tol; const T = LEMMER.things || [], B = LEMMER.bodies || [], out = {};
+    const segD = (p, a, b) => { const ab = sub3(b, a), l2 = dot3(ab, ab) || 1e-9, t = Math.max(0, Math.min(1, dot3(sub3(p, a), ab) / l2)); return Math.hypot(p[0] - a[0] - ab[0] * t, p[1] - a[1] - ab[1] * t, p[2] - a[2] - ab[2] * t); };
+    // (the trunk by its own profile, measured on the mesh (figpose.js figProfile), where the body has one: a point is taken into the
+    // rest pose along the line hip joints - chest - neck as it is bent and turned now, the hips' breadth low and the shoulders' high)
+    const trunk = (b, p) => { const g = b.tr; let sg = g.s[0], t = dot3(sub3(p, sg.A), sg.u); if (t > sg.len){ sg = g.s[1]; t = dot3(sub3(p, sg.A), sg.u); }
+      const up0 = sg.a[1] + sg.d[1] * t, k = Math.max(0, Math.min(1, up0 / g.top)), Rt0 = add3(mul3(g.Rh, 1 - k), mul3(g.Rs, k)), Rt = nrm3(sub3(Rt0, mul3(sg.u, dot3(Rt0, sg.u)))), f = crs3(sg.u, Rt), q = sub3(p, sg.A), pa = dot3(q, f);
+      return [figProfIn(b.P, sg.a[0] + sg.d[0] * t + sg.d[1] * pa, sg.a[1] + sg.d[1] * t - sg.d[0] * pa, dot3(q, Rt)), up0 < g.s[1].a[1] ? 'kroppen' : 'brystet']; };
+    for (const b of B){ const J = b.J, up = nrm3(sub3(J.head, J.neck)), hc = add3(J.head, mul3(up, 0.09));
+      if (b.P && b.sk && !b.tr){ const r = n => b.sk.rest[b.sk.ix[n]], h0 = r('thigh_R'), rs = n => [h0[2] - r(n)[2], r(n)[1] - h0[1]], O = mul3(add3(J.thigh_R, J.thigh_L), 0.5);
+        const sgm = (A, a, Bw, bb) => { const d = [bb[0] - a[0], bb[1] - a[1]], l = Math.hypot(d[0], d[1]); return {A, a, u:nrm3(sub3(Bw, A)), d:[d[0] / l, d[1] / l], len:Math.hypot(...sub3(Bw, A))}; };
+        b.tr = {s:[sgm(O, [0, 0], J.spine3, rs('spine3')), sgm(J.spine3, rs('spine3'), J.neck, rs('neck'))], top:rs('neck')[1], Rh:nrm3(sub3(J.thigh_R, J.thigh_L)), Rs:nrm3(sub3(J.uarm_R, J.uarm_L))}; }
+      b.rods = [['kroppen', J.hips, J.spine3, b.tr ? 0 : 0.115], ['brystet', J.spine3, J.neck, b.tr ? 0 : 0.105], ['hodet', hc, hc, b.hd ? 0 : 0.095], ['låret', J.thigh_R, J.shin_R, 0.065], ['låret', J.thigh_L, J.shin_L, 0.065], ['leggen', J.shin_R, J.foot_R, 0.045], ['leggen', J.shin_L, J.foot_L, 0.045], ['overarmen', J.uarm_R, J.farm_R, 0.04], ['overarmen', J.uarm_L, J.farm_L, 0.04]]; }
+    for (const th of T){ const P = thingPts(th.m), M = th.M, e = th.eye, nm = thingName(th.m);
+      for (const b of B){ const c = b.J.spine3; if (Math.hypot(M[12] + e[0] - c[0], M[13] + e[1] - c[1], M[14] + e[2] - c[2]) > 4) continue;
+        for (let i = 0; i < P.length; i += 3){ const x = P[i], y = P[i + 1], z = P[i + 2], p = [M[0] * x + M[4] * y + M[8] * z + M[12] + e[0], M[1] * x + M[5] * y + M[9] * z + M[13] + e[1], M[2] * x + M[6] * y + M[10] * z + M[14] + e[2]];
+          const tq = b.tr ? trunk(b, p) : null, hq = b.hd ? [(q => figProfIn(b.hd.H.P, -dot3(q, b.hd.ax[2]), dot3(q, b.hd.ax[1]), dot3(q, b.hd.ax[0])))(sub3(p, b.hd.O)), 'hodet'] : null, more = tq && hq ? [tq, hq] : tq ? [tq] : hq ? [hq] : null;
+          for (const r of more ? more.concat(b.rods) : b.rods){ const own = r === tq || r === hq, d = own ? r[0] : r[3] - segD(p, r[1], r[2]), r0 = own ? r[1] : r[0]; if (d > tol){ const k = b.task + '|' + (th.i === b.i ? 'egen' : 'annens') + '|' + nm + '|' + r0, o = out[k] || (out[k] = {task:b.task, own:th.i === b.i, name:nm, part:r0, cm:0, n:0}); o.n++; if (d * 100 > o.cm) o.cm = +(d * 100).toFixed(1); } } } } }
+    return Object.values(out).sort((a, b) => b.cm - a.cm); }
   // what each hand does in each pose: the grip, the way the palm faces (n) or the axis held (a), as directions in the figure's frame
   // (forward, up, right); the knife's way (st.kd) is set here for the props after
   function handSpecs(st, F, R, hands){
@@ -415,7 +458,7 @@
       case 'knife': return [knife(D(0, 0.15, -1)), {g:'grip', a:st.steel ? st.steel.dir : up, tool:true}];
       case 'sweep': case 'hose': case 'ice': { const a = across(); return [{g:'grip', a, n:IN(1)}, {g:'grip', a, n:IN(-1)}]; }
       case 'coil': return [{g:'hook', a:D(0, 0, 1), n:D(0, -0.5, -1)}, rel('hold', up)];
-      case 'stack': case 'carry': case 'stow': return [{g:'hook', a:D(1, 0, 0), n:IN(1)}, {g:'hook', a:D(1, 0, 0), n:IN(-1)}];
+      case 'stack': case 'carry': case 'stow': return LEMMER.on ? [rel('flat', up), rel('flat', up)] : [{g:'hook', a:D(1, 0, 0), n:IN(1)}, {g:'hook', a:D(1, 0, 0), n:IN(-1)}];   // (the new people: the palms up under the box's bottom)
       case 'gut': return [knife([F[0] * 0.7 - R[0] * 0.35, -0.55, F[1] * 0.7 - R[1] * 0.35]), rel('hook', dn)];
       case 'bleedst': return [knife([F[0] * 0.5 - R[0] * 0.2, -0.75, F[1] * 0.5 - R[1] * 0.2]), rel('relax', IN(-1))];
       case 'bleed': return [st.knife ? knife([F[0] * 0.7 - R[0] * 0.35, -0.55, F[1] * 0.7 - R[1] * 0.35]) : rel('hook', dn), rel('hook', D(0, -0.6, 1))];
@@ -440,12 +483,55 @@
   // an event at its place on the rail (boat frame); the nearest hand at work there plays it (drawWorker), so the fish he handles is the
   // one that came up. DKBLOOD: the drops of the cut, drawn as points after the people.
   const DKEV = [], DKDUR = {bleed:3.0, gaff:2.4, pick:2.4, jigup:2.2}, DKDROP = {gaff:1.75, pick:2.0}, DKBLOOD = [], DKWATER = [], DKSMOKE = [], DKDECK = [], DKF = {t:0, jig:{}}, DKN = {gaff:0, pick:0, jigup:0, bleed:0};   // DKN: the events played (the tests)
+  // (steg 125e: the account of the fish seen on deck, deckcrew.js FISKVEI: the bleeding tub is drawn with the fish bled into it, and the
+  // gutter takes his out of it. One for her own boat, begun again with another type; only behind LEMMER.on)
+  let DKFV = FISKVEI.fresh(), DKFVT = null;
+  const dkWaitKg = () => (S.hold || []).reduce((a, x) => a + (!x.gut && !x.iced && !(SPECIES[x.sp] || {}).live ? x.kg : 0), 0);
+  function dkFv(){ const vt = vtype(); if (DKFVT !== vt){ DKFV = FISKVEI.fresh(); DKFVT = vt; } return DKFV; }
+  // a live fish (Jonas 13.11.2026: «fisken som kommer opp spreller litt helt til den er bløgget, snøret dras i litt ulike retninger og
+  // fisken plasker litt i vannet når den kommer opp»): bursts of hard kicks with short rests between, each fish out of step with the
+  // others (w its own phase), k how much life is left (1 alive, fading to 0 once the throat is cut). [the whole body's sweep, the head's
+  // toss, the bend's amplitude at the tail (in the fish's 1 m), its phase, the wave and the stiff head] (the bend: bendOn, LITN_VS uBend in 12-skiff.js; the body
+  // swings a little against the tail, as a fish's head does)
+  // How each species moves (Jonas 13.11.2026: «bevegelsen kan brukes på andre typer fiskearter også»): [the bend's strength, the wave
+  // over the body (radians: about 3.5 for the cod's kind, which swims with the after half, 6 or more for the ling and the tusk, which
+  // swim with the whole long body as an eel does), the stiff head (share of the length), the beat's pace]. The redfish is stiff with its
+  // spines, the halibuts slap slow and heavy (lying on the blind side the sweep is up and down, as a halibut on deck does). A species not
+  // here moves as the cod; the crabs are never bent.
+  const SWIM = {torsk:[1, 3.6, 0.22, 1], sei:[0.95, 3.4, 0.25, 1.15], hyse:[0.9, 3.6, 0.22, 1.1], lyr:[0.95, 3.4, 0.24, 1.1], uer:[0.6, 3.0, 0.3, 0.85],
+    lange:[1.1, 6.5, 0.08, 0.75], brosme:[1.05, 5.5, 0.1, 0.8], kveite:[1.1, 3.2, 0.25, 0.6], blakveite:[1.0, 3.4, 0.22, 0.7]};
+  // each fish its own temper (Jonas: «noen fisk spreller mer enn andre»), from its phase w: how hard it fights (0.3-1.5 of the
+  // species'), how long it rests between the bursts and how often they come, and its own pace; a big fish beats slower
+  const fh = (w, n) => { const x = Math.sin(w * 12.9898 + n * 78.233) * 43758.5453; return x - Math.floor(x); };
+  function flapK(T, w){ const a = 0.9 + 0.9 * fh(w, 1), c = 2.6 + 2.2 * fh(w, 2), r = 0.05 + 0.65 * fh(w, 3);
+    return clamp(r + 0.6 * Math.sin(T * a + w * 2.1) + 0.35 * Math.sin(T * c + w * 0.7), 0, 1); }
+  function flap(T, w, k, sp, kg){ const Sw = SWIM[sp] || SWIM.torsk, kk = k == null ? 1 : k, b = flapK(T, w) * kk * (0.3 + 1.2 * fh(w, 4)),
+      rate = Sw[3] * (0.85 + 0.35 * fh(w, 5)) * Math.pow(clamp((kg || 3) / 3, 0.2, 20), -0.12), ph = T * 15 * rate + w * 5;
+    return [-Math.sin(ph) * (0.03 * kk + 0.16 * b) * Sw[0], Math.sin(T * 9.5 * rate + w * 3) * 0.2 * b, kk > 0 ? (0.03 * kk + 0.17 * b) * Sw[0] : 0, ph, Sw[1], Sw[2]]; }
+  // where the fish pulls the line on its way up: a slow wander to both sides and a jerk with the kicks (m metres at most, across [x, z])
+  function tug(T, w, m){ const j = 0.3 * flapK(T, w) * Math.sin(T * 13 + w * 4); return [m * (0.6 * Math.sin(T * 1.1 + w * 1.9) + j), m * (0.6 * Math.cos(T * 0.8 + w * 2.7) + 0.3 * Math.sin(T * 3.1 + w * 1.3))]; }
+  // a fish breaking the surface: a few small drops thrown up where it is (E eye-relative), in the sea's own spray (SD, 24-cinema.js)
+  function fishSplash(E, kg, n){ const s = clamp(Math.cbrt(kg || 2) * 0.6, 0.4, 1.4);
+    for (let j = 0; j < n; j++){ const i = SD.n = (SD.n + 1) % SDN, a = Math.random() * 6.2832, v = (0.2 + Math.random() * 0.6) * s;
+      SD.x[i] = E[0] + lastEye[0] + Math.sin(a) * 0.08; SD.z[i] = E[2] + lastEye[2] + Math.cos(a) * 0.08; SD.y[i] = E[1] + lastEye[1]; SD.vx[i] = Math.sin(a) * v; SD.vz[i] = Math.cos(a) * v;
+      SD.vy[i] = (0.7 + Math.random() * 1.3) * s; SD.age[i] = 0; SD.life[i] = 0.35 + Math.random() * 0.4; }
+    DKN.fsplash = (DKN.fsplash || 0) + 1; }   // (counted for the tests)
+  // the surface by a fish on the line (y in the boat's frame, FS_Y where the lines go into the sea in these drawings): a splash once as it
+  // comes out, and now and then while it kicks just at the surface. id: the fish (kept a few seconds to see it cross)
+  const FS_Y = -0.3, FSURF = new Map(); FSURF.sl = 0;
+  function fishSurf(id, y, E, kg, T, w){ const now = performance.now(), o = FSURF.get(id); FSURF.set(id, {y, t:now});
+    if (FSURF.size > 80) for (const [k, v] of FSURF) if (now - v.t > 3000) FSURF.delete(k);
+    // (the crossing seen across frames up to 1.5 s apart, a slow tablet included; the kicks at the surface at most one in 0.7 s, whatever the frame rate)
+    if (o && now - o.t < 1500 && o.y < FS_Y && y >= FS_Y) fishSplash(E, kg, 12);
+    else if (y > FS_Y - 0.25 && y < FS_Y + 0.2 && flapK(T, w) > 0.8 && now - FSURF.sl > 700){ FSURF.sl = now; fishSplash(E, kg, 4); } }
   const ASLIDE = [];   // the autoliner's gaffed fish sliding into the chute's mouth (e.chute, 10-gear.js drawAutoSlides; H2d2)
   // (o: the rest of it: D where it is let fall on the deck, for the one meant to take it, wait how long it may wait for him, t0 a later start)
-  function dkEvent(kind, at, sp, kg, o){ const now = performance.now() / 1000; while (DKEV.length && (DKEV.length > 12 || now - DKEV[0].t0 > (DKEV[0].wait || DKDUR[DKEV[0].kind]) + 4)) DKEV.shift(); const e = {kind, at:at.slice(), sp, kg, t0:now, who:null}; if (o) Object.assign(e, o); DKEV.push(e); return e; }
+  // (DKLAST: the last event of each kind, which the tests play again at a moment of their own: SJOBEIN.test.ev with .t, drawDeckCrew)
+  const DKLAST = {};
+  function dkEvent(kind, at, sp, kg, o){ const now = performance.now() / 1000; while (DKEV.length && (DKEV.length > 12 || now - DKEV[0].t0 > (DKEV[0].wait || DKDUR[DKEV[0].kind]) + 4)) DKEV.shift(); const e = {kind, at:at.slice(), sp, kg, t0:now, who:null}; if (o) Object.assign(e, o); DKEV.push(e); DKLAST[kind] = e; return e; }
   // which events a hand at his work plays (the agents' tasks, deckcrew.js): the hauler gaffs the fish in, the one at the net picks them out,
   // the jigger hauls them up by hand, the bleeder bleeds; each bleeds his own fish when nobody else is there to do it
-  const DKPLAY = {jig:['bleed', 'jigup'], haul:['gaff', 'bleed'], pick:['pick', 'bleed'], bleedst:['bleed']};
+  const DKPLAY = {jig:['bleed', 'jigup'], haul:['gaff', 'bleed'], haul2:['bleed'], pick:['pick', 'bleed'], bleedst:['bleed']};   // (haul2: the second hauler with the new people, drawDeckCrew)
   // the event for a hand standing at boat-frame point p doing task (one given to him, else the nearest of its kinds within 3 m; once
   // taken it stays his, and one that waited for him starts when he takes it)
   function dkFor(who, p, task){ const now = performance.now() / 1000, kinds = DKPLAY[task]; if (!kinds) return null;
@@ -462,15 +548,22 @@
   // the fish across the deck (deckcrew.js places): when a gaff or a pick lets it fall at the drop, it lies there until the bleeder takes it
   // up (else the one who brought it in, who is then the bleeder); a hand-jigged fish is bled by the one who jigged it
   // a fish still waiting to be taken in or bled (the next one comes when it has been; one nobody took in time is let go)
-  const dkWaits = () => { const now = performance.now() / 1000; return DKDECK.length > 0 || DKEV.some(e => e.who == null && (e.kind === 'gaff' || e.kind === 'pick' || (e.kind === 'bleed' && e.deckF)) && now - e.t0 <= (e.wait || DKDUR[e.kind])); };
+  const dkWaits = () => { const now = performance.now() / 1000; return DKDECK.length > 0 || DKEV.some(e => e.who == null && (e.kind === 'gaff' || e.kind === 'pick' || (e.kind === 'bleed' && e.deckF)) && now - e.t0 <= (e.wait || DKDUR[e.kind]))
+    // (the new people, the waiting rule, deckcrew.js VENT: nor while the bleeder is down at the last fish, where the gaff swings the next one in: the gaff was 17 cm in him)
+    || (LEMMER.on && DKEV.some(e => e.kind === 'bleed' && e.deckF && e.who != null && now - e.t0 < VENT.bleed)); };
   function dkTick(){
     const now = performance.now() / 1000;
+    // (steg 125e: a bled fish is counted in the tub when it lands there, FISKVEI.TOSS s into the bleeding; the account begun from the catch
+    // waiting in the game once, and emptied with it when nothing waits and nobody guts)
+    if (LEMMER.on){ const L = dkFv(), wk = dkWaitKg(); FISKVEI.seed(L, wk);
+      for (const e of DKEV) if (e.kind === 'bleed' && e.who != null && !e.inTub && now - e.t0 >= FISKVEI.TOSS){ e.inTub = true; FISKVEI.bled(L); }
+      if (wk < 0.5 && !CREW3D.visible().some(a => a.task === 'gut' && a.mode === 'at')) FISKVEI.clear(L); }
     for (let i = DKEV.length - 1; i >= 0; i--){ const e = DKEV[i]; if (now - e.t0 > (e.who == null ? e.wait || DKDUR[e.kind] : DKDUR[e.kind]) + 4) DKEV.splice(i, 1); }
     for (const e of DKEV){ if (e.who == null || e.chained) continue; const age = now - e.t0;
       if ((e.kind === 'gaff' || e.kind === 'pick') && e.D && age >= DKDROP[e.kind]){ e.chained = true;
         // (the autoliner's: let fall at the chute, it slides on into its mouth to the bleeding tanks inside, nobody bleeds it in the station)
         if (e.chute){ ASLIDE.push({at:e.D.slice(), to:e.chute.slice(), t:now, sp:e.sp, kg:e.kg, yaw:Math.PI / 2 + (hash(Math.floor(now * 7)) - 0.5) * 0.6}); if (ASLIDE.length > 8) ASLIDE.shift(); continue; }
-        const bl = CREW3D.visible().find(a => a.st === 'blogg' && a.mode === 'at'), f = {at:e.D.slice(), sp:e.sp, kg:e.kg, t:now, yaw:hash(Math.floor(now * 7)) * 6.28};
+        const bl = (GEO(vtype()).work || {}).solo && LEMMER.on ? null : CREW3D.visible().find(a => a.st === 'blogg' && a.mode === 'at'), f = {at:e.D.slice(), sp:e.sp, kg:e.kg, t:now, yaw:hash(Math.floor(now * 7)) * 6.28};
         DKDECK.push(f); dkEvent('bleed', e.D, e.sp, e.kg, {for:bl ? bl.id : e.who, deckF:f, wait:20, t0:now + (bl ? 0.3 : 0.6)}); }
       else if (e.kind === 'jigup' && age >= DKDUR.jigup){ e.chained = true; dkEvent('bleed', e.at, e.sp, e.kg, {for:e.who, wait:12}); }
       else if (e.kind === 'bleed' && e.deckF && age >= 0.3){ e.chained = true; const i = DKDECK.indexOf(e.deckF); if (i >= 0) DKDECK.splice(i, 1); } }
@@ -523,8 +616,9 @@
       drawTub1(chain(M0, M4.T((j % 2) * 0.52, Math.floor(i / per) * 0.38, Math.floor(j / 2) * 0.5), M4.RY(hash(i * 3 + 1) * 6.28)), f, green, i + per >= nd); } }
   // one line tub at M: its coil (not an empty one's), and with nothing on top of it the hooks hung round the rim (all baited: the
   // model's ring of them, else the baited ones one by one)
-  function drawTub1(M, f, green, top){ const T = kit('rig', 'stamp'), Lr = kit('rig', green ? 'line_g' : 'line_r'), K = kit('rig', 'kroker'), HX = (kitX('rig').hooks) || {n:30, r:0.2238, y:0.38, a0:-75, a1:75};
-    if (!T){ drawN(GB.tub, M); return; } drawN(T, M); if (f < 0) return; if (Lr) drawN(Lr, M); if (!top) return;
+  // (coil: the share of its coil that is in it, steg 125f: the coil sinks as the line runs out of it and rises as it is coiled in)
+  function drawTub1(M, f, green, top, coil){ const T = kit('rig', 'stamp'), Lr = kit('rig', green ? 'line_g' : 'line_r'), K = kit('rig', 'kroker'), HX = (kitX('rig').hooks) || {n:30, r:0.2238, y:0.38, a0:-75, a1:75};
+    if (!T){ drawN(GB.tub, M); return; } drawN(T, M); if (f < 0) return; if (Lr) drawN(Lr, coil != null && coil < 1 ? chain(M, M4.S(1, Math.max(0.04, coil), 1)) : M); if (!top) return;
     if (K && f >= 0.999) drawN(K, M);
     else if (f > 0 && GB.bait){ const m = Math.round(f * HX.n); if (!BITM.length) for (let j = 0; j < HX.n; j++){ const a = (HX.a0 + (HX.a1 - HX.a0) * j / Math.max(1, HX.n - 1)) * DEG; BITM.push(chain(M4.T(Math.cos(a) * HX.r, HX.y + 0.012, -Math.sin(a) * HX.r), M4.RY(a), M4.S(1.3))); }
       for (let j = 0; j < m && j < BITM.length; j++) drawN(GB.bait, chain(M, BITM[j])); } }
@@ -532,6 +626,22 @@
   // rail's top), in the frame of the place over the stern; null where it does not stand
   function magTubs(BMrel, G){ const P = G.kit && G.kit.setter, X = kitX('upg').mag; if (!P || !X || !X.at || typeof CREW3D === 'undefined' || !CREW3D.magOn()) return null;
     const M = chain(BMrel, M4.T(P[0], P[1], P[2]), M4.RY(P[3] || 0)); return [chain(M, M4.T(0, X.top, -(X.at[0] + 0.27))), chain(M, M4.T(0, X.top, -(X.at[1] - 0.27)))]; }
+  // the setter's magazine's two places in the boat's frame (the feet of the tubs on it, as magTubs), for the deck crew's account
+  function magPts(G){ const P = G.kit && G.kit.setter, X = kitX('upg').mag; if (!P || !X || !X.at) return null; const a = P[3] || 0, c = Math.cos(a), s = Math.sin(a), at = lz => [P[0] + s * lz, P[1] + X.top, P[2] + c * lz];
+    return [at(-(X.at[0] + 0.27)), at(-(X.at[1] - 0.27))]; }
+  // ---- the line tubs where the deck crew's account has them (steg 125f, deckcrew.js STAMPER and lineTubs): every tub by itself, in
+  // its slot of the stack (a tub with one on top of it shows no hooks), at a work spot, or nested in the others in the nest; the one
+  // the line runs from or into with its coil sinking or rising, and the one being carried drawn with the one carrying it (08-plants.js)
+  // fill: what the crew's jobs on deck show on the tubs in the stack's first places (baiting, stripping), else null
+  function drawStamper(BMrel, G, LT, fill){ const per = (((GEO(vtype()) || {}).kit || {}).stamps || {}).n || ((VESSELS[vtype()] || {len:10}).len < 8 ? 4 : 8);
+    const inSlot = new Set(LT.T.filter(q => q.at === 'slot').map(q => q.i)), nTop = Math.max(-1, ...LT.T.filter(q => q.at === 'nest').map(q => q.i)), c = LT.carry, n = {slot:0, work:0, nest:0, hand:0};
+    for (const q of LT.T){ n[q.at]++; if (!q.p || (c && c.id === q.id && (q.at === 'hand' || c.at))) continue;
+      const run = LT.run && LT.run.id === q.id, top = q.at === 'slot' ? !inSlot.has(q.i + per) : q.at === 'nest' ? q.i === nTop : true;
+      const f = q.at === 'slot' && fill && q.i < fill.length ? fill[q.i] : q.f, cl = run ? q.f : null;
+      drawTub1(chain(BMrel, M4.T(q.p[0], q.p[1], q.p[2]), M4.RY(q.ry)), run && q.k === 'empty' ? 0 : f, false, top, cl); }
+    KST.stamps = n.slot; KST.stampsAll = LT.T.length; KST.tubs125 = {slot:n.slot, work:n.work, nest:n.nest, hand:n.hand, carried:LT.carried, snap:LT.snap, halt:!!LT.halt, run:LT.run ? Math.round(LT.run.f * 100) / 100 : null}; }
+  // the account, where the deck has a crew and it has begun (else null: the boats worked by hand, the old drawing)
+  function stamperNow(G){ if (G.hand || typeof CREW3D === 'undefined' || !CREW3D.on() || !CREW3D.lineTubs) return null; if (CREW3D.setMag) CREW3D.setMag(CREW3D.magOn() ? magPts(G) : null); return CREW3D.lineTubs(); }
   // the line tubs aboard as a list of what each holds (1 baited, 0 coiled, -1 empty), drawn: the first two on the magazine where it
   // stands, one at the stern by the one setting (at: deckcrew.js setPlan's tub), the rest at the rig's place
   function drawTubList(BMrel, G, d, F, at){ const MT = magTubs(BMrel, G) || []; let i = 0;
@@ -547,7 +657,11 @@
     const out = Math.max(0, tubsOut() - (g.op === 'haul' ? g.n : 0)), PN = g.op === 'set' && !G.hand && typeof CREW3D !== 'undefined' && CREW3D.on() ? CREW3D.setPlan('line') : null;
     if (g.op === 'set'){ for (let i = g.done; i < g.n; i++) F.push(1); for (let i = 0; i < rest; i++) F.push(i < bt ? 1 : 0); for (let i = 0; i < g.done + out; i++) F.push(-1); }
     else { for (let i = 0; i < g.done; i++) F.push(0); for (let i = 0; i < rest; i++) F.push(i < bt ? 1 : 0); for (let i = g.done; i < g.n + out; i++) F.push(-1); }
-    if (G.hand){ const R = rigAt(G, 'line', d), n = g.op === 'haul' ? g.done : g.n - g.done; drawLineTubs(BMrel, R.at, n, g.op === 'set' ? n : 0, false, R.ry); return; }   // (the boats worked by hand as before: OB1, OB5)
+    // (the boats worked by hand: every tub at her stack, the empty ones too, as they were before the set or the haul; steg 125f: the
+    // ones set went out of the picture before)
+    if (G.hand){ const R = rigAt(G, 'line', d), H = []; if (g.op === 'set'){ for (let i = 0; i < g.done; i++) H.push(-1); for (let i = g.done; i < g.n; i++) H.push(1); } else { for (let i = 0; i < g.done; i++) H.push(0); for (let i = g.done; i < g.n; i++) H.push(-1); }
+      drawLineTubs(BMrel, R.at, H.length, 0, false, R.ry, H); return; }
+    const LT = stamperNow(G); if (LT){ drawStamper(BMrel, G, LT, null); return; }
     drawTubList(BMrel, G, d, F, PN && PN.tub); }
   // ---- the nets aboard (F8, OB3): NET_TUB to a tub, the tubs where the deck has room for them (deckcrew.js netTubs), the first ones
   // full and the last with what is left; what the tubs do not hold is heaped on the last
@@ -597,7 +711,8 @@
       const fill = []; for (const j of EJ) fill.push(...jobTubs(j)); for (let i = 0; i < n; i++) fill.push(i < bt ? 1 : 0);
       // (OB3: the empty tubs of the lines in the sea stay aboard; with the setter's magazine the first two tubs stand on it, unless they are worked)
       if (rig === 'line' && !G.hand) for (let i = tubsOut(); i > 0; i--) fill.push(-1);
-      const R = rigAt(G, 'line', d); if (fill.length){ if (G.hand || EJ.length) drawLineTubs(BMrel, R.at, fill.length, 0, false, R.ry, fill); else drawTubList(BMrel, G, d, fill, null); } }
+      const R = rigAt(G, 'line', d), LT = stamperNow(G); if (LT){ drawStamper(BMrel, G, LT, EJ.length ? EJ.flatMap(jobTubs) : null); return; }
+      if (fill.length){ if (G.hand || EJ.length) drawLineTubs(BMrel, R.at, fill.length, 0, false, R.ry, fill); else drawTubList(BMrel, G, d, fill, null); } }
   }
   // ---- the kit on the model's places (G.kit, from the boat's model; tools/deck): the life-saving gear the rules ask for (V.lsa,
   // 02-species-gear.js lsaOf), the radar that is bought, the freight on deck in crates and the crane. Nothing is drawn where the
@@ -814,12 +929,14 @@
   // ---- the ice box (tools/deck/fisk.py iskasse, the 300 l tub in blue): it stands on deck at its place (the model's kit.iskasse, under
   // the gutting board on the open boats; on a boat with a hold by the packer's place), the crushed ice in it as high as the ice aboard,
   // and the shovel stands in it when nobody is icing (Jonas 04.11.2026: «Det kan ikke bare dukke opp en kasse med is fra løse luften») ----
-  function iceBoxAt(vt){ const G = GEO(vt), K = G && G.kit && G.kit.iskasse; if (K) return {at:[K[0], K[1], K[2]], ry:K[3] || 0, s:K[4] || 1};
+  function iceBoxAt(vt){ const G = GEO(vt), K = G && G.kit && G.kit.iskasse; if (G && G.work && G.work.nopack && G.hatch) return null;   // (steg 125d: no ice box on a deck whose hold is iced below; the open snekke keeps hers)
+    if (K) return {at:[K[0], K[1], K[2]], ry:K[3] || 0, s:K[4] || 1};
     const PT = typeof deckPoints === 'function' ? deckPoints(vt) : null, M = PT && PT.is && typeof deckMap === 'function' ? deckMap(vt) : null;
     if (!M) return null; const p = M.at(PT.is.k), h = PT.is.h || 0, F = [Math.sin(h), -Math.cos(h)], R = [Math.cos(h), Math.sin(h)];
     return {at:[p[0] - R[0] * 0.62 + F[0] * 0.1, p[1], p[2] - R[1] * 0.62 + F[1] * 0.1], ry:-h, s:0.75}; }
   // the ice's top in the box, in the boat's frame (where the shovel takes it)
-  function iceBoxTop(vt){ const B = iceBoxAt(vt); if (!B) return null; const D = (kitX('fish').tubs || {}).iskasse || {rim:0.66, floor:0.14}, f = clamp((S.boat.ice || 0) / Math.max(1, BOAT.iceCap || 1), 0, 1);
+  function iceBoxTop(vt){ const G = GEO(vt), Hh = G && G.work && G.work.nopack && G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at); if (Hh) return [Hh[0], Hh[1] - 0.3, Hh[2]];   // (steg 125d: the ice goes down the open hatch)
+    const B = iceBoxAt(vt); if (!B) return null; const D = (kitX('fish').tubs || {}).iskasse || {rim:0.66, floor:0.14}, f = clamp((S.boat.ice || 0) / Math.max(1, BOAT.iceCap || 1), 0, 1);
     return [B.at[0], B.at[1] + (D.floor + f * (D.rim - D.floor - 0.09) + 0.02) * B.s, B.at[2]]; }
   // someone has the shovel in his hands (packing on the deck), so it is not in the ice box
   const packingNow = () => !!(typeof CREW3D !== 'undefined' && CREW3D.on() && CREW3D.agents().some(a => a.st === 'is' && a.mode === 'at')) || !!(DECKACT && DECKACT.on && DECKACT.task === 'ice');
@@ -868,12 +985,17 @@
     const D = {rim:D0.rim * s, floor:D0.floor * s, in_top:D0.in_top.map(v => v * s), in_floor:D0.in_floor.map(v => v * s)};
     const wait = x => !x.gut && !x.iced && !(SPECIES[x.sp] || {}).live, spec = {}; let kg = 0;
     for (const x of S.hold || []) if (wait(x)){ spec[x.sp] = (spec[x.sp] || 0) + x.kg; kg += x.kg; }
-    const f = clamp(kg / Math.max(20, BOAT.tubCap || 60), 0, 1);
+    // (steg 125e: on a boat worked by hand the fish still on the jig's line, waiting for the knife or in the air are not in it yet, 13-instruments.js SK.airKg)
+    if (GEO(vtype()).hand && SK && SK.airKg > 0) kg = Math.max(0, kg - SK.airKg);
+    let f = clamp(kg / Math.max(20, BOAT.tubCap || 60), 0, 1);
     let top = D.floor, n = 0, plan = null;
-    if (kg >= 0.5 && SK && SK.fishM){ plan = karPlan('blod:' + vtype(), Object.keys(spec).length ? spec : {torsk:1}, kg, D); n = Math.max(1, Math.ceil(plan.length * f - 1e-9)); n = Math.min(n, plan.length);
-      for (let i = 0; i < n; i++){ const q = plan[i]; if (q.y < (plan[n - 1].y - 0.14)) continue; const up = hash(i * 11 + 7) > 0.5 ? 1 : -1;
+    // (steg 125e: with the new people the fish in it are the account's, FISKVEI: those bled into it and not yet taken out, laid as a full tub would lie)
+    const fv = LEMMER.on && typeof CREW3D !== 'undefined' && CREW3D.on() ? FISKVEI.where(dkFv(), performance.now() / 1000).tub : -1;
+    if (fv > 0 && SK && SK.fishM){ plan = karPlan('blod:' + vtype(), Object.keys(spec).length ? spec : {torsk:1}, Math.max(20, BOAT.tubCap || 60), D); n = Math.min(fv, plan.length); f = n / Math.max(1, plan.length); }
+    else if (fv < 0 && kg >= 0.5 && SK && SK.fishM){ plan = karPlan('blod:' + vtype(), Object.keys(spec).length ? spec : {torsk:1}, kg, D); n = Math.max(1, Math.ceil(plan.length * f - 1e-9)); n = Math.min(n, plan.length); }
+    if (plan && n){ for (let i = 0; i < n; i++){ const q = plan[i]; if (q.y < (plan[n - 1].y - 0.14)) continue; const up = hash(i * 11 + 7) > 0.5 ? 1 : -1;
         drawN(fishOf(q.sp), chain(M0, M4.T(q.x, q.y, q.z), M4.RY(q.yaw + (q.flip ? Math.PI : 0)), M4.RZ(up * Math.PI / 2), M4.S(q.s))); }
-      if (n) top = plan[n - 1].y; }
+      top = plan[n - 1].y; }
     // the water: a third of the tub when it is empty, rising as the fish fill it, but under the top fish so they lie half in it
     if (KW){ const y = n ? Math.max(D.floor + 0.04, Math.min(D.floor + (D.rim - D.floor) * (0.35 + 0.4 * f), top + 0.005)) : D.floor + (D.rim - D.floor) * 0.35, w = karIn(D, y);
       drawN(KW, chain(M0, M4.T(0, y, 0), SCL(2 * w[0] - 0.04, 1, 2 * w[1] - 0.04))); }
@@ -896,7 +1018,7 @@
     const W = G.work || null, tx = W ? W.table[0] : -(Bm / 2 - 0.42), ux = W ? W.tub[0] : Bm / 2 - 0.62, tz = W ? W.table[2] : d.z, uz = W ? W.tub[2] : d.z + 0.35;
     // a model with its own gutting table (work.own, the old wooden boat's across the gunwale) has it drawn already, the fish on its top;
     // else the kit's table: the plastic one on the small boats, the steel bench with its chute from 10 m (tools/deck/fisk.py)
-    const own = !!(W && W.own), V = VESSELS[vt], big = !!(V && V.len >= 10), KT = kit('fish', 'kar300'), KW = kit('fish', 'vann'), KB = own ? null : kit('fish', big ? 'benk' : 'bord'), XF = kitX('fish');
+    const own = !!(W && W.own), V = VESSELS[vt], big = benkOf(V, W), KT = kit('fish', 'kar300'), KW = kit('fish', 'vann'), KB = own ? null : kit('fish', big ? 'benk' : 'bord'), XF = kitX('fish');
     const tSide = tx < 0 ? 1 : -1, kTop = XF[big ? 'benk_top' : 'bord_top'], topY = own && W.top != null ? W.top + 0.02 : KB && kTop != null ? d.y + kTop + 0.02 : d.y + 0.885;
     const potRig = b.rig === 'teiner' && !(typeof deckPending === 'function' && deckPending() > 0.5);
     KST.tank = null; if (!G.hand){ if (!GB) buildGear(); drawCrabTank(BMrel, G, d, Bm / 2, G.hauler || [Bm / 2 * 0.92, d.y + 1, d.z - 1.3]); nSetup(VP); }
@@ -909,13 +1031,23 @@
       else drawN(PM.btub, chain(BMrel, M4.T(ux, d.y, uz), M4.RY(W && W.ry || 0), M4.S(W && W.s || 1)));
       // the table by the rail, its long side along the boat and the worker's side inboard
       if (!own){ if (KB) drawN(KB, chain(BMrel, M4.T(tx, d.y, tz), M4.RY(tSide * Math.PI / 2))); else drawN(PM.gtable, chain(BMrel, M4.T(tx, d.y, tz))); } }
+    // the hold's hatch open while she fishes (steg 125d, Jonas 15.11.2026: «en åpen luke ned til lasterommet der fisken kastes»): the
+    // dark well inside the coaming and the lid tipped up on its side edge, off the work: at the rail where the hatch lies by the side
+    // (the kyst15), else on the side away from the hauler; nobody icing on deck (work.nopack), anchors.hatchSize
+    { const Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at), HS = G.hatchSize;
+      if (Hh && HS && W && W.nopack && !potRig && hatchFishOpen()){ const aw = Math.max(0.2, HS[0] - 0.06), al = Math.max(0.2, HS[1] - 0.06);
+        drawN(PM.hatchHole, chain(BMrel, M4.T(Hh[0], Hh[1] + 0.025, Hh[2]), M4.S(aw, 1, al)));   // (2.5 cm over the anchor: at 4 mm the lid's non-slip came through in white specks)
+        const side = hatchSide(G, Hh);
+        drawN(PM.hatchLid, chain(BMrel, M4.T(Hh[0] + side * aw / 2, Hh[1] + 0.035, Hh[2]), M4.RY(-side * Math.PI / 2), M4.RX(-1.62), M4.S(al, 1, aw))); } }
     if (b.land) return;   // (through a landing the kit stands, but nobody works the catch on deck: the crew are at the landing, deckcrew.js)
     // the catch on deck (tools/fish): the round fish waiting for the knife lie in the bleeding tub (their species, about one for every 6 kg),
     // the gutted ones waiting for the icer at the end of the gutting table, and one on the table when nobody guts
     { const wait = x => !x.gut && !x.iced && !(SPECIES[x.sp] || {}).live, all = S.hold.reduce((a, x) => a + (wait(x) ? x.kg : 0), 0), n = Math.min(10, Math.ceil(all / 6)), ts = W && W.s || 1;
-      const gd = S.hold.reduce((a, x) => a + (x.gut && !x.iced ? x.kg : 0), 0), ng = SK && SK.fishM && !potRig ? Math.min(3, Math.ceil(gd / 4)) : 0;
+      // (steg 125e: with the new people the fish on the table are the gutter's own, FISKVEI, and none lies there from the game's kilos: they came and went with them)
+      const fvOn = LEMMER.on && typeof CREW3D !== 'undefined' && CREW3D.on();
+      const gd = S.hold.reduce((a, x) => a + (x.gut && !x.iced ? x.kg : 0), 0), ng = SK && SK.fishM && !potRig && !fvOn ? Math.min(3, Math.ceil(gd / 4)) : 0;
       for (let i = 0; i < ng; i++) drawN(fishOf(S.hold.find(x => x.gut && !x.iced).sp), chain(BMrel, M4.T(tx, topY, tz + (own ? 0.38 : 0.45) * (tz > d.z ? -1 : 1)), M4.T(0, i * 0.045, (hash(i * 3) - 0.5) * 0.12), M4.RY(0.15 + (i % 2) * Math.PI), M4.RZ(Math.PI / 2), M4.S(0.46)));
-      if (n > 0 && SK && SK.fishM && !potRig && !DK.on){ const sp0 = (S.hold.find(wait) || {sp:'torsk'}).sp; drawN(fishOf(sp0), chain(BMrel, M4.T(tx, topY, tz + (own ? 0 : 0.25)), M4.RY(0.2), M4.RZ(Math.PI / 2), M4.S(0.5))); } }
+      if (n > 0 && SK && SK.fishM && !potRig && !DK.on && !fvOn){ const sp0 = (S.hold.find(wait) || {sp:'torsk'}).sp; drawN(fishOf(sp0), chain(BMrel, M4.T(tx, topY, tz + (own ? 0 : 0.25)), M4.RY(0.2), M4.RZ(Math.PI / 2), M4.S(0.5))); } }
     if (!DK.on) return;
     const agents = !G.hand && typeof CREW3D !== 'undefined' && CREW3D.on();   // (the agents walk to the table and the tub themselves, deckcrew.js)
     const wl = xf(BMrel, [tx + 0.62, d.y, tz]), wy = wl[1] + eye[1], P = {gy:() => wy, bare:true, spray:0, kit:DK.me ? 'skipper' : null, look:seaLook(DK.me ? lookMe() : lookCrew(0))}, head = bv.head - Math.PI / 2;
@@ -924,7 +1056,7 @@
     // (gutting: the fish from the bleeding tub onto the table, the guts over the rail, the gutted fish into the fish tub, 08-plants.js gutw)
     const DW = deckWork(G), gutting = {task:'gutw', Tb:xf(BMrel, DW.table), Ub:xf(BMrel, dkTub(G)), Of:xf(BMrel, DW.offal), Cr:kp.length ? xf(BMrel, kp[ki].at) : null, crTop:kp.length ? karTop(vt, ki) : 0.3,
       gsp:(S.hold.find(x => !x.gut && !x.iced) || {sp:'torsk'}).sp, gkg:2 + hash(Math.floor(t / 5.6)) * 3};
-    if (!agents) drawWorker(P, Object.assign({x:wl[0] + eye[0], z:wl[2] + eye[2], h:head, walk:false, s:0}, DK.task === 'gut' ? gutting : icing), eye, t, 7);
+    if (!agents && !(G.hand && DK.me && skWalking())) drawWorker(P, Object.assign({x:wl[0] + eye[0], z:wl[2] + eye[2], h:head, walk:false, s:0}, DK.task === 'gut' ? gutting : icing), eye, t, 7);   // (on his way to it or from it, 13-instruments.js SKW)
     // the skipper and a hand both on the deck work: the hand stands inboard of the bleeding tub, facing it
     // (OB1, F19 in docs/planer/om-bord.md: on the old wooden boat that put him on the one gutting at the table, the table and the tub being
     // 0.15 m apart along her: a model with a mate's place, work.mate [x, y, z], has him there, facing the tub, clear of the other)

@@ -40,9 +40,12 @@
     const quayMod = (f, L) => { let yaw = Math.atan2(-f.uz, f.ux); if (-f.uz * f.nx + f.ux * f.nz < 0) yaw += Math.PI;
       const out = f.out || 0, inl = f.kind === 3 ? 3 : f.tre ? 0.5 : 1.5, y0 = f.kind === 3 ? 0 : -0.012;
       const tre = DKM.ktre && (f.tre || f.kind === 3 && L < 15 && out <= 2.2), M = tre ? DKM.ktre : DKM.kaib, n = Math.ceil((L + 4) / 6);
+      // (timber: the row along her where she lies, and a gangway one bay wide in to the pile quay behind, as a jetty is built: before
+      // 14.11.2026 every row went her whole length, a 17 by 24 m deck of timber at the naust on Kvitsøy, 16 m out; Jonas: «Hvorfor er det
+      // bygget 4 kaier utpå hverandre? det ser jo helt sykt ut»)
       const rows = tre ? Math.max(1, Math.ceil((out + inl) / 4.2)) : 1;
       for (let r = 0; r < rows; r++){ const bk = (tre ? 2.3 + 4.2 * r : 0) - out;
-        for (let k = 0; k < n; k++){ const a = (k - (n - 1) / 2) * 6; drawN(M, model(f.x + f.ux * a - f.nx * bk - eye[0], y0 - eye[1], f.z + f.uz * a - f.nz * bk - eye[2], yaw, 0, 0)); } }
+        for (let k = 0; k < n; k++){ const a = r ? 0 : (k - (n - 1) / 2) * 6; if (r && k) break; drawN(M, model(f.x + f.ux * a - f.nx * bk - eye[0], y0 - eye[1], f.z + f.uz * a - f.nz * bk - eye[2], yaw, 0, 0)); } }
       const D = out + inl - 5; if (tre || D <= 0.05 || !DKM.fill) return;
       const sx = n * 6, sy = FDOCK.QTOP + 3;   // (M4.S is uniform: the box is scaled on its own axes here)
       drawN(DKM.fill, chain(model(f.x + f.nx * (out - 5) - eye[0], y0 - 3 - eye[1], f.z + f.nz * (out - 5) - eye[2], yaw, 0, 0), new Float32Array([sx,0,0,0, 0,sy,0,0, 0,0,D,0, 0,0,0,1]))); };
@@ -208,14 +211,18 @@
   // a side light or the stern light only within its arc (rule 21: the sides «fra rett forover til 22,5 grader aktenfor tvers», the stern
   // «67,5 grader på hver side av fartøyet fra rett akterover»; vedlegg I 9 a). M is the boat's frame relative to the eye (her bow to -z, her
   // starboard to +x); lp the light in it. The glow drew them all round, so the green showed from the port bow through the wheelhouse
+  // How much of it shows (0 to 1), not just whether: at the edge of an arc a boat that rolls and yaws a degree or two swung the light
+  // fully on and off, so the others' lanterns blinked from every angle (tilbakemelding #116, 06.11.2026). Vedlegg I 9 a: the sides'
+  // light falls to a practical cut-off between 1 and 3 degrees outside their arcs forward, so a side fades out from 1 to 3 degrees
+  // across the bow, and the sides aft and the stern light over 3 degrees beyond the edges of their arcs.
   function lampArc(M, lp, lk){
-    if (lk !== 'side' && lk !== 'stern') return true;
+    if (lk !== 'side' && lk !== 'stern') return 1;
     const q = xf(M, lp), f = xf(M, [lp[0], lp[1], lp[2] - 1]), r = xf(M, [lp[0] + 1, lp[1], lp[2]]);
     const fw = -((f[0] - q[0]) * q[0] + (f[1] - q[1]) * q[1] + (f[2] - q[2]) * q[2]), sb = -((r[0] - q[0]) * q[0] + (r[1] - q[1]) * q[1] + (r[2] - q[2]) * q[2]);
     const ang = Math.atan2(Math.abs(sb), fw) * 180 / Math.PI;
-    if (lk === 'side' && (ang > 112.5 || (lp[0] < 0 ? sb > 0.05 : sb < -0.05) && ang > 1)) return false;
-    if (lk === 'stern' && ang < 180 - 67.5) return false;
-    return true;
+    if (lk === 'side'){ const across = lp[0] < 0 ? sb > 0 : sb < 0;   // (the eye on the other side of her: a port light seen from starboard)
+      return across ? clamp((3 - ang) / 2, 0, 1) : clamp((115.5 - ang) / 3, 0, 1); }
+    return clamp((ang - 109.5) / 3, 0, 1);
   }
   // the lights over the rest that the view adds to vessel3d.js lanterns: restricted in her ability to manoeuvre red, white, red (27 b i),
   // constrained by her draught three reds (28), and the coast guard's blue all-round light on her highest masthead while she is on her
@@ -241,8 +248,8 @@
       const M = n.K ? (n.rev ? chain(n.M, n.K.S, M4.RY(Math.PI)) : chain(n.M, n.K.S)) : n.M, px = n.K ? (n.K.geo && n.K.geo.ship ? 900 : n.L < 14 ? 260 : 600) : NPCM.lightPx[n.type] || 900;
       const G = n.K ? n.K.geo : (() => { const LG = NPCM.lanG || (NPCM.lanG = {}); return LG[n.type] || (LG[n.type] = {lights:(NPCM.lights[n.type] || (SHIPTY[n.type] ? NPCM.lights.ferry : LEISM[n.type] ? NPCM.lights.sjark : null) || []).map(([lx, ly, lz, c]) => [[lx, ly, lz], NLC[c]])}); })();
       for (const [p, col, lk] of lampsMore(lanterns(G, {len, vmax:n.K ? 10 : 12}, stN), stN, len)){
-        if (!lampArc(M, p, lk)) continue;
-        const q = xf(M, p), a = A0 * lampFade(Math.hypot(q[0], q[1], q[2]), lk === 'side' || lk === 'stern' || lk === 'kv' ? lk : lk === 'masthead' || lk === 'masthead2' ? 'masthead' : 'allround', len, LF);
+        const arc = lampArc(M, p, lk); if (!arc) continue;
+        const q = xf(M, p), a = A0 * arc * lampFade(Math.hypot(q[0], q[1], q[2]), lk === 'side' || lk === 'stern' || lk === 'kv' ? lk : lk === 'masthead' || lk === 'masthead2' ? 'masthead' : 'allround', len, LF);
         if (a < 0.01) continue;
         ANCHAL.npcLit++; if (lk === 'kv') ANCHAL.kvLit++;
         PB[0] = q[0]; PB[1] = q[1]; PB[2] = q[2]; PA[0] = a; drawPts(1, gl.POINTS, VP, col, px, true); } }

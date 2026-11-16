@@ -806,21 +806,24 @@ def deck_fittings(A, fine=True):
     hx_, hy_ = 0.62, -0.86; hz = z_deck(hx_) + camber(hx_, hy_)
     for k in range(3): F.atorus(A, (hx_, hy_, hz + 0.022 + 0.04 * k), (0, 0, 1), 0.20 - 0.015 * k, 0.02, lambda a: C['hose'], seg=18, rseg=6)
 
-GUT = (3.55, 4.30)           # the boat's own gutting table over the port bulwark (x from, to), abreast of the hauler
+# the boat's own gutting table over the bulwark (x from, to): across the port bulwark abreast of the hauler until steg 125d; now over the
+# starboard bulwark aft of the bleeding tub, the hauler's side, in the work's order (Jonas 15.11.2026, docs/planer/dekk/forslag.json)
+GUT = (1.00, 1.75); GUT_SG = -1   # (GUT_SG: the side, 1 port, -1 starboard)
 GX = (GUT[0] + GUT[1]) / 2
 def gut_top(): return z_deck(GX) + 0.90
 def gutting_table(A):
     """a stainless table across the port bulwark at working height, its outer edge a little over the side so the offal goes into the sea,
     a lip along its inboard edge and its ends; two brackets from the cap up under it, two legs down to the deck"""
-    x0, x1 = GUT; zt = gut_top(); yo = max(ysh(x0), ysh(x1)) + 0.03; yi_ = 1.02
-    abox(A, x0, x1, yi_, yo, zt - 0.03, zt, C['steel'])
-    abox(A, x0, x1, yi_, yi_ + 0.02, zt, zt + 0.05, C['steel'])
-    for x in (x0, x1 - 0.02): abox(A, x, x + 0.02, yi_, yo - 0.08, zt, zt + 0.05, C['steel'])
+    x0, x1 = GUT; zt = gut_top(); yo = max(ysh(x0), ysh(x1)) + 0.03; yi_ = 1.02; S_ = GUT_SG
+    yb = lambda x0_, x1_, ya, yb_, z0_, z1_: abox(A, x0_, x1_, min(S_ * ya, S_ * yb_), max(S_ * ya, S_ * yb_), z0_, z1_, C['steel'])   # (mirrored to the table's side)
+    yb(x0, x1, yi_, yo, zt - 0.03, zt)
+    yb(x0, x1, yi_, yi_ + 0.02, zt, zt + 0.05)
+    for x in (x0, x1 - 0.02): yb(x, x + 0.02, yi_, yo - 0.08, zt, zt + 0.05)
     for x in (x0 + 0.08, x1 - 0.08):
-        g = gunwale_y(x); acyl(A, (x, g, zs(x) + 0.010), (x, g, zt - 0.03), 0.016, lambda q: C['steel'], seg=8)
+        g = S_ * gunwale_y(x); acyl(A, (x, g, zs(x) + 0.010), (x, g, zt - 0.03), 0.016, lambda q: C['steel'], seg=8)
         acyl(A, (x, g, zs(x) + 0.008), (x, g, zs(x) + 0.016), 0.03, lambda q: C['steel'], seg=10)
-        zd = z_deck(x) + camber(x, yi_ + 0.06); acyl(A, (x, yi_ + 0.06, zd - 0.004), (x, yi_ + 0.06, zt - 0.03), 0.016, lambda q: C['steel'], seg=8)
-        acyl(A, (x, yi_ + 0.06, zd - 0.004), (x, yi_ + 0.06, zd + 0.006), 0.035, lambda q: C['steel'], seg=10)
+        yl = S_ * (yi_ + 0.06); zd = z_deck(x) + camber(x, yl); acyl(A, (x, yl, zd - 0.004), (x, yl, zt - 0.03), 0.016, lambda q: C['steel'], seg=8)
+        acyl(A, (x, yl, zd - 0.004), (x, yl, zd + 0.006), 0.035, lambda q: C['steel'], seg=10)
 
 
 # ---------- under water: the shoe, the rudder on its stock, the propeller on its shaft, the anodes, the transducer, the intake ----------
@@ -907,17 +910,17 @@ def kit_places(G):
             'buoys': [G(WX0 - 0.03, 0.83, z0 + 0.90) + [0.0], G(WX0 - 0.03, -0.83, z0 + 0.90) + [0.0]],
             'radar': G(RX, 0.0, zr_ + 0.99),
             'garn': {'at': G(1.20, 0.50, z_deck(1.2)), 'ry': 0.0},
-            'stamps': {'at': G(1.20, -0.50, z_deck(1.2)), 'ry': r(math.pi)},
+            'stamps': {'at': G(0.975, 0.34, z_deck(0.975)), 'ry': r(math.pi), 'n': 4},   # (steg 125d: to port aft, where the net tub stands; the table has their place)
             'cargo': [G(HC, 0.0, zl) + [0.0], G(1.10, 0.0, z_deck(1.1)) + [r(math.pi / 2)]]}
 
 def bower(G):
     return {'kind': 'plog', 'kg': 14, 'fair': G(XF + 0.06, 0, zs(XF - 0.05) + 0.085), 'gypsy': G(8.72, -0.19, z_deck(8.72) + 0.24), 'side': 0, 'deck': True}
 
 HX = 3.75                    # the hauler's station on the starboard cap, just aft of the wheelhouse
-TUB = (3.10, -1.20)          # the bleeding tub on the deck just aft of the fisher at the hauler
-# the jigging places on the rails, in the order the machines are bolted on (anchors.jigZ, F21): starboard aft of the tub, port aft of
-# the gutting table, then one more on each side aft, a good metre apart so the lines keep clear
-JIG = [(1, 2.25), (-1, 2.75), (1, 1.15), (-1, 1.65)]
+TUB = (2.375, -0.92)         # the bleeding tub along the starboard rail aft of the fisher at the hauler, clear of him (steg 125d: he stood in it at 3.10, -1.20)
+# the jigging places on the rails, in the order the machines are bolted on (anchors.jigZ, F21): starboard between the hauler and the
+# tub, port abreast of the hatch, then one more on each side aft, a good metre apart so the lines keep clear
+JIG = [(1, 3.25), (-1, 2.75), (1, 0.55), (-1, 1.65)]   # (steg 125d: the starboard rail aft is the tub's and the table's now: forward of the tub and aft of the table)
 HP, FOV = -0.30, 60          # the bridge view's pitch (rad) and field: the dash inside it (check())
 def anchors():
     G = lambda x, y, z: [round(v, 3) for v in to_game((x, y, z))]
@@ -927,7 +930,7 @@ def anchors():
             # the wheelhouse door to port (the aft deck behind the house is too narrow to walk to)
             # (OB7: the house forward, the working deck aft of it: the fisher at the hauler, the one who guts at the table to port, one aft
             # of the hatch, one by the wheelhouse's door)
-            'crewSpots': [G(HX - 0.10, -1.02, z_deck(HX)) + [1.57], G(GX, 0.84, z_deck(GX)) + [-1.57], G(1.90, 0.0, z_deck(1.9)) + [3.14], G(WX0 - 0.35, -0.20, z_deck(WX0 - 0.35)) + [0.0]],
+            'crewSpots': [G(HX - 0.10, -1.02, z_deck(HX)) + [1.57], G(1.425, -0.70, z_deck(1.425)) + [1.57], G(1.90, 0.0, z_deck(1.9)) + [3.14], G(WX0 - 0.35, -0.20, z_deck(WX0 - 0.35)) + [0.0]],
             # typed lights (B8; rule 23 (d)(i), under 12 m: an all-round white and the side lights; the game also lights the stern light)
             'lights': [[G(MX, 0, white_z()), [1, 0.95, 0.85], 'allround'],
                        [G(LAMP_X + 0.012, WY + 0.068, lamp_z()), [1, 0.12, 0.1], 'port'],
@@ -943,10 +946,14 @@ def anchors():
             # the work at sea, in its order (plastsjark-grunnlag kap. 6.2): the fisher at the starboard rail by the hauler; the bleeding tub
             # on the deck just aft of him; the gutting table is the boat's own, across the port bulwark abreast of him (own; top: where the fish
             # lie), the one who guts on the deck inboard of it; the gutted fish go down the hold's hatch between them, on ice
-            'work': {'table': G(GX, 1.45, z_deck(GX)), 'tub': G(TUB[0], TUB[1], z_deck(TUB[0])), 'own': True, 'top': round(gut_top() - WLE, 3),
-                     # the one who ices and packs: aft of the hatch, facing it (deckcrew turns a hold boat's packer about: pack[3] pi faces forward)
-                     'pack': G(2.05, -0.45, z_deck(2.05)) + [round(math.pi, 3)]},
+            # (steg 125d, Jonas 15.11.2026, docs/planer/dekk/forslag.json: along the starboard rail in the work's order, the hauler, the tub,
+            # the table and the hatch a throw from the one who guts; the hauler bleeds the fish himself and throws it in the tub (solo), and
+            # nobody ices on deck: the fish go down the open hatch and are iced in the hold (nopack). gut: where the one who guts stands)
+            'work': {'table': G(GX, -1.30, z_deck(GX)), 'tub': G(TUB[0], TUB[1], z_deck(TUB[0])), 'own': True, 'top': round(gut_top() - WLE, 3),
+                     'gut': G(1.425, -0.70, z_deck(1.425)) + [1.571], 'solo': True, 'nopack': True},
             'jigZ': [[sd, round(XM - x, 3)] for sd, x in JIG],
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (HOLD[3] - HOLD[2], HOLD[1] - HOLD[0])],
             'hatch': G(HC, 0.0, z_deck(HC) + 0.225), 'bunk': G(7.5, 0.5, z_deck(7.5) - 0.1), 'exhaust': G(MX - 0.37, 0.55, zr_ + 1.56),
             'deck': {'y': round(z_deck(HC) - WLE, 3), 'z': round(-(HC - XM), 3)}, 'gw': round(zs(HC) - WLE, 3),
             'stern': round(XM - XA, 3), 'bow': round(-(XF - XM), 3), 'side': HB, 'beam': BEAM, 'pl': 3.3, 'rl': 1.4, 'open': False, 'hand': False,

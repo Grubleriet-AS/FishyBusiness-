@@ -182,7 +182,8 @@ export default function (t){
       t.ok(W1.some(w => /ligger over hverandre/.test(w)) && !W2.some(w => /ligger over hverandre/.test(w)), 'to felt 3 km fra hverandre: lenkene ligger over hverandre (advarsel); 30 km fra hverandre: ingen'); }
     // the large ocean vessels go round the clock only (Jonas 07.11.2026: «På de store havbåtene skal forresten mannskapet kun gå
     // døgndrift. Det skal ikke være et alternativ med dagdrift.»): a new plan, and an old one read with day trips
-    { const S0 = K.get('S'), b = S0.boat, t0 = b.type, ops0 = S0.ops;
+    // (a v4 plan is switched off since Driftsplan 3 is on, DP3-3 16.11.2026, plan3Retire; how plan2Ops reads one is checked with DRIFT3 off)
+    { const S0 = K.get('S'), b = S0.boat, t0 = b.type, ops0 = S0.ops; K.set('DRIFT3', false);
       for (const ty of Object.keys(K.VESSELS).filter(k => K.VESSELS[k].cls === 'hav')){ b.type = ty; K.applyVessel(); S0.lag = null;
         const o = K.plan2New({}); S0.ops = Object.assign(K.plan2New({}), {rhythm:'day'}); const o2 = K.plan2Ops();
         t.ok(o.rhythm === 'watch' && o2 && o2.rhythm === 'watch', ty + ': døgndrift i en ny plan og i en gammel med dagdrift (' + o.rhythm + ', ' + (o2 && o2.rhythm) + ')'); }
@@ -190,8 +191,17 @@ export default function (t){
     // a landing other than every trip; the two lines sat after a comment in plan2Ops until Ø12 D (12.11.2026)
     for (const ty of Object.keys(K.VESSELS).filter(k => K.VESSELS[k].cls === 'hav')){ b.type = ty; K.applyVessel(); S0.lag = null;
       const o0 = K.plan2New({}); S0.ops = Object.assign(o0, {jig:true, land:Object.assign({}, o0.land, {when:'trip'})}); const o2 = K.plan2Ops();
-      t.ok(o2 && !o2.jig && o2.land.when !== 'trip', ty + ': en gammel plan med juksa og levering hver tur får ingen juksa og leverer ' + (o2 && o2.land.when) + ' (jig ' + (o2 && o2.jig) + ')'); }
+      t.ok(o2 && !o2.jig && o2.land.when !== 'trip', ty + ': en gammel plan med juksa og levering hver tur får ingen juksa og leverer ' + (o2 && o2.land.when) + ' (jig ' + (o2 && o2.jig) + ')'); } K.set('DRIFT3', true);
       b.type = t0; K.applyVessel(); S0.ops = ops0; S0.lag = null; }
     for (const nm in keep) K.set(nm, keep[nm]);
   }
+  // a switch between vessel types leaves nothing of the one before (DP3-4, 16.11.2026: the autoliner after the snow crab vessel kept
+  // BOAT.pot 'sno', so its plan page offered «Fryste klør / Levende krabbe»): what BOAT has is what a fresh load of the type gives
+  { const S0 = K.get('S'), b = S0.boat, t0 = b.type, B = K.get('BOAT'), V = K.VESSELS;
+    b.type = 'snokrabbe'; K.applyVessel(); const had = B.pot; b.type = 'autoliner'; K.applyVessel();
+    const left = []; for (const ty in V) for (const k in V[ty]) if (!(k in V.autoliner) && !(k in V.skiff) && B[k] !== undefined && !left.includes(k)) left.push(k);
+    t.ok(had === 'sno' && B.pot === V.autoliner.pot && !left.length, 'fra snøkrabbefartøyet til autolineren: ingen felt igjen fra snøkrabbefartøyet (pot ' + B.pot + ', igjen: ' + (left.join(', ') || 'ingen') + ')');
+    const sk = []; for (const k in V.skiff) if (!(k in V.autoliner) && B[k] !== V.skiff[k] && typeof V.skiff[k] !== 'object') sk.push(k);
+    t.ok(!sk.length, 'og det autolineren ikke har selv, er som etter en fersk lasting: sjekta sitt (' + (sk.join(', ') || 'alt likt') + ')');
+    b.type = t0; K.applyVessel(); }
 }

@@ -84,7 +84,7 @@ const PSAY = {
   // the first trip lands round (core/13-work.js catchGut): what gutting aboard gives in the game (ui/08-actions.js sell), and the hand
   round:[['Rund fesk, ja. Den sløye vi. Sløye du sjøl om bord, får du betalt for lever og rogn òg. Ein mann te om bord, så går det fort.', 'Round fish, I see. We will gut it. Gut it yourself aboard and you get paid for the liver and the roe too. One more hand aboard and it goes quickly.'],
     ['Den her sløye vi for dæ i dag. Neste gang lønne det sæ å sløye om bord: lever og rogn e penga, og på hyse og sei slepp du sløyetrekket. Ta med dæ ein mann, så sløye han mens du fiske.', 'We will gut this for you today. Next time it pays to gut aboard: liver and roe are money, and on haddock and saithe you avoid the gutting charge. Take a hand along, and he guts while you fish.']],
-  conf:[['Æ hørte at Råfisklaget tok litt av lasta di. Surt.', 'I heard the sales organisation took some of your load. Sour.'], ['Kvota e kvota. Det hjelpe ikkje å sutre.', 'A quota is a quota. Complaining does not help.']]
+  conf:[['Æ hørte at Fiskesalgslaget tok litt av lasta di. Surt.', 'I heard the sales organisation took some of your load. Sour.'], ['Kvota e kvota. Det hjelpe ikkje å sutre.', 'A quota is a quota. Complaining does not help.']]
 };
 // in their own dialect, by the place (null north of 65° N is nord): small, mid and big loads
 const PSAYR = {

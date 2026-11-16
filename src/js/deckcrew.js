@@ -14,7 +14,7 @@
 function crewSim(src){
   const A = [];                          // the agents, one per person aboard who is up: {id, me, c, x, y, z, h, cell, goal, path, pi, mode, task, idle, blend}
   const ST = {type:null, M:null, M0:null, PT:null, PL:null, kitSig:'', jig:null, lastSim:null, ctxT:0, ctx:null, seed:(src && src.seed) || 1, clk:0, helmView:false, crates:-1, crateFill:0};
-  const WALK = 1.2, TURN = 4.5, SEP = 0.4, CRATE_KG = 40;   // m/s on a flat deck, rad/s turning on the spot, m between two people standing, kg of fish in a packed box
+  const WALK = 1.2, TURN = 4.5, SEP = 0.4, SEP2 = 0.55, CRATE_KG = 40;   // m/s on a flat deck, rad/s turning on the spot, m between two people standing, kg of fish in a packed box
   const rnd = () => { ST.seed = (ST.seed * 1664525 + 1013904223) >>> 0; return ST.seed / 4294967296; };
   const nowS = () => ST.clk;             // the agents' own clock, in seconds of ticks (real time in the game, the test's ticks in the test)
   function reset(){ A.length = 0; ST.type = null; ST.lastSim = null; }
@@ -28,7 +28,14 @@ function crewSim(src){
   // the jigging places the view found on the rail (view3d.js jigRail): the hands stand inboard of the machines
   // the way to face at the door to go in: towards the point inside it (the model's anchors.doors[0].in), else forward as before
   function doorFace(){ const D = ST.PT && ST.PT.door, A0 = ST.G && ST.G.doors && ST.G.doors[0]; if (!D || !A0 || !A0.in || !ST.M.ok(D.k)) return; const p = ST.M.at(D.k);
-    if (Math.hypot(A0.in[0] - p[0], A0.in[2] - p[2]) > 0.2) D.h = Math.atan2(A0.in[0] - p[0], -(A0.in[2] - p[2])); }
+    if (Math.hypot(A0.in[0] - p[0], A0.in[2] - p[2]) > 0.2) D.h = Math.atan2(A0.in[0] - p[0], -(A0.in[2] - p[2]));
+    // (where one stands at the door: in front of the opening, the body facing in clear of the frame. The sjark's door is low and narrow,
+    // and its cell lies in the doorway: the shoulders and the head went through the jamb and the lintel on the last steps to it,
+    // crewclip 125f. The nearest cell within 0.6 m on that part of the deck where the body facing the door is clear; none: as it was)
+    const M = ST.M, C = deckComp(M), faceIn = q => Math.atan2(A0.in[0] - q[0], -(A0.in[2] - q[2])), clear = k => { const q = M.at(k); return !bodyHitAt(q[0], q[1], q[2], faceIn(q), 0); };
+    if (clear(D.k)) return; let best = -1, bd = 0.61;
+    for (let k = 0; k < M.nx * M.nz; k++){ if (!M.ok(k) || C[k] !== C[D.k]) continue; const q = M.at(k), d = Math.hypot(q[0] - p[0], q[2] - p[2]); if (d >= bd || Math.abs(q[1] - p[1]) > 0.45 || !clear(k)) continue; bd = d; best = k; }
+    if (best >= 0){ D.k = best; D.h = faceIn(M.at(best)); } }
   function setJig(spots){ ST.jig = spots || null; }
   function setRoll(r){ ST.roll = r || 0; }
   // what the deck does (FB4; view3d/24-cinema.js each frame): her roll and pitch (rad), her height (m, the heave) and the sea's
@@ -50,8 +57,10 @@ function crewSim(src){
     const G = ST.G, d = G.deck || {y:G.gw, z:0}, W = G.work, K = G.kit || {}, Bm = G.beam || 3, V = VESSELS[ST.type] || {}, out = [];
     const box = (x, z, w, l, ry) => out.push([x, z, w / 2 + 0.06, l / 2 + 0.06, ry || 0, 0.06]);
     const tu = W ? W.tub : [Bm / 2 - 0.62, d.y, d.z + 0.35], s = (W && W.s) || 1; box(tu[0], tu[2], 0.72 * s, 1.08 * s, W && W.ry || 0);
-    if (!(W && W.own)){ const tb = W ? W.table : [-(Bm / 2 - 0.42), d.y, d.z]; box(tb[0], tb[2], 0.62, V.len >= 10 ? 1.6 : 1.15); }
-    if (G.hauler) box(G.haulerFoot ? G.haulerFoot[0] : Bm / 2 - 0.2, G.hauler[2], 0.35, 0.4);   // (anchors.haulerFoot: where the model sets the post, 10-gear.js, OB12)
+    if (!(W && W.own)){ const tb = W ? W.table : [-(Bm / 2 - 0.42), d.y, d.z]; box(tb[0], tb[2], 0.62, benkOf(V, W) ? 1.6 : 1.15); }
+    if (G.hauler) box(G.haulerFoot ? G.haulerFoot[0] : Bm / 2 - 0.2, G.hauler[2], 0.35, 0.4);
+    // (the fish hold's open hatch, steg 125d: open while she fishes, so nobody's way goes over it; anchors.hatchSize)
+    { const Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at); if (Hh && G.hatchSize && W && W.nopack){ const side = Math.abs(Hh[0]) > 0.5 ? Math.sign(Hh[0]) : G.hauler && G.hauler[0] < 0 ? 1 : -1; box(Hh[0] + side * 0.06, Hh[2], G.hatchSize[0] + 0.12, G.hatchSize[1]); } }   // (and the lid tipped up on its side edge, view3d/09-landing-deck.js hatchSide)   // (anchors.haulerFoot: where the model sets the post, 10-gear.js, OB12)
     // (the autoline hauler and its hook cleaner across the hauling station, from the port in to the cleaner; the line's guide arm over
     // the way along the back wall is high enough to pass under, H2d2)
     if (G.aline && G.aline.foot){ const F = G.aline.foot; box(F[0] + 0.05, F[2], 1.9, 0.62); }
@@ -76,12 +85,22 @@ function crewSim(src){
     if (!src && S.pgear){ const g = rigGear();
       // (OB10 runde 4, 12.11.2026: the block's width is the two tubs' footprint, 0.52 between their middles and 0.5 across each, 1.02 m;
       // it was 0.78, so the crew stood 12 cm inside the outer tubs on either side, «folk gjennom stampene» in line_settfull and riggfull)
-      if (g.tubs > 0 && K.stamps){ const rows = Math.ceil(Math.min(stampPer(), g.tubs) / 2), ry = K.stamps.ry || 0, c = Math.cos(ry), sn = Math.sin(ry), lx = 0.26, lz = (rows - 1) * 0.25;
+      // (steg 125f: with the deck crew's account of the tubs, a box for each place of the layer that has a tub in it now, so the one
+      // who carries can step in where the inner tubs have been taken and reach the outer ones)
+      if (g.tubs > 0 && K.stamps && LEMMER.on && TUBL.T.length){ const per = stampPer(); for (const j of new Set(TUBL.T.filter(q => q.at === 'slot').map(q => q.i % per))){ const p = tubSlot(j); box(p[0], p[2], 0.5, 0.5, K.stamps.ry || 0); } }
+      else if (g.tubs > 0 && K.stamps){ const rows = Math.ceil(Math.min(stampPer(), g.tubs) / 2), ry = K.stamps.ry || 0, c = Math.cos(ry), sn = Math.sin(ry), lx = 0.26, lz = (rows - 1) * 0.25;
         box(K.stamps.at[0] + lx * c + lz * sn, K.stamps.at[2] - lx * sn + lz * c, 1.02, rows * 0.5 + 0.02, ry); }
       // (OB3: every net tub that stands there, the tub the line is set from at the stern, the setter's magazine and the pot stacks)
       if (g.nets && K.garn){ const sc = K.garn.s || 1; for (const q of netTubs(g.netN)) box(q[0], q[2], 1.0 * sc, 1.2 * sc, q[3]); }
       // (the tub the line is set from: the one setting stands at it, close, by design; its padding as before)
       if (g.set === 'line'){ const T = setTub(); if (T) out.push([T[0], T[2], 0.31, 0.31, 0, 0.06, 1]); }
+      // (steg 125f: the tubs that stand at the other work spots and in the nest, STAMPER; close, by design, as the one at the stern)
+      // (each at the spots of the work it stands for, q.wk: one left by the stern as the haul begins stands there until it is carried)
+      if (TUBL.T.length && !G.hand && LEMMER.on){ const P = tubSpots(), T0 = g.set === 'line' ? setTub() : null;
+        for (const q of TUBL.T){ const wk = q.wk || TUBL.Wk, W = P[wk === 'haul' ? 'haul' : 'set']; if (q.at === 'work' && W[q.i] && !(TUBC.mag && wk !== 'haul') && !(T0 && Math.hypot(W[q.i][0] - T0[0], W[q.i][2] - T0[2]) < 0.05)) out.push([W[q.i][0], W[q.i][2], 0.31, 0.31, 0, 0.06, 1]); }
+        if (TUBL.T.some(q => q.at === 'nest')) out.push([P.nest[0], P.nest[2], 0.31, 0.31, 0, 0.06, 1]); }
+      // (and the stools the bait stands on at the baiting seats: nobody stands in one; the one sat on is the sitter's place, stools)
+      if (LEMMER.on && !G.hand) for (const q of stools()) out.push([q.b[0], q.b[2], 0.2, 0.2, 0, 0.06, 1]);
       if (K.setter && magOn()){ const P = K.setter, a = P[3] || 0; box(P[0] - Math.sin(a) * 0.99, P[2] - Math.cos(a) * 0.99, 0.6, 1.06, a); }
       if (K.pots && K.pots.at) for (const q of K.pots.at.slice(0, g.pots)) box(q[0], q[2], 1.3, 1.3, q[3] || 0);
       const kg = typeof cargoKg === 'function' ? Math.min(cargoKg(), BOAT.deckCargo || 0) : 0, nc = kg > 0 && K.cargo ? Math.min(K.cargo.length, Math.ceil(kg / 250)) : 0;
@@ -213,6 +232,139 @@ function crewSim(src){
   // setting stands now, and the net tubs
   function setPlan(kind){ if (!ready()) return null; const O = setOver(kind), a = A.find(q => q.role === 'sett' && q.goal && q.goal.task === 'sett' && q.mode === 'at');
     return {ov:O.ov, dir:O.dir, thru:O.thru, mag:O.mag, tub:kind === 'line' ? setTub() : null, man:a ? [a.x, a.y, a.z, a.h] : null}; }
+  // ---- the line tubs, each by itself (steg 125f; STAMPER, Jonas 15.11.2026: «tomme linebøtter stables i hverandre etter hvert som
+  // lina settes»; «Jeg vil heller ikke at mannskapet bærer på kasser og sånt som ikke eksisterer og som dukker opp ut av løse lufta»):
+  // the stack's slots at the rig's place (kit.stamps), the work spots (setting: the tub at the stern, setTub, and one beside it, or the
+  // setter's magazine; hauling: two on deck by the hauler's tray, where the line comes off it into the tub), the nest of the empty
+  // tubs by the stack, and the one who carries a tub between them: the one handing the gear (else the one setting) while she sets, a
+  // hand at the hauling who is not at the hauler (else the gutter, else the hauler) while she hauls. The view draws every tub where
+  // this says (view3d/09-landing-deck.js drawStamper) and the one in his hands with him (08-plants.js drawWorker, st.tubC)
+  const TUBL = {T:[], op:null, job:null, W:1, n:{snap:0, carried:0}}, TUBC = {mag:null, key:'', spots:null, last:null, sig:''};
+  // m one tub stands on the one under it in the stack, m higher a tub nested in the one under it stands, s to lift one and to set it
+  // down, m from its middle he stands to take it [least, most, best]
+  const TUB = {H:0.38, NEST:0.06, UP:1.1, DN:1.0, REACH:[0.42, 0.8, 0.56]};
+  function tubSlot(i){ const G = ST.G, d = G.deck || {y:G.gw, z:0}, sp = (G.kit || {}).stamps || {at:[(G.beam || 3) / 2 * 0.25, d.y, d.z - 0.6], ry:0}, per = stampPer(), j = i % per, lx = (j % 2) * 0.52, lz = Math.floor(j / 2) * 0.5, c = Math.cos(sp.ry || 0), s = Math.sin(sp.ry || 0);
+    return [sp.at[0] + lx * c + lz * s, sp.at[1] + Math.floor(i / per) * TUB.H, sp.at[2] - lx * s + lz * c]; }
+  // (a tub's foot whole on the floor there, and nothing of the boat standing in it: setTub's test)
+  const tubFoot = (M0, q) => { for (const [ux, uz] of [[0.2, 0], [-0.2, 0], [0, 0.2], [0, -0.2], [0.14, 0.14], [-0.14, -0.14], [0.14, -0.14], [-0.14, 0.14]]){ const f = M0.floorAt(q[0] + ux, q[2] + uz); if (!(f === f) || Math.abs(f - q[1]) > 0.1 || M0.hit([q[0] + ux, q[1] + 0.5, q[2] + uz], [q[0] + ux, q[1] + 0.12, q[2] + uz]) >= 0) return false; } return true; };
+  // the places on deck a tub may not be put: where people work and walk through (the hauler, where the fish falls, the bleeder, the
+  // bleeding tub, the table, the gutter, the packer, the door and the helm, the open hatch) and the stack's own layer: [x, z, m]
+  function tubAvoid(){ const PL = places(), G = ST.G, W = G.work, out = [[PL.haul[0][0], PL.haul[0][1], 0.6], [PL.drop[0], PL.drop[1], 0.45], [PL.tub[0], PL.tub[1], 0.75]];
+    if (PL.bleed && !PL.solo) out.push([PL.bleed[0], PL.bleed[1], 0.6]); if (W && W.table) out.push([W.table[0], W.table[2], 0.85]);
+    for (const nm of ['sloy', 'is', 'door', 'ror']){ const q = ST.PT && ST.PT[nm]; if (q && q.k != null && ST.M0.ok(q.k)){ const p = ST.M0.at(q.k); out.push([p[0], p[2], nm === 'door' ? 0.95 : 0.6]); } }
+    for (let i = 0; i < stampPer(); i++){ const s = tubSlot(i); out.push([s[0], s[2], 0.5]); }
+    const Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at); if (Hh){ const hs = G.hatchSize || [1, 1]; out.push([Hh[0], Hh[2], Math.hypot(hs[0], hs[1]) / 2 + 0.25]); }
+    if (LEMMER.on) for (const q of stools()) out.push([q.p[0], q.p[2], 0.48], [q.b[0], q.b[2], 0.48]);   // (the stools by the tubs)
+    return out; }
+  // the nearest floor to [tx, tz] within rMax on the deck at y where a tub's foot is whole, clear of avoid and 0.52 m from the others
+  // (and, with comps, a place to stand by it on one of those parts of the deck: the one who carries has a way there on deck)
+  function tubSpot(tx, tz, y, rMax, avoid, others, comps, keeps){ const M0 = fixedMap(), C = [];
+    for (let k = 0; k < M0.nx * M0.nz; k++){ if (!M0.ok(k)) continue; const q = M0.at(k); if (Math.abs(q[1] - y) > 0.3) continue; const dd = Math.hypot(q[0] - tx, q[2] - tz); if (dd >= rMax) continue;
+      if (avoid.some(a => Math.hypot(q[0] - a[0], q[2] - a[1]) < a[2]) || others.some(o => Math.hypot(q[0] - o[0], q[2] - o[2]) < 0.52) || !tubFoot(M0, q)) continue; C.push([dd, q]); }
+    C.sort((a, b) => a[0] - b[0]); for (const [, q] of C) if ((!comps || tubComps(q, q[1]).some(c => comps.has(c))) && (!keeps || keeps([q[0], q[1], q[2]]))) return [q[0], q[1], q[2]]; return null; }
+  // the parts of the deck (deckComp of the walking map) with a cell to stand by a tub at p, on the floor at y
+  function tubComps(p, y){ const M = ST.M, C = deckComp(M), out = new Set();
+    for (let k = 0; k < M.nx * M.nz; k++){ if (!M.ok(k)) continue; const q = M.at(k); if (Math.abs(q[1] - y) > 0.35) continue; const dd = Math.hypot(q[0] - p[0], q[2] - p[2]); if (dd >= TUB.REACH[0] && dd <= TUB.REACH[1]) out.add(C[k]); }
+    return [...out]; }
+  // the work spots and the nest on this deck (found once for the boat and the kit on her)
+  function tubSpots(){ const key = ST.type + '|' + ST.MFk + '|' + (TUBC.mag ? TUBC.mag.map(q => q.map(v => v.toFixed(2)).join(',')).join(';') : '');
+    if (TUBC.key === key && TUBC.spots) return TUBC.spots; const G = ST.G, d = G.deck || {y:G.gw, z:0}, Bm = G.beam || 3, av = tubAvoid(), O = setOver('line');
+    // (the parts of the deck the stack can be reached from: a tub is carried only within one of them, never through the house. The
+    // open hatch, the tubs and the bleeding tub cut the sjark's deck in two while she fishes; the crew go between through the house)
+    const y0 = tubSlot(0)[1], Cst = new Set(); for (let j = 0; j < stampPer(); j++) for (const c of tubComps(tubSlot(j), y0)) Cst.add(c);
+    const C = deckComp(ST.M), compOf = q => q && q.k != null && ST.M.ok(q.k) ? C[q.k] : null;
+    // (the tubs standing at the spots and in the nest may not cut the deck: the stations and the setter's place that are joined now stay
+    // joined with them there. Before, the nest closed the hurtigsjark's deck as the first empty tub was set in it; the one carrying
+    // the next found no way but through the house, and the tub was laid out anew, steg 125f)
+    // (and the stack: one cell to stand by it on each part of the deck it is reached from, slot by slot; the second empty tub set by the
+    // sjark's hauler cut the hauler off from the stack with the coiled one in his hands, stamper3d.py: snap 9 -> 10)
+    const imp = ['sloy', 'is', 'haling', 'door'].map(nm => (ST.PT || {})[nm]).concat([setPlace('line', '-')]).filter(q => q && q.k != null && ST.M.ok(q.k)).map(q => q.k);
+    for (let j = 0; j < stampPer(); j++){ const p = tubSlot(j), seen = new Set(); for (let k = 0; k < ST.M.nx * ST.M.nz; k++){ if (!ST.M.ok(k) || seen.has(C[k])) continue; const q = ST.M.at(k), dd = Math.hypot(q[0] - p[0], q[2] - p[2]);
+      if (Math.abs(q[1] - y0) <= 0.35 && dd >= TUB.REACH[0] && dd <= TUB.REACH[1]){ seen.add(C[k]); imp.push(k); } } }
+    const keepsAll = Q => { const Mx = overlay(ST.M, Q.map(q => [q[0], q[2], 0.31, 0.31, 0])); if (Mx === ST.M) return true; const Cx = deckComp(Mx);
+      for (let i = 0; i < imp.length; i++) for (let j = i + 1; j < imp.length; j++) if (C[imp[i]] === C[imp[j]] && !(Mx.ok(imp[i]) && Mx.ok(imp[j]) && Cx[imp[i]] === Cx[imp[j]])) return false; return true; };
+    // setting: the tub at the stern and one beside it, clear of the one setting and of where the line goes over, where the stern and
+    // the stack are on one part of the deck (else the line runs from the stack, and the empty ones are nested there)
+    let set = []; if (TUBC.mag) set = TUBC.mag.slice(); else { const T = setTub(), man = setPlace('line', '-'), cm = compOf(man);
+      if (T && cm != null && Cst.has(cm) && tubComps(T, T[1]).includes(cm)){ set = [T]; const mp = man && ST.M.ok(man.k) ? ST.M.at(man.k) : null;
+        const T2 = tubSpot(T[0], T[2], T[1], 0.85, av.concat(mp ? [[mp[0], mp[2], 0.5]] : [], [[O.ov[0], O.ov[2], 0.35]]), [T], new Set([cm]), q => keepsAll([T, q])); if (T2) set.push(T2); } }
+    // hauling: by the hauler's tray (tools/gear/haler.py: the line comes off it 0.69 m inboard of the post, at the post's height), a
+    // little forward of it, where the hauler is not
+    const HP = G.hauler || [Bm / 2 * 0.92, d.y + 1, d.z - 1.3], sg = HP[0] >= 0 ? 1 : -1, F0 = G.haulerFoot || [sg * (Bm / 2 - 0.2), d.y, HP[2]], tray = [F0[0] - sg * 0.69, F0[1], F0[2]];
+    const ch = compOf((ST.PT || {}).haling), CH = ch != null && Cst.has(ch) ? new Set([ch]) : null;
+    const h1 = CH ? tubSpot(tray[0] + sg * 0.05, tray[2] - 0.35, F0[1], 1.3, av, [], CH, q => keepsAll([q])) : null, h2 = h1 ? tubSpot(h1[0], h1[2], h1[1], 0.85, av, [h1], CH, q => keepsAll([h1, q])) : null, haul = [h1, h2].filter(Boolean);
+    // the nest: by the stack, outside its layer
+    let cx = 0, cz = 0, n = stampPer(); for (let i = 0; i < n; i++){ const s = tubSlot(i); cx += s[0] / n; cz += s[2] / n; }
+    const nest = tubSpot(cx, cz, y0, 2.2, av.filter(a => !(set.some(q => Math.hypot(q[0] - a[0], q[2] - a[1]) < 0.01))), set.concat(haul), Cst.size ? Cst : null, q => keepsAll(set.concat([q])) && keepsAll(haul.concat([q])));
+    TUBC.key = key; TUBC.spots = {set, haul, nest:nest || tubSlot(n), why:{Cst:[...Cst], set:compOf(setPlace('line', '-')), haul:ch, stack:Array.from({length:stampPer()}, (_, j) => tubComps(tubSlot(j), y0))}}; return TUBC.spots; }
+  // where a place of the account is, in the boat's frame: the tub's foot
+  // (wk: the work whose spots a tub at a work spot stands at, STAMPER's q.wk; else the work now)
+  function tubPos(at, i, kind, wk){ const P = tubSpots(); if (at === 'slot') return tubSlot(i); if (at === 'work'){ const W = P[(wk || kind) === 'haul' ? 'haul' : 'set']; return W[i] || W[0] || tubSlot(0); }
+    if (at === 'nest') return [P.nest[0], P.nest[1] + i * TUB.NEST, P.nest[2]]; const a = TUBL.job ? A.find(q => q.id === TUBL.job.who) : null; return a ? [a.x, a.y, a.z] : tubSlot(0); }
+  // where he stands to take a tub or set it down at p (its foot), on the floor it stands on (y): the nearest free cell at about an arm
+  // and a half from its middle, facing it
+  // (comp: only on that part of the deck, deckComp: the one where the carrier is)
+  function tubStand(p, y, id, comp){ const M = ST.M, C = comp != null ? deckComp(M) : null; let best = null, bv = 1e9;
+    for (let k = 0; k < M.nx * M.nz; k++){ if (!M.ok(k) || (C && C[k] !== comp)) continue; const q = M.at(k); if (Math.abs(q[1] - y) > 0.35) continue; const dd = Math.hypot(q[0] - p[0], q[2] - p[2]); if (dd < TUB.REACH[0] || dd > TUB.REACH[1] || !free(k, id)) continue;
+      if (LEMMER.on && stools().some(o => Math.hypot(o.p[0] - q[0], o.p[2] - q[2]) < 0.3 || Math.hypot(o.b[0] - q[0], o.b[2] - q[2]) < 0.3)) continue;   // (not in a stool)
+      const v = Math.abs(dd - TUB.REACH[2]) + (kitAt(k) ? 0.5 : 0); if (v < bv){ bv = v; best = {k, h:face(q[0], q[2], p[0], p[2])}; } }
+    return best; }
+  // who carries now (see above): one on deck at his work, with no errand of his own
+  // (in that order; the first of them on the part of the deck the tub is carried on, tubWork)
+  function tubCarrier(op){ const ok = a => a.goal && !a.goal.inside && a.mode !== 'in' && a.mode !== 'helm' && !(a.sub && !a.sub.tub) && !a.put && !a.relief, L = [];
+    const add = f => { for (const a of A) if (f(a) && ok(a) && !L.includes(a)) L.push(a); };
+    if (op && op.kind === 'set'){ add(a => a.role === 'lang'); add(a => a.role === 'sett'); add(a => a.st === 'sloy' || a.st === 'blogg'); }
+    else if (op){ add(a => a.st === 'haling' && a.role !== 'haler'); add(a => a.st === 'sloy'); add(a => a.role === 'haler'); }
+    else { add(a => a.id === TUBC.last); add(a => /^(haling|sloy|blogg)$/.test(a.st || '')); add(() => true); }
+    return L; }
+  // what the game says the deck holds now, for STAMPER.sync (the tubs being baited or stripped as coiled or full ones)
+  function tubCount(){ const pg = S.pgear, b = S.boat, rig = typeof rigOf === 'function' ? rigOf() : b.rig, L = pg.lines || {}, ln = rig === 'line';
+    const g = b.status === 'fishing' && b.gop && b.gop.kind === 'line' && !b.gop.auto ? b.gop : null, J = (S.jobs || []).filter(j => !j.shop && (j.kind === 'egn' || j.kind === 'strip'));
+    const n = ln ? (L.hyse ? L.hyse.n : 0) + (L.bank ? L.bank.n : 0) : 0, bt = ln ? (L.hyse ? L.hyse.baited : 0) + (L.bank ? L.bank.baited : 0) : 0, sum = k => J.filter(j => j.kind === k).reduce((a, j) => a + (j.n || 0), 0);
+    const out = ln ? (typeof mySets === 'function' ? mySets() : []).filter(x => x.kind === 'line' && !(typeof isAuto === 'function' && isAuto(x.lk))).reduce((a, x) => a + (x.n || 0), 0) - (g && g.op === 'haul' ? g.n : 0) : 0;
+    const key = g ? g.op + ':' + (g.sid || '') + ':' + g.n + ':' + g.a.x.toFixed(5) + ',' + g.a.y.toFixed(5) : '';
+    return {full:bt + sum('strip'), coil:n - bt + sum('egn'), empty:Math.max(0, out), op:g ? {key, kind:g.op, n:g.n, done:g.done, prog:g.prog} : null}; }
+  function tubWork(t){
+    if (src || !S.pgear || !ST.G || ST.G.hand || !LEMMER.on) return; const tg = tubCount(), b = S.boat, rig = typeof rigOf === 'function' ? rigOf() : b.rig;
+    // (out at sea rigged for line with baited tubs aboard and nothing hauled waiting by the hauler: a tub stands ready at the stern, STAMPER.want)
+    TUBL.stage = !tg.op && rig === 'line' && b.status !== 'port' && !b.port && tg.full > 0 && !TUBL.T.some(q => q.at === 'work' && (q.wk || TUBL.Wk) === 'haul');
+    const kind = tg.op ? tg.op.kind : TUBL.stage ? 'set' : TUBL.Wk || 'set';
+    // (the work spots are the stern's while she sets and the hauler's while she hauls: a tub left at the one is put away before the other is used)
+    // (a tub left at the other's spots stays where it stands, q.wk, and is carried off them: STAMPER.want)
+    TUBL.Wk = kind;
+    // (the stack's order: the higher layer first, and in a layer the tubs on the side of the open deck before those by the rail or the wall)
+    if (!TUBL.pri || TUBL.priK !== ST.type + '|' + ST.MFk){ TUBL.priK = ST.type + '|' + ST.MFk; TUBL.per = stampPer(); const per = TUBL.per, open = j => { const p = tubSlot(j), M = ST.M; let n = 0; for (const [dx, dz] of [[0.55, 0], [-0.55, 0], [0, 0.55], [0, -0.55]]) if (M.ok(M.cellOf(p[0] + dx, p[2] + dz))) n++; return n; }, O = []; for (let j = 0; j < per; j++) O.push(open(j));
+      TUBL.pri = i => Math.floor(i / per) * 10 + O[i % per]; }
+    const P = tubSpots(); STAMPER.sync(TUBL, tg, P[kind === 'haul' ? 'haul' : 'set'].length, t);
+    // (the stack's slots that can be reached from the part of the deck the work spots in use are on: a filled tub is set there)
+    { const W = P[kind === 'haul' ? 'haul' : 'set'], key = TUBC.key + '|' + kind; if (TUBC.okK !== key){ TUBC.okK = key; const y0 = tubSlot(0)[1], wc = new Set(); for (const q of W) for (const c of tubComps(q, q[1])) wc.add(c);
+        const per = stampPer(), SC = []; for (let j = 0; j < per; j++) SC.push(tubComps(tubSlot(j), y0)); TUBC.slotOk = wc.size ? i => SC[i % per].some(c => wc.has(c)) : null; }
+      TUBL.slotOk = TUBC.slotOk; }
+    const j0 = TUBL.job; if (j0){ const a = A.find(q => q.id === j0.who); if (!a || !a.sub || !a.sub.tub || a.sub.tub.id !== j0.id) STAMPER.drop(TUBL); return; }
+    // (a carrier is looked for twice a second at most: the places to stand are looked for over the whole deck)
+    if (t < (TUBC.next || 0)) return; const j = STAMPER.want(TUBL, tg.op); if (!j) return; TUBC.next = t + 0.5;
+    // (the floor he stands on by it: the stack's foot, the nest's, the deck under the setter's magazine, or the work spot's own)
+    const floor = (at, p, wk) => at === 'slot' ? tubSlot(0)[1] : at === 'nest' ? P.nest[1] : at === 'work' && TUBC.mag && (wk || kind) === 'set' ? (ST.G.deck || {y:ST.G.gw}).y : p[1];
+    const q0 = STAMPER.by(TUBL, j.id), w0 = q0 && q0.wk, p0 = tubPos(j.from.at, j.from.i, kind, w0), p1 = tubPos(j.to.at, j.to.i, kind), y0 = floor(j.from.at, p0, w0), y1 = floor(j.to.at, p1), C = deckComp(ST.M);
+    // (the first who has a way there on deck with it and a place to stand by it at both ends; none: not now. Never through the house with it)
+    let a = null, s0 = null, s1 = null; for (const c of tubCarrier(tg.op)){ const k = ST.M.cellOf(c.x, c.z); if (!ST.M.ok(k)) continue; const q0 = tubStand(p0, y0, c.id, C[k]), q1 = q0 ? tubStand(p1, y1, c.id, C[k]) : null;
+      if (q0 && q1 && C[k] === C[q0.k] && C[q0.k] === C[q1.k]){ a = c; s0 = q0; s1 = q1; break; } }
+    if (!a) return;
+    STAMPER.begin(TUBL, j, a.id, t); TUBC.last = a.id;
+    a.sub = {k:s0.k, h:s0.h, task:'tubup', hold:TUB.UP, tub:{id:j.id, ph:'up', to:s1, p:p0}}; a.path = null; }
+  // the carrier is through with a part of his errand (the sub's hold is over): lifted, now with it to where it goes; set down, back to his work
+  function tubStep(a, t){ const u = a.sub.tub; if (!TUBL.job || TUBL.job.id !== u.id){ a.sub = null; a.path = null; return; }
+    if (u.ph === 'up'){ STAMPER.take(TUBL); const j = TUBL.job, p1 = tubPos(j.to.at, j.to.i, TUBL.Wk, j.wk);
+      a.sub = {k:u.to.k, h:u.to.h, task:'tubdn', hold:TUB.DN, carry:'stamp', tub:{id:u.id, ph:'dn', p:p1}}; a.path = null; return; }
+    const q = STAMPER.by(TUBL, u.id); STAMPER.put(TUBL, t); if (q) q.ry = a.h; a.sub = null; a.path = null; }
+  // for the view: every tub with where its foot is (boat frame), what it holds, how it is turned, and the one being carried, with
+  // the carrier, the part of the errand and its share; the tub the line runs from or into, and whether the hauler stands for it
+  function lineTubs(){ if (!ready() || src || !ST.G || ST.G.hand || !TUBL.T.length || !LEMMER.on) return null; if (TUBC.lt && TUBC.ltT === ST.clk && TUBC.ltN === TUBL.n.carried + TUBL.n.snap * 1e4) return TUBC.lt;   // (once a tick: the view asks several times a frame)
+    TUBC.ltT = ST.clk; TUBC.ltN = TUBL.n.carried + TUBL.n.snap * 1e4; return (TUBC.lt = lineTubs0()); }
+  function lineTubs0(){ const o = tubCount().op, j = TUBL.job, kind = TUBL.Wk || 'set';
+    const T = TUBL.T.map(q => ({id:q.id, k:q.k, at:q.at, i:q.i, f:STAMPER.fillOf(TUBL, q, o), p:q.at === 'hand' ? null : tubPos(q.at, q.i, kind, q.wk), ry:q.ry != null ? q.ry : (q.id * 2.39996) % 6.2832}));
+    let carry = null; if (j){ const a = A.find(q => q.id === j.who); if (a && a.sub && a.sub.tub && a.sub.tub.id === j.id){ const sb = a.sub, at = a.mode === 'at' && sb.done; carry = {id:j.id, who:a.id, ph:sb.tub.ph, at:!!at, u:at ? clamp((ST.clk - (sb.done - sb.hold)) / sb.hold, 0, 1) : 0, p:sb.tub.p}; } }
+    const r = STAMPER.running(TUBL, o); return {T, carry, run:r ? {id:r.q.id, f:r.f} : null, halt:STAMPER.halt(TUBL, o, ST.clk), spots:tubSpots(), snap:TUBL.n.snap, carried:TUBL.n.carried}; }
   function overlay(M0, boxes){
     const N = M0.nx * M0.nz, H = Float32Array.from(M0.h); let n = 0;
     for (let k = 0; k < N; k++){ if (H[k] !== H[k]) continue; const i = k % M0.nx, x = M0.x0 + (i + 0.5) * M0.c, z = M0.z0 + ((k - i) / M0.nx + 0.5) * M0.c;
@@ -226,7 +378,7 @@ function crewSim(src){
   // the walking map with the kit out (built again when the gear on deck changes: rigged for something else, tubs baited, freight)
   function walkMap(){
     if (src){ ST.M = ST.M || ST.M0; return; }
-    const g = S.pgear ? rigGear() : {tubs:0, nets:false}, kg = typeof cargoKg === 'function' ? Math.ceil(Math.min(cargoKg(), BOAT.deckCargo || 0) / 250) : 0, sig0 = g.tubs + '|' + g.nets + '|' + kg + '|' + (g.nets ? netTubs(g.netN).length : 0) + '|' + (g.pots || 0) + '|' + (g.set || '') + '|' + (magOn() ? 1 : 0);
+    const g = S.pgear ? rigGear() : {tubs:0, nets:false}, kg = typeof cargoKg === 'function' ? Math.ceil(Math.min(cargoKg(), BOAT.deckCargo || 0) / 250) : 0, sig0 = g.tubs + '|' + g.nets + '|' + kg + '|' + (g.nets ? netTubs(g.netN).length : 0) + '|' + (g.pots || 0) + '|' + (g.set || '') + '|' + (magOn() ? 1 : 0) + '|' + TUBL.T.filter(q => q.at === 'work').map(q => (q.wk || TUBL.Wk) + q.i).sort().join('') + (TUBL.T.some(q => q.at === 'nest') ? 'n' : '') + '|' + [...new Set(TUBL.T.filter(q => q.at === 'slot').map(q => q.i % stampPer()))].sort().join(',');
     ST.kitSig0 = sig0; const sig = sig0 + '|' + (landPlant() ? 1 : 0);
     if (sig === ST.kitSig) return; ST.kitSig = sig; ST.KB = kitBoxes(); ST.M = overlay(ST.M0, ST.KB); ST.PL = null;
     // (the gear's wider padding, gearBoxes, may not take a work place: where the place the gear is set from, or a station, was clear
@@ -247,6 +399,9 @@ function crewSim(src){
         if (gs){ const T0 = new Map(TAKEN); TAKEN.clear();
           if (!own(setPlace(gs, '-'))){ const MW = ST.M, KW = ST.KB; ST.M = MT; ST.KB = KT; if (!own(setPlace(gs, '-'))){ ST.M = MW; ST.KB = KW; } }
           for (const [k, v] of T0) TAKEN.set(k, v); } } }
+    // (steg 125f: the stools the crew sit on, standing on deck: the ways go round a free one where there is room, and are not pulled
+    // straight over it; the one who sits on it walks onto its cell)
+    if (LEMMER.on && !src && !(ST.G || {}).hand){ const M = ST.M, AV = new Uint8Array(M.nx * M.nz), KS = stools(); for (let k = 0; k < M.nx * M.nz; k++){ if (!M.ok(k)) continue; const q = M.at(k); if (KS.some(o => Math.hypot(o.p[0] - q[0], o.p[2] - q[2]) < HOLDT.krakk.half + 0.08)) AV[k] = 1; } M.avoid = AV; }
     ST.KC = null;   // (the cells with gear in a body there, kitAt, worked out again for this map)
     for (const a of A) a.path = null;   // (the ways are found again over the new map)
   }
@@ -305,14 +460,20 @@ function crewSim(src){
   // the one who gives the signs: at the rail to the quay (a lean place facing out that way), some two metres from the tub,
   // on the deck the tub stands on where there is such a place (1.5 m or more from the tub: the load goes up and out over the rail there)
   function lukePlace(id){ const T = landTub(), sd = quaySide(), M = ST.M, hq = sd * Math.PI / 2; let best = null, bv = 1e9;
-    for (const l of ST.PT.lean || []){ if (!M.ok(l.k) || !free(l.k, id)) continue; const p = M.at(l.k); if (Math.cos((l.h || 0) - hq) < 0.7 || p[0] * sd < 0) continue;
+    for (const l of ST.PT.leanAll || ST.PT.lean || []){ if (!M.ok(l.k) || !free(l.k, id)) continue; const p = M.at(l.k); if (Math.cos((l.h || 0) - hq) < 0.7 || p[0] * sd < 0) continue;
       const dz = T ? Math.hypot(p[0] - T.B[0], p[2] - T.B[2]) : 2.2, dy = T ? Math.abs(p[1] - T.B[1]) : 0; if (dz < 1.5) continue;
       // (a step back from a close rail, so the hand at his side is inside it)
-      const h = l.h || hq, rl = railAt(l.k, h), st = rl && rl[0] < 0.4 ? 0.4 - rl[0] : 0, off = st ? [-Math.sin(h) * st, Math.cos(h) * st] : null;
-      const v = Math.abs(dz - 2.2) + dy * 3 + (livePart(l.k) ? 0 : 4) + (poseHits('signal', l.k, h, null, off) + poseHits('look', l.k, h, null, off)) * 2; if (v < bv){ bv = v; best = {k:l.k, h, off, task:'signal', dyn:'luke'}; } }
+      // (FB2: and a little further back where the raised arm's elbow would be in a high bulwark or what stands on it)
+      const h = l.h || hq, rl = railAt(l.k, h); let off = null, hits = 99;
+      for (const need of LEMMER.on ? [0.4, 0.5, 0.6] : [0.4]){ const st = rl && rl[0] < need ? need - rl[0] : 0, o2 = st ? [-Math.sin(h) * st, Math.cos(h) * st] : null, n = poseHits('signal', l.k, h, null, o2) + poseHits('look', l.k, h, null, o2); if (n < hits){ hits = n; off = o2; } if (!n) break; }
+      const v = Math.abs(dz - 2.2) + dy * 3 + (livePart(l.k) ? 0 : 4) + hits * 2; if (v < bv){ bv = v; best = {k:l.k, h, off, task:'signal', dyn:'luke'}; } }
     return best; }
   // the ice box on deck (the model's place, else by the packer's place as the view stands it: view3d/09-landing-deck.js iceBoxAt)
-  function iceBox(){ const K = (ST.G.kit || {}).iskasse; if (K) return [K[0], K[1], K[2], K[3] || 0, K[4] || 1]; const q = ST.PT.is; if (!q || !ST.M0.ok(q.k)) return null;
+  // (steg 125d: on a boat with a hold the ice goes down the open hatch into the hold, where the fish is iced; no ice box on deck. As a
+  // box [x, y, z, ry, scale] of the 0.72 x 1.08 m tub's size, for the one who takes it in)
+  function iceBox(){ const G = ST.G, W = G.work, Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at);
+    if (W && W.nopack && Hh && G.hatchSize){ const [aw, al] = G.hatchSize, sc = Math.min(aw / 0.72, al / 1.08), dy = (G.deck || {y:G.gw}).y; return [Hh[0], dy, Hh[2], 0, sc]; }   // (on the deck by the coaming)
+    const K = (G.kit || {}).iskasse; if (K) return [K[0], K[1], K[2], K[3] || 0, K[4] || 1]; const q = ST.PT.is; if (!q || !ST.M0.ok(q.k)) return null;
     const p = ST.M0.at(q.k), h = q.h || 0, F = [Math.sin(h), -Math.cos(h)], R = [Math.cos(h), Math.sin(h)]; return [p[0] - R[0] * 0.62 + F[0] * 0.1, p[1], p[2] - R[1] * 0.62 + F[1] * 0.1, -h, 0.75]; }
   // (the ice comes through the silo's hose, and he holds its end over the box, view3d/09-landing-deck.js drawPlant; where the hose
   // pose is not clear of everything by the box, under the gutting board of an open boat, he has his hands on its rim, or stands by it)
@@ -351,6 +512,27 @@ function crewSim(src){
       if (op){ const q = M.at(k); if (Math.hypot(q[0] - op[0], q[2] - op[2]) < 1.1 || (tk === 'hose' ? inJet(q, h, op) : inJet(op, o.goal.h || 0, q))) continue; }
       return {k, h, task:tk, wash:true}; }
     return null; }
+  // ---- the wooden stools (steg 125f; Jonas 15.11.2026: «en trekrakk i stedet for de hvite kassene når de egner eller har pause», and for
+  // the bait bucket «En krakk til»): at each baiting seat by the line tubs (places tubAt) one to sit on and one beside it for the bucket,
+  // as many seats as can bait at once (her crew and the skipper, four at most), standing there always: those who bait sit on them at
+  // their tub, and one who sits on his break sits on a free one. Where a seat's two stools have no floor clear of the tubs and the
+  // other stools, that seat has none. [{i, k, h, p, b, tub}]: the seat's cell and heading, the two stools' feet
+  function stools(){ const key = ST.type + '|' + ST.MFk; if (ST.KR && ST.KR.key === key) return ST.KR.S;
+    const PL = places(), V = VESSELS[ST.type] || {}, n = clamp((V.crewMax || 1) + 1, 1, 4), M0 = ST.M0, MF = fixedMap(), K = HOLDT.krakk, E = HOLDT.egn.at, out = [], tubs = PL.tubs.slice(0, Math.min(8, stampPer()));
+    // (and clear of the gear's other places on deck: the net tubs, the pot stacks, the fish tubs, the freight; whatever she is rigged for)
+    const KK = (ST.G || {}).kit || {}, gear = [].concat(KK.garn && KK.garn.at ? [[KK.garn.at[0], KK.garn.at[2], 0.65 * (KK.garn.s || 1)]] : [], ((KK.pots || {}).at || []).map(q => [q[0], q[2], 0.75]), (KK.tubs || []).map(q => [q[0], q[2], 0.65]), (KK.cargo || []).map(q => [q[0], q[2], 0.7]));
+    const clear = (x, z, y) => { if (tubs.some(t => Math.hypot(t[0] - x, t[1] - z) < 0.25 + K.half) || gear.some(g => Math.hypot(g[0] - x, g[1] - z) < g[2] + K.half)) return false; if (out.some(o => Math.hypot(o.p[0] - x, o.p[2] - z) < 2 * K.half + 0.04 || Math.hypot(o.b[0] - x, o.b[2] - z) < 2 * K.half + 0.04)) return false;
+      for (const [ux, uz] of [[K.half, 0], [-K.half, 0], [0, K.half], [0, -K.half], [0, 0]]){ const f = MF.floorAt(x + ux, z + uz); if (!(f === f) || Math.abs(f - y) > 0.06 || MF.hit([x + ux, y + K.H + 0.25, z + uz], [x + ux, y + 0.08, z + uz]) >= 0) return false; } return true; };
+    // (the seat the tubs' own places give first, tubAt, then the other three sides of the tub, 0.68 m out as there)
+    const sp = (((ST.G || {}).kit || {}).stamps || {}).ry || 0, cs = Math.cos(sp), sn = Math.sin(sp);
+    for (let i = 0; i < tubs.length && out.length < n; i++){ const T = tubs[i], q0 = PL.tubAt(i), cand = [q0];
+      for (const [sx, sz] of [[-1, 0], [1, 0], [0, -1], [0, 1]]){ const lx = sx * 0.68, lz = sz * 0.68, x = T[0] + lx * cs + lz * sn, z = T[1] - lx * sn + lz * cs; cand.push([x, z, face(x, z, T[0], T[1])]); }
+      for (const q of cand){ const k = M0.near(q[0], q[1], 0.25); if (k < 0) continue; const c = M0.at(k), h = face(c[0], c[2], T[0], T[1]), F = [Math.sin(h), -Math.cos(h)], R = [Math.cos(h), Math.sin(h)];
+        const p = [c[0] - F[0] * K.back, c[1], c[2] - F[1] * K.back], b = [c[0] + F[0] * E[0] + R[0] * E[2], c[1], c[2] + F[1] * E[0] + R[1] * E[2]];
+        if (!clear(p[0], p[2], c[1]) || !clear(b[0], b[2], c[1]) || Math.hypot(b[0] - p[0], b[2] - p[2]) < 2 * K.half + 0.02) continue; out.push({i:out.length, k, h, p, b, tub:i}); break; } }
+    ST.KR = {key, S:out}; return out; }
+  // a seat's stool nobody else sits on or is on his way to, for one on his break
+  function freeStool(id){ for (const s of stools()){ if (!ST.M.ok(s.k) || !free(s.k, id)) continue; if (A.some(a => a.id !== id && a.goal && a.goal.stool === s.i)) continue; return s; } return null; }
   // the packed lunch (a boat with no galley): seated on an upturned tub with the back to the rail where that is clear of everything,
   // else standing, at the rail places nearest the helm (the door on a boat with a house), so they eat together; the lunch first and
   // the coffee after, as the core says (lunchNow), on the same place
@@ -358,7 +540,9 @@ function crewSim(src){
     const PT = ST.PT, M = ST.M, L = (PT.lean || []).filter(l => M.ok(l.k) && livePart(l.k) && free(l.k, id)); if (!L.length) return null;
     const a0 = [PT.ror, PT.door].find(q => q && q.k != null && ST.M0.ok(q.k)), an = a0 ? ST.M0.at(a0.k) : [0, 0, 0], dd = l => { const q = M.at(l.k); return Math.hypot(q[0] - an[0], q[2] - an[2]); };
     L.sort((a, b) => dd(a) - dd(b));
-    for (const q of L){ const f = fitPlace('sit', q, true); if (!poseHits('sitmat', q.k, f.h, f.rail, f.off) && !poseHits('sitkaffe', q.k, f.h, f.rail, f.off)) return {k:q.k, h:f.h, rail:f.rail, off:f.off, task:'sitmat', dyn:'mat', mat:2}; }
+    // (steg 125f: seated on a free stool by the line tubs; the upturned tub at the rail is gone, Jonas 15.11.2026)
+    { const s = LEMMER.on ? freeStool(id) : null; if (s && !poseHits('sitmat', s.k, s.h) && !poseHits('sitkaffe', s.k, s.h)) return {k:s.k, h:s.h, rail:null, off:null, task:'sitmat', dyn:'mat', mat:2, stool:s.i}; }
+    if (!LEMMER.on) for (const q of L){ const f = fitPlace('sit', q, true); if (!poseHits('sitmat', q.k, f.h, f.rail, f.off) && !poseHits('sitkaffe', q.k, f.h, f.rail, f.off)) return {k:q.k, h:f.h, rail:f.rail, off:f.off, task:'sitmat', dyn:'mat', mat:2}; }
     for (const way of [true, false]) for (const q of L){ const f = fitPlace('lunch', q, way); if (!poseHits('lunch', q.k, f.h, f.rail, f.off) && !poseHits('coffee', q.k, f.h, f.rail, f.off)) return {k:q.k, h:f.h, rail:f.rail, off:f.off, task:'lunch', dyn:'mat', mat:1}; }
     return null; }
   // the cold: where his break has him standing, beating his arms and rubbing his hands, when that is clear of everything there
@@ -387,10 +571,58 @@ function crewSim(src){
     const tub = W ? [W.tub[0], W.tub[2]] : [Bm / 2 - 0.62, d.z + 0.35];
     // the hauler shakes the fish off the hook onto the deck just inboard of him (drop); the bleeder stands aft of that, facing it
     const drop = [HP[0] - sg * 0.95, HP[2] + 0.4], bl = [drop[0] - sg * 0.3, drop[1] + 0.62];
-    const PL = {sg, tub, drop, hatch:[0, d.z],
+    const Hh0 = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at), PL = {sg, tub, drop, hatch:Hh0 ? [Hh0[0], Hh0[2]] : [0, d.z],   // (the model's hatch where she has one: on the kyst15 it lies by the side since steg 125d)
+
       haul:[[HP[0] - sg * 0.55, HP[2] + 0.2, sg * Math.PI / 2, 'haul'], [HP[0] - sg * 0.55, HP[2] - 0.55, sg * Math.PI / 2, 'haul']],
       pick:[HP[0] - sg * 0.62, HP[2] + 0.95, sg * Math.PI * 0.62, 'pick'], pot:[HP[0] - sg * 1.0, HP[2] + 0.9, sg * Math.PI * 0.5, 'tend'],
       bleed:[bl[0], bl[1], face(bl[0], bl[1], drop[0], drop[1]), 'bleedst']};
+    // (the new people, FB7, Jonas 13.11.2026 «Sørg for at objekter ikke kan clippe inn i menneskene»: the packer's place is the
+    // model's own, and on five of the eight boats it was 16 to 40 cm from where the bleeder was put and 30 to 43 cm from where the
+    // fish is let fall, so the bleeder stood inside the packer and the gaff swung the fish into him. The fish is let fall the
+    // nearest to the old spot that is BLEED.drop clear of the packer, his box and the gutter; the bleeder stands at the cell
+    // BLEED.from of it, on the hauler's deck, that is nearest BLEED.best from the fish and the old place, and clear of every other place of work by its own
+    // room (BLEED.room); where the deck has no such cell, the one with the most room)
+    if (LEMMER.on && ST.PT){ const M = ST.M, B = BLEED, pt = n => { const c = ST.PT[n]; return c && c.k != null && ST.M0.ok(c.k) ? [ST.M0.at(c.k)[0], ST.M0.at(c.k)[2], c.h || 0] : null; };
+      // (the table and the ice under a shelter deck or below: nobody stands at those places on this deck, goalOf «below»)
+      const wy = W ? W.table[1] : d.y, sq = ST.PT.sloy, under = wy != null && sq && sq.k != null && M.ok(sq.k) && Math.abs(M.at(sq.k)[1] - wy) > 0.5;
+      let ICE = null; const I = under || (W && W.nopack) ? null : pt('is'), Sl = under ? null : pt('sloy'), h0 = PL.haul[0], OB = [[h0[0], h0[1], B.room.haul], [PL.haul[1][0], PL.haul[1][1], B.room.haul2], [PL.pick[0], PL.pick[1], B.room.pick], [PL.pot[0], PL.pot[1], B.room.pick]], two = (((VESSELS[ST.type] || {}).stations || {}).hauler || 1) > 1, NEAR = [[PL.haul[1][0], PL.haul[1][1], B.drop2, two]];   /* (NEAR: [x, z, m clear, a person whose place it is]; the second hauler where the boat has two hauling) */
+      if (Sl){ OB.push([Sl[0], Sl[1], B.room.is]); NEAR.push([Sl[0], Sl[1], B.drop, true]); }
+      if (I){ const ih = I[2] + (((VESSELS[ST.type] || {}).hold || {}).kind !== 'dekk' ? Math.PI : 0), cr = [I[0] + Math.sin(ih) * 0.58, I[1] - Math.cos(ih) * 0.58]; OB.push([I[0], I[1], B.room.is], [cr[0], cr[1], B.room.box]); NEAR.push([I[0], I[1], B.drop, true], [cr[0], cr[1], B.drop]); }
+      // (the ice box on deck, and the shovel's way from it to the packer's box: the fish is not let fall on it, and nobody stands in it)
+      { const ib = I && !under ? iceBox() : null; if (ib){ const cr = NEAR[NEAR.length - 1]; OB.push([ib[0], ib[2], B.room.ice], [(ib[0] + cr[0]) / 2, (ib[2] + cr[1]) / 2, B.room.box]); NEAR.push([ib[0], ib[2], B.dropIce]); ICE = [ib[0], ib[2]]; } }
+      const k0 = M.near(h0[0], h0[1], 0.6), y0 = k0 >= 0 ? M.at(k0)[1] : null, lay = (x, z) => { let m = 9; for (const q of NEAR) m = Math.min(m, Math.hypot(q[0] - x, q[1] - z) - q[2]); return m; };
+      // (the hauler turns the short way round to where the fish falls, his gaff out before him: nobody's place is in that sweep. ang:
+      // a point's angle about the hauler from straight inboard, + aft; swept: a place within the gaff's reach on the side he turns, from
+      // the rail round to a)
+      const ang = (x, z) => Math.atan2(z - h0[1], -sg * (x - h0[0])) * 180 / Math.PI, swept = (a, x, z, mg) => { const r = Math.hypot(x - h0[0], z - h0[1]), ap = ang(x, z); return r < B.sweep && r > 0.2 && ap * a > 0 && Math.abs(ap) > Math.abs(a) - mg; };
+      const PPL = NEAR.filter(q => q[3]), okDrop = (x, z) => { const a = ang(x, z); return Math.abs(a) >= 10 && lay(x, z) >= 0 && !PPL.some(q => swept(a, q[0], q[1], 25)); };
+      // (steg 125b, Jonas 14.11.2026: the fish is let fall before him to his side, along the rail, not behind him: he stood with his back to it and turned 130
+      // degrees round in every take. side: a spot at least B.side degrees round from straight inboard, so within his reach as he faces the rail; such a spot first)
+      const side0 = Math.abs(ang(drop[0], drop[1])) >= B.side;
+      if (!okDrop(drop[0], drop[1]) || !side0){ let best = null, bv = 1e9, wide = null, wv = -1, free2 = null, fv = 1e9, sideB = null, sv = 1e9;
+        for (const r of B.dropR) for (let a = -90; a <= 90; a += 10){ if (!a) continue; const x = h0[0] - sg * Math.cos(a * Math.PI / 180) * r, z = h0[1] + Math.sin(a * Math.PI / 180) * r; if (M.near(x, z, 0.2) < 0) continue;
+          const m = lay(x, z), d = Math.hypot(x - drop[0], z - drop[1]); if (okDrop(x, z) && Math.abs(a) >= B.side && d < sv){ sv = d; sideB = [x, z]; } if (okDrop(x, z) && d < bv){ bv = d; best = [x, z]; } if (m >= 0 && d < fv){ fv = d; free2 = [x, z]; } if (m > wv){ wv = m; wide = [x, z]; } }
+        if (sideB) best = sideB; else if (okDrop(drop[0], drop[1])) best = [drop[0], drop[1]];   /* (no spot to his side on this deck: where it was) */
+        const q = best || free2 || wide; PL.tight = best ? 0 : free2 ? 1 : 2; PL.dropSide = !!sideB;   /* (a deck with no such spot: clear of them at least; else the most room. PL.tight and tightB: for the tests) */ if (q){ drop[0] = q[0]; drop[1] = q[1]; } }
+      const aD = ang(drop[0], drop[1]), seg = (px, pz, ax, az, bx, bz) => { const vx = bx - ax, vz = bz - az, u = clamp(((px - ax) * vx + (pz - az) * vz) / (vx * vx + vz * vz || 1e-9), 0, 1); return Math.hypot(ax + vx * u - px, az + vz * u - pz); };
+      let best = -1, bv = 1e9, wide = -1, wv = -1e9, any = -1, av = -1e9;
+      for (let k = 0; k < M.nx * M.nz; k++){ if (!M.ok(k)) continue; const c = M.at(k); if (y0 != null && Math.abs(c[1] - y0) > 0.25) continue; const dd = Math.hypot(c[0] - drop[0], c[2] - drop[1]); if (dd < B.from[0] || dd > B.from[1]) continue;
+        let m = 9; for (const o of OB) m = Math.min(m, Math.hypot(c[0] - o[0], c[2] - o[1]) - o[2]);
+        // (the bled fish is thrown from here into the tub: not through the hauler)
+        m = Math.min(m, seg(h0[0], h0[1], c[0], c[2], tub[0], tub[1]) - B.room.throw); if (I) m = Math.min(m, seg(I[0], I[1], c[0], c[2], tub[0], tub[1]) - B.room.throw);
+        // (he squats to the fish: not past the ice box, where the packer's shovel is; and he is not in the gaff's sweep himself)
+        if (ICE) m = Math.min(m, seg(ICE[0], ICE[1], c[0], c[2], drop[0], drop[1]) - B.room.squat); if (swept(aD, c[0], c[2], -10)) m = Math.min(m, -0.3);
+        const d = Math.abs(dd - B.best) + 0.25 * Math.hypot(c[0] - bl[0], c[2] - bl[1]);
+        if (m > av){ av = m; any = k; } if ((m < 0 || d >= bv) && m <= wv) continue; if (poseHits('bleedst', k, face(c[0], c[2], drop[0], drop[1]))) continue;   /* (his pose clear of the boat there, so fitWork leaves him where he was put) */
+        if (m >= 0 && d < bv){ bv = d; best = k; } if (m > wv){ wv = m; wide = k; } }
+      const kb = best >= 0 ? best : wide >= 0 ? wide : any; PL.tightB = best >= 0 ? 0 : wide >= 0 ? 1 : 2; if (kb >= 0){ const c = M.at(kb); PL.bleed = [c[0], c[2], face(c[0], c[2], drop[0], drop[1]), 'bleedst']; } }
+    // (steg 125d, Jonas 15.11.2026: the deck laid out after the work, boat by boat, docs/planer/arbeidsceller.md «Forslagene, båt for båt»:
+    // where the model says where the fish is let fall and where the bleeder stands (work.drop, work.bleed), that is where, not a search.
+    // work.solo: the hauler bleeds the fish himself and throws it in the tub, so nobody has the bleeder's place (the four smallest decks).
+    // work.nopack: nobody ices on deck (the icing is done in the hold, or there is no room): the packer is inside)
+    if (W && W.drop){ drop[0] = W.drop[0]; drop[1] = W.drop[2]; PL.tight = 0; PL.dropSide = true; }
+    if (W && W.bleed){ PL.bleed = [W.bleed[0], W.bleed[2], W.bleed[3] != null ? W.bleed[3] : face(W.bleed[0], W.bleed[2], drop[0], drop[1]), 'bleedst']; PL.tightB = 0; }
+    PL.solo = !!(W && W.solo); PL.noPack = !!(W && W.nopack);
     // the line tubs (rigAt: two across from the model's place, turned with it): one baiter or stripper to a tub, inboard of it, facing it
     const sp = K.stamps ? K.stamps : {at:[Bm / 2 * 0.25, d.y, d.z - 0.6], ry:0}, c = Math.cos(sp.ry || 0), s = Math.sin(sp.ry || 0);
     PL.tubY = sp.at[1]; PL.tubs = []; for (let i = 0; i < 8; i++){ const lx = (i % 2) * 0.52, lz = Math.floor(i / 2) * 0.5, x = sp.at[0] + lx * c + lz * s, z = sp.at[2] - lx * s + lz * c; PL.tubs.push([x, z]); }
@@ -562,6 +794,8 @@ function crewSim(src){
     if (st === 'haling' && (p.role === 'sett' || p.role === 'lang')){ const kind = !src && S.boat.gop ? S.boat.gop.kind : 'line', id = p.c ? 'c' + p.c.id : 'me';
       const q = p.role === 'sett' ? setPlace(kind, id) : langPlace(kind, id); return q || idleGoal(p, ctx, 'look'); }
     if ((st === 'haling' || st === 'blogg') && ST.G.hauler && PT.haling){ const dy = ST.G.hauler[1] - ST.M0.at(PT.haling.k)[1]; if (dy < -0.3 || dy > 1.7) return IN; }
+    if (!ctx.port && st === 'is' && Wk && Wk.nopack) return IN;   // (steg 125d: no place for the packer on this deck: the hold is iced below)
+    if (st === 'blogg' && Wk && Wk.solo) return deckAt(PT.sloy, n, 'gut') || idleGoal(p, ctx, 'look');   // (steg 125d: the hauler bleeds himself on this deck; the one the game has bleeding guts at the table, beside the gutter there is one)
     if (st === 'sloy') return deckAt(PT.sloy, n, 'gut') || idleGoal(p, ctx, 'look');
     // (on a boat with a hold the packer turns his back to the bleeding tub: the box he packs stands on the deck before him, by the hatch)
     if (st === 'is'){ const g = deckAt(PT.is, n, 'pack'); if (g && ((VESSELS[ST.type] || {}).hold || {}).kind !== 'dekk') g.h = (g.h || 0) + Math.PI; return g || idleGoal(p, ctx, 'look'); }
@@ -571,15 +805,17 @@ function crewSim(src){
     if (st === 'haling'){ const q = p.role === 'plukk' ? at(PL.pick, 1.4) : p.role === 'teine' ? at(PL.pot, 1.4) : at(PL.haul[Math.min(1, n)], 1.4); return q || idleGoal(p, ctx, 'look'); }
     if (st === 'fiske'){ const q = jigSpot(n); return q || idleGoal(p, ctx, 'lean'); }
     if (st === 'stell' && p.jw && (p.jw.kind === 'pr' || p.jw.kind === 'jg')){ const q = at(PL.pot, 1.4); return q || idleGoal(p, ctx, 'look'); }   // (the pots and the jig sets are seen to by the hauler's side)
-    if (st === 'egn' || st === 'strip' || st === 'stell'){ const q = at(PL.tubAt(n), 1.2); if (q){ q.task = st === 'stell' ? 'egn' : st; q.tub = n; } return q || idleGoal(p, ctx, 'look'); }
+    // (steg 125f: on the stool at his tub, the bait on the other one by his knee, where the seat has its stools; HOLDT.krakk)
+    if (st === 'egn' || st === 'strip' || st === 'stell'){ const id = p.c ? 'c' + p.c.id : 'me', mine = o => !A.some(a => a.id !== id && a.goal && a.goal.stool === o.i), KL = LEMMER.on ? stools() : [], K = KL[n] && mine(KL[n]) ? KL[n] : KL.find(mine) || null, q = K && ST.M.ok(K.k) ? {k:K.k, h:K.h, task:null, stool:K.i, tub:K.tub} : at(PL.tubAt(n), 1.2); if (q){ q.task = st === 'stell' ? 'egn' : st; if (q.tub == null) q.tub = n; } return q || idleGoal(p, ctx, 'look'); }
     if (st === 'mend'){ const q = PL.mend[n % Math.max(1, PL.mend.length)], g = q ? at(q, 1.0) : null; if (g) g.task = 'mend'; return g || idleGoal(p, ctx, 'look'); }
     if (st === 'last'){ const q = at(PL.cargo, 1.6); if (q && p.role === 'hekt'){ q.task = 'unhook'; q.dyn = 'kai'; } return q || idleGoal(p, ctx, 'look'); }
     if (st === 'kokk') return PT.door ? {k:PT.door.k, h:PT.door.h || 0, task:null, inside:'in'} : null;
     return idleGoal(p, ctx);
   }
   // the station and its part (at the hauler: the hauler, the picker, the pot hand): a person keeps the place while it stays the same
+  const soloDeck = () => !!(ST.G && ST.G.work && ST.G.work.solo);
   const QROLE = {hekt:1, luke:1, isrom:1, kran:1}, DROLE = {spyl:1, kost:1, mat:1, frys:1};
-  const kindOf = p => p.spot != null ? 'spot' : p.st === 'fort' ? 'fort:' + (p.mo || '') : DROLE[p.role] && p.st === 'pause' ? 'dekk:' + p.role + (p.role === 'frys' ? ':' + p.idle : '') : QROLE[p.role] && (p.st === 'pause' || p.st === 'last') ? 'kai:' + p.st + ':' + p.role + (p.role === 'hekt' && p.st === 'pause' ? ':' + ((landNow() || {}).place || 0) : '') : p.st === 'haling' ? 'haling:' + (p.role === 'haler' ? 'h' : p.role) : p.st === 'pause' && p.idle ? 'pause:' + p.idle + (p.with ? '>' + p.with : '') : p.st;
+  const kindOf = p => p.spot != null ? 'spot' : p.st === 'fort' ? 'fort:' + (p.mo || '') : DROLE[p.role] && p.st === 'pause' ? 'dekk:' + p.role + (p.role === 'frys' ? ':' + p.idle : '') : QROLE[p.role] && (p.st === 'pause' || p.st === 'last') ? 'kai:' + p.st + ':' + p.role + (p.role === 'hekt' && p.st === 'pause' ? ':' + ((landNow() || {}).place || 0) : '') : p.st === 'haling' ? 'haling:' + (p.role === 'haler' ? 'h' : p.role) : p.st === 'pause' && p.idle ? 'pause:' + p.idle + (p.with ? '>' + p.with : '') : p.st === 'blogg' && soloDeck() ? 'sloy' : p.st;   // (steg 125d: where the hauler bleeds himself, the one the game has bleeding guts at the table)
   // ---- a free person: something to do for a while, by the weather, the hour and their nature ----
   const IDLE = ['lean', 'lean', 'look', 'coffee', 'sweep', 'sit'];
   // (p.idle: the break the game chose, kept as long as it lasts there; each its own place and pose, view3d.js drawWorker: facing out over
@@ -598,7 +834,9 @@ function crewSim(src){
     RAIL.set(key, out); return out; }
   // each pose as its limbs and what it holds, segments in the person's own frame [forward, up, right] from the feet, as drawWorker draws
   // it (at the furthest reach of its movement): rail is [ahead, height] of the rail's top (facing it), the hands on it 4 cm over
-  function poseSegs(k, rail){
+  function poseSegs(k, rail){ return LEMMER.on ? poseSegsIk(k, rail) : poseSegs0(k, rail); }
+  // (as before FB2: each limb one line from the root to the hand or the foot; used while the solver is off, LEMMER.on)
+  function poseSegs0(k, rail){
     const R = rail || [0.42, 1.0], d = R[0] + 0.02, top = R[1] + 0.04;
     const legs = [[[0, 0.92, 0.11], [0, 0.1, 0.12]], [[0, 0.92, -0.11], [0, 0.1, -0.12]]], torso = [[[0, 0.95, 0], [0, 1.45, 0]], [[0.12, 1.0, 0], [0.12, 1.38, 0]], [[-0.12, 1.0, 0], [-0.12, 1.38, 0]], [[0, 1.42, 0.21], [0, 1.42, -0.21]]];
     const head = [[[0, 1.5, 0], [0, 1.8, 0]], [[0.13, 1.64, 0], [-0.13, 1.64, 0]]], arms = (r, l) => [[[0.02, 1.42, 0.21], r], [[0.02, 1.42, -0.21], l]], std = (r, l, ...more) => legs.concat(torso, head, arms(r, l), more);
@@ -650,10 +888,84 @@ function crewSim(src){
       case 'aurora': case 'look': default: return std([0, 0.93, 0.19], [0, 0.93, -0.19]);
     }
   }
+  function poseSegsIk(k, rail){
+    const R = rail || [0.42, 1.0], d = R[0] + 0.02, top = R[1] + 0.04;
+    // (FB2, steg 123: the limbs as they are drawn, with the solver that draws them: the knee and the elbow where ik2 and armIk put
+    // them, each limb two lines, and the torso, the shoulders and the head gone after a hand out of reach, reachBody. The back's own
+    // bend at the work (view3d/08-plants.js workLow) is not in these lines, as before: b0 is 0 until the pose is read from the drawing, FB1)
+    const C = LEMMER, L0 = limbLen(null), HY = 0.92, b0 = 0, HX = 0, SHL = [[0, C.SH[0], C.SH[1]], [0, C.SH[0], -C.SH[1]]];
+    // (the lines of one limb are one limb to poseHits, which counts limbs through something as before: tagged g)
+    let gid = 0; const limb = segs => { gid++; for (const q of segs) q.g = gid; return segs; };
+    const leg = (hip, foot, pole) => { const o = ik2(hip, foot, L0.th, L0.sn, pole || [C.KNEE[0], C.KNEE[1], 0]); return limb([[hip, o.j], [o.j, o.e]]); };
+    // (an arm from a shoulder at sh to a hand at hd, the torso standing straight under the shoulder: the wrist a hand's length back)
+    const tip = (el, wr) => { const f = [wr[0] - el[0], wr[1] - el[1], wr[2] - el[2]], fl = Math.hypot(f[0], f[1], f[2]) || 1; return [wr[0] + f[0] / fl * C.HAND, wr[1] + f[1] / fl * C.HAND, wr[2] + f[2] / fl * C.HAND]; };
+    const arm = (sh, hd, sd) => { const s0 = SHL[sd > 0 ? 0 : 1], o = armHand(s0, [hd[0] - sh[0] + s0[0], hd[1] - sh[1] + s0[1], hd[2] - sh[2] + s0[2]], sd, L0);
+      const w = q => [q[0] - s0[0] + sh[0], q[1] - s0[1] + sh[1], q[2] - s0[2] + sh[2]], el = w(o.j), wr = w(o.e); return limb([[sh, el], [el, wr], [wr, o.over > 0 || o.near > 0 || o.push > 0 ? tip(el, wr) : hd]]); };
+    // (standing: the knee as the drawn leg has it, to the ankle 8 cm up; the shin's line ends 10 cm over the deck, as the leg's line did)
+    const stand = (hip, r) => { const o = ik2(hip, [0, 0.08, r], L0.th, L0.sn, [C.KNEE[0], C.KNEE[1], 0]), k = o.j, t = (k[1] - 0.1) / (k[1] - o.e[1]); return limb([[hip, k], [k, [k[0] + (o.e[0] - k[0]) * t, 0.1, k[2] + (o.e[2] - k[2]) * t]]]); };
+    const legs = stand([0, HY, 0.11], 0.12).concat(stand([0, HY, -0.11], -0.12));
+    const std = (r, l, ...more) => { const hips = q => [q[0] - HX, q[1] - HY, q[2]], wrist = (hd, i) => { const s = torsoPt(SHL[i], b0, 0), q = hips(hd), v = [q[0] - s[0], q[1] - s[1], q[2] - s[2]], n = Math.hypot(v[0], v[1], v[2]) || 1; return [q[0] - v[0] / n * C.HAND, q[1] - v[1] / n * C.HAND, q[2] - v[2] / n * C.HAND]; };
+      const rb = reachBody(SHL, [wrist(r, 0), wrist(l, 1)], (L0.ua + L0.fa) * C.REACH, b0), bT = b0 + rb.b, tw = rb.t, at = (q, t) => { const p = torsoPt([q[0], q[1] - HY, q[2]], bT, t == null ? tw : t); return [p[0] + HX, p[1] + HY, p[2]]; }, seg = (A, B, t) => [at(A, t), at(B, t)];
+      const out = stand([0, HY, 0.11], 0.12).concat(stand([0, HY, -0.11], -0.12), [seg([0, 0.95, 0], [0, 1.45, 0]), seg([0.12, 1.0, 0], [0.12, 1.38, 0]), seg([-0.12, 1.0, 0], [-0.12, 1.38, 0]), seg([0, 1.42, 0.21], [0, 1.42, -0.21]), seg([0, 1.5, 0], [0, 1.8, 0], 0), seg([0.13, 1.64, 0], [-0.13, 1.64, 0], 0)]);
+      for (const i of [0, 1]){ const sd = i ? -1 : 1, hd = i ? l : r, o = armHand(SHL[i], torsoInv(hips(hd), bT, tw), sd, L0), sh = at([0, 1.42, sd * C.SH[1]]), el = at([o.j[0], o.j[1] + HY, o.j[2]]), wr = at([o.e[0], o.e[1] + HY, o.e[2]]);
+        for (const q of limb([[sh, el], [el, wr], [wr, o.over > 0 || o.near > 0 || o.push > 0 ? tip(el, wr) : hd]])) out.push(q); }
+      return out.concat(more); };
+    // (seated: the knees up and ahead)
+    const SITP = [0.3, 1, 0];
+    switch (k){
+      case 'lean': return std([d, top, 0.2], [d, top, -0.2]);
+      case 'coffee': return std([0.18, 1.5, 0.04], [0.05, 0.85, -0.25], [[0.12, 0.0, -0.32], [0.12, 0.32, -0.32]]);
+      // (the feet out before him: the hips come down until the legs reach them, legDrop, and the body with them)
+      case 'back': { const ft = [[0.3, 0.08, -0.05], [0.2, 0.08, -0.13]], dr = legDrop([[0.05, HY, 0.11], [0.05, HY, -0.11]], ft, L0), y = v => v - dr;
+        return leg([0.05, y(0.92), 0.11], ft[0]).concat(leg([0.05, y(0.92), -0.11], ft[1]), [[[0.05, y(0.95), 0], [-0.07, y(1.45), 0]], [[-0.17, y(1.0), 0], [-0.19, y(1.38), 0]], [[-0.07, y(1.5), 0], [-0.1, y(1.8), 0]]],
+          arm([0.02, y(1.42), 0.21], [0.17, 1.18, -0.07], 1), arm([0.02, y(1.42), -0.21], [0.17, 1.16, 0.07], -1)); }
+      case 'sit': return leg([-0.04, 0.5, 0.12], [0.44, 0.08, 0.17], SITP).concat(leg([-0.04, 0.5, -0.12], [0.44, 0.08, -0.17], SITP), [[[0, 0.55, 0], [0.1, 1.05, 0]],
+        [[0.15, 1.08, 0], [0.22, 1.36, 0]]], arm([0.06, 1.0, 0.2], [0.36, 0.7, 0.05], 1), arm([0.06, 1.0, -0.2], [0.36, 0.7, -0.05], -1), [[[-0.31, 0.2, 0], [0.19, 0.2, 0]], [[-0.06, 0.2, 0.25], [-0.06, 0.2, -0.25]], [[-0.06, 0.02, 0], [-0.06, 0.45, 0]]]);
+      case 'chat': return std([0.34, 1.3, 0.2], [0.04, 0.92, -0.22]);
+      case 'knife': return std([0.45, 1.2, 0.13], [0.3, 1.02, -0.06], [[0.3, 1.02, -0.06], [0.42, 1.3, 0.03]]);
+      case 'lunch': return std([0.13, 1.5, 0.03], [0.3, 1.03, -0.1], [[0.3, 1.03, -0.2], [0.3, 1.03, 0.0]]);
+      case 'phone': return std([0.26, 1.13, 0.035], [0.26, 1.12, -0.035]);
+      case 'binoc': return std([0.15, 1.56, 0.07], [0.15, 1.56, -0.07], [[0.15, 1.57, 0], [0.3, 1.57, 0]]);
+      case 'seasick': return legs.concat([[[0.03, 0.95, 0], [0.44, 1.42, 0]], [[0.5, 1.5, 0], [0.62, 1.66, 0]]], arm([0.44, 1.42, 0.21], [d, top, 0.24], 1), arm([0.44, 1.42, -0.21], [d, top, -0.24], -1));
+      case 'gear': return legs.concat([[[0.03, 0.92, 0], [0.26, 1.4, 0]], [[0.3, 1.48, 0], [0.34, 1.74, 0]]], arm([0.26, 1.4, 0.21], [0.45, 0.72, 0.15], 1), arm([0.26, 1.4, -0.21], [0.45, 0.72, -0.15], -1));
+      case 'smoke': return std([0.24, 1.52, 0.17], [d, top, -0.2]);
+      case 'snus': return std([0.26, 1.47, 0.02], [0.26, 1.1, -0.04]).concat(std([d, top, 0.2], [d, top, -0.2]));   // (the can and the portion, then the hands on the rail)
+      case 'sweep': return std([0.25, 1.0, 0.1], [0.35, 0.8, -0.05], [[0.25, 1.0, 0.1], [0.8, 0.12, 0]], [[0.8, 0.06, 0.42], [0.8, 0.06, -0.42]]);
+      case 'hose': return std([0.45, 1.15, 0.12], [0.3, 1.1, -0.1], [[0.12, 0.02, 0.62], [0.12, 0.46, 0.62]], [[0.12, 0.3, 0.5], [0.45, 1.15, 0.12]]);
+      // the work at its places (the stations' own places from the models; tested, not chosen)
+      // (at the rail, rail is its top as at a break: the jig hauled up over it, the hauler's lever and the line just over it; at the gutting
+      // table rail[1] is the table's top, the hands working on it)
+      case 'jig': return rail ? std([d, top + 0.4, 0.16], [d - 0.04, top + 0.01, -0.16]) : std([0.34, 1.3, 0.16], [0.3, 0.9, -0.16]);
+      case 'haul': return rail ? std([d + 0.06, top + 0.1, 0.2], [d + 0.1, top + 0.24, -0.06]) : std([0.42, 1.08, 0.2], [0.52, 1.22, -0.06]);
+      case 'bleedst': return std([0.3, 0.92, 0.2], [0.28, 0.95, -0.18]);
+      case 'pick': return rail ? std([d + 0.04, top + 0.03, 0.14], [d + 0.04, top + 0.03, -0.14]) : std([0.48, 0.92, 0.16], [0.48, 0.92, -0.16]);
+      case 'tend': return std([0.48, 0.92, 0.16], [0.48, 0.92, -0.16]);
+      // (setting: the hands on the gear just inside the rail, paying it out over it; rail is [ahead, height] of where it goes over)
+      case 'sett': return rail ? std([R[0] + 0.1, R[1] + 0.08, 0.13], [R[0] + 0.1, R[1] + 0.08, -0.13]) : std([0.5, 1.1, 0.13], [0.5, 1.1, -0.13]);
+      case 'mend': return std([0.42, 1.0, 0.12], [0.42, 1.02, -0.1]);
+      // (OB4, the landing and the ice: the signs to the crane driver, the arms up to the load, a hand at the ring of the sling, the
+      // crane's remote, the end of the ice hose held over the box before him; view3d/08-plants.js drawWorker)
+      case 'signal': return std([0.26, 1.72, 0.4], [0.25, 0.95, -0.22]);
+      case 'guide': return std([0.42, 1.62, 0.22], [0.42, 1.62, -0.22]);
+      case 'unhook': return std([0.36, 1.87, 0.1], [0.35, 1.3, -0.18]);
+      case 'remote': return std([0.3, 1.05, 0.11], [0.3, 1.05, -0.11]);
+      case 'nozzle': return std([0.42, 0.85, 0.06], [0.36, 0.98, -0.12]);
+      // (OB14: the packed lunch and the coffee seated on an upturned tub, the lunch box on the knee and the flask on the deck beside him;
+      // the cold: the arms beaten round the chest and swung out again, the hands rubbed before it; view3d/08-plants.js drawWorker)
+      case 'sitmat': case 'sitkaffe': return leg([-0.04, 0.5, 0.12], [0.44, 0.08, 0.17], SITP).concat(leg([-0.04, 0.5, -0.12], [0.44, 0.08, -0.17], SITP), [[[0, 0.55, 0], [0.1, 1.05, 0]],
+        [[0.15, 1.08, 0], [0.22, 1.36, 0]]], arm([0.06, 1.0, 0.2], [0.2, 1.1, 0.04], 1), arm([0.06, 1.0, -0.2], [0.34, 0.68, -0.1], -1), [[[-0.31, 0.2, 0], [0.19, 0.2, 0]], [[-0.06, 0.2, 0.25], [-0.06, 0.2, -0.25]], [[-0.06, 0.02, 0], [-0.06, 0.45, 0]]],
+        k === 'sitkaffe' ? [[[0.1, 0.0, -0.36], [0.1, 0.32, -0.36]]] : []);
+      case 'cold': return std([0.2, 1.36, -0.14], [0.2, 1.36, 0.14]).concat(std([0.14, 1.22, 0.56], [0.14, 1.22, -0.56]), arm([0, 1.42, 0.21], [0.28, 1.46, 0.03], 1));   // (round the chest, flung out, and up to the mouth)
+      case 'helm': return std([0.3, 1.1, 0.17], [0.3, 1.1, -0.17]);
+      case 'gut': { const tt = rail ? rail[1] : 0.9; return std([0.42, tt + 0.28, 0.2], [0.36, tt + 0.06, -0.12]); }
+      case 'pack': return std([0.4, 0.95, 0.15], [0.2, 1.02, -0.2]);
+      case 'aurora': case 'look': default: return std([0, 0.93, 0.19], [0, 0.93, -0.19]);
+    }
+  }
   // how many of a pose's limbs pass through the model at a place and heading, standing off it by off ([x, z] in the boat's frame)
   function poseHits(k, cell, h, rail, off){ const M = ST.M, p = M.at(cell), F = [Math.sin(h), -Math.cos(h)], Rv = [Math.cos(h), Math.sin(h)], o = off || [0, 0];
     const W = q => [p[0] + o[0] + F[0] * q[0] + Rv[0] * q[2], p[1] + q[1], p[2] + o[1] + F[1] * q[0] + Rv[1] * q[2]];
-    let n = 0; for (const [a, b] of poseSegs(k, rail)) if (M.hit(W(a), W(b)) >= 0) n++; return n; }
+    let n = 0, last = 0; for (const q of poseSegs(k, rail)) if (!(q.g && q.g === last) && M.hit(W(q[0]), W(q[1])) >= 0){ n++; last = q.g || 0; } return n; }
   // a break at a rail place, its pose clear of everything: the heading (facing out, or inboard with the back to the rail), the rail's top
   // where the hands rest, and leaning back the place moved back until the back is at the rail
   // how a pose stands at a rail place: facing out, a step back when the rail is closer than 0.2 m (a thick bulwark); facing inboard, the
@@ -686,7 +998,8 @@ function crewSim(src){
     let act = force || IDLE[Math.floor(rnd() * IDLE.length)];
     if (!force){ if (T.includes('makelig') && rnd() < 0.5) act = rnd() < 0.5 ? 'lean' : 'coffee'; if ((T.includes('arbeidsjern') || T.includes('perfeksjonist')) && rnd() < 0.5) act = 'sweep';
       if ((ctx.night || ctx.wind > 12) && rnd() < 0.5 && PT.door && !ctx.open) return {k:PT.door.k, h:PT.door.h || 0, task:null, inside:'in', until:nowS() + 40 + rnd() * 80}; }
-    if (act === 'sit') act = 'lean';
+    // (the break seated: on a free stool, steg 125f; with none free he leans at the rail, as all did before)
+    if (act === 'sit'){ const s = LEMMER.on ? freeStool(id) : null; if (s && !poseHits('sit', s.k, s.h)) return {k:s.k, h:s.h, task:'sit', until:nowS() + 30 + rnd() * 60, idle:true, stool:s.i}; act = 'lean'; }
     // sweeping is done with the back to the rail, over the deck: facing out the broom went over the side (Jonas 21.10.2026, #81 and
     // #84; the coiling went 02.11.2026: no rope to coil, and it looked like jigging); a place where the pose is clear of everything
     const g1 = idlePlace(act, leans.slice(Math.floor(rnd() * leans.length)).concat(leans), id), g = g1 || idlePlace('look', leans, id); if (!g) return lookClear(id);
@@ -697,19 +1010,27 @@ function crewSim(src){
   // little turn (the place from the anchors is the station's; this only moves the person within it)
   const RAILWORK = {jig:1, haul:1, pick:1};
   function fitWork(g, id){
-    if (!g || g.inside || g.idle || !ST.M.ok(g.k)) return g; if (g.task === 'sett' || (g.dyn && g.dyn !== 'kai') || g.ice || g.task === 'remote' || g.wash) return g; const M = ST.M, h0 = g.h || 0;   // (the places of the setting and of the quay work are found with their poses tried, OB3 and OB4)
+    if (!g || g.inside || g.idle || g.stool != null || !ST.M.ok(g.k)) return g; if (g.task === 'sett' || (g.dyn && g.dyn !== 'kai') || g.ice || g.task === 'remote' || g.wash) return g; const M = ST.M, h0 = g.h || 0;   // (the places of the setting and of the quay work are found with their poses tried, OB3 and OB4)
     const fit = (k, h) => { if (RAILWORK[g.task]){ const rl = railAt(k, h); if (!rl) return {rail:null, off:null}; const F = [Math.sin(h), -Math.cos(h)];
         if (rl[0] < 0.22){ const s = 0.22 - rl[0]; return {rail:[0.22, rl[1]], off:[-F[0] * s, -F[1] * s]}; } return {rail:rl, off:null}; }
       if (g.task === 'gut'){ const W0 = ST.G.work, d0 = ST.G.deck || {y:ST.G.gw || 0}, top = W0 && W0.own && W0.top != null ? W0.top : (d0.y || 0) + 0.885; return {rail:[0.4, top - M.at(k)[1]], off:null}; }
       return {rail:null, off:null}; };
     let f = fit(g.k, h0); if (!poseHits(g.task, g.k, h0, f.rail, f.off)){ g.rail = f.rail; g.off = f.off; return g; }
-    const p0 = M.at(g.k), C = []; for (let k = 0; k < M.nx * M.nz; k++){ if (!M.ok(k) || !free(k, id)) continue; const q = M.at(k), d = Math.hypot(q[0] - p0[0], q[2] - p0[2]); if (d <= 0.5 && Math.abs(q[1] - p0[1]) < 0.2) C.push([d, k]); }
+    // (FB2, F19: never to within 0.55 m of someone else's place: the second at a table was moved 0.4 m from the first when the guard got the elbows)
+    const p0 = M.at(g.k), C = [], apart = q => { for (const [t0, who] of TAKEN){ if (who === id) continue; const u = M.at(t0); if (Math.hypot(u[0] - q[0], u[2] - q[2]) < 0.55) return false; } return true; };
+    for (let k = 0; k < M.nx * M.nz; k++){ if (!M.ok(k) || !free(k, id)) continue; const q = M.at(k), d = Math.hypot(q[0] - p0[0], q[2] - p0[2]); if (d <= 0.5 && Math.abs(q[1] - p0[1]) < 0.2 && (!LEMMER.on || apart(q))) C.push([d, k]); }
     C.sort((a, b) => a[0] - b[0]);
     for (const dh of [0, 0.25, -0.25]) for (const [, k] of C){ const h = h0 + dh; f = fit(k, h); if (!poseHits(g.task, k, h, f.rail, f.off)){ TAKEN.delete(g.k); g.k = k; g.h = h; g.rail = f.rail; g.off = f.off; TAKEN.set(k, id); return g; } }
     f = fit(g.k, h0); g.rail = f.rail; g.off = f.off; return g; }
+  // the bleeder's place with the new people (places): m the fish is let fall from the packer, his box, the ice box and the gutter at the least (drop2: from the second hauler, dropIce: from the ice box; sweep: the gaff's reach round the hauler), and
+  // from the hauler where it is tried (dropR); from: how far from the fish the bleeder stands, and best the distance he had before; room: m from each other place of work
+  // (the hauler, the second hauler, the net picker and the pot hand, the packer and the gutter, the packer's box and the shovel's way
+  // to it, the ice box; throw: the hauler and the packer from the line of the bleeder's throw to the tub; squat: the ice box from his way down to the fish)
+  const BLEED = {side:70, drop:0.6, drop2:0.3, dropIce:0.6, sweep:1.3, dropR:[0.45, 0.55, 0.65, 0.8], from:[0.4, 0.9], best:0.6, room:{haul:0.95, haul2:0.7, pick:0.7, is:0.8, box:0.6, ice:0.75, throw:0.4, squat:0.7}};
   // ---- a cell of one's own: the goals already given are taken, and a new one at least SEP from them (the nearest free cell within a metre) ----
   const TAKEN = new Map();
-  function free(k, id){ const p = ST.M.at(k); for (const [c, who] of TAKEN){ if (who === id) continue; const q = ST.M.at(c); if (Math.hypot(p[0] - q[0], p[2] - q[2]) < SEP) return false; } return true; }
+  // (the new people are as wide as people: 0.55 m between two places, as at the table and the tub, deckAt and beside)
+  function free(k, id){ const p = ST.M.at(k), sep = LEMMER.on ? SEP2 : SEP; for (const [c, who] of TAKEN){ if (who === id) continue; const q = ST.M.at(c); if (Math.hypot(p[0] - q[0], p[2] - q[2]) < sep) return false; } return true; }
   function claim(g, id){
     if (!g || g.inside) return g; const M = ST.M;
     if (!M.ok(g.k) || !free(g.k, id)){ const p = ST.M0.at(g.k); let best = -1, bd = 1.0;
@@ -744,10 +1065,12 @@ function crewSim(src){
     for (const a of yieldA) if (TAKEN.get(a.goal.k) === a.id) TAKEN.delete(a.goal.k);
     for (const [p, a, kind] of pend){ let n = 0; const U = used[kind] || (used[kind] = new Set()); while (U.has(n)) n++; U.add(n);
       const was = a.goal, there = was && a.mode !== 'walk' && !a.sub && a.cell === was.k;
-      a.goal = fitWork(claim(goalOf(p, ctx, n), a.id), a.id); a.kind = kind; a.slot = n; a.path = null; a.sub = null; a.door = 0;
+      // (one with a tub on his errand keeps it: he sets it down where it goes, then goes to his new work; before, the errand was dropped
+      // and the tub stood on its place at once, the nysjark's haul in 125f)
+      a.goal = fitWork(claim(goalOf(p, ctx, n), a.id), a.id); a.kind = kind; a.slot = n; a.path = null; if (!(a.sub && a.sub.tub)) a.sub = null; a.door = 0;
       if (p.role === 'sett' && yieldA.length){ const G0 = a.goal && !a.goal.inside ? ST.M.at(a.goal.k) : null;
         for (const b of yieldA.splice(0)){ const B = ST.M.at(b.goal.k), bp = ctx.WA.find(q => (q.c ? 'c' + q.c.id : 'me') === b.id);
-          if (G0 && bp && Math.hypot(B[0] - G0[0], B[2] - G0[2]) < SEP){ b.goal = fitWork(claim(goalOf(bp, ctx, b.slot >= 0 ? b.slot : 0), b.id), b.id); b.path = null; b.sub = null; }
+          if (G0 && bp && Math.hypot(B[0] - G0[0], B[2] - G0[2]) < SEP){ b.goal = fitWork(claim(goalOf(bp, ctx, b.slot >= 0 ? b.slot : 0), b.id), b.id); b.path = null; if (!(b.sub && b.sub.tub)) b.sub = null; }
           else TAKEN.set(b.goal.k, b.id); } }
       if (there && PROP[was.task] && a.mode === 'at' && a.blend > 0.6 && !(a.goal && a.goal.task === was.task)) a.put = {task:was.task, t0:t, g:was};
       if (there && relieves(was) && (a.mode === 'at' || a.mode === 'helm')) a.was = was; else a.was = null; }
@@ -772,13 +1095,14 @@ function crewSim(src){
     ST.crateFill = ctx.crateFill || 0;
   }
   // everyone straight to their place (the first frame, a change of boat, the clock run on)
-  function snap(){ for (const a of A){ a.sub = null; a.put = a.relief = null; a.door = a.out = 0; if (!a.goal){ a.mode = 'in'; continue; } const p = ST.M.at(a.goal.k); a.x = p[0]; a.y = p[1]; a.z = p[2]; a.cell = a.goal.k; a.h = a.goal.h; a.task = a.goal.task; a.mode = a.goal.inside ? a.goal.inside : 'at'; a.path = null; } }
+  function snap(){ for (const a of A){ a.sub = null; a.v = 0; a.put = a.relief = null; a.door = a.out = 0; if (!a.goal){ a.mode = 'in'; continue; } const p = ST.M.at(a.goal.k); a.x = p[0]; a.y = p[1]; a.z = p[2]; a.cell = a.goal.k; a.h = a.goal.h; a.task = a.goal.task; a.mode = a.goal.inside ? a.goal.inside : 'at'; a.path = null; } }
   const dropY = p => { if (!ready()) return null; const u = ST.M0.hit(p, [p[0], p[1] - 12, p[2]]); return u < 0 ? null : p[1] - u * 12; };
   function tick(dt){
     if (!ready()) return; dt = Math.min(0.1, Math.max(0, dt || 0)); ST.clk += dt; const t = nowS();
     const jump = ST.lastSim == null || Math.abs(S.t - ST.lastSim) > 30 || (src && src.jump && src.jump()); ST.lastSim = S.t;
     if (!ST.ctx || t - ST.ctxT > 1){ walkMap(); ST.ctx = context(); ST.ctxT = t; if (jump) ST.crates = -1; sync(ST.ctx); }
     if (jump){ snap(); return; }
+    tubWork(t);
     const M = ST.M, roll = Math.abs(ST.roll || 0), spd = WALK * (roll > 0.21 ? 0 : roll > 0.14 ? 0.65 : 1);
     const spH = !src && typeof MOBUI !== 'undefined' && MOBUI.spot ? MOBUI.spot() : null;   // (the spotter turns with her as the boat turns, Ø11.6)
     for (const a of A){
@@ -790,7 +1114,7 @@ function crewSim(src){
         const done = !b || !b.goal || t > r.until || (r.g.inside ? b.goal.inside !== 'helm' || b.mode === 'helm' : b.goal.task !== 'haul' || Math.hypot(b.x - P[0], b.z - P[2]) < 0.9);
         if (!done){ a.task = r.g.task; continue; } a.relief = null; a.path = null; }
       if (a.out && t < a.out){ a.task = null; continue; } a.out = 0;
-      if (a.sub && a.sub.done && t > a.sub.done){ if (a.sub.thru != null) a.thru = a.sub.thru; a.sub = null; a.path = null; }
+      if (a.sub && a.sub.done && t > a.sub.done){ if (a.sub.tub) tubStep(a, t); else { if (a.sub.thru != null) a.thru = a.sub.thru; a.sub = null; a.path = null; } }
       const g = a.sub || a.goal;
       if (!g){ a.mode = 'in'; continue; }
       // inside, and now wanted on deck: out through the door
@@ -802,6 +1126,8 @@ function crewSim(src){
       if (a.cell !== g.k || a.mode === 'walk'){
         if (!a.path){ let from = M.cellOf(a.x, a.z); if (!M.ok(from)) from = M.near(a.x, a.z, 2); if (from < 0){ snap(); return; }
           const P = deckPath(M, from, g.k);
+          // (no way on deck to the tub he is to lift: the errand is given up, the tub stays where it is; a tub is never carried through the house)
+          if (!P && a.sub && a.sub.tub && a.sub.tub.ph === 'up'){ a.sub = null; a.path = null; continue; }
           if (!P){ const hv = hopVia(from, g.k);
             if (hv && !(a.sub && a.sub.thru != null)){ a.sub = {k:hv[0], h:a.h, task:null, inside:'in', hold:hv[2], thru:g.inside ? -1 : hv[1]}; continue; }
             // no way at all: there at once, rather than through anything
@@ -810,17 +1136,26 @@ function crewSim(src){
         // along the way: towards the next cell's centre, turning as it goes, and slowly or not at all when she rolls hard
         const q = M.at(a.path[Math.min(a.pi, a.path.length - 1)]), dx = q[0] - a.x, dz = q[2] - a.z, dist = Math.hypot(dx, dz);
         const want = Math.atan2(dx, -dz); let dh = dist > 1e-3 ? want - a.h : 0; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI;
-        a.h += Math.max(-TURN * dt, Math.min(TURN * dt, dh)); const climb = Math.abs(q[1] - a.y) > 0.4 ? 0.45 : 1, step = spd * clamp(0.7 + 0.3 * ef, 0.76, 1.04) * climb * dt * (Math.abs(dh) > 1.2 ? 0.3 : 1);
+        a.h += Math.max(-TURN * dt, Math.min(TURN * dt, dh)); const climb = Math.abs(q[1] - a.y) > 0.4 ? 0.45 : 1, vw = spd * clamp(0.7 + 0.3 * ef, 0.76, 1.04) * climb * (Math.abs(dh) > 1.2 ? 0.3 : 1);
+        // (FB3: the speed goes up and down at FOT.ACC, and comes down to a stand where the way ends: no walker at full speed from a
+        // stand or to one. A turn on the way slows him the same way)
+        let step = vw * dt; if (FOT.on){ let rem = dist; for (let j = a.pi + 1; j < a.path.length; j++){ const p0 = M.at(a.path[j - 1]), p1 = M.at(a.path[j]); rem += Math.hypot(p1[0] - p0[0], p1[2] - p0[2]); }
+          const v0 = a.v || 0, vt = Math.min(vw, Math.max(FOT.VMIN, Math.sqrt(2 * FOT.ACC * rem))); a.v = vt > v0 ? Math.min(vt, v0 + FOT.ACC * dt) : Math.max(vt, v0 - FOT.ACC * dt); step = a.v * dt; }
         a.mode = 'walk'; a.task = a.sub && a.sub.carry ? 'carry' : null; a.near = dist;
         if (dist <= step + 1e-6){ a.x = q[0]; a.z = q[2]; a.y = q[1]; a.cell = a.path[Math.min(a.pi, a.path.length - 1)]; a.pi++;   // the point is reached this very step: no jump, ever
           // (at the door, 'at' first: in after a hand to it, below)
-          if (a.pi >= a.path.length){ a.mode = g.inside && !(g.inside === 'in' && ST.PT.door && g.k === ST.PT.door.k) ? g.inside : 'at'; a.task = g.task; a.path = null; a.cell = g.k; a.blend = 0; if (a.sub && !a.sub.done) a.sub.done = t + (a.sub.hold || 2); continue; } }
+          if (a.pi >= a.path.length){ a.v = 0; a.mode = g.inside && !(g.inside === 'in' && ST.PT.door && g.k === ST.PT.door.k) ? g.inside : 'at'; a.task = g.task; a.path = null; a.cell = g.k; a.blend = 0; if (a.sub && !a.sub.done) a.sub.done = t + (a.sub.hold || 2); continue; } }
         else { a.x += dx / dist * step; a.z += dz / dist * step; const fy = M.floorAt(a.x, a.z); a.y = fy === fy ? fy : a.y + (q[1] - a.y) * Math.min(1, step / Math.max(dist, 1e-3)); }
-        sideways(a, t, dt); unclip(a, t);
+        sideways(a, t, dt);
+        // (FB3: slowing to his place he is longer in its last few decimetres, where a shoulder could still touch what the place stands
+        // by and unclip could not push him off it: side on there, as in a squeeze; tests/crewclip.py «nor a body on the way»)
+        if (!unclip(a, t) && FOT.on && a.near < 0.3 && a.sqA < 1){ a.sqW = a.sqA = 1; a.sqT = t; unclip(a, t); }
       } else {
         // at the place: turn to face the work, and the blend into its pose
+        a.v = 0;   // (standing: the next way starts from a stand, FB3)
         let dh = g.h - a.h; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI; a.h += Math.max(-TURN * dt, Math.min(TURN * dt, dh));
         a.blend = Math.min(1, a.blend + dt / 0.4); a.task = g.dyn ? dynTask(g) : g.task; a.sqW = 0; a.sqA = Math.max(0, (a.sqA || 0) - dt * 6);
+        if (a.sub && a.sub.tub && !a.sub.done) a.sub.done = t + a.sub.hold;   // (the tub's errand from where he stands already)
         // (in through the door: a hand to it for a moment first)
         if (g.inside && Math.abs(dh) < 0.3){ if (g.inside !== 'in' || !ST.PT.door || g.k !== ST.PT.door.k){ a.mode = g.inside; continue; }
           if (!a.door) a.door = t + 0.6; if (t < a.door) a.task = 'door'; else { a.mode = g.inside; a.door = 0; } } }
@@ -830,7 +1165,7 @@ function crewSim(src){
       const dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz); if (d > 0.45 || d < 1e-4) continue; const push = Math.min(0.03, (0.45 - d) * 0.3), nx = -dz / d, nz = dx / d;
       // (not when the walker is about to arrive next to the other: the places by the table and the tub are that close)
       for (const [o, s] of [[a, -1], [b, 1]]){ if (o.mode !== 'walk' || o.near < 0.6) continue; const x = o.x + nx * push * s, z = o.z + nz * push * s, f = walkOff(o);
-        if (ST.M.ok(ST.M.cellOf(x, z)) && !bodyLines(o, o.sqA).some(([v, w]) => lineHit(x + f[0] + v[0] * w, o.y, z + f[1] + v[1] * w))){ o.x = x; o.z = z; } } }
+        if (ST.M.ok(ST.M.cellOf(x, z)) && !bodyLines(o, o.sqA).some(([v, w]) => lineHit(x + f[0] + v[0] * w, o.y, z + f[1] + v[1] * w, walkY(o)))){ o.x = x; o.z = z; } } }
   }
   // for the view: the agents to draw (not those inside), and where a crew member stands for the line over his head
   function agents(){ return A; }
@@ -844,27 +1179,40 @@ function crewSim(src){
         if (ways.some(w => { const f = fitPlace(k, q, w); return !poseHits(k, q.k, f.h, f.rail, f.off); })) clear++; } R[k] = [clear, L.length]; } return R; }
   // the body where it is now (walking or at its place): the shoulders and the chest and back as upright lines, through anything?
   function bodyHits(){ if (!ready()) return null; const M = ST.M, out = []; for (const a of A){ if (a.mode !== 'walk') continue;
-      const o = walkOff(a), x = a.x + o[0], z = a.z + o[1], y = a.y, which = bodyLines(a, a.sqA).map((q, i) => q.concat(['rlfb'[i]])).filter(([v, s]) => M.hit([x + v[0] * s, y + 0.35, z + v[1] * s], [x + v[0] * s, y + 1.55, z + v[1] * s]) >= 0).map(q => q[2]);
+      const o = walkOff(a), x = a.x + o[0], z = a.z + o[1], y = a.y, yb = walkY(a), which = bodyLines(a, a.sqA).map((q, i) => q.concat(['rlfb'[i]])).filter(([v, s]) => M.hit([x + v[0] * s, yb + 0.35, z + v[1] * s], [x + v[0] * s, y + 1.55, z + v[1] * s]) >= 0).map(q => q[2]);
       if (which.length) out.push({id:a.id, mode:a.mode, task:a.task, n:which.length, which:which.join(''), near:Math.round((a.near || 0) * 100) / 100}); } return out; }
   // ---- the body on its way, clear of everything: the shoulders and the chest and back as upright lines; one that would go through a wall
   // or the rail pushes the body off it a little (where the deck is), and where the way is narrower than the shoulders the person turns
   // and goes through sideways: a.sqA turns the body from 0 (facing the way) to 1 (side on), a.sqW is the turn wanted, held half a
   // second so the body does not flicker between the two. The narrow place is seen a step ahead, so the turn is made before it.
   const bodyLines = (a, sq) => { const hd = a.h + (sq || 0) * Math.PI / 2, F = [Math.sin(hd), -Math.cos(hd)], R = [Math.cos(hd), Math.sin(hd)]; return [[R, 0.2], [R, -0.2], [F, 0.12], [F, -0.12]]; };
-  const lineHit = (x, y, z) => ST.M.hit([x, y + 0.35, z], [x, y + 1.55, z]) >= 0;
+  const lineHit = (x, y, z, yb) => ST.M.hit([x, (yb == null ? y : Math.max(y, yb)) + 0.35, z], [x, y + 1.55, z]) >= 0;
+  // (the floor the body stands over while walking: on a step between two cells of the way (up to DM_STEP), the higher of them, so the
+  // body is over the step's tread as the leg is lifted onto it, not the line from the lower floor grazing the tread; the trawler's
+  // steps by the house, crewclip 125f)
+  // (only the line's foot: its top stays at the body's own height)
+  const walkY = a => { if (a.mode !== 'walk' || !a.path || !a.path.length) return a.y; const M = ST.M, P = a.path, i = Math.min(a.pi, P.length - 1), y1 = M.ok(P[i]) ? M.at(P[i])[1] : a.y, y0 = M.ok(P[Math.max(0, i - 1)]) ? M.at(P[Math.max(0, i - 1)])[1] : a.y;
+    const hi = Math.max(y0, y1); return hi > a.y && hi - Math.min(y0, y1) <= 0.45 + 1e-3 ? hi : a.y; };
+  const bodyHitAt = (x, y, z, h, sq, yb) => bodyLines({h}, sq).some(([v, w]) => lineHit(x + v[0] * w, y, z + v[1] * w, yb));
   const narrow = (x, y, z, h) => { const R = [Math.cos(h), Math.sin(h)], F = [Math.sin(h), -Math.cos(h)];
     return lineHit(x + R[0] * 0.2, y, z + R[1] * 0.2) && lineHit(x - R[0] * 0.2, y, z - R[1] * 0.2) && !lineHit(x + F[0] * 0.12, y, z + F[1] * 0.12) && !lineHit(x - F[0] * 0.12, y, z - F[1] * 0.12); };
   function sideways(a, t, dt){
-    const o = walkOff(a), x = a.x + o[0], z = a.z + o[1];
-    if (narrow(x, a.y, z, a.h) || narrow(x + Math.sin(a.h) * 0.35, a.y, z - Math.cos(a.h) * 0.35, a.h)){ a.sqW = 1; a.sqT = t; } else if (a.sqW && t - a.sqT > 0.5) a.sqW = 0;
+    const o = walkOff(a), x = a.x + o[0], z = a.z + o[1], y = a.y;
+    // (a squeeze past a bar or a post, a link of the map on one level, deckMap: through it side on, and turned before it is reached;
+    // ringnot38's post by the door, crewclip 125f)
+    const P = a.path, i = a.pi, sqz = j => { if (!P || j < 1 || j >= P.length) return false; const u = P[j - 1], v = P[j], L = ST.M.LINK && ST.M.LINK[u]; return !!L && L.includes(v) && Math.abs(ST.M.at(u)[1] - ST.M.at(v)[1]) < 0.45; };
+    if (sqz(i) || (sqz(i + 1) && (a.near || 0) < 0.5) || narrow(x, y, z, a.h) || narrow(x + Math.sin(a.h) * 0.35, y, z - Math.cos(a.h) * 0.35, a.h)){ a.sqW = 1; a.sqT = t; }
+    else if (a.sqW && t - a.sqT > 0.5) a.sqW = 0;
     const d = (a.sqW || 0) - (a.sqA || 0); a.sqA = (a.sqA || 0) + Math.max(-dt * 6, Math.min(dt * 6, d)); }
   function unclip(a, t){
     const M = ST.M;
     for (let it = 0; it < 3; it++){ let px = 0, pz = 0, n = 0; const o = walkOff(a);
-      for (const [v, s] of bodyLines(a, a.sqA)) if (lineHit(a.x + o[0] + v[0] * s, a.y, a.z + o[1] + v[1] * s)){ px -= v[0] * Math.sign(s); pz -= v[1] * Math.sign(s); n++; }
+      const yb = walkY(a); for (const [v, s] of bodyLines(a, a.sqA)) if (lineHit(a.x + o[0] + v[0] * s, a.y, a.z + o[1] + v[1] * s, yb)){ px -= v[0] * Math.sign(s); pz -= v[1] * Math.sign(s); n++; }
       if (!n) return true;
       if (Math.hypot(px, pz) < 0.5){ if (a.sqA < 1){ a.sqW = a.sqA = 1; a.sqT = t; continue; } return false; }   // both sides, not seen coming: side on at once
-      const l = Math.hypot(px, pz), nx2 = a.x + px / l * 0.04, nz2 = a.z + pz / l * 0.04; if (!M.ok(M.cellOf(nx2, nz2))) return false; a.x = nx2; a.z = nz2; }
+      const l = Math.hypot(px, pz), nx2 = a.x + px / l * 0.04, nz2 = a.z + pz / l * 0.04;
+      // (in a squeeze, a link of the map over cells that are not on it: off the post towards the open side, at most 0.2 m off the link's line)
+      if (!M.ok(M.cellOf(nx2, nz2)) && !(a.path && a.pi >= 1 && a.pi < a.path.length && (() => { const u = M.at(a.path[a.pi - 1]), v = M.at(a.path[a.pi]), dx = v[0] - u[0], dz = v[2] - u[2], L = Math.hypot(dx, dz); return L > 1e-3 && Math.abs(((nx2 - u[0]) * dz - (nz2 - u[2]) * dx) / L) <= 0.2 && (M.LINK[a.path[a.pi - 1]] || []).includes(a.path[a.pi]); })())) return false; a.x = nx2; a.z = nz2; }
     return false; }
   // ---- no way over the deck between two parts of it (fore and aft of the house on the big boats): through the house, out of sight for
   // as long as the walk inside takes, from the cell of this part nearest the other (or the door) to the cell of that part nearest it ----
@@ -898,8 +1246,10 @@ function crewSim(src){
       return [o.hipF + hH * o.sqF + a2 * dF - p * dR, hH * o.sqU + u2, o.hipR + hH * o.sqR + a2 * dR + p * dF]; };
     const hipJ = i => [o.hipF + hH * o.sqF, hH * o.sqU + (i ? 0.11 : -0.11) * o.pelv, o.hipR + hH * o.sqR + (i ? 0.11 : -0.11)];
     const foot = i => [o.fa[i] + 0.1 * n[0], o.fy[i] + 0.1 * n[1], o.fr[i] + 0.1 * n[2]];   // (the ankle, 10 cm over where the foot stands on the deck)
-    const segs = [[hipJ(0), foot(0)], [hipJ(1), foot(1)], [at(0.95), at(1.45)], [at(0.95, -0.17), at(1.42, -0.21)], [at(0.95, 0.17), at(1.42, 0.21)],
-      [at(1.0, 0, 0.12), at(1.38, 0, 0.12)], [at(1.0, 0, -0.12), at(1.38, 0, -0.12)], [at(1.42, -0.21), at(1.42, 0.21)], [at(1.5), at(1.8)], [at(1.64, 0, 0.13), at(1.64, 0, -0.13)], [at(1.66, -0.1), at(1.66, 0.1)]];
+    // (FB2: each leg as it is drawn, the knee from the solver; a foot the leg does not reach is moved in, as drawWorker moves it)
+    const L0 = limbLen(null), kn = LEMMER.on ? [0, 1].map(i => ik2(hipJ(i), foot(i), L0.th, L0.sn, [LEMMER.KNEE[0], LEMMER.KNEE[1], 0])) : null;
+    const segs = (kn ? [[hipJ(0), kn[0].j], [kn[0].j, kn[0].e], [hipJ(1), kn[1].j], [kn[1].j, kn[1].e]] : [[hipJ(0), foot(0)], [hipJ(1), foot(1)]]).concat([[at(0.95), at(1.45)], [at(0.95, -0.17), at(1.42, -0.21)], [at(0.95, 0.17), at(1.42, 0.21)],
+      [at(1.0, 0, 0.12), at(1.38, 0, 0.12)], [at(1.0, 0, -0.12), at(1.38, 0, -0.12)], [at(1.42, -0.21), at(1.42, 0.21)], [at(1.5), at(1.8)], [at(1.64, 0, 0.13), at(1.64, 0, -0.13)], [at(1.66, -0.1), at(1.66, 0.1)]]);
     let bits = 0; for (let i = 0; i < segs.length; i++) if (M.hit(B(segs[i][0]), B(segs[i][1])) >= 0) bits |= 1 << i; return bits; };
   const SEATMP = seaState();
   // (those lines at the deck's furthest one way, with the room given; a full sea, so the feet are at their widest)
@@ -911,10 +1261,11 @@ function crewSim(src){
     const hit = SEAR.get(ck); if (hit){ a.srK = ck; a.srV = hit; return hit; }
     const M = ST.M, C = SJOBEIN, W = P.W, t = Math.tan(C.CLIP); let out;
     // (first with the bracing step where seaStepOk lets a foot out; if that still puts something through, without it at this place)
-    for (const nostep of [false, true]){ out = {r:[0, 0], f:[0, 0], w:[0, 0], nostep};
+    // (FB2: and if a knee still goes into what he stands at, with less of the crouch, k: the knees bend further ahead the lower he stands)
+    for (const [nostep, kq] of LEMMER.on ? [[false, 1], [true, 1], [true, 0.5], [true, 0]] : [[false, 1], [true, 1]]){ out = {r:[0, 0], f:[0, 0], w:[0, 0], nostep, k:kq};
       for (const i of [0, 1]){ const s = i ? 1 : -1; out.w[i] = M.hit(W(0, 0.92, s * 0.11), W(0, 0.1, s * (0.12 + C.WIDE + 0.02))) < 0 ? 1 : 0; }
       // (what goes through something on a level deck already is not the sea legs' doing; the most room that adds nothing to it)
-      const base = seaTry(a, P, 0, 0, out), trial = {r:[0, 0], f:[0, 0], w:out.w, nostep};
+      const base = seaTry(a, P, 0, 0, out), trial = {r:[0, 0], f:[0, 0], w:out.w, nostep, k:kq};
       for (const i of [0, 1]){ const s = i ? 1 : -1;
         // (from none upwards, as far as every step is clear: what is clear at CLIP with a share of the room is clear with all of it at that share of CLIP)
         for (const u of [0.25, 0.5, 0.75, 1]){ trial.r[0] = trial.r[1] = u; trial.f[0] = trial.f[1] = 0; if (seaTry(a, P, s * t, 0, trial) & ~base) break; out.r[i] = u; }
@@ -955,6 +1306,16 @@ function crewSim(src){
   function seaStepOk(a, dr, da){
     const M = ST.M, P = seaAt(a), C = SJOBEIN, s = Math.abs(dr) > 0.35 ? (dr > 0 ? 1 : -1) : 1, r = s * (0.12 + C.WIDE) + dr * C.STEPLEN, f = da * C.STEPLEN, q = P.W(f, 0, r), q2 = P.W(f + da * 0.12, 0.45, r + dr * 0.12);
     return M.ok(M.cellOf(q[0], q[2])) && M.hit(P.W(0, 0.92, s * 0.11), P.W(f, 0.1, r)) < 0 && M.hit(P.W(f, 0.45, r), q2) < 0; }
+  // (FB3: whether a foot walking may be put down at x, z on the deck someone a is on: deck under it at his height (not the walking
+  // map's cells, which keep a body's room from the walls: a foot by the rail is outside them and on the deck), no gear there (inKit),
+  // nothing through the shin, and nothing between him and it at the shin's height: no foot in a wall, a tub or the kit)
+  // (the deck's height at x, z near someone a: the walking map's floor, or outside its cells the model's own deck within a step of
+  // his height; null with no deck there)
+  function footY(a, x, z){ const M = ST.M; const fy = M.floorAt(x, z); if (fy === fy) return Math.abs(fy - a.y) <= FOT.RISE ? fy : null;
+    const u = ST.M0.hit([x, a.y + FOT.RISE, z], [x, a.y - FOT.RISE, z]); return u < 0 ? null : a.y + FOT.RISE - u * FOT.RISE * 2; }
+  function footOk(a, x, z){ const M = ST.M, fy = footY(a, x, z); if (fy == null || fy < a.y - FOT.DROP) return false;   // (no lower under him than the hips go down for it: it would hang over the deck there) if (!src && inKit(x, z) > 0) return false;
+    if (M.hit([x, fy + 0.45, z], [x, fy + 0.06, z]) >= 0) return false; const go = walkOff(a), y0 = Math.max(a.y, fy); return M.hit([a.x + go[0], y0 + 0.3, a.z + go[1]], [x, y0 + 0.3, z]) < 0; }   // (at the shin's height: a foot goes over a sill or a hatch's coaming lower than that, not through a wall)
+
   // the nearest rail from where someone stands, ahead or to either side within 3 m (a fish that slips over the side goes over it):
   // the way [forward, right] in the boat's frame, how far, and its top over the deck; null with none (a wall is not a rail)
   function railNear(a){ const M = ST.M; let best = null;
@@ -1002,9 +1363,10 @@ function crewSim(src){
     if (a.mode !== 'walk' || !a.path || a.pi < a.path.length - 1) return [0, 0]; const u = clamp(1 - (a.near || 0) / 0.6, 0, 1); return [o[0] * u, o[1] * u]; }
   function clipWhy(k){ if (!ready()) return null; const M = ST.M; return (ST.PT.lean || []).filter(l => M.ok(l.k)).map(q => { const f = fitPlace(k, q), p = M.at(q.k), F = [Math.sin(f.h), -Math.cos(f.h)], Rv = [Math.cos(f.h), Math.sin(f.h)], o = f.off || [0, 0];
     const W = v => [p[0] + o[0] + F[0] * v[0] + Rv[0] * v[2], p[1] + v[1], p[2] + o[1] + F[1] * v[0] + Rv[1] * v[2]]; return {rail:railAt(q.k, q.h), fit:f.rail, off:f.off, hits:poseSegs(k, f.rail).map(([a, b], i) => M.hit(W(a), W(b)) >= 0 ? i : -1).filter(i => i >= 0)}; }); }
-  return {tick, agents, visible, anchorOf, on, setPlan, landSlots:() => ready() ? landSlots() : [], landNow, iceBox:() => ready() ? iceBox() : null, setCrane, setIce,
+  return {tick, agents, visible, anchorOf, on, setPlan, poseLines:(k, rail) => poseSegs(k, rail), hitsAt:(k, cell, h, rail, off) => { const M = ST.M, p = M.at(cell), F = [Math.sin(h), -Math.cos(h)], Rv = [Math.cos(h), Math.sin(h)], o = off || [0, 0]; return poseSegs(k, rail).map((q, i) => M.hit([p[0] + o[0] + F[0] * q[0][0] + Rv[0] * q[0][2], p[1] + q[0][1], p[2] + o[1] + F[1] * q[0][0] + Rv[1] * q[0][2]], [p[0] + o[0] + F[0] * q[1][0] + Rv[0] * q[1][2], p[1] + q[1][1], p[2] + o[1] + F[1] * q[1][0] + Rv[1] * q[1][2]]) >= 0 ? i : -1).filter(i => i >= 0); }, landSlots:() => ready() ? landSlots() : [], landNow, iceBox:() => ready() ? iceBox() : null, setCrane, setIce,
     // (for the view: nothing of the boat between two points in her frame, and the first thing of her under a point, its height)
-    clearLine:(a, b) => !ready() || ST.M0.hit(a, b) < 0, dropY, quaySide:() => ready() ? quaySide() : 1, netTubs:n => ready() ? netTubs(n) : [], gear:() => ready() && !src && S.pgear ? rigGear() : null, magOn:() => ready() && magOn(), NET_TUB, setJig, setRoll, setSea, seaRoom:a => ready() ? seaRoom(a) : null, seaRail:a => ready() ? seaRail(a) : null, seaStepOk:(a, dr, da) => ready() && seaStepOk(a, dr, da), seaClip, seaScan, seaFeet, setHelm, setMoor, moorMan, moorHands, moorAt, places:() => ready() ? places() : null, reset, clipNow, clipScan, clipWhy, bodyHits, kitHits, kitAt:(k, off) => ready() && kitAt(k, off), walkOff, holds, railAt:(k, h) => ready() ? railAt(k, h) : null, railNear:a => ready() ? railNear(a) : null, _st:ST};
+    clearLine:(a, b) => !ready() || ST.M0.hit(a, b) < 0, dropY, quaySide:() => ready() ? quaySide() : 1, netTubs:n => ready() ? netTubs(n) : [], gear:() => ready() && !src && S.pgear ? rigGear() : null, magOn:() => ready() && magOn(), lineTubs, stools:() => ready() && !src && !(ST.G || {}).hand ? stools() : [], setMag:P => { TUBC.mag = P && P.length ? P : null; }, tubAccount:() => TUBL, tubWhy:() => { if (!ready()) return null; const tg = tubCount(), kind = tg.op ? tg.op.kind : TUBL.Wk || 'set', P = tubSpots(), j = TUBL.job ? null : STAMPER.want(TUBL, tg.op), a = j ? tubCarrier(tg.op)[0] : null;
+    const p0 = j ? tubPos(j.from.at, j.from.i, kind, (STAMPER.by(TUBL, j.id) || {}).wk) : null, p1 = j ? tubPos(j.to.at, j.to.i, kind) : null; return {spots:P, job:j, who:a ? a.id : null, s0:j && a ? tubStand(p0, j.from.at === 'slot' ? tubSlot(0)[1] : j.from.at === 'nest' ? P.nest[1] : p0[1], a.id) : null, s1:j && a ? tubStand(p1, j.to.at === 'slot' ? tubSlot(0)[1] : j.to.at === 'nest' ? P.nest[1] : p1[1], a.id) : null, p0, p1, pace:TUBL.pace, cs:TUBL.cs, comp:(() => { const C = deckComp(ST.M), c = a ? ST.M.cellOf(a.x, a.z) : -1, PT = ST.PT || {}; return {me:c >= 0 ? C[c] : null, haling:PT.haling && PT.haling.k != null ? C[PT.haling.k] : null, sloy:PT.sloy && PT.sloy.k != null ? C[PT.sloy.k] : null, nComp:Math.max(...C) + 1}; })()}; }, NET_TUB, setJig, setRoll, setSea, seaRoom:a => ready() ? seaRoom(a) : null, seaRail:a => ready() ? seaRail(a) : null, seaStepOk:(a, dr, da) => ready() && seaStepOk(a, dr, da), footOk:(a, x, z) => !ready() || footOk(a, x, z), footY:(a, x, z) => ready() ? footY(a, x, z) : a.y, seaClip, seaScan, seaFeet, setHelm, setMoor, moorMan, moorHands, moorAt, places:() => ready() ? places() : null, reset, clipNow, clipScan, clipWhy, bodyHits, kitHits, kitAt:(k, off) => ready() && kitAt(k, off), walkOff, holds, railAt:(k, h) => ready() ? railAt(k, h) : null, railNear:a => ready() ? railNear(a) : null, _st:ST};
 }
 const CREW3D = crewSim(null);
 // where the lines and the fenders are, in the boat's frame (x to starboard, z aft) from the model's measures (vessel3d.js geoOf), with the
@@ -1066,6 +1428,557 @@ function seaState(){ return {qr:0, vr:0, qf:0, vf:0, hy:0, y:null, k:0, env:0, e
 // how much further forward a knee goes when its leg, dref long from hip to ankle before, is dnow long (the thigh and the shin keep
 // their length, so a shorter leg is a knee more bent)
 function seaKnee(dref, dnow){ const L2 = SJOBEIN.SEG * SJOBEIN.SEG, a = dref / 2, b = dnow / 2; return Math.sqrt(Math.max(0, L2 - b * b)) - Math.sqrt(Math.max(0, L2 - a * a)); }
+// ---- the feet walking (FB3, steg 121, 16.11.2026; docs/planer/folk-2.md FB3; Jonas 16.11.2026: «Start FB3 i en ny økt»): a foot on
+// the deck stays where it was put, in the boat's frame, until the body has gone past it; then it is lifted and swung along a bow to
+// where it lands ahead (rule 5 of «Arkitekturen for bevegelsen»: planted or swinging, no skating). The step's length and its beat
+// come of the speed, as people walk: the step's length over the cadence (the walk ratio) stays near 0.0060 m per step a minute
+// (Sekiya and Nagasaki; the walk ratio of adults walking at their own pace), so L = sqrt(60 * WR * v): 0.66 m and 1.83 steps a
+// second at 1.2 m/s, 0.53 m and 1.47 at 0.78. A step is never longer than the legs reach (the figure's hips are 0.84 m over the
+// ankle, so the stance's last part is reached by the hips coming down: DROP); a faster beat makes up the rest. One who turns on
+// the spot steps round, one who stops takes a last step to stand square. The numbers are here and nowhere else; «#fot0» turns it
+// all off (the feet as the old sine, the agents without acceleration).
+const FOT = {
+  on:!(typeof location !== 'undefined' && /fot0/.test(String(location.hash || ''))),
+  WR:0.0060,      // m per (step a minute): the walk ratio, step length over cadence
+  SWF:0.84,       // the share of a step's time the swinging foot is in the air (stance 58 % of a stride, swing 42 %)
+  TSW:[0.24, 0.55],   // s: the shortest and the longest swing
+  TREST:0.36,     // s: a swing on the spot (turning, the last step)
+  LIFT:0.075,     // m the ankle goes up at most in the swing (less for a short step)
+  TURN:0.45,      // rad the body turns from a foot before that foot steps round after it
+  NEAR:0.02,      // m from where a foot should stand (standing) that is near enough: no last step
+  SEP:0.17,       // m: the least between the two feet where one is put down
+  RISE:0.45,      // m: the most a foot is put down over or under where he stands (a step on deck, walkY)
+  OTHER:0.16,     // m: the least between a foot put down and anyone else's (two passing on a narrow deck)
+  REACHK:0.9,     // the share of the legs' reach a foot is put down at, at most (the rest is for the speed that grows in the swing, and the turn)
+  HURRY:[0.75, 0.01],    // the foot that stands past this share of the reach (from where it would stand under him) hurries the other's swing: once more for each so many m past it
+  DROP:0.085,     // m: the most the hips come down walking for a foot to reach (LEMMER.DROP standing)
+  DIP:0.02,       // m the hips are lower walking at 1.2 m/s (the knee a little bent through the stance)
+  SWAY:0.022,     // m the hips go over the foot that stands
+  ARM:1,          // the arms' swing, a share of the old one (0.15 m each way at the hand) at a full step
+  CARRY:{len:0.82, arm:0, dip:0.035},   // one who carries: a shorter step, no swing of the arms, lower hips
+  ACC:2.5,        // m/s² the agents speed up and slow down at (deckcrew tick): at full speed in 0.5 s, about a step (2 was asked for; the shortest ways took 15-21 % longer, the work as a whole up to 10 %: tests/crewwalk.py)
+  VMIN:0.06,      // m/s: slower is standing (for the gait)
+  TV:0.1,         // s: the speed and the turn are taken over this long (the frames' own jitter out of it)
+  log:null,       // the tests: an array footStep writes each foot's planting to
+  clock:null      // the tests: s, the drawing's clock for the feet instead of the page's (tests/fotgli.py steps it with the agents)
+};
+// one person's feet from frame to frame: where each stands on the deck (x, z in the boat's frame) and its heading there, which one
+// swings and how far (u), and what footStep last gave (o)
+function footState(){ return {snap:true, f:[{x:0, z:0, y:0, h:0, up:false}, {x:0, z:0, y:0, h:0, up:false}], sw:-1, u:0, from:null, Tsw:FOT.TREST, ds:1, nx:1, px:0, pz:0, ph:0, vx:0, vz:0, w:0, sl:0,
+  o:{on:false, fa:[0, 0], fr:[-0.12, 0.12], fy:[0, 0], lift:[0, 0], dh:[0, 0], plant:[true, true], hipY:0, hipR:0, arm:0, v:0, L:0, cad:0}}; }
+// where someone's feet are for the others' to keep clear of: each that stands, and where the one in the air will land (s his footState)
+function footSpots(s){ return s.f.map(f => f.up && s.tg ? s.tg : [f.x, f.z]); }
+// the step's length at a speed (m, m/s), within what the legs reach horizontally (reach: m ahead or behind the hips a foot can be at most)
+function footLen(v, reach){ return Math.min(Math.sqrt(60 * FOT.WR * Math.max(0, v)), reach > 0 ? reach * FOT.REACHK / (1 - FOT.SWF / 2) : Infinity); }
+// the feet of one person walking or standing on a deck: s his state (footState), inp:
+//   x, z, h   where he is and his heading in the boat's frame (m; rad, 0 ahead along -z, as the agents have it)
+//   dt        s since the last call (none, or over half a second: the feet are put under him, nothing swings)
+//   w         [left, right] m out from his middle each foot stands (the sea legs' width)
+//   reach     m a foot may be ahead of or behind the hips (the legs' reach with the hips down FOT.DROP)
+//   carry     he carries something (the shorter step)
+//   ok        (x, z) => whether a foot may be put down there (nothing in the way); none: anywhere
+//   avoid     [[x, z], ...] the feet of the others near him (none: nobody)
+//   y, fy     the deck's height under him, and (x, z) => under a foot there (none: level)
+// Gives (the same object each time, s.o): fa, fr each foot's place [left, right] ahead and to his right of where he is (m), fy the
+// deck's height under it over the deck under him (a step), lift its height off the deck, dh its heading less his (a foot that stands keeps its own), plant whether it stands, hipY the hips' way down
+// walking, hipR their way to his right (over the foot that stands), arm the arms' swing (-1 to 1, the right arm ahead when it is
+// over 0), v the speed, L the step's length, cad steps a second, on whether the gait has the feet (walking, or a step not done).
+// Pure but for s.
+function footStep(s, inp){
+  // (a long frame, the tablet at 15 a second, is gone through in steps of at most 1/40 s from where he was, so the swing and its
+  // hurry have the time they need; the feet are the same as at 60 a second)
+  if (!s.snap && Math.hypot(inp.x - s.px, inp.z - s.pz) > 0.6) s.snap = true;   // (put somewhere else at once: the feet with him)
+  const dt = inp.dt; if (!s.snap && dt > 1 / 40 && dt <= 0.5){ const n = Math.ceil(dt * 40), x0 = s.px, z0 = s.pz; let dh = inp.h - s.ph; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI; const h0 = s.ph, q = Object.assign({}, inp, {dt:dt / n});
+    for (let i = 1; i <= n; i++){ const u = i / n; q.x = x0 + (inp.x - x0) * u; q.z = z0 + (inp.z - z0) * u; q.h = i === n ? inp.h : h0 + dh * u; footStep1(s, q); } return s.o; }
+  return footStep1(s, inp); }
+function footStep1(s, inp){
+  const C = FOT, o = s.o, dt = inp.dt, x = inp.x, z = inp.z, h = inp.h, w = inp.w || [0.12, 0.12], F = [Math.sin(h), -Math.cos(h)], R = [Math.cos(h), Math.sin(h)], sd = i => i ? 1 : -1;
+  const home = (i, lead, px, pz, hh) => { const Fa = [Math.sin(hh), -Math.cos(hh)], Ra = [Math.cos(hh), Math.sin(hh)]; return [px + Fa[0] * lead + Ra[0] * sd(i) * w[i], pz + Fa[1] * lead + Ra[1] * sd(i) * w[i]]; };
+  let dh = h - s.ph; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI;
+  if (s.snap || !(dt >= 0) || dt > 0.5){ s.snap = false; for (const i of [0, 1]){ const p = home(i, 0, x, z, h); s.f[i] = {x:p[0], z:p[1], y:inp.y || 0, h, up:false}; } s.sw = -1; s.u = 0; s.vx = s.vz = s.w = 0; s.ds = 1; s.px = x; s.pz = z; s.ph = h; }
+  else if (dt > 0){ const k = 1 - Math.exp(-dt / C.TV); s.vx += ((x - s.px) / dt - s.vx) * k; s.vz += ((z - s.pz) / dt - s.vz) * k; s.w += (dh / dt - s.w) * k; s.px = x; s.pz = z; s.ph = h; }
+  const v = Math.hypot(s.vx, s.vz), walk = v > C.VMIN, cy = inp.carry ? C.CARRY : null, L = walk ? footLen(v, inp.reach) * (cy ? cy.len : 1) : 0, Ts = walk ? L / v : Infinity;
+  const Tsw = walk ? Math.min(C.TSW[1], Math.max(C.TSW[0], C.SWF * Ts)) : C.TREST, lead = walk ? Math.min(L * (1 - C.SWF / 2), (inp.reach || Infinity) * C.REACHK) : 0, DS = walk ? Math.max(0, Ts - Tsw) : 0.05;
+  const rel = q => { const dx = q[0] - x, dz = q[1] - z; return [dx * F[0] + dz * F[1], dx * R[0] + dz * R[1]]; };
+  // (the way he goes: the feet land ahead along it, not along his heading, so side on in a squeeze or backing off he steps all the
+  // same; kontrollen 16.11.2026. And how far a foot is from where it would stand under him, whichever way that is)
+  const U = walk ? [s.vx / v, s.vz / v] : F, back = j => -((s.f[j].x - x) * U[0] + (s.f[j].z - z) * U[1]), off = j => { const q = home(j, 0, x, z, h); return Math.hypot(s.f[j].x - q[0], s.f[j].z - q[1]); };
+  // (where a foot lands: ahead of where he will be when it is down, with his heading then; moved in towards him while the deck has
+  // something there, and clear of the other foot)
+  const target = (i, rem) => { const hh = h + s.w * rem, px = x + s.vx * rem, pz = z + s.vz * rem, Ra = [Math.cos(hh), Math.sin(hh)], Fa = [Math.sin(hh), -Math.cos(hh)], ca = Math.cos(s.w * rem), sa = Math.sin(s.w * rem), Ut = [U[0] * ca - U[1] * sa, U[0] * sa + U[1] * ca];   // (the way he goes turned as he turns, until it is down)
+    // (out from anyone else's feet, inp.avoid, by OTHER, and from his other foot by SEP, along the line between them, or to his own
+    // side when they would be on one spot)
+    const away = (q, px2, pz2, m) => { let ex = q[0] - px2, ez = q[1] - pz2, d = Math.hypot(ex, ez); if (d >= m) return q; if (d < 1e-4){ ex = Ra[0] * sd(i); ez = Ra[1] * sd(i); d = 1; } return [px2 + ex / d * (m + 1e-3), pz2 + ez / d * (m + 1e-3)]; };
+    const clear = q => { for (let n = 0; n < 2; n++){ if (inp.avoid) for (const p of inp.avoid) q = away(q, p[0], p[1], C.OTHER); q = away(q, s.f[1 - i].x, s.f[1 - i].z, C.SEP); } return q; };
+    // (where it lands: ahead of where he will be when it is down, with his heading then; else nearer him, a little behind, narrower:
+    // the first the deck has room for, clear of the feet)
+    // (none clear of both: the first the deck has room for, close to another's foot rather than in a wall)
+    const C0 = [[1, 1], [0.66, 1], [0.33, 1], [0, 1], [0.33, 0.5], [0, 0.5], [-0.3, 1], [-0.3, 0.5], [0.66, 0.5]].map(([m, wk]) => { const a0 = lead * m + (m < 0 ? -0.15 : 0); return [px + Ut[0] * a0 + Ra[0] * sd(i) * w[i] * wk, pz + Ut[1] * a0 + Ra[1] * sd(i) * w[i] * wk]; });
+    for (const c of C0){ const q = clear(c); if (!inp.ok || inp.ok(q[0], q[1])) return [q[0], q[1], hh]; }
+    for (const c of C0){ const q = away(c, s.f[1 - i].x, s.f[1 - i].z, C.SEP); if (inp.ok(q[0], q[1])) return [q[0], q[1], hh]; }
+    const q = clear(C0[0]); return [q[0], q[1], hh]; };
+  if (s.sw < 0){ s.ds += dt || 0;
+    // which foot goes next: walking, the other one than last; standing, the one furthest from where it should be
+    let i = s.nx; const err = j => { const q = home(j, lead, x, z, h), f = s.f[j]; if (!walk && f.hx && Math.hypot(f.hx[0] - q[0], f.hx[1] - q[1]) < C.NEAR) return 0;   /* (it went for this place and was put where there was room: settled) */ return Math.hypot(f.x - q[0], f.z - q[1]); }, turn = j => { let a = h - s.f[j].h; while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return Math.abs(a); };
+    if (!walk && err(1 - i) + turn(1 - i) * 0.2 > err(i) + turn(i) * 0.2) i = 1 - i;
+    const far = Math.max(off(i), off(1 - i));
+    const go = walk ? (s.ds >= DS && back(i) > -0.05) || far > (inp.reach || Infinity) * 0.97 : err(i) > C.NEAR || turn(i) > C.TURN;
+    if (go){ s.sw = i; s.u = 0; s.from = [s.f[i].x, s.f[i].z, s.f[i].h, s.f[i].y]; s.Tsw = Tsw; s.f[i].up = true; s.sl = 0; s.hx = walk ? null : home(i, 0, x, z, h); } }
+  if (s.sw >= 0){ const i = s.sw; s.Tsw += (Tsw - s.Tsw) * Math.min(1, (dt || 0) / 0.2);
+    // (the foot that stands must not be left further behind than the legs reach: the swing is hurried then)
+    const so = off(1 - i), hurry = inp.reach && so > inp.reach * C.HURRY[0] ? 1 + (so - inp.reach * C.HURRY[0]) / C.HURRY[1] : 1;
+    s.u = Math.min(1, s.u + (dt || 0) / s.Tsw * hurry); const q = target(i, (1 - s.u) * s.Tsw), e = s.u * s.u * (3 - 2 * s.u), f = s.f[i]; s.tg = [q[0], q[1]];   // (where it will land: for the others' feet, footSpots)
+    let da = q[2] - s.from[2]; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
+    f.x = s.from[0] + (q[0] - s.from[0]) * e; f.z = s.from[1] + (q[1] - s.from[1]) * e; f.h = s.from[2] + da * e;
+    // (along a bow out round the foot that stands, where the straight way would pass nearer it than SEP)
+    { const g = s.f[1 - i], dx = q[0] - s.from[0], dz = q[1] - s.from[1], l2 = dx * dx + dz * dz; if (l2 > 1e-6){ const k = Math.max(0, Math.min(1, ((g.x - s.from[0]) * dx + (g.z - s.from[1]) * dz) / l2)), cx = s.from[0] + dx * k - g.x, cz = s.from[1] + dz * k - g.z, dm = Math.hypot(cx, cz);
+      // (the bow at its widest where the way is nearest the other foot, k along it, and nothing at either end)
+      if (dm < C.SEP){ let nx = cx, nz = cz; if (dm < 1e-4){ nx = R[0] * sd(i); nz = R[1] * sd(i); } else { nx /= dm; nz /= dm; } const kk = Math.max(0.15, Math.min(0.85, k)), wv = e < kk ? Math.sin(Math.PI / 2 * e / kk) : Math.sin(Math.PI / 2 * (1 - e) / (1 - kk)), b = (C.SEP - dm) * wv; f.x += nx * b; f.z += nz * b; } } }
+    const ty = inp.fy ? inp.fy(q[0], q[1]) : null; f.y = s.from[3] + ((ty == null ? (inp.y || 0) : ty) - s.from[3]) * e;
+    const len = Math.hypot(q[0] - s.from[0], q[1] - s.from[1]); s.sl = Math.max(s.sl, len);
+    o.lift[i] = C.LIFT * Math.min(1, 0.4 + s.sl / 0.5) * Math.sin(Math.PI * s.u); o.lift[1 - i] = 0;
+    if (s.u >= 1){ f.up = false; f.hx = s.hx; o.lift[i] = 0; s.sw = -1; s.nx = 1 - i; s.ds = 0; if (C.log) C.log.push({i, x:f.x, z:f.z, L:len}); } }
+  else o.lift[0] = o.lift[1] = 0;
+  for (const i of [0, 1]){ const q = rel([s.f[i].x, s.f[i].z]); o.fa[i] = q[0]; o.fr[i] = q[1]; o.fy[i] = s.f[i].y - (inp.y || 0); let a = s.f[i].h - h; while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; o.dh[i] = a; o.plant[i] = !s.f[i].up; }
+  const k = Math.min(1, v / 1.2), sw = s.sw >= 0 ? Math.sin(Math.PI * s.u) : 0;
+  o.hipY = -(cy ? cy.dip : C.DIP) * k; o.hipR = s.sw >= 0 ? C.SWAY * Math.min(1, 0.3 + k) * sw * sd(1 - s.sw) : 0;
+  o.arm = Math.max(-1, Math.min(1, (o.fa[0] - o.fa[1]) / 0.56)) * (cy ? cy.arm : C.ARM);
+  o.v = v; o.L = L; o.cad = walk ? v / Math.max(L, 1e-3) : 0;
+  o.on = walk || s.sw >= 0 || Math.abs(o.dh[0]) > C.TURN / 2 || Math.abs(o.dh[1]) > C.TURN / 2 || Math.max(...[0, 1].map(i => Math.hypot(o.fa[i], o.fr[i] - sd(i) * w[i]))) > C.NEAR;
+  return o;
+}
+// ---- the limbs (FB2, steg 123, 13.11.2026; docs/planer/folk-2.md; Jonas: «Kjør på med FB2 i en ny økt»): the upper arm, the forearm,
+// the thigh and the shin keep their length. A hand or a foot is where the work has it, and the elbow or the knee is found from it
+// (ik2, the reckoning armTo had for the skiff's skipper); a hand further off than the arm reaches takes the body with it (reachBody:
+// the back bends, the torso turns), a foot further off lowers the hips (legDrop), and only what is left moves the hand or the foot in.
+// The numbers are here and nowhere else. The lengths are one person's (limbLen), so a build can have its own (FB5b); the start
+// values are the figure's as drawWorker drew it standing before (tests/lemmer.py measured them: 0.575 m from the shoulder to the
+// wrist with the arm hanging, drawn as 0.39 + 0.21 with the elbow low; here the same arm, 0.585 m, shared as a body shares it, 55 to
+// 45; 0.84 m from the hip to the ankle with the knee 7 cm ahead, 0.426 + 0.426).
+// It is on only behind «#folk2» in the address, with the new people (Jonas 13.11.2026: «det er disse kroppene som skal brukes i det
+// ferdige resultatet»: the hands' points are tuned on the new body, FB7); without it the limbs are drawn, and the clip guard reckons,
+// as before the step. «#ik0» turns it off there too.
+const LEMMER = {
+  on:typeof location !== 'undefined' && (typeof FOLK2 !== 'undefined' ? FOLK2 : /folk2/.test(String(location.hash || ''))) && !/ik0/.test(String(location.hash || '')),   // (FOLK2: vessel3d.js, the test edition too)
+  STD:{ua:0.32, fa:0.265, th:0.426, sn:0.426},   // m: upper arm, forearm (to the wrist), thigh, shin (to the ankle)
+  LEN:{},         // the new people's lengths by body ('m', 'f'), read from the skeleton the first time (limbLen)
+  HAND:0.085,     // m from the wrist to where a hand holds, for the one-piece glove far off (near, each grip has its own point)
+  get REACH(){ return this.on ? FIG_REACH : this.REACH0; },   // the share of its full length a limb is straightened to at most: figpose.js FIG_REACH (0.98) with the new people
+  REACH0:0.995,   // the same without «#folk2», as before step 125 (goes out with the old figure)
+  get BEND(){ return this.on ? 0.72 : 0.6; },   // rad (34°; 41° with the new people, whose arms are shorter and never quite straight): the most the back bends further over to let a hand reach
+  BACK:0.12,      // rad (7°): the most it leans back for one
+  TWIST:0.6,      // rad (34°): the most the torso turns either way for one
+  TWISTW:2,       // how much dearer a turn is than a bend (the back bends before the torso turns)
+  CROSS:[0.1, 1.4],  // a hand that reaches across him turns the torso after it first: from this far past his middle (m), this many rad a metre further (with the new people)
+  DROP:0.06,      // m: the most the hips come down to let a foot reach the deck (the stride walking, a foot put out)
+  SH:[0.5, 0.21], // m: the shoulder joint over the hips along the spine, and out from it
+  ELBOW:[-0.5, -1, 0.1],   // the way an elbow points in the torso's frame [ahead, up, out]: down, back and a very little out (more, and it went into what he stands beside: tests/crewclip.py)
+  ELBOWHI:0,      // straight down instead of back and out, with the hand up by the shoulder (from 25 cm under it to 5 cm over): the elbow under a raised hand
+  CLEAR:0.22,     // m out from the spine an elbow keeps when it is beside the torso (the torso's half width and the arm's, the sleeve against the jacket)
+  FOLD:0.2,       // m from the shoulder a wrist keeps at the least (an elbow does not fold further than some 40°)
+  CHEST:0.13,     // m ahead of the spine a wrist keeps before the chest and the belly (never in his own body)
+  FRONT:0.2,      // and when it is well across him, beyond his middle (it goes round before the belly, not through it)
+  BELLY:0.13,     // m ahead of the spine an elbow keeps when it is before the torso (a hand reaching across him)
+  WRIST:0.035,    // m a wrist keeps clear of the trunk's own profile with the new people (its half thickness with the sleeve; figpose.js figProfile)
+  prof:null,      // the trunk's profile of the figure being solved (drawWorker sets it for its arms and takes it away after); none: CHEST and FRONT as before
+  KNEE:[1, 0.15], // the way a knee points: ahead and a little up
+  fr:0,           // the tests: how many times the people on deck have been drawn (view3d/20-trawl-seine.js drawDeckCrew)
+  dry:false,      // the tests: inside LEMMER.redraw, where nothing is drawn
+  log:null        // the tests: an array drawWorker writes the joints it drew to (tests/lemmer.py)
+};
+// What a hand holds close to the body, by its own measures (FB7, steg 125; Jonas 13.11.2026: «Sørg for at objekter ikke kan clippe
+// inn i menneskene»; rules 7 and 10 of «Arkitekturen for bevegelsen», docs/planer/folk-2.md): the thing has its grips in its own
+// frame, it is put clear of the trunk's profile first (figpose.js figProfile, the mesh that is drawn), and the hands are solved to
+// its grips after. drawWorker (view3d/08-plants.js holdClear) reads this (HOLD is the cinema's in the 3D view); the things' measures are their models' own
+// (G3._debug.thingBox, python3 tests/folk2diag.py).
+const HOLDT = {
+  GAP:0.02,      // m between a thing and the body's clothes at the least
+  FIST:0.045,    // m: half a fist round a handle (a hand's own point is its fist's middle)
+  HAND:0.03,     // m a bare hand's point keeps ahead of the trunk (a hand laid on the chest, the arms crossed)
+  // (the gutter's two crates of steg 125b, gutbox, are out since steg 125e: Jonas 15.11.2026 «Jeg vil heller ikke at mannskapet bærer på
+  // kasser og sånt som ikke eksisterer»; the bleeding tub stands at his left hand on the decks laid out in 125d, and the account of the fish, FISKVEI)
+  table:{bord:0.32, benk:0.55, off:0.15},   // m along the gutting table from its middle a gutter's own part of it may be (the plastic table is 1.15 m long, the steel bench 1.60, the fish 0.4), and how far past that he may stand and still reach it; further along he guts standing free
+  SIDE:0.03,     // m inside the trunk's half width a hand's point still counts as by his side (the arm's matter, not moved out ahead)
+  // rad his back may be bent (the pose's bend and what the reach adds) and still count as straight, for the poses named: only then is a hand before his belly
+  // moved out ahead (the packer bent 0.9 to 1.2 over his crate: «ahead» of the torso points down into it there). Not a rule for every pose: measured 14.11.2026
+  // with 0.3 and 0.42 for all, the gutter at the tub, the baiter on his seat and the one who unhooks got 6 to 13 cm back, which the rule had taken away
+  STRAIGHT:{pack:0.6},
+  HANG:0.012,    // m a hand hanging by the hip keeps beyond the trunk's half width and the wrist's clearance
+  HANGY:0.04,    // m higher the hanging hands of one who stands or walks are than the old body's (the new arm is that much shorter)
+  FACE:0.03,     // m a thing held to the face may press into it at the most (the cup's rim at the lips, the binoculars' eyecups)
+  LEG:[0.075, 0.055],   // m: half a thigh and half a shin with the trousers (what he holds keeps clear of his legs too)
+  seat:0.9,      // the upturned box he sits on, its height's scale (0.98 with the old figure): its top is under the new thighs, which were 4 cm down in it
+  egn:{at:[0.16, 0.3, 0.4], box:[0.6, 0.59]},   // the baiter's bucket from where he sits [ahead, up, to his right] (m): on an upturned box by his right knee; the box's scale (its width and its height: 0.3 m)
+  // the wooden stools (tools/deck/pause.py krakk, steg 125d): the seat's height, half its width over the feet, and how far behind where
+  // he stands the stool he sits on is (the seat under the hips, as the upturned box was drawn: drawWorker W(-0.06)); the bucket on the
+  // other stool by his right knee at egn.at, its foot on the seat (steg 125f, Jonas 15.11.2026: «En krakk til»)
+  krakk:{H:0.46, half:0.21, back:0.06},
+  bleed:{dip:0.95, knee:[0.62, 0.24, 0.25]},   // how far down in his knees the bleeder goes for a fish that lies on the deck (workLow's dip; 0.62 with the old figure, whose arm was longer: the hand was 12 cm short of the fish), and where the hand that waits hangs meanwhile, down by his right foot [ahead, up, to his right]
+  fish:{r:0.11, at:[0.25, 0.5, 0.8], swap:[0.08, 0.55], round:0.36, thr:[0.1, 0.15, 0.85, 1.4]},   // a fish hanging from the hand at the gutting: its half thickness and the points down it that are tried (shares of its size and its length); swap: m nearer his right shoulder than his left the tub is for the right hand to take the fish out of it, and the share of the way to the table's edge where it changes hands; round: m from his own middle the gutted fish keeps on its way through the air to the crate (thrown round him when the crate is behind him), thr: his middle m ahead of his feet, the shares of the throw between which its nearest point to him is looked for, and how many times what it lacks the bow may be
+  // the fish box carried across him (Jonas 14.11.2026, with two pictures of boxes carried: «Tror også du må jobbe med grepet på
+  // kasse-bæringen»): the hands are under its bottom, the palms up, and it rests against his belly. Half its depth and its length,
+  // its bottom and its ice from the hands' height, a hand's point from its middle [to either side, ahead, under its bottom], and
+  // what is left between it and his clothes
+  // squat: how far down the hips come for a box at the deck (the share of workLow's dip; 1.1: the hips half a metre down, the back
+  // straight: with 0.55 the back went 41 degrees over the box and the box 7 cm into him), lean: rad he leans back carrying it,
+  // stow: where the hands are when it is let down into the hatch [m ahead, over the deck], from where he carried it,
+  // most: m it is moved out ahead of him at the most
+  // the line tub carried before him by its two ears (tools/deck/rigg.py stamp: the bail's lugs, 0.334 m up the 0.38 m tub; steg 125f):
+  // the hands' point [ahead, up, to either side] as he carries it, the ears' height on the tub, its outside half width, and the gap
+  // kept to his clothes
+  tubc:{grip:[0.46, 0.93, 0.27], lug:0.345, r:0.235, gap:0.02},
+  box:{depth:0.19, half:0.39, lo:0, hi:0.3, grip:[0.3, 0.02, 0.015], gap:0.005, squat:1.1, lean:0.07, most:0.14, stow:[0.66, 0.5]},
+  // a shovel's shaft: its half thickness, and the points down it from the upper hand that are tried (m). The shovel is stiff: len from
+  // the D grip in the upper hand to the blade's socket (the model's metre drawn at this), low the lower hand's place down it; hip where
+  // the upper hand would be, from his hips [ahead, up, to his right] (the shaft goes from the blade towards it), and turn the share of
+  // the way round to the blade his body turns on its feet and the angle (rad) the blade is kept to the right of where he then faces
+  // (the upper hand is his left: the shovel is before him and to his right, never across him or behind his own hand)
+  // full: the share of the way back to its round from which there is ice on the blade again; back: s the shovel takes from over the crate, where he takes it up again after laying a fish straight, to where its round has it
+  shaft:{r:0.02, at:[0.12, 0.24, 0.36], len:0.72, low:0.38, hip:[0.1, -0.05, -0.3], turn:[0.85, 0.3], back:0.4, full:0.95},
+  // the gaff (fish:hott, 90 cm): m from its tip to the fore hand, the back hand, its butt and its model's own middle. home: where
+  // the back hand would be, from his hips [ahead, up, to his right]; chest and reach: how far from his chest [ahead, up from the
+  // deck, right] the tip gets over the rail; lift: the tip over the rail on its way in [ahead, over where the fish comes aboard,
+  // right]; turn: rad he turns on his feet towards where the fish is let go, at the most; out: m from where he stands the tip is
+  // at the least there; dip: how far down on the knees the reach over the rail takes him (workLow)
+  gaff:{r:0.022, grip:[0.6, 0.86], butt:0.91, org:0.66, home:[0.385, 0.2, 0.06], chest:[0.2, 1.3, 0.1], reach:1.25, lift:[1.25, 0.45, 0.08], turn:2.3, out:0.5, dip:0.25},
+  cup:{r:0.05, sip:[0.066, -0.015, 0.03], tip:0.7, from:0.45},   // … tip: rad it is tipped at the sip, from this share of the lift up (the rim is then 6 cm nearer him and 1 cm over the hand's point)
+  broom:{low:0.25},                           // the lower hand's place down the broom's line from the upper hand to its head (the share of it)
+  // the work he keeps his eyes on: he does not look up at the camera from it
+  eyes:{sweep:1, gutw:1, gut:1, knife:1, cut:1, pack:1, ice:1, haul:1, pick:1, bleed:1, bleedst:1, egn:1, strip:1, mend:1, phone:1, stack:1, stow:1, carry:1, jig:1, jigup:1, gaff:1, sett:1, tend:1, unhook:1, coil:1, binoc:1},    // the mug: its half width with the handle; the hand's point from the mouth at a sip [ahead, up, to its side]
+  food:{r:0.04, bite:[0.035, -0.015, 0.025], tip:0.7, from:0.4}, // the food in the hand that takes the bite, its point from the mouth at a bite, and the rad it is turned to the mouth, from this share of the lift up
+  smoke:{r:0.015, at:[0.045, 0, 0.015]},      // the cigarette between the fingers, from the mouth at a draw
+  snus:{at:[0.025, 0.015, 0.02]},             // the fingers at the upper lip
+  blow:{at:[0.085, -0.05, 0.035]},            // the hands blown into, from the mouth
+  phone:{r:0.04},
+  blade:{r:0.15, legs:[0.3, 0.36]},           // the shovel's blade: its half width, and the room his legs have of it under the hips (m ahead of them and to either side: its socket keeps outside that)
+  kikk:{r:0.04, eye:0.072, wide:0.07, low:0.0, scan:[0.22, 0.25]}    // the binoculars: half their height, their middle ahead of the eyes, a hand to either side of it, and under the eyes' line; scan: how fast and how far (rad) he turns his head with them, the hands going with them
+};
+// The waiting rule (FB7, steg 125 sixth session; Jonas 14.11.2026, «Valg A»): nobody starts a take while another stands in the way of
+// the thing. Between two people it is this, not geometry in the pose, that keeps one man's thing out of another: the hauler does not
+// gaff the next fish while the bleeder is down at the last one in the gaff's sweep (view3d/09-landing-deck.js dkWaits), the gutter
+// who has the man beside him between himself and the tub takes his fish from the table (view3d/20-trawl-seine.js drawDeckCrew), and
+// the packer holds his shovel over the crate while somebody walks past the ice or works a fish there. Only behind LEMMER.on.
+// Two who stand at their own places inside each other's reach all the time are the places' matter (docs/planer/arbeidsceller.md).
+const VENT = {
+  bleed:1.0,     // s of the bleeder's take (down to the fish on the deck and up with it) the hauler waits before the next fish is gaffed in
+  pass:0.45,     // m from the way between a gutter and the tub another gutter stands in it
+  table:[0.22, 0.2],   // where the fish is taken from the table instead: m along it towards the tub's side from his own part of it, and over its top
+  shovel:0.6,    // m from the way between the packer and the ice somebody who walks or works a fish is in the shovel's way
+  own:0.6,       // m out from the packer towards the ice that way begins (nearer him the blade is not: one who stands by him is not in its way)
+  bin:0.4,       // m ahead of him the ice bin at his side is (view3d/08-plants.js shovelPath, aB)
+  ease:0.35,     // s the wait comes on and goes over (the shovel to over the crate and back to its round)
+  // m from p to the way from a to b, on the deck [x, z]
+  seg(p, a, b){ const dx = b[0] - a[0], dz = b[1] - a[1], l2 = dx * dx + dz * dz, u = l2 > 1e-12 ? Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dz) / l2)) : 0; return Math.hypot(p[0] - a[0] - dx * u, p[1] - a[1] - dz * u); },
+  // is one of the others within r of the way from a to b (and of b itself: the one who stands just past the ice is in the shovel's way too)
+  inWay(a, b, others, r){ for (const o of others) if (VENT.seg(o, a, b) < r) return true; return false; },
+  // the wait's share (0 at work, 1 waiting) dt s on, towards waiting or back; closed in the time, so a slow tablet waits as long
+  blend(w, wait, dt){ const d = Math.max(0, dt) / VENT.ease; return Math.max(0, Math.min(1, w + (wait ? d : -d))); }
+};
+// One fish all the way (steg 125e, Jonas 15.11.2026: «Fisk teleporterer fra kar til sløyebenk»; «hele hendelsesforløpet fra fisken
+// kommer ombord, bløgges, legges i bløggekar, hentes for sløying, sløyes, kastes i lasterom eller kar på dekk har animasjoner»): the
+// account of the fish that are seen on deck between the bleeding tub and the hatch. A bled fish lands in the tub (bled), the gutter takes
+// one out of it when there is one and only then (gut: his round of CYC s begins; with the tub empty he waits at the table), and the
+// gutted fish goes into the hatch or the fish tub at the end of his round (out). The tub is drawn with the fish the account has in it
+// (view3d/09-landing-deck.js drawBleedTub), not the game's kilos; the game's catch (core/13-work.js) is not changed by any of it: the
+// people are the view of the game. Only behind LEMMER.on. tests/unit/fiskvei.test.mjs keeps the account.
+const FISKVEI = {
+  CYC:5.6,       // s of one fish at the gutting table (view3d/08-plants.js gutw)
+  HAND:0.6,      // s into his round the fish is out of the tub and in his hand (until then it is counted in the tub)
+  TABLE:3.35,    // s into it the fish lies on the table (laid there from his hands)
+  THROW:5.0,     // s into it it leaves the table for the hatch or the tub
+  TOSS:2.45,     // s into a bleeding the bled fish lands in the bleeding tub (08-plants.js bleed: tossed from 2.05)
+  PER:6,         // kg of the game's catch to a fish in the tub, when the account begins from what is in the hold (about one fish to 6 kg, as the tub was drawn)
+  MAX:10,        // fish in the tub at the most when it begins so
+  fresh(){ return {tub:0, gut:{}, seeded:false, n:{seed:0, bled:0, taken:0, back:0, out:0, clear:0}}; },
+  // the account begun from the game's waiting catch (kg), once: the tub is not empty when you come aboard in the middle of a haul
+  seed(L, kg){ if (L.seeded) return; L.seeded = true; const n = Math.min(FISKVEI.MAX, Math.ceil(Math.max(0, kg) / FISKVEI.PER - 1e-9)); L.tub += n; L.n.seed += n; },
+  // a bled fish has landed in the tub
+  bled(L){ L.tub++; L.n.bled++; },
+  // the gutter id's round at now (s): the fish he works ({s, n}: s into his round, n the fish's number), or null while he waits for one.
+  // A round ended counts the fish out (in the hatch or the tub); the next is taken out of the tub only when there is a fish in it
+  gut(L, id, now){ let g = L.gut[id];
+    if (g && now - g.t0 >= FISKVEI.CYC){ L.n.out++; delete L.gut[id]; g = null; }
+    if (!g && L.tub > 0){ L.tub--; L.n.taken++; g = L.gut[id] = {t0:now, n:L.n.taken}; }
+    return g ? {s:now - g.t0, n:g.n} : null; },
+  // the gutter is not at the table any more (the game gave him other work): a fish he had not laid on the table goes back in the tub
+  // (it was by the tub or in his hand), one he had laid or thrown is out at its end
+  leave(L, id, now){ const g = L.gut[id]; if (!g) return; delete L.gut[id]; if (now - g.t0 < FISKVEI.TABLE){ L.tub++; L.n.back++; } else L.n.out++; },
+  // nothing waits in the game and nobody guts: the tub is emptied with it (the catch landed, the deck washed)
+  clear(L){ if (Object.keys(L.gut).length) return; L.n.clear += L.tub; L.tub = 0; },
+  // where every fish of the account is at now: in the tub (seen there: those a gutter is still reaching for too), in a hand, on a table,
+  // in the air on its way out, out
+  where(L, now){ const w = {tub:L.tub, hand:0, table:0, air:0, out:L.n.out + L.n.clear};
+    for (const id in L.gut){ const s = now - L.gut[id].t0; if (s < FISKVEI.HAND) w.tub++; else if (s < FISKVEI.TABLE) w.hand++; else if (s < FISKVEI.THROW) w.table++; else w.air++; }
+    return w; }
+};
+
+// The line tubs aboard (steg 125f, Jonas 15.11.2026: «tomme linebøtter stables i hverandre etter hvert som lina settes»; «Jeg vil heller
+// ikke at mannskapet bærer på kasser og sånt som ikke eksisterer og som dukker opp ut av løse lufta»): the account of every line tub on a
+// boat with a crew, each by itself and where it is: in a slot of the stack at the rig's place (kit.stamps: a layer there, the rest
+// stacked on it), at one of the work spots (where the line runs from as it is set, or is coiled into as it is hauled), empty in the nest
+// (the empty tubs stand in each other), or in the hands of the one who carries it. A tub changes what it holds only where the line runs
+// (full to empty at the work spot as it is set, empty to coiled as it is hauled), and goes from one place to another only in someone's
+// hands: none comes or goes. The game's own count is the truth (core/10-gear.js S.pgear.lines and b.gop): sync follows it, and only
+// a count that cannot be followed (a jump of the clock, another boat) lays the deck out anew (n.snap). The carrying itself is the deck
+// crew's (deckcrew.js tubWork asks want for the next carry); the 3D view draws the tubs where this says (view3d/09-landing-deck.js).
+// tests/unit/stamper.test.mjs keeps the account.
+const STAMPER = {
+  CARRY:9,       // s a carry is reckoned to take (to the tub, lifted, with it, set down) before one has been timed
+  MARGIN:3,      // s to spare: the next tub is fetched only when it is set down that long before the line runs to it
+  NEXT:0.45,     // the share of the tub being filled (hauling) from which the next empty one is carried to the other work spot
+  fresh(){ return {T:[], op:null, job:null, W:1, n:{snap:0, carried:0}}; },
+  // (a tub at a work spot of the work now, L.Wk: the stern's while she sets, the hauler's while she hauls. One left at the other's
+  // spots (q.wk) stays there and is carried off; before, the change of work laid the deck out anew, steg 125f)
+  here(L, q){ return q.at === 'work' && (q.wk == null || L.Wk == null || q.wk === L.Wk); },
+  // (L.pri and L.per, set by the deck: the slots' order, i => a number, and how many slots a layer has)   // (deckcrew.js CREW3D's TUBL is the same, written out: CREW3D is made before this)
+  // the deck at rest: the coiled tubs at the bottom of the stack, the full (baited) ones on them, the empty ones in the nest
+  lay(L, tg){ const T = L.T = []; let id = 0, s = 0; const o = tg.op;
+    for (let i = 0; i < tg.coil; i++) T.push({id:id++, k:'coil', at:'slot', i:s++});
+    for (let i = 0; i < tg.full; i++) T.push({id:id++, k:'full', at:'slot', i:s++});
+    let e = 0; for (let i = 0; i < tg.empty; i++) T.push({id:id++, k:'empty', at:'nest', i:e++});
+    L.op = null; L.job = null;
+    if (!o) return;
+    // (a set or a haul under way: the tubs of it where they would be by now)
+    const ids = new Array(o.n), d = Math.min(o.done, o.n), w = d % Math.max(1, L.W);
+    if (o.kind === 'set'){ for (let i = o.n - 1; i > d; i--){ ids[i] = id; T.push({id:id++, k:'full', at:'slot', i:s++}); }
+      for (let i = 0; i < d; i++){ ids[i] = id; T.push({id:id++, k:'empty', at:'nest', i:e++}); }
+      if (d < o.n){ ids[d] = id; T.push({id:id++, k:'full', at:L.W ? 'work' : 'slot', i:L.W ? w : s++, wk:L.W ? L.Wk : undefined}); } }
+    else { for (let i = 0; i < d; i++){ ids[i] = id; T.push({id:id++, k:'coil', at:'slot', i:s++}); }
+      for (let i = o.n - 1; i > d; i--){ ids[i] = id; T.push({id:id++, k:'empty', at:'nest', i:e++}); }
+      if (d < o.n){ ids[d] = id; T.push({id:id++, k:'empty', at:L.W ? 'work' : 'slot', i:L.W ? w : s++, wk:L.W ? L.Wk : undefined}); } }
+    L.op = {key:o.key, kind:o.kind, n:o.n, ids}; },
+  by(L, id){ return L.T.find(q => q.id === id); },
+  count(L, k){ return L.T.filter(q => q.k === k).length; },
+  // what the game says the deck holds now: tg = {full, coil, empty} of the tubs that are not in the set or haul under way, and op
+  // {key, kind:'set'|'haul', n, done, prog} or null; W the work spots this deck has (0: the line runs from the tub in its own slot)
+  sync(L, tg, W, now){
+    // (the pace of the work under way, s per tub, from how fast the game's count goes on: the next tub is carried only when it gets there in time)
+    if (now != null){ const o0 = tg.op, x = o0 ? o0.done + o0.prog : null; if (o0 && L.pace && L.pace.key === o0.key){ if (x > L.pace.x + 1e-9){ const r = (x - L.pace.x) / Math.max(1e-3, now - L.pace.t); L.pace.r = L.pace.r ? L.pace.r * 0.5 + r * 0.5 : r; L.pace.x = x; L.pace.t = now; } }
+      else L.pace = o0 ? {key:o0.key, x, t:now, r:0} : null; }
+    // (fewer spots than tubs standing at them for this work: laid out anew; more, or another work's spots, and they stay where they are)
+    if (W !== L.W){ const lost = L.T.some(q => STAMPER.here(L, q) && q.i >= W) || (L.job && L.job.to.at === 'work' && L.job.to.i >= W); L.W = W; if (lost && L.T.length){ STAMPER.lay(L, tg); L.n.snap++; return; } }
+    const first = !L.T.length;
+    const o = tg.op;
+    // (the set or the haul is over: its tubs are what it left them)
+    if (L.op && (!o || o.key !== L.op.key)){ for (const id of L.op.ids){ const q = STAMPER.by(L, id); if (q) q.k = L.op.kind === 'set' ? 'empty' : 'coil'; } L.op = null; }
+    // (one begins: the set takes the full tubs from the top of the stack down, the haul the empty ones from the top of the nest)
+    if (o && !L.op){ const set = o.kind === 'set', pool = L.T.filter(q => q.k === (set ? 'full' : 'empty'));   // (the one in someone's hands too: it is one of them, and is set down first)
+      const rank = q => STAMPER.here(L, q) ? 3e3 : q.at === 'hand' ? 2e3 : q.at === 'work' ? 1.5e3 : (q.at === 'slot' ? (set ? 1e3 : 0) : set ? 0 : 1e3) + (q.at === 'slot' && L.pri ? L.pri(q.i) : q.i);
+      pool.sort((a, b) => rank(b) - rank(a));
+      if (pool.length >= o.n) L.op = {key:o.key, kind:o.kind, n:o.n, ids:pool.slice(0, o.n).map(q => q.id)}; }
+    if (o && L.op){ const d = Math.min(o.done, o.n); L.op.ids.forEach((id, i) => { const q = STAMPER.by(L, id); if (q && i < d) q.k = o.kind === 'set' ? 'empty' : 'coil'; }); }
+    // (the count the game has: the tubs of the work under way by how far it has come, and the rest)
+    const d = o ? Math.min(o.done, o.n) : 0, want = {full:tg.full + (o && o.kind === 'set' ? o.n - d : 0), coil:tg.coil + (o && o.kind === 'haul' ? d : 0), empty:tg.empty + (o ? (o.kind === 'set' ? d : o.n - d) : 0)};
+    const tot = want.full + want.coil + want.empty;
+    if (tot !== L.T.length || (o && !L.op)){ STAMPER.lay(L, tg); if (!first) L.n.snap++; return; }
+    // (the baiting and the stripping on deck change what a tub holds where it stands, not where it is: the top of the stack first)
+    const op = L.op ? new Set(L.op.ids) : new Set(), swap = (from, to, n) => { const C = L.T.filter(q => q.k === from && !op.has(q.id)).sort((a, b) => (b.at === 'slot' ? b.i : -1) - (a.at === 'slot' ? a.i : -1)); for (let i = 0; i < n && i < C.length; i++) C[i].k = to; };
+    const df = STAMPER.count(L, 'full') - want.full; if (df > 0) swap('full', 'coil', df); else if (df < 0) swap('coil', 'full', -df);
+    if (STAMPER.count(L, 'empty') !== want.empty){ STAMPER.lay(L, tg); L.n.snap++; } },
+  // the tub the line runs from (setting) or is coiled into (hauling), and how much of it is still in it (setting) or in it (hauling)
+  running(L, o){ if (!o || !L.op || o.done >= o.n) return null; const q = STAMPER.by(L, L.op.ids[o.done]); return q ? {q, f:o.kind === 'set' ? 1 - o.prog : o.prog} : null; },
+  // what each tub holds to draw it: 1 baited, 0 coiled, -1 empty, between 0 and 1 the share of the line left in it (setting) or come in (hauling)
+  fillOf(L, q, o){ if (q.k === 'empty'){ const r = STAMPER.running(L, o); return r && r.q === q ? Math.max(0.001, r.f) : -1; }
+    if (q.k === 'full'){ const r = STAMPER.running(L, o); return r && r.q === q ? Math.max(0.001, r.f) : 1; } return 0; },
+  // the places taken now or by a carry on its way to them
+  taken(L, at, i){ return L.T.some(q => q.at === at && q.i === i && (at !== 'work' || STAMPER.here(L, q))) || !!(L.job && L.job.to.at === at && L.job.to.i === i && (at !== 'work' || L.job.wk == null || L.Wk == null || L.job.wk === L.Wk)); },
+  freeWork(L){ for (let w = 0; w < L.W; w++) if (!STAMPER.taken(L, 'work', w)) return w; return -1; },
+  // (a free slot to set a tub in: with L.pri, the deck's order of the slots (the higher the sooner a tub is taken from it), the one
+  // last in that order that has a tub under it or none to have; else the first free one)
+  // (L.slotOk, set by the deck: whether a slot can be reached from where the work is now; one that cannot is taken only when no other is free)
+  freeSlot(L){ if (!L.pri || !L.per){ for (let s = 0; ; s++) if (!STAMPER.taken(L, 'slot', s)) return s; }
+    for (const reach of [true, false]){ let best = -1, bv = Infinity; for (let s = 0; s < L.T.length + 2 * L.per; s++){ if (STAMPER.taken(L, 'slot', s) || (s >= L.per && !STAMPER.taken(L, 'slot', s - L.per)) || (reach && L.slotOk && !L.slotOk(s))) continue; const v = L.pri(s); if (v < bv){ bv = v; best = s; } } if (best >= 0) return best; }
+    return 0; },
+  nestTop(L){ return L.T.filter(q => q.at === 'nest').length + (L.job && L.job.to.at === 'nest' ? 1 : 0); },
+  // the next carry the deck needs (null: none): {id, from:{at, i}, to:{at, i}}. The one the line is about to run from or into first,
+  // then the work spots cleared (the empty tub to the nest, the filled one to the stack), then the next one fetched before it is needed
+  want(L, o){ if (L.job) return null; const op = L.op && o && o.key === L.op.key ? o : null, W = L.W, set = op && op.kind === 'set', at = q => ({at:q.at, i:q.i});
+    const job = (q, to) => ({id:q.id, from:at(q), to}), toNest = q => job(q, {at:'nest', i:STAMPER.nestTop(L)}), toSlot = q => job(q, {at:'slot', i:STAMPER.freeSlot(L)});
+    const cur = op && op.done < op.n ? STAMPER.by(L, L.op.ids[op.done]) : null, nxt = op && op.done + 1 < op.n ? STAMPER.by(L, L.op.ids[op.done + 1]) : null;
+    // (the empty tubs off the work spots and out of the stack into the nest, the filled ones off the work spots onto the stack; never
+    // the one the line runs from or into, nor the next one waiting at the other spot)
+    const keep = q => q === cur || (q === nxt && STAMPER.here(L, q));
+    const here = q => STAMPER.here(L, q), e = L.T.find(q => q.k === 'empty' && (here(q) || q.at === 'slot') && !keep(q)); if (e) return toNest(e);
+    // (a tub that was coiled into where it stood in the nest, the haul having come on before it was carried to the hauler: to the stack)
+    const cn = L.T.find(q => q.at === 'nest' && q.k !== 'empty' && !keep(q)); if (cn) return toSlot(cn);
+    // (no set going on, and the deck ready for one, L.stage: a full tub is carried to the stern and stays there, the line's end ready;
+    // the set then runs from it from its first metre)
+    const staged = !op && L.stage && W ? L.T.find(q => STAMPER.here(L, q) && q.k === 'full') : null;
+    const f = L.T.find(q => here(q) && q.k !== 'empty' && !keep(q) && q !== staged); if (f) return toSlot(f);
+    // (a tub left at the other work's spots: carried off once the work now has what it needs, below)
+    const other = () => { const q = L.T.find(x => x.at === 'work' && !here(x) && !keep(x)); return q ? q.k === 'empty' ? toNest(q) : toSlot(q) : null; };
+    if (!op && L.stage && W && !staged){ const q = L.T.filter(x => x.at === 'slot' && x.k === 'full').sort((a, b) => (L.pri ? L.pri(b.i) - L.pri(a.i) : b.i - a.i))[0], w = STAMPER.freeWork(L); if (q && w >= 0) return job(q, {at:'work', i:w}); }
+    if (!op || !cur) return other();
+    // (setting: the tub the line runs from is not moved once it runs; the next one is carried to the free spot by the stern as soon as
+    // the line runs, when it gets there before the line runs to it. With no work spot it runs from the stack)
+    if (set){ if (!W || !nxt || STAMPER.here(L, nxt)) return other(); const left = L.pace && L.pace.r > 0 ? (1 - op.prog) / L.pace.r : 0;
+      if (left > STAMPER.carryS(L) + STAMPER.MARGIN){ const w = STAMPER.freeWork(L); if (w >= 0) return job(nxt, {at:'work', i:w}); } return other(); }
+    // (hauling: the empty tub the line is coiled into, to a work spot by the hauler (a free slot with none), and the next one there
+    // before this one is full)
+    if (cur.at === 'nest' || (W && !STAMPER.here(L, cur))){ const w = W ? STAMPER.freeWork(L) : -1; if (w >= 0) return job(cur, {at:'work', i:w}); if (!W) return toSlot(cur); }
+    if (W && nxt && nxt.at === 'nest' && op.prog >= STAMPER.NEXT){ const w = STAMPER.freeWork(L); if (w >= 0) return job(nxt, {at:'work', i:w}); }
+    return other(); },
+  // s a carry has taken (the last ones), CARRY before the first
+  carryS(L){ return L.cs || STAMPER.CARRY; },
+  // hauling with the tub the line is coiled into not yet at its place: the hauler stands (the view stops it, and nothing is gaffed meanwhile)
+  // (only while a tub is being carried to make room for it or to bring it: with nobody carrying, the hauler does not stand for ever,
+  // the line is coiled into it where it is)
+  // (and for a second after one is set down, while the next carry is looked for: now, the deck's clock)
+  halt(L, o, now){ if (!o || o.kind !== 'haul' || !L.op || o.key !== L.op.key || o.done >= o.n) return false; const q = STAMPER.by(L, L.op.ids[o.done]); return !!q && (L.W ? !STAMPER.here(L, q) : q.at !== 'slot') && (!!L.job || (now != null && L.jobEnd != null && now - L.jobEnd < 1)); },
+  // the carrier has the tub in his hands (begin: he is on his way to it; take: he lifts it; put: he sets it down where it was going)
+  begin(L, j, who, now){ L.job = Object.assign({who, took:false, t0:now, wk:j.to.at === 'work' ? L.Wk : undefined}, j); },   // (wk: whose spots it goes to, as it was when the carry began: the work may change on the way)
+  take(L){ const j = L.job; if (!j || j.took) return; const q = STAMPER.by(L, j.id); if (q){ q.at = 'hand'; q.i = 0; q.who = j.who; } j.took = true; STAMPER.pack(L); },
+  put(L, now){ const j = L.job; if (!j) return; if (now != null && j.t0 != null){ const d = now - j.t0; L.cs = L.cs ? L.cs * 0.6 + d * 0.4 : d; } const q = STAMPER.by(L, j.id); if (q){ const ni = L.T.filter(x => x.at === 'nest').length; q.at = j.to.at; q.i = j.to.at === 'nest' ? ni : j.to.i; q.wk = j.to.at === 'work' ? (j.wk || L.Wk) : undefined; q.who = null; L.n.carried++; } L.job = null; if (now != null) L.jobEnd = now; },
+  // the carrier is gone from his work (the game gave him other work): what he held is set down where it was going (n.snap)
+  drop(L){ const j = L.job; if (!j) return; if (j.took){ STAMPER.put(L); L.n.snap++; } else L.job = null; },
+  // the nest's tubs one in the next, from the bottom up, with no gap
+  pack(L){ L.T.filter(q => q.at === 'nest').sort((a, b) => a.i - b.i).forEach((q, i) => { q.i = i; }); },
+  // where every tub is: {slot, work, nest, hand} counts, for the tests
+  where(L){ const w = {slot:0, work:0, nest:0, hand:0}; for (const q of L.T) w[q.at]++; return w; }
+};
+
+// The hand jig on the boats worked by hand (steg 125e, Jonas 15.11.2026, with a clip from the old wooden boat: «mange fisk som bare
+// teleporterer ombord, mens mannen står å bløgger andre fisker»; «den i alle fall visuelt burde sveives inn og kastes ut igjen når den er
+// helt oppe»; the pilk and ten hooks, his choice the same day): the line's round as the 3D view draws it (view3d/13-instruments.js
+// drawSkiff). The pilk goes down to the depth, he jigs, it is cranked up with the fish that are on, they are taken off at the roller
+// one by one (and bled, the reel standing meanwhile), and it goes down again once it is up. The fish the fishing step hooks (window.CATCHQ)
+// wait on the hooks for the next crank up: none is let go while he fishes. tests/unit/handjuksa.test.mjs keeps the account.
+const HANDJUKSA = {
+  HOOKS:11,      // the pilk and ten hooks above it
+  GAP:0.55,      // m between two hooks up the line
+  DEPTH:6,       // m the pilk is let down under the roller (the bottom is deeper; the line is seen to the water and a little under it)
+  DOWN:2.2,      // m/s it runs down off the reel
+  UP:1.6,        // m/s it comes up while he cranks
+  WAIT:2.5,      // s after the first bite he jigs on for more before he cranks up (or three fish on)
+  EMPTY:18,      // s he jigs with nothing on before he cranks up to look anyway
+  TOP:0.8,       // s it hangs at the roller before it goes down again
+  MAXQ:60,       // fish waiting at the most (a safety: only when the 3D view has been away a long time)
+  fresh(){ return {st:'down', t:0, d:0, fish:[], n:{up:0, empty:0}}; },
+  // the queue of hooked fish kept: emptied only when nobody fishes (mode null), never while he does
+  keep(Q, fishing){ if (!fishing){ Q.length = 0; return; } while (Q.length > HANDJUKSA.MAXQ) Q.shift(); },
+  // one step of dt s; busy: he has a fish in his hands (the reel stands). Returns the fish taken off at the roller in this step
+  step(A, Q, dt, busy){ const H = HANDJUKSA, out = []; A.t += dt;
+    if (A.st === 'down'){ A.d = Math.min(H.DEPTH, A.d + H.DOWN * dt); if (A.d >= H.DEPTH){ A.st = 'jig'; A.t = 0; } }
+    else if (A.st === 'jig'){ if ((Q.length && (Q.length >= 3 || A.t > H.WAIT)) || A.t > H.EMPTY){ A.fish = Q.splice(0, H.HOOKS); A.st = 'up'; A.t = 0; A.n.up++; if (!A.fish.length) A.n.empty++; } }
+    else if (A.st === 'up'){ if (busy){ A.t -= dt; return out; }
+      A.d = Math.max(0, A.d - H.UP * dt);
+      // (the fish on the hook nearest the roller first: hook i hangs i GAP over the pilk, so it is at the roller when the pilk is i GAP under it)
+      while (A.fish.length && A.d - (A.fish.length - 1) * H.GAP <= 0){ out.push(A.fish.pop()); break; }
+      if (A.d <= 0 && !A.fish.length){ A.st = 'top'; A.t = 0; } }
+    else if (A.st === 'top'){ if (busy) A.t = 0; else if (A.t > H.TOP){ A.st = 'down'; A.t = 0; } }
+    return out; },
+  // kg of the catch that is not in the tub yet: hooked and waiting below, on the line, in the air to the tub, and (since steg 125e) waiting
+  // to be bled and in his hands; the tub is drawn with the rest (before, the fish waiting for the knife were in the tub already)
+  air(A, Q, fly, bq, bl){ const kg = L => (L || []).reduce((a, f) => a + (f.kg || 0), 0); return kg(Q) + kg(A.fish) + kg(fly) + kg(bq) + (bl && bl.f ? bl.f.kg || 0 : 0); },
+  // the depth under the roller of hook i (0 the pilk) now
+  hookAt(A, i){ return A.d - i * HANDJUKSA.GAP; }
+};
+
+// one person's lengths (c: who; everyone the same until the builds, FB5b)
+// (FB7, steg 125: with the new people, «#folk2», the lengths are the skeleton's own for the body that is drawn, 'f' or 'm' (c, or
+// c.sex; the man's when nothing says), and the shoulders' place over the hips is the skeleton's too; figpose.js figLens)
+function limbLen(c){
+  if (!LEMMER.on || typeof figSkelOf !== 'function' || typeof glbHas !== 'function' || !glbHas('folk2')) return LEMMER.STD;
+  const s = c === 'f' || (c && c.sex === 'f') ? 'f' : 'm'; let L = LEMMER.LEN[s];
+  if (!L){ const sk = figSkelOf(s); if (!sk) return LEMMER.STD; const q = figLens(sk); L = LEMMER.LEN[s] = {ua:q.ua, fa:q.fa, th:q.th, sn:q.sn}; if (s === 'm'){ LEMMER.SH = [q.sh[0], q.sh[1]];
+      // (and the nearest a wrist comes its own shoulder is the elbow folded as far as it goes, 150 degrees of bend: 14.5 cm on this arm.
+      // The 20 cm of the old, longer arm kept a hand at the mouth 30 cm off its cup and its binoculars)
+      LEMMER.FOLD = Math.sqrt(q.ua * q.ua + q.fa * q.fa - 2 * q.ua * q.fa * Math.cos(Math.PI / 6)) + 0.005; } }
+  return L; }
+// a limb of two parts L1 and L2 from its root Rt towards a target Tg, the joint between them on the side pole points to: where the
+// joint and the end are. The end is the target when the limb reaches it, else on the way to it at its reach (over: m short of it), or,
+// a target nearer the root than the two parts fold to, that near (near: m past it). o is filled and returned ({j, e, over, near,
+// push, d}; push is armIk's: m the wrist was kept out of his own body).
+function ik2(Rt, Tg, L1, L2, pole, o){
+  o = o || {j:[0, 0, 0], e:[0, 0, 0], over:0, near:0, push:0, d:0};
+  let ux = Tg[0] - Rt[0], uy = Tg[1] - Rt[1], uz = Tg[2] - Rt[2]; const D = Math.hypot(ux, uy, uz);
+  if (D < 1e-6){ ux = 0; uy = -1; uz = 0; } else { ux /= D; uy /= D; uz /= D; }
+  const d = Math.min(Math.max(D, Math.abs(L1 - L2) + 1e-4), (L1 + L2) * LEMMER.REACH), a = (d * d + L1 * L1 - L2 * L2) / (2 * d), h = Math.sqrt(Math.max(0, L1 * L1 - a * a));
+  // (the pole square to the limb's own line; along it, any way square to it)
+  const k = pole[0] * ux + pole[1] * uy + pole[2] * uz; let px = pole[0] - k * ux, py = pole[1] - k * uy, pz = pole[2] - k * uz, pl = Math.hypot(px, py, pz);
+  if (pl < 1e-6){ if (Math.abs(uy) < 0.9){ px = -ux * uy; py = 1 - uy * uy; pz = -uz * uy; } else { px = 1 - ux * ux; py = -uy * ux; pz = -uz * ux; } pl = Math.hypot(px, py, pz) || 1; }
+  o.j[0] = Rt[0] + ux * a + px / pl * h; o.j[1] = Rt[1] + uy * a + py / pl * h; o.j[2] = Rt[2] + uz * a + pz / pl * h;
+  o.e[0] = Rt[0] + ux * d; o.e[1] = Rt[1] + uy * d; o.e[2] = Rt[2] + uz * d; o.over = Math.max(0, D - d); o.near = Math.max(0, d - D); o.push = 0; o.d = d; return o; }
+// a point of the torso [ahead, up, right] from the hips, turned by tw about the spine and then bent b over ahead (as the torso is drawn)
+function torsoPt(q, b, tw){ const ct = Math.cos(tw), st = Math.sin(tw), cb = Math.cos(b), sb = Math.sin(b), a = q[0] * ct - q[2] * st; return [a * cb + q[1] * sb, -a * sb + q[1] * cb, q[0] * st + q[2] * ct]; }
+// (and back: a point in the hips' frame, in the torso's own)
+function torsoInv(q, b, tw){ const ct = Math.cos(tw), st = Math.sin(tw), cb = Math.cos(b), sb = Math.sin(b), a = q[0] * cb - q[1] * sb; return [a * ct + q[2] * st, q[0] * sb + q[1] * cb, -a * st + q[2] * ct]; }
+// the body goes after a hand it cannot reach: how much further the back bends (b, rad; less than 0 leaning back) and the torso turns
+// (t, rad; more than 0 the right shoulder back and the left ahead, torsoPt) for both shoulders to come within reach of their hands. sh the two
+// shoulders in the torso's own frame ([ahead, up, right] from the hips, standing straight), tg the two wrists' targets in the hips'
+// frame (null: that hand is free), reach the arm's, b0 the bend the work has already. Nothing when both reach; the least that does
+// it otherwise (a damped step at a time from nothing, so a target moving out takes the body with it evenly), within LEMMER's limits.
+// over is what is still missing then (m), which the arm takes by moving the hand in.
+function reachBody(sh, tg, reach, b0, o){
+  o = o || {b:0, t:0, over:0, n:0}; const C = LEMMER; let b = 0, t = 0;
+  const miss = (i, bb, tt) => { if (!tg[i]) return 0; const p = torsoPt(sh[i], b0 + bb, tt); return Math.hypot(tg[i][0] - p[0], tg[i][1] - p[1], tg[i][2] - p[2]) - reach; };
+  let e0 = miss(0, 0, 0), e1 = miss(1, 0, 0); o.n = 0;
+  if (e0 > 1e-4 || e1 > 1e-4) for (let it = 0; it < 8; it++){ const E = 0.01, J = [], e = [];
+      for (const i of [0, 1]){ const ei = i ? e1 : e0; if (ei <= 0) continue; e.push(ei); J.push([(miss(i, b + E, t) - ei) / E, (miss(i, b, t + E) - ei) / E / C.TWISTW]); }
+      if (!e.length) break; o.n++;
+      // (the least step that takes the missing reach away: (JtJ + l) x = -Jt e)
+      let A = 1e-3, B = 0, Cc = 1e-3, g0 = 0, g1 = 0; for (let r = 0; r < e.length; r++){ A += J[r][0] * J[r][0]; B += J[r][0] * J[r][1]; Cc += J[r][1] * J[r][1]; g0 += J[r][0] * e[r]; g1 += J[r][1] * e[r]; }
+      const det = A * Cc - B * B || 1e-9; b = Math.min(C.BEND, Math.max(-C.BACK, b - (Cc * g0 - B * g1) / det)); t = Math.min(C.TWIST, Math.max(-C.TWIST, t - (A * g1 - B * g0) / det / C.TWISTW));
+      e0 = miss(0, b, t); e1 = miss(1, b, t); if (e0 < 1e-3 && e1 < 1e-3) break; }
+  o.b = b; o.t = t; o.over = Math.max(0, e0, e1); return o; }
+// an arm in the torso's frame ([ahead, up, right] from the hips; the torso standing straight in it): the elbow and the wrist for
+// the shoulder s and the wrist's target tg, sd 1 the right arm and -1 the left. The elbow points down, back and a little out
+// (LEMMER.ELBOW), and further out when that would put it in the torso's side (CLEAR, and cl more under a life jacket), so it never
+// goes through the body.
+function armIk(s, tg, sd, L, o, cl){
+  // (a wrist is never folded right up into its own shoulder: nearer than FOLD it is moved out to that, down, ahead and out of it the
+  // nearer it was; how far it was moved is in near)
+  { const dx = tg[0] - s[0], dy = tg[1] - s[1], dz = tg[2] - s[2], D = Math.hypot(dx, dy, dz), F = LEMMER.FOLD;
+    if (D < F){ const k = F - D, vx = dx + 0.3 * k * 4, vy = dy - 0.8 * k * 4, vz = dz + 0.5 * sd * k * 4, l = Math.hypot(vx, vy, vz) || 1, t2 = [s[0] + vx / l * F * 1.001, s[1] + vy / l * F * 1.001, s[2] + vz / l * F * 1.001];
+      o = armIk(s, t2, sd, L, o, cl); o.near = Math.hypot(t2[0] - tg[0], t2[1] - tg[1], t2[2] - tg[2]); return o; } }
+  // (a wrist is never in his own body, and a hand across him by the far hip is not reached through it: before the chest and the
+  // belly the wrist keeps CHEST ahead of the spine, and well across him FRONT, going round before the belly; how far it was moved
+  // is in push. The edges soft)
+  const C0 = LEMMER, k01 = v => v < 0 ? 0 : v > 1 ? 1 : v, wu = k01((tg[1] + 0.05) / 0.08) * k01((C0.SH[0] + 0.05 - tg[1]) / 0.08);
+  // (the new people: the trunk is its own profile, measured on the mesh that is drawn (figpose.js figProfile), and the wrist keeps
+  // WRIST clear of it: out ahead of it, out to its side when that is nearer (a hand hanging by the hip), or out behind a back it is
+  // behind already; a wrist across his middle goes round before the belly as before. The solver's own turn, then, without the profile)
+  const PF = C0.prof;
+  if (PF){ const y = tg[1], r = tg[2], f = figProfAt(PF, y, r), bk = figProfAt(PF, y, r, true), pm = figProfAt(PF, y, 0);
+    // (only a wrist that is across him and before him: one that is out past his far side is clear of him, the elbow's matter)
+    const hw0 = PF.half[Math.floor((y - PF.lo) / PF.dy)] || 0, xk = k01((-0.05 - r * sd) / 0.1) * k01((hw0 + C0.WRIST + 0.02 - Math.abs(r)) / 0.04), lx = pm > 0 && xk > 0 && tg[0] > -0.2 ? (pm + C0.WRIST + C0.FRONT - C0.CHEST) * xk - tg[0] : 0;
+    if (f > 0 || bk > 0 || lx > 1e-4){ const W = C0.WRIST, hw = PF.half[Math.floor((y - PF.lo) / PF.dy)] || 0, la = f + W - tg[0], lb = tg[0] + bk + W, ls = hw + W - Math.abs(r);
+      if ((la > 1e-4 && lb > 1e-4 && ls > 1e-4) || lx > 1e-4){ let da = 0, ds = 0;
+        if (lx > 1e-4 && lx >= la) da = Math.min(0.4, lx);
+        else if (lb < la && lb < ls) da = -lb;
+        else { const w = k01((la - ls) / 0.04 + 0.5); da = Math.min(0.4, la) * (1 - w); ds = ls * w; }
+        C0.prof = null; C0.own = true; try { o = armIk(s, [tg[0] + da + (da >= 0 ? 1e-3 : -1e-3), y, r + (Math.abs(r) < 0.02 ? sd : Math.sign(r)) * ds], sd, L, o, cl); } finally { C0.prof = PF; C0.own = false; }
+        o.push = Math.hypot(da, ds); if (C0.log) o.dbg = [tg[0], y, r, f, bk, hw, la, lb, ls, lx].map(v => +v.toFixed(3)); return o; } }
+    C0.prof = null; C0.own = true; try { return armIk(s, tg, sd, L, o, cl); } finally { C0.prof = PF; C0.own = false; } }
+  const need = Math.max(C0.CHEST * Math.sqrt(Math.max(0, 1 - tg[2] * tg[2] / 0.0361)), C0.FRONT * k01((-0.05 - tg[2] * sd) / 0.1)) * wu, lack = tg[0] < -0.2 ? 0 : Math.min(0.4, (need - tg[0]) * k01(need / 0.03) * k01((tg[0] + 0.2) / 0.05));   // (the torso round: 0.19 m to either side; nothing asked of a wrist out beside it, nor of one behind his back, which is not pulled through him)
+  if (lack > 1e-4 && !C0.own){ o = armIk(s, [tg[0] + lack + 1e-3, tg[1], tg[2]], sd, L, o, cl); o.push = lack; return o; }   // (own: the profile has had its say already)
+  // (a hand up by the shoulder or over it, the cup at the mouth, the binoculars, an arm up: the elbow down under it, not back)
+  const C = LEMMER, P = C.ELBOW, CL = C.CLEAR + (cl || 0), up = Math.min(1, Math.max(0, (tg[1] - s[1] + 0.25) / 0.3)), hi = up * up * (3 - 2 * up); o = ik2(s, tg, L.ua, L.fa, [P[0] + (C.ELBOWHI - P[0]) * hi, P[1], P[2] * sd * (1 - hi * Math.min(1, Math.max(0, (tg[2] * sd - s[2] * sd) / 0.1)))], o);   // (and not out, under a hand raised out to his side)
+  const e = o.j, side = e[2] * sd;
+  // (beside or in the torso: between the hips and the shoulders, not well ahead of the chest or behind the back; the edges soft)
+  const w = Math.min(1, (0.2 - Math.abs(e[0])) / 0.06, (e[1] + 0.05) / 0.06, (C.SH[0] + 0.08 - e[1]) / 0.06); if (side >= CL || w <= 0) return o;
+  // the elbow is on a circle about the arm's own line: turned on it the least that takes it out to CLEAR, or as far out as it goes
+  const d = o.d, ux = (o.e[0] - s[0]) / d, uy = (o.e[1] - s[1]) / d, uz = (o.e[2] - s[2]) / d, a = (d * d + L.ua * L.ua - L.fa * L.fa) / (2 * d), cx = s[0] + ux * a, cy = s[1] + uy * a, cz = s[2] + uz * a;
+  const px = e[0] - cx, py = e[1] - cy, pz = e[2] - cz, qx = uy * pz - uz * py, qy = uz * px - ux * pz, qz = ux * py - uy * px, A = sd * pz, B = sd * qz, M = Math.hypot(A, B); if (M < 1e-6) return o;
+  const K = side + (CL - side) * w - sd * cz, f0 = Math.atan2(B, A), n = x => x - 2 * Math.PI * Math.round(x / (2 * Math.PI)); let f = f0;
+  if (K < M){ const dl = Math.acos(Math.max(-1, K / M)), f1 = n(f0 + dl), f2 = n(f0 - dl); f = Math.abs(f1) < Math.abs(f2) ? f1 : f2; }
+  // (a hand far across him: the elbow cannot get out to his side, and goes out ahead of the belly as well)
+  const v = Math.min(1, (K - 0.85 * M) / (0.3 * M)); if (v > 0) f += n(Math.atan2(B + qx, A + px) - f) * v;
+  let c = Math.cos(f), sn = Math.sin(f), ea = cx + px * c + qx * sn, er = (cz + pz * c + qz * sn) * sd;
+  // (still in the belly, a hand reaching across him: turned on, the least that takes the elbow out ahead of it)
+  if (er < 0.17 && Math.abs(ea) < C.BELLY){ const M2 = Math.hypot(px, qx), K2 = C.BELLY - cx; if (M2 > 1e-6){ const g0 = Math.atan2(qx, px); if (K2 < M2){ const dl = Math.acos(Math.max(-1, K2 / M2)), g1 = n(g0 + dl - f), g2 = n(g0 - dl - f); f += Math.abs(g1) < Math.abs(g2) ? g1 : g2; } else f = g0; c = Math.cos(f); sn = Math.sin(f); } }
+  e[0] = cx + px * c + qx * sn; e[1] = cy + py * c + qy * sn; e[2] = cz + pz * c + qz * sn; return o; }
+// an arm to a hand's point hd (where it holds): the wrist a hand's length back from it along the hand, the hand along the forearm
+// (a few rounds, as drawWorker turns it), in the torso's frame. o.w is the wrist's target
+function armHand(s, hd, sd, L, o, cl){ const H = LEMMER.HAND; let zx = hd[0] - s[0], zy = hd[1] - s[1], zz = hd[2] - s[2], l = Math.hypot(zx, zy, zz) || 1; zx /= l; zy /= l; zz /= l;
+  for (let n = 0; n < 4; n++){ o = armIk(s, [hd[0] - zx * H, hd[1] - zy * H, hd[2] - zz * H], sd, L, o, cl); if (n === 3 || o.over > 0) break;
+    let fx = o.e[0] - o.j[0], fy = o.e[1] - o.j[1], fz = o.e[2] - o.j[2]; l = Math.hypot(fx, fy, fz) || 1; fx = fx / l - zx; fy = fy / l - zy; fz = fz / l - zz; if (Math.abs(fx) + Math.abs(fy) + Math.abs(fz) < 0.01) break;
+    zx += fx * 0.8; zy += fy * 0.8; zz += fz * 0.8; l = Math.hypot(zx, zy, zz) || 1; zx /= l; zy /= l; zz /= l; }
+  return o; }
+// how far the hips come down for both feet to be within the legs' reach: hips and feet as [x, up, z] in any level frame
+function legDrop(hips, feet, L, most){ const C = LEMMER, R = (L.th + L.sn) * C.REACH, mx = most == null ? C.DROP : most; let dr = 0;
+  for (const i of [0, 1]){ const hx = hips[i][0] - feet[i][0], hz = hips[i][2] - feet[i][2], h2 = hx * hx + hz * hz, v = hips[i][1] - feet[i][1]; dr = Math.max(dr, h2 >= R * R ? mx : v - Math.sqrt(R * R - h2)); }
+  return Math.min(mx, Math.max(0, dr)); }
 // the sea legs of one person standing or walking on a deck: s his state (seaState), inp what the deck does where he stands, in his own
 // frame (ahead and to his right, level in the world):
 //   sr, sf   the deck's slope to his right and ahead (m up per m; from the deck's normal, so roll and pitch seen his way)
@@ -1111,7 +2024,8 @@ function seaLegs(s, inp){
   // deck and never faster than the legs go; he stands lower the more there is to take up
   // (before the heave has been seen, a first frame or after a gap, it is taken from the sea's height: HSHEAVE of Hs each way)
   const dy = snap ? 0 : y - s.hy, pk0 = C.HSHEAVE * (inp.hs || 0), pk = Math.max(Math.abs(dy), pk0, snap ? 0 : s.envP * Math.exp(-dt / 15)); s.envP = pk; s.envH = snap ? pk : s.envH + (pk - s.envH) * (1 - Math.exp(-dt / 1));
-  const crT = Math.min(C.CROUCHMAX, C.CROUCH * s.k + C.HEAVE * s.envH); s.cr = snap ? crT : s.cr + (crT - s.cr) * (1 - Math.exp(-dt / 2));
+  // (room.k: less of the crouch where the knees have no room ahead)
+  const crT = Math.min(C.CROUCHMAX, C.CROUCH * s.k + C.HEAVE * s.envH) * (room.k == null ? 1 : room.k); s.cr = snap ? crT : s.cr + (crT - s.cr) * (1 - Math.exp(-dt / 2));
   const cr = s.cr, A = Math.min(C.HIPUP + cr, C.HIPDN - cr), beta = Math.min(C.HEAVE, A / Math.max(1e-3, pk)), hipY = -cr - A * Math.tanh(beta * dy / A);
   // the hand to the rail, and the foot put out down the slope
   const step = (on, v, t) => snap || !(t > 0) ? (on ? 1 : 0) : on ? Math.min(1, v + dt / t) : Math.max(0, v - dt / t), rl = !walk && inp.rail ? inp.rail : null, d0 = dt >= 0 ? Math.min(dt, 5) : 0;   // (after a gap the hand and the foot are where the time gone puts them)

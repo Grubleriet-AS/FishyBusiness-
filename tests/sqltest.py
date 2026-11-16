@@ -1694,6 +1694,57 @@ def main():
                  and HO['refundHad'] == sorted(rid.values()) and HO['refund'] == [[], '2', 'true,true']
                  and HO['void'] == ['f', 't', 'f', 'f', 'held no more'] and HO['voidAdm'][0] == ['cs_h2'] and HO['voidAdm'][1]),
               'HO3: hop_price is the ladder (5 kr at least, 75/50/25 øre a minute), shop_quote_hop prices 27 min at 20 kr and refuses 0, 3 361 and no minutes, a guest and anon; the paid grant has the minutes, the stop and the price, shop_state delivers it (new the first time) and answers it while unused, never to another player; hop_use takes the player\'s own once; a refund takes back a hop and a «Ferdig nå» delivered and not used, and leaves a hop used; hop_void marks the player\'s own unused hop once, hop_use refuses it after, and admin_hop_void lists it for the admin only', HO)
+        # the launch (20261116120000_lansering.sql, Jonas 16.11.2026): the founders counted from the admin's switch (an account made before it
+        # never counts, the number is kept), the value of a landing (capped at 1 000 kr a kilo), top_list in kg, kr and in total, the profile's
+        # own figures, and the picture shown to others only when the admin has approved it
+        LA = {}; L1 = {'sub': 'user_01LA1', 'role': 'authenticated'}; L2 = {'sub': 'user_01LA2', 'role': 'authenticated'}; L3 = {'sub': 'user_01LA3', 'role': 'authenticated'}
+        sql("select public.tm_hello('{}')", L1, 'authenticated')
+        LA['denyP'] = sql("select public.admin_founders_set(true)", L1, 'authenticated', expect_err=True)[0]; LA['deny1'] = sql("select public.admin_founders_set(true)", AD1, 'authenticated', expect_err=True)[0]
+        LA['on'] = json.loads(sql("select public.admin_founders_set(true)", AD2, 'authenticated'))
+        sql("select pg_sleep(0.05)"); sql("select public.tm_hello('{}')", L2, 'authenticated'); sql("select public.tm_hello('{}')", L3, 'authenticated')
+        land = lambda who, kg, kr: sql("""select public.land_put(1000, 2027, 'finnsnes', 'open', '[{"sp":"torsk","kg":%s,"kgq":0,"kr":%s}]')""" % (kg, kr), who, 'authenticated')
+        land(L1, 100, 3000); land(L2, 100, 3000); land(L3, 50, 5000); land(L2, 1, 1e9)
+        # (one group list for both, Jonas 16.11.2026: L1's closed-group landing counts on the same list, with the company)
+        sql("""select public.land_put(1000, 2027, 'finnsnes', 'lukket', '[{"sp":"sei","kg":5,"kgq":0,"kr":100}]', 'Kvitbjørn', 'Kvitbjørn AS')""", L1, 'authenticated')
+        LA['f'] = sql("select string_agg(player_id || ':' || no, ',' order by no) from public.founders where player_id like 'user_01LA%'")
+        LA['cap'] = sql("select kr from public.landings where player_id = 'user_01LA2' and kg = 1")
+        hid = lambda who: sql("select left(md5('dsb' || '%s'), 10)" % who['sub'])
+        mine = lambda kind, who: json.loads(sql("select public.top_list('%s', 5)" % kind, who, 'authenticated'))
+        rows = lambda T: [(r['hid'], r['f']) for r in T['rows'] if r['hid'] in (hid(L1), hid(L2), hid(L3))]
+        TK, TR, TT = mine('kg', L1), mine('kr', L1), mine('tot', L1)
+        LA['co'] = [r['company'] for r in TK['rows'] if r['hid'] == hid(L1)][0]
+        LA['kg'] = rows(TK)[:3]; LA['kr'] = rows(TR)[:3]; LA['krMine'] = TR['mine']
+        sql("""select public.prof_put('{"fleet":2,"value":850000,"worth":900000,"company":"Havbris <b>AS","form":"AS","ach":7,"boats":[{"n":"Havbris","t":"sjark"}],"recs":[{"sp":"torsk","kg":31.5}]}')""", L2, 'authenticated')
+        P0 = json.loads(sql("select public.profile_get('%s')" % hid(L2), L1, 'authenticated'))
+        LA['prof'] = [P0['f'], P0['me'], P0['prof']['fleet'], P0['prof']['company'], P0['prof']['form'], P0['img'], P0['kg']]
+        LA['badAv'] = sql("select public.av_put('javascript:alert(1)')", L2, 'authenticated', expect_err=True)[0]
+        sql("select public.av_put('data:image/png;base64,iVBORw0KGgo=')", L2, 'authenticated')
+        LA['wait'] = [json.loads(sql("select public.av_mine()", L2, 'authenticated'))['state'], json.loads(sql("select public.profile_get('%s')" % hid(L2), L1, 'authenticated'))['img']]
+        LA['avDeny'] = sql("select public.admin_av_list()", L1, 'authenticated', expect_err=True)[0]
+        LA['avList'] = [a['who'] == hid(L2) for a in json.loads(sql("select public.admin_av_list()", AD2, 'authenticated'))]
+        sql("select public.admin_av_set('%s', true)" % hid(L2), AD2, 'authenticated')
+        LA['ok'] = json.loads(sql("select public.profile_get('%s')" % hid(L2), L1, 'authenticated'))['img']
+        LA['tables'] = [sql("select count(*) from public.%s" % t_, L1, 'authenticated', expect_err=True)[0] for t_ in ('founders', 'founders_cfg', 'profiles', 'avatars')]
+        LA['off'] = json.loads(sql("select public.admin_founders_set(false)", AD2, 'authenticated'))['n']
+        # the grounding report (ag_put): a feedback of topic bug with meta.ag, not counted in the player's 20 a day; one without ag is refused
+        LA['ag'] = [bool(sql("""select public.ag_put('[Grunnstøting] Spillerens svar: Ja', null, '{"ag":{"v":6.5,"how":"leia"},"pos":[69.3,17.5]}')""", L2, 'authenticated')),
+                    sql("select public.ag_put('x', null, '{}')", L2, 'authenticated', expect_err=True)[0],
+                    sql("select topic || ':' || (meta -> 'ag' ->> 'how') || ':' || (meta ? 'pos')::text from public.feedback where player_id = 'user_01LA2' order by id desc limit 1")]
+        # a founder who deletes the account does not stop the count (the next number from the highest), and off is a pause: the accounts
+        # made while it was on still count when it is on again
+        L4 = {'sub': 'user_01LA4', 'role': 'authenticated'}; sql("select public.tm_hello('{}')", L4, 'authenticated')
+        land(L4, 10, 100); LA['paused'] = sql("select count(*) from public.founders where player_id = 'user_01LA4'")
+        sql("delete from public.players where id = 'user_01LA2'")
+        LA['on2'] = json.loads(sql("select public.admin_founders_set(true)", AD2, 'authenticated'))
+        land(L4, 10, 100); LA['after'] = sql("select no from public.founders where player_id = 'user_01LA4'")
+        LA['tot'] = [(r['hid'], r['kg'], r['kr']) for r in mine('tot', L1)['rows'] if r['hid'] in (hid(L1), hid(L3), hid(L4))]
+        LA['pp'] = [sql("""select public.prof_put('{"fleet":1}')""", L3, 'authenticated') for _ in (0, 1)]
+        print(ok(LA['denyP'] and LA['deny1'] and LA['on']['from'] and LA['f'] == 'user_01LA2:1,user_01LA3:2' and float(LA['cap']) == 1000
+                 and LA['kg'] == [(hid(L1), None), (hid(L2), 1), (hid(L3), 2)] and LA['kr'] == [(hid(L3), 2), (hid(L2), 1), (hid(L1), None)] and LA['krMine'] == {'kg': 105, 'kr': 3100, 'rank': 3} and LA['co'] == 'Kvitbjørn AS'
+                 and LA['prof'] == [1, False, 2, 'Havbris bAS', 'AS', None, 101] and LA['badAv'] and LA['wait'] == ['wait', None]
+                 and LA['avDeny'] and LA['avList'] == [True] and (LA['ok'] or '').startswith('data:image/png') and all(LA['tables']) and LA['off'] == 2 and LA['ag'] == [True, True, 'bug:leia:true'] and LA['paused'] == '0' and LA['on2']['from'] == LA['on']['from'] and LA['after'] == '3'
+                 and LA['tot'] == [(hid(L3), 50, 5000), (hid(L1), 105, 3100), (hid(L4), 20, 200)] and LA['pp'] == ['t', 'f']),
+              'the launch: founders from the admin\'s switch (an older account never, the number kept), the value capped at 1 000 kr/kg, top_list by kg and kr with the founder\'s number, the profile, and the picture only once approved; the tables closed to players', json.dumps(LA))
         # the load of 5 000 players (plan 5b; KYST_LAST=5000): landings and catches for that many players, then what world_get costs
         NL = int(os.environ.get('KYST_LAST') or 0)
         if NL:

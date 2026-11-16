@@ -3,7 +3,7 @@
 // spring), the feet wider in a sea, the hips moving less up and down than the deck, the hand to the rail and the foot put out.
 // The deck here is a plane through the point he stands on, tilted by a roll and a pitch as view3d/00-head.js model() tilts the boat;
 // his feet are level offsets from that point (to his right and ahead), as drawWorker places them.
-export const scripts = ['js/deckcrew.js'];
+export const scripts = ['js/figpose.js', 'js/deckcrew.js'];
 export default function (t){
   const {seaLegs, seaState, seaKnee, SJOBEIN:C} = t.K, deg = Math.PI / 180;
   // the deck's normal for a roll and a pitch (model()'s Y column with no yaw), and its slopes for one heading h aboard
@@ -47,6 +47,14 @@ export default function (t){
     t.ok(a.ah < a.ad * 0.7, 'hofta akselererer mindre opp og ned enn dekket (krapp sjø, 4 cm hver vei på 1 s: ' + a.ah.toFixed(2) + ' mot ' + a.ad.toFixed(2) + ' m/s², ' + (a.ah / a.ad * 100).toFixed(0) + ' %)');
     t.ok(b.ah < b.ad * 1.05, 'en dønning på 40 cm hver vei på 4 s løfter hele mannen, og knærne legger ikke til (' + (b.ah / b.ad * 100).toFixed(0) + ' %)');
     for (const r of [a, b]) t.ok(r.lo >= -C.HIPDN - 1e-9 && r.hi <= C.HIPUP + 1e-9, 'hofta holder seg innenfor det beina rekker (' + (r.lo * 100).toFixed(1) + ' til ' + (r.hi * 100).toFixed(1) + ' cm)'); }
+  // (FB3, steg 121: walking, the feet from footStep where each stands on the deck, at the deck's height there as drawWorker sets them:
+  // fa * sf + fr * sr over the point he is on. At 0, 8 and 15° of roll, heading four ways, each foot that stands within 1 cm of the deck)
+  { const {footStep, footState} = t.K; let wst = 0, n = 0;
+    for (const roll of [0, 8, 15, -15]) for (const h of [0, 0.7, Math.PI / 2, 2.4]){ const S = slopes(roll * deg, 0, h), sl = seaState(), fs = footState(), F = [Math.sin(h), -Math.cos(h)];
+      for (let i = 0; i < 240; i++){ const d = 0.78 * i / 60, x = F[0] * d, z = F[1] * d, so = seaLegs(sl, {sr:S.sr, sf:S.sf, y:0, hs:1, dt:i ? 1 / 60 : undefined, walk:true});
+        const o = footStep(fs, {x, z, h, dt:i ? 1 / 60 : undefined, w:[Math.abs(so.fr[0]), Math.abs(so.fr[1])], reach:0.357});
+        for (const k of [0, 1]) if (o.plant[k] && i > 30){ wst = Math.max(wst, off(S, o.fr[k], o.fa[k], o.fa[k] * S.sf + o.fr[k] * S.sr)); n++; } } }
+    t.ok(n > 1000 && wst < 0.01, 'i gange (footStep, 0,78 m/s) står hver fot som står, innen 1 cm av dekket ved 0, 8 og 15° rulling (' + n + ' målinger, verst ' + (wst * 1000).toFixed(2) + ' mm)'); }
   t.ok(seaKnee(0.84, 0.80) > 0.05 && Math.abs(seaKnee(0.84, 0.84)) < 1e-12 && seaKnee(0.84, 0.86) <= 0, 'seaKnee: et kortere bein er et kne lenger fram, samme lengde ingenting');
 
   // 4. the hand to the rail over GRAB, let go when she has lain still HOLD seconds; a step over STEP, taken back; walking neither

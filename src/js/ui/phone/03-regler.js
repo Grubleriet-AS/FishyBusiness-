@@ -57,6 +57,6 @@
   function regler(){ const t = ['her', 'sjekk', 'laer'].includes(sub.regler) ? sub.regler : 'her';
     const top = subs('regler', [['her', 'Her og nå', 'Here and now'], ['sjekk', 'Sjekk', 'Check'], ['laer', 'Lær mer', 'Learn']]);
     // the disclaimer under every tab (docs/lansering.md D12): the rules are a game's, simplified, and nobody official stands behind them
-    const fine = '<p class="ph-note">' + L('Reglene i spillet er forenklet og kan være utdaterte. Til ekte fiske gjelder Fiskeridirektoratets regler (fiskeridir.no). Spillet er ikke laget av eller sammen med Fiskeridirektoratet, Råfisklaget eller Kartverket.',
-      'The rules in the game are simplified and may be out of date. For real fishing the Directorate of Fisheries\' rules apply (fiskeridir.no). The game is not made by or with the Directorate of Fisheries, Råfisklaget or Kartverket.') + '</p>';
+    const fine = '<p class="ph-note">' + L('Reglene i spillet er forenklet og kan være utdaterte. Til ekte fiske gjelder Fiskeridirektoratets regler (fiskeridir.no). Spillet er ikke laget av eller sammen med Fiskeridirektoratet, Fiskesalgslaget eller Kartverket.',
+      'The rules in the game are simplified and may be out of date. For real fishing the Directorate of Fisheries\' rules apply (fiskeridir.no). The game is not made by or with the Directorate of Fisheries, Fiskesalgslaget or Kartverket.') + '</p>';
     return top + '<div class="ph-c">' + (t === 'her' ? ruHere() : t === 'sjekk' ? ruCheck() : ruLearn()) + fine + '</div>'; }

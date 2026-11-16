@@ -21,7 +21,7 @@ async def main():
         await boot(pg, GAME + '#notut')
         await pg.wait_for_function("G3.isActive()", timeout=90000); await pg.wait_for_timeout(2000)
         # the tests' #qfix holds «Høy» (_env.py): let go of it first, as lighttest does
-        await pg.evaluate("(() => { G3._debug.QUAL.fix = false; PHONE.open('innst'); const b = document.querySelector('[data-pa=q3d][data-v=ultra]'); b.click(); PHONE.show(false); const c = G3._debug.cam; c.helm = false; c.dist = 60; c.pitch = 0.25; })()")
+        await pg.evaluate("(() => { G3._debug.QUAL.fix = false; (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'grafikk'}), PHONE.render()); const b = document.querySelector('[data-pa=q3d][data-v=ultra]'); b.click(); PHONE.show(false); const c = G3._debug.cam; c.helm = false; c.dist = 60; c.pitch = 0.25; })()")
         # the dense meshes take minutes to build in SwiftShader (it only shows that they are built right, not how fast a phone is)
         await pg.wait_for_function("(() => { const D = G3._debug; return D.NEARM && D.NEARM.gn === 384 && D.FINEM && D.FINEM.gn === 384; })()", timeout=480000)
         await pg.wait_for_function("(() => { const D = G3._debug; return D.TERR && D.TERR.gn === 511; })()", timeout=480000)

@@ -2,9 +2,9 @@
 skiff, trips on the plan's route out to the ground north of Husøy, the landing at the plant, and the hand jig and the jigging reels
 bought when the money is there. Three paces: a trip every third day, every other day, and every day the weather allows (as the
 standing plan with you aboard). Prints, week by week, the cash, the net worth, cod against the quota and blad B, and the first day
-and trip the entry boat (the right under 7 m, with Innovasjon Norge's top-up) is within reach. A test to be read (LES): the aim is
+and trip the entry boat (the right under 7 m, with Kystfondet's top-up) is within reach. A test to be read (LES): the aim is
 about 13 trips, a week of ordinary play. The calibration (October 2026): blad B, that is 1 G, comes after 14-16 trips at every
-pace, and Innovasjon Norge's top-up of 15 % (5 % equity) puts the entry there too; with 10 % it took 24 trips."""
+pace, and Kystfondet's top-up of 15 % (5 % equity) puts the entry there too; with 10 % it took 24 trips."""
 import asyncio, json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _env import boot

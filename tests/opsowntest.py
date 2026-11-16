@@ -19,7 +19,7 @@ TRIP = """(async (alone)=>{
   const ole = Object.assign(genCrew(), {bi:false, off:false, name:'Ole Martin Mikalsen'}), per = Object.assign(genCrew(), {bi:false, off:false});
   S.crew = alone ? [ole, per] : [ole]; setSkipper(ole.id); if (alone) setMate(per.id);
   S.me = alone ? 'nobody' : S.cur;
-  const o = S.ops = plan2New({home:'husoy', rig:'juksa', jig:true, places:[{id:'a', k:'juks', x:spot.x, y:spot.y}], dep:Math.round(driftHod(t0)), wx:{wind:16, hs:3.5}, land:{mode:'near', port:null, when:'trip'}});
+  const o = S.ops = plan2New({v:DRV3, home:'husoy', rig:'juksa', jig:true, places:[{id:'a', k:'juks', x:spot.x, y:spot.y}], dep:Math.round(driftHod(t0)), wx:{wind:16, hs:3.5}, land:{mode:'near', port:null, when:'trip'}});
   S.me = S.cur; const err = await new Promise(r => plan2Make(o, r)); S.me = alone ? 'nobody' : S.cur; o.on = true;
   const m0 = S.msgs.length, c0 = S.cash; let added = false, target = null, left = false;
   for (let i = 0; i < 24 * 60; i++){ DYN.on = false; step();

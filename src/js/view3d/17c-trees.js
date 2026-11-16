@@ -5,7 +5,7 @@
   // as tall as the canopy map says, each turned its own way and a little lighter or darker. Drawn with ANGLE_instanced_arrays, one call
   // per species and level per chunk; the near chunks (TREE_LOD0[QUAL.lvl] m) get the detailed models. Without the extension or the
   // layer (an older release, outside Norway) the old trees stay (06-buildings-lights.js addTrees). #trees0 in the address: the old trees.
-  const TREE = {ext:null, tried:false, M:null, P:null, on:!/trees0/.test(location.hash), n:0};
+  const TREE = {ext:null, tried:false, M:null, P:null, on:!/trees0/.test(location.hash) && !PGFX.off.trees, n:0};
   const TREEK = ['spruce', 'pine', 'birch'], TREE_LOD0 = [0, 220, 320, 450], TREE_DENS = [3, 5, 8, 12], TREE_R = [700, 1200, 1800, 2500];
   // per quality level: the detailed models' reach (m), trees per full 50 m cell, and how far trees are planted at all (beyond, the
   // satellites' colour shows the wood; 29.10.2026: planted in every chunk in sight, some 700, the trees took minutes a frame in the tests)

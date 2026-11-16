@@ -1088,18 +1088,21 @@ def kit_places(G):
             # the line tubs two across and three along from the aft outboard one (turned round, ry pi: the rows go forward and inboard),
             # the rest stacked on them (kit.stamps.n); the fourth row would stand on the hatch's coaming
             'stamps': {'at': G(STAMP0[0], STAMP0[1], z_deck(STAMP0[0]) + camber(STAMP0[0], STAMP0[1])), 'ry': r(math.pi), 'n': 6},
-            'iskasse': G(ICEBOX[0], ICEBOX[1], z_deck(ICEBOX[0]) + camber(ICEBOX[0], ICEBOX[1])) + [r(math.pi / 2), 0.75],
             'cargo': [G(3.2, 0.0, z_deck(3.2) + zt) + [r(math.pi / 2)], G(0.70, 0.45, z_deck(0.70) + 0.03) + [0.0]]}   # (the aft freight to port behind the gear room: the starboard gangway aft is the gear's, OB8)
 
 def bower(G):
     return {'kind': 'plog', 'kg': 16, 'fair': G(10.74, 0, z_cap(10.55) + 0.09), 'gypsy': G(9.45, -0.21, z_bk(9.45) + 0.33), 'side': 0, 'deck': True}
 
 HX = 4.50                    # the hauler's station on the starboard waist (G)
-GARN = (1.25, -0.92)         # the net tub's middle (OB8)
-STAMP0 = (0.75, -1.17)       # the aft outboard line tub (OB8)
-TABLE_X = 3.60               # the gutting table on the port bulwark across the hatch: moved 0.30 forward of where it stood (3.30, G) so the
+# (steg 125d, Jonas 15.11.2026, docs/planer/dekk/forslag.json: the starboard rail aft of the hauler is the work's, the tub, the bench and the
+# hatch beside them; the net tub and the line tubs go to port abreast of the hatch, where the bench stood. Setting, the tubs are carried aft)
+GARN = (3.60, 1.30)          # the net tub's middle (OB8: 1.25, -0.92 in the starboard gangway aft)
+STAMP0 = (3.15, 1.04)        # the aft outboard line tub (OB8: 0.75, -1.17)
+TABLE_X = 1.80               # the gutting table on the port bulwark across the hatch: moved 0.30 forward of where it stood (3.30, G) so the
                              # second who guts has a free place a step aft of the first, clear of the gear room's corner (OB8, F19: the
-                             # game puts him 0.7 m fore or aft of the first, and aft he was drawn into him, 0.45 m apart)
+                             # game puts him 0.7 m fore or aft of the first, and aft he was drawn into him, 0.45 m apart); steg 125d: on the
+                             # starboard bulwark aft of the bleeding tub (TABLE_Y), the one who guts inboard of it facing out, the hatch behind him
+TABLE_Y = -1.45; TUB = (3.20, -1.20); GUT_AT = (2.00, -0.90)
 PACK = (3.80, -0.90)         # the one who ices, between the hatch and the bleeding tub, facing the tub to starboard (work.pack;
                              # before, the game stood him on the hatch boards' edge)
 ICEBOX = (4.35, -0.15)       # the 300 l ice box (kit.iskasse, the game's), on the deck forward of the hatch, across her: the game put it 0.62 m to
@@ -1108,14 +1111,14 @@ ICEBOX = (4.35, -0.15)       # the 300 l ice box (kit.iskasse, the game's), on t
 # tub, port forward of the gutting table, port on the quarter aft of the gear room, and starboard forward of the hauling station; never in
 # the starboard gangway aft (the nets and the line tubs stand there), never at the hauler, all of them more than a metre apart on a side.
 # Four places for her four hands (jukseMax 5: a fifth machine has no free rail)
-JIG = [(1, 2.95), (-1, 4.55), (-1, 0.95), (1, 5.05)]
+JIG = [(1, 0.70), (-1, 4.55), (-1, 0.95), (1, 5.05)]   # (steg 125d: the starboard waist is the tub's and the bench's: the first on the starboard quarter aft of the bench)
 def anchors():
     G = lambda x, y, z: [round(v, 3) for v in to_game((x, y, z))]
     zd = z_deck(3.0); px, py = POLE
     return {'bower': bower(G), 'eye': G(SKIP[0], SKIP[1], WH_FLOOR + EYE_H), 'skipperAt': G(SKIP[0], SKIP[1], WH_FLOOR), 'hp': HP, 'fov': FOV,
             # the hands: the fisher at the hauler on the starboard waist, the one who guts at the bench to port of the hatch, one by the
             # bleeding tub, one aft by the gear room's door
-            'crewSpots': [G(4.40, -1.30, z_deck(4.4)) + [1.57], G(TABLE_X, 0.95, z_deck(TABLE_X)) + [-1.57], G(3.85, -0.95, z_deck(3.85)) + [3.14], G(2.20, 0.05, z_deck(2.2)) + [0.0]],
+            'crewSpots': [G(4.40, -1.30, z_deck(4.4)) + [1.57], G(GUT_AT[0], GUT_AT[1], z_deck(GUT_AT[0])) + [1.57], G(3.85, -0.95, z_deck(3.85)) + [3.14], G(2.20, 0.05, z_deck(2.2)) + [0.0]],
             # typed lights (B8): under 12 m an all-round white (on the mast's top) and the side lights, the stern light on the aft mast;
             # the fishing lights red over white on their arms (rule 26; lanterns() lights them where the model has them); work lights
             'lights': [[G(FM[0], FM[1], white_z()), [1, 0.95, 0.85], 'allround'],
@@ -1130,8 +1133,12 @@ def anchors():
             # the work at sea (havsjark-grunnlag kap. 6.2): the fisher at the hauler on the starboard waist; the bleeding tub on the deck just
             # aft of him; the gutting bench (the game's steel one) across the hatch at the port bulwark, the one who guts inboard of it; the
             # gutted fish go down the hatch between them, on ice
-            'work': {'table': G(TABLE_X, 1.55, z_deck(TABLE_X)), 'tub': G(3.80, -1.38, z_deck(3.8)), 'pack': G(PACK[0], PACK[1], z_deck(PACK[0])) + [round(-math.pi / 2, 3)]},   # (deckcrew.js turns the packer round on a boat with a hold: -pi/2 + pi faces the tub to starboard)
+            # (steg 125d: along the starboard rail in the work's order; the hauler bleeds the fish himself and throws it in the tub (solo), the
+            # fish go down the open hatch and are iced in the hold: no ice box and nobody icing on deck (nopack). gut: the one who guts)
+            'work': {'table': G(TABLE_X, TABLE_Y, z_deck(TABLE_X)), 'tub': G(TUB[0], TUB[1], z_deck(TUB[0])), 'gut': G(GUT_AT[0], GUT_AT[1], z_deck(GUT_AT[0])) + [1.571], 'solo': True, 'nopack': True},   # (deckcrew.js turns the packer round on a boat with a hold: -pi/2 + pi faces the tub to starboard)
             'jigZ': [[sd, round(XM - x, 3)] for sd, x in JIG],
+            # (steg 125d: the hatch's opening [across, along], open while she fishes: the game draws the dark well and the lid tipped up on it)
+            'hatchSize': [round(v, 3) for v in (HOLD[3] - HOLD[2], HOLD[1] - HOLD[0])],
             'hatch': G(3.2, 0.0, z_deck(3.2) + HOLD_H + 0.04), 'bunk': G(8.0, 0.6, z_bk(8.0) - 0.6), 'exhaust': G(6.0, 0.55, 4.20),
             'deck': {'y': round(zd - WL, 3), 'z': round(-(3.0 - XM), 3)}, 'gw': round(z_cap(4.5, -1) - WL, 3),
             'stern': round(XM + 0.2, 3), 'bow': round(-(10.3 - XM), 3), 'side': 1.9, 'beam': BEAM, 'pl': 4.2, 'rl': 1.56, 'open': False, 'hand': False,
@@ -1210,7 +1217,10 @@ def check():
     rows = [(STAMP0[0] + 0.5 * k, STAMP0[1] + 0.52 * j) for k in range(3) for j in range(2)]
     worst = min(min(math.hypot(x - gx_, y - gy_) for gx_, gy_ in [(px_, py_) for px_ in [1.25 + 0.05 * i for i in range(28)] for py_ in [-0.15 + 0.05 * i for i in range(38)] if in_gr(px_, py_)])
                 for sx, sy in rows + [GARN] for x, y in [(sx + (0.0 - sx) * u / 20, sy + (-0.45 - sy) * u / 20) for u in range(21)])
-    out.append(('redskapet fra binga og stampene til setteporten går %.2f m klar av redskapsrommet (før: gjennom det)' % worst, worst > 0.1))
+    # (steg 125d: the tubs stand to port abreast of the hatch and are carried aft to the setting port when the gear is set: they themselves clear of it)
+    worst = min(min(math.hypot(x - gx_, y - gy_) for gx_, gy_ in [(px_, py_) for px_ in [1.25 + 0.05 * i for i in range(28)] for py_ in [-0.15 + 0.05 * i for i in range(38)] if in_gr(px_, py_)])
+                for x, y in rows + [GARN])
+    out.append(('binga og stampene står %.2f m klar av redskapsrommet' % worst, worst > 0.1))
     # the name strips under the strake, the mark forward (markStrips: on 9-15 m a 0.34 m strip about 1.1 m from the stem): never on each other
     out.append(('navnefeltene på sidene %.2f-%.2f m over vannet fra x %.2f til %.2f, merket forut for x 8.3 (maletest: aldri oppå hverandre)' % (NAME_Z[0], NAME_Z[1], 6.20, 7.45), 7.45 < 8.3))
     # vessel3d: the hull from 0.3 m under the water to 1.5 m over it, with what stands out over the rail

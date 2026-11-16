@@ -78,7 +78,7 @@ async def main():
           await cloudFlush(false);
           runAground({...S.boat.pos}); await cloudFlush(true);
           S.lastReal = Date.now(); save(); CLOUD.lastSave = 0; await cloudSaveSoon();
-          PHONE.open('innst'); const card = document.body.innerText.includes('jonas@test.no'); PHONE.show(false);
+          (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); const card = document.body.innerText.includes('jonas@test.no'); PHONE.show(false);
           PHONE.open('home'); const admIcon = !!document.querySelector('#phView [data-a=admin]'); PHONE.open('admin'); const admApp = PHONE.app === 'admin'; PHONE.show(false);
           return {sid:CLOUD.sid, consent:CLOUD.consent, card, admIcon, admApp}; }""")
         batches = [c[1] for c in calls if c[0] == 'tm_batch']; ev = [e['k'] for b in batches for e in b.get('evs', [])]
@@ -111,7 +111,7 @@ async def main():
         check(not c2['open'] and c2['told'] and puts3 and puts3[-1]['force'] is True and await pg.evaluate("!CLOUD.forceNext"), 'the account moved on with a game that has come less far: no choice, the game here goes on and is put up forced (the account keeps the other in its history), and the player is told', {'c2': c2, 'puts': [(q['base'], q['force']) for q in puts3]})
         # the earlier saves in Settings
         replies['save_hist_list'] = [{'id': 7, 'saved_at': '2030-01-01T10:00:00+00:00', 'game_t': 99999, 'summary': {'day': 40, 'cash': 512000, 'boat': 'Havørn', 'type': 'sjark', 'fleet': 2}}]
-        await pg.evaluate("(() => { PHONE.open('innst'); document.querySelector('#phone [data-pa=cloudHist]').click(); })()")
+        await pg.evaluate("(() => { (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); document.querySelector('#phone [data-pa=cloudHist]').click(); })()")
         await pg.wait_for_selector('#phone [data-pa=cloudRestore][data-id="7"]', timeout=10000)
         h = await pg.evaluate("""(() => { const r = document.querySelector('#phone [data-pa=cloudRestore][data-id="7"]').closest('.hrow'); const q = r.getBoundingClientRect(), p = document.getElementById('phone').getBoundingClientRect(); return {text:r.innerText, fits:q.right <= p.right + 1}; })()""")
         check('Dag 40' in h['text'] and 'Havørn' in h['text'] and h['fits'], "«Tidligere lagringer» in Settings lists the account's earlier saves, each with «Hent»", h)
@@ -152,7 +152,7 @@ async def main():
               "the boat's paint goes up with her place and another player's paint comes down to her model; a server without sea time or paint yet gets the place without them, and the shared world stays on", {'up': wl, 'peer': lv, 'nofs': wf, 'old': old, 'calls': wo2})
         replies['pos_put'] = 'null'; S_reset = await pg.evaluate("(() => { delete S.boat.liv; WORLDP.noLiv = false; WORLDP.noFs = false; return 1; })()")
         n0 = len(calls)
-        hide = await pg.evaluate("async () => { S.settings.showMe = false; PHONE.open('innst'); const card = document.getElementById('phView').innerText; PHONE.show(false); await worldTick(); return {card:card.includes('Vis båten min'), hasOff:typeof worldShowMe !== 'undefined'}; }")
+        hide = await pg.evaluate("async () => { S.settings.showMe = false; (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); const card = document.getElementById('phView').innerText; PHONE.show(false); await worldTick(); return {card:card.includes('Vis båten min'), hasOff:typeof worldShowMe !== 'undefined'}; }")
         wo = [c[0] for c in calls[n0:]]
         check(not hide['card'] and not hide['hasOff'] and 'pos_put' in wo and 'pos_off' not in wo and 'pos_world' in wo,
               'there is no hiding the boat: Settings has no such choice, and the place goes up even with the old setting off', {'hide': hide, 'calls': wo})
@@ -180,7 +180,7 @@ async def main():
         nc = [c[1] for c in calls[n0:] if c[0] == 'name_claim']
         replies['name_mine'] = {'name': 'Havørn_2', 'removed': True, 'reason': 'Upassende'}
         rm = await pg.evaluate("async () => { await nameCheck(); return {user:S.user, msg:S.msgs.some(q => /tatt bort: Upassende/.test(q.no))}; }")
-        check(nmc == 'Kystjenta' and 'Velg et brukernavn' in ask['t'] and ask['closers'] == 0 and 'Senere' not in ask['t'] and ask['open1'] and 'mellomrom' in ask['bad'] and ask['open2'] and 'tatt' in ask['taken']
+        check(nmc == 'Kystjenta' and 'Velg et brukernavn' in ask['t'] and ask['closers'] == 0 and 'Senere' not in ask['t'] and ask['open1'] and 'mellomrom' in ask['bad'].lower() and ask['open2'] and 'tatt' in ask['taken']
               and nc == [{'name': 'Havørn_1'}, {'name': 'Havørn_2'}] and ok2 == {'user': 'Havørn_2', 'closed': True, 'asking': False} and rm == {'user': None, 'msg': True},
               'every account has a player name: one taken on another device comes down; without one the card has no way round it, refuses a bad or taken name and closes on a free one; one the admin took away is gone with the reason', {'mine': nmc, 'ask': ask, 'ok': ok2, 'claim': nc, 'removed': rm})
         # the shared world V2: my sale and the fish my boat took go up; the other players' open-group cod, deliveries and catch come down
@@ -205,20 +205,25 @@ async def main():
               "the shared world V2: the other players' open-group cod counts in the group's catch (shown in Kvote), their deliveries fill the plant and its price, and the fish they took is gone from my sea",
               {'before': w2['before'], 'after': {k2: w3[k2] for k2 in ('st', 'sat', 'pr', 'open', 'cur')}})
         # the open group's leaderboard: the players under their boats' names, and a name that tries to make markup is not markup
+        replies['top_list'] = 404   # (a database before 20261116120000_lansering.sql: the kilos from world_top, as before)
         replies['world_top'] = {'rows': [{'rank': 1, 'boat': '<b onclick=x>Snøgg</b>', 'port': 'botnhamn', 'kg': 900, 'me': False}, {'rank': 2, 'boat': 'Havbris', 'port': 'finnsnes', 'kg': 120, 'me': True}], 'mine': {'rank': 2, 'kg': 120}, 'n': 2}
         t = await pg.evaluate("""async () => { S.boatName = 'Havbris'; PHONE.open('salg'); document.querySelector('#phone [data-pa=sub][data-s=top]').click();
           for (let i = 0; i < 40 && !document.querySelector('#phone .ph-tbl td'); i++) await new Promise(r => setTimeout(r, 100));
           await new Promise(r => setTimeout(r, 200)); const tb = document.querySelector('#phone .ph-tbl'), rows = tb ? [...tb.querySelectorAll('tr')].slice(1).map(r => r.innerText.replace(/\\s+/g, ' ').trim()) : [];
           const out = {rows, img:tb ? tb.querySelectorAll('td b, td img').length : -1, xss:!!window.__xss, me:tb && tb.querySelector('tr.me') ? tb.querySelector('tr.me').innerText : null, head:document.querySelector('#phone .ph-card h4') && document.querySelector('#phone .ph-card h4').textContent};
           PHONE.show(false); return out; }""")
-        replies['world_top'] = {'grp': 'lukket', 'rows': [{'rank': 1, 'boat': 'Nordkapp', 'company': 'Nordkapp Havfiske AS', 'port': 'botnhamn', 'kg': 24000, 'me': False}], 'mine': None, 'n': 1}
-        tl = await pg.evaluate("""async () => { PHONE.open('salg'); document.querySelector('#phone [data-pa=sub][data-s=top]').click(); document.querySelector('#phone [data-pa=salgG][data-s=lukket]').click();
-          for (let i = 0; i < 40 && !(document.querySelector('#phone .ph-tbl td') && document.querySelector('#phone .ph-card h4').textContent.includes('lukket')); i++) await new Promise(r => setTimeout(r, 100));
-          const tb = document.querySelector('#phone .ph-tbl'), out = {head:document.querySelector('#phone .ph-card h4').textContent, row:tb ? tb.querySelectorAll('tr')[1].innerText.replace(/\\s+/g, ' ') : null}; PHONE.show(false); return out; }""")
+        # one list for both groups (Jonas 16.11.2026; top_list in 20261116120000_lansering.sql): a closed-group boat with her company on the
+        # same list as the open group's, asked for with grp 'all'
+        replies['top_list'] = {'kind': 'kg', 'grp': 'all', 'rows': [{'rank': 1, 'hid': 'aaaaaaaaaa', 'boat': 'Nordkapp', 'user': 'Kari', 'company': 'Nordkapp Havfiske AS', 'port': 'botnhamn', 'kg': 24000, 'kr': 0, 'f': 3, 'me': False},
+          {'rank': 2, 'hid': 'bbbbbbbbbb', 'boat': 'Havbris', 'user': '', 'company': '', 'port': 'finnsnes', 'kg': 120, 'kr': 0, 'f': None, 'me': True}], 'mine': {'rank': 2, 'kg': 120, 'kr': 0}, 'n': 2}
+        tl = await pg.evaluate("""async () => { for (const k in WTOP) delete WTOP[k]; WTOP_NEW.off = 0; PHONE.open('salg'); document.querySelector('#phone [data-pa=sub][data-s=top]').click();
+          for (let i = 0; i < 40 && !(document.querySelector('#phone .ph-tbl td') && /Nordkapp/.test(document.querySelector('#phone .ph-tbl').innerText)); i++) await new Promise(r => setTimeout(r, 100));
+          const tb = document.querySelector('#phone .ph-tbl'), out = {head:document.querySelector('#phone .ph-card h4').textContent, row:tb ? tb.querySelectorAll('tr')[1].innerText.replace(/\\s+/g, ' ') : null, badge:!!(tb && tb.querySelector('.pf-fb'))}; PHONE.show(false); return out; }""")
+        tq = [c[1] for c in calls if c[0] == 'top_list']
         wt = [c[1] for c in calls if c[0] == 'world_top']
-        check(tl['head'].endswith('lukket gruppe') and tl['row'] and 'Nordkapp' in tl['row'] and 'Nordkapp Havfiske AS' in tl['row'] and any(a.get('grp') == 'lukket' for a in wt),
-              "the closed group's leaderboard: the vessel and the company of each player along the coast", tl)
-        check(t['head'] == "Norges beste båter · åpen gruppe" and len(t['rows']) == 2 and 'Snøgg' in t['rows'][0] and 'Botnhamn' in t['rows'][0] and t['img'] == 0 and not t['xss'] and t['me'] and 'Havbris' in t['me'] and '(deg)' in t['me']
+        check(tl['head'] == 'Norges beste båter' and tl['row'] and 'Nordkapp' in tl['row'] and 'Nordkapp Havfiske AS' in tl['row'] and tl['badge'] and tq and tq[-1].get('grp') == 'all' and tq[-1].get('kind') == 'kg',
+              "one leaderboard for both groups (top_list, grp 'all'): a closed-group boat with her company and the founders' badge", {'tl': tl, 'ask': tq[-1:] if tq else None})
+        check(t['head'] == "Norges beste båter" and len(t['rows']) == 2 and 'Snøgg' in t['rows'][0] and 'Botnhamn' in t['rows'][0] and t['img'] == 0 and not t['xss'] and t['me'] and 'Havbris' in t['me'] and '(deg)' in t['me']
               and wt and isinstance(wt[0].get('w'), int) and wt[0].get('grp') == 'open' and lp and lp[0].get('boat') == 'Havbris' and lp[0].get('company') == '',
               "the open group's leaderboard: the players under their boats' names and plants, yourself marked, a name with markup only text; each sale carries the boat's name",
               {'t': t, 'ask': wt[:1], 'boat': lp[0].get('boat') if lp else None})

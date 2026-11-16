@@ -6,7 +6,7 @@
   // ones over 150 m to the tip). The spans (vind.json s) within 4 km get a mast at each end (a steel portal for 66 kV and up, a
   // wooden H-pole under) and three wires hanging between them, never under 30 m over the sea at the middle. One instanced call per
   // part. #vind0 in the address: none of it.
-  const VD = {on:!/vind0/.test(location.hash), P:null, LP:null, M:null, ib:null, nT:0, nM:0, at:-1e9, ang:0, ys:new Map(), wires:null, nW:0, lit:[]};
+  const VD = {on:!/vind0/.test(location.hash) && !PGFX.off.trees, P:null, LP:null, M:null, ib:null, nT:0, nM:0, at:-1e9, ang:0, ys:new Map(), wires:null, nW:0, lit:[]};
   const VD_R = 14000, VD_RS = 4000, VD_CLEAR = 30;
   function vindModels(){
     if (VD.M !== null) return VD.M;

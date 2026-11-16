@@ -627,6 +627,9 @@ function vesselGeo(type, hs, sp, house, anch){
 }
 function vesselModel(type){ if (!(type in VMODEL)) VMODEL[type] = buildVesselModel(type, 1); return VMODEL[type]; }
 function geoOf(type){ const m = vesselModel(type); return m ? m.geo : null; }
+// the steel gutting bench (1.6 m) from 10 m, else the plastic table (1.15 m); work.bord: the plastic table on a bigger boat where the rail between
+// the hauler and the crane is short (the used fast sjark, steg 125d, Jonas 15.11.2026 «Kortere bord»)
+const benkOf = (V, W) => !!(V && V.len >= 10) && !(W && W.bord);
 // the local fleet in 3D: each boat gets the decked coastal model nearest her in length and beam (view3d.js scales it to her own
 // size), in one of four liveries for the hull and its stripe; near at lod 1, at middle distance at lod 0.3
 const LIVERY = [null, {hull:VC.navy, stripe:VC.white}, {hull:VC.red, stripe:VC.white, rail:VC.white}, {hull:VC.teal, stripe:VC.yellow}];
@@ -1310,6 +1313,7 @@ function npcModel(type, lod, liv){ const str = typeof liv === 'string', k = npcM
 function npcModelDrop(k){ delete NPCMOD[k]; }
 // a person in oilskins, built facing -z (as the skiff's crew): standing or seated, hands where given (or down by the sides)
 function personVB(B, x, y, z, seated, hands, suit, kit){
+  if (kit && hands !== false && figBake(B, x, y, z, seated, hands, kit)) return;      // the new people, behind #folk2 (FB7)
   if (kit && glbHas('worker')) return figureVB(B, x, y, z, seated, hands, kit);       // the detailed figure (tools/harbour/arbeider.py)
   const JAC = suit || [0.95, 0.62, 0.1, 0.3], VEST = [0.86, 0.16, 0.12, 0.35], TRS = [0.1, 0.12, 0.17, 0.2], SKN = [0.93, 0.74, 0.6, 0.25], HAT = [0.12, 0.16, 0.3, 0.15], BOOT = [0.06, 0.06, 0.07, 0.3];
   const hip = y + (seated ? 0.46 : 0.82);
@@ -1407,7 +1411,10 @@ function figureVB(B, x, y, z, seated, hands, kit){
 // name (tools/harbour/kropp_bygg.py; docs/systemer/folk-om-bord.md 5.33b). A figure is one mesh in the rest pose with four bones and
 // weights a corner; the shader bends it by the bones' matrices (figpose.js figPose, figGL). Shown only behind #folk2 in the address,
 // and only in the wardrobe yet: on deck and on the quay the figure is the old one (worker.b64) until Jonas has seen this one (FB7).
-const FOLK2 = typeof location !== 'undefined' && !!location && /folk2/.test(location.hash || '');
+// (the new people, FB7: with «#folk2» in the address, and on the test edition by default, Jonas 15.11.2026 «Standard på testutgaven»:
+// <meta name="dsb-channel" content="test">, build.mjs KYST_CHANNEL; «#folk1» gives the old figures there. The players' edition keeps the
+// old ones until Jonas says they can have them)
+const FOLK2 = typeof location !== 'undefined' && !!location && (/folk2/.test(location.hash || '') || (!/folk1/.test(location.hash || '') && (() => { try { return (document.querySelector('meta[name=dsb-channel]') || {}).content === 'test'; } catch (e){ return false; } })()));
 const FIGSK = {}, FIGPC = {};
 function figSkelOf(sex){ const k = sex === 'f' ? 'f' : 'm'; if (FIGSK[k]) return FIGSK[k]; const G = glbLoad('folk2'); return G && G.sk ? FIGSK[k] = figSkel(G.ex, k) : null; }
 // a part of the new file painted by the kit's zones as wkPart paints the old (1 jacket, 3 trousers, 4 skin, 5 hair, beard and
@@ -1453,6 +1460,30 @@ function figMesh(kit, opt){
     M.p.set(o.p.subarray(a * 3, (a + cnt) * 3), at * 3); M.n.set(o.n.subarray(a * 3, (a + cnt) * 3), at * 3); M.c.set(o.c.subarray(a * 4, (a + cnt) * 4), at * 4);
     M.j.set(o.j.subarray(a * 4, (a + cnt) * 4), at * 4); M.w.set(o.w.subarray(a * 4, (a + cnt) * 4), at * 4); M.parts.push([name, at, cnt]); at += cnt; }
   return M;
+}
+// the trunk's profile of a body in what it wears (figpose.js figProfile): the body's garment over the trunk (torso: the part's
+// name), the trousers' top under its hem, and the life jacket over it when one is worn (vest: its part's name). Measured once for
+// each. And the head's measures for a body (figHead).
+const FIGPROF = {}, FIGHEAD = {};
+function figProfOf(sex, torso, vest){
+  const k = (sex === 'f' ? 'f' : 'm') + '|' + torso + '|' + (vest || ''); if (k in FIGPROF) return FIGPROF[k];
+  const G = glbHas('folk2') ? glbLoad('folk2') : null, sk = G && G.sk ? figSkelOf(sex) : null; if (!sk) return null;
+  return FIGPROF[k] = figProfile([glbPeek(G, sex === 'f' ? 'thighF' : 'thigh'), glbPeek(G, torso), vest ? glbPeek(G, vest) : null], sk);
+}
+function figHeadOf(sex){
+  const k = sex === 'f' ? 'f' : 'm'; if (k in FIGHEAD) return FIGHEAD[k];
+  const G = glbHas('folk2') ? glbLoad('folk2') : null, sk = G && G.sk ? figSkelOf(sex) : null, o = sk ? glbPeek(G, k === 'f' ? 'headF' : 'head') : null; if (!o) return FIGHEAD[k] = null;
+  const H = figHead(o, sk); H.P = figProfile([o], sk, FIG_HEADP); return FIGHEAD[k] = H;   // (P: the head's own profile, the face's front by height and side)
+}
+// The new figure built once into a mesh (FB7: the people in the skiff and on boats seen from outside): posed standing or seated on
+// the processor (figpose.js figStand, figFromJoints, figSkin) and added to the builder B with its feet at (x, y, z), facing -z, at
+// the size people have on board (WK_S). hands as figureVB's: [left, right] where given. False when the new people are not on.
+function figBake(B, x, y, z, seated, hands, kit){
+  if (!FOLK2 || !glbHas('folk2')) return false; const M = figMesh(kit, {}); if (!M || !M.cnt) return false;
+  const sk = figSkelOf(M.sex), S = WK_S, ex = glbLoad('folk2').ex, o = figFromJoints(sk, figStand(sk, seated, hands ? hands.map(h => [(h[0] - x) / S, (h[1] - y) / S, (h[2] - z) / S]) : null, S));
+  figGrip(ex, M.sex, 'relax', o.local); const Q = figSkin(M.p, M.n, M.j, M.w, figPose(sk, o.local, o.root).M);
+  for (let i = 0; i < M.cnt; i++) B.v([x + Q.p[i * 3] * S, y + Q.p[i * 3 + 1] * S, z + Q.p[i * 3 + 2] * S], [Q.n[i * 3], Q.n[i * 3 + 1], Q.n[i * 3 + 2]], [M.c[i * 4], M.c[i * 4 + 1], M.c[i * 4 + 2], M.c[i * 4 + 3]]);
+  return true;
 }
 // a figure's mesh as draw calls of at most maxB bones each (figpose.js figSplit): [{p, n, c, j, w, cnt, bones}], j counted in the draw
 // call's own palette (bones: which of the skeleton's bones it holds, in order). One draw call, the mesh itself, when maxB holds all.
@@ -1631,6 +1662,14 @@ function deckMap(type){
   for (let i = links.length - 1; i >= 0; i--){ const [a, b] = links[i]; if (inDeck[a] < 0 || inDeck[b] < 0 || links.findIndex(l => l[0] === a && l[1] === b) !== i) links.splice(i, 1); }
   const parts = []; for (let L = 0; L < nl; L++) if (size[L] >= 8) parts.push({n:size[L], y:Math.round(ys[L] / size[L] * 100) / 100, main:L === main, on:onDeck.has(L)}); parts.sort((a, b) => b.n - a.n);
   for (let k = 0; k < N; k++) H[k] = inDeck[k] >= 0 ? floors[k][inDeck[k]][0] : NaN;
+  // (a link's head on the floor it was made for: where the head lies over a lower deck the map holds the lower floor in that cell, and the
+  // way went on along the lower deck under the stair, through it: the snow crab boat's stair to the shelter deck, crewclip 125f. The
+  // head moves to the nearest cell with that floor, four cells (0.8 m) each way at most; none, or only its own foot, and the link is no way)
+  for (let i = links.length - 1; i >= 0; i--){ const l = links[i], [a, b, dy] = l, yb = H[a] + dy; if (Math.abs(H[b] - yb) <= 0.3) continue;
+    const bi = b % nx, bj = (b - bi) / nx; let best = -1, bd = Infinity;
+    for (let dj = -4; dj <= 4; dj++) for (let di = -4; di <= 4; di++){ const ii = bi + di, jj = bj + dj; if (ii < 0 || jj < 0 || ii >= nx || jj >= nz) continue; const q = jj * nx + ii;
+      if (!(H[q] === H[q]) || Math.abs(H[q] - yb) > 0.3) continue; const d = Math.hypot(di, dj); if (d < bd){ bd = d; best = q; } }
+    if (best >= 0 && best !== a && !links.some(m => m !== l && m[0] === a && m[1] === best)) l[1] = best; else links.splice(i, 1); }
   const LINK = {}; for (const [a, b] of links){ (LINK[a] || (LINK[a] = [])).push(b); (LINK[b] || (LINK[b] = [])).push(a); }
   let n = 0; for (let k = 0; k < N; k++) if (H[k] === H[k]) n++;
   const M = {type, c:DM_C, x0, z0, nx, nz, h:H, bar, n, parts, yDeck, links, LINK, cellOf, _floors:floors, _lab:lab, at(k){ const i = k % nx; return [x0 + (i + 0.5) * DM_C, H[k], z0 + ((k - i) / nx + 0.5) * DM_C]; },
@@ -1686,7 +1725,8 @@ function deckPath(M, a, b){
   // the shoulders off them where there is room: Jonas 23.10.2026, «aldri "clipper" gjennom vegger, rekka eller andre ting»)
   if (!M.tight){ const TT = new Uint8Array(N); for (let k = 0; k < N; k++){ if (!M.ok(k)) continue; const p = M.at(k);
       for (const [dx, dz] of [[0.2, 0], [-0.2, 0], [0, 0.2], [0, -0.2]]) if (M.hit([p[0] + dx, p[1] + 0.35, p[2] + dz], [p[0] + dx, p[1] + 1.55, p[2] + dz]) >= 0){ TT[k] = 1; break; } } M.tight = TT; }
-  const EC = new Float32Array(N); for (let k = 0; k < N; k++) if (M.ok(k)) EC[k] = (edge(k) ? 0.6 : 0) + (M.tight[k] ? 2.5 : 0);
+  // (M.avoid: cells the crew keep off where they can, the stools that stand on deck, deckcrew.js stools; costed as a tight cell)
+  const EC = new Float32Array(N); for (let k = 0; k < N; k++) if (M.ok(k)) EC[k] = (edge(k) ? 0.6 : 0) + (M.tight[k] || (M.avoid && M.avoid[k]) ? 2.5 : 0);
   const hx = b % nx, hz = (b - hx) / nx, heur = k => { const i = k % nx, j = (k - i) / nx; return Math.hypot(i - hx, j - hz); };
   const closed = new Uint8Array(N);
   while (open.length){
@@ -1774,7 +1814,9 @@ function deckPoints(type){
   // (work.stand: the side of the table one stands at, 1 to starboard of it, -1 to port; by default toward the middle of the boat, as at a
   // table on the bulwark. The 15 m shelter-decker's table stands along the hauling station's inboard wall, so she stands outboard of it)
   const sd = W && W.stand ? Math.sign(W.stand) : (tx < 0 ? 1 : -1);
-  put('sloy', tx + sd * 0.62, tz, sd > 0 ? -Math.PI / 2 : Math.PI / 2, far); if (W && W.pack) put('is', W.pack[0], W.pack[2], W.pack[3] != null ? W.pack[3] : 0, far); else put('is', ux + (ux > tx ? -0.62 : 0.62), uz, ux > tx ? Math.PI / 2 : -Math.PI / 2, far);   // (work.pack: the model's own place for the one who ices, 04.11.2026)
+  if (W && W.gut) put('sloy', W.gut[0], W.gut[2], W.gut[3] != null ? W.gut[3] : 0, far); else put('sloy', tx + sd * 0.62, tz, sd > 0 ? -Math.PI / 2 : Math.PI / 2, far);   // (work.gut: the model's own place for the gutter, steg 125d)
+  // (work.nopack, steg 125d: nobody ices on this deck, the hold is iced below: no packer's place)
+  if (W && W.nopack){} else if (W && W.pack) put('is', W.pack[0], W.pack[2], W.pack[3] != null ? W.pack[3] : 0, far); else put('is', ux + (ux > tx ? -0.62 : 0.62), uz, ux > tx ? Math.PI / 2 : -Math.PI / 2, far);   // (work.pack: the model's own place for the one who ices, 04.11.2026)
   if (G.hauler) put('haling', G.hauler[0] * 0.7, G.hauler[2], G.hauler[0] > 0 ? Math.PI / 2 : -Math.PI / 2, 1.6);
   // the helm, or the door when the house has no floor in the model. Not a cell over the wheel: the house's roof is deck in the map (joined
   // by the links), so the nearest cell over the wheel was the roof and the skipper steered from up there (the sjark and the havsjark,
@@ -1802,7 +1844,10 @@ function deckPoints(type){
   // map has her rail (the shelter-deckers, whose working deck under the shelter the map does not hold)
   // (OB12: a model whose working deck lies under a deck says which deck her rail is on, anchors.leanY: the kyst15's working deck runs aft to
   // the transom now, and the cells along the transom's inside counted as a rail, so the idle hands stood facing the wall under the shelter deck)
+  // (steg 125d: not by the fish hold's hatch, open while she fishes: on the kyst15 it lies at the side under the opening)
+  const Hh = G.hatch && (Array.isArray(G.hatch) ? G.hatch : G.hatch.at), HS = W && W.nopack && Hh && G.hatchSize, byHatch = l => { if (!HS) return false; const p = M.at(l.k); return Math.abs(p[0] - Hh[0]) < HS[0] / 2 + 0.35 && Math.abs(p[2] - Hh[2]) < HS[1] / 2 + 0.35; };
   const ly = typeof G.leanY === 'number' ? G.leanY : d.y, low = lean.filter(l => Math.abs(M.at(l.k)[1] - ly) < 0.6), rail = low.length >= 4 ? low : lean;
-  rail.sort((a, b) => M.at(a.k)[2] - M.at(b.k)[2]); const step = Math.max(1, Math.floor(rail.length / 10)); pt.lean = rail.filter((_, i) => i % step === 0).slice(0, 10);
+  rail.sort((a, b) => M.at(a.k)[2] - M.at(b.k)[2]); const step = Math.max(1, Math.floor(rail.length / 10)); pt.lean = rail.filter((_, i) => i % step === 0).slice(0, 10).filter(l => !byHatch(l));
+  Object.defineProperty(pt, 'leanAll', {value:rail, enumerable:false});   // (not among the places others go through; every place along her rail: the one who gives the crane signs looks for a free one there, steg 125d: on the breisjark the ten were all by the tub, the hauler and the table)
   DECKPTS[type] = pt; return pt;
 }

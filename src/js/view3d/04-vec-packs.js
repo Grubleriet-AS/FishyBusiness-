@@ -150,7 +150,7 @@
   }
   function updateShadows(){
     // the sun's direction in steps of 0.03 (it moved 0.01 every 20 s of play at 6x time, and each step started all the meshes again)
-    const d = QUAL.lvl ? env.shadowDir : null, key = d ? d.map(v => (Math.round(v / 0.03) * 0.03).toFixed(2)).join(',') : 'flat';   // no shadows on low quality
+    const d = QUAL.lvl && PGFX.shadow !== false ? env.shadowDir : null, key = d ? d.map(v => (Math.round(v / 0.03) * 0.03).toFixed(2)).join(',') : 'flat';   // no shadows on low quality
     sunGridStep(key, d);
     const until = performance.now() + SHMS[QUAL.lvl];
     for (const m of [NEARM, FINEM, ...UPATCH, MIDM, TERR]){

@@ -96,8 +96,21 @@ JS = """((breaks) => { const R = {}, b = S.boat, t0 = b.type, g = GROUNDS[2].p; 
     b.gop = null; CREW3D.reset(); CREW3D.on(); CREW3D.setJig(G3._debug.jigRail(vt));
     // walking between them: the breaks changing every three seconds for a minute, the bodies tested every tenth of a second
     b.status = 'idle'; b.gop = null; S.hold = []; b.deckStop = false; r.walk = 0; r.walked = 0; CREW3D._st.ctxT = -1e9; CREW3D._st.lastSim = null; CREW3D.tick(0.05);
+    // (FB3, steg 121: the feet walking, deckcrew.js footStep as the view runs it for each of them: every foot put down is on the deck
+    // with nothing through the shin there (footOk), not on his other foot and not on anyone else's. A build from before has no footStep: red)
+    r.feet = 0; r.feetBad = []; const FQ = new Map(), fstep = typeof footStep === 'function' ? () => { const down = [];
+      for (const a of CREW3D.visible()){ if (a.mode === 'helm') continue; let q = FQ.get(a.id); if (!q) FQ.set(a.id, q = {s:footState(), was:[true, true]}); const go = CREW3D.walkOff(a), x = a.x + go[0], z = a.z + go[1];
+        const o = footStep(q.s, {x, z, h:a.h + (a.sqA || 0) * Math.PI / 2, dt:0.1, w:[0.12, 0.12], reach:0.357, carry:a.task === 'carry', ok:(fx, fz) => CREW3D.footOk(a, fx, fz), avoid:[...FQ].filter(([id]) => id !== a.id).flatMap(([, w]) => footSpots(w.s)), y:a.y, fy:(fx, fz) => CREW3D.footY(a, fx, fz)});
+        // (walking, or a last step at a place where his feet standing square are clear: the gait's own; at a place whose square stance is
+        // in something already, the place's, which is the pose's and the guards' above, not the gait's)
+        const hq = a.h + (a.sqA || 0) * Math.PI / 2, sqOk = () => [-1, 1].every(sg => CREW3D.footOk(a, x + Math.cos(hq) * sg * 0.12, z + Math.sin(hq) * sg * 0.12)), mine = () => o.v > FOT.VMIN || sqOk();
+        for (const k of [0, 1]){ const f = q.s.f[k]; if (o.plant[k] && !q.was[k]){ if (mine()) down.push({a, k, f, w:o.v > FOT.VMIN}); else r.feetPlace = (r.feetPlace || 0) + 1; r.feet++; if (!CREW3D.footOk(a, f.x, f.z) && mine()) r.feetBad.push(a.id + ':i ting:' + f.x.toFixed(2) + ',' + f.z.toFixed(2) + ':' + (() => { const M = CREW3D._st.M, fy = CREW3D.footY(a, f.x, f.z); if (fy == null) return 'uten dekk'; if (M.hit([f.x, fy + 0.45, f.z], [f.x, fy + 0.06, f.z]) >= 0) return 'leggen'; const y0 = Math.max(a.y, fy); if (M.hit([x, y0 + 0.3, z], [f.x, y0 + 0.3, f.z]) >= 0) return 'mellom'; return 'utstyr'; })() + ':' + a.mode + ':' + (a.task || '-') + ':' + o.v.toFixed(2));
+            const g = q.s.f[1 - k], d = Math.hypot(f.x - g.x, f.z - g.z); if (o.plant[1 - k] && d < FOT.SEP - 0.03 && mine()) r.feetBad.push(a.id + ':på egen fot:' + d.toFixed(3)); } q.was[k] = o.plant[k]; }
+        // (and a foot on its way never through the one that stands: a boot is some 11 cm across)
+        if (o.plant[0] !== o.plant[1]){ const m = Math.hypot(q.s.f[0].x - q.s.f[1].x, q.s.f[0].z - q.s.f[1].z); if (m < 0.11) r.feetBad.push(a.id + ':gjennom egen fot:' + m.toFixed(3)); } }
+      for (const {a, f, w} of down) for (const [id, q] of FQ) if (id !== a.id) for (const g of q.s.f) if (!g.up && Math.hypot(f.x - g.x, f.z - g.z) < 0.11){ if (w) r.feetBad.push(a.id + ':på ' + id + 's fot'); else r.feetNear = (r.feetNear || 0) + 1; } } : () => r.feetBad.push('ingen footStep');
     for (let i = 0; i < 600; i++){ if (i % 30 === 0){ FORCE = [breaks[(i / 30) % breaks.length], breaks[(i / 30 + 5) % breaks.length], breaks[(i / 30 + 11) % breaks.length]]; S.t += 13; CREW3D._st.lastSim = S.t; }
-      CREW3D.tick(0.1); const h = (CREW3D.bodyHits() || []).concat((CREW3D.clipNow() || []).filter(x => x.n > 0 && CREW3D.agents().some(a => a.id === x.id && a.mode === 'at'))); r.walk += h.length; r.walked += CREW3D.agents().filter(a => a.mode === 'walk').length; if (h.length) (r.walkAt = r.walkAt || []).push(...h.map(x => x.which + ':' + x.near + ':' + x.mode)); }
+      CREW3D.tick(0.1); fstep(); const h = (CREW3D.bodyHits() || []).concat((CREW3D.clipNow() || []).filter(x => x.n > 0 && CREW3D.agents().some(a => a.id === x.id && a.mode === 'at'))); r.walk += h.length; r.walked += CREW3D.agents().filter(a => a.mode === 'walk').length; if (h.length) (r.walkAt = r.walkAt || []).push(...h.map(x => x.which + ':' + x.near + ':' + x.mode)); }
     FORCE = null;
     // (FB4, steg 120, 13.11.2026: the sea legs at their furthest, the deck 15° either way and fore and aft: every break at every rail place it
     // fits, [clear, fits]; deckcrew.js seaScan. A build from before has none: red)
@@ -153,7 +166,12 @@ async def main():
         seaBad = {vt: ({k: v for k, v in r['sea'].items() if v[0] != v[1]} if r.get('sea') else 'ingen seaScan') for vt, r in R.items() if r and (not r.get('sea') or any(v[0] != v[1] for v in r['sea'].values()))}
         print(ok(not seaBad), 'nor with the sea legs at their furthest, the deck 15° either way: no leg, spine, shoulder or head through anything at any break\'s place (FB4; %d places)' % sum(v[1] for r in R.values() if r and r.get('sea') for v in r['sea'].values()), seaBad)
         walk = {vt: [r['walk'], r['walked'], r.get('walkAt')] for vt, r in R.items() if r and r['walk']}
-        print(ok(not walk and all(r['walked'] > 50 for r in R.values() if r)), 'nor a body on the way between them (shoulders, chest and back, every tenth of a second)', walk)
+        # (walked: the walking was tried on every boat with places for the breaks on deck; one with none, the autoliner (fits 0/0, her
+        # crew are inside off watch), has no way to walk, and is named here; steg 125f)
+        idleOnly = [vt for vt, r in R.items() if r and not any(v[1] for v in r['scan'].values())]
+        print(ok(not walk and all(r['walked'] > 50 for vt, r in R.items() if r and vt not in idleOnly)), 'nor a body on the way between them (shoulders, chest and back, every tenth of a second; no break places on deck, so no walking: %s)' % idleOnly, walk)
+        fb = {vt: r['feetBad'][:4] + [len(r['feetBad'])] for vt, r in R.items() if r and r.get('feetBad')}
+        print(ok(not fb and sum(r.get('feet', 0) for r in R.values() if r) > 200), 'no foot walking put down in a wall, a tub or the kit, nor on his other foot or anyone else\'s (FB3; %d feet put down on every boat)' % sum(r.get('feet', 0) for r in R.values() if r), fb, 'ved plasser der han står i noe fra før:', {vt: r.get('feetPlace') for vt, r in R.items() if r and r.get('feetPlace')}, 'stående tett inntil andres føtter ved faste plasser (plassenes, ikke gangens):', {vt: r.get('feetNear') for vt, r in R.items() if r and r.get('feetNear')})
         given = {}
         for r in R.values():
             if r:

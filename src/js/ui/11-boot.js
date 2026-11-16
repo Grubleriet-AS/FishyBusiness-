@@ -161,7 +161,7 @@ function dataEarly(){
   try { const s = load(); for (const v of s && s.fleet && s.fleet.length ? s.fleet : s ? [s] : []) if (v.boat && v.boat.type) ty.add(v.boat.type); } catch (e){}
   // (and the fishing grounds' shapes, Ø14 F2: the fish on the grounds are the same from the first hour, 03j-felt.js; and the speed
   // limits' areas, Ø11.8: Autonav holds them in the time away played before the game opens, 05e-sjovei.js fartRuns)
-  return el => (/^pic-/.test(el.id) && el.id !== 'pic-items') || el.id === 'glb-worker' || el.id === 'felt-s' || el.id === 'fart-r' || [...ty].some(t => el.id === 'glb-' + t);
+  return el => (/^pic-/.test(el.id) && el.id !== 'pic-items' && el.id !== 'pic-tat') || el.id === 'glb-worker' || el.id === 'felt-s' || el.id === 'fart-r' || [...ty].some(t => el.id === 'glb-' + t);
 }
 // The models' bytes as they came (04.11.2026, the memory: two crashes on Android that day with 462 and 647 MB of JS heap): kept here as
 // a Uint8Array per element id and read by glbData (vessel3d.js), the pub's and the naust's parse and the buildings' loader, instead of
@@ -283,7 +283,7 @@ if (BOOTG.safe) bootgSafe();   // the starts before locked (BOOTG above): the ro
   } }
 { const d = newState(); for (const k of ['equip', 'crew', 'loan', 'member', 'msgs', 'sales', 'order', 'owned', 'stock', 'marks', 'jobs', 'prep', 'tripBuff', 'draftDep', 'navrows', 'company', 'boatName', 'tut', 'incidents', 'lore', 'tattoos', 'tat', 'sets', 'gseq', 'ops', 'lic', 'qseed', 'haill', 'pubE', 'target', 'streak', 'clothes', 'orders', 'rep', 'bors', 'cevt', 'workLog']) if (S[k] === undefined || (k === 'stock' && !S[k])) S[k] = d[k];
   if (!S.fm) S.fm = fmInit();   // blad B from the landing notes kept, and at once for a company that already has a closed-group right
-  if (!adminOk()){ S.mult = 1; if (S.adm){ S.adm.noEnergy = false; S.adm.hopp = false; } }   // (the fast-forward test switch too, HO2)
+  if (!adminOk()){ S.mult = 1; if (S.settings) S.settings.manual = false;   /* (no manual helm for players, Jonas 16.11.2026: routes in the chart plotter only) */ if (S.adm){ S.adm.noEnergy = false; S.adm.hopp = false; } }   // (the fast-forward test switch too, HO2)
   // one clock for everyone (core/01-world.js): no pace of one's own, and the world's seed for the quota years, stocks and sellers
   if (WCLOCK.on){ S.mult = 1; S.qseed = WORLD_SEED; }   // the Admin app's pace and energy are only Jonas's (cloud adminOk)
   if (!S.boat.type) S.boat.type = 'trebat'; if (S.boat.engH === undefined){ S.boat.engH = 0; S.boat.svcAt = 0; }
@@ -297,7 +297,35 @@ if (BOOTG.safe) bootgSafe();   // the starts before locked (BOOTG above): the ro
       log('Påbudt utstyr følger nå båten, og det som manglet, er montert gratis: ' + nm('no') + '.', 'Required equipment now comes with the boat, and what was missing has been fitted free: ' + nm('en') + '.'); } }
   karRefund(); applyVessel(); if (!S.settings.chart) S.settings.chart = S.settings.plotter && S.equip.plotter ? 'fish' : 'nav'; if (S.settings.heatSp && !HEAT.sp.includes(S.settings.heatSp)) delete S.settings.heatSp;
   if (S.boat.status === 'port' && portById(S.boat.port)){ const pp = portById(S.boat.port).p; S.boat.pos = {x:pp.x, y:pp.y}; }
-  if (S.fleet && S.fleet.length){ ensureFleet(); for (const v of S.fleet) withVessel(v, () => { if (S.boat.status === 'port' && !portById(S.boat.port)) S.boat.port = nearestPort(S.boat.pos && isFinite(S.boat.pos.x) ? S.boat.pos : PORTS[0].p).id;   /* (the fleet's other vessels as the boat above, 13.11.2026) */ if (S.boat.status === 'port' && portById(S.boat.port)){ const pp = portById(S.boat.port).p; S.boat.pos = {x:pp.x, y:pp.y}; } }); } else ensureFleet(); }
+  // a boat over 15 m at a rorbu (from before SITE_MAXLEN, 13.11.2026: the 21 m coastal vessel lay there with too little water to get out):
+  // at the nearest harbour that takes her, told in the log
+  const siteOut = () => { const b = S.boat; if (b.status !== 'port' || siteFits(b.type, b.port) || !isRorbu(b.port)) return; const R = portById(b.port), at = R ? R.p : b.pos;
+    const q = PORTS.filter(p => !p.rorbu && portFits(p, b.type)).sort((x, y) => dist(x.p, at) - dist(y.p, at))[0]; if (!q) return;
+    b.port = q.id; b.berth = 'main'; b.pos = {x:q.p.x, y:q.p.y}; b.dyn = null; if (b === S.boat) S.trail = [{x:q.p.x, y:q.p.y, port:q.id}];
+    const w = siteWhy(b.type, R ? R.id : b.port) || ['', '']; log(w[0] + ' «' + (S.boatName || '') + '» er flyttet til ' + q.name + '.', w[1] + ' «' + (S.boatName || '') + '» was moved to ' + q.name + '.'); };
+  // (a route that ends at a rorbu taken away, siteGone: she stops where the route ends instead, told in the log; steg 126, 15.11.2026)
+  const goneWay = () => { for (const L of [S.plan && S.plan.wps, S.draft]){ const e = L && L.length ? L[L.length - 1] : null; if (!e || !e.port || !siteGone(e.port)) continue;
+    const w = siteWhy(S.boat.type, e.port) || ['', '']; e.port = null; e.leia = true; delete e.berth; if (L === S.draft) continue; log(w[0] + ' Ruta ender der den gikk, utenfor.', w[1] + ' The route ends where it went, off the shore.'); }
+    // (and a standing plan with that rorbu as home: stopped, said why; its trips home went there while the game was closed, the kontroll
+    // of steg 126. The player sets a new home in it)
+    const o = S.ops; if (o && o.home && siteGone(o.home)){ const w = siteWhy(S.boat.type, o.home) || ['', '']; o.on = false; o.home = null; log(w[0] + ' Driftsplanen er stoppet; velg et nytt hjemsted i den.', w[1] + ' The operating plan is stopped; choose a new home in it.'); } };
+  // (a boat, a route or a standing plan's home at a berth in one of the coast's harbours, shut to the players since 15.11.2026, Jonas: «de
+  // 3300 kaiene skal ikke være tilgjengelige for ekte brukere», 07e-havn.js HAVN.shut: the boat moved to the nearest place that takes
+  // her, the route ending off the shore, the plan stopped for a new home; the berth let go, each told in the log)
+  const berthOut = () => { if (!HAVN.shut) return; const b = S.boat, held = new Set();
+    if (b.status === 'port' && isBerth(b.port)){ const B = portById(b.port), at = B ? B.p : b.pos, old = b.port;
+      const q = PORTS.filter(p => !p.rorbu && portFits(p, b.type)).sort((x, y) => dist(x.p, at) - dist(y.p, at))[0];
+      if (q){ b.port = q.id; b.berth = 'main'; b.pos = {x:q.p.x, y:q.p.y}; b.dyn = null; b.anch = null; if (b === S.boat) S.trail = [{x:q.p.x, y:q.p.y, port:q.id}]; held.add(old);
+        log(HAVN_WHY[0] + ' «' + (S.boatName || '') + '» er flyttet til ' + q.name + '.', HAVN_WHY[1] + ' «' + (S.boatName || '') + '» was moved to ' + q.name + '.'); } }
+    // (every point of the route, not only its end: a standing plan's day can have its home before the grounds, the kontroll of steg 126)
+    for (const L of [S.plan && S.plan.wps, S.draft]){ let n = 0; for (const e of L || []){ if (!e || !isBerth(e.port)) continue;
+      held.add(e.port); e.port = null; e.leia = true; delete e.berth; n++; } if (n && L !== S.draft) log(HAVN_WHY[0] + ' Ruta går forbi der, uten å legge til.', HAVN_WHY[1] + ' The route passes there without mooring.'); }
+    // (and the trail: the way home along it, startReturn, ended at the berth she left from)
+    for (const q of S.trail || []) if (q && isBerth(q.port)){ held.add(q.port); q.port = null; }
+    const o = S.ops; if (o && isBerth(o.home)){ held.add(o.home); o.on = false; o.home = null; log(HAVN_WHY[0] + ' Driftsplanen er stoppet; velg et nytt hjemsted i den.', HAVN_WHY[1] + ' The operating plan is stopped; choose a new home in it.'); }
+    for (const id of held) havnFree(id); };
+  if (!(S.fleet && S.fleet.length)){ siteOut(); goneWay(); berthOut(); }
+  if (S.fleet && S.fleet.length){ ensureFleet(); for (const v of S.fleet) withVessel(v, () => { siteOut(); goneWay(); berthOut(); if (S.boat.status === 'port' && !portById(S.boat.port)) S.boat.port = nearestPort(S.boat.pos && isFinite(S.boat.pos.x) ? S.boat.pos : PORTS[0].p).id;   /* (the fleet's other vessels as the boat above, 13.11.2026) */ if (S.boat.status === 'port' && portById(S.boat.port)){ const pp = portById(S.boat.port).p; S.boat.pos = {x:pp.x, y:pp.y}; } }); } else ensureFleet(); }
 // every vessel gets its gear locker (saves from before passive gear have none, also on vessels that are not bound)
 for (const v of S.fleet) withVessel(v, () => { if (!S.pgear) S.pgear = newPGear(); });
 // 08.10.2026: one pot only, the big one («Krabbeteiner»); small pots aboard and in the sea become big ones

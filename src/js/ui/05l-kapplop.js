@@ -69,7 +69,7 @@ function lopPage(){
     ['Hvert sjekkpunkt teller når etappens oppgave er gjort. Overraskelsen er frivillig, men står den ugjort når etappen er over, legges ' + LOP.task.miss + ' minutter til.', 'Each checkpoint counts when the leg\'s task is done. The surprise is up to you, but left undone when the leg is over, it adds ' + LOP.task.miss + ' minutes.'],
     ['Over en fartsgrense, eller for nær en båt du skulle vike for, mens du styrer selv: ' + LOP.pen.fart + ' minutter lagt til.', 'Over a speed limit, or too close to a boat you should give way to, while you steer yourself: ' + LOP.pen.fart + ' minutes added.'],
     ['Svarer du på et nødanrop, trekkes tida hjelpen tok fra. Å hjelpe koster ingen plass.', 'If you answer a call for help, the time it took is taken off. Helping costs no place.'],
-    ['Hopp er ikke lov fra påmeldingen til mål. Slep fra Redningsselskapet eller en annen spiller, og salg av båten, bryter forsøket.', 'No hops from the registration to the finish. A tow from the rescue service or another player, and selling the boat, break the attempt.'],
+    ['Hopp er ikke lov fra påmeldingen til mål. Slep fra Kystredningen eller en annen spiller, og salg av båten, bryter forsøket.', 'No hops from the registration to the finish. A tow from the rescue service or another player, and selling the boat, break the attempt.'],
     ['Klassen er båttypens toppfart. Uka går fra mandag til søndag, og den beste tida di den uka står.', 'The class is the boat type\'s top speed. The week runs Monday to Sunday, and your best time that week stands.']
   ].map(x => '<li>' + lopL(x[0], x[1]) + '</li>').join('') + '</ul></div>');
   return h.join('');

@@ -39,8 +39,10 @@ async def main():
         # the deck work: the tub fills, fishing stops for gutting, and the chains send people to the table and the tub (03.10.2026 deck work)
         r2 = await pg.evaluate("""(() => { S.settings.gut = true; S.settings.ice = true; addCatch('torsk', 90, null, true); S.boat.deckStop = true; S.boat.deckEnd = S.t + 60; return workAssign().map(p => (p.c ? 'c' : 'me') + ':' + p.st); })()""")
         st = await pg.evaluate(STEP, [60, 0.05])   # 3 s: on their way
-        walking = [a for a in st['A'] if a['mode'] == 'walk']
-        check(any(a['st'] in ('sloy', 'is') for a in st['A']) and walking, 'with the tub full someone is on the way to the table or the tub', {'wa':r2, 'A':st['A']})
+        # (in the first three seconds: someone walked to the table or the tub; after steg 125c-d the way there is 1-2 s on the sjark, so
+        # by the third second the first are there or in through the door, and «on the way at 3 s» was red without anything being wrong)
+        walking = [a for a in st['A'] if a['st'] in ('sloy', 'is') and st['walked'].get(a['id'], 0) > 0.3]
+        check(walking, 'with the tub full someone goes to the table or the tub (walked there in the first three seconds)', {'wa':r2, 'A':st['A'], 'walked':st['walked']})
         check(not st['off'], 'nobody leaves the deck or goes faster than walking', st['off'])
         st2 = await pg.evaluate(STEP, [400, 0.05])   # 20 s more: all arrived
         check(all(a['at'] or a['mode'] in ('in', 'helm') for a in st2['A']) and not st2['off'], 'twenty seconds later everyone has arrived at their place', st2)
@@ -61,8 +63,11 @@ async def main():
           CREW3D.reset(); for (let i = 0; i < 600; i++) CREW3D.tick(0.05);
           const A = CREW3D.visible(), d = []; for (let i = 0; i < A.length; i++) for (let j = i + 1; j < A.length; j++) d.push(+Math.hypot(A[i].x - A[j].x, A[i].z - A[j].z).toFixed(2));
           const M = CREW3D._st.M; b.gop = null; S.hold = [];
-          return {st:A.map(a => a.st + ':' + a.task).sort(), d, kit:M.kit || 0, inKit:A.filter(a => a.mode === 'at' && !M.ok(M.cellOf(a.x, a.z))).map(a => a.id)}; })()""")
-        check(r5['st'] == ['blogg:bleedst', 'haling:haul', 'is:pack', 'sloy:gut'] and min(r5['d']) >= 0.39 and not r5['inKit'] and r5['kit'] > 0, 'hauling line on the new sjark: one hauls, one bleeds, one guts, one packs and ices, each on a place of their own (no two closer than 0.4 m), none in the kit', r5)
+          return {nopack:!!((geoOf('sjarkny').work || {}).nopack), packIn:CREW3D.agents().some(a => a.st === 'is' && a.mode === 'in'), st:A.map(a => a.st + ':' + a.task).sort(), d, kit:M.kit || 0, inKit:A.filter(a => a.mode === 'at' && !M.ok(M.cellOf(a.x, a.z))).map(a => a.id)}; })()""")
+        # (steg 125d: a deck with work.nopack has no place for the packer, the hold is iced below: he is inside, deckcrew.js work; the
+        # check took him on deck before that and was red since)
+        want = ['blogg:bleedst', 'haling:haul', 'sloy:gut'] + ([] if r5['nopack'] else ['is:pack'])
+        check(sorted(r5['st']) == sorted(want) and (r5['packIn'] or not r5['nopack']) and min(r5['d']) >= 0.39 and not r5['inKit'] and r5['kit'] > 0, 'hauling line on the new sjark: one hauls, one bleeds, one guts, one packs and ices (below in the hold where the deck has no place for it, work.nopack), each on a place of their own (no two closer than 0.4 m), none in the kit', r5)
         # a break on deck (leaning on the rail, looking out) ends as she gets under way: the crew go in at once, not after the spell
         # (Jonas 21.10.2026: two leant over the rail at 23 knots as if jigging, for up to a minute and a half)
         r6 = await pg.evaluate("""(() => { """ + seed(20261034) + """ const b = S.boat; b.status = 'idle'; b.v = 0; S.plan = null; S.hold = []; CREW3D.reset(); for (let i = 0; i < 40; i++){ CREW3D._st.ctxT = 0; CREW3D.tick(0.05); }
@@ -88,6 +93,30 @@ async def main():
             const q = P.ror || P.door; if (q && M.at(q.k)[1] > G.skipperAt[1] + 0.6) bad[t] = [+M.at(q.k)[1].toFixed(2), +G.skipperAt[1].toFixed(2)]; }
           return {bad, sjark:deckPoints('sjark').ror ? 'ror' : 'door'}; })()""")
         check(not r8['bad'], "the skipper's place at the helm is at the wheel, not on the roof over it, on every boat", r8)
+        # (FB3, steg 121: the agents speed up and slow down at FOT.ACC; the walks between the stations take as long as before within
+        # 10 %. The same start each time (seeded, from a stand at their places), the work changed, and the seconds until each has
+        # arrived; with the acceleration off (as before the step) and on. On three boats: small, middle, large by VESSELS' fields)
+        WT = """((on) => { const R = {}, g = GROUNDS[0].p, b = S.boat;
+          const boats = Object.keys(VESSELS).filter(t => VESSELS[t].cls !== 'hav' && VESSELS[t].hold.kind === 'rom').sort((x, y) => VESSELS[x].len - VESSELS[y].len).filter((t, i, A) => i === 0 || i === (A.length >> 1) || i === A.length - 1);
+          for (const vt of boats){ const T = R[vt] = {}; FOT.on = on; b.type = vt; applyVessel(); S.crew = []; S.hold = []; b.status = 'idle'; b.port = null; b.pos = {x:g.x, y:g.y}; b.v = 0; b.gop = null; b.deckStop = false; S.plan = null;
+            CREW3D.reset(); CREW3D._st.ctxT = -1e9; CREW3D.tick(0.05); const ST = CREW3D._st, M = ST.M, a = CREW3D.agents()[0];
+            // (the stations on her deck: the hauler, the gutting table, the packing, the bleeding tub, the door, and the first rail places)
+            const K = ['haling', 'sloy', 'is', 'blogg', 'door'].map(n => ST.PT[n] && ST.PT[n].k).concat((ST.PT.lean || []).slice(0, 2).map(l => l.k)).filter(k => k != null && M.ok(k));
+            for (let i = 0; i + 1 < K.length; i++){ const p = M.at(K[i]); a.x = p[0]; a.y = p[1]; a.z = p[2]; a.cell = K[i]; a.mode = 'at'; a.path = null; a.sub = null; a.v = 0; a.goal = {k:K[i + 1], h:0, task:'look'};
+              let tt = 0; for (let n = 0; n < 1200; n++){ ST.ctxT = 1e12; CREW3D.tick(0.05); tt += 0.05; if (a.cell === K[i + 1] && a.mode !== 'walk') break; }
+              T[i + '>' + (i + 1)] = +tt.toFixed(2); } }
+          FOT.on = true; return R; })"""
+        t0 = await pg.evaluate(WT, False); t1 = await pg.evaluate(WT, True)
+        rows = []; worst = 0; n = 0
+        for vt in t0:
+            # (a way he does not get to in a minute either way, through the house: not a walk to time)
+            gone = [k for k in t0[vt] if t0[vt][k] >= 59.9 or t1[vt].get(k, 60) >= 59.9]
+            for k in gone: t0[vt].pop(k); t1[vt].pop(k, None)
+            if gone: rows.append('%s: %s ikke nådd på et minutt (gjennom huset), ikke med' % (vt, gone))
+            a, b = sum(t0[vt].values()), sum(t1[vt].get(k, 0) for k in t0[vt])
+            if a > 0: rows.append('%s, %d strekninger: %.1f s mot %.1f s (%+.1f %%); verst én strekning %+.0f %% %s %s' % (vt, len(t0[vt]), a, b, (b / a - 1) * 100, max((t1[vt][k] / t0[vt][k] - 1) * 100 for k in t0[vt]), t0[vt], t1[vt])); worst = max(worst, abs(b / a - 1)); n += 1
+        for r in rows: print('     ', r)
+        check(n >= 3 and worst <= 0.10, 'gangtidene mellom stasjonene med myk start og stopp (FOT.ACC %.1f m/s²) er som før innen 10 %% for arbeidet på hver båt (verst %+.1f %%, %d båter)' % (await pg.evaluate("FOT.ACC"), worst * 100, n), {'av': t0, 'paa': t1})
         check(not errs, 'no page errors', errs[:3])
         await br.close()
     print('FEIL: ' + ', '.join(bad) if bad else 'alt OK')

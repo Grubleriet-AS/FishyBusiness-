@@ -876,7 +876,7 @@
     if (u.uCB){ gl.uniform3fv(u.uCB, [env.cbase || 3000, env.cstr || 0, env.cthick || 1e5]); gl.uniform3fv(u.uCC, env.ccol || env.fog); gl.uniform3fv(u.uEye, AIRE); if (u.uCD) gl.uniform4fv(u.uCD, env.cdrift || [0, 0, 0, 0]); }
     if (u.uAirSun){ gl.uniform3fv(u.uAirSun, env.sunDir || [0, 1, 0]); const k = 0.35 * (1 - 0.9 * (env.cloud || 0)); gl.uniform3fv(u.uAirMie, (env.sunCol || [0, 0, 0]).map(v => v * k)); }
     // the sun's light at a point (sunV and cloudV in AIR): the clouds' shadows and the land's shadow round the boat (SG, sunGridStep)
-    if (u.uCS){ const d = env.shadowDir, cl = env.cloud || 0, on = SUNON && AIRON && QUAL.lvl > 0 && d && d[1] > 0.005, P = 32768, md = v => ((v % P) + P) % P;
+    if (u.uCS){ const d = env.shadowDir, cl = env.cloud || 0, on = SUNON && AIRON && QUAL.lvl > 0 && PGFX.shadow !== false && d && d[1] > 0.005, P = 32768, md = v => ((v % P) + P) % P;
       gl.uniform4f(u.uCS, md(EYE[0] + CLD.m[0]), md(EYE[2] + CLD.m[1]), on ? sstep(0.08, 0.25, cl) * (1 - sstep(0.8, 0.95, cl)) : 0, clamp(env.cbase || 1500, 400, 2500));
       gl.uniform4f(u.uCS2, d ? d[0] : 0, d ? d[1] : 1, d ? d[2] : 0, cl); }
     if (u.uSunT){ const on = SUNON && SG.on && SG.tex;
@@ -884,7 +884,7 @@
       gl.uniform4f(u.uShR, on ? SG.x0 - EYE[0] : 0, on ? SG.z0 - EYE[2] : 0, on ? 1 / SG.span : 0, on ? 1 : 0); }
   }
   // #sun0 in the address: no clouds' shadows and no land's shadow on what stands on it (the terrain keeps its own)
-  const SUNON = !/sun0/.test(location.hash);
+  const SUNON = !/sun0/.test(location.hash) && !PGFX.off.sun;
   let SUNT0 = null;   // a white texel for the shaders while there is no shadow grid (an unbound unit reads black: all in shadow)
   function sunT0(){
     if (SUNT0) return SUNT0;

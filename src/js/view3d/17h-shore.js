@@ -4,7 +4,7 @@
   // over it with the polygon offset. Sand pale and warm, darker and wet low down by the water; shingle grey in rounded stones' tones,
   // each point a little lighter or darker. Drawn with the lit program, so snow lies on it and the wet darkens it (G6). A mesh per tile,
   // built when the tile's ground is in and again when it comes anew; within 6 km of the eye. #shore0 in the address: none.
-  const SHORE = new Map(), SHORE0 = /shore0/.test(location.hash);
+  const SHORE = new Map(), SHORE0 = /shore0/.test(location.hash) || !!PGFX.off.shore;
   function shoreData(tx, ty){
     const pk = MAPD.man && MAPD.byTile.get('vec:' + tx + ':' + ty); if (!pk || !pk.buf) return undefined;
     const B = MAPD.man.tile / MAPD.man.block, e = pk.idx.get('shore:' + tx * B + ':' + ty * B); if (!e) return null;
