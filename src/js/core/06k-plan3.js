@@ -23,7 +23,7 @@ const DRP3 = {
   // the ranking step 134 gives you skills), how far the reading misses (the log's spread at experience 1 and 5), a haul under this share of
   // the field's first sends the boat searching again, the basic sounder's four steps, the most candidates in a ring, and the steps the
   // straight hops are checked in (km: land every 10 m, the depth every 40 m)
-  sok:{meErf:1.5, sig:[0.9, 0.12], bad:0.5, levels:4, cand:36, land:0.01, deep:0.04}};
+  sok:{sig:[0.9, 0.12], bad:0.5, levels:4, cand:36, land:0.01, deep:0.04}};
 // the gear's key in DRP3 for the boat and her rig: the autoline and the snow crab vessel have their own
 function plan3GearKey(rig){
   if (rig === 'line' && typeof autoL === 'function' && BOAT && BOAT.autoHooks && autoL()) return 'auto';
@@ -227,9 +227,10 @@ const P3TIER = {basic:['ekkoloddet', 'the echo sounder'], chirp:['CHIRP-ekkolodd
 function plan3Reader(){
   // (the ocean vessel's teams have their own skipper on the bridge, H2b: he reads it, also with you aboard; DP3-4)
   if (p2Lag()) return {erf:3, who:gL('skipperen', 'the skipper')};
-  if (meAboard()) return {erf:DRP3.sok.meErf, who:null};
+  // (you read it with your own experience: the ceiling of your level, RANK1-a in 09e-fartstid.js; 1.5 with no sea time, as before it)
+  if (meAboard()) return {erf:fsErf(), who:null};
   const sk = actingSkipper(); if (sk && sk.attr) return {erf:sk.attr.erf, who:sk.name};
-  return {erf:DRP3.sok.meErf, who:null};
+  return {erf:fsErf(), who:null};
 }
 // how far the reading misses: the spread of its log, from experience 1 to 5
 const plan3Sig = erf => { const [a, b] = DRP3.sok.sig; return a + (b - a) * clamp((erf - 1) / 4, 0, 1); };

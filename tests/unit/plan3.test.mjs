@@ -73,7 +73,7 @@ export default function (t){
 
   // ---- DP3-2: the search with the echo sounder (16.11.2026). A ring of candidates 0.5 km apart with a made-up sea (den): a dense school of
   // saithe in one corner, the haddock thickest in another; the haddock line takes the haddock (SELQ line:hyse 2.6, saithe 0.15)
-  { const {plan3Search, plan3SokNeed, plan3Truth, plan3Take, plan3Sig, plan3HaulWatch, plan3SokEst, HEAT, planDay, planDayText, plan2State} = K;
+  { const {plan3Search, plan3SokNeed, plan3Truth, plan3Take, plan3Sig, plan3HaulWatch, plan3SokEst, HEAT, FSK, planDay, planDayText, plan2State} = K;
     S.ops = null; S.plan = null; S.sets = []; S.marks = []; S.boat.type = 'sjark'; applyVessel(); S.me = S.cur;
     S.pgear.lines.hyse.n = 8; S.pgear.lines.hyse.baited = 8; S.pgear.lines.hyse.bt = {makrell:8};
     const C = {x:500, y:300}, o = plan3New(C, 'line', {lk:'hyse', bait:'makrell'}), r = o.ring.r, cand = [];
@@ -94,10 +94,10 @@ export default function (t){
     const B = mean('basic', 3, 200), Cm = mean('chirp', 3, 200), Sm = mean('sonar', 3, 200);
     t.ok(Cm.m > B.m * 1.5 && Sm.m > B.m * 1.5, 'i snitt over 200 frø: CHIRP ' + Cm.m.toFixed(3) + ' og sonaren ' + Sm.m.toFixed(3) + ' mot det enkle ' + B.m.toFixed(3) + ' (erfaring 3)');
     // (3) the reader: experience 5 picks better spots than 1 on average over the seeds, and never better than the fish there
-    const E1 = mean('chirp', 1, 300), E5 = mean('chirp', 5, 300), Em = mean('chirp', DRP3.sok.meErf, 300);
+    const E1 = mean('chirp', 1, 300), E5 = mean('chirp', 5, 300), Em = mean('chirp', FSK.start, 300);
     t.ok(E5.m > E1.m * 1.1 && E5.top > E1.top, 'en skipper med erfaring 5 velger bedre ruter enn en med 1, i snitt over 300 frø (' + E5.m.toFixed(3) + ' mot ' + E1.m.toFixed(3) + '; den beste ruta ' + Math.round(E5.top * 100) + ' % mot ' + Math.round(E1.top * 100) + ' % av gangene)');
     t.ok(E1.over === 0 && E5.over === 0 && Math.max(E1.m, E5.m) <= best + 1e-12, 'aldri bedre enn tettheten selv: ingen valgt rute over den beste i ringen (' + best.toFixed(3) + ')');
-    t.ok(Em.m <= mean('chirp', 3, 300).m && plan3Sig(DRP3.sok.meErf) > plan3Sig(3), 'du om bord leser som en fersk fisker (erfaring ' + DRP3.sok.meErf + ', spredning ' + plan3Sig(DRP3.sok.meErf).toFixed(2) + ' mot ' + plan3Sig(5).toFixed(2) + ' for erfaring 5): snitt ' + Em.m.toFixed(3));
+    t.ok(Em.m <= mean('chirp', 3, 300).m && plan3Sig(FSK.start) > plan3Sig(3), 'du om bord leser som en fersk fisker (erfaring ' + FSK.start + ', spredning ' + plan3Sig(FSK.start).toFixed(2) + ' mot ' + plan3Sig(5).toFixed(2) + ' for erfaring 5): snitt ' + Em.m.toFixed(3));
     // the same seed reads the same: the plan's own seed and the search's number
     { const a = [], b = []; for (const L of [a, b]){ for (const q of o.places){ q.at = null; q.move = false; } o.sokN = 0; L.push(...plan3Search(o, ['f1', 'f2'], H, {lay:false, den, tier:'chirp', erf:2, seed:77}).map(g => g.i)); L.push(...plan3Search(o, ['f1'], H, {lay:false, den, tier:'chirp', erf:2, seed:77}).map(g => g.i)); }
       t.ok(JSON.stringify(a) === JSON.stringify(b), 'samme frø og samme søk gir de samme plassene (' + JSON.stringify(a) + ')'); }
