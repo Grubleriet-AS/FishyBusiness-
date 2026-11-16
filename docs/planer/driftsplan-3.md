@@ -1,6 +1,6 @@
 # Driftsplan 3: den enkle planen (plan 16.11.2026)
 
-Status: **klarsignal 16.11.2026** (Jonas: «V1: A, V2: A. Kjør på.»). Stegene er 129–133 i køen, ranking-systemet 134.
+Status: **ferdig 16.11.2026** (DP3-1 til DP3-5, stegene 129–133; klarsignal 16.11.2026, Jonas: «V1: A, V2: A. Kjør på.»). Ranking-systemet er steg 134.
 
 ## 1. Hva Jonas ba om
 
@@ -137,3 +137,4 @@ Jonas 16.11.2026: «V1: A», «V2: A».
 - 16.11.2026: **DP3-2 ferdig** (steg 130, samme gren): søket med ekkoloddet, lesingen etter erfaringen, nytt søk når fangsten faller («DP3-2» i `docs/systemer/driftsplan.md`). Avgjort med målinger i steget (kap. 6): lenka legges **med midten på plassen** søket fant, langs linja gjennom ringens midte (fangsten regnes midt på lenka); ringen vokser ikke. En lenke på 3,6 km ligger 76–86 % inne i en ring på 2 nm; det er **midten** som alltid ligger i ringen, endene kan gå ut når lenka er nesten like lang som ringen er bred. Søket tar 46 min med det enkle ekkoloddet og om lag 19 med CHIRP eller sonaren (anslaget var 20–40). `DRIFT3` er av. Neste: DP3-3, `docs/planer/start/131.md`.
 - 16.11.2026: **DP3-3 ferdig** (steg 131, samme gren): siden med Sted og Redskap, ringen i kartplotteren, `DRIFT3` på, gamle planer slått av med melding («DP3-3» i `docs/systemer/driftsplan.md`). Egne nåler i plotteren er som før (Jonas 16.11.2026: «Spillere skal fortsatt kunne sette ut nåler i kartplotteren, men det blir mer for sin egen del»). Stegene 129–131 rulles ut til testutgaven sammen. Neste: DP3-4, `docs/planer/start/132.md`.
 - 16.11.2026: **DP3-4 ferdig** (steg 132, samme gren): havbåtene med ringen på 8 nm og søket (autolina i felt à to lenker, snøkrabbens mønster rundt plassen, skipperen leser bildet, ikke nytt søk når en trekking faller), ringens navn langt til havs, og stikkprøvene i Bergen, Bodø og Hammerfest (`driftsplan2kyst` skrevet om). Målt (kap. 6): søket i en ring på 8 nm er 37–75 km og om lag 220 min med det enkle ekkoloddet; lenkene får plass. «DP3-4» i `docs/systemer/driftsplan.md`. Neste: DP3-5, `docs/planer/start/133.md`.
+- 16.11.2026: **DP3-5 ferdig** (steg 133, grenen `ccr-5e1ba2f4-pusvyd`): det Driftsplan 2s side lot stå igjen er tatt ut (`plan2Copy`, `#pmCard`, døde hjelpere), Håndboka og Mannskap-siden sier to valg, systemdokumentet har Driftsplan 3 øverst og Driftsplan 2 som historikk, og patchnoten `drift3-161126` har linja om havbåtene. **Planen er ferdig.**
