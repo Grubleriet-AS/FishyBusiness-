@@ -5022,3 +5022,5 @@
 2026-11-16 04:14	regresjon/2026-11-16	014846d	folk2shot	OK	38	lite	samtidig	
 2026-11-16 04:20	regresjon/2026-11-16	014846d	crewwalk	FEIL	8	lite	alene	FEIL twenty seconds later everyone has arrived at their place {"walked": {"me": 3.6247648696752583, "ckr7kcbni": 0, "cktwdou5o": 0.17022416706734322}, "off": [[
 2026-11-16 04:20	regresjon/2026-11-16	014846d	placetest	FEIL	5	lite	alene	FEIL the rorbuer by the harbours stand 1.5-4 km from the plant 1 {'mottak': 161, 'butikk': 65, 'verft': 129, 'rorbu': 517, 'rorbu0': 148}
+2026-11-16 04:20	regresjon/2026-11-16	9256f2a	kapplop	OK	30	lite	alene	
+2026-11-16 04:21	regresjon/2026-11-16	9256f2a	csptest	FEIL	43	lite	alene	FEIL it talks only to itself, the channel's Supabase project, WorkOS and the relay (cloud.json); the local build also has the tests' stand-ins  {"connect-src": 
