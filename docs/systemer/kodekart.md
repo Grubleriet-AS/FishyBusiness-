@@ -2751,12 +2751,12 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 302 `routeSeaWatch()`
   - 307 `routeSeaDraw()`
 
-## `src/js/ui/03g-planmap.js` (72 linjer)
+## `src/js/ui/03g-planmap.js` (71 linjer)
 
 The operations plan on the chart plotter (Driftsplan 3, DP3-3, 16.11.2026, docs/planer/driftsplan-3.md): «Velg sted i kartet» on
 
 - **1** The operations plan on the chart plotter (Driftsplan 3, DP3-3, 16.11.2026, docs/planer/driftsplan-3.md): «Velg sted i kartet» on
-- **44** the chart: a tap sets or moves the ring (03-map.js pointer handlers); nothing is dragged
+- **43** the chart: a tap sets or moves the ring (03-map.js pointer handlers); nothing is dragged
 
 ## `src/js/ui/03c-heat.js` (133 linjer)
 
@@ -2865,12 +2865,12 @@ The item card (M1 in docs/planer/butikker-og-sponsorer.md, 30.10.2026)
   - 145 `icTierLine(k, lv)`
   - 173 `itemCard(o)`
 
-## `src/js/ui/phone/00-shell.js` (70 linjer)
+## `src/js/ui/phone/00-shell.js` (71 linjer)
 
 ---------- the phone ----------
 
 - **1** the phone
-  - 69 `setBadge()`
+  - 70 `setBadge()`
 
 ## `src/js/ui/phone/01-haill-fiske-service.js` (165 linjer)
 
@@ -2947,7 +2947,7 @@ Kvotemarkedet: Kvote → Marked (KM3 of docs/planer/kvotemarkedet.md; Jonas 07.1
   - 176 `kxBoatRow(v)`
   - 183 `kmAct(a, d)`
 
-## `src/js/ui/phone/05-rigg-innst-admin.js` (127 linjer)
+## `src/js/ui/phone/05-rigg-innst-admin.js` (150 linjer)
 
 the rig: one kind of fishing at a time, chosen in Om bord › Redskap when none of the boat's gear is in the sea (D4, Jonas 13.11.2026:
 
@@ -2955,9 +2955,10 @@ the rig: one kind of fishing at a time, chosen in Om bord › Redskap when none 
   - 15 `beholdning()`
   - 30 `crewTab()`
   - 41 `logg()`
-  - 50 `innstGfx()`
-  - 72 `innst()`
-  - 102 `admin()`
+  - 64 `fellesskap()`
+  - 73 `innstGfx()`
+  - 95 `innst()`
+  - 125 `admin()`
 
 ## `src/js/ui/phone/06-render.js` (117 linjer)
 
@@ -2977,12 +2978,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **98** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 102 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1716 linjer)
+## `src/js/ui/phone/07-patch.js` (1719 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1704 `patch()`
+  - 1707 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (126 linjer)
 
@@ -3145,18 +3146,17 @@ the Mannskap page in the drawer (once «Arbeid»): the samhold on top, «På dek
   - 134 `lagCardHtml()`
   - 148 `energyUi()`
 
-## `src/js/ui/05d-plan2.js` (277 linjer)
+## `src/js/ui/05d-plan2.js` (264 linjer)
 
 The operations plan's page (the Drift app; phone/06-render.js, 14-act.js). Driftsplan 3 since DP3-3 (16.11.2026,
 
 - **1** The operations plan's page (the Drift app; phone/06-render.js, 14-act.js). Driftsplan 3 since DP3-3 (16.11.2026,
-- **27** Nå: the step she is on and when it ends, what she waits for and until when, or why she stopped
-- **55** the day: today's as the engine follows it (with «← nå»), or the next as planDay reckons it from the answers
-- **84** Driftsplan 3 (DP3-3, 16.11.2026, docs/planer/driftsplan-3.md): two choices, Sted and Redskap (Jonas 16.11.2026: «Spilleren [får]
-- **155** the top: Start or Pause, Nå, and the button that fixes a stop
-- **173** the statistics (R9): today, the last seven days, and all
-- **190** the page
-  - 271 `plan2Copy(vid)`
+- **22** Nå: the step she is on and when it ends, what she waits for and until when, or why she stopped
+- **50** the day: today's as the engine follows it (with «← nå»), or the next as planDay reckons it from the answers
+- **79** Driftsplan 3 (DP3-3, 16.11.2026, docs/planer/driftsplan-3.md): two choices, Sted and Redskap (Jonas 16.11.2026: «Spilleren [får]
+- **150** the top: Start or Pause, Nå, and the button that fixes a stop
+- **168** the statistics (R9): today, the last seven days, and all
+- **185** the page
 
 ## `src/js/ui/05e-merker.js` (86 linjer)
 
@@ -3413,7 +3413,7 @@ Garderoben: the player changes how his figure looks (Jonas 10.10.2026)
 - **22** the right-hand side: what the current tab offers
 - **63** the little renderer
 
-## `src/js/ui/08-actions.js` (487 linjer)
+## `src/js/ui/08-actions.js` (528 linjer)
 
 actions
 
@@ -3428,22 +3428,22 @@ actions
   - 314 `boatChristen(nm)`
   - 316 `showIntro(namesOnly)`
 - **334** «Mens du var borte» (Jonas 07.10.2026: «en følelse av instant-belønning»)
-  - 339 `awayStart(mins, realMs)`
-  - 340 `awayEnd()`
-  - 341 `showAway(A)`
-- **368** time
-  - 374 `playMinutes(n, away)`
-  - 378 `catchUp(realMs)`
-  - 389 `tick()`
-  - 426 `deliverOrder()`
-- **436** chrome
-  - 437 `applyLang()`
-- **450** screens: full-screen 3D, or the chart plotter for route planning
-  - 451 `setBodyView(v3d)`
-  - 457 `openPlotter()`
-  - 462 `plotSetRender()`
-  - 466 `plotSetOpen(on)`
-  - 479 `kinoUi()`
+  - 344 `awayStart(mins, realMs)`
+  - 349 `awayEnd()`
+  - 350 `showAway(A)`
+- **409** time
+  - 415 `playMinutes(n, away)`
+  - 419 `catchUp(realMs)`
+  - 430 `tick()`
+  - 467 `deliverOrder()`
+- **477** chrome
+  - 478 `applyLang()`
+- **491** screens: full-screen 3D, or the chart plotter for route planning
+  - 492 `setBodyView(v3d)`
+  - 498 `openPlotter()`
+  - 503 `plotSetRender()`
+  - 507 `plotSetOpen(on)`
+  - 520 `kinoUi()`
 
 ## `src/js/ui/08b-letter.js` (127 linjer)
 
@@ -3849,7 +3849,7 @@ put the game on the home screen (Jonas 11.10.2026: «Det er viktig at brukerne l
 - **109** the test edition's label (L1a, 10.11.2026, docs/planer/lansering-plan.md)
 - **140** the browser card on the loading screen (Jonas 03.11.2026, after tilbakemelding #107-#109)
 
-## `src/js/ui/10u-hopp.js` (143 linjer)
+## `src/js/ui/10u-hopp.js` (145 linjer)
 
 ---------- Hopp over resten av ruta: the fast-forward button, the card and the purchase (HO2–HO3, steg 105–106; docs/planer/hopp.md) ----------
 
@@ -3869,7 +3869,7 @@ The profile and the founders' badge (Jonas 16.11.2026, before the launch: «prof
 
 - **1** The profile and the founders' badge (Jonas 16.11.2026, before the launch: «profil-side med brukernavn, fartstid, ferdigheter,
 
-## `src/js/ui/11-boot.js` (438 linjer)
+## `src/js/ui/11-boot.js` (443 linjer)
 
 ---------- boot ----------
 
@@ -3904,7 +3904,7 @@ The profile and the founders' badge (Jonas 16.11.2026, before the launch: «prof
   - 215 `bootMapLoad()`
   - 246 `chart0Load()`
   - 247 `bootGame()`
-  - 420 `bootFail(e)`
+  - 425 `bootFail(e)`
 
 ## `src/js/ui/11b-watchdog.js` (89 linjer)
 

@@ -134,7 +134,7 @@ async def run(p, w, h, tag):
     apps = await pg.evaluate("[...document.querySelectorAll('#phone .ph-app')].map(x => x.dataset.a)")
     # in the groups' order from UI 2, U2-6 (Jonas 06.11.2026, V6 A): Drift, Handel og regler, Deg, Verden, System
     BASE = ['drift', 'ordl', 'nett', 'salg', 'kvote', 'regler', 'kaiboden', 'merker', 'vaer', 'post', 'meld', 'redning', 'patch', 'tilbake', 'innst', 'admin']   # Nettet from 30.10.2026 (M2); and since 05.10.2026 Notatbok, Sesong and Folk among them, and Tilbakemelding, and Fiskeguide from 08.10.2026; Haill and Trim in Kaiboden, and Håndboka and Garderoben
-    # (Profil and Rederi from «Klar for flere skippere», 16.11.2026: «Ny app: Profil», «Alle appene er på telefonen fra første dag»)
+    # (Profil and Rederi from «Klar for flere skippere», 16.11.2026: «Ny app: Profil», «Alle appene er på telefonen fra første dag»; Fellesskap, social, the same day)
     check([a for a in apps if a in BASE] == BASE and all(a in BASE + ['sesong', 'guide', 'folk', 'handbok', 'garderobe', 'profil', 'rederi', 'social'] for a in apps), 'telefonen har appene, med Kvote, Regler, Kaiboden, Patchnotes og Admin i rekkefølge', apps)
     # the home screen in groups with a heading each, and every tile on the same glass (UI 2, U2-6: V6 A, V2 A)
     gr = await pg.evaluate("[...document.querySelectorAll('#phone .ph-grp')].map(g => [g.dataset.g, (g.querySelector('h5') || {}).textContent, g.querySelectorAll('.ph-app').length])")

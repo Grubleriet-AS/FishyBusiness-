@@ -60,6 +60,8 @@ async def main():
             t1 = await pg.evaluate("(document.querySelector('#drawerBody') || document.body).innerText")
             await pg.screenshot(path=os.path.join(OUT, 'boktest_konto_' + tag + '.png'))
             await pg.evaluate("document.querySelector('#drawerBody [data-pa=sub][data-s=regnskap]').click()"); await pg.wait_for_timeout(400)
+            # (the books' lines under «Detaljer» since D4, Jonas 13.11.2026: three figures first)
+            await pg.evaluate("document.querySelectorAll('#drawerBody details.acc-more').forEach(d => d.open = true)"); await pg.wait_for_timeout(200)
             t2 = await pg.evaluate("(document.querySelector('#drawerBody') || document.body).innerText")
             await pg.screenshot(path=os.path.join(OUT, 'boktest_regnskap_' + tag + '.png'))
             await pg.evaluate("document.querySelector('#drawerBody [data-pa=sub][data-s=konto]').click()"); await pg.wait_for_timeout(200)

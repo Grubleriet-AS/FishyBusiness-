@@ -303,12 +303,17 @@ if (BOOTG.safe) bootgSafe();   // the starts before locked (BOOTG above): the ro
     const q = PORTS.filter(p => !p.rorbu && portFits(p, b.type)).sort((x, y) => dist(x.p, at) - dist(y.p, at))[0]; if (!q) return;
     b.port = q.id; b.berth = 'main'; b.pos = {x:q.p.x, y:q.p.y}; b.dyn = null; if (b === S.boat) S.trail = [{x:q.p.x, y:q.p.y, port:q.id}];
     const w = siteWhy(b.type, R ? R.id : b.port) || ['', '']; log(w[0] + ' «' + (S.boatName || '') + '» er flyttet til ' + q.name + '.', w[1] + ' «' + (S.boatName || '') + '» was moved to ' + q.name + '.'); };
+  // (a standing plan whose home is gone: a Driftsplan 3 plan stops, and finds a new home when it is started again, plan3Make; an old v4
+  // plan is left as it is, so plan2Ops → plan3Retire winds it up with its own message: a running one hauls, lands at its plant and lies
+  // there, which it could not if it were switched off here, the code review of steg 133)
+  const planHomeGone = (o, w) => { if (o.v !== DRV3) return; o.on = false; o.home = null;
+    log(w[0] + ' Driftsplanen er stoppet; start den igjen, så finner den et nytt hjem.', w[1] + ' The operating plan is stopped; start it again, and it finds a new home.'); };
   // (a route that ends at a rorbu taken away, siteGone: she stops where the route ends instead, told in the log; steg 126, 15.11.2026)
   const goneWay = () => { for (const L of [S.plan && S.plan.wps, S.draft]){ const e = L && L.length ? L[L.length - 1] : null; if (!e || !e.port || !siteGone(e.port)) continue;
     const w = siteWhy(S.boat.type, e.port) || ['', '']; e.port = null; e.leia = true; delete e.berth; if (L === S.draft) continue; log(w[0] + ' Ruta ender der den gikk, utenfor.', w[1] + ' The route ends where it went, off the shore.'); }
     // (and a standing plan with that rorbu as home: stopped, said why; its trips home went there while the game was closed, the kontroll
-    // of steg 126. The player sets a new home in it)
-    const o = S.ops; if (o && o.home && siteGone(o.home)){ const w = siteWhy(S.boat.type, o.home) || ['', '']; o.on = false; o.home = null; log(w[0] + ' Driftsplanen er stoppet; velg et nytt hjemsted i den.', w[1] + ' The operating plan is stopped; choose a new home in it.'); } };
+    // of steg 126; planHomeGone)
+    const o = S.ops; if (o && o.home && siteGone(o.home)) planHomeGone(o, siteWhy(S.boat.type, o.home) || ['', '']); };
   // (a boat, a route or a standing plan's home at a berth in one of the coast's harbours, shut to the players since 15.11.2026, Jonas: «de
   // 3300 kaiene skal ikke være tilgjengelige for ekte brukere», 07e-havn.js HAVN.shut: the boat moved to the nearest place that takes
   // her, the route ending off the shore, the plan stopped for a new home; the berth let go, each told in the log)
@@ -322,7 +327,7 @@ if (BOOTG.safe) bootgSafe();   // the starts before locked (BOOTG above): the ro
       held.add(e.port); e.port = null; e.leia = true; delete e.berth; n++; } if (n && L !== S.draft) log(HAVN_WHY[0] + ' Ruta går forbi der, uten å legge til.', HAVN_WHY[1] + ' The route passes there without mooring.'); }
     // (and the trail: the way home along it, startReturn, ended at the berth she left from)
     for (const q of S.trail || []) if (q && isBerth(q.port)){ held.add(q.port); q.port = null; }
-    const o = S.ops; if (o && isBerth(o.home)){ held.add(o.home); o.on = false; o.home = null; log(HAVN_WHY[0] + ' Driftsplanen er stoppet; velg et nytt hjemsted i den.', HAVN_WHY[1] + ' The operating plan is stopped; choose a new home in it.'); }
+    const o = S.ops; if (o && isBerth(o.home)){ held.add(o.home); planHomeGone(o, HAVN_WHY); }
     for (const id of held) havnFree(id); };
   if (!(S.fleet && S.fleet.length)){ siteOut(); goneWay(); berthOut(); }
   if (S.fleet && S.fleet.length){ ensureFleet(); for (const v of S.fleet) withVessel(v, () => { siteOut(); goneWay(); berthOut(); if (S.boat.status === 'port' && !portById(S.boat.port)) S.boat.port = nearestPort(S.boat.pos && isFinite(S.boat.pos.x) ? S.boat.pos : PORTS[0].p).id;   /* (the fleet's other vessels as the boat above, 13.11.2026) */ if (S.boat.status === 'port' && portById(S.boat.port)){ const pp = portById(S.boat.port).p; S.boat.pos = {x:pp.x, y:pp.y}; } }); } else ensureFleet(); }
