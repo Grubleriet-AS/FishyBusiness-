@@ -200,7 +200,7 @@ async def main():
         if f.endswith('.png'): os.remove(os.path.join(out, f))
     every = bool(a.gpu) and not a.stills
     # ("hash": more of the game's own switches in the address, e.g. "shoal0")
-    base = serve(a.dist); url = base + 'index.html#seed=%d,notut' % sh.get('seed', 1) + (',' + sh['hash'] if sh.get('hash') else '')
+    base = serve(a.dist); url = base + 'index.html#seed=%d,notut,folk2' % sh.get('seed', 1) + (',' + sh['hash'] if sh.get('hash') else '')
     n = int(round(sh['dur'] * a.fps)); step = 1000.0 / a.fps; keys_at = sorted(set(round(i * (n - 1) / max(1, a.keys - 1)) for i in range(a.keys)))
     log = {'shot': sh, 'size': a.size, 'fps': a.fps, 'frames': n, 'keys': [], 'errors': [], 'warnings': []}
     async with async_playwright() as p:
