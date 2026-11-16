@@ -4826,3 +4826,6 @@
 2026-11-16 00:05	ccr-5e1ba2f4-pusvyd	6676b3fb+	worktest	FEIL	21	lite	samtidig	FEIL one hauls the line while one bleeds and the others gut and ice, and the hauler goes as fast as with one aboard (by the hauler's own pace) {'st': 'ror,sloy,
 2026-11-16 00:18	ccr-5e1ba2f4-pusvyd	6676b3fb+	dyntest	FEIL	263	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
 2026-11-16 00:18	ccr-5e1ba2f4-pusvyd	6676b3fb+	worktest	OK	27	lite	samtidig	
+2026-11-16 00:59	ccr-as1-alle	be908af6	trip2	OK	43	lite	samtidig	
+2026-11-16 00:59	ccr-as1-alle	be908af6	autonavtest	OK	34	lite	samtidig	
+2026-11-16 00:59	ccr-as1-alle	be908af6	havnstengt	OK	19	lite	samtidig	
