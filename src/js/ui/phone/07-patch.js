@@ -1,5 +1,12 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['lansering-161126', '16.11.2026', 'Klar for flere skippere', 'Ready for more skippers', [
+       ['Går du på grunn, spør spillet om det var spillets skyld, og det som skjedde, sendes til oss. Du kan flytte båten ut på trygt vann med skroget som før, også senere i Redning-appen.', 'If you run aground, the game asks whether it was the game\'s fault, and what happened is sent to us. You can move the boat out to safe water with the hull as before, also later in the Redning app.'],
+       ['Sammenstøt med andre båter gir ikke skade på noen av dem.', 'Collisions with other boats do no damage to either.'],
+       ['Vinden står i statusboksen igjen, med retning, styrke og en pil den veien den blåser.', 'The wind is back in the status box, with its direction, strength and an arrow the way it blows.'],
+       ['Alle appene er på telefonen fra første dag.', 'Every app is on the phone from the first day.'],
+       ['Flagget er oppe hele døgnet.', 'The flag flies day and night.'],
+       ['Kystbanken gir kassekreditt til enkeltpersonforetak når du har 5 års fartstid. Et aksjeselskap får den med en gang.', 'Kystbanken gives a sole proprietor an overdraft at 5 years of sea time. A limited company gets it at once.']]],
     ['roret-161126', '16.11.2026', 'Ingen ved roret, ingen fart', 'Nobody at the helm, no way on', [
        ['Står ingen ved roret, går ikke båten for egen maskin. Alene ved rekka driver du videre med vinden; har du mannskap, tar en av dem roret og kjører opp igjen over feltet.', 'With nobody at the helm, the boat does not go under her own power. Alone at the rail you drift on with the wind; with crew aboard, one of them takes the helm and runs back up over the ground.'],
        ['Ligger båten i ro, dreier hun sakte etter vinden til hun ligger på tvers av den (de store med styrhuset forut med baugen mer mot le), fortere jo mer det blåser.', 'Lying still, the boat turns slowly with the wind until she lies across it (the big ones with the wheelhouse forward with the bow further downwind), faster the harder it blows.'],
