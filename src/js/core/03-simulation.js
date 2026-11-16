@@ -464,7 +464,11 @@ function sunTimes(H, p){
 // the ensign's hours (flaggforskriften, 1927: hoisted at 08 from March to October and at 09 from November to February, lowered at sunset
 // and at 21 at the latest; in Nordland, Troms and Finnmark from 10 to 15 from November to February). The pennant has no hours: it flies
 // day and night, the year round (Jonas 07.10.2026)
+// Jonas 16.11.2026, before the launch: «Flagg oppe hele døgnet»: the ensign flies day and night on every boat (FLAG.always); false gives
+// the hours of flaggforskriften back
+const FLAG = {always:true};
 function flagUp(H, p){
+  if (FLAG.always) return true;
   p = p || herePos(); const m = gDate(H).getUTCMonth(), h = hodOf(H), winter = m >= 10 || m <= 1;
   if (winter && LL(p).lat > 65) return h >= 10 && h < 15;
   return h >= (winter ? 9 : 8) && h < 21 && !(h >= 12 && sunAt(H, p).el < -0.83);
