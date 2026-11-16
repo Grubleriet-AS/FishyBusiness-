@@ -53,7 +53,7 @@
       ic:'<path d="M8.5 7.5c2.3-.7 4.7-.7 7 0M7 16.5c3.2 1.3 6.8 1.3 10 0M8.2 7.6C6.6 10 5.9 12.7 6 15.8c1 .9 2.1 1.5 3.3 1.9l.8-1.5M15.8 7.6c1.6 2.4 2.3 5.1 2.2 8.2-1 .9-2.1 1.5-3.3 1.9l-.8-1.5"/><circle cx="9.7" cy="12.6" r="1.1"/><circle cx="14.3" cy="12.6" r="1.1"/>'},
     {k:'tiktok', n:'TikTok', url:'https://www.tiktok.com/@det.store.bla', no:'Klipp fra kysten og fra det som bygges.', en:'Clips from the coast and from what is being built.', c:'#111',
       ic:'<path d="M14 4v10.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 4c.4 2.4 2 4 4.5 4.2"/>'},
-    {k:'instagram', n:'Instagram', url:'', no:'Bilder fra spillet og fra kysten.', en:'Pictures from the game and the coast.', c:'#c13584',
+    {k:'instagram', n:'Instagram', url:'https://www.instagram.com/detstorebla.no/', no:'Bilder fra spillet og fra kysten.', en:'Pictures from the game and the coast.', c:'#c13584',
       ic:'<rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><circle cx="16.8" cy="7.2" r=".9"/>'},
     {k:'facebook', n:'Facebook', url:'', no:'Nyheter og samtaler med andre spillere.', en:'News and talk with other players.', c:'#1877f2',
       ic:'<path d="M14.5 20v-7h2.3l.4-2.8h-2.7V8.6c0-.8.3-1.3 1.4-1.3h1.4V4.8c-.3 0-1.1-.1-2.1-.1-2.1 0-3.5 1.3-3.5 3.6v1.9H9.4V13h2.3v7"/>'},
