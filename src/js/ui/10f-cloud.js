@@ -874,7 +874,13 @@ async function nameCheck(){
     if (had) msg('Det Store Blå', 'Brukernavnet ditt er tatt bort' + (r.reason ? ': ' + r.reason : '.') + ' Velg et nytt.', 'Your player name has been taken away' + (r.reason ? ': ' + r.reason : '.') + ' Choose a new one.');
     if (!NOTUT) nameAsk('removed', r.reason); return; }
   if (r && r.name){ if (S.user !== r.name){ S.user = r.name; save(); } return; }
-  if (!S.user && !namesKept().user && !NOTUT) nameAsk();   // the tests (#notut) ask for it themselves
+  // a name in the save that the server does not hold for this account (16.11.2026: a save pasted in or carried over from another
+  // account showed its name in Settings while the profile and everyone else saw none): it is claimed now; when another account has
+  // it, or it is not a name, it leaves the save and the player is asked for a new one. A server that does not answer is tried again
+  if (S.user){ const had = S.user, t = await nameTake(had, true);
+    if (t === 'taken' || t === 'bad'){ S.user = null; save(); nameAsk(t); }
+    return; }
+  if (!namesKept().user && !NOTUT) nameAsk();   // the tests (#notut) ask for it themselves
 }
 // Every account has a player name (Jonas 07.10.2026: «Alle registrerte brukere må ha et brukernavn. Det skal ikke være valgfritt»). An
 // account without one (registered before the names came, a name the admin took away, one another took first) is asked until it has
