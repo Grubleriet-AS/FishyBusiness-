@@ -37,7 +37,7 @@ jobs:
       - if: steps.seen.outputs.skip != 'true'
         name: The whole coast's map packs
         run: |
-          pip install numpy requests pyproj playwright==1.56.0
+          pip install numpy requests pyproj playwright==1.63.0   # (1.56.0 does not support chromium on Ubuntu 26.04, ubuntu-latest since 16.11.2026)
           python3 -m playwright install --with-deps chromium || python3 -m playwright install chromium   # (apt on the runner fails now and then; the runner has the libraries)
           python3 tools/map/game.py
       - if: steps.seen.outputs.skip != 'true'

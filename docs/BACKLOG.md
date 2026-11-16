@@ -102,7 +102,6 @@
   - **Serverbyttet er gjort (11.11.2026):** spillet og reléet ligger på `ubuntu-8gb-hel1-1` (89.167.24.148), porten på `ubuntu-4gb-hel1-10` (65.108.252.250), DNS og hemmelighetene er flyttet, og «Appen på Hetzner» #504 på `main` gikk gjennom begge. «Serverne» i `docs/systemer/publisering.md`. Porten bruker 628 s for 74 lagringer på den lille serveren: grensene holder til rundt 150 lagringer. Reléet er ikke lasttestet på den nye serveren.
   - **Jonas sletter `SUPABASE_SERVICE_ROLE_KEY` fra GitHubs hemmeligheter:** jobben leser den ikke lenger.
   - **Personvernerklæringen:** setningen om at kontrollen før en ny versjon kjøres hos Hetzner, er ikke skrevet (egen PR; `src/legal/` venter på Jonas). PR #62 er uten GitHub-punktet.
-  - **Slippjobben og Ubuntus pakkespeil:** `playwright install-deps` prøves tre ganger og slippes så med en advarsel (`3d07f6c`). De andre workflowene (`autofix.yml`, `autonav.yml`, `fly.yml`) har fortsatt `--with-deps` og kan stoppe på samme måte.
   - **Tida:** 222 s for 74 lagringer på 4 vCPU. På den lille serveren (2 vCPU) blir det anslagsvis det dobbelte; grensene er 10 minutter henting og 14 for hvert løp.
   - **To slipp tett på hverandre:** et spørsmål som kommer mens porten tester for et annet, blir spurt på nytt når det første svaret kommer, men to som begge laster opp bygg samtidig, er ikke håndtert.
 
