@@ -332,32 +332,73 @@ function showIntro(namesOnly){
   });
 }
 // ---------- «Mens du var borte» (Jonas 07.10.2026: «en følelse av instant-belønning») ----------
-// What the time away brought, gains only: one big number counting up (what was landed, or the sea time), the sea-time bar filling
-// from where it was, tiles for the landings, the best landing and the rest built up, and the few things that happened. Nothing about
-// what was missed, no countdown; a tap closes it. A short absence with nothing landed and no new year shows nothing.
+// What the time away brought, gains only: one big number counting up, and under it the few real things that happened. Jonas
+// 16.11.2026: «det vises lite informasjon i den velkomstboksen … Kan den være kontekstuell? … den kan gi litt dopamin med en gang, og
+// eventuelt stimulere til pengebruk», and «legg inn innloggingsbonusen»: the big number is the largest true thing (what was landed,
+// the fish that came into the gear in the sea, the sea time, the hours rested), the tiles the rest that happened (the landings, the
+// yard's work done, the cod's price, the season that began, the week's place, the messages, a haill in store), today's login bonus
+// under them, and one quiet line to Kaiboden only where luck would work now (gear in the sea, or a trip under way). Nothing about what
+// was missed, no countdown, nothing made up (docs/engasjement.md); a tap closes it. A short absence with nothing new shows nothing.
 let AWAYR = null;
-function awayStart(mins, realMs){ AWAYR = {mins, realMs, idx:S.log.length, t0:S.t, rev:S.stats.revenue, kg:S.stats.kg, cash:S.cash, fs:fsState().p}; FS_AWAY = true; fsRested(realMs); }
+const awayGearKg = () => (S.sets || []).filter(s => !s.lost).reduce((a, s) => a + Object.values(s.acc || {}).reduce((b, x) => b + (x.kg || 0), 0), 0);
+function awayStart(mins, realMs){ AWAYR = {mins, realMs, idx:S.log.length, t0:S.t, rev:S.stats.revenue, kg:S.stats.kg, cash:S.cash, fs:fsState().p, gear:awayGearKg(),
+  jobs:(S.jobs || []).filter(j => j.until != null && j.until > S.t).map(j => ({no:j.no, en:j.en, until:j.until})), unread:(S.msgs || []).filter(m => !m.read).length,
+  ev:typeof seasonNow === 'function' ? seasonNow(S.t / 60) : null};
+  FS_AWAY = true; fsRested(realMs);
+  try { if (typeof worldTop === 'function') worldTop(weekOf(S.t / 60), 'all', 'kg'); } catch (e){} }   // (the week's place, if it comes in time)
 function awayEnd(){ FS_AWAY = false; const A = AWAYR; AWAYR = null; if (A) showAway(A); }
 function showAway(A){
-  const en = S.lang === 'en', L2 = (no, e) => en ? e : no, F = fsState();
+  const en = S.lang === 'en', L2 = (no, e) => en ? e : no, F = fsState(), H = S.t / 60;
   const sales = S.sales.filter(s => s.t > A.t0), rev = Math.max(0, S.stats.revenue - A.rev), kg = Math.max(0, S.stats.kg - A.kg);
   const o0 = fsOf(A.fs), o1 = fsOf(F.p), days = (o1.y * 365 + o1.d) - (o0.y * 365 + o0.d), up = o1.y > o0.y, rest = Math.round(F.rest / 60);
-  if (!sales.length && !up && A.realMs < 5 * 60000) return;
-  const best = sales.reduce((m, s) => !m || s.total > m.total ? s : m, null), ev = S.log.slice(A.idx).slice(-6).reverse();
-  const big = rev > 0 ? {v:rev, k:'kr', lbl:L2('levert mens du var borte', 'landed while you were away')} : {v:Math.max(0, days), k:'d', lbl:L2('døgn fartstid', 'days at sea')};
+  const gear = Math.max(0, awayGearKg() - A.gear), sets = (S.sets || []).filter(s => !s.lost && s.vid === S.cur), big0 = sets.slice().sort((a, b) => Object.values(b.acc || {}).reduce((x, y) => x + (y.kg || 0), 0) - Object.values(a.acc || {}).reduce((x, y) => x + (y.kg || 0), 0))[0];
+  const gearAt = big0 && typeof nearestPlace === 'function' ? (pl => L2(pl.no, pl.en))(nearestPlace(setMid(big0))) : '';
+  const done = A.jobs.filter(j => j.until <= S.t), evNow = typeof seasonNow === 'function' ? seasonNow(H) : null, evNew = evNow && evNow !== A.ev && evNow.post ? evNow.post[0] : null;
+  let dP = 0; try { const p0 = marketPrice('torsk', A.t0 / 60), p1 = marketPrice('torsk', H); dP = p0 > 0 ? (p1 - p0) / p0 : 0; } catch (e){}
+  const unread = Math.max(0, (S.msgs || []).filter(m => !m.read).length - A.unread);
+  const inv = typeof haillStock === 'function' ? haillStock(S.haillInv, S.haillSrv, S.haillUsed) : {haill:0, luksus:0}, haillN = (inv.haill || 0) + (inv.luksus || 0);
+  let rank = null; try { const T = worldTop(weekOf(H), 'all', 'kg'), m = T && T.data && T.data.mine; if (m && m.rank) rank = m.rank; } catch (e){}
+  const bonus = STREAK.now && STREAK.now.day === dayKey() && !STREAK.now.shown ? STREAK.now : null;   // (today's, once: not again on every reload)
+  if (!sales.length && !up && gear < 1 && !done.length && !evNew && !bonus && A.realMs < 5 * 60000) return;
+  const best = sales.reduce((m, s) => !m || s.total > m.total ? s : m, null), ev = S.log.slice(A.idx).slice(-4).reverse();
+  // the big number: the largest true thing
+  const big = rev > 0 ? {v:rev, k:'kr', lbl:L2('levert mens du var borte', 'landed while you were away')}
+    : gear >= 1 ? {v:Math.round(gear), k:'kg', lbl:L2('fisk i redskapet', 'fish in the gear') + (gearAt ? ' ' + gearAt : '')}   /* (the place's name has its «ved» already) */
+    : days > 0 ? {v:days, k:'d', lbl:L2('døgn fartstid', 'days at sea')}
+    : rest > 0 ? {v:rest, k:'t', lbl:L2('timer uthvilt: dobbel fartstid til sjøs', 'hours rested: double sea time at sea')}
+    : bonus ? {v:bonus.pct, k:'%', lbl:L2('ekstra på fiskeprisen i dag', 'extra on the fish price today')} : {v:0, k:'d', lbl:L2('døgn fartstid', 'days at sea')};
+  // the tiles: what else happened, the first three that are there
+  const T = [];
+  if (sales.length) T.push([fmt(Math.round(kg)) + ' kg', sales.length + L2(sales.length === 1 ? ' levering' : ' leveringer', sales.length === 1 ? ' landing' : ' landings')]);
+  if (best) T.push([kr(best.total), L2('beste levering, ', 'best landing, ') + (portById(best.port) || {}).name]);
+  if (gear >= 1 && big.k !== 'kg') T.push([fmt(Math.round(gear)) + ' kg', L2('i redskapet', 'in the gear')]);
+  for (const j of done.slice(0, 1)) T.push(['✓', L2(j.no || 'Verftsjobben', j.en || 'The yard job') + L2(' er ferdig', ' is done')]);
+  if (evNew) T.push(['★', L2(evNew[0], evNew[1])]);
+  if (Math.abs(dP) >= 0.02) T.push([(dP > 0 ? '+' : '−') + fmt(Math.abs(dP) * 100, 0) + ' %', L2('torskeprisen siden sist', 'the cod price since last time')]);
+  if (rank) T.push(['#' + rank, L2('på topplista denne uka', 'on the leaderboard this week')]);
+  if (rest > 0 && big.k !== 't') T.push([rest + ' t', L2('uthvilt: dobbel fartstid til sjøs', 'rested: double sea time at sea')]);
+  if (unread > 0) T.push([String(unread), L2(unread === 1 ? 'ny melding' : 'nye meldinger', unread === 1 ? 'new message' : 'new messages')]);
+  if (haillN > 0) T.push([String(haillN), L2('haill klar til bruk', 'luck ready to use')]);
   const tile = (v, l) => '<div class="aw-t"><b>' + v + '</b><span>' + l + '</span></div>';
+  // today's login bonus (03-simulation.js STREAK), only what it gives
+  const bonusRow = bonus && big.k !== '%' ? '<div class="aw-bonus"><b>' + L2('Dagens innloggingsbonus', 'Today\'s login bonus') + '</b><span>+' + STREAK.step + ' % · ' + L2('nå ', 'now ') + bonus.pct + L2(' % ekstra på fiskeprisen', ' % extra on the fish price') + '</span></div>' : '';
+  // one quiet line to Kaiboden where luck would work now: a haill in store first (it costs nothing more), else the shop when it is open
+  const luckNow = !haillStage() && (sets.length || (S.plan && S.boat.status === 'sailing'));
+  const shopLive = typeof shopMode === 'function' && shopMode() === 'live';
+  const kb = !luckNow ? '' : haillN > 0 ? '<div class="aw-kb"><span>' + L2('Du har haill klar. Slått på nå fanger redskapet dobbelt de neste 4 timene.', 'You have luck ready. Switched on now, the gear catches double for the next 4 hours.') + '</span><button class="btn" id="awKb" data-a="haill">' + L2('Bruk haill', 'Use luck') + '</button></div>'
+    : shopLive ? '<div class="aw-kb"><span>' + L2('Haill gir dobbel fangst i redskapet de neste 4 timene.', 'Luck gives double catch in the gear for the next 4 hours.') + '</span><button class="btn" id="awKb" data-a="kaiboden">Kaiboden</button></div>' : '';
   modal('<div class="aw"><p class="aw-h">' + t('away') + ' · ' + dur(A.mins / 60) + '</p>' +
     '<div class="aw-big"><span id="awNum">+0</span><small>' + big.lbl + '</small></div>' +
     '<div class="aw-fs"><div class="aw-fl"><b id="awYr">' + fsText(A.fs) + '</b><span>' + (days > 0 ? '+' + fmt(days) + L2(' døgn', ' days') : '') + '</span></div><div class="aw-bar"><i id="awBar" style="width:' + (o0.f * 100).toFixed(1) + '%"></i></div></div>' +
-    '<div class="aw-ts">' + tile(sales.length ? fmt(Math.round(kg)) + ' kg' : '–', sales.length ? sales.length + L2(sales.length === 1 ? ' levering' : ' leveringer', sales.length === 1 ? ' landing' : ' landings') : L2('ingen leveringer', 'no landings')) +
-      tile(best ? kr(best.total) : '–', best ? L2('beste levering, ', 'best landing, ') + (portById(best.port) || {}).name : L2('beste levering', 'best landing')) +
-      tile(rest > 0 ? rest + ' t' : '–', L2('uthvilt: dobbel fartstid til sjøs', 'rested: double sea time at sea')) + '</div>' +
+    (T.length ? '<div class="aw-ts">' + T.slice(0, 3).map(([v, l], k) => tile(v, l).replace('class="aw-t"', 'class="aw-t" style="animation-delay:' + (0.35 + k * 0.15).toFixed(2) + 's"')).join('') + '</div>' : '') + bonusRow + kb +
     (ev.length ? '<ul class="log aw-log">' + ev.map(e => '<li><time>' + hm(e.t / 60) + '</time><span>' + (en ? e.en : e.no) + '</span></li>').join('') + '</ul>' : '') +
     '<div class="btns"><button class="btn primary" data-close>' + L2('Til sjøs!', 'To sea!') + '</button></div></div>');
+  if (bonus) bonus.shown = true;
+  { const b = $('awKb'); if (b) b.onclick = () => { $('modal').hidden = true; if (typeof cloudEv === 'function') cloudEv('shop_view', {pg:'away'}); PHONE.open(b.dataset.a); }; }
   // the number counts up and the bar fills (a new year: to the end, then on from the start of the next)
-  const el = $('awNum'), bar = $('awBar'), yr = $('awYr'), t0 = performance.now(), T = 1300;
-  const fmtBig = v => big.k === 'kr' ? '+' + kr(v) : '+' + fmt(v);
-  const run = now => { const q = Math.min(1, (now - t0) / T), e = 1 - Math.pow(1 - q, 3); if (!el || !el.isConnected) return; el.textContent = fmtBig(Math.round(big.v * e));
+  const el = $('awNum'), bar = $('awBar'), yr = $('awYr'), t0 = performance.now(), TT = 1300;
+  const fmtBig = v => big.k === 'kr' ? '+' + kr(v) : big.k === 'kg' ? '+' + fmt(v) + ' kg' : big.k === '%' ? '+' + fmt(v) + ' %' : big.k === 't' ? '+' + fmt(v) + ' t' : '+' + fmt(v);
+  const run = now => { const q = Math.min(1, (now - t0) / TT), e = 1 - Math.pow(1 - q, 3); if (!el || !el.isConnected) return; el.textContent = fmtBig(Math.round(big.v * e));
     if (q < 1) requestAnimationFrame(run); else if (navigator.vibrate && big.v > 0) try { navigator.vibrate(30); } catch (x){} };
   requestAnimationFrame(run);
   setTimeout(() => { if (!bar || !bar.isConnected) return; bar.style.width = (up ? 100 : o1.f * 100).toFixed(1) + '%';
