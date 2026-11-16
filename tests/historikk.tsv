@@ -5138,3 +5138,15 @@
 2026-11-16 19:38	ccr-349425a1-raf94t	56b52aa	sqltest	OK	60	lite	samtidig	
 2026-11-16 19:38	ccr-349425a1-raf94t	56b52aa	skiptest	OK	15	lite	samtidig	
 2026-11-16 19:40	ccr-349425a1-raf94t	56b52aa	kjoptest	OK	164	lite	samtidig	
+2026-11-16 19:53	ccr-349425a1-raf94t	4d42f83+	skiptest	OK	15	lite	alene	
+2026-11-16 19:56	ccr-349425a1-raf94t	4d42f83+	sqltest	OK	62	lite	samtidig	
+2026-11-16 19:56	ccr-349425a1-raf94t	4d42f83+	profiltest	OK	21	lite	samtidig	
+2026-11-16 19:57	ccr-349425a1-raf94t	4d42f83+	skiptest	OK	14	lite	alene	
+2026-11-16 20:02	ccr-349425a1-raf94t	4d42f83+	csptest	OK	91	lite	samtidig	
+2026-11-16 20:02	ccr-349425a1-raf94t	4d42f83+	boottest	OK	28	lite	samtidig	
+2026-11-16 20:02	ccr-349425a1-raf94t	4d42f83+	skiptest	OK	15	lite	samtidig	
+2026-11-16 20:02	ccr-349425a1-raf94t	4d42f83+	profiltest	OK	20	lite	samtidig	
+2026-11-16 20:04	ccr-349425a1-raf94t	4d42f83+	kjoptest	OK	158	lite	samtidig	
+2026-11-16 20:09	ccr-349425a1-raf94t	4d42f83+	docktest	OK	64	lite	samtidig	
+2026-11-16 20:10	ccr-349425a1-raf94t	4d42f83+	telefonflate	OK	146	lite	samtidig	
+2026-11-16 20:11	ccr-349425a1-raf94t	4d42f83+	profiltest	FEIL	20	lite	alene	FEIL liggende: et trykk på raden åpner spillerens profil med navnet, Founder #1, selskapsverdien og ferdighetene (sju søyler, Juksa 3,2) {"app": "profil", "ola"

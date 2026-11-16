@@ -5,6 +5,9 @@ docs/systemer/handel-og-steder.md) into one atlas, so the page fetches one pictu
     pip install pillow numpy
     python3 tools/ui/butikkbilder.py      -> src/data/items.b64 (the atlas, WebP as base64) and tools/ui/out/butikk/atlas.png to look at
 
+A sheet that is not in tools/ui/out/butikk (they are not in git) gives its pictures from the atlas the game has now (src/data/items.b64,
+in the ORDER it was made with, OLD below), so a new sheet can be added in a fresh checkout without drawing the others again.
+
 Each sheet is a grid; each cell's background (a plain #eef3f6 or a slightly darker tile) is measured on its rim and moved to the cards'
 #eef3f6 (.ic-pic in src/styles.css), the object is found against it, and an 8:5 crop round it goes into the atlas. ORDER is the
 atlas's order and must be the same as IC_ATLAS in src/js/ui/05a-itemcard.js.
@@ -30,13 +33,17 @@ SHEETS = {
     # fictional brand of the game: --brand SKIPPERTAK in .mcp/gemini-server.mjs); the plainest is the cheapest, the richest the dearest
     'ark-kaiboden': (3, 3, ['haill', 'luksus', None, 'pump', 'ic', 'turbo', None, None, None]),
     'skippertak': (3, 1, ['sk_light', 'sk_std', 'sk_max']),   # (drawn again: the line hauler was a drum, the dregg two-armed,
-}                                                                 # the bilge keels a sailing keel, the outboard had «90» on it)
+                                                                  # the bilge keels a sailing keel, the outboard had «90» on it)
+    # the price ladder (Jonas 16.11.2026: «Sørg også for at alle produktene har forskjellige bilder. Bruk gemini»): 3 and 8 haill, the
+    # 3-day Turbotrim kit, the crate of Skippertak and Sjøværspakken; the 2, 8 and 24 hour lengths use pump, ic and turbo and the three cans
+    'ark-prisstige': (3, 2, ['hp3', 'hp8', 't72', 's72', 'pakke', None]),
+}
 ORDER = ['jig', 'kgear', 'jigset', 'hooks', 'net', 'line', 'pot', 'kit', 'heavy',
          'jukse', 'linehaler', 'garnhaler', 'teinehaler', 'linesetter', 'garnrenne', 'krabbekar', 'kniv', 'hott',
          'vhf', 'ais', 'plotter', 'chirp', 'sonar', 'radar', 'radarA', 'brovakt', 'olje',
          'varme', 'ice', 'bait', 'antigro', 'motor90', 'motor', 'prop', 'hold', 'tank',
          'cabin', 'galley', 'dry', 'insul', 'stab', 'gut', 'icemaker', 'box', 'potsno',
-         'haill', 'luksus', 'pump', 'ic', 'turbo', 'sk_light', 'sk_std', 'sk_max']
+         'haill', 'luksus', 'pump', 'ic', 'turbo', 'sk_light', 'sk_std', 'sk_max', 'hp3', 'hp8', 't72', 's72', 'pakke']
 
 
 def cut(a, x0, y0, x1, y1):
@@ -74,11 +81,28 @@ def cut(a, x0, y0, x1, y1):
     return out.resize((CW, CH), Image.LANCZOS)
 
 
+# the order of the atlas in src/data/items.b64 before the price ladder (for the sheets that are not here)
+OLD = ORDER[:ORDER.index('sk_max') + 1]
+
+
+def from_atlas():
+    """The pictures of the atlas the game has now, by the order it was made with (OLD, or ORDER when it is as long)."""
+    p = os.path.join(DATA, 'items.b64')
+    if not os.path.exists(p): return {}
+    im = Image.open(io.BytesIO(base64.b64decode(open(p).read()))).convert('RGB'); n = (im.width // CW) * (im.height // CH)
+    keys = ORDER if n >= len(ORDER) and im.height // CH == -(-len(ORDER) // COLS) else OLD
+    return {k: im.crop(((i % COLS) * CW, (i // COLS) * CH, (i % COLS + 1) * CW, (i // COLS + 1) * CH)) for i, k in enumerate(keys)}
+
+
 def main():
-    pics = {}
+    pics, old = {}, from_atlas()
     for name, (nc, nr, keys) in SHEETS.items():
         p = next((os.path.join(SRC, name + e) for e in ('.jpg', '.png', '.webp') if os.path.exists(os.path.join(SRC, name + e))), None)
-        if not p: raise SystemExit('missing ' + name + ' in ' + SRC)
+        if not p:
+            got = [k for k in keys if k and k in old]
+            if len(got) != len([k for k in keys if k]): raise SystemExit('missing ' + name + ' in ' + SRC + ', and not in the atlas either')
+            for k in got: pics.setdefault(k, old[k])
+            continue
         a = np.asarray(Image.open(p).convert('RGB'), np.float32); H, W = a.shape[:2]
         for i, k in enumerate(keys):
             if not k: continue

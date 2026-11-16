@@ -1715,8 +1715,10 @@ def main():
         TK, TR, TT = mine('kg', L1), mine('kr', L1), mine('tot', L1)
         LA['co'] = [r['company'] for r in TK['rows'] if r['hid'] == hid(L1)][0]
         LA['kg'] = rows(TK)[:3]; LA['kr'] = rows(TR)[:3]; LA['krMine'] = TR['mine']
-        sql("""select public.prof_put('{"fleet":2,"value":850000,"worth":900000,"company":"Havbris <b>AS","form":"AS","ach":7,"boats":[{"n":"Havbris","t":"sjark"}],"recs":[{"sp":"torsk","kg":31.5}]}')""", L2, 'authenticated')
+        sql("""select public.prof_put('{"fleet":2,"value":850000,"worth":900000,"company":"Havbris <b>AS","form":"AS","ach":7,"boats":[{"n":"Havbris","t":"sjark"}],"recs":[{"sp":"torsk","kg":31.5}],"sk":{"juksa":3.24,"is":9,"bad":2,"garn":"x"}}')""", L2, 'authenticated')
         P0 = json.loads(sql("select public.profile_get('%s')" % hid(L2), L1, 'authenticated'))
+        # the skills on the profile (20261116210000_profil_ferdigheter.sql): only the known keys, a number, one decimal, at most 5
+        print(ok(P0['prof'].get('sk') == {'juksa': 3.2, 'is': 5}), 'the profile\'s skills: another player sees them, only the known keys, one decimal, at most 5', json.dumps(P0['prof'].get('sk')))
         LA['prof'] = [P0['f'], P0['me'], P0['prof']['fleet'], P0['prof']['company'], P0['prof']['form'], P0['img'], P0['kg']]
         LA['badAv'] = sql("select public.av_put('javascript:alert(1)')", L2, 'authenticated', expect_err=True)[0]
         sql("select public.av_put('data:image/png;base64,iVBORw0KGgo=')", L2, 'authenticated')

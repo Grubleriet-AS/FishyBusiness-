@@ -173,6 +173,7 @@ Jonas 16.11.2026: Laksebaronen selger mest av sin dyreste booster (79 kr), og sp
   - De nye produktene ligger der.
 - **Kaiboden i ett vindu** (`kbShop` i `ui/phone/01-haill-fiske-service.js`):
   - **Boostere:** Sjøværspakken øverst, så én rad per sort.
+  - **Bildene** (Jonas 16.11.2026: «Sørg også for at alle produktene har forskjellige bilder. Bruk gemini»): hvert produkt har sitt eget malte bilde (`KB_PIC`). 2, 8 og 24 timer bruker de gamle trimmene (pumpe, ladeluftkjøler, turbo) og de tre Skippertak-boksene; 3 haill, 8 haill, Turbotrim 3 døgn, kassa med Skippertak og Sjøværspakken kommer fra arket `ark-prisstige` (ett `generate_game_asset`-bilde, `tools/ui/butikkbilder.py`, som nå tar bildene fra atlaset i spillet når de gamle arkene mangler). Bildene har sin egen form, 8:5, og kortene fyller raden (`auto-fit`).
   - **Utseende:** Malerverkstedet og Garderoben.
   - **Mine boostere (N):** haill på lager med «Aktiver», og trim og skippertak som er på.
   - Haill, trim og skippertak åpner samme vindu. «Bruk haill» åpner Mine boostere.
