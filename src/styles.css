@@ -1628,8 +1628,8 @@ body.kino-clean #catchFeed,body.hudoff #catchFeed{display:none!important}
 .slip-first small{display:block;font-size:13px;color:var(--m-warn,#6b5320)}
 @keyframes sfIn{from{opacity:0;transform:scale(.92)}}
 @media (prefers-reduced-motion:reduce){.slip-first{animation:none}}
-/* GUI review U7 A (05.11.2026): every tap target on the plan's page and in the chart's card is at least 44 × 44 CSS px
-   (docs/planer/ui-redesign.md), the card's × a button of its own, and more room between one stepper and the next */
+/* GUI review U7 A (05.11.2026): every tap target on the plan's page and on the plan's bar over the chart is at least 44 × 44 CSS px
+   (docs/planer/ui-redesign.md) */
 .dr-kv button{min-width:44px;min-height:44px;padding:0 10px}
 #drawerBody .ph-sub button,#drawerTabs button{min-height:44px}
 /* UI 2, U2-2 (06.11.2026): Om bord's five tabs (Redskap, Rigg, Lasterom, Båten, Mannskap) on one row in the drawer on a phone (390 px) and at its side (380 px) */
