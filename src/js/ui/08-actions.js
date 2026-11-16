@@ -46,10 +46,12 @@ function doAct(el){
   else if (act === 'target'){ if (kveiteClosed(S.t / 60)){ S.target = 'mix'; toast(L('Kveita er fredet fra 20. desember til og med 20. april.', 'Halibut is closed from 20 December to 20 April.')); } else S.target = S.target === 'kveite' ? 'mix' : 'kveite'; renderActs(); return; }
   else if (act === 'depcancel'){ S.plan = null; log('Avgangen er avlyst.', 'Departure cancelled.'); }
   else if (act === 'stop'){
-    // on a route she slacks off and stops a little ahead on it (core haltPlan); by hand, or already slacking off, she stops here
-    const h = !helmOn() && S.plan && !S.plan.halt ? haltPlan(G3.haltNeed()) : null;
+    // on a route she slacks off and stops a little ahead on it (core haltPlan); by hand, or already slacking off, she stops here.
+    // Held while the anchor comes up (06e-anchor.js), she has no way on: she stops at once and the anchor goes on coming up
+    // (tilbakemelding #120: the route waited for the anchor, and «Stopp båten» only made a halt that waited for it too)
+    const held = !!b.anch, h = !held && !helmOn() && S.plan && !S.plan.halt ? haltPlan(G3.haltNeed()) : null;
     if (h){ S.plan = h; log('Slakker av og stopper.', 'Easing off to a stop.'); }
-    else if (!(S.plan && S.plan.halt && b.status === 'sailing')){ S.plan = null; helmOff(); b.status = 'idle'; b.v = 0; log('Stoppet båten.', 'Stopped the boat.'); }
+    else if (held || !(S.plan && S.plan.halt && b.status === 'sailing')){ S.plan = null; helmOff(); b.status = 'idle'; b.v = 0; log('Stoppet båten.', 'Stopped the boat.'); }
   }
   else if (act === 'retrace'){ if (tutOn()) return; startReturn(false); }
   else if (act === 'tow') rescue(true);
