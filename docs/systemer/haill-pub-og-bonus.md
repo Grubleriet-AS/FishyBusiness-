@@ -154,3 +154,26 @@ Punkt 6 i arbeidslista i `docs/engasjement.md`. Et kort som ser tilbake på uka.
 - **Sesong-appen** har «Ukas fangst» øverst: uka så langt og knappen til kortet (denne ukas fra søndag kveld, ellers forrige ukes).
 - **Pushen:** verdens ene varsel i uka (`docs/push-plan.md`) er nå «Ukas fangst», søndag fra 19:00 norsk tid (ekte uke, de siste sju ekte dagene av landingene): egne tonn og plass i egen gruppe, så ukas beste fisker. Den som ikke leverte, får bare ukas beste fisker som før. `push_week` i `supabase/migrations/20261103120000_push_ukas.sql` (kjørt 03.11.2026). Bryteren «Ukas beste fisker» slår det av.
 - **Tester:** `uketest` (kortet, én gang, bildet, Sesong-appen, begge formater, `tests/out/uke-*.png`), `tests/unit/ukas.test.mjs` (summene, beste dag, når kortet kommer), `sqltest` (pushen søndag 19:00 med egen uke).
+
+## Prisstigen og Kaiboden i ett vindu (16.11.2026)
+
+Jonas 16.11.2026: Laksebaronen selger mest av sin dyreste booster (79 kr), og spillerne der spør etter dyrere. «Kjør på med det du foreslo, men husk at haill er basert på det at det er best når det er ferskt … Jeg er også enig i at en samlepakke kan være et alternativ.» Videre: «ha alle boosters samlet i samme vindu … og heller gjemme bort de man allerede eier», og «disse boosterne ikke er linket opp mot et spesifikt fartøy … En speedboost fungerer på alle».
+
+- **Stigen:** én effekt, fire mengder, 29 / 49 / 79 / 129 kr for hver sort.
+  - **Haill** i pakker på 1, 2, 4 og 8 (`HAILL_PACKS`). Haill er den samme som før: fersk første døgn, så avtagende. Hver ligger i Mine boostere til spilleren slår den på.
+  - **Luksushaill** koster 59 kr som før.
+  - **Turbotrim** (dobbel fart) og **Skippertak** varer 4 t, 12 t, 24 t eller 3 døgn i ekte tid (`BOOSTS` t4–t72 og `SKIP` s4–s72). Samme sort legger til tid (`boostKind`).
+  - De gamle trimmene og skippertakene (`old`) selges ikke lenger, men det som er kjøpt, virker.
+  - Det største trinnet merkes «Mest for pengene», og det stemmer per time og per haill.
+- **Sesongpakken** koster 149 kr (`PACKS.sesong`) og gir 4 haill, Turbotrim 24 t og Skippertak 24 t. «Spar X %» regnes fra de ekte prisene (`packWorth`). Innholdet er kjent før kjøpet, så det er ingen loot box.
+- **Trim gjelder hele flåten** (`S.trim`, `trimRec`), også båter på driftsplan. En gammel lagring med trim på én båt (`b.trim`) virker til den går ut.
+- **Serveren** (`supabase/migrations/20261116180000_prisstige.sql`):
+  - `grants.n`: ett kjøp kan gi flere leveringer.
+  - `shop_paid` gir `n` haill, eller én levering per del av en pakke, med kjøpets data (båten) i hver.
+  - De nye produktene ligger der.
+- **Kaiboden i ett vindu** (`kbShop` i `ui/phone/01-haill-fiske-service.js`):
+  - **Boostere:** Sesongpakken øverst, så én rad per sort.
+  - **Utseende:** Malerverkstedet og Garderoben.
+  - **Mine boostere (N):** haill på lager med «Aktiver», og trim og skippertak som er på.
+  - Haill, trim og skippertak åpner samme vindu. «Bruk haill» åpner Mine boostere.
+- **Ekte penger:** endringen går som PR til Jonas og rulles ikke ut før han har sett den. Migreringen kjøres på testprosjektet før PR-en flettes.

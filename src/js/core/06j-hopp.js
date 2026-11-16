@@ -77,7 +77,7 @@ function hopWhy(){
 function hopRun(paid){
   const b = S.boat, pl = S.plan, iS = hopStop(pl);
   if (iS < 0) return {why:['Ruta har ikke noe mål.', 'The route has no end.']};
-  const save = {pos:b.pos, v:b.v, heading:b.heading, idx:pl.idx, speed:pl.speed, dspeed:S.draftSpeed, trim:b.trim}, T = trimOn(b), tEnd = T ? trimUntil(b) : -1;
+  const save = {pos:b.pos, v:b.v, heading:b.heading, idx:pl.idx, speed:pl.speed, dspeed:S.draftSpeed, trim:S.trim, btrim:b.trim}, T = trimOn(b), tEnd = T ? trimUntil(b) : -1;
   let m = 0, fuel = 0, trimMin = 0, why = null, heading = b.heading, ended = false; const track = [];
   try {
     while (pl.idx <= iS){
@@ -99,7 +99,7 @@ function hopRun(paid){
     heading = b.heading;
   } catch (e){ console.warn('hopRun', e); why = why || ['Turen kunne ikke regnes ut herfra.', 'The trip could not be worked out from here.']; }
   finally { b.pos = save.pos; b.v = save.v; b.heading = save.heading; pl.idx = save.idx;
-    if (ended){ b.trim = save.trim; applyVessel(); pl.speed = save.speed; S.draftSpeed = save.dspeed; } }
+    if (ended){ if (save.trim) S.trim = save.trim; else delete S.trim; b.trim = save.btrim; applyVessel(); pl.speed = save.speed; S.draftSpeed = save.dspeed; } }
   // (the price on the whole real minutes, as the server works it out: supabase/migrations/20261112200000_hopp.sql hop_price)
   const realMin = Math.max(1, Math.round(m / GAME_RATE));
   return {why, stop:iS, w:pl.wps[iS], min:m, real:m / GAME_RATE, realMin, kr:hopPrice(realMin), fuel, trimMin, track, heading};

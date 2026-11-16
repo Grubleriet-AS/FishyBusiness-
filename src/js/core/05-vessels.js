@@ -719,7 +719,7 @@ function holdMinute(H, p){
 function vesselStep(H){
   const b = S.boat;
   // a trim that has run its time (core BOOSTS): the speed goes back
-  if (b.trim && !trimOn(b)){ const T = BOOSTS[b.trim.k]; trimEnd(); if (T) log(T.no + ' er gått ut. Toppfarten er tilbake på ' + fmt(BOAT.vmax, 1) + ' knop.', 'The ' + T.en.toLowerCase() + ' has run out. Top speed is back at ' + fmt(BOAT.vmax, 1) + ' knots.'); }
+  if (trimRec(b) && !trimOn(b)){ const T = BOOSTS[trimRec(b).k]; trimEnd(); if (T) log(T.no + ' er gått ut. Toppfarten er tilbake på ' + fmt(BOAT.vmax, 1) + ' knop.', 'The ' + T.en.toLowerCase() + ' has run out. Top speed is back at ' + fmt(BOAT.vmax, 1) + ' knots.'); }
   const WA = workMinute();
   holdMinute(H, b.pos);
   if (S.t % 60 === 0 && BOAT.tank) snoTankHour(H);   // the live snow crab in the tanks (10e-krabbefabrikk.js, H3b)

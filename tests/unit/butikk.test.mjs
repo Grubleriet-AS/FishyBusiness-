@@ -25,6 +25,8 @@ export default function (t){
   for (const k in K.BOOSTS) game[k] = K.BOOSTS[k].nok;
   for (const k in K.SKIP) game['sk_' + k] = K.SKIP[k].nok;
   game.yard = K.YARD_NOW_NOK;
+  for (const k in K.HAILL_PACKS) game['hp_' + k] = K.HAILL_PACKS[k].nok;   // (the price ladder, 16.11.2026)
+  for (const k in K.PACKS) game['pk_' + k] = K.PACKS[k].nok;
   for (const k of COS) game['des_' + k] = PNOK[k] || DNOK;
   for (const [k, nok] of Object.entries(game)){
     const id = SP[k], P = id && DB[id];

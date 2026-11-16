@@ -32,7 +32,11 @@
 const SHOP = {ready:null, busy:false, ret:null, hs4:null, gen:0};
 const SHOP_PRODUCT = {haill:'haill', luksus:'luksus', pump:'trim_pump', ic:'trim_ic', turbo:'trim_turbo', yard:'verft_na', sk_light:'skip_light', sk_std:'skip', sk_max:'skip_max',
   des_ripe:'des_ripe', des_totone:'des_totone', des_vann:'des_vann', des_stripe:'des_stripe', des_lakk:'des_lakk', des_flagg:'des_flagg', des_reg:'des_reg', des_logo:'des_logo',   // the paint designs (ui/10j-paint.js)
-  hopp:'hopp'};   // the hop over the rest of a route (HO3, ui/10u-hopp.js): the price is the server's for the minutes (shop_quote_hop)
+  hopp:'hopp',
+  // the price ladder (16.11.2026, supabase/migrations/20261116180000_prisstige.sql): haill in packs, Turbotrim and Skippertak in four
+  // lengths, the season pack
+  hp_h1:'haill', hp_h2:'haill_2', hp_h4:'haill_4', hp_h8:'haill_8', t4:'trim_4', t12:'trim_12', t24:'trim_24', t72:'trim_72',
+  sk_s4:'skip_4', sk_s12:'skip_12', sk_s24:'skip_24', sk_s72:'skip_72', pk_sesong:'pakke_sesong'};   // the hop over the rest of a route (HO3, ui/10u-hopp.js): the price is the server's for the minutes (shop_quote_hop)
 const shopFn = () => CLOUD_CFG.supabaseUrl.replace(/\/$/, '') + '/functions/v1/shop-checkout';
 const shopL = (no, en) => S.lang === 'en' ? en : no;
 function shopMode(){
@@ -50,6 +54,8 @@ function shopLabel(nok){
 // what a key is and costs, for the consent and the receipt in the log (g: the grant, for a price that is the purchase's own: the hop)
 function shopWhat(k, g){
   if (HAILL[k]) return {name:HAILL[k][S.lang === 'en' ? 'en' : 'no'], nok:HAILL[k].nok};
+  if (/^hp_/.test(k) && HAILL_PACKS[k.slice(3)]){ const P = HAILL_PACKS[k.slice(3)]; return {name:shopL('Haill × ', 'Luck × ') + P.n, nok:P.nok}; }
+  if (/^pk_/.test(k) && PACKS[k.slice(3)]){ const P = PACKS[k.slice(3)]; return {name:P[S.lang === 'en' ? 'en' : 'no'], nok:P.nok}; }
   if (BOOSTS[k]) return {name:'Trim: ' + BOOSTS[k][S.lang === 'en' ? 'en' : 'no'], nok:BOOSTS[k].nok};
   if (/^sk_/.test(k) && SKIP[k.slice(3)]){ const X = SKIP[k.slice(3)]; return {name:X[S.lang === 'en' ? 'en' : 'no'], nok:X.nok}; }   // Skippertak (core/15-energy.js)
   if (/^des_/.test(k)){ const N = PAINT.DNAME[k.slice(4)] || ['', '']; return {name:(k === 'des_flagg' || k === 'des_reg' ? '' : shopL('Malingsdesign: ', 'Paint design: ')) + shopL(N[0], N[1]), nok:PAINT.nok(k.slice(4))}; }
@@ -140,12 +146,13 @@ function shopBack(list){
   const left = h => { const r = h / GAME_RATE; return [fmt(h, h < 10 ? 1 : 0) + ' timer igjen (' + fmt(r, r < 10 ? 1 : 0) + ' timer i virkeligheten)', fmt(h, h < 10 ? 1 : 0) + ' hours left (' + fmt(r, r < 10 ? 1 : 0) + ' hours in real life)']; };
   const did = new Set();
   // trim, boat by boat (the boat is known by its id only)
-  const boats = new Map(); for (const g of L){ const d = g.data || {}; if (d.give !== 'trim' || !BOOSTS[d.k]) continue; const v = (S.fleet || []).find(x => x.id === d.boat); if (!v) continue; if (!boats.has(v)) boats.set(v, []); boats.get(v).push(g); }
-  for (const [v, gs] of boats) withVessel(v, () => { for (const g of gs) did.add(g.id); const b = S.boat, on = b.trim && BOOSTS[b.trim.k] ? {k:b.trim.k, t0:b.trim.t0, until:trimUntil(b)} : null;
+  // (the trim is the fleet's since 16.11.2026, core/03-simulation.js S.trim: all of them together, on the vessel the player has)
+  const boats = new Map(); { const gs0 = L.filter(g => (g.data || {}).give === 'trim' && BOOSTS[g.data.k]); if (gs0.length) boats.set(curVessel(), gs0); }
+  for (const [v, gs] of boats) withVessel(v, () => { for (const g of gs) did.add(g.id); const b = S.boat, R = trimRec(b), on = R ? {k:R.k, t0:R.t0, until:trimUntil(b)} : null;
     const c = boostBack(on, gs.map(g => ({k:g.data.k, h:BOOSTS[g.data.k].h, at:at(g)})), false);
     if (!c || !(c.until > now) || (on && on.k === c.k && on.until === c.until)) return;
     trimBack(c); const B = BOOSTS[c.k], h = hrs(c.until), w = left(h), g = gs.filter(x => x.data.k === c.k).pop() || gs[gs.length - 1];
-    tell(B.no + ' på «' + S.boatName + '», ' + w[0] + '. Toppfart ' + fmt(BOAT.vmax, 1) + ' knop.', B.en + ' on the «' + S.boatName + '», ' + w[1] + '. Top speed ' + fmt(BOAT.vmax, 1) + ' knots.'); ev(g, h); });
+    tell(B.no + ' på flåten, ' + w[0] + '. Toppfart ' + fmt(BOAT.vmax, 1) + ' knop.', B.en + ' on the fleet, ' + w[1] + '. Top speed ' + fmt(BOAT.vmax, 1) + ' knots.'); ev(g, h); });
   // Skippertak, one for the whole fleet
   const sk = L.filter(g => (g.data || {}).give === 'skip' && SKIP[g.data.k]);
   for (const g of sk) did.add(g.id);
@@ -280,13 +287,12 @@ function srvApply(st){
   // 3. the trim, boat by boat: what the delivered grants give, and nothing else
   // (bought for a boat that is not in this save, or given with no boat, a correction: on the first boat, so nothing paid for is lost)
   const fleet = S.fleet || [], trims = list.filter(g => g.held && (g.data || {}).give === 'trim' && BOOSTS[g.data.k] && isFinite(ms(g))), home = g => fleet.find(x => x.id === g.data.boat) || fleet[0];
-  for (const v of fleet){
-    const gs = trims.filter(g => home(g) === v);
-    const c = boostSrv(gs.map(g => ({k:g.data.k, h:BOOSTS[g.data.k].h, at:at(g)})), false, now);
-    withVessel(v, () => { const b = S.boat, on = b.trim && BOOSTS[b.trim.k] ? {k:b.trim.k, until:trimUntil(b)} : null;
-      if (c){ if (!on || on.k !== c.k || Math.abs(on.until - c.until) > tol){ if (on && on.until > now && !gs.some(isNew)) ev('trim', {k:on.k}); trimBack(c); } }
-      else if (b.trim){ if (trimOn(b)) ev('trim', {k:b.trim.k}); trimEnd(); }
-      for (const g of gs) if (isNew(g)){ given.push(g.id); seen[g.id] = wn; if (!c || c.k !== g.data.k) continue;
+  // (the fleet's trim, 16.11.2026: every trim the server holds counts, whatever boat it was bought on; set once, on the vessel the player has)
+  { const v = curVessel(), gs = trims, c = boostSrv(gs.map(g => ({k:g.data.k, h:BOOSTS[g.data.k].h, at:at(g)})), false, now);
+    withVessel(v, () => { const b = S.boat, R = trimRec(b), on = R ? {k:R.k, until:trimUntil(b)} : null;
+      if (c){ if (!on || boostKind(on.k) !== boostKind(c.k) || Math.abs(on.until - c.until) > tol){ if (on && on.until > now && !gs.some(isNew)) ev('trim', {k:on.k}); trimBack(c); } }
+      else if (S.trim){ if (trimOn(b)) ev('trim', {k:S.trim.k}); trimStop(); }
+      for (const g of gs) if (isNew(g)){ given.push(g.id); seen[g.id] = wn; if (!c || boostKind(c.k) !== boostKind(g.data.k)) continue;
         const w = trimWords(g.data.k, c.t0 < at(g) - tol ? 'ext' : 'new'); log(w.no, w.en); say(g, w.no, w.en); names.push(BOOSTS[g.data.k][lang]); } }); }
   // 4. Skippertak, one for the whole fleet
   { const sk = list.filter(g => g.held && (g.data || {}).give === 'skip' && SKIP[g.data.k] && isFinite(ms(g))), fresh = sk.filter(isNew);

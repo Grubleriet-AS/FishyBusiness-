@@ -185,7 +185,15 @@
     else if (a === 'hullclean'){ if (!atKind('verft') || (S.jobs || []).some(j => j.kind === 'hull')) return; const c = 1500 + Math.round(BOAT.len * 400 / 100) * 100; if (spendable() < c) return;
       if (!queueJob({kind:'hull', h:6, no:'Skrogrens på slipp', en:'Hull cleaning on the slip'})){ toast(L('Arbeidskøen er full.', 'The work queue is full.')); return; } buyMark(); book('verft', -c, 'Skrogrens på slipp', 'Hull cleaning on the slip'); log('Bestilte skrogrens på slipp, ' + kr(c) + '.', 'Ordered a hull cleaning on the slip, ' + kr(c) + '.'); receipt(L('Skrogrens på slipp', 'Hull cleaning on the slip'), 'yard', 'hull'); }
     // (another kind than the one on takes its place and the rest of its time: asked first, as the haill is; the same kind adds its hours)
-    else if (a === 'trimbuy'){ const b = S.boat, B = BOOSTS[d.k], on = trimOn(b); if (!B || !canBoost(VESSELS[b.type])) return; if (on && on !== B && trimPend !== d.k){ trimPend = d.k; return true; } trimPend = null;
+    // Kaiboden's one window (kbShop): the packs of haill, the season pack; a trim or Skippertak goes the way it went before
+    else if (a === 'kbbuy'){ const k = d.k;
+      if (/^hp_/.test(k) && HAILL_PACKS[k.slice(3)]){ const P = HAILL_PACKS[k.slice(3)]; payBuy(k, () => { for (let i = 0; i < P.n; i++) giveHaill('haill', 'shop'); toast(L(P.n + ' haill ligger i Mine boostere. Slå på når du vil.', P.n + ' luck wait in My boosters. Switch on when you want.')); }); }
+      else if (k === 'luksus') return act0('haillbuy', {k:'luksus'});
+      else if (/^pk_/.test(k) && PACKS[k.slice(3)]){ const P = PACKS[k.slice(3)]; payBuy(k, () => { for (let i = 0; i < P.haill; i++) giveHaill('haill', 'shop'); const w = trimWords(P.trim, trimSet(P.trim)); log(w.no, w.en); giveSkip(P.skip); toast(L(P.no + ': haill i Mine boostere, Turbotrim og Skippertak er på.', P.en + ': luck in My boosters, Turbo tune and Skippertak are on.')); }); }
+      else if (BOOSTS[k]) return act0('trimbuy', {k});
+      else if (/^sk_/.test(k)) return act0('skipbuy', {k:k.slice(3)});
+    }
+    else if (a === 'trimbuy'){ const b = S.boat, B = BOOSTS[d.k], on = trimOn(b); if (!B || !canBoost(VESSELS[b.type])) return; if (on && boostKind(trimRec(b).k) !== boostKind(d.k) && trimPend !== d.k){ trimPend = d.k; return true; } trimPend = null;
       payBuy(d.k, () => { const w = trimWords(d.k, trimSet(d.k)); log(w.no, w.en); toast(L(B.no + ': ', B.en + ': ') + fmt(BOAT.vmax, 1) + ' kn'); }); }
     else if (a === 'trim0'){ trimPend = null; return true; }
     else if (/^km/.test(a)){ if (!kmAct(a, d)) return; }   // Kvotemarkedet (phone/04b-kvotemarked.js, KM3)
