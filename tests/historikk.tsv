@@ -5326,3 +5326,7 @@
 2026-11-13 18:23	plan/2026-11-13-109	6d074680	roetest	OK	124	lite	samtidig	
 2026-11-13 18:23	plan/2026-11-13-109	6d074680	hudtest	OK	91	lite	samtidig	
 2026-11-13 18:23	plan/2026-11-13-109	6d074680	sponsor2test	OK	16	lite	samtidig	
+2026-11-16 21:43	claude/production-release-prep-cn15pt	d90b66a8	trip2	OK	39	lite	samtidig	
+2026-11-16 21:43	claude/production-release-prep-cn15pt	d90b66a8	maletest	OK	24	lite	samtidig	
+2026-11-16 21:45	claude/production-release-prep-cn15pt	d90b66a8	kjoptest	OK	165	lite	samtidig	
+2026-11-16 21:45	claude/production-release-prep-cn15pt	d90b66a8	docktest	OK	62	lite	samtidig	
