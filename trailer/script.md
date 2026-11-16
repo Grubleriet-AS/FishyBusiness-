@@ -1,20 +1,26 @@
-# Tekst på skjermen
+# Manus: lanseringstraileren m3 (16.11.2026)
 
-*Masteren har ingen stemme (Jonas 30.10.2026: stemme ordner han selv, som egen versjon senere). Teksten er det eneste språket i filmen, så den må bære alene med lyden av. Kort, store bokstaver bare i stedsnavn, ingen utropstegn. Skrift: Source Serif 4 Display Semibold (spillets egen, OFL), hvit med myk skygge, nederst i midtre tredjedel så den ikke dekkes av TikTok-knappene. Tegnes av `tools/titles.py`. Tidene følger `audio/music-edit-1.json` (v2, 50 s, 10.11.2026).*
+*Ingen stemme; teksten på skjermen er hele manuset, og filmen må fungere med lyden av. Låta er «Fjord at Dawn» (50 s). Tekstene kommer fra `M3` i `tools/titles.py` (`--lang no|en`), tidene fra `words` i `audio/music-edit-m3-no.json` og `-en.json`. Påstandene står i vanlig skrift over et mykt mørkt felt i øvre tredjedel, stedene som stempler i sperrede versaler med en strek under. Planen: `docs/planer/lanseringstrailer.md`. Det gamle manuset (v2, «Fra trebåt … til snurper») ligger i git-historikken.*
 
-| # | Tid (s) | Tekst | Faller på |
+| Tid (s) | Bilde | Norsk | English |
 |---|---|---|---|
-| T1 | 7,70–10,30 | Finnsnes | trebåten under Gisundbrua (3) |
-| T2 | 12,57–14,67 | Lofoten | klipp 4 |
-| T3 | 15,07–17,17 | Lofotfisket | klipp 5 |
-| T4 | 18,00–21,60 | Midnattssol | klipp 6, idet hvalen blåser |
-| T5 | 22,53–24,63 | Varanger | klipp 7 |
-| T6 | 25,03–27,23 | Fra trebåt … | klipp 8, siste takt før droppet (var «Fra sjark …»: filmen begynner med trebåten) |
-| T7 | 37,40–41,10 | Hvaler · Rørvik · Bodø · Tromsø · Hammerfest · Kirkenes | ett slag hver, klipp 11 |
-| T8 | 41,73–44,63 | … til snurper | klipp 12, når begge båtene er i bildet |
-| T9 | 44,87 | (logo) | slaget der utgangen begynner |
-| T10 | 45,50–50,01 | Spill gratis på detstorebla.no | ett slag etter logoen |
+| 0,10–2,40 | (liten linje øverst) | EARLY ACCESS · ALT ER EKTE SPILLGRAFIKK | EARLY ACCESS · ALL FOOTAGE CAPTURED IN-GAME |
+| 0,15–2,40 | Den eldre kystbåten mot midnattssola ved Bleik, hvalen blåser | Et online fiskespill | An online fishing game |
+| 2,70–7,20 | Naustet i grålysning, trebåten | Du begynner med fars gamle trebåt | You start with your father's old wooden boat |
+| 7,70–10,30 | Trebåten under Gisundbrua | FINNSNES | FINNSNES |
+| 12,50–14,80 | Garnet i Lofoten (havsjark 35) | Du fisker selv | You do the fishing |
+| 15,00–17,30 | Lina ved Vardø (ny hurtigsjark) | Lever. Tjen. Kjøp større. | Land it. Sell it. Buy bigger. |
+| 17,55–19,80 | Reine i vintersol (plastsnekke 26) | Hele norskekysten | The whole Norwegian coast |
+| 20,00–22,25 | Senja fra lufta | … og havet utenfor | … and the sea beyond |
+| 22,50–24,60 | Kuling ved Vardø (eldre kystbåt) | VARANGER | VARANGER |
+| 24,87–27,37 | Nordlyset over Hekkingen fyr | – | – |
+| 27,60–30,60 | **Droppet:** snøkrabbefartøyet ved Svalbard i kveldssol | SVALBARD · 78°58′N 12°06′E | SVALBARD · 78°58′N 12°06′E |
+| 33,00–36,90 | Kystnotbåten under Gisundbrua i midnattssol | Eget mannskap. Egen flåte. | Your crew. Your fleet. |
+| 37,40–41,10 | Ett slag hver | HVALER · TROMSØ · KIRKENES · SKOTTLAND · FÆRØYENE · GRØNLAND | HVALER · TROMSØ · KIRKENES · SCOTLAND · FAROE ISLANDS · GREENLAND |
+| 41,30–44,70 | Fem spilleres båter ved samme kai | Online. Alle seiler i samme hav. | Online. Everyone sails the same sea. |
+| 44,87 | Logoen på slaget, over solstripa | (logo) | (logo) |
+| 45,50–50,00 | Ett slag etter logoen | EARLY ACCESS · VÆR MED FRA STARTEN / Spill gratis online på detstorebla.no | EARLY ACCESS · JOIN FROM THE START / Play free online at detstorebla.no |
 
-Ingen tekst under klipp 1, 2, 9 og 10. Der skal bildet og musikken få stå alene. Ingen kildehenvisning i bildet (Jonas 10.11.2026); den står i teksten under videoen.
+Ingen tekst under nordlyset (24,9–27,4) og de første 2,5 s av droppet: der står bildet og musikken alene. «Online» sies tre ganger (kroken, kaia, sluttkortet) og «early access» to (åpningen, sluttkortet), etter Jonas' ønske 13.11.2026.
 
-**Stemmeversjonen** (Jonas' egen): om den kommer, legges den over klipp 1–3 og 9, høyst fire korte linjer, og T1, T6 og T8 beholdes likevel, så versjonen fungerer med lyden av.
+Teksten under videoen står nederst i `tools/START-M3.md`.
