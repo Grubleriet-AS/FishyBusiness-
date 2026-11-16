@@ -645,7 +645,7 @@ function startFueling(ops){
   if (BOAT.fuelCap - b.fuel < 0.5) return false;
   if (hasBunker(pt.id) && berthKind(b) !== 'bunker') return startShift('bunker', ops ? 'fuelops' : 'fuel');
   if (berthKind(b) === 'naust'){ log(NAUST_SAIL[0], NAUST_SAIL[1]); return false; }   // no pump at the naust: sail over first
-  const lpm = (VESSELS[b.type] || {}).cls === 'hav' ? PUMP.hav : BOAT.diesel ? PUMP.diesel : PUMP.petrol, l = Math.min(BOAT.fuelCap - b.fuel, Math.max(0, S.cash) / fuelPrice());
+  const lpm = (VESSELS[b.type] || {}).cls === 'hav' ? PUMP.hav : BOAT.diesel ? PUMP.diesel : PUMP.petrol, l = Math.min(BOAT.fuelCap - b.fuel, Math.max(0, spendable()) / fuelPrice());   // (with the overdraft where there is one, as every other purchase: 16.11.2026)
   if (l < 0.5){ log('Har ikke penger til drivstoff.', 'No money for fuel.'); return false; }
   b.fueling = {t0:S.t, pumpAt:S.t + PUMP.hose, until:S.t + PUMP.hose + l / lpm + PUMP.stow, liters:l, lpm, done:0, ops:!!ops};
   log('Fyller ' + fmt(l, 0) + ' L ' + (BOAT.diesel ? 'diesel' : 'bensin') + ', ferdig ca. kl. ' + hm(b.fueling.until / 60) + '.', 'Filling ' + fmt(l, 0) + ' L of ' + (BOAT.diesel ? 'diesel' : 'petrol') + ', done at about ' + hm(b.fueling.until / 60) + '.');

@@ -1403,7 +1403,7 @@ const RSTATIONS = [['Hvaler', 59.06, 11.02], ['Horten', 59.42, 10.48], ['Stavern
 // Who tows from a station: Redningsselskapet along the mainland coast, the Coast Guard at Svalbard (Jonas 05.11.2026, H1b R8: «Kystvakten
 // skal slepe båter ved svalbard»; Redningsselskapet has no station there, and the tow came 850 km from Tromsø). The Coast Guard's
 // ship sails from Longyearbyen in the game; the 3D view and the price are the rescue boat's for now (BACKLOG 10.3).
-const RSORG = {rs:{org:['Redningsselskapet', 'The Sea Rescue Society'], boat:['Redningsskøyta', 'The rescue boat']}, kv:{org:['Kystvakten', 'The Coast Guard'], boat:['Kystvaktskipet', 'The Coast Guard ship']}};
+const RSORG = {rs:{org:['Kystredningen', 'The Coast Rescue'], boat:['Redningsskøyta', 'The rescue boat']}, kv:{org:['Kystvakten', 'The Coast Guard'], boat:['Kystvaktskipet', 'The Coast Guard ship']}};
 const rsOrg = o => RSORG[o] || RSORG.rs;
 let RSBASES = null;
 function rescueBases(){
@@ -1433,7 +1433,10 @@ function rescue(keepCatch){
   const first = !S.member && freeFirst('tow'); if (first) keepCatch = true;
   // the tow goes to the nearest yard, where the hull is mended (Jonas 08.10.2026: a tow to a plant left a player stuck there, #48);
   // the nearest harbour of any kind only where there is no yard
-  const b = S.boat, port = nearestYard(b.pos) || nearestPort(b.pos), base = rescueBase(b.pos), fee = S.member || first ? 0 : keepCatch ? PRICE.tow : PRICE.rescue;
+  let b = S.boat, port = nearestYard(b.pos) || nearestPort(b.pos), base = rescueBase(b.pos), fee = S.member || first ? 0 : keepCatch ? PRICE.tow : PRICE.rescue;
+  // (no overdraft yet, 03-simulation.js kkOpen: the tow takes what is on the account and no more, so a new player is never left in the
+  // minus with nothing to buy diesel for; the economy check before the launch, 16.11.2026)
+  if (typeof kkOpen === 'function' && !kkOpen()) fee = Math.min(fee, Math.max(0, Math.floor(S.cash / 100) * 100));
   if (first) msg(rsOrg(base.org).org[0], 'Det første slepet er gratis, og fangsten får du beholde. Neste gang koster et slep ' + kr(PRICE.tow) + ', og et nødanrop i farlig sjø ' + kr(PRICE.rescue) + ' og fangsten. Hold øye med dieselen og værmeldingen. Som medlem slipper du å betale.',
     'The first tow is free, and you keep the catch. Next time a tow costs ' + kr(PRICE.tow) + ', and a distress call in dangerous seas ' + kr(PRICE.rescue) + ' and the catch. Keep an eye on the diesel and the forecast. Members pay nothing.');
   book('forsikring', -fee, 'Slep til havn', 'Tow to harbour');
@@ -1479,8 +1482,12 @@ function towStep(H){
   t.s = Math.min(R2.len, t.s + km(TOW.tow)); const a = atRoute(R2, t.s); b.pos = {x:a.p.x, y:a.p.y}; b.heading = a.hd; b.v = TOW.tow;
   if (R2.len - t.s < 0.02) towDone(t);
 }
+const TOW_FUEL = 20;
 function towDone(t){
   const b = S.boat, port = portById(t.port); b.tow = null; TOWBUSY.delete(t); dock(port.id); hullRepair();
+  // a tank too low to get anywhere: the rescue boat leaves 20 L, so nobody is stuck in harbour with no diesel and no money for it (the
+  // hand jig is aboard, and the next trip pays; the economy check before the launch, 16.11.2026)
+  if (b.fuel < TOW_FUEL){ const add = Math.min(BOAT.fuelCap, TOW_FUEL) - b.fuel; if (add > 0.5){ b.fuel += add; log('Redningsskøyta lot deg få ' + fmt(add, 0) + ' L diesel, så du kommer deg ut igjen.', 'The rescue boat left you ' + fmt(add, 0) + ' L of diesel, so you can get out again.'); } }
   if (t.keep) log('Slept inn til ' + port.name + '. Kostnad ' + t.fee + ' kr.', 'Towed to ' + port.name + '. Cost NOK ' + t.fee + '.');
   else log('Redningsskøyta slepte båten til ' + port.name + ' i farlig sjø. Kostnad ' + t.fee + ' kr, mistet ' + t.lost + ' kg fisk.', 'A rescue boat towed you to ' + port.name + ' in dangerous seas. Cost NOK ' + t.fee + ', lost ' + t.lost + ' kg of fish.');
 }

@@ -1771,6 +1771,11 @@ body.calm #dock > .dk-b:not(.hero):not(.stay):not([data-dk="beh"]),body.calm .ov
 @media (orientation:portrait){body.vplot.dk-open:not(.hudoff) #drawer{top:max(12%, calc(var(--ecH) + 8px + 60px + 6px))}}
 /* the map's credit line clear of the deck log's tab in 3D (it began under the tab, at 6 px, in every size) */
 body.v3d .attr{left:44px;max-width:calc(100% - 108px)}   /* (as far from the right edge as before, 64 px) */
+/* (Jonas 16.11.2026: «Fjerne kartverket merke nederst på skjermen?»: the credit line stands on the chart plotter, where the map is what is
+   seen, on the loading screen and on the sources page (src/legal/kilder.html), and no longer over the 3D view; OSMF's guideline for
+   games allows a start screen or the credits. To bring it back in 3D: remove the next rule) */
+body.v3d:not(.vplot) .attr{display:none}
+.ld-attr{display:block;margin-top:10px;font:11px/1.35 var(--sans);color:rgba(238,244,247,.55);text-align:center}
 /* the phone button hides while the phone is open: on a tablet on its side and a PC the phone stands where the button is, and the
    button's corner showed behind the phone's rounded corner; the phone lies over the button in every size, so it could not be tapped
    anyway, and the phone closes with its own ✕ and ‹. A child :has, so only #app's own children are looked at when «hidden» changes) */
@@ -2119,3 +2124,9 @@ body.vplot #hud{background:rgba(11,23,32,.78)!important}
 .pf-ais{margin-top:6px}
 .pf-filt{display:flex;align-items:center;gap:10px;padding:0 0 8px} .pf-filt .ph-btn{margin:0;width:auto;flex:none;padding:6px 14px} .pf-filt .ph-note{margin:0}
 .pf-fbox{padding-top:10px;padding-bottom:10px}
+/* the landing note as a form (06b-book-tabs.js bookSales, 16.11.2026: our own page, no fish drawn) */
+.bk-form{border:1.5px solid var(--m-warn,#5a4a30);border-radius:3px;margin:0 0 8px}
+.bk-ft{display:flex;justify-content:space-between;align-items:baseline;padding:4px 8px;border-bottom:1.5px solid var(--m-warn,#5a4a30);font:700 12px/1.2 var(--serif);letter-spacing:.12em;color:var(--m-warn,#5a4a30)} .bk-ft span{letter-spacing:0;font-weight:600}
+.bk-fg{display:grid;grid-template-columns:1fr 1fr;gap:0} .bk-fg span{display:flex;flex-direction:column;padding:3px 8px;border-right:1px solid rgba(90,74,48,.35);border-bottom:1px solid rgba(90,74,48,.35)} .bk-fg span:nth-child(2n){border-right:0} .bk-fg span:nth-child(n+3){border-bottom:0}
+.bk-fg i{font:normal 12px/1.2 var(--serif);text-transform:uppercase;letter-spacing:.06em;color:var(--m-warn,#5a4a30)} .bk-fg b{font-weight:400;font-size:16px;line-height:1.15}
+.bk-one tr.bk-new td{border-top:1px solid rgba(90,74,48,.45)} .bk-one td.hw{font-size:15px}

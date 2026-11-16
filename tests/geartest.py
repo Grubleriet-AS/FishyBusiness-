@@ -131,7 +131,7 @@ async def main():
         print('haul:', json.dumps(r, ensure_ascii=False))
         print(ok(r['afterNet']['hook'] and r['afterNet']['kg'] > 50 and r['afterNet']['pend'] > 0 and r['afterNet']['left'] == 1 and r['afterNet']['nets'][0][1] < 1), 'nets come up: net fish is not hook-caught, it goes to the bleeding tub, the nets are aboard again and worn a little')
         print(ok(r['afterLine']['hook'] and r['afterLine']['kg'] > 20 and r['afterLine']['un'] == 2), 'line comes up hook-caught, and the tubs are unbaited')
-        print(ok(r['potSet'] is None and r['crab']['n'] >= 20 and r['crab']['clsOk'] and len(r['crab']['cls']) >= 4), 'king crab: all of it is kept (J-138-2026 § 5) and sorted by sex, weight and damage into Råfisklaget’s classes')
+        print(ok(r['potSet'] is None and r['crab']['n'] >= 20 and r['crab']['clsOk'] and len(r['crab']['cls']) >= 4), 'king crab: all of it is kept (J-138-2026 § 5) and sorted by sex, weight and damage into Fiskesalgslaget’s classes')
         mk = r.get('marks') or []
         print(ok(len(mk) == 2 and mk[0]['g'] == 'line' and mk[1]['g'] == 'teine' and -0.05 < mk[1]['kgu'] - r['crab']['kg'] / 40 < 0.6 and mk[0]['kgu'] >= mk[1]['kgu'] and all(m['q'] is not None for m in mk)),
               'the catch mark gives kilos per line (the whole line) and per pot', mk, r['crab']['kg'])

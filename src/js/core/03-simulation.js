@@ -952,7 +952,7 @@ const MVA = {rate:0.1111, limit:50000};
 const ACCT = {
   fisk:{s:'in', no:'Fisk levert', en:'Fish landed'}, tillegg:{s:'in', no:'Tillegg, lever og rogn', en:'Premiums, liver and roe'}, oppdrag:{s:'in', no:'Oppdrag', en:'Missions'},
   rente:{s:'in', no:'Renteinntekter', en:'Interest earned'}, annet:{s:'in', no:'Andre inntekter', en:'Other income'},
-  trekk:{s:'out', no:'Trekk til Råfisklaget og staten', en:'Sales organisation and state levies'}, mannskap:{s:'out', no:'Mannskap (lott)', en:'Crew (shares)'},
+  trekk:{s:'out', no:'Trekk til Fiskesalgslaget og staten', en:'Sales organisation and state levies'}, mannskap:{s:'out', no:'Mannskap (lott)', en:'Crew (shares)'},
   kvote:{s:'out', no:'Kvotesamarbeid', en:'Quota cooperation'}, diesel:{s:'out', no:'Drivstoff', en:'Fuel'}, is:{s:'out', no:'Is', en:'Ice'}, agn:{s:'out', no:'Agn og egning', en:'Bait and baiting'},
   redskap:{s:'out', no:'Redskap og utstyr', en:'Gear and equipment'}, verft:{s:'out', no:'Verft og verksted', en:'Yard and workshop'}, havn:{s:'out', no:'Havneavgift', en:'Harbour dues'}, proviant:{s:'out', no:'Proviant', en:'Provisions'},
   forsikring:{s:'out', no:'Forsikring og slep', en:'Insurance and towing'}, renter:{s:'out', no:'Rentekostnader', en:'Interest paid'}, regnskap:{s:'out', no:'Regnskap og gebyrer', en:'Books and fees'},
@@ -1226,7 +1226,7 @@ function mvaCheck(total){
   const yr = (S.sales || []).filter(s => s.t > S.t - 365 * 1440).reduce((a, s) => a + (s.total || 0), 0) + total;
   if (yr < MVA.limit) return false;
   S.mva = {t:S.t, org:900000000 + Math.floor(h2(S.t % 100000, 77) * 99999999)};
-  msg('Brønnøysundregistrene', 'Salget ditt har passert 50 000 kr på tolv måneder. Fisket ditt er registrert som enkeltpersonforetak i Enhetsregisteret, og foretaket er ført i Merverdiavgiftsregisteret. Fra nå legger Råfisklaget 11,11 % MVA på oppgjøret, og du betaler den videre til staten. Se Papirer i Kvote-appen.',
+  msg('Brønnøysundregistrene', 'Salget ditt har passert 50 000 kr på tolv måneder. Fisket ditt er registrert som enkeltpersonforetak i Enhetsregisteret, og foretaket er ført i Merverdiavgiftsregisteret. Fra nå legger Fiskesalgslaget 11,11 % MVA på oppgjøret, og du betaler den videre til staten. Se Papirer i Kvote-appen.',
     'Your sales have passed NOK 50,000 in twelve months. Your fishing is registered as a sole proprietorship in the Central Coordinating Register and in the VAT register. From now the sales organisation adds 11.11 % VAT to the settlement, which you pass on to the state. See Papers in the Quota app.');
   return true;
 }
@@ -1239,11 +1239,11 @@ function fmInit(){ const F = {n:0, last:-1, kr:0, b:false}; for (const s of S.sa
   F.b = !!(S.lic || (S.fleet || []).some(v => v.lic)) || (F.n >= BLADB.days && F.kr >= BLADB.kr); return F; }
 function fmLand(total){ const F = S.fm || (S.fm = fmInit()), d = Math.floor(S.t / 1440); if (d !== F.last){ F.n++; F.last = d; } F.kr += total;
   if (!F.b && F.n >= BLADB.days && F.kr >= BLADB.kr){ F.b = true;
-    msg('Fiskeridirektoratet', 'Du er ført på blad B i fiskermanntallet: fiske er hovedyrket ditt. Nå kan du kjøpe en båt med deltakeradgang i lukket gruppe, og Innovasjon Norge kan toppfinansiere det første kjøpet. Se Båthandel under Verft.', 'You are on blad B of the fishermen\'s register: fishing is your main occupation. You can now buy a boat with a closed-group right, and Innovasjon Norge can top up the financing of the first one. See the boat market in the yard.'); } }
+    msg('Fiskeridirektoratet', 'Du er ført på blad B i fiskermanntallet: fiske er hovedyrket ditt. Nå kan du kjøpe en båt med deltakeradgang i lukket gruppe, og Kystfondet kan toppfinansiere det første kjøpet. Se Båthandel under Verft.', 'You are on blad B of the fishermen\'s register: fishing is your main occupation. You can now buy a boat with a closed-group right, and Kystfondet can top up the financing of the first one. See the boat market in the yard.'); } }
 const bladB = () => !!(S.fm && S.fm.b);
 // loans: Kystbanken lends against the fleet; Innovasjon Norge tops up the first closed-group purchase with a risk loan at a higher rate
 // (the share and the rate are estimates, not checked against their terms)
-const LOANS = {loan:{who:'Kystbanken', rate:0.069}, loanIN:{who:'Innovasjon Norge', rate:0.089}};
+const LOANS = {loan:{who:'Kystbanken', rate:0.069}, loanIN:{who:'Kystfondet', rate:0.089}};
 const debt = () => (S.loan ? S.loan.bal : 0) + (S.loanIN ? S.loanIN.bal : 0);
 const innOK = () => bladB() && !S.inUsed && !S.fleet.some(v => vget(v, 'lic'));
 function takeLoan(amount, months, k){ k = k || 'loan'; const C = LOANS[k], r = C.rate / 12, n = months || 120, O = S[k], bal = (O ? O.bal : 0) + amount;

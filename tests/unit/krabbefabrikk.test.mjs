@@ -73,7 +73,7 @@ export default function (t){
   t.near(mean(open.map(m => sp.pm[m])), 95.2, 6, `klørne over sesongen etter sedlene per måned: ${mean(open.map(m => sp.pm[m])).toFixed(1)} kr/kg (vektet med fangsten nær 106,5)`);
   t.ok(lv(2, 3) > lv(2, 4) && lv(2, 4) > lv(2, 5) && lv(2, 6) >= sp.cls[6][1], `levende etter størrelse i mars: ${[3, 4, 5, 6].map(c => lv(2, c).toFixed(1)).join(' / ')} kr/kg (800 g+, 500–800, 350–500, under 350)`);
   t.eq(K.snoPrice(pt, {sp:'snokrabbe', cls:2, rund:true}, Hm(2)), SNOP.dead, 'død krabbe til oppmaling: 1 kr/kg (sedlene 2025)');
-  t.ok(clu(2) * 1.49 > 80, `klørne over minsteprisen: ${(clu(2) * 1.49).toFixed(0)} kr/kg produkt (Råfisklaget: 80)`);
+  t.ok(clu(2) * 1.49 > 80, `klørne over minsteprisen: ${(clu(2) * 1.49).toFixed(0)} kr/kg produkt (Fiskesalgslaget: 80)`);
   t.ok(mC > mL * 1.3, 'fryste klør gir mer per kilo rund vekt enn levende krabbe');
 
   // the extra quota (J-237-2025 § 4) for live crab only, first; then the ordinary vessel quota; the rest confiscated

@@ -177,7 +177,7 @@ async def main():
           for (let i = 1; i < m.need; i++) turProveMinute(m, b);
           const r = {stage0, stage:m.stage, got:m.got, fish:turProveFish(m).length, sps:[...new Set(m.fish.map(f => f.sp))], span:m.fish.every(f => f.cm >= TUR_LEN[f.sp][0] && f.cm <= TUR_LEN[f.sp][1] && f.c0 <= f.cm && f.cm <= f.c0 + 24)};
           const cash0 = S.cash; m.meas = m.fish.map(f => Math.round(f.cm)); const base = m.pay; turProveDone(m);
-          const d = T.done.find(x => x.id === m.id); Object.assign(r, {done:!!(d && d.ok), gain:S.cash - cash0, base, bonusMax:m.bonusMax, err:m.err, hi:S.msgs.some(x => x.from === 'Havforskningsinstituttet' && /Ti fisk/.test(x.no))});
+          const d = T.done.find(x => x.id === m.id); Object.assign(r, {done:!!(d && d.ok), gain:S.cash - cash0, base, bonusMax:m.bonusMax, err:m.err, hi:S.msgs.some(x => x.from === 'Havinstituttet' && /Ti fisk/.test(x.no))});
           // an empty station
           let e = null; for (let i = 0; i < 40 && !(e && e.kind === 'stasjon'); i++) e = turProve(o, 'kort'); if (e && e.kind === 'stasjon'){ e.id = ++T.seq; T.board.push(e); turTake(e.id); const c1 = S.cash; b.pos = {...e.p}; for (let i = 0; i < e.need; i++) turProveMinute(e, b); const d2 = T.done.find(x => x.id === e.id); r.empty = !!(d2 && d2.ok) && S.cash - c1 === e.pay; }
           b.status = 'idle'; S.hold = []; return r; })()""")
@@ -190,7 +190,7 @@ async def main():
           b.pos = {...m.pts[0]}; b.v = 12; turProveMinute(m, b); const fast = m.at;
           const ats = []; for (const q of m.pts){ b.pos = {...q}; b.v = 6.5; turProveMinute(m, b); ats.push(m.at); }
           const d = T.done.find(x => x.id === m.id); b.status = 'idle'; b.v = 0;
-          return {fast, ats, done:!!(d && d.ok), gain:S.cash - cash0, pay:m.pay, msg:(S.msgs.find(x => x.from === 'Havforskningsinstituttet' && /Ekkoloddlinja/.test(x.no)) || {}).no || null}; })()""")
+          return {fast, ats, done:!!(d && d.ok), gain:S.cash - cash0, pay:m.pay, msg:(S.msgs.find(x => x.from === 'Havinstituttet' && /Ekkoloddlinja/.test(x.no)) || {}).no || null}; })()""")
         check(ek.get('none') or (ek['fast'] == 0 and ek['ats'][:2] == [1, 2] and ek['done'] and ek['gain'] == ek['pay'] and ek['msg']),
               'the echo line: the three points in order at no more than 8 knots (too fast does not count); the institute pays and says what the echo sounder saw', ek)
         # 12. the lighthouse picture: a light it asks for comes before the deadline; too far, out of the picture or in the wrong light it is

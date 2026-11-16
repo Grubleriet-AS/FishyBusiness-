@@ -62,7 +62,7 @@ async def main():
         check(l['tonn'] == 2 and l['g0'] and l['g1'] and not l['g2'], 'the long badges: 26 tonnes landed take the 10 and 25 tonne steps, each with a gift', l)
         # 7. the first tow and the first repair are free, the second are paid
         t = await pg.evaluate("""(() => { delete S.free; S.member = false; S.cash = 100000; const b = S.boat; b.status = 'port'; b.port = b.port || 'finnsnes';
-          const m0 = S.msgs.length, c0 = S.cash; S.hold = [{sp:'torsk', kg:50, fresh:90, bled:true, iced:true, cls:2, n:10, hr:0}]; rescue(false); const t1 = {paid:c0 - S.cash, hold:Math.round(holdTotal()), msg:S.msgs.slice(m0).some(m => m.from === 'Redningsselskapet' && /første slepet er gratis/.test(m.no))};
+          const m0 = S.msgs.length, c0 = S.cash; S.hold = [{sp:'torsk', kg:50, fresh:90, bled:true, iced:true, cls:2, n:10, hr:0}]; rescue(false); const t1 = {paid:c0 - S.cash, hold:Math.round(holdTotal()), msg:S.msgs.slice(m0).some(m => m.from === 'Kystredningen' && /første slepet er gratis/.test(m.no))};
           const c1 = S.cash; rescue(true); const t2 = {paid:c1 - S.cash};
           const c2 = S.cash; b.dmg = null; hullHit(5, 1e5, 'kai'); hullRepair(); const r1 = {paid:c2 - S.cash, msg:S.msgs.slice(-1)[0].no}; const c3 = S.cash; hullHit(5, 1e5, 'kai'); hullRepair(); const r2 = {paid:c3 - S.cash};   // (a blow at 5 knots each, Fysikk 3: the damage is an amount now, core/16c-hull.js)
           return {t1, t2, r1, r2, tow:PRICE.tow}; })()""")

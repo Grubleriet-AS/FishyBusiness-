@@ -34,7 +34,7 @@ FISH = """(async ([lat, lon]) => { const a = P(lat, lon), H = S.t / 60; let best
 # to the nearest plant with what is aboard: the quay's word before «Lever», then the landing
 LAND = """(() => { const b = S.boat, pt = PORTS.filter(q => q.mottak).sort((x, y) => dist(x.p, b.pos) - dist(y.p, b.pos))[0]; b.status = 'port'; b.port = pt.id; b.pos = {...pt.p}; S.fsess = null; delete b.land;
   const q = quotaState(), C = landConf(S.t / 60, q, access()), d = document.createElement('div'); d.innerHTML = landWarn(pt); const txt = d.textContent, n0 = S.msgs.length, cod = S.hold.reduce((s, x) => s + (x.sp === 'torsk' ? x.kg : 0), 0);
-  sell(); const ls = S.lastSale, m = S.msgs.slice(n0).filter(x => x.from === 'Norges Råfisklag' && /Skagerrak/.test(x.no));
+  sell(); const ls = S.lastSale, m = S.msgs.slice(n0).filter(x => x.from === 'Kystens Fiskesalgslag' && /Skagerrak/.test(x.no));
   return {port:pt.name, acc:access(), ved:ls.vedKr, confKr:Math.round(ls.confKr), cod:Math.round(cod), zConf:+C.zConf.toFixed(1), codConf:+C.codConf.toFixed(1), warn:txt, rows:ls.confRows, confKg:Math.round(ls.confKg), msg:m.length, byc:b.byc || null}; })()"""
 
 # the set scene for the pictures: 300 kg of saithe and 100 kg of cod jigged outside the baseline off Kristiansand

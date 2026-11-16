@@ -335,7 +335,7 @@ function portSlip(){
     h.push('<tr class="sum"><td>' + t('total') + '</td><td></td><td></td><td>' + fmt(ls.lines.reduce((a, r) => a + pkOf(r), 0), 0) + '</td><td></td><td>' + fmt(ls.total, 0) + '</td></tr>');
     // the sales organisation's deductions (TREKK, 03-simulation.js), the crew's share of what is left, and what comes to the cash box
     const tk = ls.tk || {sum:0}, pc = v => fmt(v * 100, 2).replace(/0$/, '').replace(/[,.]0$/, '') + ' %';
-    for (const [k, no, en] of [['lag', 'Lagsavgift til Råfisklaget', 'Sales organisation levy'], ['pens', 'Pensjonstrekk, Garantikassen', 'Pension levy'], ['prod', 'Produktavgift til folketrygden', 'Product levy (social security)'],
+    for (const [k, no, en] of [['lag', 'Lagsavgift til Fiskesalgslaget', 'Sales organisation levy'], ['pens', 'Pensjonstrekk, Fiskerkassa', 'Pension levy'], ['prod', 'Produktavgift til folketrygden', 'Product levy (social security)'],
       ['forsk', 'Fiskeriforskningsavgift', 'Fisheries research levy'], ['ress', 'Ressursavgift', 'Resource levy'], ['ktrl', 'Kontrollavgift', 'Control levy']])
       if (tk[k] > 0) h.push(row(LN(no, en) + ' ' + pc(TREKK[k]), '', '−' + fmt(tk[k], 0)));
     if (ls.mva > 0) h.push(row(LN('MVA 11,11 % på salget', 'VAT 11.11 % on the sale'), '', fmt(ls.mva, 0)) + row(LN('MVA videre til staten', 'VAT on to the state'), '', '−' + fmt(ls.mva, 0)));

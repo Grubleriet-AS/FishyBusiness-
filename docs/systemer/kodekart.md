@@ -855,7 +855,7 @@ crew: people with skills, habits and moods
   - 722 `flyOut(c)`
   - 730 `flyTick()`
 
-## `src/js/core/05-vessels.js` (1499 linjer)
+## `src/js/core/05-vessels.js` (1506 linjer)
 
 ---------- other vessels (deterministic, so every player sees the same traffic) ----------
 
@@ -961,11 +961,11 @@ crew: people with skills, habits and moods
   - 1418 `rescueBase(p)`
   - 1425 `rescueAis(H)`
   - 1429 `rescue(keepCatch)`
-  - 1454 `towSea(p)`
-  - 1459 `towRoutes(b)`
-  - 1470 `towStep(H)`
-  - 1482 `towDone(t)`
-  - 1488 `towPose(frac)`
+  - 1457 `towSea(p)`
+  - 1462 `towRoutes(b)`
+  - 1473 `towStep(H)`
+  - 1486 `towDone(t)`
+  - 1495 `towPose(frac)`
 
 ## `src/js/core/05b-ferje.js` (197 linjer)
 
@@ -2944,7 +2944,7 @@ Kvotemarkedet: Kvote → Marked (KM3 of docs/planer/kvotemarkedet.md; Jonas 07.1
   - 176 `kxBoatRow(v)`
   - 183 `kmAct(a, d)`
 
-## `src/js/ui/phone/05-rigg-innst-admin.js` (102 linjer)
+## `src/js/ui/phone/05-rigg-innst-admin.js` (105 linjer)
 
 the rig: one kind of fishing at a time, chosen in Om bord › Redskap when none of the boat's gear is in the sea (D4, Jonas 13.11.2026:
 
@@ -2953,7 +2953,7 @@ the rig: one kind of fishing at a time, chosen in Om bord › Redskap when none 
   - 30 `crewTab()`
   - 41 `logg()`
   - 42 `innst()`
-  - 80 `admin()`
+  - 83 `admin()`
 
 ## `src/js/ui/phone/06-render.js` (117 linjer)
 
@@ -2973,12 +2973,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **98** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 102 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1710 linjer)
+## `src/js/ui/phone/07-patch.js` (1712 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1698 `patch()`
+  - 1700 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (126 linjer)
 
@@ -3285,15 +3285,15 @@ The operations plan's page (the Drift app; phone/06-render.js, 14-act.js). Drift
 - **1** deck log
   - 7 `longDate(day)`
 
-## `src/js/ui/06b-book-tabs.js` (72 linjer)
+## `src/js/ui/06b-book-tabs.js` (67 linjer)
 
 ---------- the deck log's other tab: the sales (D4, 14.11.2026: the tabs for seasons, events and gear went out, Jonas 13.11.2026) ----------
 
 - **1** the deck log's other tab: the sales (D4, 14.11.2026: the tabs for seasons, events and gear went out, Jonas 13.11.2026)
 - **9** sales: the landing notes, one to a page
-  - 20 `bookSales()`
-  - 64 `gearLogEntry(s)`
-  - 68 `bookTabPages(t, spread)`
+  - 10 `bookSales()`
+  - 59 `gearLogEntry(s)`
+  - 63 `bookTabPages(t, spread)`
 
 ## `src/js/ui/06c-notebook.js` (44 linjer)
 
@@ -3824,17 +3824,17 @@ Kvotemarkedet and the cloud (KM3 of docs/planer/kvotemarkedet.md; the server is 
 
 - **1** tuting and the six phrases at sea (Jonas 09.10.2026; supabase/migrations/20261009240000_hails.sql)
 
-## `src/js/ui/10o-ptow.js` (170 linjer)
+## `src/js/ui/10o-ptow.js` (174 linjer)
 
 ---------- towing between players (Jonas 09.10.2026; supabase/migrations/20261009260000_tows.sql) ----------
 
 - **1** towing between players (Jonas 09.10.2026; supabase/migrations/20261009260000_tows.sql)
-  - 12 `ptowTowing()`
-  - 14 `ptowStep()`
-- **29** the one who needs help
-- **68** the helper
-- **111** the polling
-- **125** the chart: the asks near, and the card
+  - 15 `ptowTowing()`
+  - 17 `ptowStep()`
+- **32** the one who needs help
+- **71** the helper
+- **115** the polling
+- **129** the chart: the asks near, and the card
 
 ## `src/js/ui/10p-install.js` (170 linjer)
 
@@ -3859,7 +3859,7 @@ put the game on the home screen (Jonas 11.10.2026: «Det er viktig at brukerne l
   - 115 `hopVoid(id, why)`
   - 127 `hopDeliver(id, d)`
 
-## `src/js/ui/10v-profil.js` (104 linjer)
+## `src/js/ui/10v-profil.js` (105 linjer)
 
 The profile and the founders' badge (Jonas 16.11.2026, before the launch: «profil-side med brukernavn, fartstid, ferdigheter,
 
@@ -3947,7 +3947,7 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 327 `figSplit(j, w, maxB, nBones)`
   - 345 `figGL(nb)`
 
-## `src/js/vessel3d.js` (1846 linjer)
+## `src/js/vessel3d.js` (1854 linjer)
 
 - **2** VESSEL MODELS
   - 7 `VB()`
@@ -4078,53 +4078,53 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 1502 `vesselSVG(type, w, h)`
 - **1540** the deck map: where people can walk on each type (the crew plan, docs/mannskap-plan.md)
   - 1547 `deckMap(type)`
-  - 1692 `deckPass(M, k, q)`
-  - 1697 `passLine(M, A, B)`
-  - 1699 `linkPass(M, k, q)`
-  - 1703 `deckComp(M)`
-  - 1712 `deckPath(M, a, b)`
-- **1744** the lanterns after Sjøveisreglene (FOR-1975-12-01-5, rules 22–30, read on Lovdata 17.10.2026; docs/batplan.md del 11)
-  - 1757 `lanterns(G, V, st)`
-  - 1800 `deckPoints(type)`
+  - 1700 `deckPass(M, k, q)`
+  - 1705 `passLine(M, A, B)`
+  - 1707 `linkPass(M, k, q)`
+  - 1711 `deckComp(M)`
+  - 1720 `deckPath(M, a, b)`
+- **1752** the lanterns after Sjøveisreglene (FOR-1975-12-01-5, rules 22–30, read on Lovdata 17.10.2026; docs/batplan.md del 11)
+  - 1765 `lanterns(G, V, st)`
+  - 1808 `deckPoints(type)`
 
-## `src/js/deckcrew.js` (1872 linjer)
+## `src/js/deckcrew.js` (1915 linjer)
 
 - **2** CREW3D: the people aboard as agents who walk the deck (docs/mannskap-plan.md, del 1; Jonas 17.10.2026: no teleporting)
   - 14 `crewSim(src)`
-- **44** the kit on the deck, out of the walking map
-- **122** the nets aboard in their tubs (F8, OB3): NET_TUB nets to a 460 l tub (assumed; a 27.5 m net is some 35-40 l in a heap), the
-- **153** setting the line and the nets (F4, F20, OB3; Jonas 09.11.2026: «at arbeidet ombord utføres på en så ekte måte som mulig»): the
-- **227** the line tubs, each by itself (steg 125f; STAMPER, Jonas 15.11.2026: «tomme linebøtter stables i hverandre etter hvert som
-- **389** the landing, the ice and the freight at the quay (OB4, 11.11.2026; docs/planer/om-bord.md F10, F11, F22, F23; Jonas 09.11.2026:
-- **473** the deck washed down, the packed lunch and the cold (OB14, 11.11.2026, docs/planer/om-bord.md F12-F14; the roles 'spyl',
-- **495** the wooden stools (steg 125f; Jonas 15.11.2026: «en trekrakk i stedet for de hvite kassene når de egner eller har pause», and for
-- **547** where the work is on this deck: [x, z, heading, task] in the boat's frame (the heading as the view draws it: 0 forward, +pi/2 to starboard)
-- **658** what the game says: everyone's station this minute, and the boat's state
-- **681** the lines and the fenders round a quay (OB2, Jonas 09.11.2026; docs/planer/om-bord.md F1-F3)
-- **799** a free person: something to do for a while, by the weather, the hour and their nature
-- **805** no limb through a wall, the rail or anything else (Jonas 23.10.2026: «Sørg også for at mannskapet aldri "clipper" gjennom vegger,
-- **988** the work at its place, clear of everything: at the rail the hands go to the rail's own top (a step back when it is close), at the
-- **1010** a cell of one's own: the goals already given are taken, and a new one at least SEP from them (the nearest free cell within a metre)
-- **1023** the agents follow the people aboard
-- **1152** the body on its way, clear of everything: the shoulders and the chest and back as upright lines; one that would go through a wall
-- **1172** no way over the deck between two parts of it (fore and aft of the house on the big boats): through the house, out of sight for
-- **1180** the sea legs' room where someone stands (FB4; seaLegs' room, rail and stepOk). Someone upright in the world on a deck that
-  - 1322 `sternKit(vt)`
-  - 1324 `moorSpots(G, sd)`
-  - 1332 `npcCrewCtx(n, G)`
-- **1338** the sea legs (FB4, steg 120, 13.11.2026; docs/planer/folk-2.md; Jonas: «at mannskapet oppfører seg som ekte mennesker»): someone
-  - 1371 `seaState()`
-  - 1375 `seaKnee(dref, dnow)`
-- **1376** the limbs (FB2, steg 123, 13.11.2026; docs/planer/folk-2.md; Jonas: «Kjør på med FB2 i en ny økt»): the upper arm, the forearm,
-  - 1700 `limbLen(c)`
-  - 1712 `ik2(Rt, Tg, L1, L2, pole, o)`
-  - 1723 `torsoPt(q, b, tw)`
-  - 1725 `torsoInv(q, b, tw)`
-  - 1732 `reachBody(sh, tg, reach, b0, o)`
-  - 1748 `armIk(s, tg, sd, L, o, cl)`
-  - 1793 `armHand(s, hd, sd, L, o, cl)`
-  - 1799 `legDrop(hips, feet, L)`
-  - 1818 `seaLegs(s, inp)`
+- **51** the kit on the deck, out of the walking map
+- **130** the nets aboard in their tubs (F8, OB3): NET_TUB nets to a 460 l tub (assumed; a 27.5 m net is some 35-40 l in a heap), the
+- **161** setting the line and the nets (F4, F20, OB3; Jonas 09.11.2026: «at arbeidet ombord utføres på en så ekte måte som mulig»): the
+- **235** the line tubs, each by itself (steg 125f; STAMPER, Jonas 15.11.2026: «tomme linebøtter stables i hverandre etter hvert som
+- **409** the landing, the ice and the freight at the quay (OB4, 11.11.2026; docs/planer/om-bord.md F10, F11, F22, F23; Jonas 09.11.2026:
+- **493** the deck washed down, the packed lunch and the cold (OB14, 11.11.2026, docs/planer/om-bord.md F12-F14; the roles 'spyl',
+- **515** the wooden stools (steg 125f; Jonas 15.11.2026: «en trekrakk i stedet for de hvite kassene når de egner eller har pause», and for
+- **567** where the work is on this deck: [x, z, heading, task] in the boat's frame (the heading as the view draws it: 0 forward, +pi/2 to starboard)
+- **678** what the game says: everyone's station this minute, and the boat's state
+- **701** the lines and the fenders round a quay (OB2, Jonas 09.11.2026; docs/planer/om-bord.md F1-F3)
+- **819** a free person: something to do for a while, by the weather, the hour and their nature
+- **825** no limb through a wall, the rail or anything else (Jonas 23.10.2026: «Sørg også for at mannskapet aldri "clipper" gjennom vegger,
+- **1008** the work at its place, clear of everything: at the rail the hands go to the rail's own top (a step back when it is close), at the
+- **1030** a cell of one's own: the goals already given are taken, and a new one at least SEP from them (the nearest free cell within a metre)
+- **1043** the agents follow the people aboard
+- **1176** the body on its way, clear of everything: the shoulders and the chest and back as upright lines; one that would go through a wall
+- **1209** no way over the deck between two parts of it (fore and aft of the house on the big boats): through the house, out of sight for
+- **1217** the sea legs' room where someone stands (FB4; seaLegs' room, rail and stepOk). Someone upright in the world on a deck that
+  - 1359 `sternKit(vt)`
+  - 1361 `moorSpots(G, sd)`
+  - 1369 `npcCrewCtx(n, G)`
+- **1375** the sea legs (FB4, steg 120, 13.11.2026; docs/planer/folk-2.md; Jonas: «at mannskapet oppfører seg som ekte mennesker»): someone
+  - 1408 `seaState()`
+  - 1412 `seaKnee(dref, dnow)`
+- **1413** the limbs (FB2, steg 123, 13.11.2026; docs/planer/folk-2.md; Jonas: «Kjør på med FB2 i en ny økt»): the upper arm, the forearm,
+  - 1743 `limbLen(c)`
+  - 1755 `ik2(Rt, Tg, L1, L2, pole, o)`
+  - 1766 `torsoPt(q, b, tw)`
+  - 1768 `torsoInv(q, b, tw)`
+  - 1775 `reachBody(sh, tg, reach, b0, o)`
+  - 1791 `armIk(s, tg, sd, L, o, cl)`
+  - 1836 `armHand(s, hd, sd, L, o, cl)`
+  - 1842 `legDrop(hips, feet, L)`
+  - 1861 `seaLegs(s, inp)`
 
 ## `src/js/view3d/00-head.js` (174 linjer)
 

@@ -153,7 +153,10 @@ async def main():
         seaBad = {vt: ({k: v for k, v in r['sea'].items() if v[0] != v[1]} if r.get('sea') else 'ingen seaScan') for vt, r in R.items() if r and (not r.get('sea') or any(v[0] != v[1] for v in r['sea'].values()))}
         print(ok(not seaBad), 'nor with the sea legs at their furthest, the deck 15° either way: no leg, spine, shoulder or head through anything at any break\'s place (FB4; %d places)' % sum(v[1] for r in R.values() if r and r.get('sea') for v in r['sea'].values()), seaBad)
         walk = {vt: [r['walk'], r['walked'], r.get('walkAt')] for vt, r in R.items() if r and r['walk']}
-        print(ok(not walk and all(r['walked'] > 50 for r in R.values() if r)), 'nor a body on the way between them (shoulders, chest and back, every tenth of a second)', walk)
+        # (walked: the walking was tried on every boat with places for the breaks on deck; one with none, the autoliner (fits 0/0, her
+        # crew are inside off watch), has no way to walk, and is named here; steg 125f)
+        idleOnly = [vt for vt, r in R.items() if r and not any(v[1] for v in r['scan'].values())]
+        print(ok(not walk and all(r['walked'] > 50 for vt, r in R.items() if r and vt not in idleOnly)), 'nor a body on the way between them (shoulders, chest and back, every tenth of a second; no break places on deck, so no walking: %s)' % idleOnly, walk)
         given = {}
         for r in R.values():
             if r:
