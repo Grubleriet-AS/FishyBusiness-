@@ -11,7 +11,7 @@
       id === 'handbok' ? (typeof hbReady === 'function' && !tutOn() ? hbReady() : 0) : 0;
     const tile = a => { const c = cnt(a[0]);
       return '<button class="ph-app" data-pa="open" data-a="' + a[0] + '"><span class="ic">' + IC[a[0]] + (c ? '<span class="bd">' + c + '</span>' : appNew(a[0]) ? '<span class="bd ny">' + L('ny', 'new') + '</span>' : '') + '</span><span class="lb">' + (TILE_SHY[a[0]] ? L(...TILE_SHY[a[0]]) : L(a[1], a[2])) + '</span></button>'; };
-    const shown = APPS.filter(a => (a[0] !== 'admin' || adminOk()) && (a[0] !== 'rederi' || rederiOpen()) && !KBT.includes(a[0]) && appShown(a[0]));
+    const shown = APPS.filter(a => (a[0] !== 'admin' || adminOk()) && (a[0] !== 'rederi' || APPS_ALL || rederiOpen())   /* (the app from the start, Jonas 16.11.2026; the business papers still move to it with the company, rederiOpen) */ && !KBT.includes(a[0]) && appShown(a[0]));
     const grp = GROUPS.map(([k, no, en, ids]) => [k, no, en, ids.map(id => shown.find(a => a[0] === id)).filter(Boolean)]);
     grp[grp.length - 1][3].push(...shown.filter(a => !GROUPS.some(g => g[3].includes(a[0]))));
     const g = goals()[0], goal = g ? '<button class="ph-goal" data-pa="open" data-a="fartoy"><span>' + L('Neste mål: ', 'Next goal: ') + '<b>' + g.n + '</b></span><small>' + (g.txt || kr(Math.min(Math.max(0, S.cash), g.need)) + ' / ' + kr(g.need)) + '</small><span class="gb"><i style="width:' + (g.pc * 100).toFixed(1) + '%"></i></span></button>' : '';
