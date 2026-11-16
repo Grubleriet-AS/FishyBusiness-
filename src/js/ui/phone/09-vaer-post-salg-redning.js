@@ -137,8 +137,11 @@
             (d.mine && d.mine.rank > rows.length ? '<tr class="me"><td>' + d.mine.rank + '</td><td>' + me + '</td><td class="n">' + lv(d.mine.y) + '</td></tr>' : '') + '</table>') +
           '<p class="ph-note">' + L('Hele kysten: de registrerte spillerne etter fartstida si, slik serveren har den. Bare nivået vises; ferdighetene dine er dine egne. Trykk på en skipper for å se profilen.', 'The whole coast: the registered players by their sea time, as the server has it. Only the level shows; your skills are your own. Tap a skipper to see the profile.') +
             (d && d.n ? ' ' + L(d.n + (d.n === 1 ? ' skipper' : ' skippere') + ' på lista.', d.n + (d.n === 1 ? ' skipper' : ' skippers') + ' on the list.') : '') +
-            (typeof isGuest === 'function' && isGuest() ? ' ' + L('Som gjest ser du bare deg selv; registrer deg for å komme på lista.', 'As a guest you see only yourself; register to get on the list.') : '') +
+            (typeof isGuest === 'function' && isGuest() ? ' ' + L('Som gjest står du bare på din egen liste; de andre ser deg ikke før du har registrert deg.', 'As a guest you are only on your own list; the others do not see you until you register.') : '') +
             '</p></div>');
+      } else if (fsK){
+        // (not signed in, or the list could not be fetched: no kilo list under the sea time filter)
+        h.push('<div class="ph-card"><p class="ph-note">' + (T ? L('Fikk ikke hentet topplista. Prøver igjen om litt.', 'Could not fetch the leaderboard. Trying again shortly.') : L('Topplista etter fartstid vises når du er logget inn på detstorebla.no eller i appen.', 'The leaderboard by sea time shows when you are signed in on detstorebla.no or in the app.')) + '</p></div>');
       } else if (T && !T.err){
         const d = T.data, rows = d ? d.rows || [] : null, pn = id => { const q = id && portById(id); return escT(q ? q.name : id || '–'); }, cl = false, money = kind !== 'kg';
         const mine = S.lic && S.company ? co(S.company) : '';

@@ -70,6 +70,13 @@ async def main():
                 await pg.wait_for_timeout(500); await pg.evaluate("() => PHONE.render()"); await pg.wait_for_timeout(200)
                 return await pg.evaluate("() => /fartstid kommer snart|sea time is coming soon/.test((document.querySelector('#phone .ph-appv') || {}).innerText || '') && !document.querySelector('#phone table.pf-top')")
             await pg.evaluate("() => { window.__oldFs = true; }"); fsKg = await fsSoon(); await pg.evaluate("() => { window.__oldFs = false; }")
+            # (after the review) the migration run while the page is open: the next fetch shows the list, no reload
+            await pg.evaluate("() => { if (WTOP.fs) WTOP.fs.at = 0; PHONE.render(); }"); await pg.wait_for_timeout(500); await pg.evaluate("() => PHONE.render()"); await pg.wait_for_timeout(200)
+            fsBack = await pg.evaluate("() => !!document.querySelector('#phone table.pf-top') && /Nivå 12|Level 12/.test(document.querySelector('#phone table.pf-top').innerText)")
+            # not signed in: a line about signing in, never the local kilo list under the sea time filter
+            await pg.evaluate("() => { window.__u = CLOUD.user; CLOUD.user = null; PHONE.render(); }"); await pg.wait_for_timeout(200)
+            fsOut = await pg.evaluate("() => { const t = (document.querySelector('#phone .ph-appv') || {}).innerText || ''; return /logget inn|signed in/.test(t) && !/Fartøy|Vessel/.test(t); }")
+            await pg.evaluate("() => { CLOUD.user = window.__u; }")
             # a database without top_list: the kilos from world_top, the others «kommer snart»
             await pg.evaluate("() => { window.__old = true; for (const k in WTOP) delete WTOP[k]; WTOP_NEW.off = 0; PHONE.open('salg'); }")
             await pg.evaluate("() => { const f = document.querySelector('#phone [data-pa=salgF]'); if (f) f.click(); }"); await pg.wait_for_timeout(100)
@@ -79,7 +86,7 @@ async def main():
             fs404 = await fsSoon()
             res[tag] = {'hid0': hid0, 'tab': tab, 'got': got, 'other': {'app': other['app'], 'ola': 'Ola' in other['txt'], 'founder': 'Founder #1' in other['txt'], 'worth': '910' in other['txt'], 'skills': 'Milepæler' in other['txt'] or 'Milestones' in other['txt']},
                         'mine': {'app': mine['app'], 'want': mine['want'], 'wait': 'venter på godkjenning' in mine['txt'] or 'waiting for approval' in mine['txt'], 'pick': mine['pick'], 'open': 'åpen for alle' in mine['txt'] or 'open to all' in mine['txt']},
-                        'old': old['soon'], 'fsKg': fsKg, 'fs404': fs404, 'errs': errs}
+                        'old': old['soon'], 'fsKg': fsKg, 'fs404': fs404, 'fsBack': fsBack, 'fsOut': fsOut, 'errs': errs}
             print(tag, json.dumps(res[tag], ensure_ascii=False))
             await pg.close()
         await br.close()
@@ -95,6 +102,8 @@ async def main():
         print('OK  ' if f.get('rows') == 2 and 'Nivå 40 ★3' in f.get('txt', '') and 'Nivå 12' in f.get('txt', '') and 'Kari' in f.get('first', '') and 'Nivå 2' in f.get('txt', '') and not f.get('kr') and not f.get('kg') and f.get('badge') == 1 else 'FEIL',
               tag + ': fanen Fartstid (RANK1-c): skipperne etter nivået (stjernene over 40), din plass under, ingen kilo eller kroner', json.dumps(f, ensure_ascii=False))
         print('OK  ' if r['fsKg'] and r['fs404'] else 'FEIL', tag + ': Fartstid sier «kommer snart» når serveren ikke har den (404, eller top_list svarer med kilo)', r['fsKg'], r['fs404'])
+        print('OK  ' if r['fsBack'] else 'FEIL', tag + ': Fartstid kommer uten ny innlasting når serveren har fått migreringen')
+        print('OK  ' if r['fsOut'] else 'FEIL', tag + ': uten innlogging sier Fartstid det, og viser ikke kilo-lista')
         print('OK  ' if not r['errs'] else 'FEIL', tag + ': sidefeil', r['errs'])
 
 asyncio.run(main())

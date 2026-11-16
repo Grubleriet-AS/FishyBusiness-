@@ -5099,3 +5099,6 @@
 2026-11-16 19:15	plan/2026-11-16-134	a671ecd5+	profiltest	FEIL	25	lite	alene	FEIL liggende: fanen Fartstid (RANK1-c): skipperne etter nivået (stjernene over 40), din plass under, ingen kilo eller kroner {"rows": 1, "kr": true, "badge": 1
 2026-11-16 19:16	plan/2026-11-16-134	a671ecd5+	cloudtest	OK	39	lite	alene	
 2026-11-16 19:16	plan/2026-11-16-134	a671ecd5+	profiltest	OK	25	lite	alene	
+2026-11-16 19:21	plan/2026-11-16-134	f74cdf32+	profiltest	FEIL	27	lite	alene	FEIL liggende: Fartstid kommer uten ny innlasting når serveren har fått migreringen
+2026-11-16 19:22	plan/2026-11-16-134	f74cdf32+	profiltest	OK	29	lite	samtidig	
+2026-11-16 19:22	plan/2026-11-16-134	f74cdf32+	cloudtest	OK	45	lite	samtidig	

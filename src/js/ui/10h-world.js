@@ -133,9 +133,11 @@ function worldTop(w, grp, kind){
   const key = (kind === 'tot' || kind === 'fs' ? kind : w + '|' + grp + (kind === 'kr' ? '|kr' : '')), e = WTOP[key] || (WTOP[key] = {at:0, data:null, busy:false, err:false, old:false});
   if (!e.busy && Date.now() - e.at > 60000){
     e.busy = true;
-    const old = () => kind === 'kg' ? cloudRpc('world_top', {w, grp:grp === 'all' ? (S.lic ? 'lukket' : 'open') : grp}) : Promise.resolve(null).then(() => { e.old = true; return null; });
+    const old = () => kind === 'kg' ? cloudRpc('world_top', {w, grp:grp === 'all' ? (S.lic ? 'lukket' : 'open') : grp}) : Promise.resolve(null);
     (Date.now() < WTOP_NEW.off ? old() : cloudRpc('top_list', {kind, w, grp}).catch(x => { if (!/ 404$/.test(x.message)) throw x; WTOP_NEW.off = Date.now() + 600000; return old(); }))
-      .then(d => { if (kind === 'fs' && d && d.kind !== 'fs'){ e.old = true; d = null; } e.data = d; e.err = false; }).catch(() => { e.err = true; })
+      // (a kind other than kilos is there only when top_list answers with that kind; checked again on every fetch, so the tab comes
+      // without a reload once the migration has been run)
+      .then(d => { if (kind !== 'kg'){ e.old = !(d && d.kind === kind); if (e.old) d = null; } e.data = d; e.err = false; }).catch(() => { e.err = true; })
       .finally(() => { e.busy = false; e.at = Date.now(); if (PHONE.isOpen() && (PHONE.app === 'salg' || PHONE.app === 'post')) PHONE.render(); });
   }
   return e;
