@@ -2146,7 +2146,7 @@ Kappløpet Lindesnes–Nordkapp, the core (KL1, steg 116a; docs/planer/kapplop.m
   - 337 `lopTaskEnd(m, ok, how)`
   - 357 `lopLegClose(r, j)`
 
-## `src/js/core/11-route.js` (753 linjer)
+## `src/js/core/11-route.js` (755 linjer)
 
 ---------- Autonav (once «Følg leia»): a route along the fairway ----------
 
@@ -2178,19 +2178,19 @@ Kappløpet Lindesnes–Nordkapp, the core (KL1, steg 116a; docs/planer/kapplop.m
   - 331 `leiaLegOk(p, q, sd, margin)`
   - 358 `leiaLegOkL(p, q, sd, margin, tick)`
   - 366 `leiaLegFail(p, q, tick, endP, endQ, strict)`
-  - 388 `rockOnLeg(a, b, r)`
-  - 397 `leiaMend(P, sd, st, strict)`
-  - 438 `leiaStraighten(P, sd, margin, st)`
-  - 466 `leiaPull(P, sd, st)`
-  - 500 `leiaRoute(a, b, aPort, bPort, opt)`
-  - 555 `leiaLaneMend(a, wps, aPort, bPort)`
-  - 577 `leiaSplit(a, b, aPort, bPort, opt, r0)`
-  - 610 `leiaLane(p, goal, km)`
-  - 641 `leiaPocket(p, sd)`
-  - 658 `leiaPocketOut(e, sd, st)`
-  - 668 `leiaRoute0(a, b, aPort, bPort, pocket, opt0)`
+  - 390 `rockOnLeg(a, b, r)`
+  - 399 `leiaMend(P, sd, st, strict)`
+  - 440 `leiaStraighten(P, sd, margin, st)`
+  - 468 `leiaPull(P, sd, st)`
+  - 502 `leiaRoute(a, b, aPort, bPort, opt)`
+  - 557 `leiaLaneMend(a, wps, aPort, bPort)`
+  - 579 `leiaSplit(a, b, aPort, bPort, opt, r0)`
+  - 612 `leiaLane(p, goal, km)`
+  - 643 `leiaPocket(p, sd)`
+  - 660 `leiaPocketOut(e, sd, st)`
+  - 670 `leiaRoute0(a, b, aPort, bPort, pocket, opt0)`
 
-## `src/js/core/11b-obstacles.js` (299 linjer)
+## `src/js/core/11b-obstacles.js` (310 linjer)
 
 WHAT A ROUTE MUST NOT SAIL THROUGH (Jonas 05.10.2026: «autoruter aldri skal gå gjennom 3d elementer eller landmasse», along
 
@@ -2202,14 +2202,15 @@ WHAT A ROUTE MUST NOT SAIL THROUGH (Jonas 05.10.2026: «autoruter aldri skal gå
   - 105 `obsDist(o, ax, az, bx, bz)`
   - 121 `obsCounts(o, air)`
   - 127 `obsSegHit(a, b, clr)`
-  - 149 `obsRock(a, b)`
-  - 155 `obsSafe(a, b, ref)`
-  - 173 `obsWays(o, a, b)`
-  - 224 `obsTurnable(a, w, b, pre)`
-  - 234 `obsDetour(a, b, depth = 3, ref)`
-  - 253 `obsRoute(a, wps)`
-  - 273 `obsLoad(pts, ms = 4000)`
-  - 288 `obsSail(pl, b)`
+  - 152 `obsRock(a, b)`
+  - 158 `obsSafe(a, b, ref)`
+  - 180 `obsWays(o, a, b)`
+  - 231 `obsTurnable(a, w, b, pre)`
+  - 241 `obsDetour(a, b, depth = 3, ref)`
+  - 260 `obsRoute(a, wps, auto)`
+  - 264 `obsRoute0(a, wps)`
+  - 284 `obsLoad(pts, ms = 4000)`
+  - 299 `obsSail(pl, b)`
 
 ## `src/js/core/11c-leinett.js` (155 linjer)
 
@@ -2946,7 +2947,7 @@ Kvotemarkedet: Kvote → Marked (KM3 of docs/planer/kvotemarkedet.md; Jonas 07.1
   - 176 `kxBoatRow(v)`
   - 183 `kmAct(a, d)`
 
-## `src/js/ui/phone/05-rigg-innst-admin.js` (105 linjer)
+## `src/js/ui/phone/05-rigg-innst-admin.js` (127 linjer)
 
 the rig: one kind of fishing at a time, chosen in Om bord › Redskap when none of the boat's gear is in the sea (D4, Jonas 13.11.2026:
 
@@ -2954,8 +2955,9 @@ the rig: one kind of fishing at a time, chosen in Om bord › Redskap when none 
   - 15 `beholdning()`
   - 30 `crewTab()`
   - 41 `logg()`
-  - 42 `innst()`
-  - 83 `admin()`
+  - 50 `innstGfx()`
+  - 72 `innst()`
+  - 102 `admin()`
 
 ## `src/js/ui/phone/06-render.js` (117 linjer)
 
@@ -2975,12 +2977,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **98** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 102 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1712 linjer)
+## `src/js/ui/phone/07-patch.js` (1716 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1700 `patch()`
+  - 1704 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (126 linjer)
 
@@ -3126,7 +3128,7 @@ Kystmegleren: boats players sell to each other (B1–B8 in docs/planer/etter-ton
   - 218 `mgAfter(key, okNo, okEn)`
   - 220 `mgAct(a, d)`
 
-## `src/js/ui/phone/14-act.js` (361 linjer)
+## `src/js/ui/phone/14-act.js` (367 linjer)
 
   - 2 `act(a, d)`
 - **8** the receipt after a buy for kroner (Jonas 06.11.2026, Tony's test: «Det skal ikke være tvil om et kjøp er gjennomført»): one
@@ -4134,27 +4136,27 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 1979 `legDrop(hips, feet, L, most)`
   - 1998 `seaLegs(s, inp)`
 
-## `src/js/view3d/00-head.js` (174 linjer)
+## `src/js/view3d/00-head.js` (185 linjer)
 
 - **2** 3D VIEW (plain WebGL, no dependencies)
-  - 51 `pxTick(dt, fps, now)`
-  - 59 `qualSet()`
-  - 78 `qmDown(why)`
-  - 86 `qmAlive(on)`
-  - 91 `qmCrashCheck()`
-  - 99 `qmFrame(rdt, now)`
-  - 105 `qualTick(dt, fps, now)`
-- **146** math
-  - 147 `persp(fovy, asp, n, f)`
-  - 148 `viewDir(f, up)`
-  - 155 `mul(a, b)`
-  - 156 `model(px, py, pz, yaw, pitch, roll)`
-- **164** noise
-  - 165 `vn2(x, y, s)`
-  - 169 `vnh(a, b, s)`
-  - 170 `fbm(x, y, o, s)`
-  - 171 `ridged(x, y)`
-  - 172 `rng(seed)`
+  - 61 `pxTick(dt, fps, now)`
+  - 69 `qualSet()`
+  - 88 `qmDown(why)`
+  - 96 `qmAlive(on)`
+  - 101 `qmCrashCheck()`
+  - 109 `qmFrame(rdt, now)`
+  - 115 `qualTick(dt, fps, now)`
+- **157** math
+  - 158 `persp(fovy, asp, n, f)`
+  - 159 `viewDir(f, up)`
+  - 166 `mul(a, b)`
+  - 167 `model(px, py, pz, yaw, pitch, roll)`
+- **175** noise
+  - 176 `vn2(x, y, s)`
+  - 180 `vnh(a, b, s)`
+  - 181 `fbm(x, y, o, s)`
+  - 182 `ridged(x, y)`
+  - 183 `rng(seed)`
 
 ## `src/js/view3d/01-shaders.js` (914 linjer)
 
@@ -5026,7 +5028,7 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
 - **94** frame
   - 98 `fpsEl()`
 
-## `src/js/view3d/24-cinema.js` (805 linjer)
+## `src/js/view3d/24-cinema.js` (806 linjer)
 
 ---------- cinema (the user's wish 03.10.2026; a director of fourteen shots 01.11.2026) ----------
 
@@ -5051,16 +5053,16 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 268 `frameClock(raw)`
   - 284 `frame()`
   - 289 `frame0()`
-  - 517 `snapTake()`
-  - 522 `drawRoute(VP, eye)`
-  - 545 `driftSpray(VP, eye, dt, t, col)`
-  - 572 `drawSmoke(VP, eye, BM, dt)`
-  - 613 `scupperWater(VP, eye, BM, dt, t, col)`
-  - 647 `splashFoam(x, z, r, a)`
-  - 649 `drawEffects(VP, eye, BM, dt, t)`
-  - 787 `updateLabels(VP, eye, W, Hh)`
+  - 518 `snapTake()`
+  - 523 `drawRoute(VP, eye)`
+  - 546 `driftSpray(VP, eye, dt, t, col)`
+  - 573 `drawSmoke(VP, eye, BM, dt)`
+  - 614 `scupperWater(VP, eye, BM, dt, t, col)`
+  - 648 `splashFoam(x, z, r, a)`
+  - 650 `drawEffects(VP, eye, BM, dt, t)`
+  - 788 `updateLabels(VP, eye, W, Hh)`
 
-## `src/js/view3d/25-controls.js` (278 linjer)
+## `src/js/view3d/25-controls.js` (280 linjer)
 
 ---------- controls ----------
 
