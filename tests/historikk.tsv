@@ -5024,3 +5024,12 @@
 2026-11-16 04:20	regresjon/2026-11-16	014846d	placetest	FEIL	5	lite	alene	FEIL the rorbuer by the harbours stand 1.5-4 km from the plant 1 {'mottak': 161, 'butikk': 65, 'verft': 129, 'rorbu': 517, 'rorbu0': 148}
 2026-11-16 04:20	regresjon/2026-11-16	9256f2a	kapplop	OK	30	lite	alene	
 2026-11-16 04:21	regresjon/2026-11-16	9256f2a	csptest	FEIL	43	lite	alene	FEIL it talks only to itself, the channel's Supabase project, WorkOS and the relay (cloud.json); the local build also has the tests' stand-ins  {"connect-src": 
+2026-11-16 04:22	regresjon/2026-11-16	1c65193	pikseltest	OK	64	3d	alene	
+2026-11-16 04:28	regresjon/2026-11-16	1c65193	lemmer	FEIL	337	3d	alene	FEIL før (løseren av, som #ik0): overarm er fra 0.278 til 0.278 m i de samme stillingene (lengden er 0.278)
+2026-11-16 04:33	regresjon/2026-11-16	1c65193	folk2deck	FEIL	314	3d	alene	FEIL haul, gutw, pick og pack er sett i spillet slik det går  ['bleed*', 'bleedst', 'cold', 'gaff*', 'gutw', 'haul', 'knife', 'lean', 'look', 'pick', 'pick*']
+2026-11-16 04:48	regresjon/2026-11-16	1c65193	sjobein	FEIL	900	3d	alene	FEIL den tegnede kroppen svarer til tallene vakten regner med: hodet over hofta er dreid med leningen, innen 1 cm (12 stillinger ved ±15° og stamping)  [{'roll'
+2026-11-16 05:25	regresjon/2026-11-16	1c65193	flaggshot	OK	2223	3d	alene	
+2026-11-16 05:25	regresjon/2026-11-16	1c65193	monster	FEIL	0	3d	alene	avsluttet med kode 1
+2026-11-16 05:34	regresjon/2026-11-16	1c65193	fellessjo	OK	523	3d	alene	
+2026-11-16 05:46	regresjon/2026-11-16	1c65193	fintest	OK	711	3d	alene	
+2026-11-16 05:46	regresjon/2026-11-16	1c65193	seabedtest	FEIL	0	3d	alene	avsluttet med kode 1
