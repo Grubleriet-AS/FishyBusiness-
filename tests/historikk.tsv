@@ -4956,3 +4956,12 @@
 2026-11-16 15:15	ccr-349425a1-raf94t	a6ca767+	cloudtest	OK	41	lite	alene	
 2026-11-16 15:51	claude/blissful-cannon-ctb8e9	dbe6f257	boottest	OK	26	lite	alene	
 2026-11-16 15:53	claude/blissful-cannon-ctb8e9	46caaa55	boottest	OK	25	lite	alene	
+2026-11-16 16:33	plan/2026-11-16-134	9e35a211+	skiptest	OK	20	lite	samtidig	
+2026-11-16 16:33	plan/2026-11-16-134	9e35a211+	fartstidtest	OK	17	lite	samtidig	
+2026-11-16 16:33	plan/2026-11-16-134	9e35a211+	worktest	FEIL	27	lite	samtidig	FEIL at 25 % you are warned and work at three quarters of your pace
+2026-11-16 16:33	plan/2026-11-16-134	e770ec4f	trip2	OK	37	lite	samtidig	
+2026-11-16 16:35	plan/2026-11-16-134	e770ec4f	driftsplan2test	FEIL	113	lite	alene	FEIL S5 the tired crew end the day: no more jigging, the line is still hauled when due (within 3 h), then in [[['D1 13:19', 'Mannskapet er slitne. Avslutter juk
+2026-11-16 16:39	plan/2026-11-16-134	e770ec4f+	worktest	OK	23	lite	alene	
+2026-11-16 16:41	plan/2026-11-16-134	e770ec4f+	driftsplan2test	OK	112	lite	alene	
+2026-11-16 16:45	plan/2026-11-16-134	e770ec4f+	trip2	OK	34	lite	samtidig	
+2026-11-16 16:45	plan/2026-11-16-134	e770ec4f+	skiptest	OK	20	lite	samtidig	

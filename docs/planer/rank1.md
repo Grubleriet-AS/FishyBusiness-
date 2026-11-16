@@ -42,11 +42,11 @@ Reglene som gjelder (`CLAUDE.md`, `docs/engasjement.md`): ferdighetene og fartst
 
 - **Arbeidsfarten på stasjonen:** `meEff() · (1 + 0,07 · (ferdighet − 1,5))`. Fersk er 1,0, **det samme som i dag**, og øverst 1,25. Ingen blir tregere enn i dag; alt over er vekst. Trøttheten virker som før.
 - **Søket:** erfaringen din (taket for nivået) i stedet for 1,5. År 0 er som i dag; en spiller med 20 år leser bildet som en skipper med 3,8.
-- **Hvilken stasjon du tar** (`stSkill`): dine egne tall i stedet for 3,2. Du tar oftere det du er god til, som mannskapet. Roret er som før (du har alltid roret når båten går).
+- **Hvilken stasjon du tar** (`stSkill`): 3,2 som før, løftet av ferdigheten din over starten (3,2 ved 1,5, 5 ved 5). Fersk velger du som i dag, og du tar oftere det du har blitt god til. Roret er som før (du har alltid roret når båten går). (Endret i RANK1-a: de rå tallene, 1,5 mot 3,2 i byssa, sendte en fersk skipper bort fra redskapet; `driftsplan2test` S5 fikk lina trukket en time for sent.)
 
 **Rankingen mot andre (V4 A):** en fjerde fane i topplista, **Fartstid**, med de registrerte spillerne etter `players.fs` (serverens tall med taket). Gjester vises ikke, men ser seg selv. Ferdighetene vises ikke for andre, bare nivået, som AIS gjør alt. Haill synes ikke: fartstida fra en levering med haill teller som i dag, og ingenting sier hvor den kom fra.
 
-**Spillere som har spilt:** nivået er fartstida de har. Ferdighetene settes én gang fra den: hver redskapsferdighet for redskap du har levert fangst fra (`S.sales`, artene og båtens rigg) og de tre på dekket settes til taket for nivået ditt; de andre redskapene til halvveis mellom 1,5 og taket. Ingen mister noe: farten på dekk er minst som i dag.
+**Spillere som har spilt:** nivået er fartstida de har. Ferdighetene settes én gang fra den: juksa, sløying og ising, og redskapet en båt i flåten er rigget for eller som du eier (krabbesortering med teinene), settes til taket for nivået ditt; de andre redskapene til halvveis mellom 1,5 og taket. (Endret i RANK1-a: leveringene, `S.sales`, har artene og ikke redskapet, så riggen og redskapet du eier brukes i stedet.) Ingen mister noe: farten på dekk er minst som i dag.
 
 ## 4. Fasene
 
@@ -104,3 +104,4 @@ Jonas 16.11.2026: «Årene fartstid», «Bruk + tak», «Fart + søk», «Fane i
 ## Status
 
 - 16.11.2026: planen skrevet (planøkt, gren `plan/2026-11-16-134`). Valgene besvart samme dag: A på alle fire. RANK1-a bygges når 133 er ferdig; startmeldingen er `docs/planer/start/134.md`.
+- 16.11.2026: **RANK1-a bygd** (Jonas: «Kjør på», samme gren): modellen, farten på dekk, søket med din erfaring, og valget av stasjon (3,2 løftet av ferdigheten, endret etter `driftsplan2test` S5). Uavhengig kontroll: oppstarten for gamle lagringer leser riggene i flåten og redskapet du eier, ikke `S.sales` (kap. 3 rettet). Ikke rullet ut: går ut med RANK1-b. Neste: RANK1-b, `docs/planer/start/134.md`.

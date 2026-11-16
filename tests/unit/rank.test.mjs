@@ -48,5 +48,7 @@ export default function (t){
   t.ok(s2.garn >= 1.5 && s2.garn <= s2.juksa, 'redskap den ikke har, halvveis eller mer (' + s2.garn + ')');
   t.ok(FSK.keys.every(k => fsSkF(k) >= 1), 'ingen gammel spiller arbeider saktere enn før steget');
   t.ok(fsSkills() === s2, 'ferdighetene lages én gang og lagres i S.fs.sk');
+  // which station you take: 3.2 as before the step when fresh, lifted by the skill above its start, the helm 5
+  s2.line = 1.5; s2.garn = 5; t.ok(K.stSkill(null, 'x', {}, 'line') === 3.2 && Math.abs(K.stSkill(null, 'x', {}, 'garn') - 5) < 1e-9 && K.stSkill(null, 'ror', {}) === 5, 'stasjonen du tar: fersk 3,2 som før, 5 med ferdighet 5, roret 5');
   t.ok(FS.MAX === 40, 'nivået er årene, 0–40, som før');
 }

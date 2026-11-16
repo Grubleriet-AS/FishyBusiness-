@@ -71,14 +71,16 @@ const FSK = {start:1.5, top:5, capE:0.6, rate:0.25, eff:0.07, keys:['juksa', 'li
 const fsCap = y => FSK.start + (FSK.top - FSK.start) * Math.pow(clamp((y || 0) / FS.MAX, 0, 1), FSK.capE);
 const fsCapNow = () => fsCap(fsOf(fsState().p).y);
 const fsErf = () => fsCapNow();
-// the skills, made once: a game from before this step gets them from its sea time, the gear it owns or is rigged for, and the deck work
-// every catch gets, at the ceiling for its years; the gear it has not used, halfway (nobody works slower than before the step)
+// the skills, made once: a game from before this step gets them from its sea time, at the ceiling for its years for the jig, the gutting
+// and the icing every catch gets and the gear a boat of the fleet is rigged for or the bound boat owns (crab sorting with the pots);
+// the gear it has not used, halfway (nobody works slower than before the step). (The landings, S.sales, keep the species, not the gear.)
 function fsSkills(){
   const F = fsState(); if (F.sk) return F.sk;
   const cap = fsCapNow(), half = (FSK.start + cap) / 2, sk = {};
-  const kindRig = typeof rigOf === 'function' && S.boat && typeof RIGS !== 'undefined' && RIGS[rigOf()] ? RIGS[rigOf()].kind : null;
+  // (the rigs of every boat in the fleet, vget; the gear owned is the bound boat's, ownedUnits)
+  const rigs = typeof RIGS === 'undefined' ? [] : (S.fleet || []).map(v => { const b = typeof vget === 'function' ? vget(v, 'boat') : null; return b && RIGS[b.rig] ? RIGS[b.rig].kind : null; });
   const used = k => { if (k === 'juksa' || k === 'sloy' || k === 'is') return true;
-    const kind = k === 'teiner' || k === 'sort' ? 'teine' : k; if (kindRig === kind) return true;
+    const kind = k === 'teiner' || k === 'sort' ? 'teine' : k; if (rigs.includes(kind)) return true;
     try { return typeof ownedUnits === 'function' && ownedUnits(kind) > 0; } catch (e){ return false; } };
   for (const k of FSK.keys) sk[k] = Math.round((used(k) ? cap : half) * 1000) / 1000;
   return (F.sk = sk);

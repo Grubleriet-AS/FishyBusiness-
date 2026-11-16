@@ -222,7 +222,7 @@ function plan3Retire(o){
 // the sounder the plan reads with: the best the boat has (the settings only turn the picture off; 12-heat.js heatTier)
 function plan3Tier(){ const e = S.equip || {}; return e.sonar ? 'sonar' : e.chirp ? 'chirp' : 'basic'; }
 const P3TIER = {basic:['ekkoloddet', 'the echo sounder'], chirp:['CHIRP-ekkoloddet', 'the CHIRP sounder'], sonar:['sonaren', 'the sonar']};
-// who reads the picture: you when you are aboard (a fixed low experience until the ranking step 134), else the skipper; an ocean vessel's
+// who reads the picture: you when you are aboard (your experience, the ceiling of your level: fsErf, RANK1-a), else the skipper; an ocean vessel's
 // teams have a skipper of their own (H2b) of middling experience
 function plan3Reader(){
   // (the ocean vessel's teams have their own skipper on the bridge, H2b: he reads it, also with you aboard; DP3-4)

@@ -231,7 +231,7 @@ Jonas 10.11.2026: «Spillere skal ikke kunne redigere sin egen lagring og gi seg
 Jonas' avgjørelser står i `docs/engasjement.md`, arbeidslista punkt 1. Dette er del 1 av 4.
 
 - **Fartstid** (`core/09e-fartstid.js`, `S.fs = {p, rest, away}`):
-  - Den går fra 0 til 40 år, uten rangnavn. Den er bare status og låser ingenting.
+  - Den går fra 0 til 40 år, uten rangnavn. Årene er nivået (RANK1, under): de setter taket for ferdighetene dine, og kassekreditten (5 år), lærlingen (10 år), turoppdragene og merkene leser dem.
   - Poengene til år N er `fsNeed(N) = 1 000 000 · (N/40)^2,8`: 33 til første år, 20 617 til tiende, 143 587 til tjuende og 1 000 000 til førtiende. Etter 40 koster hvert år like mye som det førtiende, og det vises som stjerner.
   - `fsOf(p)` gir år, døgn (0–364) og andelen av året. `fsText` lager «12 år fartstid», eller «12 år og 143 døgn fartstid».
   - Om bord tjenes 80 poeng per spilltime til sjøs (`fsMinute` i `step`) og 3·√kr per levering (`fsLand` i `sell`). Fangst tatt med haill teller.
@@ -252,8 +252,9 @@ Jonas' avgjørelser står i `docs/engasjement.md`, arbeidslista punkt 1. Dette e
   - **Taket** følger nivået: `fsCap(år) = 1,5 + 3,5 · (år/40)^0,6` (1,5 / 2,5 / 3,0 / 3,8 / 4,5 / 5,0 ved 0 / 5 / 10 / 20 / 30 / 40 år). Et nytt år skriver i dekksdagboka hvor høyt ferdighetene nå kan nå.
   - **Veksten:** hvert minutt til sjøs med deg på en stasjon (`S.mySt` i `workMinute`, `fsSkillMinute`) går ferdigheten stasjonen trener (`stationSkill`) en firedel av veien til taket per time (`fsLearn`), en firedel så fort med spillet lukket (`FS_AWAY`). Roret trener ingen av dem. Et helt tall gir én linje i dekksdagboka.
   - **Erfaringen** er taket for nivået (`fsErf`); søket med ekkoloddet leser den når du er om bord (`plan3Reader`, før fast 1,5).
-  - **Farten din** på stasjonen er `meEff() · fsSkF(ferdighet)`, der `fsSkF = 1 + 0,07 · (v − 1,5)`, aldri under 1: fersk er som før steget, øverst 1,25 (`workTeam`, `jobRate`, `teamEff`, `jigMeShare`). Hvilken stasjon du tar, går etter dine tall (`stSkill(null)`, før 3,2).
-  - **Gamle lagringer** får ferdighetene én gang (`fsSkills`): juksa, sløying, ising og redskapet båten er rigget for eller som du eier, på taket for årene; resten halvveis.
+  - **Farten din** på stasjonen er `meEff() · fsSkF(ferdighet)`, der `fsSkF = 1 + 0,07 · (v − 1,5)`, aldri under 1: fersk er som før steget, øverst 1,25 (`workTeam`, `jobRate`, `teamEff`, `jigMeShare`).
+  - **Gamle lagringer** får ferdighetene én gang (`fsSkills`): juksa, sløying, ising og redskapet en båt i flåten er rigget for eller den bundne båten eier (krabbesortering med teinene), på taket for årene; resten halvveis. Leveringene (`S.sales`) har artene, ikke redskapet, så de brukes ikke.
+  - **Hvilken stasjon du tar:** `stSkill(null)` er 3,2 som før, løftet av ferdigheten over starten (3,2 ved 1,5, 5 ved 5).
   - **Test:** `tests/unit/rank.test.mjs` (taket, starten, veksten, firedelen, dekksdagboka, stasjonen, oppstarten); `plan3.test.mjs` for søket. Kortet med nivået og ferdighetene er RANK1-b, fanen Fartstid i topplista RANK1-c.
 - **Del 2: den navnløse båten, registreringen og brukernavnet** (Jonas: «Det gir en følelse av eierskap når man får døpe en navnløs båt selv»):
   - Et nytt spill starter uten båtnavn (`boatUnnamed` i `ui/08-actions.js`): `S.unnamed = true`, og `S.boatName` er registreringsmerket, så alt som viser navnet, viser merket. Merket nevnes ikke for spilleren (Jonas 10.10.2026: «bare la tildeles et nummer, så kan de heller få døpe båten under registreringen»): vinduet «Båten etter far» og veiledningen snakker bare om båten, og `reg`-steget sier at dåpen kommer med registreringen. Navnestripa på skroget tegnes ikke (`view3d.js`). Kortet «Båten etter far» har bare knappen «Ta over båten» (`#obGo`).
