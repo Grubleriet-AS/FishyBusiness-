@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['d4drift-161126', '16.11.2026', 'Driftsplanen i Om bord', 'The plan aboard', [
+       ['Driftsplanen står under Om bord › Mannskap og drift, under mannskapet. Driftsplan i telefonen, kartet og varslene fra rederiet åpner den der, og fanene i Om bord står fast øverst.', 'The operations plan is under Aboard › Crew and plan, below the crew. Operations plan on the phone, the chart and the company\'s alerts open it there, and the tabs of Aboard stay at the top.']]],
     ['kapplop2-131126', '16.11.2026', 'Ukas tavle i kappløpet', 'This week\'s board in the race', [
        ['Kappløpet har fått ukas tavle: de 20 raskeste i klassen din denne uka, med båtnavn og brukernavn, og din plass. Trykk på en annen klasse for å se den. Ny tavle hver mandag.', 'The race has this week\'s board: the 20 fastest in your class this week, with boat names and user names, and your place. Tap another class to see it. A new board every Monday.'],
        ['Sesong-appen viser ukas beste i klassen din og plassen din. Tider som ikke kan være seilt, kommer ikke på tavla.', 'The Sesong app shows this week\'s best in your class and your place. Times that cannot have been sailed do not go on the board.']]],

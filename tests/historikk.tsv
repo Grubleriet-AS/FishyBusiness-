@@ -5234,3 +5234,13 @@
 2026-11-14 15:55	ccr-5e1ba2f4-pusvyd	442097da	uishots	OK	102	lite	samtidig	
 2026-11-14 16:05	ccr-5e1ba2f4-pusvyd	442097da	driftsplan2gui	FEIL	638	lite	samtidig	FEIL s05-garn: garnplanen starter
 2026-11-14 16:14	ccr-5e1ba2f4-pusvyd	442097da+	driftsplan2gui	FEIL	483	lite	alene	FEIL maalinger: ingen sidefeil (pageerror/console.error, utenom skyens 401)  [{"scn": "", "type": "console.error", "msg": "Failed to load resource: net::ERR_TUN
+2026-11-16 20:19	d4-new	ffbf2671+	d4dorer	FEIL	35	lite	samtidig	FEIL telefon: «Ferdig» i kartet går tilbake til planen i fanen, og «Til mannskapet» viser mannskapet øverst i samme fane  {'app': ['beholdning', 'Mannskap og dr
+2026-11-16 20:20	d4-new	ffbf2671+	docktest	OK	67	lite	samtidig	
+2026-11-16 20:22	d4-new	ffbf2671+	driftsplan2gui	OK	139	lite	samtidig	
+2026-11-16 20:22	d4-new	ffbf2671+	worktest	OK	23	lite	samtidig	
+2026-11-16 20:22	d4-new	ffbf2671+	tabtest	OK	114	lite	samtidig	
+2026-11-16 20:22	d4-new	ffbf2671+	hbtest	OK	19	lite	samtidig	
+2026-11-16 20:25	d4-new	ffbf2671+	telefonflate	OK	170	lite	samtidig	
+2026-11-16 20:25	d4-new	ffbf2671+	uishots	OK	98	lite	samtidig	
+2026-11-16 20:25	d4-new	ffbf2671+	fleet3test	OK	16	lite	samtidig	
+2026-11-16 20:30	d4-new	ffbf2671+	d4dorer	OK	29	lite	alene	

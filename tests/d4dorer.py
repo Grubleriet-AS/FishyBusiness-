@@ -87,7 +87,7 @@ async def run(p, vw, vh, tag):
       DOCK.close(); DOCK.open('beholdning:crew'); R.line = !!d.querySelector('.dr-line'); R.oneWk = d.querySelectorAll('.wk').length; R.onePlan = d.querySelectorAll('.dr-page').length;
       if (!plan2Ops()){ PHONE.dact('beholdning', 'p2-new', {}); DOCK.redraw(); }
       PLANMAP.open(S.cur); const f = document.querySelector('#pmBar [data-pm=done], #pmBar .pm-done'); if (f) f.click(); else PLANMAP.close && PLANMAP.close(); R.map = [PLANMAP.isOn(), DOCK.page, on(), seen('.dr-page')];
-      d.scrollTop = d.scrollHeight; PLAN2UI.act('p2-crew', {}); R.crew = [DOCK.page, on(), d.scrollTop];
+      d.scrollTop = d.scrollHeight; PLAN2UI.act('p2-go', {go:'mannskap'}); R.crew = [DOCK.page, on(), d.scrollTop];
       storeVessel(curVessel()); const v2 = JSON.parse(JSON.stringify(curVessel())); v2.id = 'vD4'; v2.boatName = 'Andrebåt'; v2.crew = []; v2.ops = null; S.fleet.push(v2);
       DOCK.close(); DOCK.open('beholdning:crew'); const o = d.querySelector('[data-pa=p2-other][data-id=vD4]'); R.row = !!o; if (o) o.click();
       R.other = [DOCK.page, PHONE.sel]; const me = d.querySelector('.ph-sub [data-pa=vsel][data-id="' + S.cur + '"]'); if (me) me.click(); R.back = [DOCK.page, on(), PHONE.sel === S.cur];
