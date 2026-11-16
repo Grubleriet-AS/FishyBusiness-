@@ -157,7 +157,10 @@ P11 = r"""async ([kind, where]) => { const H = kind === 'auto' ? HPT : SNO; awai
     // (a string set in two parts, the work stopped by the weather and the rest set after: the parts together have their middle on the spot, so the
     // middle of all a field's parts along its heading is measured, and each part's lenker and distance shown)
     midOnAt:kind === 'auto' ? o.places.filter(q => q.at && S2.some(s => fieldOf(s) === q)).map(q => { const P = S2.filter(s => fieldOf(s) === q), ux = Math.sin(q.hdg || 0), uy = -Math.cos(q.hdg || 0), pr = p => (p.x - q.at.x) * ux + (p.y - q.at.y) * uy, al = P.flatMap(s => [pr(s.a), pr(s.b)]), m = (Math.min(...al) + Math.max(...al)) / 2, side = P.flatMap(s => [s.a, s.b]).reduce((a, p) => Math.max(a, Math.abs((p.x - q.at.x) * uy - (p.y - q.at.y) * ux)), 0);
-      return +Math.hypot(m, side).toFixed(2); }) : null, parts:kind === 'auto' ? S2.map(s => [String(s.fid).split('#')[0].slice(-2), s.n, +kmTrue(mid(s), (fieldOf(s) || {}).at || mid(s)).toFixed(2)]) : null,
+      // (a field whose lenker are all in the sea: its middle on the spot; one with a part of them, the rest not set yet: every part on the string
+      // the plan laid, within its length; returned as the km off, 0 when it holds)
+      const Lh = plan3StrKm(o, Object.assign({}, q, {lk:'auto'})) / 2, full = Math.max(...P.map(s => s.n)) >= q.n || P.reduce((a, s) => a + s.n, 0) >= q.n, onStr = side < 0.2 && al.every(x => Math.abs(x) <= Lh + 0.2);
+      return full ? +Math.hypot(m, side).toFixed(2) : onStr ? 0 : +Math.max(side, ...al.map(x => Math.abs(x) - Lh)).toFixed(2); }) : null, parts:kind === 'auto' ? S2.map(s => [String(s.fid).split('#')[0].slice(-2), s.n, +kmTrue(mid(s), (fieldOf(s) || {}).at || mid(s)).toFixed(2)]) : null,
     snoNear:kind === 'sno' ? S2.map(s => { const q = fieldOf(s), k = +String(s.fid).split('#')[1]; return q && q.at ? +kmTrue(s.a, p2SnoLenke(q, k).a).toFixed(2) : null; }) : null, snoMid:kind === 'sno' && o.places[0].at ? (() => { const q = o.places[0], L = [...Array(q.n).keys()].map(k => p2SnoLenke(q, k)), xs = L.flatMap(l => [l.a.x, l.b.x]), ys = L.flatMap(l => [l.a.y, l.b.y]); return +kmTrue({x:(Math.min(...xs) + Math.max(...xs)) / 2, y:(Math.min(...ys) + Math.max(...ys)) / 2}, q.at).toFixed(2); })() : null, on:o.on, stop:o.stop, kg:Math.round(holdTotal())};
   return R; }"""
 
