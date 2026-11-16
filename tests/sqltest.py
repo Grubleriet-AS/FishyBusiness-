@@ -54,6 +54,7 @@ def main():
         mig = sorted(glob.glob(os.path.join(ROOT, 'supabase', 'migrations', '*.sql')))
         for m in mig:
             if os.environ.get('SQL_LOP') == '0' and m.endswith('_kapplop.sql'): continue   # (KL3: the race's checks seen red without the file)
+            if os.environ.get('SQL_RANK') == '0' and m.endswith('_rank_fs.sql'): continue   # (RANK1-c: the tab's checks seen red without the file)
             p = run('psql', '-h', sock, '-U', user, '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q', '-f', m)
             print(ok(p.returncode == 0), 'the migration runs on PostgreSQL:', os.path.basename(m), p.stderr.strip()[-300:] if p.returncode else '')
             if p.returncode: return
@@ -1862,6 +1863,52 @@ def main():
                  and LP['admin'].get('flags') == {'fast': 2, 'trk': 1, 'hopp': 1, 'legs': 1} and LP['admin'].get('trim') is not None and LP.get('adminNo') == [True, True] and LP.get('adminNames') is False
                  and LP.get('cleared') == [None, True] and LP.get('news') == {'k': 'done', 'cls': 'sakte', 'min': 9500, 'wk': '2026-W47'} and (LP.get('rerun') or [1])[:2] == [0, True]),
               'KL3: admin_lop gives the sums without names, only to the admin with aal2; «Fjern merket» puts the attempt back on the board; Kystposten keeps a race story without trim; the file runs twice with nothing lost or doubled', LP.get('admin'), LP.get('adminNo'), LP.get('cleared'), LP.get('news'), LP.get('rerun'))
+        # RANK1-c (20261116200000_rank_fs.sql, steg 134; Jonas 16.11.2026, V4 A): top_list kind 'fs', the tab Fartstid. The registered
+        # players by players.fs, highest first, with the level in years as fsOf counts it; guests and the marked accounts (cheat_on) out,
+        # a guest sees only themselves; no field about haill or the skills. SQL_RANK=0 leaves the file out, to see the checks red without it.
+        RK = {}
+        try:
+            def fsNeed(n): return 0 if n <= 0 else 1e6 * (n / 40) ** 2.8 if n <= 40 else 1e6 + (n - 40) * (1e6 - fsNeed(39))
+            def fsY(p):
+                y = 0
+                while y < 400 and p >= fsNeed(y + 1): y += 1
+                return y
+            R = {k: {'sub': 'user_01RK' + k, 'role': 'authenticated'} for k in ('A', 'B', 'C', 'G', 'M', 'Z')}
+            R['G'] = {'sub': '9a1c2a3e-0000-4000-8000-0000000000ee', 'role': 'authenticated', 'is_anonymous': True}
+            for w in R.values(): sql("select public.tm_hello('{}')", w, 'authenticated')
+            sql("update public.players set guest = true where id = '%s'" % R['G']['sub'])
+            # (far above anyone the tests before gave sea time, so these five are the top of the list)
+            FS = {'A': 9.0e5, 'B': 5.0e5, 'C': 2.0e5, 'G': 9.9e5, 'M': 9.8e5, 'Z': 0}
+            for k, v in FS.items(): sql("update public.players set fs = %r where id = '%s'" % (v, R[k]['sub']))
+            sql("insert into public.names (player_id, name) values ('user_01RKA', 'Fartstidsfar') on conflict do nothing")
+            sql("insert into public.cheat_flags (player_id, kind, over) values ('user_01RKM', 'cash', 400000)")
+            sql("update public.world_cfg set v = 'true'::jsonb where k = 'cheat_on'")
+            fsT = lambda who: json.loads(sql("select public.top_list('fs', 0)", who, 'authenticated'))
+            hid = lambda who: sql("select left(md5('dsb' || '%s'), 10)" % who['sub'])
+            TA = fsT(R['A'])
+            RK['kind'] = TA.get('kind')
+            RK['top'] = [r['hid'] for r in TA.get('rows', [])[:3]] == [hid(R['A']), hid(R['B']), hid(R['C'])]
+            RK['y'] = [r.get('y') for r in TA.get('rows', [])[:3]] == [fsY(FS['A']), fsY(FS['B']), fsY(FS['C'])]
+            RK['user'] = (TA.get('rows') or [{}])[0].get('user')
+            RK['out'] = [h for h in (hid(R['G']), hid(R['M']), hid(R['Z'])) if h in [r['hid'] for r in TA.get('rows', [])]]
+            RK['keys'] = sorted({k for r in TA.get('rows', []) for k in r})
+            RK['mineA'] = TA.get('mine')
+            TG = fsT(R['G']); RK['guest'] = [(r['me'], r['rank']) for r in TG.get('rows', []) if r['me']], (TG.get('mine') or {}).get('rank')
+            RK['mineZ'] = fsT(R['Z']).get('mine')
+            # the level as fsOf counts it, at the edges of a year and past forty (the stars)
+            pts = [0, 1, fsNeed(1), fsNeed(1) - 1, fsNeed(10), fsNeed(10) - 0.5, fsNeed(40) - 1, fsNeed(40), fsNeed(41), fsNeed(55) + 3, 1e12]
+            RK['yrs'] = [int(sql("select public.fs_years(%r)" % p)) for p in pts] == [fsY(p) for p in pts]
+            RK['other'] = json.loads(sql("select public.top_list('kg', 0)", R['A'], 'authenticated')).get('kind')
+            RK['anon'] = sql("select public.top_list('fs', 0)", {}, 'anon', expect_err=True)[0]
+            sql("update public.world_cfg set v = 'false'::jsonb where k = 'cheat_on'"); sql("delete from public.cheat_flags where player_id = 'user_01RKM'")
+            RK['back'] = hid(R['M']) == fsT(R['A'])['rows'][0]['hid']
+        except Exception as e:
+            RK['err'] = str(e)[:300]
+        print(ok(not RK.get('err') and RK.get('kind') == 'fs' and RK.get('top') and RK.get('y') and RK.get('user') == 'Fartstidsfar' and RK.get('out') == []
+                 and RK.get('mineA') == {'rank': 1, 'y': fsY(9.0e5)} and RK.get('mineZ') is None and RK.get('yrs') and RK.get('other') == 'kg' and RK.get('anon') and RK.get('back')),
+              'RANK1-c: top_list fs by the server\'s sea time, highest first, the level as fsOf, the user name; the guest, the marked account and the one without sea time out; your place', RK)
+        print(ok(not RK.get('err') and RK.get('keys') == ['boat', 'f', 'hid', 'me', 'rank', 'user', 'y'] and RK.get('guest') == ([(True, 1)], 1)),
+              'RANK1-c: the rows have no field about haill, the skills or the points (only the level), and a guest sees only themselves', RK.get('keys'), RK.get('guest'))
         # the load of 5 000 players (plan 5b; KYST_LAST=5000): landings and catches for that many players, then what world_get costs
         NL = int(os.environ.get('KYST_LAST') or 0)
         if NL:

@@ -123,17 +123,19 @@ const WTOP = {};
 // The launch (Jonas 16.11.2026: «Bedre toppliste. Superviktig for å skape konkurranse»): kind 'kg' (as before), 'kr' (the week's catch value)
 // or 'tot' (all the value landed since the start, every group; w and grp do not count), by top_list (20261116120000_lansering.sql), with
 // the public id for the profile and the founders' number. Where the database does not have top_list yet, 'kg' comes from world_top and
-// the others say so (e.old).
+// the others say so (e.old). RANK1-c (steg 134, 20261116200000_rank_fs.sql): kind 'fs', the registered players by the server's sea time,
+// rows with the level in years (y) and nothing else of theirs; a server whose top_list does not know 'fs' answers with 'kg', and that
+// is taken as not there yet (e.old), as a 404 is.
 const WTOP_NEW = {off:0};
 function worldTop(w, grp, kind){
   if (typeof CLOUD === 'undefined' || !CLOUD.on || !CLOUD.user) return null;
-  grp = grp === 'lukket' || grp === 'all' ? grp : 'open'; kind = kind === 'kr' || kind === 'tot' ? kind : 'kg';
-  const key = (kind === 'tot' ? 'tot' : w + '|' + grp + (kind === 'kr' ? '|kr' : '')), e = WTOP[key] || (WTOP[key] = {at:0, data:null, busy:false, err:false, old:false});
+  grp = grp === 'lukket' || grp === 'all' ? grp : 'open'; kind = kind === 'kr' || kind === 'tot' || kind === 'fs' ? kind : 'kg';
+  const key = (kind === 'tot' || kind === 'fs' ? kind : w + '|' + grp + (kind === 'kr' ? '|kr' : '')), e = WTOP[key] || (WTOP[key] = {at:0, data:null, busy:false, err:false, old:false});
   if (!e.busy && Date.now() - e.at > 60000){
     e.busy = true;
     const old = () => kind === 'kg' ? cloudRpc('world_top', {w, grp:grp === 'all' ? (S.lic ? 'lukket' : 'open') : grp}) : Promise.resolve(null).then(() => { e.old = true; return null; });
     (Date.now() < WTOP_NEW.off ? old() : cloudRpc('top_list', {kind, w, grp}).catch(x => { if (!/ 404$/.test(x.message)) throw x; WTOP_NEW.off = Date.now() + 600000; return old(); }))
-      .then(d => { e.data = d; e.err = false; }).catch(() => { e.err = true; })
+      .then(d => { if (kind === 'fs' && d && d.kind !== 'fs'){ e.old = true; d = null; } e.data = d; e.err = false; }).catch(() => { e.err = true; })
       .finally(() => { e.busy = false; e.at = Date.now(); if (PHONE.isOpen() && (PHONE.app === 'salg' || PHONE.app === 'post')) PHONE.render(); });
   }
   return e;

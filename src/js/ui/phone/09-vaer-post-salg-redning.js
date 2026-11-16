@@ -104,15 +104,15 @@
       // the leaderboards of the whole coast, one for each group (Jonas 05.10.2026: «Det er snakk om Norges beste båt om du ligger øverst»)
       // (the launch, Jonas 16.11.2026: «Bedre toppliste»: kilos, kroner and the total since the start, the founders' badge, and a tap on a row
       // opens the player's profile, ui/10v-profil.js; ui/10h-world.js worldTop)
-      const kind = sub.salgK === 'kr' || sub.salgK === 'tot' ? sub.salgK : 'kg', tot = kind === 'tot';
+      const kind = sub.salgK === 'kr' || sub.salgK === 'tot' || sub.salgK === 'fs' ? sub.salgK : 'kg', fsK = kind === 'fs', tot = kind === 'tot' || fsK;
       const w = weekOf(H), which = sub.salgW === 'prev' ? w - 1 : w, grp = 'all', T = typeof worldTop === 'function' ? worldTop(Math.max(0, which), grp, kind) : null;   // (both groups on one list, Jonas 16.11.2026)
       // (Jonas 16.11.2026: «La topplisten med norges beste båter stå for seg selv og gjem alle søkemulighetene bak en filter-knapp»: one
       // button with what the list shows now; a tap opens the choices under it, and a choice closes them again)
-      const kindN = {kg:L('Kilo', 'Kilos'), kr:L('Kroner', 'Kroner'), tot:L('Totalt', 'Total')};
-      const now = tot ? kindN.tot : [kindN[kind], which === w ? L('denne uka', 'this week') : L('forrige uke', 'last week')].join(' · ');
+      const kindN = {kg:L('Kilo', 'Kilos'), kr:L('Kroner', 'Kroner'), tot:L('Totalt', 'Total'), fs:L('Fartstid', 'Sea time')};
+      const now = tot ? kindN[kind] : [kindN[kind], which === w ? L('denne uka', 'this week') : L('forrige uke', 'last week')].join(' · ');
       h.push('<div class="pf-filt"><button class="ph-btn alt' + (sub.salgF ? ' on' : '') + '" data-pa="salgF">' + L('Filter', 'Filter') + ' ▾</button><span class="ph-note">' + now + '</span></div>');
       if (sub.salgF){
-        h.push('<div class="ph-card pf-fbox"><div class="ph-sub" style="padding:0 0 6px">' + ['kg', 'kr', 'tot'].map(k => '<button class="' + (kind === k ? 'on' : '') + '" data-pa="salgK" data-s="' + k + '">' + kindN[k] + '</button>').join('') + '</div>');
+        h.push('<div class="ph-card pf-fbox"><div class="ph-sub" style="padding:0 0 6px">' + ['kg', 'kr', 'tot', 'fs'].map(k => '<button class="' + (kind === k ? 'on' : '') + '" data-pa="salgK" data-s="' + k + '">' + kindN[k] + '</button>').join('') + '</div>');
         if (!tot){
           h.push('<div class="ph-sub" style="padding:0"><button class="' + (which === w ? 'on' : '') + '" data-pa="salgW" data-s="now">' + L('Denne uka', 'This week') + '</button><button class="' + (which !== w ? 'on' : '') + '" data-pa="salgW" data-s="prev">' + L('Forrige uke', 'Last week') + '</button></div>');
         }
@@ -122,7 +122,23 @@
       const co = c => c ? '<br><small class="ph-note">' + escT(c) + '</small>' : '';
       const fb = no => typeof PROF !== 'undefined' ? PROF.badge(no) : '';
       if (T && T.old){
-        h.push('<div class="ph-card"><p class="ph-note">' + L('Topplista i kroner og totalt kommer snart.', 'The leaderboard in kroner and in total is coming soon.') + '</p></div>');
+        h.push('<div class="ph-card"><p class="ph-note">' + (fsK ? L('Topplista etter fartstid kommer snart.', 'The leaderboard by sea time is coming soon.') : L('Topplista i kroner og totalt kommer snart.', 'The leaderboard in kroner and in total is coming soon.')) + '</p></div>');
+      } else if (fsK && T && !T.err){
+        // RANK1-c (steg 134, Jonas 16.11.2026, V4 A: «Fane i topplista»): the registered players by the server's sea time, with the level
+        // only (the skills are the player's own, and haill is never shown); a guest sees only themselves (ui/10h-world.js worldTop)
+        const d = T.data, rows = d ? d.rows || [] : null, lv = y => { y = Math.max(0, y | 0); return L('Nivå ', 'Level ') + Math.min(y, 40) + (y > 40 ? ' ★' + (y - 40) : ''); };
+        h.push('<div class="ph-card"><h4>' + L('Kystens mest erfarne', 'The coast\'s most experienced') + '</h4>' + (!d ? '<p class="ph-note">' + L('Henter topplista …', 'Fetching the leaderboard …') + '</p>'
+          : !rows.length ? '<p class="ph-note">' + L('Ingen har fartstid ennå.', 'No one has sea time yet.') + '</p>'
+          : '<table class="ph-tbl pf-top"><tr><th>#</th><th>' + L('Skipper', 'Skipper') + '</th><th class="n">' + L('Nivå', 'Level') + '</th></tr>' +
+            rows.map(r => { const un = r.user ? peerName(r.user) : '', bn = r.boat ? peerName(r.boat) : '';
+              const tap = r.hid ? ' data-pa="open" data-a="profil" data-s="' + escT(r.hid) + '"' : '';
+              const who = r.me ? me : escT(un && un !== '–' ? un : bn && bn !== '–' ? bn : L('Ukjent skipper', 'Unknown skipper'));
+              return '<tr class="' + (r.me ? 'me' : '') + (r.hid ? ' pf-tap' : '') + '"' + tap + '><td>' + r.rank + '</td><td>' + who + fb(r.f) + (!r.me && un && bn && bn !== '–' ? co(bn) : '') + '</td><td class="n">' + lv(r.y) + '</td></tr>'; }).join('') +
+            (d.mine && d.mine.rank > rows.length ? '<tr class="me"><td>' + d.mine.rank + '</td><td>' + me + '</td><td class="n">' + lv(d.mine.y) + '</td></tr>' : '') + '</table>') +
+          '<p class="ph-note">' + L('Hele kysten: de registrerte spillerne etter fartstida si, slik serveren har den. Bare nivået vises; ferdighetene dine er dine egne. Trykk på en skipper for å se profilen.', 'The whole coast: the registered players by their sea time, as the server has it. Only the level shows; your skills are your own. Tap a skipper to see the profile.') +
+            (d && d.n ? ' ' + L(d.n + (d.n === 1 ? ' skipper' : ' skippere') + ' på lista.', d.n + (d.n === 1 ? ' skipper' : ' skippers') + ' on the list.') : '') +
+            (typeof isGuest === 'function' && isGuest() ? ' ' + L('Som gjest ser du bare deg selv; registrer deg for å komme på lista.', 'As a guest you see only yourself; register to get on the list.') : '') +
+            '</p></div>');
       } else if (T && !T.err){
         const d = T.data, rows = d ? d.rows || [] : null, pn = id => { const q = id && portById(id); return escT(q ? q.name : id || '–'); }, cl = false, money = kind !== 'kg';
         const mine = S.lic && S.company ? co(S.company) : '';

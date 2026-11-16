@@ -591,6 +591,7 @@ Jonas 16.11.2026, før lanseringen 17.11. Migreringen er `supabase/migrations/20
   - Et trykk på en rad åpner profilen.
   - `landings.kr` kommer med `land_put` (`wshLand krSp`), høyst 1 000 kr/kg. Rader fra før har 0 kr.
   - `world_top` står for Ukas-kortet, puben og Kystposten.
+  - **Fanen Fartstid** (RANK1-c, steg 134; Jonas 16.11.2026, V4 A: «Fane i topplista»; `supabase/migrations/20261116200000_rank_fs.sql`): `top_list('fs')` gir de registrerte spillerne etter serverens fartstid (`players.fs`, poengene spillet sender med `pos_put`, med taket der), høyest først: plassen, brukernavnet, siste båtnavn, Founder-nummeret og **bare nivået** i år (`y`, `fs_years(p)` regner som `fsOf`; over 40 år som stjerner). Ikke poengene, ikke ferdighetene (de er spillerens egne), ikke haill. Gjester og kontoer med åpent juksemerke når `cheat_on` står på, er ikke med; en gjest ser bare seg selv. En spiller uten fartstid står ikke på lista. Fanen har ingen uke. Uten migreringen (404, eller en `top_list` som svarer `kg` fordi den ikke kjenner `fs`) sier fanen at den kommer snart (`e.old` i `worldTop`). Testene: `sqltest` (rekkefølgen, nivået ved grensene, gjest og juksemerke ute, feltene, `SQL_RANK=0` for å se dem røde) og `profiltest` (fanen i begge formater, «kommer snart»).
 - **Founders** (`founders`, `founders_cfg.start`, `founder_take` i `land_put`):
   - Jonas: «de 100 første som leverer fisk får merket».
   - Tellingen går fra du slår den på i admin (fanen Lansering, `admin_founders_set`).

@@ -6,7 +6,8 @@
     ['rank1-161126', '16.11.2026', 'Nivå og ferdigheter', 'Level and skills', [
        ['Fartstida er nå nivået ditt, med xp mot neste nivå. Se Milepæler › Merker.', 'Your sea time is now your level, with xp towards the next. See Milestones › Badges.'],
        ['Du har egne ferdigheter i juksa, line, garn, teiner, sløying, ising og krabbesortering. De vokser med jobben du gjør om bord, opp til et tak som stiger med årene, og gjør deg raskere på dekk.', 'You have skills of your own in jigging, longline, nets, pots, gutting, icing and crab sorting. They grow with the work you do aboard, up to a ceiling that rises with the years, and make you faster on deck.'],
-       ['Når driftsplanen søker med deg om bord, leser du ekkoloddet med din egen erfaring.', 'When the plan searches with you aboard, you read the echo sounder with your own experience.']]],
+       ['Når driftsplanen søker med deg om bord, leser du ekkoloddet med din egen erfaring.', 'When the plan searches with you aboard, you read the echo sounder with your own experience.'],
+       ['Topplista i Salgslaget har fått fanen Fartstid: de registrerte skipperne langs kysten etter nivået sitt. Bare nivået vises; ferdighetene dine er dine egne.', 'The leaderboard in Sales has a Sea time tab: the registered skippers along the coast by their level. Only the level shows; your skills are your own.']]],
     ['dekk-161126', '16.11.2026', 'Dekkene lagt om etter arbeidet', 'The decks laid out after the work', [
        ['Dekkene er lagt om etter arbeidet: kar, sløyebord og luke langs rekka, og luka står åpen mens dere fisker.', 'The decks are laid out after the work: tub, gutting table and hatch along the rail, and the hatch is open while you fish.']]],
     ['innst-161126', '16.11.2026', 'Nye innstillinger og grafikkvalg', 'New settings and graphics options', [
