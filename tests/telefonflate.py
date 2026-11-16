@@ -8,7 +8,8 @@ import asyncio, json
 from playwright.async_api import async_playwright
 
 # every app on the home screen with its name (a new game in harbour: Rederi comes with a fleet, Admin with ?admin)
-NAMES = {'drift': 'Driftsplan', 'ordl': 'Oppdrag', 'nett': 'Nettet', 'salg': 'Salgslaget', 'kvote': 'Kvote', 'regler': 'Regler', 'kaiboden': 'Kaiboden',
+NAMES = {'rederi': 'Rederi', 'profil': 'Profil', 'social': 'Fellesskap',   # (16.11.2026: all the apps from the start, Profil, Fellesskap)
+         'drift': 'Driftsplan', 'ordl': 'Oppdrag', 'nett': 'Nettet', 'salg': 'Salgslaget', 'kvote': 'Kvote', 'regler': 'Regler', 'kaiboden': 'Kaiboden',
          'merker': 'Milepæler', 'garderobe': 'Garderoben', 'folk': 'Venner', 'sesong': 'Sesong', 'guide': 'Fiskeguide', 'handbok': 'Håndboka',
          'vaer': 'Vær', 'post': 'Kystposten', 'meld': 'Meldinger', 'redning': 'Redning', 'patch': 'Patchnotes', 'tilbake': 'Tilbakemelding', 'innst': 'Innstillinger'}
 TWO = ['rederi', 'kvote', 'salg', 'sesong', 'redning', 'innst', 'vaer', 'haill', 'trim', 'regler']

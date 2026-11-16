@@ -4960,3 +4960,23 @@
 2026-11-16 16:53	ccr-349425a1-raf94t	ea9e439+	hailltest	FEIL	15	lite	samtidig	avsluttet med kode 1
 2026-11-16 16:53	ccr-349425a1-raf94t	ea9e439+	kjoptest	FEIL	8	lite	samtidig	avsluttet med kode 1
 2026-11-16 16:53	ccr-349425a1-raf94t	ea9e439+	skiptest	FEIL	8	lite	samtidig	FEIL 4a. prisene i spillet og i migreringen er like: 1, 2 og 4 døgn for 29, 39 og 49 kr  {"game": {"s4": [24, 29], "s12": [72, 49], "s24": [144, 79], "s72": [43
+2026-11-16 16:54	ccr-349425a1-raf94t	6ffb4af	docktest	FEIL	62	lite	samtidig	FEIL telefonen har appene, med Kvote, Regler, Kaiboden, Patchnotes og Admin i rekkefølge  ['rederi', 'drift', 'ordl', 'nett', 'salg', 'kvote', 'regler', 'kaibod
+2026-11-16 16:56	ccr-349425a1-raf94t	6ffb4af	telefonflate	FEIL	157	lite	samtidig	FEIL stående nettbrett: alle appene er på hjemskjermen med navnet sitt  {'rederi': 'Rederi', 'profil': 'Profil', 'social': 'Fellesskap'}
+2026-11-16 16:56	ccr-349425a1-raf94t	6ffb4af	csptest	OK	92	lite	samtidig	
+2026-11-16 16:59	ccr-349425a1-raf94t	6ffb4af+	hailltest	FEIL	15	lite	samtidig	avsluttet med kode 1
+2026-11-16 17:02	ccr-349425a1-raf94t	6ffb4af+	kjoptest	FEIL	180	lite	samtidig	FEIL back from Stripe the game gives the haill and the trim on the boat, tells the server, and clears ?kjop from the address  {"r": {"inv": 1, "own": 0, "srv": 
+2026-11-16 17:02	ccr-349425a1-raf94t	6ffb4af+	skiptest	FEIL	16	lite	samtidig	FEIL 5c. staaende: fanene er store nok for en finger, fanene og kortene er innenfor skjermen  {"tabH": 35, "tabRight": 751, "cardRight": 755, "W": 800}
+2026-11-16 17:02	ccr-349425a1-raf94t	6ffb4af+	docktest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-16 17:03	ccr-349425a1-raf94t	6ffb4af+	telefonflate	OK	188	lite	samtidig	
+2026-11-16 17:05	ccr-349425a1-raf94t	6ffb4af+	boostklokke	FEIL	155	lite	samtidig	FEIL A boot, no remainder: kjøpet kom ikke fram i testen {'sr': True, 'h': 0, 't': 363619, 'w': 363619} ["Cannot read properties of undefined (reading 't0')"]
+2026-11-16 17:06	ccr-349425a1-raf94t	6ffb4af+	hailltest	FEIL	15	lite	samtidig	avsluttet med kode 1
+2026-11-16 17:08	ccr-349425a1-raf94t	6ffb4af+	kjoptest	FEIL	148	lite	samtidig	avsluttet med kode 1
+2026-11-16 17:08	ccr-349425a1-raf94t	6ffb4af+	skiptest	OK	16	lite	samtidig	
+2026-11-16 17:08	ccr-349425a1-raf94t	6ffb4af+	docktest	OK	63	lite	samtidig	
+2026-11-16 17:08	ccr-349425a1-raf94t	6ffb4af+	boostklokke	OK	59	lite	samtidig	
+2026-11-16 17:09	ccr-349425a1-raf94t	6ffb4af+	hailltest	LES	33	lite	samtidig	
+2026-11-16 17:11	ccr-349425a1-raf94t	6ffb4af+	kjoptest	FEIL	164	lite	samtidig	FEIL HS3: a trim bought for a boat that is not in the fleet is not given, and not marked as given (it is asked about again)  {"trim": {"k": "turbo", "left": 66,
+2026-11-16 17:11	ccr-349425a1-raf94t	6ffb4af+	skiptest	OK	17	lite	samtidig	
+2026-11-16 17:15	ccr-349425a1-raf94t	6ffb4af+	kjoptest	OK	219	lite	samtidig	
+2026-11-16 17:15	ccr-349425a1-raf94t	6ffb4af+	telefonflate	OK	206	lite	samtidig	
+2026-11-16 17:16	ccr-349425a1-raf94t	6ffb4af+	skiptest	OK	14	lite	alene	

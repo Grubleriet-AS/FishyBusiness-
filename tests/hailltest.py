@@ -21,7 +21,8 @@ async def main():
         print('luck:', json.dumps(eff))
         # shop
         await pg.evaluate("S.tut=0; S.cash=50000; S.t = Math.round((Date.UTC(2028, 2, 6, 18) - EPOCH) / 6e4); PHONE.open('haill')"); await pg.wait_for_timeout(500)
-        await pg.evaluate("document.querySelector('[data-pa=haillbuy][data-k=luksus]').click()"); await pg.wait_for_timeout(400)
+        await pg.evaluate("document.querySelector('[data-pa=kbbuy][data-k=luksus]').click()"); await pg.wait_for_timeout(400)
+        await pg.evaluate("document.querySelector('#phone .kb-shop-tabs button[data-s=mine]').click()"); await pg.wait_for_timeout(400)   # (Kaiboden in one window: what is bought waits in Mine boostere)
         await pg.screenshot(path='h1.png')
         print('after buy (in store, not on):', await pg.evaluate("JSON.stringify({h:S.haill && S.haill.type, inv:S.haillInv, btn:!!document.querySelector('[data-pa=haillon][data-k=luksus]')})"))
         await pg.evaluate("document.querySelector('[data-pa=haillon][data-k=luksus]').click()"); await pg.wait_for_timeout(400)

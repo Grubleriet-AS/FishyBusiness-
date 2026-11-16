@@ -41,7 +41,7 @@ INIT = """(() => {
       if (!%(grant)s) return;
       const at = {t:S.t, w:worldT(), left:CATCH_LEFT};
       shopGive({id:'g1', data:{give:'skip', k:'std'}}); shopGive({id:'g2', data:{give:'trim', k:'turbo', boat:S.cur}});
-      window.__g = {seen, at, skip0:skipLeft(), trim0:trimLeft(S.boat), skipUntil:S.skip.until, trimT0:S.boat.trim.t0};
+      window.__g = {seen, at, skip0:skipLeft(), trim0:trimLeft(S.boat), skipUntil:S.skip.until, trimT0:(S.trim || S.boat.trim).t0};
     }, %(delay)d);
   }, 2);
 })()"""
@@ -54,7 +54,7 @@ async def prep(br, closed_h):
     pg.on('pageerror', lambda e: errs.append(str(e)))
     await boot(pg, GAME + '#world'); await pg.wait_for_timeout(800)
     # the game closed `closed_h` real hours ago: the save's game time is closed_h * GAME_RATE game hours behind the world
-    sv = await pg.evaluate("(m => { TAB.held = true; S.boatName = S.boatName || 'Prove'; S.intro = true; S.skip = null; delete S.boat.trim; applyVessel(); S.t = worldT() - m; save(); window.removeEventListener('pagehide', save); return {saved:load().t, w:worldT()}; })(%d)" % int(closed_h * 60 * 6))
+    sv = await pg.evaluate("(m => { TAB.held = true; S.boatName = S.boatName || 'Prove'; S.intro = true; S.skip = null; delete S.boat.trim; delete S.trim; applyVessel(); S.t = worldT() - m; save(); window.removeEventListener('pagehide', save); return {saved:load().t, w:worldT()}; })(%d)" % int(closed_h * 60 * 6))
     return ctx, pg, errs
 
 
@@ -77,7 +77,7 @@ async def sleep_case(br, name, slept_h, wait_ms=600):
     ctx = await br.new_context(viewport={'width': 1000, 'height': 760}); pg = await ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
     await boot(pg, GAME + '#world'); await pg.wait_for_timeout(1500)
-    await pg.evaluate("document.getElementById('modal').hidden = true; S.skip = null; delete S.boat.trim; applyVessel()")
+    await pg.evaluate("document.getElementById('modal').hidden = true; S.skip = null; delete S.boat.trim; delete S.trim; applyVessel()")
     # the tab slept slept_h real hours (no ticks); on wake cloudWake holds tick (TAB.wait) until save_beat answers, and the
     # visibilitychange shopClaim's shop_pending answers first: the grant is given at the old S.t
     g = await pg.evaluate("""(m => { TAB.wait = true; S.t = worldT() - m; const at = {t:S.t, w:worldT(), left:CATCH_LEFT};
@@ -96,7 +96,7 @@ async def back_case(br, name, slept_h, ago_h):
     ctx = await br.new_context(viewport={'width': 1000, 'height': 760}); pg = await ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
     await boot(pg, GAME + '#world'); await pg.wait_for_timeout(1500)
-    await pg.evaluate("document.getElementById('modal').hidden = true; S.skip = null; delete S.boat.trim; applyVessel()")
+    await pg.evaluate("document.getElementById('modal').hidden = true; S.skip = null; delete S.boat.trim; delete S.trim; applyVessel()")
     g = await pg.evaluate("""(([m, ago]) => { TAB.wait = true; S.t = worldT() - m; const at = new Date(worldNow() - ago * 3600e3).toISOString(), m0 = S.msgs.length;
       if (typeof shopBack !== 'function') return null;
       const n = shopBack([{id:2, product:'trim_turbo', held:true, done_at:at, data:{give:'trim', k:'turbo', boat:S.cur}}, {id:1, product:'skip', held:true, done_at:at, data:{give:'skip', k:'std'}}]).size;

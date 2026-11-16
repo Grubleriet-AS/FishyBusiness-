@@ -137,7 +137,7 @@ function shopThanks(rc){
 // the boat it was bought for (not in the fleet: not given), with the end it had: boostBack, never longer than what was bought, and
 // nothing when the end has passed. Skippertak the same, for the whole fleet. The yard done now finishes the yard jobs running, or
 // is kept as a credit. No new confirmation: one line in the log and in Meldinger, and the event shop_back. Returns the ids that are
-// dealt with (given, or with nothing left to give); one whose boat is not in this save, or of a kind this page does not know, is not
+// dealt with (given, or with nothing left to give); one of a kind this page does not know (a trim goes on the fleet, whatever boat), is not
 // among them and is asked about again at the next claim, never marked as given and lost
 function shopBack(list){
   const ms = g => Date.parse(g.done_at), now = boostT(), wn = worldNow(), at = g => backT(ms(g), wn, S.t, WCLOCK.on), hrs = e => Math.max(0, (e - now) / 60);

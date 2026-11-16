@@ -1,4 +1,5 @@
   // --- workshop: service, fitting and getting the gear ready, one job after the other while the boat is in port
+  const fbGiftCard = () => '<div class="ph-card haillc fb-gift"><h4>' + L('Gratis haill for gode tips', 'Free luck for good tips') + '</h4><p>' + L('Har du funnet en feil eller har en idé? Skriv det i Tilbakemelding-appen. Hjelper tipset oss å gjøre spillet bedre, får du 12 timer med fullt haill (+100 %) som takk.', 'Found a bug or have an idea? Write it in the Feedback app. If your tip helps us make the game better, you get 12 hours of full luck (+100 %) as a thank-you.') + '</p><button class="ph-btn" data-pa="fbOpen">' + L('Gi tilbakemelding', 'Give feedback') + '</button></div>';
   function haill(){
     // the luck aboard (its stage and the hours left), the store with «Aktiver», and the shop (the user's list 04.10.2026)
     const h = ['<div class="ph-c">'], a = S.haill, st = haillStage(), inv = haillStock(S.haillInv, S.haillSrv, S.haillUsed), hr = v => v >= 48 ? fmt(v / 24, 1) + L(' døgn', ' days') : fmt(v, 0) + L(' t', ' h');
@@ -16,7 +17,7 @@
     for (const k of ['haill', 'luksus']){ const X = HAILL[k], free = gift && k === 'luksus';
       h.push('<div class="ph-card haillc">' + kbPic(k) + '<h4>' + X[S.lang] + (k === 'luksus' && !free ? kbBest() : '') + '</h4><p>' + X.d[S.lang] + '</p>' + (free || shopMode() !== 'live' ? '<div class="ph-kv"><span>' + L('Pris', 'Price') + '</span><span><b>' + (free ? L('gratis nå', 'free now') : realKr(X.nok)) + '</b></span></div>' : '') + '<button class="ph-btn p" data-pa="haillbuy" data-k="' + k + '"' + (gift && !free ? ' disabled' : '') + '>' + (free ? L('Hent gratis luksushaill', 'Fetch a free luxury luck') : shopLabel(X.nok)) + '</button>' + (free ? '' : shopFine()) + '</div>'); }
     // the thank-you for feedback (Jonas 06.10.2026): said where the luck is, with the way to the feedback app
-    h.push('<div class="ph-card haillc fb-gift"><h4>' + L('Gratis haill for gode tips', 'Free luck for good tips') + '</h4><p>' + L('Har du funnet en feil eller har en idé? Skriv det i Tilbakemelding-appen. Hjelper tipset oss å gjøre spillet bedre, får du 12 timer med fullt haill (+100 %) som takk.', 'Found a bug or have an idea? Write it in the Feedback app. If your tip helps us make the game better, you get 12 hours of full luck (+100 %) as a thank-you.') + '</p><button class="ph-btn" data-pa="fbOpen">' + L('Gi tilbakemelding', 'Give feedback') + '</button></div>');
+    h.push(fbGiftCard());
     h.push('<p class="ph-note">' + L('Du kan også være heldig på puben. Tida er spilltid: 24 timer i spillet er ' + fmt(24 / GAME_RATE, 0) + ' timer i virkeligheten.', 'You can also get lucky at the pub. The time is game time: 24 hours in the game is ' + fmt(24 / GAME_RATE, 0) + ' hours in real life.') + '</p></div>');
     return h.join('');
   }
@@ -57,8 +58,9 @@
     } else {
       body = haill().replace(/^<div class="ph-c">/, '').replace(/<\/div>$/, '').split('<div class="ph-card haillc">' + kbPic('haill'))[0];   // (the luck aboard and the store, with «Aktiver»)
       const b = S.boat, on = trimOn(b);
-      body += '<div class="ph-card"><h4>Turbotrim</h4>' + (on ? kv(L('På hele flåten', 'On the whole fleet'), '+' + Math.round((on.x - 1) * 100) + ' % ' + L('fart', 'speed')) + kv(L('Går ut om', 'Ends in'), fmt(trimLeft(b) / GAME_RATE, 1) + L(' timer', ' hours')) : '<p class="ph-note">' + L('Ingen trim på denne båten nå.', 'No tune on this boat now.') + '</p>') + '</div>';
+      body += '<div class="ph-card"><h4>Turbotrim</h4>' + (on ? kv(L('På hele flåten', 'On the whole fleet'), '+' + Math.round((on.x - 1) * 100) + ' % ' + L('fart', 'speed')) + kv(L('Går ut om', 'Ends in'), fmt(trimLeft(b) / GAME_RATE, 1) + L(' timer', ' hours')) : '<p class="ph-note">' + L('Ingen trim på flåten nå.', 'No tune on the fleet now.') + '</p>') + '</div>';
       body += '<div class="ph-card"><h4>Skippertak</h4>' + (skipOn() ? kv(L('Går ut om', 'Ends in'), fmt(skipLeft() / GAME_RATE, 1) + L(' timer', ' hours')) : '<p class="ph-note">' + L('Ikke på nå.', 'Not on now.') + '</p>') + '</div>';
+      body += fbGiftCard();   // (the free way to luck, under what is in store: a takk-haill lands there)
     }
     return '<div class="ph-c">' + tabs + body + '</div>';
   }

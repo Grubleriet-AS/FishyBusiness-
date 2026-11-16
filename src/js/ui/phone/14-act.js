@@ -97,7 +97,8 @@
     else if (a === 'hbshow'){ HBUI.show(d.id); return; }   // «Vis meg» in Håndboka: the phone closes and the tip points (07c-handbook.js)
     else if (a === 'hbskip'){ HBUI.toggle(+d.ch); }
     else if (a === 'hball'){ HBUI.only = null; }
-    else if (a === 'sub'){ sub[app] = d.s; if (app === 'post') sub.postArt = null; }
+    else if (a === 'sub'){ sub[KBT.includes(app) ? 'kaiboden' : app] = d.s;   // (Kaiboden's tabs: one window for haill, trim and skip)
+      if (app === 'post') sub.postArt = null; }
     else if (a === 'acy') sub.acy = d.y;                // the year shown in the bank's accounts
     else if (a === 'bkmv'){ const B = bankS(), k = d.k === 'skatt' ? 'skatt' : 'spare', v = d.v === '-all' ? -B[k] : +d.v; if (!bankMove(k, v)) toast(L(v > 0 ? 'Brukskontoen er tom.' : 'Kontoen er tom.', v > 0 ? 'The current account is empty.' : 'The account is empty.')); }
     else if (a === 'bkauto'){ const B = bankS(); if (d.v === 'auto') B.auto = true; else { B.auto = false; B.pct = clamp(+d.v || 0.4, 0, 0.6); } }
@@ -314,7 +315,7 @@
     else if (a === 'cloth'){ buyMark(); const why = clothBuy(d.k); if (why){ toast(why); return true; } receipt(CLOTHES[d.k][S.lang], 'cloth', d.k); }
     else if (a === 'haillbuy'){ if (tutFree('haill') && d.k !== 'luksus') return; const k = d.k, got = () => { giveHaill(k, 'shop'); toast(HAILL[k][S.lang] + L(' ligger i beholdningen. Trykk «Aktiver» når du vil bruke den.', ' is in store. Tap «Switch on» when you want it.')); };
       if (tutFree('haill')){ tutMark('free_haill'); got(); } else payBuy(k, got); }
-    else if (a === 'skipbuy'){ const k = d.k; if (!SKIP[k]) return; payBuy('sk_' + k, () => { const n = giveSkip(k); if (n) toast(n + L(': du og mannskapet er uthvilt i ' + Math.round(skipLeft()) + ' timer.', ': you and the crew are rested for ' + Math.round(skipLeft()) + ' hours.')); }); }
+    else if (a === 'skipbuy'){ const k = d.k; if (!SKIP[k]) return; payBuy('sk_' + k, () => { const n = giveSkip(k); if (n) toast(n + L(': du og mannskapet er uthvilt i ' + Math.round(skipLeft() / GAME_RATE) + ' timer.', ': you and the crew are rested for ' + Math.round(skipLeft() / GAME_RATE) + ' hours.')); }); }
     else if (a === 'haillon'){ if (S.haill && haillStage() && haillPend !== d.k){ haillPend = d.k; return true; } haillPend = null; if (useHaill(d.k)) toast(HAILL[d.k][S.lang] + L(' er aktivert: +', ' is on: +') + Math.round(haillBoost() * 100) + ' %.'); }
     else if (a === 'haill0'){ haillPend = null; }
     else if (a === 'jobOT'){ const j = (S.jobs || [])[+d.i]; if (!j || j.until == null || j.ot) return; const left = Math.max(0, j.until - S.t) / 60, c = Math.round(left / 2 * 950 / 10) * 10; if (spendable() < c){ toast(t('no_cash')); return; }
