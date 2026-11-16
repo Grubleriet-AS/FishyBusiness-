@@ -4957,3 +4957,6 @@
 2026-11-16 15:51	claude/blissful-cannon-ctb8e9	dbe6f257	boottest	OK	26	lite	alene	
 2026-11-16 15:53	claude/blissful-cannon-ctb8e9	46caaa55	boottest	OK	25	lite	alene	
 2026-11-16 16:27	ccr-349425a1-raf94t	a7f24b0+	fartstidtest	OK	14	lite	alene	
+2026-11-16 16:53	ccr-349425a1-raf94t	ea9e439+	hailltest	FEIL	15	lite	samtidig	avsluttet med kode 1
+2026-11-16 16:53	ccr-349425a1-raf94t	ea9e439+	kjoptest	FEIL	8	lite	samtidig	avsluttet med kode 1
+2026-11-16 16:53	ccr-349425a1-raf94t	ea9e439+	skiptest	FEIL	8	lite	samtidig	FEIL 4a. prisene i spillet og i migreringen er like: 1, 2 og 4 døgn for 29, 39 og 49 kr  {"game": {"s4": [24, 29], "s12": [72, 49], "s24": [144, 79], "s72": [43
