@@ -141,3 +141,5 @@ Tegningene: `docs/planer/dekk/<type>.png`, «I dag» og «Forslag» side om side
 ## Tallene steget kan begynne fra
 
 Tabellen «Alle handlingene» i 5.33d i `docs/systemer/folk-om-bord.md`: radene med andres ting i en kropp og de plassbundne handlingene (`gutw`, `pack`, `bleed`, `gaff`, `egn`) er de cellene skal få til null uten søk per båt. `node tests/unit/run.mjs arbeidsplass` skriver plassene på åtte båttyper.
+
+**Etter steg 125f (16.11.2026):** de fire stegene i rekkefølgen er bygd og rullet ut (125f versjon `e5034d58c40f`). Garnet får ikke et tilsvarende steg: Jonas 16.11.2026, «Garnene står jo i store kar, og skal ikke bæres.» Folk 2-sporet går videre med 121 FB3 (føttene i gange, startmeldingen `start/121.md`, venter på klarsignal) eller etter det Jonas ser på nettbrettet.
