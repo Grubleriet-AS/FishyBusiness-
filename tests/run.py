@@ -160,7 +160,7 @@ COVER['src/js/core/06j-hopp.js'] = ['hopptest']; COVER['tests/hopptest.py'] = ['
 LITE += ['kapplop']   # kappløpet Lindesnes–Nordkapp, kjernen (KL1, steg 116a); trenger hele kysten i bygget
 COVER['src/js/core/09o-kapplop.js'] = ['kapplop', 'hopptest']; COVER['src/js/core/11-route.js'] = COVER.get('src/js/core/11-route.js', []) + ['kapplop']; COVER['tests/kapplop.py'] = ['kapplop']; COVER['tests/unit/kapplop.test.mjs'] = []
 D3 += ['kapplopshot']   # kappløpet på skjermen i begge formater (KL2, steg 117): fanen, løypa i kartet, klokka, oppgavene fra skjermen; trenger hele kysten
-LONG['kapplopshot'] = 2400
+LONG['kapplopshot'] = 3000   # (KL3 la tavla til i begge formater, rundt tre minutter hver: 2 057 s før)
 COVER['src/js/ui/05l-kapplop.js'] = ['kapplopshot']; COVER['tests/kapplopshot.py'] = ['kapplopshot']
 for _f in ('src/js/ui/05f-turer.js', 'src/js/ui/phone/02-havn-last-agn-ordre.js', 'src/js/ui/03e-miniplot.js', 'src/js/ui/04-panels-instruments.js', 'src/js/ui/06d-season-folk.js', 'src/js/ui/03-map.js', 'src/js/ui/08-actions.js', 'src/js/ui/phone/14-act.js'): COVER.setdefault(_f, []).append('kapplopshot')
 COVER['src/js/ui/10u-hopp.js'] = ['hopptest', 'hoppshot', 'fasittest']; COVER['src/js/ui/10v-profil.js'] = ['profiltest']; COVER['supabase/migrations/20261116120000_lansering.sql'] = ['sqltest']; COVER['tests/profiltest.py'] = ['profiltest']; COVER['supabase/migrations/20261112200000_hopp.sql'] = ['sqltest', 'fasittest']; COVER['tests/hoppshot.py'] = ['hoppshot']; COVER['src/js/core/06j-hopp.js'] += ['hoppshot']
@@ -359,6 +359,12 @@ for _f in ('src/js/ui/10g-wardrobe.js', 'src/js/vessel3d.js'): COVER[_f] = COVER
 
 # (15.11.2026) allesteder walks every harbour, rorbu and naust along the coast: 45-70 minutes, so 900 s stopped it every night
 LONG['allesteder'] = 5400
+# (16.11.2026, when 118 was merged, as the queue asked) the race's migration, steg 126's site file and tool, steg 121's foot test
+COVER['supabase/migrations/20261113200000_kapplop.sql'] = ['sqltest']
+COVER['src/data/siteout.json'] = ['rorbutest', 'placetest']; COVER['tools/rorbu/siteout.py'] = []
+D3 += ['fotgli']; LONG['fotgli'] = 2400; COVER['tests/fotgli.py'] = ['fotgli']; COVER['tests/unit/fotgli.test.mjs'] = []
+for _f in ('src/js/deckcrew.js', 'src/js/view3d/08-plants.js', 'src/js/view3d/20-trawl-seine.js'):
+    COVER[_f] = COVER.get(_f, []) + ['fotgli']
 
 
 # The same key twice in the COVER literal: Python keeps the last one, so the tests of the first were silently lost (15.11.2026:
