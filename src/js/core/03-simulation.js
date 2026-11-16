@@ -262,7 +262,7 @@ function jigMeShare(){
   const b = S.boat; if (!b || !b.gear || !meAboard()) return 0;
   const F = workTeam('fiske', 'juksa', 'fishing'), per = jigPer(), jk = Math.min(S.equip ? S.equip.jukse : 0, F.n * per);
   if (F.n - Math.ceil(jk / per) < 1) return 0;
-  const tot = effortOf(F.n, jk, JIG.hand) * F.eff; return tot > 0 ? clamp(JIG.hand * meEff() / tot, 0, 1) : 0;
+  const tot = effortOf(F.n, jk, JIG.hand) * F.eff; return tot > 0 ? clamp(JIG.hand * meEff() * fsSkF('juksa') / tot, 0, 1) : 0;
 }
 // your share if you went to the rail now: «Jukse selv» puts you there (window.jigActive, workAssign), so the button asks this and not
 // where you stand this minute (feedback #4 from the test edition, 12.11.2026: a skipper on a break with the crew jigging never saw it)

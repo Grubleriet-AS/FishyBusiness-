@@ -1111,6 +1111,16 @@ body.v3d #compass3d{width:min(440px,54vw,calc(100vw - 2 * (var(--hudW,176px) + 2
 .ph-goal.ph-fs .gb i{background:linear-gradient(90deg,#f2b33d,#ffd77a)}
 .fsbar{display:block;height:6px;border-radius:3px;background:rgba(0,0,0,.1);overflow:hidden;margin:6px 0 4px}
 .fsbar i{display:block;height:100%;background:linear-gradient(90deg,#f2b33d,#ffd77a)}
+/* RANK1-b: the skills on the level card, each a bar to 5 with the ceiling of the level marked */
+.rk-xp{margin:0 0 8px}
+.rk-list{display:grid;gap:6px;margin:4px 0 8px;max-width:560px}
+.rk-sk{display:grid;grid-template-columns:minmax(0,9em) minmax(0,1fr) 2.4em;gap:8px;align-items:center}
+.rk-n{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rk-v{font:600 13px var(--sans);text-align:right;font-variant-numeric:tabular-nums}
+.rk-bar{position:relative;display:block;height:8px;border-radius:4px;background:rgba(127,127,127,.22)}
+.rk-bar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#3d8fb8,#6cc0e0)}
+.rk-lock{position:absolute;top:0;bottom:0;right:0;border-radius:0 4px 4px 0;background:repeating-linear-gradient(135deg,rgba(127,127,127,.38) 0 3px,transparent 3px 6px);text-decoration:none}
+.rk-cap{position:absolute;top:-3px;bottom:-3px;width:2px;margin-left:-1px;border-radius:1px;background:#f2b33d}
 .aw{text-align:center}
 .aw-h{margin:0 0 6px;font:600 13px var(--sans);opacity:.7;text-transform:uppercase;letter-spacing:.04em}
 .aw-big{margin:4px 0 12px}

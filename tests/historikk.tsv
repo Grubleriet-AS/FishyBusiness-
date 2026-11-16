@@ -4956,6 +4956,22 @@
 2026-11-16 15:15	ccr-349425a1-raf94t	a6ca767+	cloudtest	OK	41	lite	alene	
 2026-11-16 15:51	claude/blissful-cannon-ctb8e9	dbe6f257	boottest	OK	26	lite	alene	
 2026-11-16 15:53	claude/blissful-cannon-ctb8e9	46caaa55	boottest	OK	25	lite	alene	
+2026-11-16 16:33	plan/2026-11-16-134	9e35a211+	skiptest	OK	20	lite	samtidig	
+2026-11-16 16:33	plan/2026-11-16-134	9e35a211+	fartstidtest	OK	17	lite	samtidig	
+2026-11-16 16:33	plan/2026-11-16-134	9e35a211+	worktest	FEIL	27	lite	samtidig	FEIL at 25 % you are warned and work at three quarters of your pace
+2026-11-16 16:33	plan/2026-11-16-134	e770ec4f	trip2	OK	37	lite	samtidig	
+2026-11-16 16:35	plan/2026-11-16-134	e770ec4f	driftsplan2test	FEIL	113	lite	alene	FEIL S5 the tired crew end the day: no more jigging, the line is still hauled when due (within 3 h), then in [[['D1 13:19', 'Mannskapet er slitne. Avslutter juk
+2026-11-16 16:39	plan/2026-11-16-134	e770ec4f+	worktest	OK	23	lite	alene	
+2026-11-16 16:41	plan/2026-11-16-134	e770ec4f+	driftsplan2test	OK	112	lite	alene	
+2026-11-16 16:45	plan/2026-11-16-134	e770ec4f+	trip2	OK	34	lite	samtidig	
+2026-11-16 16:45	plan/2026-11-16-134	e770ec4f+	skiptest	OK	20	lite	samtidig	
+2026-11-16 16:27	ccr-349425a1-raf94t	a7f24b0+	fartstidtest	OK	14	lite	alene	
+2026-11-16 16:49	plan/2026-11-16-134	87d3edfd+	fartstidtest	FEIL	15	lite	alene	FEIL the level on the home and the card «Nivå og ferdigheter», with the xp to the next  ["06:03\nman 1. mar\nNØ 5 m/s · −1 °C\n2 000 kr\nNeste mål: Første juksa
+2026-11-16 16:50	plan/2026-11-16-134	87d3edfd+	fartstidtest	FEIL	14	lite	alene	FEIL the phone's home shows the years and days, and the Merker app explains how sea time is earned  "06:02\nman 1. mar\nNØ 5 m/s · −1 °C\n2 000 kr\nNeste mål: F
+2026-11-16 16:51	plan/2026-11-16-134	87d3edfd+	fartstidtest	OK	20	lite	samtidig	
+2026-11-16 16:51	plan/2026-11-16-134	87d3edfd+	merketest	OK	18	lite	samtidig	
+2026-11-16 16:56	plan/2026-11-16-134	87d3edfd+	fartstidtest	OK	19	lite	samtidig	
+2026-11-16 16:56	plan/2026-11-16-134	87d3edfd+	merketest	OK	20	lite	samtidig	
 2026-11-16 16:18	ccr-5e1ba2f4-pusvyd	5984d333+	driftsplan2map	OK	61	lite	samtidig	
 2026-11-16 16:18	ccr-5e1ba2f4-pusvyd	5984d333+	driftsplan2ui	OK	62	lite	samtidig	
 2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	havplantest	FEIL	1151	lite	samtidig	FEIL spot check Egersund: the plan made, out from Egersund, the lenker set and hauled, fish aboard [[{'lat': 58.249999999999986, 'lon': 4.9}, {'lat': 58.3826273
@@ -5056,3 +5072,11 @@
 2026-11-16 17:33	ccr-349425a1-raf94t	b1d06aa+	boostklokke	OK	60	lite	samtidig	
 2026-11-16 17:33	ccr-349425a1-raf94t	b1d06aa+	skiptest	OK	19	lite	samtidig	
 2026-11-16 17:34	ccr-349425a1-raf94t	b1d06aa+	telefonflate	OK	158	lite	samtidig	
+2026-11-16 17:31	plan/2026-11-16-134	13134443+	hbtest	OK	20	lite	samtidig	
+2026-11-16 17:32	plan/2026-11-16-134	f7b0d538	docktest	OK	69	lite	samtidig	
+2026-11-16 17:32	plan/2026-11-16-134	f7b0d538	fartstidtest	OK	18	lite	samtidig	
+2026-11-16 17:32	plan/2026-11-16-134	f7b0d538	merketest	OK	14	lite	samtidig	
+2026-11-16 17:32	plan/2026-11-16-134	f7b0d538	worktest	OK	23	lite	samtidig	
+2026-11-16 17:32	plan/2026-11-16-134	f7b0d538	skiptest	OK	18	lite	samtidig	
+2026-11-16 17:33	plan/2026-11-16-134	f7b0d538	trip2	OK	32	lite	samtidig	
+2026-11-16 17:34	plan/2026-11-16-134	f7b0d538	driftsplan2test	OK	101	lite	alene	

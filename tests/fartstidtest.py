@@ -52,6 +52,18 @@ async def main():
         # the home screen shows «Første uke» beside «Neste mål» until the first week is over, and the sea time in its place after (UI 2, U2-6, 07.11.2026)
         h = await pg.evaluate("""(() => { achState(); const c2 = S.ach.ch[2]; S.ach.ch[2] = S.ach.ch[2] || S.t; PHONE.show(true); PHONE.open('home'); const t = document.getElementById('phView').innerText; S.ach.ch[2] = c2; PHONE.open('merker'); PHONE.dact('merker', 'sub', {s:'merker'}); PHONE.render(); const s = document.getElementById('phView').innerText; PHONE.show(false); return {home:t, sjo:s.slice(0, 300)}; })()""")
         check('år og' in h['home'] and 'døgn fartstid' in h['home'] and 'Fartstid tjenes om bord' in h['sjo'], "the phone's home shows the years and days, and the Merker app explains how sea time is earned", h['home'][:200])
+        # RANK1-b (docs/planer/rank1.md, Jonas 16.11.2026, V1–V4 A): the home's chip shows the level; the card in Merker is «Nivå og
+        # ferdigheter» with the level, the xp to the next and the seven skills with the ceiling; a skill that went over a whole number while
+        # away gets a tile in the report
+        k = await pg.evaluate("""(() => { achState(); const c2 = S.ach.ch[2]; S.ach.ch[2] = S.ach.ch[2] || S.t; const F = fsState(); F.p = fsNeed(12) + 5; const sk = fsSkills(); sk.sloy = 2.95;
+          PHONE.show(true); PHONE.open('home'); const home = document.getElementById('phView').innerText; S.ach.ch[2] = c2;
+          PHONE.open('merker'); PHONE.dact('merker', 'sub', {s:'merker'}); PHONE.render(); const v = document.getElementById('phView'), card = v.innerText;
+          const rows = v.querySelectorAll('.rk-sk').length, caps = v.querySelectorAll('.rk-sk .rk-cap').length; PHONE.show(false);
+          const m = document.getElementById('modal'); awayStart(600, 3.6e6 * 3); sk.sloy = 3.01; S.stats.revenue += 5000; awayEnd(); const rep = m.hidden ? '' : m.innerText; m.hidden = true;
+          return {home:home.slice(0, 300), card:card.slice(0, 900), rows, caps, rep:rep.slice(0, 900)}; })()""")
+        check('Nivå 12' in k['home'] and 'Nivå 12' in k['card'] and 'Nivå og ferdigheter' in k['card'] and ' xp' in k['card'], 'the level on the home and the card «Nivå og ferdigheter», with the xp to the next', [k['home'][:120], k['card'][:200]])
+        check(k['rows'] == 7 and k['caps'] == 7 and 'Sløying' in k['card'] and 'Krabbesortering' in k['card'], 'the seven skills with the ceiling of the level marked', [k['rows'], k['caps']])
+        check('flinkere' in k['rep'] and 'sløying' in k['rep'].lower(), 'a skill over a whole number while away: a tile in the report', k['rep'][:300])
         check(errs == [], 'sidefeil', errs)
         await br.close()
 

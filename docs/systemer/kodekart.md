@@ -1309,7 +1309,7 @@ Driftsplan 2 for the snow crab vessel (H3c of docs/planer/havsteget-h3-snokrabbe
   - 204 `p2SnoText(o, s, pl, kl, at)`
   - 216 `p2SnoCheck(o, st, ER, Wn)`
 
-## `src/js/core/06k-plan3.js` (415 linjer)
+## `src/js/core/06k-plan3.js` (416 linjer)
 
 Driftsplan 3: the plan is a ring and a gear (16.11.2026, docs/planer/driftsplan-3.md). Part 1 (DP3-1): the model and «find the plan».
 
@@ -1337,21 +1337,21 @@ Driftsplan 3: the plan is a ring and a gear (16.11.2026, docs/planer/driftsplan-
 - **213** DP3-2: the search with the echo sounder (16.11.2026, docs/planer/driftsplan-3.md chapter 3, «Søket med ekkoloddet»).
   - 223 `plan3Tier()`
   - 227 `plan3Reader()`
-  - 238 `plan3Take(o, H)`
-  - 247 `plan3Truth(p, H, take, den)`
-  - 251 `plan3See(p, H, tier, take, den, ahead)`
-  - 257 `plan3Clean(a, b)`
-  - 268 `plan3SokPrep(o, spots)`
-  - 305 `plan3SokEnd0(o, tier)`
-  - 308 `plan3SnoFits(o, q, at)`
-  - 314 `plan3StrKm(o, q)`
-  - 322 `plan3Heads(o, q, at)`
-  - 334 `plan3Lay(o, q, at, segs, hs)`
-  - 341 `plan3SokEst(o)`
-  - 348 `plan3SokNeed(o, st)`
-  - 363 `plan3Search(o, ids, H, opt)`
-  - 389 `plan3SokEnd(o, tr, H)`
-  - 401 `plan3HaulWatch(o, H)`
+  - 239 `plan3Take(o, H)`
+  - 248 `plan3Truth(p, H, take, den)`
+  - 252 `plan3See(p, H, tier, take, den, ahead)`
+  - 258 `plan3Clean(a, b)`
+  - 269 `plan3SokPrep(o, spots)`
+  - 306 `plan3SokEnd0(o, tier)`
+  - 309 `plan3SnoFits(o, q, at)`
+  - 315 `plan3StrKm(o, q)`
+  - 323 `plan3Heads(o, q, at)`
+  - 335 `plan3Lay(o, q, at, segs, hs)`
+  - 342 `plan3SokEst(o)`
+  - 349 `plan3SokNeed(o, st)`
+  - 364 `plan3Search(o, ids, H, opt)`
+  - 390 `plan3SokEnd(o, tr, H)`
+  - 402 `plan3HaulWatch(o, H)`
 
 ## `src/js/core/06j-hopp.js` (156 linjer)
 
@@ -1624,21 +1624,28 @@ the people on the quay (05.10.2026; Jonas chose it from the list of what makes p
   - 141 `folkShop()`
   - 148 `folkPort(H)`
 
-## `src/js/core/09e-fartstid.js` (56 linjer)
+## `src/js/core/09e-fartstid.js` (112 linjer)
 
 Fartstid: years at sea, 0 to 40 (Jonas 07.10.2026; docs/engasjement.md, arbeidslista 1)
 
 - **1** Fartstid: years at sea, 0 to 40 (Jonas 07.10.2026; docs/engasjement.md, arbeidslista 1)
-  - 12 `fsNeed(n)`
-  - 14 `fsOf(p)`
-  - 20 `fsSeed()`
-  - 24 `fsState()`
-  - 25 `fsText(p, long)`
-  - 29 `fsAdd(pts, aboard)`
-  - 37 `fsYear(y)`
-  - 46 `fsMinute()`
-  - 53 `fsLand(total)`
-  - 55 `fsRested(realMs)`
+  - 15 `fsNeed(n)`
+  - 17 `fsOf(p)`
+  - 23 `fsSeed()`
+  - 27 `fsState()`
+  - 28 `fsText(p, long)`
+  - 32 `fsAdd(pts, aboard)`
+  - 40 `fsYear(y)`
+  - 49 `fsMinute()`
+  - 56 `fsLand(total)`
+  - 58 `fsRested(realMs)`
+- **60** Your own skills (RANK1-a, docs/planer/rank1.md, Jonas 16.11.2026: «siden litt av storyen i spillet er at man arver en båt, så må
+  - 77 `fsSkills()`
+  - 92 `fsLearn(k, m = 1)`
+  - 102 `fsSkillMinute(st)`
+  - 107 `fsYearSkills(y)`
+  - 110 `fsLvlText(p)`
+  - 111 `fsXp(p)`
 
 ## `src/js/core/09f-merker.js` (231 linjer)
 
@@ -2244,7 +2251,7 @@ WHAT A ROUTE MUST NOT SAIL THROUGH (Jonas 05.10.2026: «autoruter aldri skal gå
   - 124 `heatAt(p)`
   - 127 `schoolDrift(sp, p, H)`
 
-## `src/js/core/13-work.js` (463 linjer)
+## `src/js/core/13-work.js` (468 linjer)
 
 work aboard: stations, and how the crew share them
 
@@ -2259,39 +2266,39 @@ work aboard: stations, and how the crew share them
 - **75** what a person is used to: minutes at each station (c.hab), fading by a fifth a month. The station with most of them, once it is
   - 78 `crewRole(c)`
   - 80 `habSeed(c)`
-- **81** how good a person is at a station's work (1-5): you are a skipper who knows every job on deck
-  - 82 `stSkill(c, k, ctx, sk)`
-  - 99 `workScore(p, k, ctx, need, sk)`
-  - 111 `restScore(p)`
-  - 122 `workWhy(p, k, ctx, sk)`
-  - 133 `stPlaces(st, ctx)`
-  - 144 `workCtx(as)`
-- **160** the crew's own jobs as stations: where they may be worked (in port, or at sea while she goes or lies still: seaWork), how many can
-  - 162 `jobsOpen(as)`
-  - 163 `jobPlaces(j)`
-  - 174 `jobCoop(j, n)`
-  - 178 `jobW(j)`
-  - 184 `jobRate(j, A)`
-  - 191 `jobMinute(j, A)`
-  - 201 `jobWait(j)`
-  - 206 `workAssign(as)`
-- **303** the boat's own hands at the quay (OB4, 11.11.2026, docs/planer/om-bord.md F10, F11, F23; Jonas 09.11.2026: «at arbeidet ombord
-  - 311 `quayRoles(P, ctx)`
-- **324** the deck washed down, the packed lunch and the cold, as roles on those on a break (OB14, 11.11.2026, docs/planer/om-bord.md F12,
-  - 338 `washMin()`
-  - 340 `deckWash()`
-  - 342 `lunchNow()`
-  - 343 `deckRoles(P, ctx)`
-  - 360 `deckDoing(p)`
-- **362** what a person does on a break (Jonas 23.10.2026: «La det også stå hva de gjør når de ikke har en aktiv arbeidsoppgave som feks: lener
-  - 378 `crewVice(c)`
-  - 380 `idleEnv()`
-  - 388 `idleWeights(p, ctx, E, mates)`
-  - 411 `idleAssign(P, ctx)`
-  - 425 `idleText(p)`
-  - 433 `workDoing(p)`
-  - 443 `workTeam(st, g, as)`
-  - 449 `workMinute()`
+- **81** how good a person is at a station's work (1-5): you have the helm as the skipper, and at the rest the flat 3.2 from before
+  - 85 `stSkill(c, k, ctx, sk)`
+  - 103 `workScore(p, k, ctx, need, sk)`
+  - 115 `restScore(p)`
+  - 126 `workWhy(p, k, ctx, sk)`
+  - 137 `stPlaces(st, ctx)`
+  - 148 `workCtx(as)`
+- **164** the crew's own jobs as stations: where they may be worked (in port, or at sea while she goes or lies still: seaWork), how many can
+  - 166 `jobsOpen(as)`
+  - 167 `jobPlaces(j)`
+  - 178 `jobCoop(j, n)`
+  - 182 `jobW(j)`
+  - 188 `jobRate(j, A)`
+  - 195 `jobMinute(j, A)`
+  - 205 `jobWait(j)`
+  - 210 `workAssign(as)`
+- **307** the boat's own hands at the quay (OB4, 11.11.2026, docs/planer/om-bord.md F10, F11, F23; Jonas 09.11.2026: «at arbeidet ombord
+  - 315 `quayRoles(P, ctx)`
+- **328** the deck washed down, the packed lunch and the cold, as roles on those on a break (OB14, 11.11.2026, docs/planer/om-bord.md F12,
+  - 342 `washMin()`
+  - 344 `deckWash()`
+  - 346 `lunchNow()`
+  - 347 `deckRoles(P, ctx)`
+  - 364 `deckDoing(p)`
+- **366** what a person does on a break (Jonas 23.10.2026: «La det også stå hva de gjør når de ikke har en aktiv arbeidsoppgave som feks: lener
+  - 382 `crewVice(c)`
+  - 384 `idleEnv()`
+  - 392 `idleWeights(p, ctx, E, mates)`
+  - 415 `idleAssign(P, ctx)`
+  - 429 `idleText(p)`
+  - 437 `workDoing(p)`
+  - 447 `workTeam(st, g, as)`
+  - 454 `workMinute()`
 
 ## `src/js/core/14-crewlife.js` (741 linjer)
 
@@ -2978,14 +2985,14 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **98** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 102 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1719 linjer)
+## `src/js/ui/phone/07-patch.js` (1723 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1707 `patch()`
+  - 1711 `patch()`
 
-## `src/js/ui/phone/08-home-papers-merker.js` (126 linjer)
+## `src/js/ui/phone/08-home-papers-merker.js` (133 linjer)
 
 the home screen (UI 2, U2-6; Jonas 06.11.2026, V6 A and V2 A in docs/planer/ui-2-staaende.md): the clock, the weather and the cash,
 
@@ -3000,9 +3007,9 @@ the home screen (UI 2, U2-6; Jonas 06.11.2026, V6 A and V2 A in docs/planer/ui-2
   - 85 `papKv()`
   - 91 `papBiz()`
   - 97 `fsChip()`
-  - 99 `fsCard()`
-  - 106 `merker()`
-  - 118 `lore()`
+  - 101 `fsCard()`
+  - 113 `merker()`
+  - 125 `lore()`
 
 ## `src/js/ui/phone/09-vaer-post-salg-redning.js` (175 linjer)
 
@@ -3388,22 +3395,22 @@ the phone's Fiskeguide app (08.10.2026; Jonas: «en intuitiv app til telefonen d
   - 297 `tipPlace(txt, T0, o)`
   - 322 `tipToast()`
 
-## `src/js/ui/07c-handbook.js` (282 linjer)
+## `src/js/ui/07c-handbook.js` (286 linjer)
 
 Håndboka: chapters 2–6 of the on-boarding as drips, and the app that keeps every tip (docs/onboarding.md 3–4, Jonas 09–10.10.2026)
 
 - **1** Håndboka: chapters 2–6 of the on-boarding as drips, and the app that keeps every tip (docs/onboarding.md 3–4, Jonas 09–10.10.2026)
   - 10 `hbState()`
-  - 209 `hbPick()`
-  - 217 `hbEv(id, how)`
-  - 218 `hbDone(id)`
-  - 219 `hbSkip(ch, id)`
-  - 221 `hbReady()`
-- **223** what the phone shows (Onboarding 2, O5, V7 A, 27.10.2026)
-  - 232 `appShown(id)`
-  - 239 `appUnlock(id)`
-  - 241 `appSeen(id)`
-  - 242 `hbUpdate()`
+  - 213 `hbPick()`
+  - 221 `hbEv(id, how)`
+  - 222 `hbDone(id)`
+  - 223 `hbSkip(ch, id)`
+  - 225 `hbReady()`
+- **227** what the phone shows (Onboarding 2, O5, V7 A, 27.10.2026)
+  - 236 `appShown(id)`
+  - 243 `appUnlock(id)`
+  - 245 `appSeen(id)`
+  - 246 `hbUpdate()`
 
 ## `src/js/ui/10g-wardrobe.js` (204 linjer)
 
@@ -3413,7 +3420,7 @@ Garderoben: the player changes how his figure looks (Jonas 10.10.2026)
 - **22** the right-hand side: what the current tab offers
 - **63** the little renderer
 
-## `src/js/ui/08-actions.js` (528 linjer)
+## `src/js/ui/08-actions.js` (531 linjer)
 
 actions
 
@@ -3431,19 +3438,19 @@ actions
   - 344 `awayStart(mins, realMs)`
   - 349 `awayEnd()`
   - 350 `showAway(A)`
-- **409** time
-  - 415 `playMinutes(n, away)`
-  - 419 `catchUp(realMs)`
-  - 430 `tick()`
-  - 467 `deliverOrder()`
-- **477** chrome
-  - 478 `applyLang()`
-- **491** screens: full-screen 3D, or the chart plotter for route planning
-  - 492 `setBodyView(v3d)`
-  - 498 `openPlotter()`
-  - 503 `plotSetRender()`
-  - 507 `plotSetOpen(on)`
-  - 520 `kinoUi()`
+- **412** time
+  - 418 `playMinutes(n, away)`
+  - 422 `catchUp(realMs)`
+  - 433 `tick()`
+  - 470 `deliverOrder()`
+- **480** chrome
+  - 481 `applyLang()`
+- **494** screens: full-screen 3D, or the chart plotter for route planning
+  - 495 `setBodyView(v3d)`
+  - 501 `openPlotter()`
+  - 506 `plotSetRender()`
+  - 510 `plotSetOpen(on)`
+  - 523 `kinoUi()`
 
 ## `src/js/ui/08b-letter.js` (127 linjer)
 

@@ -1,6 +1,9 @@
 // ===== Fartstid: years at sea, 0 to 40 (Jonas 07.10.2026; docs/engasjement.md, arbeidslista 1) =====
-// The player's experience is counted as sea time, the thing every fisher knows: «12 år og 143 døgn fartstid». Status only, it opens
-// nothing and has no rank names. The years are points on a curve, points(N) = 1 000 000 · (N/40)^2.8: the first year comes on the
+// The player's experience is counted as sea time, the thing every fisher knows: «12 år og 143 døgn fartstid». The years are the
+// player's level and the points the xp (RANK1, docs/planer/rank1.md, Jonas 16.11.2026: «et fullverdig ranking system med lvl, xp, og
+// ferdigheter», V1 A). The level opens: the ceiling of the player's own skills (fsCap, below), the overdraft at five years (BANK.kkFsY),
+// the apprentice at ten (LAER.fs), the weight of the trip jobs (09g-turer.js) and the badges. No rank names. The years are points on a
+// curve, points(N) = 1 000 000 · (N/40)^2.8: the first year comes on the
 // first trip, the fifth in the first week, the tenth after a month, the twentieth after four or five months, the thirtieth after a
 // year and the fortieth after two or three for one who plays steadily. Past forty the years go on as stars.
 // Earned aboard: each game hour at sea with you aboard, and each landing by the square root of its value (a big boat gives more, not a
@@ -35,8 +38,8 @@ function fsAdd(pts, aboard){
   return g;
 }
 function fsYear(y){
-  const t = fsText(fsNeed(y));
-  log('Du har nå ' + t + '.', 'You now have ' + t + '.');
+  const t = fsText(fsNeed(y)), c = fsYearSkills(y), cs = c ? String(c).replace('.', ',') : '';
+  log('Du har nå ' + t + '.' + (c ? ' Ferdighetene dine kan nå nå ' + cs + '.' : ''), 'You now have ' + t + '.' + (c ? ' Your skills can now reach ' + c + '.' : ''));
   // the first five years come fast (FS) and stand in the deck log only; after them a whole year is a toast too (spilltest 3, U4 and K3;
   // Jonas 05.11.2026, V3 A and V6c A)
   if (!FS_AWAY && y > 5 && typeof toast === 'function') toast((S.lang === 'en' ? 'Sea time: ' : 'Fartstid: ') + t);
@@ -53,3 +56,56 @@ function fsMinute(){
 function fsLand(total){ return fsAdd(FS.LAND * Math.sqrt(Math.max(0, total || 0)), meAboard()); }
 // time away builds rest: two game hours of double sea time for each real hour, up to eighteen
 function fsRested(realMs){ const F = fsState(); F.rest = Math.min(FS.REST_CAP, (F.rest || 0) + realMs / 3.6e6 * FS.REST_H); }
+
+// ===== Your own skills (RANK1-a, docs/planer/rank1.md, Jonas 16.11.2026: «siden litt av storyen i spillet er at man arver en båt, så må
+// man starte ganske lavt på ferdighetene … På den måten vil også egenskapene forme seg etter hva spilleren faktisk bruker slags
+// redskaper»; V2 A, V3 A) =====
+// The crew's gear and deck skills, 1–5, for you: the four gears and gutting, icing and crab sorting. A new game starts on 1.5 in all
+// (fresh at sea, not nothing). What you do decides which grow: each minute at sea on a station (S.mySt, workMinute) moves the skill
+// that station trains (stationSkill, 14-crewlife.js) a quarter of the way to the ceiling an hour, a quarter as fast while the game is
+// closed, as sea time. The level decides how high: fsCap(years) = 1.5 + 3.5 · (years/40)^0.6, 1.5 at none, 2.5 at five, 3 at ten and 5
+// at forty. Your experience is that ceiling (fsErf): it is what you read the echo sounder with (plan3Reader). The skill makes you work
+// faster on the station, fsSkF: 1 at 1.5 (as before this step), 1.25 at 5; never slower than before. Never sold, nor anything that
+// raises them. (Start values for the play tests, all of them.)
+const FSK = {start:1.5, top:5, capE:0.6, rate:0.25, eff:0.07, keys:['juksa', 'line', 'garn', 'teiner', 'sloy', 'is', 'sort']};
+const fsCap = y => FSK.start + (FSK.top - FSK.start) * Math.pow(clamp((y || 0) / FS.MAX, 0, 1), FSK.capE);
+const fsCapNow = () => fsCap(fsOf(fsState().p).y);
+const fsErf = () => fsCapNow();
+// the skills, made once: a game from before this step gets them from its sea time, at the ceiling for its years for the jig, the gutting
+// and the icing every catch gets and the gear a boat of the fleet is rigged for or the bound boat owns (crab sorting with the pots);
+// the gear it has not used, halfway (nobody works slower than before the step). (The landings, S.sales, keep the species, not the gear.)
+function fsSkills(){
+  const F = fsState(); if (F.sk) return F.sk;
+  const cap = fsCapNow(), half = (FSK.start + cap) / 2, sk = {};
+  // (the rigs of every boat in the fleet, vget; the gear owned is the bound boat's, ownedUnits)
+  const rigs = typeof RIGS === 'undefined' ? [] : (S.fleet || []).map(v => { const b = typeof vget === 'function' ? vget(v, 'boat') : null; return b && RIGS[b.rig] ? RIGS[b.rig].kind : null; });
+  const used = k => { if (k === 'juksa' || k === 'sloy' || k === 'is') return true;
+    const kind = k === 'teiner' || k === 'sort' ? 'teine' : k; if (rigs.includes(kind)) return true;
+    try { return typeof ownedUnits === 'function' && ownedUnits(kind) > 0; } catch (e){ return false; } };
+  for (const k of FSK.keys) sk[k] = Math.round((used(k) ? cap : half) * 1000) / 1000;
+  return (F.sk = sk);
+}
+const fsSk = k => FSK.keys.includes(k) ? fsSkills()[k] : null;
+// how much faster you work on a station that trains skill k (1 for anything else)
+const fsSkF = k => { const v = fsSk(k); return v == null ? 1 : Math.max(1, 1 + FSK.eff * (v - FSK.start)); };
+// m minutes on a station training skill k: towards the ceiling, a quarter while the game is closed; a whole step is said in the deck log
+function fsLearn(k, m = 1){
+  const sk = fsSkills(); if (!(k in sk)) return 0;
+  const cap = fsCapNow(), v0 = sk[k]; if (v0 >= cap) return 0;
+  const v1 = Math.min(cap, v0 + (cap - v0) * (1 - Math.pow(1 - FSK.rate, m * (FS_AWAY ? FS.AWAY : 1) / 60)));
+  sk[k] = v1;
+  if (Math.floor(v1) > Math.floor(v0) && typeof SKILL_WHAT !== 'undefined' && SKILL_WHAT[k] && typeof log === 'function'){
+    const w = SKILL_WHAT[k]; log('Du har blitt flinkere til å ' + w[0] + '.', 'You have got better ' + w[1] + '.'); }
+  return v1 - v0;
+}
+// each minute with you aboard at sea: the station you stand on (workMinute)
+function fsSkillMinute(st){
+  if (!st || !meAboard() || !S.boat || S.boat.status === 'port' || typeof stationSkill !== 'function') return;
+  const q = stationSkill(st); if (q && q[0] === 'gear') fsLearn(q[1], 1);
+}
+// the ceilings a new year lifts, for the year's line: «taket for sløying 2,6»
+function fsYearSkills(y){ const a = fsCap(y - 1), b = fsCap(y); return b > a ? Math.round(b * 10) / 10 : 0; }
+// for the card (RANK1-b): the skills' names, the level as text («Nivå 12», «Nivå 40 ★3») and the xp within the year
+const FSK_NAME = {juksa:['Juksa', 'Jigging'], line:['Line', 'Longline'], garn:['Garn', 'Nets'], teiner:['Teiner', 'Pots'], sloy:['Sløying', 'Gutting'], is:['Ising', 'Icing'], sort:['Krabbesortering', 'Crab sorting']};
+function fsLvlText(p){ const o = fsOf(p), en = S.lang === 'en'; return (en ? 'Level ' : 'Nivå ') + Math.min(o.y, FS.MAX) + (o.star ? ' ★' + o.star : ''); }
+function fsXp(p){ const o = fsOf(p), a = fsNeed(o.y), b = fsNeed(o.y + 1); return {have:Math.max(0, Math.round((p || 0) - a)), need:Math.round(b - a)}; }

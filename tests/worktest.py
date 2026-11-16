@@ -164,7 +164,7 @@ async def main():
           R.bunks = +(restRate({status:'port', port:'husoy', type:'sjark'}) * 60).toFixed(2);
           b.port = 'finnsnes'; b.pos = {...portById('finnsnes').p}; S.energy = 50; restStart(); for (let i = 0; i < 60; i++) step(); R.quayHour = +(S.energy - 50).toFixed(2); restEnd(true);
           // at 25 % your work goes slower
-          sea('idle'); S.energy = 25.02; S.enWarn = false; step(); step(); R.warn = !!S.enWarn; addCatch('torsk', 10, null, true); R.slow = workTeam('sloy', 'sloy').sum;
+          sea('idle'); S.energy = 25.02; S.enWarn = false; step(); step(); R.warn = !!S.enWarn; addCatch('torsk', 10, null, true); R.slow = workTeam('sloy', 'sloy').sum / fsSkF('sloy');
           // alone at 0: asleep, the jig stops and the boat drifts; the screen goes black with a countdown
           sea('fishing'); b.fishUntil = S.t + 600; S.energy = 0.01; step(); R.asleep = asleep(); R.alone = !!(S.sleep && S.sleep.alone); const p0 = {...b.pos};
           for (let i = 0; i < 60; i++) step(); R.caught = holdTotal(); R.drift = Math.round(dist(p0, b.pos) * 1000); R.st = b.status;

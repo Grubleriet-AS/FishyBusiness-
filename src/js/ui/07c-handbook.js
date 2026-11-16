@@ -96,6 +96,10 @@ const HB = [
     no:'Salgslaget viser prisene i dag, det du har levert, og topplista over kysten denne uka.', en:'The sales organisation shows today’s prices, what you have landed, and the week’s top list along the coast.'},
   {id:'merker', ch:4, t:['Milepæler', 'Milestones'], when:() => hbLand() >= 3, show:() => phoneApp('merker'),
     no:'Milepæler samler alt du har oppnådd, og hvert merke gir en gave fra noen på kysten.', en:'Milestones gather everything you have achieved, and each badge gives a gift from someone on the coast.'},
+  // the level and your own skills (RANK1, docs/planer/rank1.md, 16.11.2026)
+  {id:'niva', ch:4, t:['Nivå og ferdigheter', 'Level and skills'], when:() => hbLand() >= 3, show:() => phoneApp('merker'),
+    no:'Fartstida er nivået ditt: hvert år er et nivå. Du har egne ferdigheter i juksa, line, garn, teiner, sløying, ising og krabbesortering, og de vokser med jobben du gjør om bord, opp til et tak som stiger med årene. Erfaringen din leser ekkoloddet når driftsplanen søker med deg om bord. Se Milepæler › Merker.',
+    en:'Your sea time is your level: each year is a level. You have skills of your own in jigging, longline, nets, pots, gutting, icing and crab sorting, and they grow with the work you do aboard, up to a ceiling that rises with the years. Your experience reads the echo sounder when the plan searches with you aboard. See Milestones › Badges.'},
   {id:'tilbake', ch:4, t:['Si fra', 'Speak up'], when:() => hbLand() >= 3, show:() => phoneApp('tilbake'),
     no:'Noe rart? Si fra i Tilbakemelding, det er lov å være ærlig. Nyttige meldinger takkes med en haill.', en:'Something odd? Say so in Feedback; honesty is welcome. Useful reports are thanked with a luck.'},
   {id:'patch', ch:4, t:['Patchnotes', 'Patch notes'], when:() => hbLand() >= 4, show:() => phoneApp('patch'),

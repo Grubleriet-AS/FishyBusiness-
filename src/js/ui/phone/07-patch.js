@@ -1,5 +1,9 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['rank1-161126', '16.11.2026', 'Nivå og ferdigheter', 'Level and skills', [
+       ['Fartstida er nå nivået ditt, med xp mot neste nivå. Se Milepæler › Merker.', 'Your sea time is now your level, with xp towards the next. See Milestones › Badges.'],
+       ['Du har egne ferdigheter i juksa, line, garn, teiner, sløying, ising og krabbesortering. De vokser med jobben du gjør om bord, opp til et tak som stiger med årene, og gjør deg raskere på dekk.', 'You have skills of your own in jigging, longline, nets, pots, gutting, icing and crab sorting. They grow with the work you do aboard, up to a ceiling that rises with the years, and make you faster on deck.'],
+       ['Når driftsplanen søker med deg om bord, leser du ekkoloddet med din egen erfaring.', 'When the plan searches with you aboard, you read the echo sounder with your own experience.']]],
     ['innst-161126', '16.11.2026', 'Nye innstillinger og grafikkvalg', 'New settings and graphics options', [
        ['Innstillinger har faner øverst: Spill, Grafikk, Lyd og Konto.', 'Settings have tabs at the top: Game, Graphics, Sound and Account.'],
        ['Under Grafikk kan du selv justere oppløsning, bildetak, detaljavstand og skygger, og slå av trær, dyreliv, skum og brottsjø, detaljerte bølger, strand og skjær og solglitter. Valgene gjelder bare enheten du spiller på.', 'Under Graphics you can adjust the resolution, the frame cap, the detail distance and the shadows yourself, and turn off trees, wildlife, foam and breaking seas, detailed waves, beaches and skerries and sun glitter. The choices apply only to the device you play on.'],

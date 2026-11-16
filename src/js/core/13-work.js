@@ -78,9 +78,13 @@ const habShare = (c, k) => { const h = c && c.hab; if (!h) return 0; let t = 0; 
 function crewRole(c){ const h = c && c.hab; if (!h) return null; let best = null, bv = 0, t = 0; for (const s in h){ t += h[s]; if (h[s] > bv){ bv = h[s]; best = s; } } return best && bv >= 600 && bv >= 0.45 * t ? best : null; }
 // a chain set up before (c.job, until 23.10.2026) becomes what the person is used to: the first station most
 function habSeed(c){ const h = c.hab || (c.hab = {}); (c.job || []).forEach((k, i) => { if (WORK_ALL.includes(k)) h[k] = Math.max(h[k] || 0, Math.round(600 * (1 - 0.2 * Math.min(4, i)))); }); }
-// ---- how good a person is at a station's work (1-5): you are a skipper who knows every job on deck
+// ---- how good a person is at a station's work (1-5): you have the helm as the skipper, and at the rest the flat 3.2 from before
+// RANK1-a lifted by your own skill above its start (09e-fartstid.js; 3.2 at 1.5, 5 at 5), so a fresh skipper picks as before and you
+// go more often to what you have got good at. (Your raw 1.5 here against 3.2 at the galley sent a fresh skipper off the gear more often:
+// the line in driftsplan2test S5 was hauled an hour late.)
 function stSkill(c, k, ctx, sk){
-  if (!c) return k === 'ror' ? 5 : 3.2;
+  if (!c){ if (k === 'ror') return 5; const q = sk ? [null, sk] : stationSkill(k), v = q ? fsSk(q[1]) : null;
+    return v == null ? 3.2 : 3.2 + (v - FSK.start) * (5 - 3.2) / (FSK.top - FSK.start); }
   const g = c.gear, A = c.attr;
   if (sk) return (sk === 'juksa' || sk === 'line' || sk === 'garn' || sk === 'teiner' ? g[sk] : A[sk] || g[sk]) || 1;
   if (k === 'ror') return A.sjo; if (k === 'kokk') return A.kokk; if (k === 'fiske') return g.juksa || 1;
@@ -184,7 +188,7 @@ function jobW(j){
 function jobRate(j, A){
   const on = A.filter(p => p.jw === j), n = on.length; if (!n) return 0; if (j.kind === 'last') return jobCoop(j, n);
   const H = S.t / 60, hs = hsWork(S.boat.pos, H), sk = JOB_SKILL[j.kind] || 'juksa';
-  return jobCoop(j, n) * on.reduce((a, p) => a + (p.c ? crewEff(p.c, H, hs, sk) : meEff()), 0) / n;
+  return jobCoop(j, n) * on.reduce((a, p) => a + (p.c ? crewEff(p.c, H, hs, sk) : meEff() * fsSkF(sk)), 0) / n;
 }
 // a minute of a crew job by those on it (A: this minute's workAssign); the end time and the hours follow their pace, so the queue shows
 // the time left as it is (ui/05-phone.js: done = 1 - left / h). True when the job is done.
@@ -442,7 +446,8 @@ function workDoing(p){ const no = S.lang === 'no';
 // the people on a station and what they do there together: n, the sum of their efficiency for skill g, and the mean
 function workTeam(st, g, as){
   const H = S.t / 60, hs = hsWork(S.boat.pos, H), on = workAssign(as).filter(p => Array.isArray(st) ? st.includes(p.st) : p.st === st);
-  const sum = on.reduce((a, p) => a + (p.c ? crewEff(p.c, H, hs, g) : meEff()), 0);
+  // (you: your own skill for the station you stand on, RANK1-a; on two stations at once the one yours trains)
+  const sum = on.reduce((a, p) => a + (p.c ? crewEff(p.c, H, hs, g) : meEff() * fsSkF(Array.isArray(st) ? (stationSkill(p.st) || [])[1] : g)), 0);
   return {n:on.length, sum, eff:on.length ? sum / on.length : 1, crew:on.filter(p => p.c).map(p => p.c), me:on.some(p => !p.c)};
 }
 // once a minute per vessel: where each person is, and minutes per station (for learning)
@@ -452,7 +457,7 @@ function workMinute(){
   const A = workAssign(); if (meAboard()) S.mySt = null;
   for (const c of S.crew || []){ c.st = null; c.why = null; }
   const sea = S.boat.status !== 'port';
-  for (const p of A){ if (!p.c){ S.mySt = p.st; continue; } p.c.st = p.st; p.c.why = p.why; p.c.idle = p.idle || null;
+  for (const p of A){ if (!p.c){ S.mySt = p.st; if (sea) fsSkillMinute(p.st); continue; } p.c.st = p.st; p.c.why = p.why; p.c.idle = p.idle || null;
     if (WORK_ALL.includes(p.st)){ const h = p.c.hab || (p.c.hab = {}); h[p.st] = (h[p.st] || 0) + 1;
       if (sea){ const w = p.c.wk || (p.c.wk = {}); w[p.st] = (w[p.st] || 0) + 1; } } }
   // what they are used to fades by about a fifth in a month
