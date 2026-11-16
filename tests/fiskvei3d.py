@@ -18,8 +18,11 @@ def check(ok, what, extra=''):
     print(('OK  ' if ok else 'FEIL') + ' ' + what + (('  ' + str(extra)) if extra != '' else ''))
 
 
-READ = """(() => { const D = G3._debug.dk, A = CREW3D.agents(), haul = A.filter(a => a.task === 'haul').map(a => a.id);
-  return {fv:D.fv, bleeders:D.ev.filter(e => e.kind === 'bleed' && e.who != null).map(e => e.who), haul, solo:!!(geoOf(S.boat.type).work || {}).solo}; })()"""
+# (each bleeding taken against who hauls at the first reading it is seen, window.__BL keyed by who and when it began: an event stays in D.ev for up to 24 s after, and the
+# sjark's hauler carries the tubs himself in between; read against the hauling now, it was taken for one bled away from the hauler, 125f)
+READ = """(() => { const D = G3._debug.dk, A = CREW3D.agents(), haul = A.filter(a => a.task === 'haul').map(a => a.id), seen = window.__BL || (window.__BL = new Set()), now = [];
+  const T = performance.now() / 1000; for (const e of D.ev){ if (e.kind !== 'bleed' || e.who == null) continue; const k = e.who + '|' + (T - e.age).toFixed(1); if (seen.has(k)) continue; seen.add(k); now.push(e.who); }
+  return {fv:D.fv, bleeders:now, haul, solo:!!(geoOf(S.boat.type).work || {}).solo}; })()"""
 
 
 async def main():

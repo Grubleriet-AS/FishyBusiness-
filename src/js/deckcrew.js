@@ -364,7 +364,9 @@ function crewSim(src){
   function lineTubs0(){ const o = tubCount().op, j = TUBL.job, kind = TUBL.Wk || 'set';
     const T = TUBL.T.map(q => ({id:q.id, k:q.k, at:q.at, i:q.i, f:STAMPER.fillOf(TUBL, q, o), p:q.at === 'hand' ? null : tubPos(q.at, q.i, kind, q.wk), ry:q.ry != null ? q.ry : (q.id * 2.39996) % 6.2832}));
     let carry = null; if (j){ const a = A.find(q => q.id === j.who); if (a && a.sub && a.sub.tub && a.sub.tub.id === j.id){ const sb = a.sub, at = a.mode === 'at' && sb.done; carry = {id:j.id, who:a.id, ph:sb.tub.ph, at:!!at, u:at ? clamp((ST.clk - (sb.done - sb.hold)) / sb.hold, 0, 1) : 0, p:sb.tub.p}; } }
-    const r = STAMPER.running(TUBL, o); return {T, carry, run:r ? {id:r.q.id, f:r.f} : null, halt:STAMPER.halt(TUBL, o, ST.clk), spots:tubSpots(), snap:TUBL.n.snap, carried:TUBL.n.carried}; }
+    const r = STAMPER.running(TUBL, o); // (and while the one at the hauler carries a tub himself, the sjark with nobody else on deck: nobody stands at it, so it stands)
+    const away = !!(carry && o && o.kind === 'haul' && (() => { const a = A.find(q => q.id === carry.who); return a && a.role === 'haler'; })());
+    return {T, carry, run:r ? {id:r.q.id, f:r.f} : null, halt:STAMPER.halt(TUBL, o, ST.clk) || away, spots:tubSpots(), snap:TUBL.n.snap, carried:TUBL.n.carried}; }
   function overlay(M0, boxes){
     const N = M0.nx * M0.nz, H = Float32Array.from(M0.h); let n = 0;
     for (let k = 0; k < N; k++){ if (H[k] !== H[k]) continue; const i = k % M0.nx, x = M0.x0 + (i + 0.5) * M0.c, z = M0.z0 + ((k - i) / M0.nx + 0.5) * M0.c;
