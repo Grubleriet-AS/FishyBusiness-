@@ -5336,3 +5336,5 @@
 2026-11-16 22:51	claude/production-release-prep-cn15pt	eef41111+	trip2	OK	39	lite	samtidig	
 2026-11-16 22:52	claude/production-release-prep-cn15pt	eef41111+	docktest	OK	63	lite	samtidig	
 2026-11-16 22:54	claude/production-release-prep-cn15pt	eef41111+	kjoptest	OK	163	lite	samtidig	
+2026-11-16 23:48	claude/production-release-prep-cn15pt	feeb3d3e	sqltest	FEIL	12	lite	alene	avsluttet med kode 1
+2026-11-16 23:50	claude/production-release-prep-cn15pt	feeb3d3e	sqltest	OK	67	lite	alene	
