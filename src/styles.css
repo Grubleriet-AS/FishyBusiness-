@@ -744,6 +744,7 @@ body.hudstrip #hud .hmin{position:absolute;top:0;right:0}
 #hud .hs2{justify-content:space-between;gap:4px;font-size:11px}
 #hud .g2{display:inline-flex;align-items:center;gap:3px;min-width:0;color:var(--t-on-dark)} #hud .g2 svg{width:12px;height:12px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.85} #hud .g2 b{font-weight:700;white-space:nowrap}
 #hud .g2.r1{color:#ffcf7a} #hud .g2.r2{color:#ff9b91}
+#hud .row.hwind b{display:inline-flex;align-items:center;gap:4px} #hud .row.hwind b.r1{color:#ffcf7a} #hud .row.hwind b.r2{color:#ff9b91} #hud .row.hwind svg{width:13px;height:13px;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 #hud .st.nx .l3{flex:1 1 auto;min-width:0} #hud .st.nx .l3d{flex:none;white-space:nowrap}
 #hud .st.nx .l3s{flex:0 1000 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.9em;opacity:.85}   /* (the real time gives way first: shrinks a thousand times faster than the event before it) */
 body.hudstrip #hud .st.nx{margin:0;min-height:15px;font-size:11px!important;line-height:1.25;gap:4px} body.hudstrip #hud .st.nx small{font-size:.9em} body.hudstrip #hud .st.nx .l3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* (!important: #hud .st sets 12.5px so) */
