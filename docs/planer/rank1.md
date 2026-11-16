@@ -1,6 +1,6 @@
 # Ranking-systemet: nivå, xp og dine egne ferdigheter (plan 16.11.2026, steg 134 RANK1)
 
-Status: **plan, venter på klarsignal.** Ingenting er bygd. Bygges ikke før steg 133 (DP3-5) er ferdig, fordi 133 eier `ui/phone/07-patch.js` og fila til Driftsplan 3.
+Status: **valgene besvart 16.11.2026** (Jonas: V1 A, V2 A, V3 A, V4 A). Ingenting er bygd. Bygges ikke før steg 133 (DP3-5) er ferdig, fordi 133 eier `ui/phone/07-patch.js` og fila til Driftsplan 3.
 
 ## 1. Hva Jonas ba om
 
@@ -60,6 +60,8 @@ Rekkefølgen: a, så b. c etter at 118 (KL3) er flettet, fordi 118 eier `ui/10h-
 
 ## 5. Valgene
 
+Jonas 16.11.2026: «Årene fartstid», «Bruk + tak», «Fart + søk», «Fane i topplista» (A på alle fire).
+
 **V1 Nivået**
 - **A (anbefalt):** Nivået er årene fartstid, xp er poengene. Én tallrekke som alt finnes, er kalibrert og sjekkes av serveren, og fiskernes eget språk står under.
 - B: En ny skala, nivå 1–100 regnet fra poengene, med fartstida under.
@@ -101,4 +103,4 @@ Rekkefølgen: a, så b. c etter at 118 (KL3) er flettet, fordi 118 eier `ui/10h-
 
 ## Status
 
-- 16.11.2026: planen skrevet (planøkt, gren `plan/2026-11-16-134`). Venter på klarsignal og V1–V4.
+- 16.11.2026: planen skrevet (planøkt, gren `plan/2026-11-16-134`). Valgene besvart samme dag: A på alle fire. RANK1-a bygges når 133 er ferdig; startmeldingen er `docs/planer/start/134.md`.
