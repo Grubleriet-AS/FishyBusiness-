@@ -7,6 +7,8 @@
 // The plan in the game since 27.10.2026 (part 7): plan2Ops switches older plans off with a word (Jonas 26.10.2026, choice 5 C); the old
 // plan's code was taken out in part 8 (Ø12 C, 08.11.2026) and its last names in Ø12 D (12.11.2026).
 const DRV2 = 4;
+// a plan the engine runs: Driftsplan 2's v4, or Driftsplan 3's v5 (06k-plan3.js), which is a v4 with its ring on it
+const p2IsPlan = o => !!o && (o.v === DRV2 || o.v === DRV3);
 const DRP2 = {
   dayMax:14, minDay:2, tired:72, rested:25, late:8, fatH:5, enH:100 / 24, enMin:15,     // the day's length: 14 h, the crew at 72 with 5 an hour, you at 15 % with 4.2 an hour
   dayFrom:6, watch:12,                                                                 // the skipper's day watch 06–18, the mate's night (Jonas 26.10.2026)
@@ -87,7 +89,10 @@ function plan2New(over){
 // the plan the engine runs: a v4, and an older plan is switched off with a word
 function plan2Ops(){
   const o = S.ops; if (!o) return null;
-  if (o.v === DRV2){ if (o.rig === 'line' && o.places.some(q => q.k === 'felt' && !q.lk)){ for (const q of o.places) if (q.k === 'felt' && !q.lk){ q.lk = p2LineKind(o); q.n = Math.max(1, Math.min(q.n, p2Left(o, q))); } }   // (fields from before 27.10.2026: the line's kind and the tubs the boat owns)
+  // (Driftsplan 3, 16.11.2026: a v5 plan is a v4 plan with its ring; with DRIFT3 on an older v4 plan is switched off, after it has fetched
+  // its gear and landed when it runs, 06k-plan3.js plan3Retire)
+  if (o.v === DRV2 && DRIFT3) return plan3Retire(o);
+  if (o.v === DRV2 || o.v === DRV3){ if (o.rig === 'line' && o.places.some(q => q.k === 'felt' && !q.lk)){ for (const q of o.places) if (q.k === 'felt' && !q.lk){ q.lk = p2LineKind(o); q.n = Math.max(1, Math.min(q.n, p2Left(o, q))); } }   // (fields from before 27.10.2026: the line's kind and the tubs the boat owns)
     // (an ocean vessel, H2c: her teams' watches round the clock, no jig, and the fields of her autoline in lenker)
     if (p2Lag() || p2Hav()){ if (o.rhythm !== 'watch') o.rhythm = 'watch';   // (an ocean vessel round the clock only, Jonas 07.11.2026)
       if (o.jig && !p2Jig(o)) o.jig = false; if (o.land && o.land.when === 'trip') o.land.when = 'full';

@@ -259,7 +259,7 @@ function plan2MeRest(o, H){
 // (each vessel's own plan read where it lies, vget, without binding the vessel: a purchase must never fail on a vessel half made)
 function plan2SkipGiven(){
   for (const v of S.fleet && S.fleet.length ? S.fleet : [{id:S.cur}]){
-    const o = vget(v, 'ops'), pl = vget(v, 'plan'); if (!o || o.v !== DRV2 || !o.on) continue;
+    const o = vget(v, 'ops'), pl = vget(v, 'plan'); if (!o || !p2IsPlan(o) || !o.on) continue;
     o.hold = 0; const r = o.run; if (!r) continue;
     if (r.wait && ['rest', 'energy', 'dep'].includes(r.wait.k)) r.wait = null;
     const s = r.day && r.day.steps[r.i]; if (!(pl && pl.ops) && !r.trip && !(s && s.k === 'hvile')) r.replan = true;
@@ -274,7 +274,7 @@ function plan2Boundary(o, H){
   if (r && r.day && !r.replan && r.closed !== r.t0){ r.closed = r.t0; plan2CostDay(o, r); }
   if (r && !r.day && !r.replan && r.wait && r.wait.k === 'wx' && H < (r.wait.until || 0) - 1 / 60) return;
   // the gear fetched (o.fetch, the page): the plan is off when nothing stands in the sea, else another day of hauls, from now
-  if (o.fetch){ if (!mySets().length && holdTotal() < 0.5){ o.on = false; o.fetch = null; o.run = null; plan2Say(o, 'Redskapet er hentet. Driftsplanen er av.', 'The gear is fetched. The plan is off.'); return; } return plan2NewDay(o, H); }
+  if (o.fetch){ if (!mySets().length && holdTotal() < 0.5){ o.on = false; o.fetch = null; o.run = null; if (!o.retire) plan2Say(o, 'Redskapet er hentet. Driftsplanen er av.', 'The gear is fetched. The plan is off.'); return; } return plan2NewDay(o, H); }
   if (o.rhythm === 'watch') return plan2NewDay(o, H);
   // a day made again from where she lies (a shelter, a takeover, a port that was not the step's): at once while the crew and you have
   // a day's work left, else after the rest and at the hour, like any day (GUI review F2: a day made again late at night went out again)

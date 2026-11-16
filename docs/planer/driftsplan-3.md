@@ -1,6 +1,6 @@
 # Driftsplan 3: den enkle planen (plan 16.11.2026)
 
-Status: **plan, venter på klarsignal fra Jonas.** Ingenting er bygd.
+Status: **klarsignal 16.11.2026** (Jonas: «V1: A, V2: A. Kjør på.»). Stegene er 129–133 i køen, ranking-systemet 134.
 
 ## 1. Hva Jonas ba om
 
@@ -94,18 +94,22 @@ Hver fase er én økt.
 
 **Etter dette, eget steg:** spillerens egen utvikling. Du får de samme egenskapene og ferdighetene som mannskapet, og de vokser med det du faktisk gjør, så de formes etter redskapene du bruker. Jonas 16.11.2026: «siden litt av storyen i spillet er at man arver en båt, så må man starte ganske lavt på ferdighetene. Man er tross alt helt fersk på havet. På den måten vil også egenskapene forme seg etter hva spilleren faktisk bruker slags redskaper». Du starter lavt, men ikke på null (`docs/engasjement.md`: nye ting starter aldri på null), og de første stegene kommer raskt. Ferdighetene kan aldri kjøpes. Søket i DP3-2 leser da din erfaring i stedet for den faste verdien. Til da er den faste verdien lav, som for en fersk fisker. Det får sin egen plan.
 
+**Ranking-systemet (steg 134, Jonas 16.11.2026):** «Jeg tenker ferdighetssystemet må kobles på og balanseres med fartstidsystemet, slik at det blir et fullverdig ranking system med lvl, xp, og ferdigheter.» Fartstida (`core/09e-fartstid.js`: poeng på en kurve, år 0–40, stjerner etter) blir nivået og poengene xp-en, og ferdighetene vokser ved siden av med det spilleren gjør. I dag er fartstida «status only, it opens nothing»; det endres. Steget får sin egen plan med `/planlegg` før noe bygges, fordi det rører engasjementsreglene (aldri til salgs, starter ikke på null, topplista).
+
+**Utrullingen:** DP3-1 og DP3-2 endrer motoren og lagringen, men siden kommer i DP3-3. De bygges derfor på samme gren og rulles ut til testutgaven først når DP3-3 er ferdig, så testutgaven aldri har den nye planen med den gamle siden.
+
 Alle stegene går under lanseringslinja i køen, fordi porten er frossen.
 
-## 5. Valgene som står igjen
+## 5. Valgene
 
-Jonas har tatt de store valgene. To små er igjen:
+Jonas 16.11.2026: «V1: A», «V2: A».
 
 **V1 Hvor båten ligger mens redskapet står**
-- **A (anbefalt):** Planen velger etter ståtida. Med line ligger den ved redskapet. Med garn og teiner går den hjem og hviler når reiseveien er kortere enn ståtida, ellers ligger den ved feltet. Det er slik Driftsplan 2 gjør nå, uten juksa.
+- **A (valgt):** Planen velger etter ståtida. Med line ligger den ved redskapet. Med garn og teiner går den hjem og hviler når reiseveien er kortere enn ståtida, ellers ligger den ved feltet. Det er slik Driftsplan 2 gjør nå, uten juksa.
 - B: Alltid hjem mellom setting og trekking.
 
 **V2 Hjem**
-- **A (anbefalt):** Planen velger hjemmet selv (tabellen i 3). Det holder valgene på to.
+- **A (valgt):** Planen velger hjemmet selv (tabellen i 3). Det holder valgene på to.
 - B: Spilleren kan bytte hjemmet etterpå, i en liten «Endre»-lenke under dagen. Det er ikke et tredje valg før start.
 
 ## 6. Antatt og usikkert
@@ -128,4 +132,4 @@ Jonas har tatt de store valgene. To små er igjen:
 
 ## Status
 
-- 16.11.2026: planen skrevet (Jonas' økt, grenen `claude/blissful-cannon-ctb8e9`). Venter på klarsignal og V1–V2.
+- 16.11.2026: planen skrevet (Jonas' økt, grenen `claude/blissful-cannon-ctb8e9`). Klarsignal og V1 A, V2 A samme dag. DP3-1 pågår i samme økt.
