@@ -9,6 +9,9 @@
 // buttons once she lies still within 150 m. Towing caps the speed and costs fuel as the tow trips do (03-simulation.js speedCap, fuelLph).
 // Mooring in a harbour ends it, and the game pays PTOW_PAY when the server allows (once a day for the same player, three a day).
 const PTOW_PAY = 25000, PTOW_WAIT = 20 * 60000, PTOW_BACK = 0.05;   // kr; real ms before the rescue boat; km behind the helper
+// the reward by the way towed (16.11.2026, the economy check before the launch: two friends could make 25 000 kr by a tow of 200 m off
+// the quay, three a day): 2 500 kr a nautical mile from where she lay to the harbour, nothing under one mile, at most PTOW_PAY
+const PTOW_NM = 2500, ptowPay = nm => nm < 1 ? 0 : Math.min(PTOW_PAY, Math.round(nm * PTOW_NM / 100) * 100);
 function ptowTowing(){ return !!(S && S.ptowH && S.ptowH.st === 'tow'); }
 // the towed boat each game minute: behind where the helper is now, carried on from her last report
 function ptowStep(){
@@ -91,9 +94,10 @@ const PTOW = (() => {
     const H = S.ptowH; if (!H || H.st !== 'tow') return;
     rpc('tow_done', {id:H.id, port:String(pid)}).then(r => {
       S.ptowH = null; save(); if (!r || !r.ok) return;
-      const pt = portById(pid), who = nm(H) + ' ' + bt(H);
-      if (r.pay){ book('annet', PTOW_PAY, 'Slep av en annen båt', 'Towing another boat'); if (typeof achAdd === 'function') achAdd('ptow');
-        msg('Slep', 'Du slepte ' + who + ' inn til ' + (pt ? pt.name : 'havn') + '. Belønning ' + kr(PTOW_PAY) + '.', 'You towed ' + who + ' in to ' + (pt ? pt.name : 'harbour') + '. Reward ' + kr(PTOW_PAY) + '.'); }
+      const pt = portById(pid), who = nm(H) + ' ' + bt(H), pay = ptowPay(pt && H.x != null ? dist({x:H.x, y:H.y}, pt.p) / NM : 0);
+      if (r.pay && pay > 0){ book('annet', pay, 'Slep av en annen båt', 'Towing another boat'); if (typeof achAdd === 'function') achAdd('ptow');
+        msg('Slep', 'Du slepte ' + who + ' inn til ' + (pt ? pt.name : 'havn') + '. Belønning ' + kr(pay) + '.', 'You towed ' + who + ' in to ' + (pt ? pt.name : 'harbour') + '. Reward ' + kr(pay) + '.'); }
+      else if (r.pay) msg('Slep', 'Du slepte ' + who + ' inn til ' + (pt ? pt.name : 'havn') + '. Takk! Belønningen gis for slep på minst én nautisk mil.', 'You towed ' + who + ' in to ' + (pt ? pt.name : 'harbour') + '. Thanks! The reward is for tows of at least one nautical mile.');
       else msg('Slep', 'Du slepte ' + who + ' inn til ' + (pt ? pt.name : 'havn') + '. Takk! (Belønningen gis én gang i døgnet for samme spiller, og for tre slep i døgnet.)', 'You towed ' + who + ' in to ' + (pt ? pt.name : 'harbour') + '. Thanks! (The reward is given once a day for the same player, and for three tows a day.)');
       if (typeof refreshAll === 'function') refreshAll();
     }).catch(() => {});
@@ -118,7 +122,7 @@ const PTOW = (() => {
     rpc('tow_open', {x:+S.boat.pos.x.toFixed(3), y:+S.boat.pos.y.toFixed(3), r:30 * NM}).then(list => {
       P.open = Array.isArray(list) ? list : [];
       for (const o of P.open) if (!P.seen[o.id]){ P.seen[o.id] = 1; const d = dist(S.boat.pos, o);
-        msg('Slep', nm(o) + ' ' + bt(o) + ' trenger slep ' + fmt(d / NM, 1) + ' nm unna. Belønning ' + kr(PTOW_PAY) + '. Trykk på merket i kartet eller på tavla i Oppdrag-appen for å hjelpe.', nm(o) + ' ' + bt(o) + ' needs a tow ' + fmt(d / NM, 1) + ' nm away. Reward ' + kr(PTOW_PAY) + '. Tap the mark on the chart or the board in the Oppdrag app to help.'); }
+        msg('Slep', nm(o) + ' ' + bt(o) + ' trenger slep ' + fmt(d / NM, 1) + ' nm unna. Belønning opptil ' + kr(PTOW_PAY) + ' (' + kr(PTOW_NM) + ' per nautisk mil). Trykk på merket i kartet eller på tavla i Oppdrag-appen for å hjelpe.', nm(o) + ' ' + bt(o) + ' needs a tow ' + fmt(d / NM, 1) + ' nm away. Reward up to ' + kr(PTOW_PAY) + ' (' + kr(PTOW_NM) + ' a nautical mile). Tap the mark on the chart or the board in the Oppdrag app to help.'); }
       if (typeof renderDyn === 'function' && document.body.classList.contains('vplot')) renderDyn();
     }).catch(() => {}).finally(() => { P.busy = false; });
   }
@@ -136,7 +140,7 @@ const PTOW = (() => {
     P.sel = o; const mine = !!o.mine, d = dist(S.boat.pos, o);
     card.innerHTML = '<div class="ai-h"><b>' + (mine ? L('Ditt slep', 'Your tow') : L('Trenger slep', 'Needs a tow')) + '</b><button type="button" data-p="x" aria-label="' + L('Lukk', 'Close') + '">×</button></div>' +
       '<div class="ai-t">' + esc(nm(o)) + ' ' + esc(bt(o)) + ' · ' + fmt(d / NM, 1) + ' nm</div>' +
-      '<div class="ai-t">' + (mine ? L('Ligg stille nær båten og trykk «Ta slep».', 'Lie still near the boat and tap «Take the tow».') : L('Belønning ' + kr(PTOW_PAY) + ' når du har slept båten til en havn.', 'Reward ' + kr(PTOW_PAY) + ' when you have towed the boat to a harbour.')) + '</div>' +
+      '<div class="ai-t">' + (mine ? L('Ligg stille nær båten og trykk «Ta slep».', 'Lie still near the boat and tap «Take the tow».') : L(kr(PTOW_NM) + ' per nautisk mil, opptil ' + kr(PTOW_PAY) + ', når du har slept båten til en havn.', kr(PTOW_NM) + ' a nautical mile, up to ' + kr(PTOW_PAY) + ', when you have towed the boat to a harbour.')) + '</div>' +
       '<div class="pin-b">' + (mine ? '<button type="button" data-p="go">' + L('Rute dit', 'Route there') + '</button><button type="button" data-p="drop">' + L('Gi fra deg', 'Give up') + '</button>'
         : '<button type="button" data-p="take"' + (S.ptowH ? ' disabled' : '') + '>' + L('Hjelp', 'Help') + '</button>') + '</div>';
     card.hidden = false;

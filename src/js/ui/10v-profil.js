@@ -38,7 +38,8 @@ const PROF = (() => {
   async function put(){
     if (!on() || (typeof isGuest === 'function' && isGuest())) return;
     const d = figures(), k = JSON.stringify(d); if (k === lastPut) return;
-    try { await cloudRpc('prof_put', {d}); lastPut = k; C.delete('me'); } catch (e){}
+    // (false: the server held it back, at most every 30 s; the next round sends it again)
+    try { const r = await cloudRpc('prof_put', {d}); if (r !== false){ lastPut = k; C.delete('me'); } } catch (e){}
   }
   // the player's own picture: where it stands (wait, ok, no)
   const AV = {mine:null, at:0, busy:false, up:false};

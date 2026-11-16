@@ -1730,10 +1730,20 @@ def main():
         LA['ag'] = [bool(sql("""select public.ag_put('[Grunnstøting] Spillerens svar: Ja', null, '{"ag":{"v":6.5,"how":"leia"},"pos":[69.3,17.5]}')""", L2, 'authenticated')),
                     sql("select public.ag_put('x', null, '{}')", L2, 'authenticated', expect_err=True)[0],
                     sql("select topic || ':' || (meta -> 'ag' ->> 'how') || ':' || (meta ? 'pos')::text from public.feedback where player_id = 'user_01LA2' order by id desc limit 1")]
+        # a founder who deletes the account does not stop the count (the next number from the highest), and off is a pause: the accounts
+        # made while it was on still count when it is on again
+        L4 = {'sub': 'user_01LA4', 'role': 'authenticated'}; sql("select public.tm_hello('{}')", L4, 'authenticated')
+        land(L4, 10, 100); LA['paused'] = sql("select count(*) from public.founders where player_id = 'user_01LA4'")
+        sql("delete from public.players where id = 'user_01LA2'")
+        LA['on2'] = json.loads(sql("select public.admin_founders_set(true)", AD2, 'authenticated'))
+        land(L4, 10, 100); LA['after'] = sql("select no from public.founders where player_id = 'user_01LA4'")
+        LA['tot'] = [(r['hid'], r['kg'], r['kr']) for r in mine('tot', L1)['rows'] if r['hid'] in (hid(L1), hid(L3), hid(L4))]
+        LA['pp'] = [sql("""select public.prof_put('{"fleet":1}')""", L3, 'authenticated') for _ in (0, 1)]
         print(ok(LA['denyP'] and LA['deny1'] and LA['on']['from'] and LA['f'] == 'user_01LA2:1,user_01LA3:2' and float(LA['cap']) == 1000
                  and LA['kg'] == [(hid(L1), None), (hid(L2), 1), (hid(L3), 2)] and LA['kr'] == [(hid(L3), 2), (hid(L2), 1), (hid(L1), None)] and LA['krMine'] == {'kg': 105, 'kr': 3100, 'rank': 3} and LA['co'] == 'Kvitbjørn AS'
                  and LA['prof'] == [1, False, 2, 'Havbris bAS', 'AS', None, 101] and LA['badAv'] and LA['wait'] == ['wait', None]
-                 and LA['avDeny'] and LA['avList'] == [True] and (LA['ok'] or '').startswith('data:image/png') and all(LA['tables']) and LA['off'] == 2 and LA['ag'] == [True, True, 'bug:leia:true']),
+                 and LA['avDeny'] and LA['avList'] == [True] and (LA['ok'] or '').startswith('data:image/png') and all(LA['tables']) and LA['off'] == 2 and LA['ag'] == [True, True, 'bug:leia:true'] and LA['paused'] == '0' and LA['on2']['from'] == LA['on']['from'] and LA['after'] == '3'
+                 and LA['tot'] == [(hid(L3), 50, 5000), (hid(L1), 105, 3100), (hid(L4), 20, 200)] and LA['pp'] == ['t', 'f']),
               'the launch: founders from the admin\'s switch (an older account never, the number kept), the value capped at 1 000 kr/kg, top_list by kg and kr with the founder\'s number, the profile, and the picture only once approved; the tables closed to players', json.dumps(LA))
         # the load of 5 000 players (plan 5b; KYST_LAST=5000): landings and catches for that many players, then what world_get costs
         NL = int(os.environ.get('KYST_LAST') or 0)

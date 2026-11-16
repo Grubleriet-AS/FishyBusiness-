@@ -25,7 +25,7 @@ alter table public.landings add constraint landings_kr_check check (kr >= 0 and 
 
 -- ---------- 2. the founders ----------
 -- (the start in a table of its own: world_cfg's key list is set again by older files when they are run again)
-create table if not exists public.founders_cfg (one boolean primary key default true check (one), start timestamptz);
+create table if not exists public.founders_cfg (one boolean primary key default true check (one), start timestamptz, paused boolean not null default false);
 insert into public.founders_cfg (one, start) values (true, null) on conflict (one) do nothing;
 alter table public.founders_cfg enable row level security;
 revoke all on public.founders_cfg from anon, authenticated;
@@ -42,14 +42,16 @@ revoke all on public.founders from anon, authenticated;
 create or replace function public.founder_take(p text) returns void language plpgsql security definer set search_path = public as $$
 declare f timestamptz; n int;
 begin
-  select c.start into f from founders_cfg c;
+  select c.start into f from founders_cfg c where not c.paused;
   if f is null or now() < f then return; end if;
   if exists (select 1 from founders where player_id = p) then return; end if;
   if not exists (select 1 from players pl where pl.id = p and not pl.guest and not coalesce(pl.game_admin, false) and pl.created_at >= f) then return; end if;
   perform pg_advisory_xact_lock(hashtext('dsb_founders'));
-  select count(*) into n from founders;
+  -- (from the highest number, not the count: a founder who deletes the account takes the row along, and the count would then hit a
+  -- number that is taken and stop for good; a number freed so is not given again)
+  select coalesce(max(no), 0) into n from founders;
   if n >= 100 then return; end if;
-  insert into founders (player_id, no) values (p, n + 1) on conflict do nothing;
+  insert into founders (player_id, no) values (p, n + 1) on conflict (player_id) do nothing;
 end $$;
 revoke all on function public.founder_take(text) from public, anon, authenticated;
 
@@ -58,24 +60,39 @@ declare f timestamptz;
 begin
   if not is_admin() then raise exception 'admin only'; end if;
   select c.start into f from founders_cfg c;
-  return jsonb_build_object('from', f, 'n', (select count(*) from founders),
+  return jsonb_build_object('from', f, 'paused', (select c.paused from founders_cfg c), 'n', (select count(*) from founders), 'last', (select coalesce(max(no), 0) from founders),
     'list', coalesce((select jsonb_agg(jsonb_build_object('no', fo.no, 'at', fo.at, 'name', coalesce(nm.name, ''), 'who', left(md5('dsb' || fo.player_id), 10)) order by fo.no)
                       from founders fo left join names nm on nm.player_id = fo.player_id and nm.removed_at is null), '[]'::jsonb));
 end $$;
--- on: counted from now (an earlier start is kept); off: no one more is counted, those counted keep their number
+-- on: counted from now, or from the first start if it was on before; off: paused, no one more is counted, those counted keep their number
 create or replace function public.admin_founders_set(on_ boolean) returns jsonb language plpgsql security definer set search_path = public as $$
 begin
   if not is_admin() then raise exception 'admin only'; end if;
   if on_ is null then raise exception 'bad value'; end if;
   if on_ then
-    update founders_cfg set start = now() where start is null;
+    update founders_cfg set start = coalesce(start, now()), paused = false;
   else
-    update founders_cfg set start = null;
+    update founders_cfg set paused = true;   -- (paused, not reset: the accounts made while it was on still count when it is on again)
   end if;
   return admin_founders();
 end $$;
 revoke all on function public.admin_founders(), public.admin_founders_set(boolean) from public, anon, authenticated;
 grant execute on function public.admin_founders(), public.admin_founders_set(boolean) to authenticated;
+
+-- ---------- 2b. the totals per player, for the total list and the profile's place (one row a player, kept by land_put; the week's lists
+-- read the landings by gh, now indexed for every group) ----------
+create index if not exists landings_gh on public.landings (gh);
+create table if not exists public.player_tot (
+  player_id text primary key references public.players(id) on delete cascade,
+  kg double precision not null default 0, kr double precision not null default 0, ports int not null default 0
+);
+alter table public.player_tot enable row level security;
+revoke all on public.player_tot from anon, authenticated;
+-- each row capped by its group: 60 t in the closed group and at sea (acc 'none': the hav licences), 10 t in the open group
+create or replace function public.land_cap(acc text) returns real language sql immutable as $$ select case when acc = 'open' then 10000::real else 60000::real end $$;
+insert into public.player_tot (player_id, kg, kr, ports)
+  select l.player_id, sum(least(l.kg, land_cap(l.acc))), sum(least(l.kr, land_cap(l.acc) * 1000)), count(distinct l.port) from public.landings l group by l.player_id
+  on conflict (player_id) do update set kg = excluded.kg, kr = excluded.kr, ports = excluded.ports;
 
 -- ---------- 3. land_put with the value and the founders (as 20261110160000_cheat_flags.sql otherwise) ----------
 create or replace function public.land_put(gh double precision, y int, port text, acc text, items jsonb, boat text default '', company text default '', ev text default '', reg text default '') returns void
@@ -83,6 +100,7 @@ language plpgsql security definer set search_path = public as $$
 declare p text := pid(); r jsonb; e text := left(regexp_replace(coalesce(land_put.ev, ''), '[^a-z0-9_]', '', 'g'), 16);
   rg text := case when land_put.reg in ('nord', 'midt', 'vest', 'sor') then land_put.reg else '' end;
   pt text := left(regexp_replace(coalesce(land_put.port, ''), '[^A-Za-z0-9ÆØÅæøå_-]', '', 'g'), 40); yy int; tot double precision; any_ boolean := false;
+  a_ text := case when land_put.acc in ('open', 'lukket') then land_put.acc else 'none' end; kg_ real; kr_ real; tkg double precision := 0; tkr double precision := 0;
 begin
   if p is null then raise exception 'not signed in'; end if;
   if not exists (select 1 from players where id = p) then raise exception 'no player'; end if;
@@ -100,17 +118,24 @@ begin
   for r in select * from jsonb_array_elements(items) loop
     if coalesce((r ->> 'kg')::real, 0) > 0 then
       any_ := true;
+      kg_ := least((r ->> 'kg')::real, 100000);
+      -- (at most 1 000 kr a kilo: no fish the game sells is worth more; a broken number counts as nothing)
+      kr_ := least(greatest(coalesce(case when jsonb_typeof(r -> 'kr') = 'number' then (r ->> 'kr')::real end, 0), 0), kg_ * 1000);
+      tkg := tkg + least(kg_, land_cap(a_)); tkr := tkr + least(kr_, land_cap(a_) * 1000);
       insert into landings (player_id, gh, y, port, sp, acc, kg, kgq, boat, company, ev, reg, kr)
         values (p, land_put.gh, yy, pt, left(regexp_replace(coalesce(r ->> 'sp', ''), '[^a-z0-9_]', '', 'g'), 16),
                 case when land_put.acc in ('open', 'lukket') then land_put.acc else 'none' end,
                 least((r ->> 'kg')::real, 100000), least(greatest(coalesce((r ->> 'kgq')::real, 0), 0), 100000),
                 left(btrim(regexp_replace(coalesce(land_put.boat, ''), '[<>&"''`\\]', '', 'g')), 24),
-                left(btrim(regexp_replace(coalesce(land_put.company, ''), '[<>&"''`\\]', '', 'g')), 40), e, rg,
-                -- (at most 1 000 kr a kilo: no fish the game sells is worth more; a broken number counts as nothing)
-                least(greatest(coalesce(case when jsonb_typeof(r -> 'kr') = 'number' then (r ->> 'kr')::real end, 0), 0), least((r ->> 'kg')::real, 100000) * 1000));
+                left(btrim(regexp_replace(coalesce(land_put.company, ''), '[<>&"''`\\]', '', 'g')), 40), e, rg, kr_);
     end if;
   end loop;
   if any_ then
+    begin   -- the totals (nor may they stop the landing)
+      insert into player_tot (player_id, kg, kr, ports) values (p, tkg, tkr, 1)
+        on conflict (player_id) do update set kg = player_tot.kg + excluded.kg, kr = player_tot.kr + excluded.kr,
+          ports = (select count(distinct x.port) from landings x where x.player_id = p);
+    exception when others then null; end;
     begin perform founder_take(p); exception when others then null; end;   -- (nor may the badge)
   end if;
 end $$;
@@ -127,17 +152,20 @@ begin
   if p is null then raise exception 'not signed in'; end if;
   if k <> 'tot' and (w is null or w < 0 or w > 100000) then raise exception 'bad week'; end if;
   return (
-    with l as (select x.* from landings x
-                 where (k = 'tot' or ((g = 'all' or x.acc = g) and x.gh >= top_list.w * 168.0 and x.gh < (top_list.w + 1) * 168.0))
-                   and (x.player_id = p or (not exists (select 1 from players gp where gp.id = x.player_id and gp.guest)
-                        and not (co and exists (select 1 from cheat_flags cf where cf.player_id = x.player_id and cf.cleared_at is null))))),
-    t as (select l.player_id, sum(least(l.kg, case when l.acc = 'lukket' then 60000 else 10000 end)) kg, sum(least(l.kr, case when l.acc = 'lukket' then 60000000 else 10000000 end)) kr,
-                 (array_agg(l.boat order by l.id desc))[1] boat, (array_agg(nullif(l.company, '') order by l.id desc) filter (where l.company <> ''))[1] company from l group by l.player_id),
+    with ok as (select pl.id from players pl where pl.id = p or (not pl.guest and not (co and exists (select 1 from cheat_flags cf where cf.player_id = pl.id and cf.cleared_at is null)))),
+    l as (select x.* from landings x where k <> 'tot' and (g = 'all' or x.acc = g) and x.gh >= top_list.w * 168.0 and x.gh < (top_list.w + 1) * 168.0 and x.player_id in (select id from ok)),
+    t as (select l.player_id, sum(least(l.kg, land_cap(l.acc))) kg, sum(least(l.kr, land_cap(l.acc) * 1000)) kr,
+                 (array_agg(l.boat order by l.id desc))[1] boat, (array_agg(l.company order by l.id desc) filter (where l.company <> ''))[1] company from l group by l.player_id
+          union all
+          select pt.player_id, pt.kg, pt.kr,
+                 (select x.boat from landings x where x.player_id = pt.player_id order by x.id desc limit 1),
+                 (select x.company from landings x where x.player_id = pt.player_id and x.company <> '' order by x.id desc limit 1)
+            from player_tot pt where k = 'tot' and pt.player_id in (select id from ok)),
     pt as (select distinct on (player_id) player_id, port from (select l.player_id, l.port, sum(l.kg) s from l group by l.player_id, l.port) a order by player_id, s desc),
     r as (select t.*, pt.port, rank() over (order by case when k = 'kg' then t.kg else t.kr end desc) rk from t left join pt using (player_id))
     select jsonb_build_object(
       'kind', k, 'grp', g,
-      'rows', coalesce((select jsonb_agg(jsonb_build_object('rank', rk, 'hid', left(md5('dsb' || a.player_id), 10), 'boat', boat,
+      'rows', coalesce((select jsonb_agg(jsonb_build_object('rank', rk, 'hid', left(md5('dsb' || a.player_id), 10), 'boat', coalesce(boat, ''),
                           'company', coalesce(company, ''), 'port', port,
                           'kg', round(kg::numeric), 'kr', round(kr::numeric), 'me', player_id = p,
                           'f', (select fo.no from founders fo where fo.player_id = a.player_id),
@@ -166,14 +194,15 @@ alter table public.profiles enable row level security;
 revoke all on public.profiles from anon, authenticated;
 
 -- the game's figures for the profile, at most every 30 seconds; a guest's are not kept
-create or replace function public.prof_put(d jsonb) returns void language plpgsql security definer set search_path = public as $$
+drop function if exists public.prof_put(jsonb);
+create or replace function public.prof_put(d jsonb) returns boolean language plpgsql security definer set search_path = public as $$
 declare p text := pid(); clean text := '[<>&"''`\\]';
 begin
   if p is null then raise exception 'not signed in'; end if;
-  if is_guest() then return; end if;
+  if is_guest() then return false; end if;
   if not exists (select 1 from players where id = p) then raise exception 'no player'; end if;
   if jsonb_typeof(d) is distinct from 'object' or octet_length(d::text) > 4000 then raise exception 'bad profile'; end if;
-  if exists (select 1 from profiles where player_id = p and at > now() - interval '30 seconds') then return; end if;
+  if exists (select 1 from profiles where player_id = p and at > now() - interval '30 seconds') then return false; end if;   -- (held back: the game tries again)
   insert into profiles (player_id, fleet, value, worth, company, form, ach, boats, recs, at)
   values (p,
     least(greatest(coalesce((d ->> 'fleet')::numeric, 1), 0), 500)::smallint,
@@ -191,6 +220,7 @@ begin
     now())
   on conflict (player_id) do update set fleet = excluded.fleet, value = excluded.value, worth = excluded.worth, company = excluded.company,
     form = excluded.form, ach = excluded.ach, boats = excluded.boats, recs = excluded.recs, at = excluded.at;
+  return true;
 end $$;
 revoke all on function public.prof_put(jsonb) from public, anon, authenticated;
 grant execute on function public.prof_put(jsonb) to authenticated;
@@ -244,12 +274,10 @@ begin
   else select pl.id into q from players pl where left(md5('dsb' || pl.id), 10) = profile_get.hid and (not pl.guest or pl.id = p); end if;
   if q is null then return null; end if;
   return (
-    with mine as (select sum(least(l.kg, 60000)) kg, sum(least(l.kr, 60000000)) kr, count(distinct l.port) ports from landings l where l.player_id = q),
-    tot as (select l.player_id, sum(least(l.kr, case when l.acc = 'lukket' then 60000000 else 10000000 end)) kr from landings l
-              where l.player_id = q or (not exists (select 1 from players gp where gp.id = l.player_id and gp.guest)
-                    and not (co and exists (select 1 from cheat_flags cf where cf.player_id = l.player_id and cf.cleared_at is null)))
-              group by l.player_id),
-    rk as (select player_id, rank() over (order by kr desc) r from tot)
+    with mine as (select pt.kg, pt.kr, pt.ports from player_tot pt where pt.player_id = q),
+    tot as (select pt.player_id, pt.kr from player_tot pt join players gp on gp.id = pt.player_id
+              where pt.player_id = q or (not gp.guest and not (co and exists (select 1 from cheat_flags cf where cf.player_id = pt.player_id and cf.cleared_at is null)))),
+    rk as (select player_id, r from (select player_id, rank() over (order by kr desc) r from tot) z where player_id = q)
     select jsonb_build_object(
       'hid', left(md5('dsb' || q), 10), 'me', q = p,
       'user', coalesce((select nm.name from names nm where nm.player_id = q and nm.removed_at is null), ''),
