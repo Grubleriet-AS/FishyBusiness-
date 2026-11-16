@@ -117,6 +117,8 @@
   // onDeck: the skipper jigs himself, so he stands at the first deck place the crew leave free (at the wheel when there is none)
   // the people aboard where the agents have them (deckcrew.js): walking, at their work, or at the wheel inside the house; in the bridge
   // view nobody is drawn at the wheel, where the eye is (the skipper, or a hand who has the helm)
+  // (FB3: the feet of the others aboard, where each stands on the deck, for one whose next foot is not to go on them: deckcrew.js footStep avoid)
+  function footsOf(A, me){ const out = []; for (const b of A) if (b !== me && b.fs && !b.fs.snap) for (const f of b.fs.f) out.push([f.x, f.z]); return out; }
   function drawDeckCrew(BMrel, eye, VP, t, G){
     nSetup(VP); let idx = 20; if (!GB) buildGear();
     // (the tests hold the crew's deck at a roll and a pitch of their own, where the boat is and heading her way, hold everyone's beat
@@ -171,6 +173,8 @@
       const F0 = [Math.sin(a.h), -Math.cos(a.h)], R0 = [Math.cos(a.h), Math.sin(a.h)], sg = a.x >= 0 ? 1 : -1;
       const g0 = CREW3D.holds(a), ef = a.ef == null ? 1 : a.ef, ta = SJT && SJT.T != null ? SJT.T : a.tk != null ? a.tk : t;   // (the place still held; each one's own beat, deckcrew.js a.tk)
       st.age = a.c ? a.c.age : 45; st.deck = true; st.bp = lp; st.dn = DN; st.sea = b.status === 'port' && !SJT ? null : seaSet(CREW3D, a, BMrel); if (SJT && SJT.task && a.mode === 'at' && !ev) st.task = SJT.task; st.rail = a.mode === 'at' && g0 && !(SJT && SJT.norail) ? g0.rail || null : null;   /* (norail: a pose the tests put on him stands free, the same wherever the break place he happens to have is: tests/folk2maal.py) */ if (a.task === 'smoke' && b.status === 'sailing') st.lean = false;
+      // (FB3: the feet from where each stands on the deck, in the boat's frame where he is drawn: deckcrew.js footStep, footState in a.fs)
+      if (FOT.on && a.mode !== 'helm'){ st.fq = {id:a.id, s:a.fs || (a.fs = footState()), x:lp[0], z:lp[2], h:a.h + (a.sqA || 0) * Math.PI / 2, carry:a.task === 'carry', ok:(x, z) => CREW3D.footOk(a, x, z), avoid:footsOf(A, a), y:a.y, fy:(x, z) => CREW3D.footY(a, x, z)}; }
       st.slump = clamp((0.96 - ef) * 1.6, 0, 0.35); st.tape = !!(a.c && a.c.cut && S.t < a.c.cut); if (a.put) st.put = {task:a.put.task, u:clamp(a.putU || 0, 0, 1)};
       // a moment (G3.crewFx, 14-crewlife.js crewSlip): a fish slips over the side, the knife slips and a hand is cut
       const fx = CFX.get(a.id);
@@ -589,7 +593,9 @@
       const look = npcLook(a.me ? 'skip' : 'crew', n, a.c ? (a.c.id.endsWith('1') ? 1 : 0) : 0);
       const P = {gy:() => wy, bare:true, spray:0, kit:a.me ? 'skipper' : null, look};
       // (her people have the sea legs too where she rolls in the drawing, FB4: n.M is her frame with her roll and pitch)
-      drawWorker(P, {x:wl[0] + eye[0], z:wl[2] + eye[2], h:h0 + (a.mode === 'helm' ? 0 : a.h), task:a.task, walk:a.mode === 'walk', blend:a.mode === 'walk' ? 0 : a.blend, peek:true, s:0, dn:DN, sea:n.st === 'port' ? null : seaSet(sim, a, n.M)}, eye, t, idx++); }
+      // (FB3: her people's feet from where each stands on her deck, as drawn: the deck scaled to her, sv)
+      const fq = FOT.on && a.mode !== 'helm' ? {s:a.fs || (a.fs = footState()), x:lp[0] * sv[0], z:lp[2] * sv[2], h:a.h, carry:a.task === 'carry', ok:(x, z) => sim.footOk(a, x / sv[0], z / sv[2]), avoid:footsOf(sim.visible(), a), y:a.y * sv[1], fy:(x, z) => { const v = sim.footY(a, x / sv[0], z / sv[2]); return v == null ? null : v * sv[1]; }} : null;
+      drawWorker(P, {x:wl[0] + eye[0], z:wl[2] + eye[2], h:h0 + (a.mode === 'helm' ? 0 : a.h), task:a.task, walk:a.mode === 'walk', blend:a.mode === 'walk' ? 0 : a.blend, peek:true, s:0, dn:DN, sea:n.st === 'port' ? null : seaSet(sim, a, n.M), fq}, eye, t, idx++); }
     if (NCREW.size > 24) for (const [id, e] of NCREW) if (t - e.t > 60) NCREW.delete(id);
     return true;
   }
