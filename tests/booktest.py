@@ -81,8 +81,8 @@ async def run(p, w, h, tag):
     # Salg: the newest landing note, its net, and the old landing without lines
     await tap_el('#bkTabs [data-t=salg]'); await pg.wait_for_timeout(400)
     r = json.loads(await pg.evaluate("""JSON.stringify((() => { const x = S.sales[S.sales.length - 1], html = document.getElementById('bkStage').innerHTML + document.getElementById('bkStage').textContent, pages = bookTabPages('salg');
-      return {tab:BOOK.tab, idx:BOOK.idx, pages:BOOK.pages, net:html.includes(kr(x.total - (x.d.tk || []).reduce((a, v) => a + v, 0) - x.d.lott - x.d.fine)), crew:html.includes('Ola Nordmann'), fish:html.includes('bk-fish'), old:pages.some(p => /før sluttsedlene kom i boka/.test(p))}; })())"""))
-    check(r['tab'] == 'salg' and r['idx'] == r['pages'] - 1 and r['net'] and r['crew'] and r['fish'] and r['old'], 'Salg: fanen åpner på nyeste sluttseddel med fisketegning, lott per mann og netto; den gamle landingen vises uten linjer', r)
+      return {tab:BOOK.tab, idx:BOOK.idx, pages:BOOK.pages, net:html.includes(kr(x.total - (x.d.tk || []).reduce((a, v) => a + v, 0) - x.d.lott - x.d.fine)), crew:html.includes('Ola Nordmann'), fish:html.includes('bk-fish') || html.includes('<svg viewBox="0 0 76 34"'), form:html.includes('bk-form') && html.includes('SLUTTSEDDEL'), old:pages.some(p => /før sluttsedlene kom i boka/.test(p))}; })())"""))
+    check(r['tab'] == 'salg' and r['idx'] == r['pages'] - 1 and r['net'] and r['crew'] and not r['fish'] and r['form'] and r['old'], 'Salg: fanen åpner på nyeste sluttseddel som et skjema uten fisketegninger (Jonas 16.11.2026), lott per mann og netto; den gamle landingen vises uten linjer', r)
     await pg.screenshot(path='book_salg_' + tag + '.png')
     # paging stays within the tab
     await tap_el('#book [data-bk=prev]'); await pg.wait_for_timeout(600)
