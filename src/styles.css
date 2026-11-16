@@ -2141,3 +2141,15 @@ body.vplot #hud{background:rgba(11,23,32,.78)!important}
 .st-seg button.on{background:rgba(143,211,255,.9);color:#0b1d2a}
 .st-now{margin:8px 0 0;font:12px/1.4 var(--sans);color:var(--t-on-dark-2,#b9c6cf)}
 @media (max-width:560px){.st-row{flex-direction:column;align-items:stretch}.st-seg{align-self:flex-start;flex-wrap:wrap}}
+/* the Fellesskap app (ui/phone/05-rigg-innst-admin.js fellesskap, 16.11.2026) */
+.so-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;color:#fff!important;border:0} .so-btn svg{width:20px;height:20px}
+.so-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid rgba(238,244,247,.08);color:inherit;text-decoration:none} .so-row:first-of-type{border-top:0}
+.so-ic{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:11px;color:#fff;flex:none} .so-ic svg{width:22px;height:22px}
+.so-t{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0} .so-t b{font:600 15px/1.2 var(--sans)} .so-t small{font:12px/1.35 var(--sans);color:var(--t-on-dark-2,#b9c6cf)}
+.so-go{font-size:22px;opacity:.5}
+/* the Fellesskap app (ui/phone/05-rigg-innst-admin.js fellesskap, 16.11.2026) */
+.so-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;color:#fff!important;border:0} .so-btn svg{width:20px;height:20px}
+.so-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid rgba(238,244,247,.08);color:inherit;text-decoration:none} .so-row:first-of-type{border-top:0}
+.so-ic{display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:11px;color:#fff;flex:none} .so-ic svg{width:22px;height:22px}
+.so-t{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0} .so-t b{font:600 15px/1.2 var(--sans)} .so-t small{font:12px/1.35 var(--sans);color:var(--t-on-dark-2,#b9c6cf)}
+.so-go{font-size:22px;opacity:.5}
