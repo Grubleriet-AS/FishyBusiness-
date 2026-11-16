@@ -5012,3 +5012,15 @@
 2026-11-16 17:01	ccr-5e1ba2f4-pusvyd	cc750522+	errtest	OK	47	lite	samtidig	
 2026-11-16 17:01	ccr-5e1ba2f4-pusvyd	cc750522+	jukseboot	OK	11	lite	samtidig	
 2026-11-16 16:27	ccr-349425a1-raf94t	a7f24b0+	fartstidtest	OK	14	lite	alene	
+2026-11-16 17:05	ccr-5e1ba2f4-pusvyd	c647c862	boottest	OK	39	lite	samtidig	
+2026-11-16 17:06	ccr-5e1ba2f4-pusvyd	c647c862	docktest	OK	71	lite	samtidig	
+2026-11-16 17:10	ccr-5e1ba2f4-pusvyd	c647c862	telefonflate	OK	270	lite	samtidig	
+2026-11-16 17:10	ccr-5e1ba2f4-pusvyd	c647c862	uishots	OK	119	lite	samtidig	
+2026-11-16 17:10	ccr-5e1ba2f4-pusvyd	c647c862	dockrow	OK	57	lite	samtidig	
+2026-11-16 17:10	ccr-5e1ba2f4-pusvyd	c647c862	navbarshot	OK	43	lite	samtidig	
+2026-11-16 17:11	ccr-5e1ba2f4-pusvyd	c647c862	driftsplan2ui	OK	84	lite	samtidig	
+2026-11-16 17:12	ccr-5e1ba2f4-pusvyd	c647c862	driftsplan2gui	OK	130	lite	samtidig	
+2026-11-16 17:13	ccr-5e1ba2f4-pusvyd	c647c862	hudtest	OK	136	lite	samtidig	
+2026-11-16 17:13	ccr-5e1ba2f4-pusvyd	c647c862	planhjem	OK	18	lite	samtidig	
+2026-11-16 17:14	ccr-5e1ba2f4-pusvyd	615db1fc	havplantest	FEIL	1429	lite	samtidig	FEIL spot check Egersund: the plan made, out from Egersund, the lenker set and hauled, fish aboard [[{'lat': 58.249999999999986, 'lon': 4.9}, {'lat': 58.3826273
+2026-11-16 17:14	ccr-5e1ba2f4-pusvyd	615db1fc	havnstengt	FEIL	40	lite	samtidig	FEIL a berth in Bodø to put the boat at (vec packs in the build?) {'err': 'no berth'}
