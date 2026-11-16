@@ -4824,3 +4824,16 @@
 2026-11-16 02:20	claude/blissful-cannon-ctb8e9	3dd1c21+	driftsplan2test	OK	111	lite	alene	
 2026-11-16 02:22	claude/blissful-cannon-ctb8e9	3dd1c21+	driftsplan3test	OK	76	lite	alene	
 2026-11-16 02:24	claude/blissful-cannon-ctb8e9	3dd1c21+	driftsplan3test	OK	83	lite	alene	
+2026-11-16 02:48	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2ui	FEIL	76	lite	alene	avsluttet med kode 1
+2026-11-16 02:49	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2ui	FEIL	78	lite	samtidig	FEIL a ring in the sea is set, 2 nm across for the line, named by the place and its distance; the plan is ready [None, {'r': 1.852, 'want': 1.852}, False, True]
+2026-11-16 02:49	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2map	FEIL	75	lite	samtidig	FEIL your own mark: a finger held still sets a pin of your own, beside the plan's ring [0, 0, {'ring': True, 'pins': 0}]
+2026-11-16 02:51	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2ui	OK	91	lite	samtidig	
+2026-11-16 02:51	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2map	FEIL	85	lite	samtidig	FEIL your own mark: a finger held still sets a pin of your own, beside the plan's ring [0, 0, {'ring': True, 'pins': 0}]
+2026-11-16 02:52	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2gui	OK	152	lite	samtidig	
+2026-11-16 02:52	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan3test	FEIL	77	lite	samtidig	avsluttet med kode 1
+2026-11-16 02:52	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2test	FEIL	49	lite	alene	FEIL S12 v3 and v2 are switched off with a word, the gear in the sea, the crew, the catch and the money stay; a v4 is kept; the old plan's code is gone {'v3': T
+2026-11-16 02:54	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan3test	OK	85	lite	samtidig	
+2026-11-16 02:54	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2map	OK	74	lite	samtidig	
+2026-11-16 02:55	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2test	FEIL	59	lite	alene	FEIL S14 the statistics survive a save and a reload [216, None]
+2026-11-16 02:58	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2test	FEIL	108	lite	alene	FEIL S9 30 h closed in the middle gives the same landings as open (kg within 2 %, kr within 3 %: the price follows the species and sizes, which vary a little be
+2026-11-16 03:00	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2test	OK	104	lite	alene	

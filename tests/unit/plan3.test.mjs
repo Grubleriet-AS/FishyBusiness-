@@ -37,8 +37,8 @@ export default function (t){
   t.ok(plan3Rhythm(o) === 'day', 'skiffen går dagdrift (' + plan3Rhythm(o) + ')');
   // the engine runs a v5 as a v4; an old v4 is left as it is while DRIFT3 is off (the page comes in DP3-3)
   S.ops = o; t.ok(plan2Ops() === o, 'motoren kjører en v5-plan');
-  t.ok(DRIFT3 === false, 'DRIFT3 er av til siden er bygd (DP3-3)');
-  { const v4 = {v:DRV2, on:true, places:[], rig:'juksa', land:{}}; S.ops = v4; t.ok(plan2Ops() === v4, 'med DRIFT3 av står en v4-plan som før'); }
+  t.ok(DRIFT3 === true, 'DRIFT3 er på: siden er bygd (DP3-3)');
+  { K.set('DRIFT3', false); const v4 = {v:DRV2, on:true, places:[], rig:'juksa', land:{}}; S.ops = v4; t.ok(plan2Ops() === v4, 'med DRIFT3 av står en v4-plan som før'); K.set('DRIFT3', true); }
   // the old plans (Jonas 16.11.2026: «Den slåes av og melding gies. Båten kjøres til nærmeste fiskemottak», «Trekk først, så lever»)
   const M = PORTS.find(p => p.mottak).id;
   { const v4 = {v:DRV2, on:true, held:null, places:[{id:'f1', k:'felt', x:500, y:300, n:4}], rig:'line', land:{}, M, home:'naust', run:{}}; S.ops = v4; S.sets = [{vid:S.cur, kind:'line', n:4, fid:'f1'}];
@@ -69,7 +69,7 @@ export default function (t){
     t.ok(plan2Ops() === v4 && v4.retire && v4.home === M, 'med DRIFT3 på: plan2Ops slår den gamle planen av gjennom plan3Retire, og den henter redskapet');
     v4.on = false; v4.stop = {no:'Fant ingen vei.', en:'Found no way.'}; const n0 = S.msgs.length;
     t.ok(plan2Ops() === null && S.ops === null && /kom ikke helt i mål: Fant ingen vei/.test((S.msgs[S.msgs.length - 1] || {}).no || ''), 'stoppet underveis: borte, og meldingen sier hvorfor og at redskapet står (' + ((S.msgs[S.msgs.length - 1] || {}).no || '').slice(0, 90) + ')');
-    const o5 = plan3New({x:500, y:300}, 'juksa'); S.ops = o5; t.ok(plan2Ops() === o5, 'en v5-plan går også med DRIFT3 på'); K.set('DRIFT3', false); }
+    const o5 = plan3New({x:500, y:300}, 'juksa'); S.ops = o5; t.ok(plan2Ops() === o5, 'en v5-plan går også med DRIFT3 på'); }
 
   // ---- DP3-2: the search with the echo sounder (16.11.2026). A ring of candidates 0.5 km apart with a made-up sea (den): a dense school of
   // saithe in one corner, the haddock thickest in another; the haddock line takes the haddock (SELQ line:hyse 2.6, saithe 0.15)

@@ -5,9 +5,9 @@
 // the rhythm, the skipper and the mate) into the answers Driftsplan 2's engine runs (06g-plan2.js planDay, 06h-plan2-engine.js), so the
 // engine, its legs, its waits and the world clock are the same. A v5 plan is a v4 plan with the ring on it, and DRV3 in o.v.
 // Old plans (v4 and older) are switched off with a word once DRIFT3 is on, and a running one fetches its gear, lands at the plant and lies
-// there (Jonas 16.11.2026: «Trekk først, så lever»; plan2Ops). DRIFT3 stays off until the page (DP3-3) is built, so the game never has the
+// there (Jonas 16.11.2026: «Trekk først, så lever»; plan2Ops). DRIFT3 was off until the page (DP3-3) was built, so the game never had the
 // new plan with the old page.
-let DRIFT3 = false;   // (a let, so the unit test can switch it on for plan2Ops)
+let DRIFT3 = true;   // (on since DP3-3, 16.11.2026: the page is built; a let, so a unit test can switch it off)
 const DRV3 = 5;
 const DRP3 = {
   // the ring's diameter in nautical miles, fixed per gear (Jonas 16.11.2026: «Fast per redskap»; start values for the play tests)
@@ -30,6 +30,8 @@ function plan3GearKey(rig){
   if (rig === 'teiner' && typeof snoVessel === 'function' && snoVessel()) return 'sno';
   return RIGS[rig] ? rig : 'juksa';
 }
+// the gear in a sentence, «for juksa», «for line» (rigName says «Bare juksa» for the rig)
+const plan3GearWord = rig => rig === 'juksa' || !RIGS[rig] ? ['juksa', 'the jig'] : [RIGS[rig].no.toLowerCase(), RIGS[rig].en.toLowerCase()];
 const plan3RingKm = rig => DRP3.ring[plan3GearKey(rig)] * NM / 2;   // the ring's radius, true km
 // the gear the boat has aboard (and in the sea) and can rig for, with the choices under it: the bait (line and pots), the line's kind
 // (when she has both), the jig's tackle (the mark hooks, and the halibut pilk with that gear aboard). The nets have nothing under them, and
@@ -138,7 +140,7 @@ function plan3Roles(){
 function plan3RingWhy(o, spots){
   const S3 = plan3Split(o);
   if (S3.k === 'felt' && !S3.n.length) return gL('Båten har ikke noe ' + rigName(o.rig).toLowerCase() + ' om bord.', 'The boat has no ' + rigName(o.rig).toLowerCase() + ' aboard.');
-  if (!spots.length) return gL('Ringen har ingen plass for ' + rigName(o.rig).toLowerCase() + ': det er land, for grunt, for dypt eller stengt der. Flytt ringen.', 'The ring has no room for ' + rigName(o.rig).toLowerCase() + ': it is land, too shallow, too deep or closed there. Move the ring.');
+  if (!spots.length){ const w = plan3GearWord(o.rig); return gL('Ringen har ingen plass for ' + w[0] + ': det er land, for grunt, for dypt eller stengt der. Flytt ringen.', 'The ring has no room for ' + w[1] + ': it is land, too shallow, too deep or closed there. Move the ring.'); }
   return null;
 }
 // ---- «find the plan»: the answers from the ring, the gear, the boat and the crew, into the v4 fields the engine reads. Pure but for the

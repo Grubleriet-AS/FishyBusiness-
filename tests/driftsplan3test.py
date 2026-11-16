@@ -60,7 +60,8 @@ async def main():
         # D: an old v4 plan that runs, with its line in the sea: switched off, it hauls, lands at the plant, lies there, and is gone
         r = await pg.evaluate("""(async () => { D2.reset(4); const home = D2.boat('sjark', 2, true); D2.gear('line', 4); await mapNeed(portById(home).p, 14);
           const F = D2.spots(2, 4, 12), o = S.ops = plan2New({home, rig:'line', jig:false, places:[D2.felt('f1', F[0], 2, 6), D2.felt('f2', F[1], 2, 6)], dep:5, land:{mode:'near', port:null, when:'trip'}});
-          const e1 = await D2.make(o); if (e1) return {e1}; plan2Start(o); const L1 = await D2.run(360, 'closed', 'D1');
+          // (played as a Driftsplan 2 plan first, with DRIFT3 off, so it has gear in the sea; then switched off as DRIFT3 does when it is on)
+          DRIFT3 = false; const e1 = await D2.make(o); if (e1){ DRIFT3 = true; return {e1}; } plan2Start(o); const L1 = await D2.run(360, 'closed', 'D1'); DRIFT3 = true;
           const sea = mySets().length, M = o.M, r1 = plan3Retire(o), retiring = !!(r1 && o.retire && o.home === M);
           await D2.make(o);   // (the legs again with the plant as home: in the game this search runs between frames, plan2Step waits for it)
           const L2 = await D2.run(2 * 1440, 'closed', 'D2'); const after = plan3Retire(o);
