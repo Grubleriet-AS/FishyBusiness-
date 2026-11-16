@@ -86,7 +86,7 @@ async def main():
           const q = portById('finnsnes').p; b.status = 'sailing'; b.port = null; b.pos = {x:q.x, y:q.y}; S.plan = {wps:[{x:q.x + 2, y:q.y + 2, fish:2}], idx:0, speed:6}; S.hold = [];
           const en = pushItems(t0).find(x => x.tag.startsWith('end-'));
           // the hold full while jigging: 60 kg in the last hour, room for the rest
-          S.plan = null; b.status = 'fishing'; b.fishUntil = S.t + 24 * 60; S.fsess = {x:q.x, y:q.y, t0:S.t - 60, kg:60}; S.hold = [{sp:'torsk', kg:100, n:30, fresh:96, bled:true, iced:true, cls:1}]; window.rigJig = () => true;
+          S.plan = null; b.status = 'fishing'; b.fishUntil = S.t + 24 * 60; S.fsess = {x:q.x, y:q.y, t0:S.t - 60, kg:60}; S.hold = [{sp:'torsk', kg:100, n:30, fresh:96, bled:true, iced:true, cls:1}]; b.rig = 'juksa';   /* (rigJig is a const since 15.11.2026: the rig itself, not a stub on window) */
           const full = pushItems(t0).find(x => x.tag.startsWith('full-')), left = capHold() - 100; S.fsess = null; b.status = 'port'; b.port = 'finnsnes'; S.hold = [];
           // rested in the boathouse
           S.rest = {port:'finnsnes', w:'naust', t0:S.t, paid:S.t + 1e5}; S.energy = 40; const rr = restRate(b), rest = pushItems(t0).find(x => x.tag === 'rested'); S.rest = null; S.energy = 100;

@@ -4932,3 +4932,16 @@
 2026-11-16 13:44	claude/blissful-cannon-ctb8e9	2ae99d7c	driftsplan2ui	OK	35	lite	samtidig	
 2026-11-16 13:44	claude/blissful-cannon-ctb8e9	2ae99d7c	driftsplan2map	OK	26	lite	samtidig	
 2026-11-16 15:02	ccr-349425a1-raf94t	7591488	cloudtest	FEIL	31	lite	samtidig	FEIL every account has a player name: one taken on another device comes down; without one the card has no way round it, refuses a bad or taken name and closes o
+2026-11-16 15:03	ccr-349425a1-raf94t	a6ca767	guesttest	OK	89	lite	samtidig	
+2026-11-16 15:03	ccr-349425a1-raf94t	a6ca767	soundtest	OK	9	lite	samtidig	
+2026-11-16 15:05	ccr-349425a1-raf94t	a6ca767	hudtest	FEIL	135	lite	samtidig	FEIL 390x844: the map's credit line begins right of the deck log's tab, not under it  {"attr": null, "tab": {"l": -44, "t": 728, "r": 34, "b": 836}}
+2026-11-16 15:11	ccr-349425a1-raf94t	a6ca767	starttest	OK	462	lite	samtidig	
+2026-11-16 15:11	ccr-349425a1-raf94t	a6ca767	installtest	OK	67	lite	samtidig	
+2026-11-16 15:11	ccr-349425a1-raf94t	a6ca767	pushtest	FEIL	31	lite	samtidig	FEIL the hold full while jigging: the push comes when the session's rate fills it  {"f": {}, "want": 66.66666666666667}
+2026-11-16 15:11	ccr-349425a1-raf94t	a6ca767	pwatest	OK	31	lite	samtidig	
+2026-11-16 15:11	ccr-349425a1-raf94t	a6ca767	csptest	OK	91	lite	samtidig	
+2026-11-16 15:11	ccr-349425a1-raf94t	a6ca767	helmtest	OK	26	lite	samtidig	
+2026-11-16 15:13	ccr-349425a1-raf94t	a6ca767+	cloudtest	FEIL	46	lite	samtidig	FEIL every account has a player name: one taken on another device comes down; without one the card has no way round it, refuses a bad or taken name and closes o
+2026-11-16 15:15	ccr-349425a1-raf94t	a6ca767+	hudtest	OK	124	lite	samtidig	
+2026-11-16 15:15	ccr-349425a1-raf94t	a6ca767+	pushtest	OK	24	lite	samtidig	
+2026-11-16 15:15	ccr-349425a1-raf94t	a6ca767+	cloudtest	OK	41	lite	alene	
