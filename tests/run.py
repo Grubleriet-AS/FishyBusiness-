@@ -361,7 +361,7 @@ for _f in ('src/js/ui/10g-wardrobe.js', 'src/js/vessel3d.js'): COVER[_f] = COVER
 LONG['allesteder'] = 5400
 # (16.11.2026, when 118 was merged, as the queue asked) the race's migration, steg 126's site file and tool, steg 121's foot test
 COVER['supabase/migrations/20261113200000_kapplop.sql'] = ['sqltest']
-COVER['supabase/migrations/20261116200000_rank_fs.sql'] = ['sqltest']   # RANK1-c (steg 134): top_list 'fs'
+COVER['supabase/migrations/20261116200000_rank_fs.sql'] = ['sqltest']; COVER['supabase/migrations/20261116220000_toplist_lang.sql'] = ['sqltest']   # RANK1-c (steg 134): top_list 'fs'
 COVER['src/js/ui/phone/09-vaer-post-salg-redning.js'] = COVER.get('src/js/ui/phone/09-vaer-post-salg-redning.js', []) + ['profiltest']
 COVER['src/data/siteout.json'] = ['rorbutest', 'placetest']; COVER['tools/rorbu/siteout.py'] = []
 D3 += ['fotgli']; LONG['fotgli'] = 2400; COVER['tests/fotgli.py'] = ['fotgli']; COVER['tests/unit/fotgli.test.mjs'] = []

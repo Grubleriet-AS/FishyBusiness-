@@ -1,4 +1,4 @@
-  const NAV = new Set(['open', 'home', 'back', 'close', 'lang', 'sub', 'shop0', 'salgW', 'salgG', 'salgK', 'salgF', 'vsel', 'goto', 'vfollow', 'vboard', 'vname', 'vsell', 'lopcls']);
+  const NAV = new Set(['open', 'home', 'back', 'close', 'lang', 'sub', 'shop0', 'salgW', 'salgG', 'salgK', 'salgF', 'salgP', 'topMore', 'vsel', 'goto', 'vfollow', 'vboard', 'vname', 'vsell', 'lopcls']);
   function act(a, d){
     const was = app, done = SEL_APPS.includes(app) && !NAV.has(a) ? withSel(() => act0(a, d)) : act0(a, d);
     // a link to a page that lives in the drawer now (Neste mål, Rederi's «Åpne») closes the phone and opens the drawer
@@ -114,6 +114,8 @@
     else if (a === 'tow'){ rescue(true); toast(L('Redningsskøyta er på vei.', 'The rescue boat is on its way.')); }
     else if (a === 'pfav'){ PROF.avAsk(); }
     else if (a === 'salgK'){ sub.salgK = d.s; sub.salgF = false; }
+    else if (a === 'salgP'){ sub.salgP = d.s; sub.salgF = false; }   // the period: week, month or all time (Jonas 16.11.2026)
+    else if (a === 'topMore'){ if (typeof worldTopMore === 'function') worldTopMore(WTOP_CUR); }   // the next hundred on the leaderboard
     else if (a === 'salgF'){ sub.salgF = !sub.salgF; }
     else if (a === 'agfree'){ const why = agFree(); toast(why ? L(why[0], why[1]) : L('Båten ligger på trygt vann, med skroget som før.', 'The boat lies on safe water, with the hull as before.')); save(); if (typeof refreshAll === 'function') refreshAll(); }
     else if (a === 'unstuck'){ const why = unstuck(); toast(why ? L(why[0], why[1]) : L('Båten ligger nå på trygt vann.', 'The boat now lies on safe water.')); if (!why && typeof refreshAll === 'function') refreshAll(); }

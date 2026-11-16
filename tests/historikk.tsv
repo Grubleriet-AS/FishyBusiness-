@@ -5249,3 +5249,13 @@
 2026-11-16 20:31	d4-new	68251c58	hbtest	OK	17	lite	samtidig	
 2026-11-16 20:34	d4-new	68251c58	telefonflate	OK	171	lite	samtidig	
 2026-11-16 20:34	d4-new	68251c58	driftsplan2gui	OK	145	lite	samtidig	
+2026-11-16 20:39	ccr-5e1ba2f4-pusvyd	0a06ace6f+	profiltest	FEIL	37	lite	alene	FEIL liggende: «Din plassering #420 av 250» øverst over tabellen
+2026-11-16 20:40	ccr-5e1ba2f4-pusvyd	0a06ace6f+	profiltest	OK	38	lite	samtidig	
+2026-11-16 20:40	ccr-5e1ba2f4-pusvyd	0a06ace6f+	docktest	OK	60	lite	samtidig	
+2026-11-16 20:46	ccr-5e1ba2f4-pusvyd	0a06ace6f+	profiltest	FEIL	44	lite	samtidig	FEIL liggende: topplista åpner på Totalt med kg, kr og selskapsverdien (Jonas 16.11.2026) {"rows": 1, "kr": true, "badge": 1, "first": "HavbrisFounder #1Ola", "
+2026-11-16 20:46	ccr-5e1ba2f4-pusvyd	0a06ace6f+	cloudtest	OK	44	lite	samtidig	
+2026-11-16 20:47	ccr-5e1ba2f4-pusvyd	0a06ace6f+	docktest	OK	59	lite	samtidig	
+2026-11-16 20:48	ccr-5e1ba2f4-pusvyd	0a06ace6f+	profiltest	OK	42	lite	alene	
+2026-11-16 20:54	ccr-5e1ba2f4-pusvyd	0a06ace6f+	uketest	OK	8	lite	samtidig	
+2026-11-16 20:54	ccr-5e1ba2f4-pusvyd	0a06ace6f+	posttest	OK	28	lite	samtidig	
+2026-11-16 20:56	ccr-5e1ba2f4-pusvyd	0a06ace6f+	telefonflate	OK	136	lite	samtidig	

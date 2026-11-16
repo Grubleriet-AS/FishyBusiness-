@@ -55,6 +55,7 @@ def main():
         for m in mig:
             if os.environ.get('SQL_LOP') == '0' and m.endswith('_kapplop.sql'): continue   # (KL3: the race's checks seen red without the file)
             if os.environ.get('SQL_RANK') == '0' and m.endswith('_rank_fs.sql'): continue   # (RANK1-c: the tab's checks seen red without the file)
+            if os.environ.get('SQL_LANG') == '0' and m.endswith('_toplist_lang.sql'): continue   # (the long list: its checks seen red without the file)
             p = run('psql', '-h', sock, '-U', user, '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q', '-f', m)
             print(ok(p.returncode == 0), 'the migration runs on PostgreSQL:', os.path.basename(m), p.stderr.strip()[-300:] if p.returncode else '')
             if p.returncode: return
@@ -1924,6 +1925,44 @@ def main():
               'RANK1-c: top_list fs by the server\'s sea time, highest first, the level as fsOf, the user name; the guest, the marked account and the one without sea time out; your place', RK)
         print(ok(not RK.get('err') and RK.get('keys') == ['boat', 'f', 'hid', 'me', 'rank', 'user', 'y'] and RK.get('guest') == ([(True, 1)], 1)),
               'RANK1-c: the rows have no field about haill, the skills or the points (only the level), and a guest sees only themselves', RK.get('keys'), RK.get('guest'))
+        # the long list (20261116220000_toplist_lang.sql; Jonas 16.11.2026: «scrolle nedover laaaaangt»): top_list takes off and n (1–100);
+        # pages follow on without a gap or a repeat, n is capped at 100, a call with only kind, w and grp gives the 20 as before
+        TL = {}
+        try:
+            sql("insert into public.players (id, fs) select 'tl_' || lpad(g::text, 4, '0'), 1000 + g from generate_series(1, 230) g on conflict do nothing")
+            pg_ = lambda off, n: json.loads(sql("select public.top_list('fs', 0, 'all', %d, %d)" % (off, n), R['Z'], 'authenticated'))
+            P0, P1, P2 = pg_(0, 100), pg_(100, 100), pg_(200, 100)
+            allr = P0['rows'] + P1['rows'] + P2['rows']
+            TL['pages'] = [len(P0['rows']), len(P1['rows']), P1.get('off')]
+            TL['nodup'] = len({r['hid'] for r in allr}) == len(allr) and len(allr) == min(P0['n'], 300) and P0['n'] >= 230
+            TL['order'] = all(allr[i]['rank'] <= allr[i + 1]['rank'] for i in range(len(allr) - 1))
+            TL['cap'] = len(pg_(0, 1000)['rows'])
+            TL['def'] = len(json.loads(sql("select public.top_list('fs', 0)", R['Z'], 'authenticated'))['rows'])
+            TL['neg'] = len(pg_(-5, 3)['rows'])
+            TL['kg'] = len(json.loads(sql("select public.top_list('tot', 0, 'all', 1, 2)", R['Z'], 'authenticated'))['rows'])
+            sql("delete from public.players where id like 'tl\\_%'")
+            # the periods (Jonas 16.11.2026: «ukentlig, månedlig, og all-time»; «selskapsverdi MÅ vises på total»): a game month as h0..h1,
+            # all time by kilos ('tkg'), and the company's worth on the all time lists only
+            sql("insert into public.players (id) values ('tm_a'), ('tm_b'), ('tm_c') on conflict do nothing")
+            sql("insert into public.landings (player_id, gh, y, port, sp, acc, kg, kgq, kr) values ('tm_a', 905100, 2027, 'finnsnes', 'torsk', 'open', 50, 0, 100), ('tm_b', 905100, 2027, 'finnsnes', 'torsk', 'open', 10, 0, 900), ('tm_c', 904000, 2027, 'finnsnes', 'torsk', 'open', 99, 0, 9999)")
+            sql("insert into public.player_tot (player_id, kg, kr, ports) values ('tm_a', 9e8, 1, 1), ('tm_b', 1, 9e10, 1) on conflict (player_id) do update set kg = excluded.kg, kr = excluded.kr")
+            sql("insert into public.profiles (player_id, worth) values ('tm_a', 123456) on conflict (player_id) do update set worth = excluded.worth")
+            hd = {sql("select left(md5('dsb' || '%s'), 10)" % x): x for x in ('tm_a', 'tm_b', 'tm_c')}
+            mine3 = lambda T: [hd[r['hid']] for r in T['rows'] if r['hid'] in hd]
+            tq = lambda q: json.loads(sql("select public.top_list(%s)" % q, R['Z'], 'authenticated'))
+            MO = "905000, %d" % (905000 + 31 * 24)
+            TL['mkg'] = mine3(tq("'kg', 0, 'all', 0, 100, " + MO)); TL['mkr'] = mine3(tq("'kr', 0, 'all', 0, 100, " + MO))
+            TL['badm'] = sql("select public.top_list('kg', 0, 'all', 0, 20, 905000, %d)" % (905000 + 40 * 24), R['Z'], 'authenticated', expect_err=True)[0]
+            TK, TT = tq("'tkg', 0, 'all', 0, 3"), tq("'tot', 0, 'all', 0, 3")
+            TL['tkg'] = [TK.get('kind'), [hd.get(r['hid']) for r in TK['rows'][:1]], [hd.get(r['hid']) for r in TT['rows'][:1]]]
+            TL['worth'] = [r.get('worth') for r in tq("'tkg', 0, 'all', 0, 100")['rows'] if hd.get(r['hid']) == 'tm_a'] + [any('worth' in r for r in tq("'kg', 0, 'all', 0, 100, " + MO)['rows'])]
+            sql("delete from public.players where id in ('tm_a', 'tm_b', 'tm_c')")
+        except Exception as e:
+            TL['err'] = str(e)[:300]
+        print(ok(not TL.get('err') and TL.get('pages') == [100, 100, 100] and TL.get('nodup') and TL.get('order') and TL.get('cap') == 100 and TL.get('def') == 20 and TL.get('neg') == 3 and TL.get('kg') == 2),
+              'the long list: top_list pages with off and n follow on without a gap or a repeat, n capped at 100, the old call gives 20, the other kinds page too', TL)
+        print(ok(not TL.get('err') and TL.get('mkg') == ['tm_a', 'tm_b'] and TL.get('mkr') == ['tm_b', 'tm_a'] and TL.get('badm') and TL.get('tkg') == ['tkg', ['tm_a'], ['tm_b']] and TL.get('worth') == [123456, False]),
+              'the periods: a game month by kg and by kr (a landing outside it not counted, more than 32 days refused), all time by kilos (tkg) and by kroner, the company\'s worth on the all time lists only', {k: TL.get(k) for k in ('mkg', 'mkr', 'badm', 'tkg', 'worth', 'err')})
         # the load of 5 000 players (plan 5b; KYST_LAST=5000): landings and catches for that many players, then what world_get costs
         NL = int(os.environ.get('KYST_LAST') or 0)
         if NL:

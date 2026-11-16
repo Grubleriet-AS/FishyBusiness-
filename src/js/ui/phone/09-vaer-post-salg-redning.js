@@ -105,37 +105,48 @@
       // the leaderboards of the whole coast, one for each group (Jonas 05.10.2026: «Det er snakk om Norges beste båt om du ligger øverst»)
       // (the launch, Jonas 16.11.2026: «Bedre toppliste»: kilos, kroner and the total since the start, the founders' badge, and a tap on a row
       // opens the player's profile, ui/10v-profil.js; ui/10h-world.js worldTop)
-      const kind = sub.salgK === 'kr' || sub.salgK === 'tot' || sub.salgK === 'fs' ? sub.salgK : 'kg', fsK = kind === 'fs', tot = kind === 'tot' || fsK;
-      const w = weekOf(H), which = sub.salgW === 'prev' ? w - 1 : w, grp = 'all', T = typeof worldTop === 'function' ? worldTop(Math.max(0, which), grp, kind) : null;   // (both groups on one list, Jonas 16.11.2026)
+      // (Jonas 16.11.2026: «standard som skal komme opp når man trykker inn på topplisten skal være totalt-filteret med kg, kr»; «vi må
+      // også ha ukentlig, månedlig, og all-time på filter-søkene»; «selskapsverdi MÅ vises på total»): ranked by kilos, kroner or sea time
+      // (salgK), over the game week, the game month or all time (salgP); all time by kroner is the start, with kg, kr and the company's worth
+      const by = sub.salgK === 'kg' || sub.salgK === 'fs' ? sub.salgK : 'kr', fsK = by === 'fs', per = fsK ? 'all' : (sub.salgP === 'w' || sub.salgP === 'm' ? sub.salgP : 'all'), tot = per === 'all';
+      const kind = fsK ? 'fs' : tot ? (by === 'kg' ? 'tkg' : 'tot') : by;
+      const gd = gDate(H), m0 = (Date.UTC(gd.getUTCFullYear(), gd.getUTCMonth(), 1) - EPOCH) / 3600000, m1 = (Date.UTC(gd.getUTCFullYear(), gd.getUTCMonth() + 1, 1) - EPOCH) / 3600000;
+      const w = weekOf(H), grp = 'all', T = typeof worldTop === 'function' ? worldTop(Math.max(0, w), grp, kind, per === 'm' ? [m0, m1] : null) : null;   // (both groups on one list, Jonas 16.11.2026)
       // (Jonas 16.11.2026: «La topplisten med norges beste båter stå for seg selv og gjem alle søkemulighetene bak en filter-knapp»: one
       // button with what the list shows now; a tap opens the choices under it, and a choice closes them again)
-      const kindN = {kg:L('Kilo', 'Kilos'), kr:L('Kroner', 'Kroner'), tot:L('Totalt', 'Total'), fs:L('Fartstid', 'Sea time')};
-      const now = tot ? kindN[kind] : [kindN[kind], which === w ? L('denne uka', 'this week') : L('forrige uke', 'last week')].join(' · ');
+      const byN = {kg:L('Kilo', 'Kilos'), kr:L('Kroner', 'Kroner'), fs:L('Fartstid', 'Sea time')}, perN = {w:L('Denne uka', 'This week'), m:L('Denne måneden', 'This month'), all:L('Totalt', 'All time')};
+      const monN = L('januar februar mars april mai juni juli august september oktober november desember', 'January February March April May June July August September October November December').split(' ')[gd.getUTCMonth()];
+      const now = fsK ? byN.fs : [perN[per], byN[by]].join(' · ');
       h.push('<div class="pf-filt"><button class="ph-btn alt' + (sub.salgF ? ' on' : '') + '" data-pa="salgF">' + L('Filter', 'Filter') + ' ▾</button><span class="ph-note">' + now + '</span></div>');
       if (sub.salgF){
-        h.push('<div class="ph-card pf-fbox"><div class="ph-sub" style="padding:0 0 6px">' + ['kg', 'kr', 'tot', 'fs'].map(k => '<button class="' + (kind === k ? 'on' : '') + '" data-pa="salgK" data-s="' + k + '">' + kindN[k] + '</button>').join('') + '</div>');
-        if (!tot){
-          h.push('<div class="ph-sub" style="padding:0"><button class="' + (which === w ? 'on' : '') + '" data-pa="salgW" data-s="now">' + L('Denne uka', 'This week') + '</button><button class="' + (which !== w ? 'on' : '') + '" data-pa="salgW" data-s="prev">' + L('Forrige uke', 'Last week') + '</button></div>');
-        }
+        h.push('<div class="ph-card pf-fbox"><p class="ph-note pf-fl">' + L('Ranger etter', 'Rank by') + '</p><div class="ph-sub" style="padding:0 0 6px">' + ['kr', 'kg', 'fs'].map(k => '<button class="' + (by === k ? 'on' : '') + '" data-pa="salgK" data-s="' + k + '">' + byN[k] + '</button>').join('') + '</div>');
+        if (!fsK) h.push('<p class="ph-note pf-fl">' + L('Periode', 'Period') + '</p><div class="ph-sub" style="padding:0">' + ['w', 'm', 'all'].map(p => '<button class="' + (per === p ? 'on' : '') + '" data-pa="salgP" data-s="' + p + '">' + perN[p] + '</button>').join('') + '</div>');
         h.push('</div>');
       }
       const escT = v => String(v).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'})[c]), me = escT(S.boatName || L('Deg', 'You')) + ' <small>(' + L('deg', 'you') + ')</small>';
       const co = c => c ? '<br><small class="ph-note">' + escT(c) + '</small>' : '';
       const fb = no => typeof PROF !== 'undefined' ? PROF.badge(no) : '';
+      // (Jonas 16.11.2026: «Det burde også stå noe sånt som "Din plassering #420" … øverst over tabellen», and «scrolle nedover
+      // laaaaangt»: the place on top, and the next hundred fetched as the bottom comes into view, worldTopMore in ui/10h-world.js)
+      const topPlace = d => !d ? '' : '<p class="pf-place">' + (d.mine && d.mine.rank ? L('Din plassering', 'Your place') + ' <b>#' + fmt(d.mine.rank, 0) + '</b>' + (d.n ? ' <span>' + L('av ', 'of ') + fmt(d.n, 0) + '</span>' : '')
+        : L('Du er ikke på lista ennå.', 'You are not on the list yet.')) + '</p>';
+      const topMore = T => { const d = T && T.data, m = typeof worldTopMoreOk === 'function' && worldTopMoreOk(T); if (m) worldTopWatch(T);
+        return m ? '<button class="ph-btn alt pf-more" data-pa="topMore">' + (T.mbusy ? L('Henter flere …', 'Fetching more …') : L('Vis flere', 'Show more')) + '</button>'
+          : d && d.rows && d.rows.length > 20 ? '<p class="ph-note pf-end">' + L('Det var hele lista.', 'That was the whole list.') + '</p>' : ''; };
       if (T && T.old){
         h.push('<div class="ph-card"><p class="ph-note">' + (fsK ? L('Topplista etter fartstid kommer snart.', 'The leaderboard by sea time is coming soon.') : L('Topplista i kroner og totalt kommer snart.', 'The leaderboard in kroner and in total is coming soon.')) + '</p></div>');
       } else if (fsK && T && !T.err){
         // RANK1-c (steg 134, Jonas 16.11.2026, V4 A: «Fane i topplista»): the registered players by the server's sea time, with the level
         // only on the list (the skills are on the profile from #97, a tap away; haill is never shown); a guest sees only themselves (ui/10h-world.js worldTop)
         const d = T.data, rows = d ? d.rows || [] : null, lv = y => { y = Math.max(0, y | 0); return L('Nivå ', 'Level ') + Math.min(y, 40) + (y > 40 ? ' ★' + (y - 40) : ''); };
-        h.push('<div class="ph-card"><h4>' + L('Kystens mest erfarne', 'The coast\'s most experienced') + '</h4>' + (!d ? '<p class="ph-note">' + L('Henter topplista …', 'Fetching the leaderboard …') + '</p>'
+        h.push('<div class="ph-card"><h4>' + L('Kystens mest erfarne', 'The coast\'s most experienced') + '</h4>' + topPlace(d) + (!d ? '<p class="ph-note">' + L('Henter topplista …', 'Fetching the leaderboard …') + '</p>'
           : !rows.length ? '<p class="ph-note">' + L('Ingen har fartstid ennå.', 'No one has sea time yet.') + '</p>'
           : '<table class="ph-tbl pf-top"><tr><th>#</th><th>' + L('Skipper', 'Skipper') + '</th><th class="n">' + L('Nivå', 'Level') + '</th></tr>' +
             rows.map(r => { const un = r.user ? peerName(r.user) : '', bn = r.boat ? peerName(r.boat) : '';
               const tap = r.hid ? ' data-pa="open" data-a="profil" data-s="' + escT(r.hid) + '"' : '';
               const who = r.me ? me : escT(un && un !== '–' ? un : bn && bn !== '–' ? bn : L('Ukjent skipper', 'Unknown skipper'));
               return '<tr class="' + (r.me ? 'me' : '') + (r.hid ? ' pf-tap' : '') + '"' + tap + '><td>' + r.rank + '</td><td>' + who + fb(r.f) + (!r.me && un && bn && bn !== '–' ? co(bn) : '') + '</td><td class="n">' + lv(r.y) + '</td></tr>'; }).join('') +
-            (d.mine && d.mine.rank > rows.length ? '<tr class="me"><td>' + d.mine.rank + '</td><td>' + me + '</td><td class="n">' + lv(d.mine.y) + '</td></tr>' : '') + '</table>') +
+            (d.mine && d.mine.rank > rows.length ? '<tr class="me"><td>' + d.mine.rank + '</td><td>' + me + '</td><td class="n">' + lv(d.mine.y) + '</td></tr>' : '') + '</table>' + topMore(T)) +
           '<p class="ph-note">' + L('Hele kysten: de registrerte spillerne etter fartstida si, slik serveren har den. Trykk på en skipper for å se profilen med ferdighetene.', 'The whole coast: the registered players by their sea time, as the server has it. Tap a skipper to see the profile with the skills.') +
             (d && d.n ? ' ' + L(d.n + (d.n === 1 ? ' skipper' : ' skippere') + ' på lista.', d.n + (d.n === 1 ? ' skipper' : ' skippers') + ' on the list.') : '') +
             (typeof isGuest === 'function' && isGuest() ? ' ' + L('Som gjest står du bare på din egen liste; de andre ser deg ikke før du har registrert deg.', 'As a guest you are only on your own list; the others do not see you until you register.') : '') +
@@ -144,27 +155,27 @@
         // (not signed in, or the list could not be fetched: no kilo list under the sea time filter)
         h.push('<div class="ph-card"><p class="ph-note">' + (T ? L('Fikk ikke hentet topplista. Prøver igjen om litt.', 'Could not fetch the leaderboard. Trying again shortly.') : L('Topplista etter fartstid vises når du er logget inn på detstorebla.no eller i appen.', 'The leaderboard by sea time shows when you are signed in on detstorebla.no or in the app.')) + '</p></div>');
       } else if (T && !T.err){
-        const d = T.data, rows = d ? d.rows || [] : null, pn = id => { const q = id && portById(id); return escT(q ? q.name : id || '–'); }, cl = false, money = kind !== 'kg';
+        const d = T.data, rows = d ? d.rows || [] : null, pn = id => { const q = id && portById(id); return escT(q ? q.name : id || '–'); }, money = true, wv = v => v == null ? '–' : fmt(Math.round(v), 0);
         const mine = S.lic && S.company ? co(S.company) : '';
-        const title = tot ? L('Norges beste fiskere, totalt', 'Norway\'s best fishers, in total') : L('Norges beste båter', 'Norway\'s best boats');
-        h.push('<div class="ph-card"><h4>' + title + '</h4>' + (!d ? '<p class="ph-note">' + L('Henter topplista …', 'Fetching the leaderboard …') + '</p>'
-          : !rows.length ? '<p class="ph-note">' + (tot ? L('Ingen har landet ennå.', 'No one has landed yet.') : which === w ? L('Ingen har landet denne uka ennå.', 'No one has landed this week yet.') : L('Ingen landet forrige uke.', 'No one landed last week.')) + '</p>'
-          : '<table class="ph-tbl pf-top"><tr><th>#</th><th>' + L('Båt', 'Boat') + '</th>' + (tot ? '' : '<th>' + L('Mottak', 'Plant') + '</th>') + '<th class="n">kg</th>' + (money ? '<th class="n">kr</th>' : '') + '</tr>' +
+        const title = tot ? L('Norges beste fiskere, totalt', 'Norway\'s best fishers, all time') : per === 'm' ? L('Norges beste båter i ' + monN, 'Norway\'s best boats in ' + monN) : L('Norges beste båter denne uka', 'Norway\'s best boats this week');
+        h.push('<div class="ph-card"><h4>' + title + '</h4>' + topPlace(d) + (!d ? '<p class="ph-note">' + L('Henter topplista …', 'Fetching the leaderboard …') + '</p>'
+          : !rows.length ? '<p class="ph-note">' + (tot ? L('Ingen har landet ennå.', 'No one has landed yet.') : per === 'm' ? L('Ingen har landet denne måneden ennå.', 'No one has landed this month yet.') : L('Ingen har landet denne uka ennå.', 'No one has landed this week yet.')) + '</p>'
+          : '<table class="ph-tbl pf-top"><tr><th>#</th><th>' + L('Båt', 'Boat') + '</th>' + (tot ? '' : '<th>' + L('Mottak', 'Plant') + '</th>') + '<th class="n">kg</th>' + (money ? '<th class="n">kr</th>' : '') + (tot ? '<th class="n">' + L('Selskapsverdi', 'Company worth') + '</th>' : '') + '</tr>' +
             rows.map(r => { const bn = peerName(r.boat), cn = r.company && peerName(r.company) !== '–' ? peerName(r.company) : '';
               const un = r.user ? peerName(r.user) : '';   // the owner's player name (supabase/migrations/20261007130000_seen.sql)
               const tap = r.hid ? ' data-pa="open" data-a="profil" data-s="' + escT(r.hid) + '"' : '';
               return '<tr class="' + (r.me ? 'me' : '') + (r.hid ? ' pf-tap' : '') + '"' + tap + '><td>' + r.rank + '</td><td>' + (r.me ? me + fb(r.f) + (mine || co(cn)) : escT(bn === '–' ? L('Ukjent båt', 'Unknown boat') : bn) + fb(r.f) + co([un, cn].filter(Boolean).join(' · '))) + '</td>' +
-                (tot ? '' : '<td>' + pn(r.port) + '</td>') + '<td class="n">' + fmt(r.kg, 0) + '</td>' + (money ? '<td class="n">' + fmt(r.kr || 0, 0) + '</td>' : '') + '</tr>'; }).join('') +
-            (d.mine && d.mine.rank > rows.length ? '<tr class="me"><td>' + d.mine.rank + '</td><td>' + me + mine + '</td>' + (tot ? '' : '<td></td>') + '<td class="n">' + fmt(d.mine.kg, 0) + '</td>' + (money ? '<td class="n">' + fmt(d.mine.kr || 0, 0) + '</td>' : '') + '</tr>' : '') + '</table>') +
-          '<p class="ph-note">' + (tot ? L('Hele kysten: alle spillerne etter verdien av alt de har landet siden de startet. Trykk på en båt for å se profilen.', 'The whole coast: all the players by the value of everything they have landed since they started. Tap a boat to see the profile.')
-              : L('Hele kysten: alle spillerne, åpen og lukket gruppe sammen, etter hvor mye de har landet i spilluka, med båtnavnet, rederiet og mottaket de har levert mest til.', 'The whole coast: all the players, the open and the closed group together, by how much they have landed this game week, with the boat\'s name, the company and the plant they delivered most to.') +
-                (money ? ' ' + L('Rangert etter fangstverdien i kroner.', 'Ranked by the catch value in kroner.') : '') + ' ' + L('Trykk på en båt for å se profilen.', 'Tap a boat to see the profile.')) +
+                (tot ? '' : '<td>' + pn(r.port) + '</td>') + '<td class="n">' + fmt(r.kg, 0) + '</td>' + (money ? '<td class="n">' + fmt(r.kr || 0, 0) + '</td>' : '') + (tot ? '<td class="n">' + wv(r.worth) + '</td>' : '') + '</tr>'; }).join('') +
+            (d.mine && d.mine.rank > rows.length ? '<tr class="me"><td>' + d.mine.rank + '</td><td>' + me + mine + '</td>' + (tot ? '' : '<td></td>') + '<td class="n">' + fmt(d.mine.kg, 0) + '</td>' + (money ? '<td class="n">' + fmt(d.mine.kr || 0, 0) + '</td>' : '') + (tot ? '<td class="n">' + wv(d.mine.worth) + '</td>' : '') + '</tr>' : '') + '</table>' + topMore(T)) +
+          '<p class="ph-note">' + (tot ? L('Hele kysten: alle spillerne etter ' + (by === 'kg' ? 'kiloene' : 'verdien') + ' av alt de har landet siden de startet, med selskapsverdien (alt de eier). Trykk på en båt for å se profilen.', 'The whole coast: all the players by the ' + (by === 'kg' ? 'kilos' : 'value') + ' of everything they have landed since they started, with the company\'s worth (all they own). Tap a boat to see the profile.')
+              : L('Hele kysten: alle spillerne, åpen og lukket gruppe sammen, etter hvor mye de har landet ' + (per === 'm' ? 'denne spillmåneden' : 'i spilluka') + ', med båtnavnet, rederiet og mottaket de har levert mest til.', 'The whole coast: all the players, the open and the closed group together, by how much they have landed ' + (per === 'm' ? 'this game month' : 'this game week') + ', with the boat\'s name, the company and the plant they delivered most to.') +
+                (by === 'kr' ? ' ' + L('Rangert etter fangstverdien i kroner.', 'Ranked by the catch value in kroner.') : '') + ' ' + L('Trykk på en båt for å se profilen.', 'Tap a boat to see the profile.')) +
             (d && d.n ? ' ' + L(d.n + (d.n === 1 ? ' båt' : ' båter') + ' har landet.', d.n + (d.n === 1 ? ' boat has' : ' boats have') + ' landed.') : '') +
             '</p></div>');
       } else if (grp === 'lukket'){
         h.push('<div class="ph-card"><p class="ph-note">' + L('Topplista for lukket gruppe, med alle spillerne langs kysten, vises når du er logget inn på detstorebla.no eller i appen.', 'The closed group\'s leaderboard, with all the players along the coast, shows when you are signed in on detstorebla.no or in the app.') + '</p></div>');
       } else {
-        const rows = toplist(Math.max(0, which));
+        const rows = toplist(Math.max(0, w));
         h.push('<div class="ph-card"><table class="ph-tbl"><tr><th>#</th><th>' + L('Fartøy', 'Vessel') + '</th><th>' + L('Havn', 'Port') + '</th><th class="n">kg</th></tr>' + rows.map((r, i) => '<tr class="' + (r.me ? 'me' : '') + '"><td>' + (i + 1) + '</td><td>' + (r.me ? me : r.name) + '</td><td>' + r.port + '</td><td class="n">' + fmt(r.kg, 0) + '</td></tr>').join('') + '</table><p class="ph-note">' + L('Landet kvantum hos mottakene rundt hjemhavna di. Den nasjonale topplista med de andre spillerne vises når du er logget inn på detstorebla.no eller i appen.', 'Landed weight at the plants round your home harbour. The national leaderboard with the other players shows when you are signed in on detstorebla.no or in the app.') + '</p></div>');
       }
     }

@@ -127,20 +127,59 @@ const WTOP = {};
 // rows with the level in years (y) and nothing else of theirs; a server whose top_list does not know 'fs' answers with 'kg', and that
 // is taken as not there yet (e.old), as a 404 is.
 const WTOP_NEW = {off:0};
-function worldTop(w, grp, kind){
+// The periods (Jonas 16.11.2026: «ukentlig, månedlig, og all-time»): mo = [h0, h1) in game hours gives kg or kr for a game month, and
+// 'tkg' is all time ranked by kilos (20261116220000_toplist_lang.sql). These are new: a database without them answers 404 (month)
+// or with another kind ('tkg'), and the list says it is coming (e.old); the 404 does not switch the other lists to world_top.
+function worldTop(w, grp, kind, mo){
   if (typeof CLOUD === 'undefined' || !CLOUD.on || !CLOUD.user) return null;
-  grp = grp === 'lukket' || grp === 'all' ? grp : 'open'; kind = kind === 'kr' || kind === 'tot' || kind === 'fs' ? kind : 'kg';
-  const key = (kind === 'tot' || kind === 'fs' ? kind : w + '|' + grp + (kind === 'kr' ? '|kr' : '')), e = WTOP[key] || (WTOP[key] = {at:0, data:null, busy:false, err:false, old:false});
+  grp = grp === 'lukket' || grp === 'all' ? grp : 'open'; kind = ['kr', 'tot', 'tkg', 'fs'].includes(kind) ? kind : 'kg';
+  if (!(mo && (kind === 'kg' || kind === 'kr'))) mo = null;
+  const key = (kind === 'tot' || kind === 'tkg' || kind === 'fs' ? kind : (mo ? 'm' + mo[0] : w) + '|' + grp + (kind === 'kr' ? '|kr' : '')), e = WTOP[key] || (WTOP[key] = {at:0, data:null, busy:false, err:false, old:false, q:mo ? {kind, w, grp, h0:mo[0], h1:mo[1]} : {kind, w, grp}});
   if (!e.busy && Date.now() - e.at > 60000){
     e.busy = true;
     const old = () => kind === 'kg' ? cloudRpc('world_top', {w, grp:grp === 'all' ? (S.lic ? 'lukket' : 'open') : grp}) : Promise.resolve(null);
-    (Date.now() < WTOP_NEW.off ? old() : cloudRpc('top_list', {kind, w, grp}).catch(x => { if (!/ 404$/.test(x.message)) throw x; WTOP_NEW.off = Date.now() + 600000; return old(); }))
+    (mo ? cloudRpc('top_list', e.q).catch(x => { if (!/ 404$/.test(x.message)) throw x; return {kind:'none'}; })
+      : Date.now() < WTOP_NEW.off ? old() : cloudRpc('top_list', {kind, w, grp}).catch(x => { if (!/ 404$/.test(x.message)) throw x; WTOP_NEW.off = Date.now() + 600000; return old(); }))
       // (a kind other than kilos is there only when top_list answers with that kind; checked again on every fetch, so the tab comes
       // without a reload once the migration has been run)
-      .then(d => { if (kind !== 'kg'){ e.old = !(d && d.kind === kind); if (e.old) d = null; } e.data = d; e.err = false; }).catch(() => { e.err = true; })
+      .then(d => { if (kind !== 'kg' || mo){ e.old = !(d && d.kind === kind); if (e.old) d = null; }
+        // (the rows fetched further down are kept when the first page comes again, the new ones first; a row seen in both is the new one)
+        const was = e.data && Array.isArray(e.data.rows) ? e.data.rows : [];
+        if (d && Array.isArray(d.rows) && was.length > d.rows.length){ const seen = new Set(d.rows.map(r => r.hid)); d.rows = d.rows.concat(was.slice(d.rows.length).filter(r => r.hid && !seen.has(r.hid))); }
+        e.data = d; e.err = false; }).catch(() => { e.err = true; })
       .finally(() => { e.busy = false; e.at = Date.now(); if (PHONE.isOpen() && (PHONE.app === 'salg' || PHONE.app === 'post')) PHONE.render(); });
   }
   return e;
+}
+// The list a long way down (Jonas 16.11.2026: «Jeg vil at man skal kunne scrolle nedover laaaaangt på topplisten»): the first page is
+// the 20 as before (a call without off and n, so a database without 20261116220000_toplist_lang.sql answers it as before); the next
+// hundred come with off and n when the bottom of the list comes into view (an IntersectionObserver on the «Vis flere» button, which
+// also works by a tap). A database without the paging (404) stops it for the list; another error waits half a minute.
+function worldTopMoreOk(e){
+  const d = e && e.data;
+  return !!(d && !e.old && !e.end && Array.isArray(d.rows) && d.rows.length && d.rows[0].hid && (d.n == null || d.rows.length < d.n));
+}
+function worldTopMore(e){
+  if (!worldTopMoreOk(e) || e.mbusy || Date.now() < (e.mwait || 0) || !e.q) return;
+  const have = e.data.rows.length; e.mbusy = true;
+  cloudRpc('top_list', Object.assign({}, e.q, {off:have, n:100})).then(d => {
+    const rows = (d && Array.isArray(d.rows)) ? d.rows : [];
+    if (!e.data || e.data.rows.length !== have) return;   // (the first page came again meanwhile: the next look asks anew)
+    const seen = new Set(e.data.rows.map(r => r.hid)); rows.forEach(r => { if (r.hid && !seen.has(r.hid)) e.data.rows.push(r); });
+    if (d && d.n != null) e.data.n = d.n;
+    if (rows.length < 100) e.end = true;
+  }).catch(x => { if (/ 404$/.test(x.message)) e.end = true; else e.mwait = Date.now() + 30000; })
+    .finally(() => { e.mbusy = false; if (PHONE.isOpen() && PHONE.app === 'salg') PHONE.render(); });
+}
+let WTOP_CUR = null, WTOP_IO = null;
+function worldTopWatch(e){
+  WTOP_CUR = e;
+  setTimeout(() => {
+    const b = document.querySelector('#phone .pf-more'); if (WTOP_IO){ WTOP_IO.disconnect(); WTOP_IO = null; }
+    if (!b || typeof IntersectionObserver === 'undefined') return;
+    WTOP_IO = new IntersectionObserver(x => { if (x.some(i => i.isIntersecting)) worldTopMore(WTOP_CUR); }, {root:document.getElementById('phView'), rootMargin:'0px 0px 300px 0px'});
+    WTOP_IO.observe(b);
+  }, 0);
 }
 // the village contest's board (bygde_top, 20261030170000_bygde.sql): the plants of each part of the coast ranked by what was landed in
 // a game week, and the caller's own plant's place; fetched at most once a minute, the Sesong app and Kystposten drawn again when it comes
