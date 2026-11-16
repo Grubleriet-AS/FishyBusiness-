@@ -98,7 +98,7 @@ Jonas ba om det slik: «koble deg opp mot detstorebla.no/admin slik at du kan he
 - `fb_send` beholder `pos` bare som to tall innenfor bredde og lengde (`supabase/migrations/20261105120000_fb_meta.sql`, sjekket i `sqltest`). Kjørt av Jonas i SQL Editor 05.11.2026 (sperren i skymiljøet stopper `apply_migration`).
 - Ny kode i admin som viser noe fra spillerne, skal bruke `esc()` (tekst) eller `Number()` (tall), aldri verdien rett.
 - **CSP i admin** (05.11.2026, Ø6 funn 15): `build.mjs` legger en `Content-Security-Policy` inn i admin-siden, med bare sidens eget skript etter hash, bilder som `data:`, og video og kall bare til Supabase. Siden må derfor ha nøyaktig ett `<script>` og ingen `onclick=` eller andre hendelser i HTML-en; ellers bygges den uten CSP og med en advarsel. `admintest` sjekker det.
-- **Automatisk retting bare fra feillista** (05.11.2026, Ø6 funn 8): en autofix-PR som viser til `tilbakemelding #N`, flettes ikke inn av seg selv, men venter på Jonas (`autofix.yml`, steget «Opphavet»). `RUTINE.md` sier det samme.
+- **Automatisk retting også fra tilbakemeldingene** (16.11.2026; Jonas: «feilrettinger fra brukere skal slippes rett til main … Rettelser må skje kjapt», så «fiks og kjør ut alt du kan»): steget «Opphavet» i `autofix.yml`, som fra 05.11.2026 (Ø6 funn 8) holdt en autofix-PR med `tilbakemelding #N` igjen for Jonas, er tatt bort. Porten (`tools/autofix/gate.py`) er vernet; rutinen retter bare det feilen viser i koden. `RUTINE.md` punkt 7 sier det samme.
 
 ## Admin: fanen «Juks» (HS5, 10.11.2026)
 

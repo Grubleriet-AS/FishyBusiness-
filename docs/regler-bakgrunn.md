@@ -148,3 +148,5 @@ Reglene selv står i skillen `/gemini` (`.claude/skills/gemini/SKILL.md`) fra 15
 ## En automatisk retting slippes alene (16.11.2026)
 
 Jonas 16.11.2026, etter slippet `790d9ced`, da han fikk høre at rettingene bare nådde testadressen mens arbeidsrutinen sto på pause: «Jeg vil hovedsaklig at feilrettingen skjer der brukerne er, altså på produksjonsutgaven». Valget hans samme kveld mellom «bare rettingen, straks», «alt på test, hver natt» og «alt på test, etter hver retting»: det første. Hvordan: `docs/systemer/publisering.md`, «En automatisk retting slippes alene til spillerne».
+
+Samme kveld, om rettingene fra spillernes tilbakemeldinger: «feilrettinger fra brukere skal slippes rett til main slik at vi slipper å bruke masse tid. Rettelser må skje kjapt», og etter at økta forklarte at stoppet i `autofix.yml` (Ø6 funn 8) da forsvinner: «fiks og kjør ut alt du kan». Stoppet er tatt bort; porten (`tools/autofix/gate.py`: filene, størrelsen, koden, testene) er vernet.
