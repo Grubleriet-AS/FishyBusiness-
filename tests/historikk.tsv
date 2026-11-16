@@ -5080,3 +5080,10 @@
 2026-11-16 17:32	plan/2026-11-16-134	f7b0d538	skiptest	OK	18	lite	samtidig	
 2026-11-16 17:33	plan/2026-11-16-134	f7b0d538	trip2	OK	32	lite	samtidig	
 2026-11-16 17:34	plan/2026-11-16-134	f7b0d538	driftsplan2test	OK	101	lite	alene	
+2026-11-16 18:53	ccr-349425a1-raf94t	694671d+	sqltest	FEIL	58	lite	samtidig	FEIL the shop: a quote only for a real product and a signed-in player, one grant per paid purchase however often Stripe tells it, given and done once, a refund 
+2026-11-16 18:53	ccr-349425a1-raf94t	694671d+	skiptest	OK	16	lite	samtidig	
+2026-11-16 18:55	ccr-349425a1-raf94t	694671d+	kjoptest	OK	169	lite	samtidig	
+2026-11-16 18:55	ccr-349425a1-raf94t	694671d+	hailltest	LES	34	lite	samtidig	
+2026-11-16 18:55	ccr-349425a1-raf94t	694671d+	boostklokke	OK	59	lite	samtidig	
+2026-11-16 18:56	ccr-349425a1-raf94t	694671d+	guesttest	OK	75	lite	samtidig	
+2026-11-16 18:57	ccr-349425a1-raf94t	694671d+	sqltest	OK	58	lite	alene	

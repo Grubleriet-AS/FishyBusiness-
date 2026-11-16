@@ -108,11 +108,14 @@ const upgNext = (b, k) => { const U = UPGS[k], V = VESSELS[(b || S.boat).type ||
 // (Jonas 11.11.2026: «Trim-boost skal fungere på alle båter uavhengig om det er diesel eller bensin. Spilleren betaler for fart og skal
 // da få det de betaler for»; until then diesel engines only, and the outboard skiff had no trim to buy).
 // The price ladder (Jonas 16.11.2026: Laksebaronen sells its 79 kr booster the most, and the players ask for dearer ones; «Kjør på med det
-// du foreslo»): one effect, four lengths, the same 29 / 49 / 79 / 129 kr on every kind, so the cards are easy to compare. Turbotrim is
+// du foreslo»): one effect, four lengths, the same prices on every kind, so the cards are easy to compare. Raised the same evening (Jonas:
+// «Laksebaronen selger boostere som bare varer 8 timer til 79kr stykk, og det selger som hakka møkk»; «Vi må ikke bli for billige»;
+// «Greit, kjør det ut»): 2 / 8 / 24 hours and 3 days for 29 / 79 / 149 / 299 kr, about 10 kr an hour for 8 hours as Laksebaronen, less
+// an hour the longer, and still under what the hop costs for the same time saved (core/06j-hopp.js HOP). Turbotrim is
 // double speed; h is game hours (24 = 4 real hours). The three of before (old) stay for the grants already bought and are no longer sold.
 // g is the kind: two of the same kind add their hours, another takes the place (trimSet, boostBack).
-const BOOSTS = {t4:{x:2, h:24, nok:29, g:'x2', no:'Turbotrim, 4 timer', en:'Turbo tune, 4 hours'}, t12:{x:2, h:72, nok:49, g:'x2', no:'Turbotrim, 12 timer', en:'Turbo tune, 12 hours'},
-  t24:{x:2, h:144, nok:79, g:'x2', no:'Turbotrim, 24 timer', en:'Turbo tune, 24 hours'}, t72:{x:2, h:432, nok:129, g:'x2', best:true, no:'Turbotrim, 3 døgn', en:'Turbo tune, 3 days'},
+const BOOSTS = {t2:{x:2, h:12, nok:29, g:'x2', no:'Turbotrim, 2 timer', en:'Turbo tune, 2 hours'}, t8:{x:2, h:48, nok:79, g:'x2', no:'Turbotrim, 8 timer', en:'Turbo tune, 8 hours'},
+  t24:{x:2, h:144, nok:149, g:'x2', no:'Turbotrim, 24 timer', en:'Turbo tune, 24 hours'}, t72:{x:2, h:432, nok:299, g:'x2', best:true, no:'Turbotrim, 3 døgn', en:'Turbo tune, 3 days'},
   pump:{x:1.5, h:24, nok:29, old:true, no:'Justert dieselpumpe', en:'Tuned injection pump'}, ic:{x:1.75, h:48, nok:39, old:true, no:'Ladeluftkjøling', en:'Charge air cooling'}, turbo:{x:2, h:72, nok:49, old:true, g:'x2', no:'Økt turbotrykk', en:'Higher boost pressure'}};
 const boostKind = k => (BOOSTS[k] && BOOSTS[k].g) || k;
 const canBoost = V => !!V;
@@ -1310,8 +1313,8 @@ function codLimitNow(H){ const l = codLimits(H); return codOpen(H) ? l.max : l.g
 // Game hours (Jonas 05.10.2026).
 // The luck multiplies what every gear catches (the jig, line, nets and pots). The halibut luck is gone.
 const HAILL = {
-  haill:{no:'Haill', en:'Luck', nok:29, steps:[[24, 1], [48, 0.5], [72, 0.25]], d:{no:'Dobbel fiskelykke et helt døgn! Fersk haill gir +100 % fiskelykke på alle arter i 24 timer, så alt redskapet ditt fanger dobbelt så mye. Etterpå holder den seg som mellomhaill (+50 %) i 24 timer og gammelhaill (+25 %) i 24 timer til: tre døgn med ekstra fangst.', en:'Double luck for a whole day! Fresh luck gives +100% luck on every species for 24 hours, so all your gear catches twice as much. After that it lasts as middle luck (+50%) for 24 hours and old luck (+25%) for 24 more: three days of extra catch.'}},
-  luksus:{no:'Luksushaill', en:'Luxury luck', nok:59, steps:[[24, 2], [48, 1], [72, 0.5], [96, 0.25]], d:{no:'Tredobbel fiskelykke det første døgnet! Luksushaill gir +200 % fiskelykke i 24 timer. Så følger fersk haill (+100 %), mellomhaill (+50 %) og gammelhaill (+25 %) i 24 timer hver: fire døgn med ekstra fangst, og mest av alt når du trenger det.', en:'Triple luck the first day! Luxury luck gives +200% luck for 24 hours. Then come fresh luck (+100%), middle luck (+50%) and old luck (+25%) for 24 hours each: four days of extra catch, the most when you need it.'}}
+  haill:{no:'Haill', en:'Luck', nok:39, steps:[[24, 1], [48, 0.5], [72, 0.25]], d:{no:'Dobbel fiskelykke et helt døgn! Fersk haill gir +100 % fiskelykke på alle arter i 24 timer, så alt redskapet ditt fanger dobbelt så mye. Etterpå holder den seg som mellomhaill (+50 %) i 24 timer og gammelhaill (+25 %) i 24 timer til: tre døgn med ekstra fangst.', en:'Double luck for a whole day! Fresh luck gives +100% luck on every species for 24 hours, so all your gear catches twice as much. After that it lasts as middle luck (+50%) for 24 hours and old luck (+25%) for 24 more: three days of extra catch.'}},
+  luksus:{no:'Luksushaill', en:'Luxury luck', nok:79, steps:[[24, 2], [48, 1], [72, 0.5], [96, 0.25]], d:{no:'Tredobbel fiskelykke det første døgnet! Luksushaill gir +200 % fiskelykke i 24 timer. Så følger fersk haill (+100 %), mellomhaill (+50 %) og gammelhaill (+25 %) i 24 timer hver: fire døgn med ekstra fangst, og mest av alt når du trenger det.', en:'Triple luck the first day! Luxury luck gives +200% luck for 24 hours. Then come fresh luck (+100%), middle luck (+50%) and old luck (+25%) for 24 hours each: four days of extra catch, the most when you need it.'}}
 };
 // the thank-you for feedback that helped the game (Jonas 06.10.2026: «12 spilltimer med 100% "haill" i belønning om tilbakemeldingen er
 // av verdi for utviklingen av spillet. Haillet skal ikke gradvis miste effekt …, det skal vare 12timer, så ferdig»): +100 % for 12 game
@@ -1321,10 +1324,10 @@ HAILL.takk = {no:'Takk-haill', en:'Thank-you luck', nok:0, reward:true, steps:[[
   d:{no:'Takk for tilbakemeldingen! Takk-haill gir +100 % fiskelykke på alle arter i 12 timer, hele tida like sterk, og så er den borte.', en:'Thank you for your feedback! Thank-you luck gives +100 % luck on every species for 12 hours, as strong all the time, and then it is gone.'}};
 // haill in packs (Jonas 16.11.2026: «husk at haill er basert på det at det er best når det er ferskt, altså første døgnet for så å gradvis
 // dabbe av»): the same haill, more of them, each switched on when the player wants (the server gives one grant each, n in the product)
-const HAILL_PACKS = {h1:{n:1, nok:29}, h2:{n:2, nok:49}, h4:{n:4, nok:79}, h8:{n:8, nok:129, best:true}};
+const HAILL_PACKS = {h1:{n:1, nok:39}, h3:{n:3, nok:99}, h8:{n:8, nok:229, best:true}};   // (raised 16.11.2026 with the trims)
 // the season pack («Jeg er også enig i at en samlepakke kan være et alternativ»): its content known before it is bought, no chance in it
-const PACKS = {sesong:{nok:149, haill:4, trim:'t24', skip:'s24', no:'Sesongpakken', en:'The season pack'}};
-const packWorth = P => HAILL_PACKS.h4.nok * (P.haill / 4) + BOOSTS[P.trim].nok + SKIP[P.skip].nok;   // what the parts cost one by one
+const PACKS = {sesong:{nok:249, haill:4, trim:'t24', skip:'s24', no:'Sesongpakken', en:'The season pack'}};
+const packWorth = P => HAILL_PACKS.h1.nok * P.haill + BOOSTS[P.trim].nok + SKIP[P.skip].nok;   // what the parts cost one by one (a haill at the single price)
 const HAILL_STAGE = [[2, 'Luksushaill', 'Luxury luck'], [1, 'Fersk haill', 'Fresh luck'], [0.5, 'Mellomhaill', 'Middle luck'], [0.25, 'Gammelhaill', 'Old luck']];
 const haillAge = () => S.haill ? (S.t - S.haill.t0) / 60 : 1e9;   // hours since it was switched on
 function haillBoost(){ const h = S.haill, X = h && HAILL[h.type]; if (!X) return 0; const a = haillAge(); for (const [t, v] of X.steps) if (a < t) return v; return 0; }

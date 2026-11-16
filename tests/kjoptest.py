@@ -369,7 +369,7 @@ async def main():
             await pg.evaluate("shopStart()"); await pg.wait_for_function("SHOP.ready === true", timeout=20000)
             r = await pg.evaluate("""(async () => { PHONE.open('haill'); await new Promise(r => setTimeout(r, 300)); { const t = document.querySelector('#phone [data-pa=sub][data-s=boost]'); if (t) { t.click(); await new Promise(r => setTimeout(r, 200)); } } const b = document.querySelector('#phone [data-pa=kbbuy][data-k=hp_h1]');
               const f = document.querySelector('#phone .shop-fine'), cs = f && getComputedStyle(f); return {mode:shopMode(), lab:b.textContent, fine:f && f.textContent, size:cs && parseFloat(cs.fontSize), op:cs && +cs.opacity, cur:S.cur}; })()""")
-            check(r['mode'] == 'live' and r['lab'] == 'Kjøp · 💎 29 kr' and r['fine'] and 'angreretten' in r['fine'] and r['size'] <= 11 and r['op'] < 0.8, 'set up: the button shows the price, with a small quiet line on the right of withdrawal under it', r)
+            check(r['mode'] == 'live' and r['lab'] == 'Kjøp · 💎 39 kr' and r['fine'] and 'angreretten' in r['fine'] and r['size'] <= 11 and r['op'] < 0.8, 'set up: the button shows the price, with a small quiet line on the right of withdrawal under it', r)
             cur = r['cur']
             async with pg.expect_navigation(url='**/checkout.stripe.test/**', timeout=45000):
                 await pg.evaluate("document.querySelector('#phone [data-pa=kbbuy][data-k=hp_h1]').click()")   # (the Boostere tab is on from the line above)
@@ -457,7 +457,7 @@ async def main():
         st['hello'] = {'shop': True}; await pg6.reload(); await pg6.wait_for_function("typeof SHOP !== 'undefined' && CLOUD.user && SHOP.ready === true", timeout=120000)
         r6b = await pg6.evaluate(ask.replace('TAP', 'false'))
         check(r6['off'] is True and r6['mode'] == 'off' and r6['lab'] == 'Snart i salg' and r6['given'] == 0 and not r6['fine'] and r6['asked'] == 0 and 'stripe' not in pg6.url
-              and r6b['off'] is False and r6b['mode'] == 'live' and '29 kr' in (r6b['lab'] or ''),
+              and r6b['off'] is False and r6b['mode'] == 'live' and '39 kr' in (r6b['lab'] or ''),
               'the shop closed for new accounts: «Snart i salg», no payment asked and nothing given; with shop:true the price is back', {'closed': r6, 'open': r6b})
         # 7. (HS2) this is a new game on the same account (a new device, a save that went on without the purchase): the haill bought in
         # step 3 was delivered and never switched on, so the server still holds it, and it is back in store with no confirmation

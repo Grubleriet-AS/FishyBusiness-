@@ -773,7 +773,7 @@ def main():
                  and R['pWeekMe'].startswith('Du leverte ') and ' i åpen gruppe. Ukas beste fisker i åpen gruppe er «Havbris»' in R['pWeekMe'] and R['pWeekTitle'] == 'Ukas fangst'),
               "push from the server: no leaderboard message; once a week (Sunday from 19:00) «Ukas fangst»: her own kilos and place in her group over the last seven days, and the best fisher, to each who has it on (not with it turned off); players cannot call it", {'pass': R['pPass'], 'off': [R['pWeekOff'], R['pWeekOffQ']], 'week': R['pWeek'], 'me': R['pWeekMe'], 'tue': R['pWeekTue'], 'sun18': R['pWeekSun18'], 'mon': R['pWeekMon'], 'title': R['pWeekTitle']})
         q, pd = R['sQuote'], R['sPend']
-        print(ok(q.get('price_nok') == 79 and q.get('data', {}).get('k') == 't24' and R['sNoProd'][0] and R['sAnon'][0] and R['sPaid1'] == 't' and R['sPaid2'] == 'f'
+        print(ok(q.get('price_nok') == 149 and q.get('data', {}).get('k') == 't24' and R['sNoProd'][0] and R['sAnon'][0] and R['sPaid1'] == 't' and R['sPaid2'] == 'f'
                  and len(pd) == 1 and pd[0]['product'] == 'trim_turbo' and pd[0]['data'].get('give') == 'trim' and pd[0]['data'].get('boat') == 'v1' and R['sPendB'] == []
                  and R['sPlPaid'][0] and R['sPlRead'][0] and R['sAfter'] == '0/refunded/1/1' and R['sEnd'] == []),
               'the shop: a quote only for a real product and a signed-in player, one grant per paid purchase however often Stripe tells it, given and done once, a refund takes back what is not given, and no player books a payment or reads the grants',
@@ -1745,19 +1745,19 @@ def main():
                  and LA['avDeny'] and LA['avList'] == [True] and (LA['ok'] or '').startswith('data:image/png') and all(LA['tables']) and LA['off'] == 2 and LA['ag'] == [True, True, 'bug:leia:true'] and LA['paused'] == '0' and LA['on2']['from'] == LA['on']['from'] and LA['after'] == '3'
                  and LA['tot'] == [(hid(L3), 50, 5000), (hid(L1), 105, 3100), (hid(L4), 20, 200)] and LA['pp'] == ['t', 'f']),
               'the launch: founders from the admin\'s switch (an older account never, the number kept), the value capped at 1 000 kr/kg, top_list by kg and kr with the founder\'s number, the profile, and the picture only once approved; the tables closed to players', json.dumps(LA))
-        # the price ladder (20261116180000_prisstige.sql): a pack of 4 haill gives 4 grants, the season pack 6 (4 haill, the trim with the
+        # the price ladder (20261116180000_prisstige.sql): a pack of 3 haill gives 3 grants, the season pack 6 (4 haill, the trim with the
         # boat, Skippertak), paid twice gives nothing more, and a refund takes back the haill not used
         sql("insert into public.players (id) values ('user_01PS') on conflict do nothing")
-        sql("insert into public.purchases (id, player_id, product_id, amount_nok, status, data) values ('cs_p4', 'user_01PS', 'haill_4', 79, 'open', '{}'), ('cs_pk', 'user_01PS', 'pakke_sesong', 149, 'open', '{\"boat\":\"v2\"}')")
+        sql("insert into public.purchases (id, player_id, product_id, amount_nok, status, data) values ('cs_p4', 'user_01PS', 'haill_3', 99, 'open', '{}'), ('cs_pk', 'user_01PS', 'pakke_sesong', 249, 'open', '{\"boat\":\"v2\"}')")
         PS = {'paid': [sql("select public.shop_paid('cs_p4', 'pi_p4')"), sql("select public.shop_paid('cs_pk', 'pi_pk')"), sql("select public.shop_paid('cs_pk', 'pi_pk')")]}
         PS['h4'] = sql("select count(*) || ':' || count(distinct n) from public.grants where purchase_id = 'cs_p4' and data ->> 'give' = 'haill' and data ->> 'type' = 'haill' and not data ? 'n'")
         PS['pk'] = sql("select string_agg(data ->> 'give' || coalesce('/' || (data ->> 'k'), '') || coalesce('@' || (data ->> 'boat'), ''), ',' order by n) from public.grants where purchase_id = 'cs_pk'")
-        PS['price'] = sql("select string_agg(id || '=' || price_nok || ':' || active, ',' order by id) from public.products where id in ('haill_4', 'pakke_sesong', 'trim_24', 'skip_72', 'trim_turbo')")
+        PS['price'] = sql("select string_agg(id || '=' || price_nok || ':' || active, ',' order by id) from public.products where id in ('haill', 'haill_3', 'luksus', 'pakke_sesong', 'trim_8', 'trim_24', 'skip_72', 'trim_turbo')")
         sql("select public.shop_refund('pi_p4')")
         PS['ref'] = sql("select count(*) from public.grants where purchase_id = 'cs_p4' and revoked_at is not null")
-        print(ok(PS['paid'] == ['t', 't', 'f'] and PS['h4'] == '4:4' and PS['pk'] == 'haill@v2,haill@v2,haill@v2,haill@v2,trim/t24@v2,skip/s24@v2'
-                 and PS['price'] == 'haill_4=79:true,pakke_sesong=149:true,skip_72=129:true,trim_24=79:true,trim_turbo=49:false' and PS['ref'] == '4'),
-              'the price ladder: a pack of 4 haill gives 4 grants, the season pack 4 haill, the 24 h trim on the boat and Skippertak; paid twice gives nothing more; the old trims no longer sold; a refund takes back the unused haill', json.dumps(PS))
+        print(ok(PS['paid'] == ['t', 't', 'f'] and PS['h4'] == '3:3' and PS['pk'] == 'haill@v2,haill@v2,haill@v2,haill@v2,trim/t24@v2,skip/s24@v2'
+                 and PS['price'] == 'haill=39:true,haill_3=99:true,luksus=79:true,pakke_sesong=249:true,skip_72=299:true,trim_24=149:true,trim_8=79:true,trim_turbo=49:false' and PS['ref'] == '3'),
+              'the price ladder (raised the same evening): a pack of 3 haill gives 3 grants, the season pack 4 haill, the 24 h trim on the boat and Skippertak; paid twice gives nothing more; the old trims no longer sold; a refund takes back the unused haill', json.dumps(PS))
         # the load of 5 000 players (plan 5b; KYST_LAST=5000): landings and catches for that many players, then what world_get costs
         NL = int(os.environ.get('KYST_LAST') or 0)
         if NL:

@@ -34,7 +34,7 @@ async def main():
                   skip:Object.fromEntries(Object.entries(SKIP).filter(([, X]) => !X.old).map(([k, X]) => [k, [X.h, X.nok]]))}))()""")
                 ok = all(abs(r[k] - v) < 1e-9 for k, v in LOCK.items()) and r['kr'] <= 150
                 check(ok, '1. energimodellen er låst (ENERGY, RORBU), rorbua koster ikke mer enn 150 kr', r)
-                check(r['skip'] == {'s4': [24, 29], 's12': [72, 49], 's24': [144, 79], 's72': [432, 129]} and mig == {'skip_4': 29, 'skip_12': 49, 'skip_24': 79, 'skip_72': 129}, '4a. prisstigen i spillet og i migreringen er lik: 4, 12, 24 og 72 timer for 29, 49, 79 og 129 kr', {'game': r['skip'], 'db': mig})
+                check(r['skip'] == {'s2': [12, 29], 's8': [48, 79], 's24': [144, 149], 's72': [432, 299]} and mig == {'skip_2': 29, 'skip_8': 79, 'skip_24': 149, 'skip_72': 299}, '4a. prisstigen i spillet og i migreringen er lik: 2, 8, 24 og 72 timer for 29, 79, 149 og 299 kr', {'game': r['skip'], 'db': mig})
                 r = await pg.evaluate("""(() => { const R = {}; S.energy = 12; S.sleep = {t0:S.t, until:S.t + 480, v:S.cur}; S.drowsy = true;
                   const v2 = {id:'tstv', crew:[{id:'x', fatigue:80}]}; S.fleet = (S.fleet || []).concat([v2]); for (const c of S.crew) c.fatigue = 70;
                   giveSkip('light'); R.e = S.energy; R.sleep = !!S.sleep; R.dr = S.drowsy; R.crew = S.crew.map(c => c.fatigue); R.other = v2.crew[0].fatigue; R.left = Math.round(skipLeft());
@@ -57,8 +57,8 @@ async def main():
                   shopThanks([...Array(8)].map((_, i) => g(100 + i, 'haill_8', {give:'haill', type:'haill'})).concat([g(200, 'pakke_sesong', {give:'haill', type:'haill'}), g(201, 'pakke_sesong', {give:'haill', type:'haill'}), g(202, 'pakke_sesong', {give:'haill', type:'haill'}), g(203, 'pakke_sesong', {give:'haill', type:'haill'}), g(204, 'pakke_sesong', {give:'trim', k:'t24'}), g(205, 'pakke_sesong', {give:'skip', k:'s24'})]));
                   await new Promise(r => setTimeout(r, 600)); const its = [...document.querySelectorAll('.shoprc .shoprc-it')].map(p => p.textContent); document.getElementById('modal').hidden = true;
                   return {its, msg:(S.msgs[S.msgs.length - 1] || {}).no || ''}; })()""")
-                check(len(r['its']) == 2 and r['its'][0].count('129 kr') == 1 and r['its'][1].count('149 kr') == 1 and r['msg'].count('129 kr') == 1 and r['msg'].count('149 kr') == 1,
-                      '4c. kvitteringen: en pakke er ett kjøp, én linje med prisen én gang (Haill × 8 for 129 kr, Sesongpakken for 149 kr)', r)
+                check(len(r['its']) == 2 and r['its'][0].count('229 kr') == 1 and r['its'][1].count('249 kr') == 1 and r['msg'].count('229 kr') == 1 and r['msg'].count('249 kr') == 1,
+                      '4c. kvitteringen: en pakke er ett kjøp, én linje med prisen én gang (Haill × 8 for 229 kr, Sesongpakken for 249 kr)', r)
             # Kaiboden: one window (Jonas 16.11.2026), the season pack first, a row a kind, the largest marked, a test purchase
             r = await pg.evaluate("""(async () => { S.tut = 0; PHONE.show(true, 'home'); await new Promise(r => setTimeout(r, 300)); const R = {};
               R.grid = ['kaiboden', 'haill', 'trim'].map(a => !!document.querySelector('#phone .ph-app[data-a=' + a + ']'));
