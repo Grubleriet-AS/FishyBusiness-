@@ -28,6 +28,10 @@ const SJV = {
   // får lov til å clippe gjennom NPC-båter … vi kan ikke ha det sånn at spillere blir påkjørt av NPC-er og må slepes»); Autonav and the
   // NPCs still give way to each other as before, so it looks right. Another player's boat is met as before. false: the blows as before
   ghost:true,
+  // harm: a collision with another vessel, a player's or an NPC's (with ghost off), does no damage to her hull or the other's and has
+  // nothing to settle, in the first weeks (Jonas 16.11.2026, before the launch: «Fjern skade fra kollisjoner med andre brukere eller
+  // NPCer»); the blow, the log, the fault and § 164 stay. true: the damage and the payment as before
+  harm:false,
   E:new Map(),      // the NPCs giving way (or holding off): id -> the manoeuvre, laid over npcStates' position
   sits:new Map(),   // the encounters seen: id -> {sit, t, clr, nm} (13 d: once overtaking, till past and clear; the near miss once)
   own:null,         // Autonav's own manoeuvre for the boat you follow
@@ -966,13 +970,13 @@ function sjvBlow(n, kn, E, H, pre){
   if (!(kn >= HULL.fend)) return null;
   const mA = sjvOwnMass(b), mB = sjvMass(n), [kA, kB] = sjvKnEq(kn, mA, mB), knT = (Math.round(kn * 10) / 10).toFixed(1);
   if (C0 && H - C0.t < SJV.STAND + 1 / 60 && H >= C0.t - 0.01){ C0.t = H; if (kn < C0.kn + 0.5) return null; C0.kn = kn;
-    const say = hullSay(hullHit(kA, E, 'båt', b));
+    const say = SJV.harm ? hullSay(hullHit(kA, E, 'båt', b)) : null;
     log('Nytt støt mot «' + n.name + '», ' + knT.replace('.', ',') + ' knop.' + (say ? say.no : ''), 'Another blow against «' + n.name + '», ' + knT + ' knots.' + (say ? say.en : ''), 'nav');
     return C0.rec; }
-  const r = hullHit(kA, E, 'båt', b), say = hullSay(r), c = r ? hullCost(b, {s:r.ds, h:r.dh, A:r.dA}) : {scr:0, str:0, eng:0, tot:0};
+  const r = SJV.harm ? hullHit(kA, E, 'båt', b) : null, say = hullSay(r), c = r ? hullCost(b, {s:r.ds, h:r.dh, A:r.dA}) : {scr:0, str:0, eng:0, tot:0};
   const A = sjvOwn(), X = {H, gs, fog:SJV.fog && Math.hypot(n.p.x - A.p.x, n.p.y - A.p.y) / gs * 1000 > sjvSeenKm(n.L || 10, SJV.vis, SJV.night) * 1000,
     a:{x:pre.p.x, y:pre.p.y, hd:pre.hd, cog:pre.cog != null ? pre.cog : pre.hd, v:pre.v, cls:A.cls, L:A.L}, b:{x:n.p.x, y:n.p.y, hd:n.hd, hd0:n.player ? null : n.hd0 != null ? n.hd0 : n.hd, cog:n.cog != null ? n.cog : n.hd, v:n.v || 0, cls:n.cls || colregCls(n), L:n.L || 10}};
-  const F = peer ? null : sjvFault(SJV.trail.get(n.id) || [], X), O = peer ? {kr:0, dh:0, dA:0} : sjvOtherCost(kB, n.L || 10, sjvMatOf(n), sjvValue(n.L || 10)), M = peer ? {owe:0, ins:0, you:0, got:0} : sjvSettle(b, F, c, O.kr, n.name);
+  const F = peer ? null : sjvFault(SJV.trail.get(n.id) || [], X), O = peer || !SJV.harm ? {kr:0, dh:0, dA:0} : sjvOtherCost(kB, n.L || 10, sjvMatOf(n), sjvValue(n.L || 10)), M = peer || !SJV.harm ? {owe:0, ins:0, you:0, got:0} : sjvSettle(b, F, c, O.kr, n.name);
   const rec = {t:S.t, x:Math.round(b.pos.x * 1000) / 1000, y:Math.round(b.pos.y * 1000) / 1000, vid:S.cur, id:String(n.id), name:String(n.name || ''), kn:+kn.toFixed(1), kA:+kA.toFixed(1), kB:+kB.toFixed(1), peer,
     sit:F ? F.sit : null, law:F ? F.law : null, fa:F ? F.fa : 0, fb:F ? F.fb : 0, why:F ? F.why : null, own:c.tot, oth:O.kr, othA:O.dA, owe:M.owe, ins:M.ins, you:M.you, got:M.got};
   SJV.clash.set(n.id, {t:H, kn, rec}); SJV.nClash++; SJV.stopT = S.t;

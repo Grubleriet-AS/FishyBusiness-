@@ -138,6 +138,12 @@ export default function (t){
   S1.log.push({t:S1.t, no:'Kastet loss fra Husøy.', en:'Cast off from Husøy.'});
   const H1 = S1.t / 60, n = {id:'c99', name:'Sjøsprøyt', type:'sjark', p:{x:at.x, y:at.y - 0.008}, hd:90 * R, cog:90 * R, v:9, st:'out', coast:true, L:10.5, B:4, T:1.5, cls:'pow'};
   const pre = {p:{x:at.x, y:at.y}, hd:0, cog:0, v:8};
+  // SJV.harm off (Jonas 16.11.2026, the first weeks: no damage from a collision with another vessel): the blow, the log and § 164, no damage
+  // to either and nothing paid. Then on, for the checks below, which are the damage and the payment as they are with it on
+  { t.ok(K.SJV.harm === false, 'SJV.harm står av som standard'); const c0h = S1.cash, rh = K.sjvBlow(Object.assign({}, n, {id:'c98'}), 6, 5e4, H1, pre);
+    t.ok(rh && rh.kn === 6 && !b1.dmg && rh.own === 0 && rh.oth === 0 && rh.owe === 0 && rh.got === 0 && S1.cash === c0h && /«Sjøsprøyt» tok ikke skade/.test(S1.log.slice(-3).map(l => l.no).join(' ')),
+      'SJV.harm av: støtet på 6 knop står i dagboka, men ingen skade på noen av båtene og ingen betaling', rh && {dmg:b1.dmg, own:rh.own, oth:rh.oth, owe:rh.owe});
+    S1.clashes = []; S1.radio = []; K.SJV.clash.clear(); K.SJV.E.clear(); K.SJV.harm = true; }
   const rec = K.sjvBlow(n, 6, 5e4, H1, pre), logs = S1.log.slice(-3).map(l => l.no).join(' | '), vhf = (S1.radio || []).filter(r => r.from === 'VHF 16');
   t.ok(rec && rec.kn === 6 && b1.dmg && b1.dmg.h > 0, 'støtet på 6 knop skader ditt skrog (hullHit)', rec && {kA:rec.kA, kB:rec.kB, dmg:b1.dmg});
   t.ok(rec.kA < rec.kB, 'den tyngre kystbåten (75 t) tar mindre av støtet enn sjarken (32 t): massene', [rec.kA, rec.kB]);
