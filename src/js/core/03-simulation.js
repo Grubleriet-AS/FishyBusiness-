@@ -233,6 +233,12 @@ function jigMeShare(){
   if (F.n - Math.ceil(jk / per) < 1) return 0;
   const tot = effortOf(F.n, jk, JIG.hand) * F.eff; return tot > 0 ? clamp(JIG.hand * meEff() / tot, 0, 1) : 0;
 }
+// your share if you went to the rail now: «Jukse selv» puts you there (window.jigActive, workAssign), so the button asks this and not
+// where you stand this minute (feedback #4 from the test edition, 12.11.2026: a skipper on a break with the crew jigging never saw it)
+function jigMeCan(){
+  if (typeof window === 'undefined' || window.jigActive) return jigMeShare();
+  window.jigActive = true; try { return jigMeShare(); } finally { window.jigActive = false; }
+}
 const GM = {E:1.05, A:1.0, B:0.85, X:0.6, V:0};
 
 // deterministic noise
@@ -458,7 +464,11 @@ function sunTimes(H, p){
 // the ensign's hours (flaggforskriften, 1927: hoisted at 08 from March to October and at 09 from November to February, lowered at sunset
 // and at 21 at the latest; in Nordland, Troms and Finnmark from 10 to 15 from November to February). The pennant has no hours: it flies
 // day and night, the year round (Jonas 07.10.2026)
+// Jonas 16.11.2026, before the launch: «Flagg oppe hele døgnet»: the ensign flies day and night on every boat (FLAG.always); false gives
+// the hours of flaggforskriften back
+const FLAG = {always:true};
 function flagUp(H, p){
+  if (FLAG.always) return true;
   p = p || herePos(); const m = gDate(H).getUTCMonth(), h = hodOf(H), winter = m >= 10 || m <= 1;
   if (winter && LL(p).lat > 65) return h >= 10 && h < 15;
   return h >= (winter ? 9 : 8) && h < 21 && !(h >= 12 && sunAt(H, p).el < -0.83);
@@ -764,8 +774,9 @@ function wshOpen(y){ return WSH.y === y ? WSH.open : 0; }
 function wshSat(pid, sp, H){ const m = WSH.mkt[pid]; return m && m[sp] ? m[sp] * Math.pow(0.97, Math.max(0, H - WSH.mH)) : 0; }
 function wshTake(k, kg){ if (S.stock && kg > 0) stkSet(S.stock, k, Math.max(0.12, stkGet(S.stock, k) - kg / STK.K)); }
 // a sale for the others: kilos a species, and the cod counted on the open group's quota
-function wshLand(port, H, acc, kgSp, codQ){ if (!WSH.rec) return; const Q = wq(); if (Q.l.length >= 200) return;
-  const items = Object.entries(kgSp).filter(([, kg]) => kg > 0.01).slice(0, 24).map(([sp, kg]) => ({sp, kg:+kg.toFixed(1), kgq:sp === 'torsk' && acc === 'open' ? +codQ.toFixed(1) : 0}));
+// (krSp: the value of each species at the plant, for the leaderboard in kroner, Jonas 16.11.2026; 20261116120000_lansering.sql)
+function wshLand(port, H, acc, kgSp, codQ, krSp){ if (!WSH.rec) return; const Q = wq(); if (Q.l.length >= 200) return;
+  const items = Object.entries(kgSp).filter(([, kg]) => kg > 0.01).slice(0, 24).map(([sp, kg]) => ({sp, kg:+kg.toFixed(1), kgq:sp === 'torsk' && acc === 'open' ? +codQ.toFixed(1) : 0, kr:Math.max(0, Math.round((krSp && krSp[sp]) || 0))}));
   // the boat's name goes with it for the open group's leaderboard (and the company's in the closed group, whose leaderboard shows it:
   // Jonas 05.10.2026); there is no hiding from the others (07.10.2026)
   const ev = typeof evAt === 'function' ? evAt(H, port, items.map(i => i.sp)) : '';   // the shared event it falls in (09c-seasons.js)
@@ -986,9 +997,16 @@ function bookResult(y){ bookYear(); const Y = S.stats.y[y] || {}; let inc = 0, c
 // interest, takes a fixed share of each landing if the player wants, and counts as equity when a vessel is bought. The overdraft
 // (kassekreditt) lets the current account go below zero to a limit, at a higher rate; below the limit nothing can be bought. The rates are
 // estimates (V4 A): savings 3,5 %, the overdraft 10 %, its limit 10 % of the fleet's value and at least 20 000 kr.
-const BANK = {kkMin:20000, kkF:0.10, kkRate:0.10, spRate:0.035, autoMax:0.5, pcts:[0.3, 0.4, 0.5], spPcts:[0, 0.1, 0.2, 0.3]};
-function bankS(){ const B = S.bank || (S.bank = {}); for (const [k, v] of [['skatt', 0], ['spare', 0], ['auto', true], ['pct', 0.4], ['spPct', 0], ['kkAcc', 0], ['spAcc', 0], ['spYr', 0], ['warnD', -1]]) if (B[k] == null) B[k] = v; return B; }
-const kkLimit = () => Math.max(BANK.kkMin, Math.round((S.fleet || []).reduce((a, v) => a + vesselValue(v), 0) * BANK.kkF / 1000) * 1000);
+// The overdraft comes with sea time (Jonas 16.11.2026, before the launch: «Fjerne kreditt for ENK? (forhindre nye spillere i å kjøpe alt
+// med en gang)», and his choice «Kassekreditt etter fartstid»): a sole proprietor gets none until kkFsY years of sea time (09e-fartstid.js;
+// the fifth year comes in the first week for one who plays steadily); a company (AS) has it as before. The one place sea time opens
+// something.
+const BANK = {kkMin:20000, kkF:0.10, kkRate:0.10, kkFsY:5, spRate:0.035, autoMax:0.5, pcts:[0.3, 0.4, 0.5], spPcts:[0, 0.1, 0.2, 0.3]};
+function bankS(){ const B = S.bank || (S.bank = {}); if (B.kkOld == null) B.kkOld = S.cash < 0; for (const [k, v] of [['skatt', 0], ['spare', 0], ['auto', true], ['pct', 0.4], ['spPct', 0], ['kkAcc', 0], ['spAcc', 0], ['spYr', 0], ['warnD', -1]]) if (B[k] == null) B[k] = v; return B; }
+// (a game from before 16.11.2026 that stood below zero when it was first loaded keeps its overdraft, kkOld: nobody is locked out by the
+// change; a new game has kkOld false from newState)
+const kkOpen = () => S.form === 'AS' || !!bankS().kkOld || fsOf(fsState().p).y >= BANK.kkFsY;
+const kkLimit = () => !kkOpen() ? 0 : Math.max(BANK.kkMin, Math.round((S.fleet || []).reduce((a, v) => a + vesselValue(v), 0) * BANK.kkF / 1000) * 1000);
 // what can be spent now: the current account and the overdraft not yet used
 const spendable = () => S.cash + kkLimit();
 // the equity a purchase can use: the current account above zero and the savings
@@ -1022,7 +1040,8 @@ function bankDay(H){
     if (B.spAcc >= 1){ const s0 = Math.round(B.spAcc); B.spAcc = 0; B.spare += s0; bookAll({rente:s0, spare:-s0}, 'Renter på sparekontoen', 'Interest on savings'); }
   }
   const day = Math.floor(H / 24); if (S.cash < -kkLimit() && B.warnD !== day){ B.warnD = day;
-    msg('Kystbanken', 'Brukskontoen er ' + kr(-S.cash) + ' i minus, over rammen på kassekreditten (' + kr(kkLimit()) + '). Til den er under rammen igjen, kan du ikke kjøpe noe. Lever fisk, eller flytt penger fra sparekontoen.', 'The current account is NOK ' + (-Math.round(S.cash)) + ' overdrawn, over the overdraft limit (NOK ' + kkLimit() + '). Until it is within the limit again, nothing can be bought. Land fish, or move money from the savings.'); }
+    if (!kkOpen()) msg('Kystbanken', 'Brukskontoen er ' + kr(-S.cash) + ' i minus, og du har ikke kassekreditt ennå (den kommer med ' + BANK.kkFsY + ' års fartstid). Til kontoen er i pluss igjen, kan du ikke kjøpe noe. Lever fisk, eller flytt penger fra sparekontoen.', 'The current account is NOK ' + (-Math.round(S.cash)) + ' overdrawn, and you have no overdraft yet (it comes with ' + BANK.kkFsY + ' years of sea time). Until the account is above zero again, nothing can be bought. Land some fish, or move money from savings.');
+    else msg('Kystbanken', 'Brukskontoen er ' + kr(-S.cash) + ' i minus, over rammen på kassekreditten (' + kr(kkLimit()) + '). Til den er under rammen igjen, kan du ikke kjøpe noe. Lever fisk, eller flytt penger fra sparekontoen.', 'The current account is NOK ' + (-Math.round(S.cash)) + ' overdrawn, over the overdraft limit (NOK ' + kkLimit() + '). Until it is within the limit again, nothing can be bought. Land fish, or move money from the savings.'); }
 }
 // Income tax (E4 04.10.2026; Økonomi 2, Ø4 27.10.2026: the terms and the settlement as in life, docs/planer/okonomi/02-design.md).
 // The year's profit is the income less the costs in the books (the levies, the shares, fuel, gear, interest ...; not the instalments, the

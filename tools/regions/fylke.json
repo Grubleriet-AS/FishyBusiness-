@@ -842,8 +842,9 @@
 "mN893": {
 "fylke": "Nordland",
 "kommune": "Bodø",
-"lat": 67.40585,
-"lon": 13.89617,
+"lat": 67.41226,
+"lon": 13.89408,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "18",
 "off": 0
 },
@@ -1066,8 +1067,9 @@
 "mST72": {
 "fylke": "Trøndelag",
 "kommune": "Åfjord",
-"lat": 64.17773,
-"lon": 10.35492,
+"lat": 64.17728,
+"lon": 10.3583,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "50",
 "off": 0
 },
@@ -1306,8 +1308,9 @@
 "mTL41": {
 "fylke": "Trøndelag",
 "kommune": "Åfjord",
-"lat": 64.04005,
-"lon": 10.06406,
+"lat": 64.03919,
+"lon": 10.05179,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "50",
 "off": 0
 },
@@ -1698,8 +1701,9 @@
 "sb623865_666688": {
 "fylke": "Nordland",
 "kommune": "Træna",
-"lat": 66.54339,
-"lon": 12.15854,
+"lat": 66.54357,
+"lon": 12.15935,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "18",
 "off": 0
 },
@@ -2098,8 +2102,9 @@
 "sv216830_1340454": {
 "fylke": "Vestland",
 "kommune": "Bjørnafjorden",
-"lat": 60.17173,
-"lon": 5.36802,
+"lat": 60.17129,
+"lon": 5.37147,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "46",
 "off": 0
 },
@@ -2386,8 +2391,9 @@
 "sv399239_1536012": {
 "fylke": "Agder",
 "kommune": "Tvedestrand",
-"lat": 58.62388,
-"lon": 8.95509,
+"lat": 58.60949,
+"lon": 8.95379,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "42",
 "off": 0
 },
@@ -2442,8 +2448,9 @@
 "sv443667_978429": {
 "fylke": "Trøndelag",
 "kommune": "Hitra",
-"lat": 63.64224,
-"lon": 8.81305,
+"lat": 63.64243,
+"lon": 8.82537,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "50",
 "off": 0
 },
@@ -2674,8 +2681,9 @@
 "sv520573_1007674": {
 "fylke": "Trøndelag",
 "kommune": "Trondheim",
-"lat": 63.43534,
-"lon": 10.39898,
+"lat": 63.43751,
+"lon": 10.3965,
+"note": "flyttet under 1,6 km i samme kommune 15.11.2026 (steg 126); Kartverket ikke spurt på nytt (stengt fra skyen)",
 "nr": "50",
 "off": 0
 },

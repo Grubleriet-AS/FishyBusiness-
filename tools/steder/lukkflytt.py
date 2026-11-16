@@ -33,6 +33,7 @@ from landflytt import land_gap, bad, cost, GAPOK, STEDER, MOTTAK, RORBU
 REACHES = tuple(float(v) for v in os.environ['KYST_REACH'].split(',')) if os.environ.get('KYST_REACH') else (0.5, 1.0, 1.5, 3.0)   # (KYST_REACH=0.5,1,1.5,3,4.5,6: farther where nothing within 3 km holds, --vei)
 NCAND = 30       # faces tried in the game per place, at most
 VEI = '--vei' in sys.argv
+LOW = os.environ.get('KYST_LUKKET_TIDE', 'cd') != 'live'
 PER = 10         # (--vei) faces per ring of REACHES
 if VEI: NCAND = len(REACHES) * PER
 
@@ -50,7 +51,9 @@ LISTED = r"""async (only) => { const R = [], E = [];
   return {R, E}; }"""
 # --vei: the older coastal vessel at the place just set down: her hull on water with her draught under it at the lowest tide, and a way
 # out by Autonav over the next twelve hours (as tests/allesteder.py ALS.go without the sailing)
-WAYOUT = r"""async (id) => { const pt = portById(id), b = S.boat; TAB.held = true; S.tut = 0;
+# (at the lowest tide, Jonas 15.11.2026: «21 m også på lavvann»: the tide held at chart datum, so the way is there with no flood to wait for,
+# and in again: from 1.5 km along the way out back to the place, as tests/allesteder.py; KYST_LUKKET_TIDE=live over twelve hours as before)
+WAYOUT = r"""async ([id, LOW]) => { const pt = portById(id), b = S.boat; TAB.held = true; S.tut = 0; if (LOW) tideH = (H, p) => -tideZC(p);
   if (b.type !== 'kyst21'){ b.type = 'kyst21'; if (!S.owned.includes('kyst21')) S.owned.push('kyst21'); applyVessel(); }
   for (const k in BERTHPOSE) delete BERTHPOSE[k];
   S.plan = null; b.status = 'port'; b.port = id; b.berth = 'main'; b.pos = {x:pt.p.x, y:pt.p.y}; b.dyn = null;
@@ -64,8 +67,11 @@ WAYOUT = r"""async (id) => { const pt = portById(id), b = S.boat; TAB.held = tru
   let open = null; for (let rr = 0.5; rr <= 3 && !open; rr += 0.25) for (let a = 0; a < 6.28; a += 0.26){ const c = {x:from.x + Math.cos(a) * rr, y:from.y + Math.sin(a) * rr}; try { if (!isLand(c) && depthF(c) > 15 && coastDist(c) > 0.3){ open = {p:c, id:null}; break; } } catch (e){} }
   if (open) cands.push(open);
   const T0 = S.t; let r = null;
-  try { for (let h = 0; h <= 12; h += 3){ S.t = T0 + h * 60;
-    for (const q of cands){ await mapPreload([q.p], [['sim', 3], ['chart', 3]]); try { r = await leiaRoute(from, q.p, id, q.id); } catch (e){ r = null; } if (r && r.wps) return {ok:true, h, nm:+r.nm.toFixed(1)}; } } } finally { S.t = T0; }
+  const back = async r => { let a = from, op = null; for (const w of r.wps){ const L = dist(a, w); if (dist(w, from) >= 1.5 && L > 0){ for (let k = 1; k <= 20 && !op; k++){ const q = {x:a.x + (w.x - a.x) * k / 20, y:a.y + (w.y - a.y) * k / 20}; if (dist(q, from) >= 1.5) op = q; } } if (op) break; a = w; }
+    if (!op) op = r.wps[r.wps.length - 1]; b.status = 'idle'; b.port = null; b.pos = {x:op.x, y:op.y};
+    let r2 = null; try { r2 = await draftWay(op, pt.p, null, id, false, null); } catch (e){} b.status = 'port'; b.port = id; b.pos = {x:pt.p.x, y:pt.p.y}; return !!(r2 && r2.wps); };
+  try { for (let h = 0; h <= (LOW ? 0 : 12); h += 3){ S.t = T0 + h * 60;
+    for (const q of cands){ await mapPreload([q.p], [['sim', 3], ['chart', 3]]); try { r = await leiaRoute(from, q.p, id, q.id); } catch (e){ r = null; } if (r && r.wps){ if (LOW && !(await back(r))) return {ok:false, why:'no way in'}; return {ok:true, h, nm:+r.nm.toFixed(1)}; } } } } finally { S.t = T0; }
   return {ok:false, why:'no way out'}; }"""
 # the place set down on the face x, y (km), a (the normal's angle), as 06b-coastports.js and 06c-steder.js set it, and its way in searched
 TRY = r"""async ([id, x, y, a, len]) => { const pt = portById(id), U = UNITS[id], nx = Math.cos(a), nz = Math.sin(a), cx = x * 1000, cz = y * 1000;
@@ -135,7 +141,7 @@ def main():
     only = [s for s in os.environ.get('KYST_LUKKET', '').split(',') if s]
     if VEI and not only:
         R = json.load(open(os.path.join(ROOT, 'tests', 'out', 'allesteder.json')))
-        only = [r['id'] for r in R if r.get('kind') == 'port' and str(r.get('why', '')).startswith(('route', 'no harbour'))]
+        only = [r['id'] for r in R if r.get('kind') == 'port' and str(r.get('why', '')).startswith(('route', 'no harbour', 'in: route'))]
     shut = asyncio.run(game(lambda pg: pg.evaluate(LISTED if VEI else SHUT, only)))
     if shut['E']: print('not checked:', shut['E'])
     for s in shut['R']: print('shut in', s)
@@ -152,7 +158,7 @@ def main():
             for j, km in cs:
                 if any(math.hypot(float(X[j]) - a, float(Y[j]) - b) < 0.6 for a, b in taken): continue
                 r = await pg.evaluate(TRY, [pid, float(X[j]), float(Y[j]), float(A[j]), float(Ln[j])])
-                if r.get('ok') and VEI: r = await pg.evaluate(WAYOUT, pid); print('    %-22s %4d m: %s' % (name, round(km * 1000), r), flush=True)
+                if r.get('ok') and VEI: r = await pg.evaluate(WAYOUT, [pid, LOW]); print('    %-22s %4d m: %s' % (name, round(km * 1000), r), flush=True)
                 if r.get('ok'): res[pid] = (j, km); taken.append((float(X[j]), float(Y[j]))); break
             else: res[pid] = None
         return res

@@ -4756,3 +4756,80 @@
 2026-11-15 02:16	ccr-as1-alle	52749e3f	routetest	OK	43	lite	alene	
 2026-11-15 02:17	ccr-as1-alle	52749e3f	charttest	OK	49	lite	alene	
 2026-11-15 02:19	ccr-as1-alle	52749e3f	driftsplan2test	OK	102	lite	alene	
+2026-11-15 16:56	ccr-as1-alle	53670d4+	autonavtest	OK	34	lite	samtidig	
+2026-11-15 16:56	ccr-as1-alle	53670d4+	obstest	FEIL	10	lite	samtidig	FEIL a drawn route under Gisundbrua and back (trip2's): round the pier under the deck, no nearer the skerries, and back in Finnsnes  {"st": "port", "det": 0, "d
+2026-11-15 16:57	ccr-as1-alle	53670d4+	trip2	OK	50	lite	samtidig	
+2026-11-15 16:57	ccr-as1-alle	53670d4+	rorbutest	OK	19	lite	samtidig	
+2026-11-15 16:59	ccr-as1-alle	53670d4+	utfrakai	OK	103	lite	samtidig	
+2026-11-15 16:59	ccr-as1-alle	53670d4+	lukket	OK	23	lite	samtidig	
+2026-11-15 16:59	ccr-as1-alle	53670d4+	harbourtest	OK	19	lite	samtidig	
+2026-11-15 16:59	ccr-as1-alle	53670d4+	worldtest	OK	22	lite	samtidig	
+2026-11-15 16:59	ccr-as1-alle	53670d4+	draftlooptest	OK	27	lite	samtidig	
+2026-11-15 16:59	ccr-as1-alle	53670d4+	legmemotest	OK	16	lite	samtidig	
+2026-11-15 17:00	ccr-as1-alle	53670d4+	routetest	OK	49	lite	alene	
+2026-11-15 17:11	ccr-as1-alle	53670d4+	obstest	OK	7	lite	alene	
+2026-11-15 18:41	ccr-as1-alle	3b36e57+	autonavtest	FEIL	36	lite	samtidig	FEIL 9a. tidevannets kreditt er laveste vannstand over turen minus marginen, og 0 utenfor en rute  {'credit': 1, 'expect': 1, 'idle': 1, 'nm1': 1.13, 'line1': 0
+2026-11-15 18:42	ccr-as1-alle	3b36e57+	trip2	OK	49	lite	samtidig	
+2026-11-15 18:43	ccr-as1-alle	3b36e57+	utfrakai	OK	99	lite	samtidig	
+2026-11-15 18:43	ccr-as1-alle	3b36e57+	rorbutest	FEIL	20	lite	samtidig	FEIL the rorbuer along the coast: one by each fishing harbour and more between, named, in three colours, known to portById but not harbours  {"n": 522, "h": 150
+2026-11-15 18:43	ccr-as1-alle	3b36e57+	harbourtest	OK	17	lite	samtidig	
+2026-11-15 18:54	ccr-as1-alle	3b36e57+	autonavtest	OK	33	lite	alene	
+2026-11-15 18:55	ccr-as1-alle	3b36e57+	autonavtest	OK	38	lite	alene	
+2026-11-15 18:56	ccr-as1-alle	3b36e57+	rorbutest	OK	17	lite	alene	
+2026-11-15 20:09	ccr-as1-alle	df7ae66+	autonavtest	FEIL	36	lite	samtidig	FEIL 9a. tidevannets kreditt er laveste vannstand over turen minus marginen, og 0 utenfor en rute  {'credit': 1, 'expect': 1, 'idle': 1, 'nm1': 1.13, 'line1': 0
+2026-11-15 20:09	ccr-as1-alle	df7ae66+	trip2	OK	47	lite	samtidig	
+2026-11-15 20:10	ccr-as1-alle	df7ae66+	rorbutest	OK	20	lite	samtidig	
+2026-11-15 20:10	ccr-as1-alle	df7ae66+	harbourtest	OK	18	lite	samtidig	
+2026-11-15 20:10	ccr-as1-alle	df7ae66+	obstest	OK	11	lite	samtidig	
+2026-11-15 20:10	ccr-as1-alle	df7ae66+	autonavtest	OK	34	lite	samtidig	
+2026-11-15 20:11	ccr-as1-alle	df7ae66+	trip2	OK	41	lite	samtidig	
+2026-11-15 22:25	ccr-as1-alle	74e4c27+	havntest	FEIL	20	lite	samtidig	FEIL Bodø: the harbours are shut to the players: no berth found, tapped or offered, and a tap says why {'on': False, 'find': False, 'tap': False, 'opt': False, 
+2026-11-15 22:25	ccr-as1-alle	74e4c27+	trip2	OK	46	lite	samtidig	
+2026-11-15 22:25	ccr-as1-alle	74e4c27+	harbourtest	OK	20	lite	samtidig	
+2026-11-15 22:25	ccr-as1-alle	74e4c27+	rorbutest	OK	18	lite	samtidig	
+2026-11-15 22:26	ccr-as1-alle	74e4c27+	havntest	OK	19	lite	samtidig	
+2026-11-15 22:26	ccr-as1-alle	74e4c27+	havnstengt	OK	24	lite	samtidig	
+2026-11-15 22:30	ccr-as1-alle	d02ab6d	driftsplan2kyst	OK	106	lite	alene	
+2026-11-15 22:35	ccr-as1-alle	d02ab6d+	havnstengt	OK	23	lite	samtidig	
+2026-11-15 22:35	ccr-as1-alle	d02ab6d+	trip2	OK	44	lite	samtidig	
+2026-11-15 22:35	ccr-as1-alle	d02ab6d+	autonavtest	OK	31	lite	samtidig	
+2026-11-12 17:12	claude/admiring-cray-o29dfv	45772c56	worktest	OK	30	lite	samtidig	
+2026-11-12 17:12	claude/admiring-cray-o29dfv	45772c56	selfcrew	OK	9	lite	samtidig	
+2026-11-12 17:13	claude/admiring-cray-o29dfv	45772c56	docktest	OK	65	lite	samtidig	
+2026-11-12 17:26	claude/admiring-cray-o29dfv	45772c56	tut	OK	764	lite	alene	
+2026-11-15 14:08	fb/2026-11-15-skipper-utseende	86787a58	looktest	OK	15	lite	alene	
+2026-11-15 14:09	fb/2026-11-15-skipper-utseende	86787a58	dbg23o	OK	47	3d	alene	
+2026-11-14 02:46	claude/admiring-cray-6tmnpb	e5e2d65f	vesseltest	OK	16	lite	alene	
+2026-11-14 03:01	claude/admiring-cray-6tmnpb	e5e2d65f	tral3d	FEIL	900	3d	alene	gikk ut på tid
+2026-11-15 21:36	fbfix/samlet	dde871b0	worktest	OK	26	lite	samtidig	
+2026-11-15 21:36	fbfix/samlet	dde871b0	selfcrew	OK	9	lite	samtidig	
+2026-11-15 21:36	fbfix/samlet	dde871b0	looktest	OK	15	lite	samtidig	
+2026-11-15 21:36	fbfix/samlet	dde871b0+	dbg23o	OK	48	3d	alene	
+2026-11-15 21:48	fbfix/samlet	79a55074	lanterntest	OK	12	lite	alene	
+2026-11-15 21:53	fbfix/samlet	79a55074+	anchorlight3d	OK	275	3d	alene	
+2026-11-15 21:56	fbfix/samlet	79a55074+	qdowntest	OK	166	3d	alene	
+2026-11-15 21:56	fbfix/samlet	79a55074+	dbg23o	OK	48	3d	alene	
+2026-11-15 21:58	fbfix/samlet	79a55074+	pikseltest	OK	117	3d	alene	
+2026-11-15 22:00	fbfix/samlet	79a55074+	pikseltest	OK	79	3d	alene	
+2026-11-15 22:41	ccr-as1-alle	6676b3fb	havnstengt	OK	22	lite	samtidig	
+2026-11-15 22:41	ccr-as1-alle	6676b3fb	trip2	OK	39	lite	samtidig	
+2026-11-15 23:47	ccr-as1-alle	1e9bd16a	autonavtest	OK	33	lite	samtidig	
+2026-11-15 23:47	ccr-as1-alle	1e9bd16a	trip2	OK	41	lite	samtidig	
+2026-11-15 23:49	ccr-as1-alle	1e9bd16a	utfrakai	OK	95	lite	samtidig	
+2026-11-15 23:49	ccr-as1-alle	1e9bd16a	harbourtest	OK	17	lite	samtidig	
+2026-11-16 00:00	ccr-as1-alle	1e9bd16a	colregtest	FEIL	746	lite	samtidig	FEIL Autonav viker også når ingen visning spør etter båtene (261 m ut, 209 m fra linja til slutt)
+2026-11-16 00:00	ccr-as1-alle	1e9bd16a	hulltest	OK	72	lite	samtidig	
+2026-11-16 00:15	ccr-as1-alle	1e9bd16a	colregtest	FEIL	864	lite	alene	FEIL Autonav viker også når ingen visning spør etter båtene (261 m ut, 207 m fra linja til slutt)
+2026-11-16 00:05	ccr-5e1ba2f4-pusvyd	6676b3fb+	dyntest	FEIL	263	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-16 00:05	ccr-5e1ba2f4-pusvyd	6676b3fb+	anchorswing	FEIL	8	lite	samtidig	FEIL Bodø mN905 rute fra anker {"held": true, "upAfter": 5, "moved": 134, "st": "sailing"}
+2026-11-16 00:05	ccr-5e1ba2f4-pusvyd	6676b3fb+	anchortest	OK	38	lite	samtidig	
+2026-11-16 00:05	ccr-5e1ba2f4-pusvyd	6676b3fb+	worktest	FEIL	21	lite	samtidig	FEIL one hauls the line while one bleeds and the others gut and ice, and the hauler goes as fast as with one aboard (by the hauler's own pace) {'st': 'ror,sloy,
+2026-11-16 00:18	ccr-5e1ba2f4-pusvyd	6676b3fb+	dyntest	FEIL	263	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-16 00:18	ccr-5e1ba2f4-pusvyd	6676b3fb+	worktest	OK	27	lite	samtidig	
+2026-11-16 00:59	ccr-as1-alle	be908af6	trip2	OK	43	lite	samtidig	
+2026-11-16 00:59	ccr-as1-alle	be908af6	autonavtest	OK	34	lite	samtidig	
+2026-11-16 00:59	ccr-as1-alle	be908af6	havnstengt	OK	19	lite	samtidig	
+2026-11-16 02:11	ccr-as1-alle	b924e295+	trip2	OK	47	lite	samtidig	
+2026-11-16 02:11	ccr-as1-alle	b924e295+	autonavtest	OK	36	lite	samtidig	
+2026-11-16 02:15	ccr-as1-alle	b924e295+	dyntest	FEIL	266	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-16 02:15	ccr-as1-alle	b924e295+	utfrakai	OK	96	lite	samtidig	

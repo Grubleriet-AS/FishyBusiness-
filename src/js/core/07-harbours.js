@@ -91,11 +91,14 @@ const SITE_MAXLEN = 15;
 // Åsværgården and the naust at Tufjord, Gjesvær, Sørarnøy and Hidrasund, kyst15 gets out from as the chart plotter finds the way,
 // ui/03b-route.js draftWay)
 const SITE_SILL = /*@include(data/siteout.json)*/null || {};
-const siteFits = (type, pid) => { const V = VESSELS[type] || {}; return (V.len || 0) <= SITE_MAXLEN && !(pid != null && SITE_SILL[pid] != null && (V.draft || 0) > SITE_SILL[pid]); };
+const siteFits = (type, pid) => { const V = VESSELS[type] || {}; if (pid != null && siteGone(pid)) return false; return (V.len || 0) <= SITE_MAXLEN && !(pid != null && SITE_SILL[pid] != null && (V.draft || 0) > SITE_SILL[pid]); };
+// a rorbu taken away (07d-rorbu.js RORBU_GONE): no boat lies there any more
+const siteGone = pid => { const R = RBID.get(pid); return !!(R && R.gone); };
 // why the rorbu or the naust (naust: true) at pid is not for this boat, or null when it is
 function siteWhy(type, pid, naust){
   if (siteFits(type, pid)) return null;
   const V = VESSELS[type] || {}, P = portById(pid), what = naust ? ['Naustet', "Father's naust"] : ['Rorbua i ' + (P ? P.name : ''), 'The rorbu at ' + (P ? P.name : '')];
+  if (siteGone(pid)) return [what[0] + ' er tatt bort: båtene kom ikke trygt inn og ut der ved laveste lavvann.', what[1] + ' has been taken away: the boats did not get safely in and out there at the lowest tide.'];
   if ((V.len || 0) > SITE_MAXLEN) return [what[0] + ' tar bare båter opp til ' + SITE_MAXLEN + ' m.', what[1] + ' only takes boats up to ' + SITE_MAXLEN + ' m.'];
   const lim = SITE_SILL[pid], nf = v => String(Math.round(v * 10) / 10);
   return lim > 0 ? [what[0] + ' ligger innenfor en grunne: en båt som stikker dypere enn ' + nf(lim).replace('.', ',') + ' m, kommer ikke ut derfra ved noe tidevann.', what[1] + ' lies behind a shoal: a boat that draws more than ' + nf(lim) + ' m does not get out from there at any tide.']
@@ -125,7 +128,10 @@ const SITE_OUT = new Map(), SITE_OUTN = new Map();
 function siteOut(s){
   if (!s || !s.o || !s.u) return 0; const k = Math.round(s.o[0] * 10) * 4e7 + Math.round(s.o[1] * 10); let q = SITE_OUT.get(k); if (q !== undefined) return q;
   const t = SITE_OUTN.get(k); if (t !== undefined && Date.now() - t < 1000) return NaN;
-  try { q = quayOut({x:s.o[0], z:s.o[1], ux:s.u[0], uz:s.u[1], nx:-s.u[1], nz:s.u[0]}, 0, SITE_MAXLEN, true); } catch (e){ q = NaN; }   // (no map in yet)
+  // (valg 41 A, Jonas 15.11.2026: «Valg A», the boat lies inside the pile quay and the sea bed in front of it is dredged: the 3D view cuts
+  // the bank in front of the face down, siteTerr, so the quay is built out only as far as the fine coast's water is, wet, not over the
+  // bank as at the harbours; 0 where the face stands on the water, and the T-shaped pier of before is gone)
+  try { q = quayOut({x:s.o[0], z:s.o[1], ux:s.u[0], uz:s.u[1], nx:-s.u[1], nz:s.u[0]}, 0, SITE_MAXLEN, true, true); } catch (e){ q = NaN; }   // (no map in yet)
   if (q !== q){ if (SITE_OUTN.size > 500) SITE_OUTN.clear(); SITE_OUTN.set(k, Date.now()); return NaN; } SITE_OUTN.delete(k); if (q < 0) q = QOUT.max;
   if (SITE_OUT.size > 500) SITE_OUT.clear(); SITE_OUT.set(k, q); return q;
 }
@@ -187,9 +193,11 @@ const faceAt = (f, a, L, out) => ({id:f.id, x:f.x + f.ux * a, z:f.z + f.uz * a, 
 // and the 3D view draws a concrete quay (or a timber pier) from the shore out to her (drawDocks quayMod). -1: more than QOUT.max out;
 // NaN: the fine coast is not in there yet (taken as 0 where the berth is fixed again when it comes). The players' berths the same
 // (Jonas 03.11.2026: «Jeg vil ikke ha noe graving i landmasse for hverken npcer eller brukere»): berthPose, havnBerths.
-const QOUT = {top:2.0, g:3, gMole:1.5, clear:0.6, max:16};
+const QOUT = {top:2.0, g:3, gMole:1.5, clear:0.6, max:16, wet:0.5};
 // (all: NaN unless every sample along the face has the fine coast in, for an answer that is kept, siteOut)
-function quayOut(f, a, L, all){
+// (wet: only so far out that her side is on the fine coast's water with QOUT.wet to spare, for the naust and the rorbuer, whose bank
+// the 3D view dredges, siteOut)
+function quayOut(f, a, L, all, wet){
   if (typeof coastSdIf !== 'function') return 0;
   let g = 0, seen = false;
   for (let it = 0; it < 6; it++){
@@ -197,7 +205,7 @@ function quayOut(f, a, L, all){
     for (const fa of [-0.5, -0.25, 0, 0.25, 0.5]){
       const s = a + fa * (L + 2), x = f.x + f.ux * s + f.nx * (g + 0.4), z = f.z + f.uz * s + f.nz * (g + 0.4);
       const sd = coastSdIf({x:x / 1000, y:z / 1000}, 30); if (sd !== sd){ if (all) return NaN; continue; } seen = true;
-      need = Math.max(need, sd + (QOUT.top + QOUT.clear) * (COAST.mole ? QOUT.gMole : QOUT.g));
+      need = Math.max(need, wet ? sd + QOUT.wet : sd + (QOUT.top + QOUT.clear) * (COAST.mole ? QOUT.gMole : QOUT.g));
     }
     if (!seen) return NaN;   // the fine coast is not in here yet
     if (need <= 0.05) return g;
@@ -392,22 +400,28 @@ function berthPose(pid, type, kind = 'main'){
 // unit's quay block. The way: from where the boat is to a point one and a half boat lengths astern of the berth and a beam out from the
 // quay, then along the quay to the berth; straight where that is clear, else a short search over the mask's cells (1.5 km round),
 // straightened. In km; the 3D view sails it in and, backwards, out (view3d.js moorStep)
-function berthBlocked(p, m = 2){
+// (bk: the room kept behind a unit too, where its back stands in the water; 0, as before, for the berths at its face)
+function berthBlocked(p, m = 2, bk = 0){
   if (isLand(p)) return true;
   const x = p.x * 1000, z = p.y * 1000;
   for (const q of PIERBOX){ if (Math.abs(q.x - x) > q.l + q.w + 30 || Math.abs(q.z - z) > q.l + q.w + 30) continue;
     const ax = Math.sin(q.ang), az = Math.cos(q.ang), nx = Math.cos(q.ang), nz = -Math.sin(q.ang), dx = x - q.x, dz = z - q.z;
     if (Math.abs(dx * ax + dz * az) <= q.l / 2 + m && Math.abs(dx * nx + dz * nz) <= q.w / 2 + m) return true; }
-  for (const U of UNITA){ const [lx, lz] = unitL(U, x, z); const g = ugeo(U); if (Math.abs(lx) <= g.E + m && lz <= m && lz >= -g.B) return true; }
+  for (const U of UNITA){ const [lx, lz] = unitL(U, x, z); const g = ugeo(U); if (Math.abs(lx) <= g.E + m && lz <= m && lz >= -g.B - bk) return true; }
   return false;
 }
-function berthClear(a, b, m){ const n = Math.max(1, Math.ceil(dist(a, b) / 0.004)); for (let i = 1; i < n; i++) if (berthBlocked({x:a.x + (b.x - a.x) * i / n, y:a.y + (b.y - a.y) * i / n}, m)) return false; return !coastSegHit(a, b); }
-function berthPath(from, bp){
-  const L = (bp.Lb || 10) / 1000, B = (bp.Bb || 3) / 1000, m = (bp.Bb || 3) / 2, F = bp.face, P1 = {x:bp.x, y:bp.y}, fw = bp.fwd;
+function berthClear(a, b, m, bk = 0){ const n = Math.max(1, Math.ceil(dist(a, b) / 0.004)); for (let i = 1; i < n; i++) if (berthBlocked({x:a.x + (b.x - a.x) * i / n, y:a.y + (b.y - a.y) * i / n}, m, bk)) return false; return !coastSegHit(a, b); }
+// (mm: the room to keep from the piers and the quays on the way, half her beam when not given; the way in to the naust from the sea asks
+// more, 16b-dyn.js dynLineBuild)
+function berthPath(from, bp, mm){
+  const L = (bp.Lb || 10) / 1000, B = (bp.Bb || 3) / 1000, m = Math.max((bp.Bb || 3) / 2, mm || 0), F = bp.face, P1 = {x:bp.x, y:bp.y}, fw = bp.fwd;
   // the point to come in from: astern of the berth and out from the quay; if that is blocked, straight out from the quay
   let PL = {x:P1.x - fw.x * 1.5 * L + F.nx * B, y:P1.y - fw.z * 1.5 * L + F.nz * B};
-  if (berthBlocked(PL, m) || !berthClear(PL, P1, 0.5)) PL = {x:P1.x + F.nx * 3 * B, y:P1.y + F.nz * 3 * B};
-  if (berthClear(from, PL, m)) return [from, PL, P1];
+  const m0 = (bp.Bb || 3) / 2; if (berthBlocked(PL, m0) || !berthClear(PL, P1, 0.5)) PL = {x:P1.x + F.nx * 3 * B, y:P1.y + F.nz * 3 * B};
+  // (with mm, the way in from the sea: her draught under her too, outside the harbour as groundCheck has it; at Vannareid the way round the
+  // plant's quay ran into the shallows at the lowest tide, and the way round those passed 5 m from the quay's corner)
+  const bk = mm ? m : 0, gnd = (a, b) => { if (!mm) return false; try { return !!groundCheck(a, b); } catch (e){ return false; } }, clr = (a, b) => berthClear(a, b, m, bk) && !gnd(a, b);
+  if (clr(from, PL)) return [from, PL, P1];
   // a search over the mask's cells round the way, then the line pulled tight
   const M = MAPD.L.mask, c = M.c, key = (i, j) => i + ',' + j, ci = q => [Math.floor(q.x / c), Math.floor(q.y / c)], ctr = (i, j) => ({x:(i + 0.5) * c, y:(j + 0.5) * c});
   const [i0, j0] = ci(from), [i1, j1] = ci(PL), R = Math.ceil(1.5 / c), prev = new Map([[key(i0, j0), null]]), Q = [[i0, j0]]; let found = false;
@@ -415,7 +429,7 @@ function berthPath(from, bp){
     const [i, j] = Q[h]; if (Math.abs(i - i1) <= 1 && Math.abs(j - j1) <= 1){ prev.set('end', key(i, j)); found = true; break; }
     for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]){
       const I = i + di, J = j + dj, k = key(I, J); if (prev.has(k) || Math.abs(I - i0) > R || Math.abs(J - j0) > R) continue;
-      if (berthBlocked(ctr(I, J), m) || coastSegHit(ctr(i, j), ctr(I, J))){ prev.set(k, undefined); continue; }
+      if (berthBlocked(ctr(I, J), m, bk) || coastSegHit(ctr(i, j), ctr(I, J)) || gnd(ctr(i, j), ctr(I, J))){ prev.set(k, undefined); continue; }
       prev.set(k, key(i, j)); Q.push([I, J]);
     }
   }
@@ -423,7 +437,7 @@ function berthPath(from, bp){
   const cells = []; for (let k = prev.get('end'); k; k = prev.get(k)){ const [i, j] = k.split(',').map(Number); cells.push(ctr(i, j)); }
   cells.reverse(); cells[0] = from; cells.push(PL);
   const out = [cells[0]];
-  for (let i = 0; i < cells.length - 1;){ let j = cells.length - 1; while (j > i + 1 && !berthClear(cells[i], cells[j], m)) j--; out.push(cells[j]); i = j; }
+  for (let i = 0; i < cells.length - 1;){ let j = cells.length - 1; while (j > i + 1 && !clr(cells[i], cells[j])) j--; out.push(cells[j]); i = j; }
   out.push(P1); return out;
 }
 

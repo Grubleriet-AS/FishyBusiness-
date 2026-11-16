@@ -8,7 +8,8 @@ driftsplan2test (D2: a fixed date, a seeded Math.random, the game's loop held).
       (made with the legs), Levering every trip, and one day played closed: out once, set, jig, haul, land, home. One line per town.
     - F2, the nearest rorbu in the home list as home, two days: out once a day, not again in the evening, and you rest at the rorbu.
     - U14, the home list: the rorbuer nearest first, a harbour berth when the harbours have one, no yard, every line with its distance.
-    - A harbour berth as home (havnOptions), two days: she comes back to the berth, holds it and pays the due each day.
+    - A harbour berth as home (havnOptions), two days: she comes back to the berth, holds it and pays the due each day (none since the
+      harbours were shut to the players, 15.11.2026: HOPP).
     - Pause at sea: she anchors where anchorSpot lets her (4-40 m, 150 m from land), or drifts and says why; Start, and she goes on.
   Over several days with the real rules, quota and weather, played as catchUp plays them (playMinutes), and the push that would go out:
     - G, nets at Ålesund with one field in Borgundfjorden (closed to all fishing 1.3-31.5, rules.json layer 24, the real regulation):
@@ -190,7 +191,8 @@ async def towns(pg, names):
         hm = r['homes']; kinds = [h[2] for h in hm]; rb = [i for i, h in enumerate(hm) if h[2] == 'rorbu']; rest = [i for i, h in enumerate(hm) if h[2] != 'rorbu']
         print(ok(hm and 'verft' not in kinds and rb and (not rest or max(rb) < min(rest)) and all(' nm ' in h[3] for h in hm)), nm + ': U14 the home list: the rorbuer first, no yard, every line says the distance', kinds)
         hv = r.get('havn') or []
-        print(ok(not hv or any(h[0].startswith('hs:') for h in hm)), nm + ': U14 a harbour berth stands in the list when the harbours have one', [len(hv), [h[0] for h in hm if h[0].startswith('hs:')]])
+        # (the coast's harbours shut to the players since 15.11.2026, Jonas, 07e-havn.js HAVN.shut: none offered, none in the list)
+        print(ok(not hv and not any(h[0].startswith('hs:') for h in hm)), nm + ': U14 no harbour berth in the list: the harbours are shut to the players', [len(hv), [h[0] for h in hm if h[0].startswith('hs:')]])
         for k, what in (('F2', 'F2 a rorbu as home'), ('H', 'a harbour berth as home')):
             X = r.get(k) or {}
             if X.get('none'): print('HOPP', nm + ': ' + what + ': ingen i hjem-lista', X.get('kinds')); continue

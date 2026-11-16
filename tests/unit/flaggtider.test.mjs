@@ -6,6 +6,9 @@ export default function (t){
   K.set('S', newState());
   const H = (y, m, d, h) => (Date.UTC(y, m - 1, d) - EPOCH) / 3600000 + h;   // (the game's clock in the UTC fields, as sol.test.mjs)
   const at = (lat, lon, h) => flagUp(H(2028, 1, 15, h), natP(lat, lon));
+  // Jonas 16.11.2026: the flag up day and night (FLAG.always); the hours below are flaggforskriften's, with it off
+  t.eq([8.5, 3, 23].map(h => at(70.66, 23.68, h)), [true, true, true], 'FLAG.always: flagget er oppe hele døgnet, også om natta i Hammerfest i januar');
+  K.FLAG.always = false;
   const krs = [8.5, 9.5, 15, 17].map(h => at(58.15, 8.0, h)), aal = [8.5, 9.5, 15, 16.75].map(h => at(62.47, 6.15, h)), hfs = [9.5, 10.5, 14.5, 15.5].map(h => at(70.66, 23.68, h));
   t.eq(krs, [false, true, true, false], 'Kristiansand 15. januar: nede 08.30, oppe 09.30 og 15.00, nede 17.00 (etter solnedgang)');
   t.eq(aal, [false, true, true, false], 'Ålesund 15. januar: nede 08.30, oppe 09.30 og 15.00, nede 16.45 (etter solnedgang)');

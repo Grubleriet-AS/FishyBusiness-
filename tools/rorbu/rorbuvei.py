@@ -25,8 +25,11 @@ APART2 = 0.8
 # minutes a point, and the rings over an hour). A point that holds this way holds the test's way too (it tries those and two more); a point
 # turned down this way might have held by the two others, so a rorbu may be moved further than it had to be
 FAST = os.environ.get('KYST_RORBU_FAST') == '1'
+# at the lowest tide (Jonas 15.11.2026: the test «på kun laveste lavvann»; tests/allesteder.py LOW): the tide held at chart datum, so a
+# point holds only when the way out is there with no flood to wait for. KYST_RORBU_TIDE=live: now or at any third hour over twelve, as before
+LOW = os.environ.get('KYST_RORBU_TIDE', 'cd') != 'live'
 
-TRY = r"""async ([id, apart, FAST]) => { const R = RBID.get(id), b = S.boat, c0 = {x:R.cand.x, y:R.cand.y}; TAB.held = true; S.tut = 0;
+TRY = r"""async ([id, apart, FAST, LOW]) => { const R = RBID.get(id), b = S.boat, c0 = {x:R.cand.x, y:R.cand.y}; TAB.held = true; S.tut = 0; if (LOW) tideH = (H, p) => -tideZC(p);
   if (b.type !== 'kyst15'){ b.type = 'kyst15'; if (!S.owned.includes('kyst15')) S.owned.push('kyst15'); applyVessel(); }
   const V = VESSELS[b.type], tried = [];
   const others = PORTS.map(q => q.p).concat([...RBID.values()].filter(Q => Q.id !== id).map(Q => Q.cand));
@@ -45,9 +48,14 @@ TRY = r"""async ([id, apart, FAST]) => { const R = RBID.get(id), b = S.boat, c0 
     let open = null; for (let rr = 0.5; rr <= 3 && !open; rr += 0.25) for (let a = 0; a < 6.28; a += 0.26){ const c = {x:from.x + Math.cos(a) * rr, y:from.y + Math.sin(a) * rr}; try { if (!isLand(c) && depthF(c) > 15 && coastDist(c) > 0.3){ open = {p:c, id:null}; break; } } catch (e){} }
     if (open) cands[FAST ? 'unshift' : 'push'](open);
     const T0 = S.t; let last = '';
-    try { for (let h = 0; h <= 12; h += 3){ S.t = T0 + h * 60;
-      for (const q of cands){ await mapPreload([q.p], [['sim', 3], ['chart', 3]]); let r = null; try { r = await leiaRoute(from, q.p, id, q.id); } catch (e){ r = {why:['error ' + String(e && e.message).slice(0, 60)]}; } if (r && r.wps) return {ok:true, h, nm:+r.nm.toFixed(1)}; last = r && r.why ? r.why[0] : 'none'; } } } finally { S.t = T0; }
+    try { for (let h = 0; h <= (LOW ? 0 : 12); h += 3){ S.t = T0 + h * 60;
+      for (const q of cands){ await mapPreload([q.p], [['sim', 3], ['chart', 3]]); let r = null; try { r = await draftWay(from, q.p, id, q.id, false, id); } catch (e){ r = {why:['error ' + String(e && e.message).slice(0, 60)]}; } if (r && r.wps){ if (LOW && !(await wayIn(r, from))) { last = 'no way in'; continue; } return {ok:true, h, nm:+r.nm.toFixed(1)}; } last = r && r.why ? r.why[0] : 'none'; } } } finally { S.t = T0; }
     return {ok:false, why:'no way out: ' + last}; };
+  // (and in again, at the lowest tide: from 1.5 km along the way out back to the rorbu as the chart plotter finds it, ui/03b-route.js
+  // draftWay, as tests/allesteder.py; Jonas 15.11.2026: «både inn og ut av»)
+  const wayIn = async (r, from) => { let a = from, op = null; for (const w of r.wps){ for (let k = 1; k <= 20 && !op; k++){ const q = {x:a.x + (w.x - a.x) * k / 20, y:a.y + (w.y - a.y) * k / 20}; if (dist(q, from) >= 1.5) op = q; } if (op) break; a = w; }
+    if (!op) op = r.wps[r.wps.length - 1]; const st = b.status; b.status = 'idle'; b.port = null; b.pos = {x:op.x, y:op.y};
+    let r2 = null; try { r2 = await draftWay(op, R.p, null, id, false, null); } catch (e){} b.status = 'port'; b.port = id; b.pos = {x:R.p.x, y:R.p.y}; return !!(r2 && r2.wps); };
   const setAt = p => { R.cand = {x:p.x, y:p.y}; R.p = {x:p.x, y:p.y}; R.coast = {x:p.x, y:p.y}; R.xy = [p.x, p.y]; R.shore = [p.x, p.y]; delete R.site; RORBU.ver = (RORBU.ver || 0) + 1; delete APPROACH[id]; R.free = undefined; if (typeof QUAYF !== 'undefined') QUAYF = null; };
   for (const rr of [0.3, 0.6, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5]){
     const ring = []; for (let a = 0; a < 6.28; a += 0.2618){ const p = {x:c0.x + Math.cos(a) * rr, y:c0.y + Math.sin(a) * rr}; ring.push(p); }
@@ -75,23 +83,36 @@ def apply(logs):
     D['rorbuvei'] = '%d rorbuer moved to a quay the boats up to 15 m have a way out from by Autonav, tools/rorbu/rorbuvei.py' % (n + int(str(D.get('rorbuvei', '0')).split(' ')[0] or 0))
     json.dump(D, open(RORBU, 'w'), ensure_ascii=False, separators=(',', ':')); print(n, 'moved')
 
+def gone(ids):
+    """--gone rb1,rb2: those rorbuer taken away (rorbuer.json «gone»; 07d-rorbu.js RORBU_GONE): ones no point in the rings gave a way in
+    and out from at the lowest tide (Jonas 15.11.2026: «Om noen få rorbuer er umulig å få grønn har du min tillatelse til å fjerne dem i
+    sin helhet»). They keep their place and their point in the list (the ids rb<i> of the others stay, and taking one off «gone» brings it
+    back as it was); --gone -rb1 takes one off again"""
+    D = json.load(open(RORBU)); G = set(D.get('gone', []))
+    for i in ids:
+        if i.startswith('-'): G.discard(i[1:])
+        else: assert i.startswith('rb') and int(i[2:]) < len(D['r']), i; G.add(i)
+    D['gone'] = sorted(G, key=lambda i: int(i[2:]))
+    json.dump(D, open(RORBU, 'w'), ensure_ascii=False, separators=(',', ':')); print('gone:', [(i, D['r'][int(i[2:])][3]) for i in D['gone']])
+
 def main():
     if '--apply' in sys.argv: return apply([a for a in sys.argv[1:] if a != '--apply'])
+    if '--gone' in sys.argv: return gone(sys.argv[sys.argv.index('--gone') + 1].split(','))
     from _env import GAME, boot
     from playwright.async_api import async_playwright
     D = json.load(open(RORBU))
     ids = [s for s in os.environ.get('KYST_RORBU', '').split(',') if s]
     if not ids:
         R = json.load(open(os.path.join(ROOT, 'tests', 'out', 'allesteder.json')))
-        ids = [r['id'] for r in R if r.get('kind') == 'rorbu' and str(r.get('why', '')).startswith(('route', 'no harbour'))]
+        ids = [r['id'] for r in R if r.get('kind') == 'rorbu' and str(r.get('why', '')).startswith(('route', 'no harbour', 'in: route'))]
     print(len(ids), 'rorbuer to move', flush=True)
     async def run():
         async with async_playwright() as p:
             br = await p.chromium.launch(); pg = await (await br.new_context(viewport={'width': 1280, 'height': 800})).new_page()
             await boot(pg, GAME + ('' if 'no3d' in GAME else ',no3d')); out = {}
             for i in ids:
-                r = await pg.evaluate(TRY, [i, APART, FAST])
-                if not r.get('ok'): r = await pg.evaluate(TRY, [i, APART2, FAST]); r['apart'] = APART2
+                r = await pg.evaluate(TRY, [i, APART, FAST, LOW])
+                if not r.get('ok'): r = await pg.evaluate(TRY, [i, APART2, FAST, LOW]); r['apart'] = APART2
                 out[i] = r; print('  %-6s %-22s %s' % (i, D['r'][int(i[2:])][3], r), flush=True)
             await br.close(); return out
     res = asyncio.run(run())

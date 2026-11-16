@@ -2,6 +2,12 @@
 
 Flyttet hit fra `docs/BACKLOG.md` 12.11.2026, så backloggen bare har det som er åpent. Nye «Strøket»-avsnitt skrives øverst her (dato, steg, gren, commit). Les med `grep`; fila leses aldri hel.
 
+## Strøket 15.11.2026 (testeffektiviseringen, gren `claude/test-effektivisering`)
+
+Testskriptene utenfor listene er gått gjennom (Jonas valgte «Alt, også reglene» 15.11.2026): `shot2`–`shot51`, `shore_*.py`, `dbg23`, `animshot_o`, `fleet2`, `fleetcheck`, `misstest` og `progtest` er slettet; `kartkorridortest` og `legmemotest` står i `LITE`; resten er verktøy som kjøres for hånd og står i `HAND` i `tests/run.py`, så `python3 tests/run.py utenfor` er tom.
+
+- **Rundt hundre testskript står utenfor listene i `run.py`** (Ø2 05.11.2026): `shot.py`, `shot2`–`shot51`, `shore_*.py`, `*shot.py` for enkeltbåter (`hs11shot`, `ky15shot`, `r38shot` …), `animshot`, `fasit`, `misstest`, `motiontest`, `progtest`, `leiaprobe` og flere, og de kjøres aldri. De fleste er engangsbilder fra da en modell eller kysten ble laget. `shot23.py` var utdatert (`#modeBtn`, salg i telefonen) og er slettet. Forslag: gå gjennom resten i én økt, ta ut det som ikke kjøres mot dagens spill, og legg det som skal bli, i `D3` eller `LITE`. Lista: `python3 tests/run.py utenfor` (`tutcoast` står utenfor med vilje).
+
 ## Strøket 13.11.2026 (kaiene ut av de lukkede bassengene, gren `ccr-432150cd-kkjoez`)
 
 Ingen havn er forseglet lenger (`tools/steder/lukkflytt.py`, `tests/lukket.py`), så oppstartens sjekk møter ikke fyllingen.

@@ -568,3 +568,33 @@ Funn 7 i `docs/planer/sikkerhet-skyen.md`: WorkOS går i utviklermodus (Jonas' v
 - **Kjørt under policyen 11.11.2026:** `csptest` (16 OK mot det lokale bygget og mot et appbygg med `KYST_PWA=1 KYST_CHANNEL=test`), `boottest`, `trip2`, `pwatest`, `errtest`, `kanaltest`, `roetest`, `guesttest`, `kjoptest` (17 OK, alene; den tar tolv minutter med hele kysten i bygget), `admintest` (admin-CSP-en urørt), `rttest`, `feedbacktest`, `maletest`, `sponsortest`, `pushtest`, `sharetest`, `installtest`, `starttest`, `vectest` (vec-workerne, 16 OK) og `tut` (liggende). `cloudtest` har én rød linje som står i backloggen fra 10.11.2026 (navnekortet, «mellomrom»), ikke CSP-en. **Stikkprøver** med 3D og vec-pakkene under håndhevet policy: Senja (begge formater), Bergen (begge), Bodø og Hammerfest: ingen brudd i siden eller i workernes konsoll, ingen sidefeil, kartet, byggene og 3D kom alle steder. Bildene i `docs/okter/2026-11-11-78/`. Ingen andre 3D-tester ble kjørt (`sea3d`, `hull3d`, `kaishot` ser ikke på noe policyen rører).
 - **`wait_for_function` i testene:** Playwright sjekker betingelsen med `eval` inne i siden mellom avspørringene, og policyen stopper det (med rette). `tests/_env.py` bytter derfor `Page.wait_for_function` med en som spør gjennom `evaluate` hvert 100. ms (feilsøkeren slipper gjennom), så alle testene går under den ekte policyen. En test som ikke importerer `_env`, må gjøre det samme.
 - **Det Jonas gjør:** kortere økter hos WorkOS (`lansering-plan.md` kap. 5 punkt 12), og `setup.sh` på serveren på nytt, så Caddy får `frame-ancestors` for hele siden (punkt 14).
+
+
+## Lanseringen: topplista, profilen, Founders og grunnstøtingsrapporten (16.11.2026)
+
+Jonas 16.11.2026, før lanseringen 17.11. Migreringen er `supabase/migrations/20261116120000_lansering.sql`, kjørt for hånd på testprosjektet før den trengs; klienten faller tilbake på de gamle kallene til den er der.
+
+- **Topplista** (`top_list(kind, w, grp)`, `ui/10h-world.js worldTop`, Salgslaget → Toppliste):
+  - `kg` og `kr` per spilluke, og `tot` (all verdi siden start).
+  - Åpen og lukket gruppe står på samme liste (`grp 'all'`, Jonas: «La også norges beste båter være en blanding av lukket og åpen gruppe»). Hver rad har sitt eget tak: 10 t i åpen gruppe, 60 t i lukket.
+  - Lista står alene; valgene ligger bak én Filter-knapp (Jonas: «gjem alle søkemulighetene bak en filter-knapp»).
+  - Et trykk på en rad åpner profilen.
+  - `landings.kr` kommer med `land_put` (`wshLand krSp`), høyst 1 000 kr/kg. Rader fra før har 0 kr.
+  - `world_top` står for Ukas-kortet, puben og Kystposten.
+- **Founders** (`founders`, `founders_cfg.start`, `founder_take` i `land_put`):
+  - Jonas: «de 100 første som leverer fisk får merket».
+  - Tellingen går fra du slår den på i admin (fanen Lansering, `admin_founders_set`).
+  - Kontoer laget før det, gjester og admin teller aldri. Nummeret beholdes.
+  - Starten står i en egen tabell, fordi eldre filer setter `world_cfg`-nøklene på nytt.
+- **Profilen** (`ui/10v-profil.js`, Profil-appen, «Se profilen» på AIS-kortet):
+  - `profile_get(hid | 'me')` gir navn, fartstid, Founder-nummer, plass på totallista, kg og kr i alt, og antall mottak.
+  - `prof_put` sender spillets egne tall: båtene, flåtens verdi, selskapsverdien (flåten + brukskonto + sparing − lån), formen, milepælene og de største fiskene. Det skjer med den delte verdenen når tallene endres.
+  - Profilen er åpen for alle og kan ikke skjules (Jonas: «Alt åpent, ikke valgbart»). Haill vises aldri.
+  - «Ferdigheter» er milepælene og rekordene, fordi spilleren ikke har egne ferdighetstall (bare mannskapet har, `13-work.js stSkill`).
+- **Profilbildet** (`avatars`, `av_put`, `av_mine`, `admin_av_list`, `admin_av_set`):
+  - Bildet er 256 px. Andre ser det først når admin har godkjent det (Jonas: «Eget bilde med godkjenning»).
+- **Grunnstøtingsrapporten** (`ag_put`):
+  - Rapporten er en tilbakemelding med emnet bug og `meta.ag`.
+  - Den har sin egen grense på 40 om dagen og teller ikke mot spillerens 20 tilbakemeldinger.
+  - Se fysikk-og-styring.md.
+- **Personvernerklæringen:** utkastet står i `docs/planer/personvern-profil-utkast.md` og venter på Jonas (`src/legal/` går som PR).

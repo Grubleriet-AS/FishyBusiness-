@@ -40,16 +40,17 @@ const PHONE = (() => {
     skip:SVG('<rect x="8" y="3" width="8" height="18" rx="2"/><path d="M8 7h8M8 17h8M11 11l2 1-2 1"/>'),
     patch:SVG('<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><path d="M9 12h7M9 15.5h7M9 19h4"/>'),
     handbok:SVG('<path d="M5 4h6a2 2 0 0 1 2 2v14a1.5 1.5 0 0 0-1.5-1.5H5z"/><path d="M19 4h-6a2 2 0 0 0-2 2v14a1.5 1.5 0 0 1 1.5-1.5H19z"/><path d="M7.5 8.5h3M7.5 11.5h3M13.5 8.5h3"/>'),
+    profil:SVG('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="10" r="3.2"/><path d="M6.3 18.4c1.2-2.4 3.3-3.6 5.7-3.6s4.5 1.2 5.7 3.6"/>'),
     garderobe:SVG('<path d="M12 6.5a2 2 0 1 1 2 2c-1 .4-2 1-2 2v1"/><path d="M12 11.5L3.5 17a1 1 0 0 0 .6 1.8h15.8a1 1 0 0 0 .6-1.8z"/>'),
     tilbake:SVG('<path d="M4 5h16v11H10l-4.5 4V16H4z"/><path d="M8 9.5h8M8 12.5h5"/>'),
     innst:SVG('<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>'),
     admin:SVG('<path d="M14.5 6.5a4 4 0 0 0 5 5L12 19a2.1 2.1 0 0 1-3-3l7.5-7.5"/><path d="M14.5 6.5L17 4l3 3-2.5 2.5"/><path d="M5 3l3 3M3 5l3 3"/>')};
-  const APPS = [['vaer', 'Vær', 'Weather', '#2f7fd0'], ['post', 'Kystposten', 'Coast Post', '#b8402f'], ['meld', 'Meldinger', 'Messages', '#29a36a'], ['rederi', 'Rederi', 'Company', '#1f4e79'], ['salg', 'Salgslaget', 'Sales', '#1e8c6e'], ['kvote', 'Kvote', 'Quota', '#8a6a1c'], ['regler', 'Regler', 'Rules', '#2d6a4f'], ['drift', 'Driftsplan', 'Operations plan', '#2a6f97'], ['ordl', 'Oppdrag', 'Orders', '#2e7d4f'], ['nett', 'Nettet', 'The Net', '#2a5d8a'], ['kaiboden', 'Kaiboden', 'Kaiboden', '#8a5a2b'], ['haill', 'Haill', 'Luck', '#c9a227'], ['sesong', 'Sesong', 'Season', '#1e6f8c'], ['guide', 'Fiskeguide', 'Fish guide', '#177a8a'], ['folk', 'Venner', 'Friends', '#8a5a2b'], ['merker', 'Milepæler', 'Milestones', '#b0752a'], ['redning', 'Redning', 'Rescue', '#e0562b'], ['trim', 'Trim', 'Tuning', '#b3261e'], ['handbok', 'Håndboka', 'Handbook', '#3b6b5e'], ['garderobe', 'Garderoben', 'Wardrobe', '#6b4f8f'], ['patch', 'Patchnotes', 'Patch notes', '#5a4fa3'], ['tilbake', 'Tilbakemelding', 'Feedback', '#d0672f'], ['innst', 'Innstillinger', 'Settings', '#4a5560'], ['admin', 'Admin', 'Admin', '#7a2e8f']];
+  const APPS = [['profil', 'Profil', 'Profile', '#2b5f7a'], ['vaer', 'Vær', 'Weather', '#2f7fd0'], ['post', 'Kystposten', 'Coast Post', '#b8402f'], ['meld', 'Meldinger', 'Messages', '#29a36a'], ['rederi', 'Rederi', 'Company', '#1f4e79'], ['salg', 'Salgslaget', 'Sales', '#1e8c6e'], ['kvote', 'Kvote', 'Quota', '#8a6a1c'], ['regler', 'Regler', 'Rules', '#2d6a4f'], ['drift', 'Driftsplan', 'Operations plan', '#2a6f97'], ['ordl', 'Oppdrag', 'Orders', '#2e7d4f'], ['nett', 'Nettet', 'The Net', '#2a5d8a'], ['kaiboden', 'Kaiboden', 'Kaiboden', '#8a5a2b'], ['haill', 'Haill', 'Luck', '#c9a227'], ['sesong', 'Sesong', 'Season', '#1e6f8c'], ['guide', 'Fiskeguide', 'Fish guide', '#177a8a'], ['folk', 'Venner', 'Friends', '#8a5a2b'], ['merker', 'Milepæler', 'Milestones', '#b0752a'], ['redning', 'Redning', 'Rescue', '#e0562b'], ['trim', 'Trim', 'Tuning', '#b3261e'], ['handbok', 'Håndboka', 'Handbook', '#3b6b5e'], ['garderobe', 'Garderoben', 'Wardrobe', '#6b4f8f'], ['patch', 'Patchnotes', 'Patch notes', '#5a4fa3'], ['tilbake', 'Tilbakemelding', 'Feedback', '#d0672f'], ['innst', 'Innstillinger', 'Settings', '#4a5560'], ['admin', 'Admin', 'Admin', '#7a2e8f']];
   // the home screen in groups with a heading each (UI 2, U2-6; Jonas 06.11.2026, V6 A in docs/planer/ui-2-staaende.md): the groups in
   // this order and the apps in each in this order. The colour in APPS is the app's title bar, not its tile; the tiles are one glass.
   // An app that is in no group, comes last in the last group
   const GROUPS = [['drift', 'Drift', 'Operations', ['rederi', 'drift', 'ordl', 'nett']], ['handel', 'Handel og regler', 'Trade and rules', ['salg', 'kvote', 'regler', 'kaiboden']],
-    ['deg', 'Deg', 'You', ['merker', 'garderobe', 'folk', 'sesong', 'guide', 'handbok']], ['verden', 'Verden', 'World', ['vaer', 'post', 'meld', 'redning']],
+    ['deg', 'Deg', 'You', ['profil', 'merker', 'garderobe', 'folk', 'sesong', 'guide', 'handbok']], ['verden', 'Verden', 'World', ['vaer', 'post', 'meld', 'redning']],
     ['system', 'System', 'System', ['patch', 'tilbake', 'innst', 'admin']]];
   // a name wider than its tile in the phone on a tablet or a PC (64 px) breaks at a soft hyphen there, and only on the tile
   const TILE_SHY = {tilbake:['Tilbake\u00admelding', 'Feedback']};
@@ -64,5 +65,5 @@ const PHONE = (() => {
   // the Rederi app comes with the company: founded as an AS in the bank (Jonas 06.10.2026), or already more than one vessel
   // the Company app opens with a fleet to run: a company, more than one vessel, or crew aboard (Økonomi 2, Ø1, 27.10.2026; before it
   // opened only with the AS or a second vessel, Jonas 09.10.2026, which tied the fleet to the company form)
-  const rederiOpen = () => S.form === 'AS' || (S.fleet && S.fleet.length > 1) || (S.fleet || []).some(v => (vget(v, 'crew') || []).length > 0);
+  const rederiOpen = () => APPS_ALL || S.form === 'AS' || (S.fleet && S.fleet.length > 1) || (S.fleet || []).some(v => (vget(v, 'crew') || []).length > 0);
   function setBadge(){ const n = unread(); for (const bd of [badge, $('phoneBadge2')]){ bd.hidden = !n; bd.textContent = n; } }

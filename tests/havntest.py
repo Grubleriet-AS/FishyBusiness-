@@ -1,4 +1,5 @@
-# A berth in the coast's harbours for the player's boats (core/07e-havn.js, Jonas 23.10.2026). Spot checks along the coast: Bergen, Bodø,
+# A berth in the coast's harbours for the player's boats (core/07e-havn.js, Jonas 23.10.2026; shut to the players since 15.11.2026, HAVN.shut,
+# which the first check sees and the rest open again). Spot checks along the coast: Bergen, Bodø,
 # Tromsø and Båtsfjord (CLAUDE.md: a fix that holds the whole country is tried south, middle and north).
 #  - each town has harbours from the packs with a free berth at a quay or a floating dock for a sjark, and for a 15 m boat
 #  - the berth lies on water deep enough at chart datum, clear of the harbour's own boats, and berthPose puts the boat there
@@ -23,6 +24,9 @@ JS = """async ([name, lat, lon]) => {
   for (let k = 0; k < 120; k++){ vecTilesIn((p.x - 3) * 1000, (p.y - 3) * 1000, (p.x + 3) * 1000, (p.y + 3) * 1000); coastIndexAt(p, true); H = havnsNear(p, 4);
     if (H.length && H.some(h => havnBerths(h, 'sjark', S.cur, 1).length)) break; await new Promise(r => setTimeout(r, 250)); }
   R.harbours = H.length;
+  // shut to the players (Jonas 15.11.2026, HAVN.shut): no berth found, tapped or offered, and the chart says why; then opened for the rest
+  R.shut = {on:window.SHUT0 === true, find:havnFind(p, 4, 'sjark') === null, tap:havnTapNear(p, 4) === null, opt:havnOptions(p, 4, 'sjark').length === 0, why:H.length ? havnShutAt(H[0], 0.2) : null};
+  HAVN.shut = false;
   const one = (type) => { for (const h of H){ const L = havnBerths(h, type, S.cur, 3); if (L.length) return {h, L}; } return null; };
   const sj = one('sjark'), k15 = one('kyst15');
   R.sjark = sj && {name:havnNm(sj.h), kind:sj.L[0].kind, face:sj.L[0].face.kind, n:sj.L.length, depth:sj.L[0].face.depth}; R.kyst15 = k15 && {name:havnNm(k15.h), kind:k15.L[0].kind, n:k15.L.length};
@@ -64,8 +68,12 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await boot(pg); pg.set_default_timeout(300000)
         for t in TOWNS:
+            # (as the game starts: shut, and the first town sees that it is; each town opens them for its own checks)
+            await pg.evaluate("(() => { if (window.SHUT0 === undefined) window.SHUT0 = HAVN.shut; HAVN.shut = true; })()")
             r = await pg.evaluate(JS, list(t))
             print(t[0], json.dumps(r, ensure_ascii=False))
+            sh = r.get('shut') or {}
+            print(ok(sh.get('on') and sh.get('find') and sh.get('tap') and sh.get('opt') and sh.get('why')), t[0] + ': the harbours are shut to the players: no berth found, tapped or offered, and a tap says why', sh)
             print(ok(r['harbours'] > 0 and r.get('sjark') and r.get('kyst15')), t[0] + ': harbours with a free berth for a sjark and for a 15 m boat', r.get('sjark'), r.get('kyst15'))
             if not r.get('sjark'): continue
             print(ok(r.get('bp') and r.get('wet') and r.get('gap', -1) >= 0.5 and r.get('depth', 0) >= r.get('need', 99) - 0.01), t[0] + ': the berth is on water deep enough at chart datum and clear of the harbour\'s own boats', [r.get('gap'), r.get('depth'), r.get('need')])

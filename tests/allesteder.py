@@ -30,8 +30,19 @@ TYPE = os.environ.get('KYST_ALLE_TYPE', 'kyst21')
 SMALL = os.environ.get('KYST_ALLE_SMALL', 'kyst15')
 # the clock moved on so many hours from the start (a place that failed in the whole run, tried alone at the time it came up there)
 HOURS = float(os.environ.get('KYST_ALLE_H', '0'))
+PART = tuple(int(v) for v in os.environ['KYST_ALLE_PART'].split('/')) if os.environ.get('KYST_ALLE_PART') else None
+# the tide held at chart datum the whole trip (Jonas 15.11.2026: «kjøre testen på kun laveste lavvann, fordi det sikrer at det faktisk
+# fungerer under alle forhold»): tideH gives minus mean sea level above chart datum everywhere, so tideCD is 0, the charted depths are the
+# water there is, and no tidal stream runs. Waiting for the flood to get out (tideBound) is then no way out but a finding.
+# KYST_ALLE_TIDE=live keeps the tide as it runs (the run before 15.11.2026)
+LOW = os.environ.get('KYST_ALLE_TIDE', 'cd') != 'live'
+# and in (Jonas 15.11.2026: «Alle steder spillerens båt kan fortøye må være tilgjengelig via autonav både inn og ut av»): from a point
+# 1-3 km out she sails back in and lies at the place again. KYST_ALLE_INN=0 only out
+INN = os.environ.get('KYST_ALLE_INN', '1') != '0'
+# KYST_ALLE_ROUTE=1: the routes only, out and in, not sailed (a quick look over the coast for where Autonav finds no way at all)
+ROUTE = os.environ.get('KYST_ALLE_ROUTE') == '1'
 
-SETUP = r"""([type, hh]) => { TAB.held = true; const b = S.boat; S.tut = 0; S.cash = Math.max(S.cash, 1e9);
+SETUP = r"""([type, hh, low]) => { TAB.held = true; if (low){ tideH = (H, p) => -tideZC(p); window.ALS_LOW = true; } const b = S.boat; S.tut = 0; S.cash = Math.max(S.cash, 1e9);
   b.type = type; if (!S.owned.includes(type)) S.owned.push(type); applyVessel(); b.fuel = BOAT.fuelCap;
   // summer noon, light wind from the south-west: the weather is not what is tested
   S.t = Math.round((Date.UTC(2027, 5, 15, 11) - EPOCH) / 6e4) + Math.round(hh * 60); WX_FORCE = {w:3, d:225};
@@ -62,13 +73,16 @@ SETUP = r"""([type, hh]) => { TAB.held = true; const b = S.boat; S.tut = 0; S.ca
       // before 14.11.2026 the search alone, which found no way from the naust at Sørarnøy, Hidrasund, Tufjord and Gjesvær)
       const atN = b.status === 'port' && berthKind(b) === 'naust';
       let r = null, to = null; const T00 = S.t;
-      for (let h = 0; h <= 12 && !to; h += 3){ S.t = T00 + h * 60;
+      for (let h = 0; h <= (window.ALS_LOW ? 0 : 12) && !to; h += 3){ S.t = T00 + h * 60;
         for (const q of cands){ await mapPreload([q.p], [['sim', 3], ['chart', 3]]); try { r = await draftWay(from, q.p, atN ? null : pid, q.id, atN, pid); } catch (e){ r = {why:[String(e && e.message)]}; } if (r && r.wps){ to = q; R.waitH = h; break; } } }
-      if (!to){ S.t = T00; R.why = 'route: ' + String(r && r.why ? r.why[0] : 'none').slice(0, 90) + ' (to ' + cands.map(q => q.name).join(', ') + ', over 12 h)'; return R; }
+      if (!to){ S.t = T00; R.why = 'route: ' + String(r && r.why ? r.why[0] : 'none').slice(0, 90) + ' (to ' + cands.map(q => q.name).join(', ') + (window.ALS_LOW ? ', at chart datum)' : ', over 12 h)'); return R; }
       if (R.waitH) R.tideBound = R.waitH;
       R.to = to.name; R.nm = +r.nm.toFixed(1); if (noSail){ S.t = T00; return R; }
       S.plan = {wps:r.wps.map((q, i) => i === r.wps.length - 1 ? {x:to.p.x, y:to.p.y, port:to.id, fish:0} : {x:q.x, y:q.y, port:null, fish:0, leia:true}), idx:0, speed:BOAT.vcruise, returning:false};
       if (!to.id) S.plan.wps[S.plan.wps.length - 1].leia = true;   // (open water: she stops there)
+      return ALS.sail(R, r, to, from); },
+    // she sails S.plan with the boat model from where she is, as the game's loop does; to: {id, name, p, berth} where she must lie at the end
+    async sail(R, r, to, from){ const b = S.boat;
       // no leg over land (the route panel's check)
       let a = from, bad = 0; for (const w of S.plan.wps){ if (!legClear(a, w)) bad++; a = w; } R.overLand = bad;
       const T0 = S.t, L0 = S.log.length, C0 = SJV.nClash, H0 = DYN.hands || 0, HK0 = {...(DYN.handsK || {})}; if (depart() === false){ R.why = 'depart: ' + (S.msgs && S.msgs.length ? '' : '') + 'refused'; S.plan = null; return R; }
@@ -91,6 +105,7 @@ SETUP = r"""([type, hh]) => { TAB.held = true; const b = S.boat; S.tut = 0; S.ca
         // 14.11.2026 the search had a slice every 100 game seconds here and did not answer in the minutes she waited, Hestnes)
         if (S.plan && S.plan.replan) await new Promise(r2 => setTimeout(r2, 40));
         else if (++k % 400 === 0) await new Promise(r2 => setTimeout(r2, 0));
+        if (!R.outPt && b.status === 'sailing' && dist(b.pos, from) >= 1.5){ R.outPt = {x:b.pos.x, y:b.pos.y}; }   // (where the way in starts: on her own way out, 1.5 km off)
         if (b.status === 'aground'){ stuck = 'aground'; break; }
         if (b.status === 'port' && !S.plan) break;
         if (!to.id && !S.plan && ['idle', 'fishing', 'sailing'].includes(b.status)) break;   // (at the open water point)
@@ -99,19 +114,38 @@ SETUP = r"""([type, hh]) => { TAB.held = true; const b = S.boat; S.tut = 0; S.ca
         if (d < best - 0.03){ best = d; lastBest = S.t; } else if (S.t - lastBest > 40){ stuck = 'no headway for 40 min (' + b.status + ', at ' + JSON.stringify(natLL(b.pos)).slice(0, 60) + ', leg ' + (pl ? pl.idx + '/' + pl.wps.length : '-') + ')'; break; }
       }
       R.log = S.log.slice(L0).map(e => e.no || '').filter(t => /grunn|traff|kollisjon|Kollisjon|støtte|Vann i båten|Motorrommet|slep|Slep|fast|venter|Venter|ly\b/i.test(t)).slice(0, 4);
-      R.min = S.t - T0; R.end = b.status; R.hands = (DYN.hands || 0) - H0; R.handsK = {}; for (const k in (DYN.handsK || {})) if (DYN.handsK[k] - (HK0[k] || 0)) R.handsK[k] = DYN.handsK[k] - (HK0[k] || 0);   /* (the hands took her along the line: stuck, or a sharp corner by a mark, 16b-dyn.js) */ R.at = b.port === to.id; R.left = +dist(b.pos, from).toFixed(2); R.km = +dist(b.pos, to.p).toFixed(2);
-      if (!to.id) R.at = R.km < 0.3;
+      R.min = S.t - T0; R.end = b.status; if (to.berth && b.status === 'port' && b.berth !== to.berth) R.berthAt = b.berth; R.hands = (DYN.hands || 0) - H0; R.handsK = {}; for (const k in (DYN.handsK || {})) if (DYN.handsK[k] - (HK0[k] || 0)) R.handsK[k] = DYN.handsK[k] - (HK0[k] || 0);   /* (the hands took her along the line: stuck, or a sharp corner by a mark, 16b-dyn.js) */ R.at = b.port === to.id; R.left = +dist(b.pos, from).toFixed(2); R.km = +dist(b.pos, to.p).toFixed(2);
+      if (!to.id) R.at = R.km < 0.3; if (to.berth && R.at && b.berth !== to.berth) R.at = false;
       R.dmg = typeof hullBad === 'function' && hullBad(b); if (R.dmg && !stuck){ const all = S.log.slice(L0).map(e => e.no || ''), why = all.filter(t => /støt|Støt|Smell|grunn|Grunn|Sammenstøt|skade|Skade|lekk/.test(t)); R.log = why.length ? why.slice(0, 6) : all.filter(t => !/^Kl\.|klokka|Posisjon/.test(t)).slice(-6); stuck = 'hull damaged on the way (' + (R.hits ? 'struck ' + JSON.stringify(R.hits) + ' ' : '') + R.log.join(' | ').slice(0, 300) + ')'; }
       if (typeof asleep === 'function' && asleep()) R.asleep = true;
       if (stuck) R.why = stuck + ' ' + R.left + ' km out'; else if (!R.at) R.why = 'not in ' + to.name + ' after ' + R.min + ' min (' + b.status + ', ' + R.km + ' km off)';
       S.plan = null; return R; },
+    // the way in: from open water 1-3 km out (deeper than 15 m, 300 m from the coast, as the way out's open point) back to the place, as a
+    // tap on it in the chart plotter asks it (ui/03b-route.js leiaTo: draftWay to the place's point, the naust's berth from naustTarget),
+    // and sailed with the boat model till she lies there
+    async back(kind, pid, at, outPt, only){ const b = S.boat, R = {}, pt = kind === 'rorbu' ? RBID.get(pid) : portById(pid);
+      // (the point on her own way out 1.5 km off, where she sailed it; else open water 1-3 km off as the way out asks it, then any water
+      // there deep enough for her, 150 m from the coast)
+      let open = outPt || null; for (let rr = 1; rr <= 3 && !open; rr += 0.25) for (let a = 0; a < 6.28; a += 0.26){ const c = {x:at.x + Math.cos(a) * rr, y:at.y + Math.sin(a) * rr}; try { if (!isLand(c) && depthF(c) > 15 && coastDist(c) > 0.3){ open = c; break; } } catch (e){} }
+      for (let rr = 1; rr <= 3 && !open; rr += 0.25) for (let a = 0; a < 6.28; a += 0.26){ const c = {x:at.x + Math.cos(a) * rr, y:at.y + Math.sin(a) * rr}; try { if (!isLand(c) && depthF(c) > BOAT.draft + 3 && coastDist(c) > 0.15){ open = c; break; } } catch (e){} }
+      if (!open){ R.why = 'in: no water 1-3 km out'; return R; }
+      S.plan = null; S.draft = []; b.status = 'idle'; b.port = null; b.berth = null; b.v = 0; b.dyn = null; b.anch = null; b.pos = {x:open.x, y:open.y}; b.fuel = BOAT.fuelCap; b.damage = 0; b.dmg = null; b.tow = null; b.hits = []; S.trail = [{x:open.x, y:open.y}]; DYN.line = null;
+      await mapPreload([open, pt.p], [['sim', 3], ['chart', 3], ['vec', 1.5]]);
+      const nt = kind === 'naust' ? naustTarget(berthPose(pid, b.type, 'naust') || pt.p, 0.5) : null;
+      if (kind === 'naust' && !nt){ R.why = 'in: the naust is not a place to go for her (naustTarget)'; return R; }
+      let r; try { r = await draftWay(open, pt.p, null, pid, false, null, nt); } catch (e){ r = {why:[String(e && e.message)]}; }
+      if (!r || !r.wps){ R.why = 'in: route: ' + String(r && r.why ? r.why[0] : 'none').slice(0, 90); return R; }
+      R.nm = +r.nm.toFixed(1); const last = nt ? {x:nt.x, y:nt.y, port:pid, berth:'naust', fish:0} : {x:pt.p.x, y:pt.p.y, port:pid, fish:0};
+      S.plan = {wps:r.wps.map((q, i) => i === r.wps.length - 1 ? last : {x:q.x, y:q.y, port:null, fish:0, leia:true}), idx:0, speed:BOAT.vcruise, returning:false};
+      const to = {id:pid, name:pt.name, p:nt ? {x:nt.x, y:nt.y} : pt.p, berth:kind === 'naust' ? 'naust' : null};
+      if (only) return R; await ALS.sail(R, r, to, open); if (R.why) R.why = 'in: ' + R.why; return R; },
     // she is put at the place: in port, at its berth (main; the naust's for the naust)
     put(pid, kind){ const b = S.boat, pt = portById(pid); S.plan = null; S.draft = []; S.jobs = []; b.status = 'port'; b.port = pid; b.berth = kind; b.v = 0; b.land = null; b.landQ = null; b.anch = null; b.dyn = null; b.fuel = BOAT.fuelCap; b.damage = 0; b.dmg = null; b.tow = null; b.tripBad = false; b.engineUntil = null; b.prev = null; b.engH = 0; b.svcAt = 0; b.hits = [];   /* (one boat sails a thousand trips here: her engine hours are not what is tested) */
       S.energy = 100; S.sleep = null; S.drowsy = false; S.rest = null;   /* (nor the skipper's sleep: a thousand trips without rest put him to sleep at the helm, «Du sovnet av utmattelse», and the boat drifted: Ålesund 13.11.2026) */
       b.pos = {x:pt.p.x, y:pt.p.y}; S.trail = [{x:pt.p.x, y:pt.p.y, port:pid}]; ALS.clear(); DYN.line = null; }
   }; return true; }"""
 
-ONE = r"""async ([kind, id, type, big]) => { const R = {kind, id, type}; let pt;
+ONE = r"""async ([kind, id, type, big, inn, only]) => { const R = {kind, id, type}; let pt;
   if (S.boat.type !== type){ S.boat.type = type; if (!S.owned.includes(type)) S.owned.push(type); applyVessel(); }
   try { pt = await ALS.place(kind, id); } catch (e){ R.why = 'map: ' + String(e && e.message).slice(0, 80); return R; }
   if (!pt){ R.skip = 'no shore found for it'; return R; }
@@ -131,7 +165,9 @@ ONE = r"""async ([kind, id, type, big]) => { const R = {kind, id, type}; let pt;
     b.type = t0; applyVessel(); }
   if (R.sill != null){ if (!type){ R.noBoat = true; return R; } S.boat.type = type; if (!S.owned.includes(type)) S.owned.push(type); applyVessel(); }
   R.h = +((S.t - Math.round((Date.UTC(2027, 5, 15, 11) - EPOCH) / 6e4)) / 60).toFixed(2); ALS.put(pid, berth); R.lie = ALS.lie(pid, berth);
-  try { Object.assign(R, await ALS.go(pid)); } catch (e){ R.why = 'error: ' + String(e && e.message).slice(0, 100); }
+  try { Object.assign(R, await ALS.go(pid, only)); } catch (e){ R.why = 'error: ' + String(e && e.message).slice(0, 100); }
+  // and back in from 1-3 km out, put at the place afresh first
+  if (inn && !R.noBoat){ ALS.put(pid, berth); const at = {...S.boat.pos}; try { const I = await ALS.back(kind, pid, at, R.outPt, only); R.inn = {why:I.why, nm:I.nm, min:I.min, end:I.end, hands:I.hands, hits:I.hits, clash:I.clash, log:I.log, berthAt:I.berthAt}; if (I.why && !R.why) R.why = I.why; } catch (e){ R.inn = {why:'in: error: ' + String(e && e.message).slice(0, 100)}; if (!R.why) R.why = R.inn.why; } }
   return R; }"""
 
 # the coast's harbours (07e-havn.js): every harbour of the vec packs, by tile; [tx, ty, hi, x, y]
@@ -170,25 +206,28 @@ async def main():
         # a slower machine (KYST_ALLE_CPU=4: four times slower): the model's step reads the wall clock between frames (dynCatch), so a
         # slow tablet is not the same as a fast one
         if os.environ.get('KYST_ALLE_CPU'): await (await pg.context.new_cdp_session(pg)).send('Emulation.setCPUThrottlingRate', {'rate': float(os.environ['KYST_ALLE_CPU'])})
-        await pg.evaluate(SETUP, [TYPE, HOURS])
+        await pg.evaluate(SETUP, [TYPE, HOURS, LOW])
         todo = []
         if 'ports' in KINDS: todo += [('port', i) for i in await pg.evaluate("() => PORTS.filter(q => !q.havOnly).map(q => q.id)")]
-        if 'rorbu' in KINDS: todo += [('rorbu', i) for i in await pg.evaluate("() => [...RBID.keys()]")]
+        if 'rorbu' in KINDS: todo += [('rorbu', i) for i in await pg.evaluate("() => RORBUER.map(R => R.id)")]   # (not the ones taken away, rorbuer.json «gone»)
         if 'naust' in KINDS: todo += [('naust', i) for i in await pg.evaluate("() => PORTS.filter(q => q.mottak && !q.sted).map(q => q.id)")]
         if 'havn' in KINDS: todo += [('havn', h) for h in await pg.evaluate(HAVNS)]
         if IDS: todo = [t for t in todo if t[1] in IDS]
         todo = todo[::EVERY]
+        # KYST_ALLE_PART=k/n: every n-th place from the k-th (0-based), so the coast runs in n processes at once (each its own browser);
+        # the results go to allesteder<_type>_<k>.json and are read together by --join
+        if PART: todo = todo[PART[0]::PART[1]]
         res = []; t0 = time.time()
         for i, (kind, pid) in enumerate(todo):
             if kind == 'naust':
                 if not await pg.evaluate(NAUST, pid): res.append({'kind': 'naust', 'id': pid, 'skip': 'no naust found'}); continue
             if kind == 'havn': r = await pg.evaluate(ONE_HAVN, [pid[3], pid[4], TYPE, i % SAIL == 0])
-            else: r = await pg.evaluate(ONE, [kind, pid, TYPE if kind == 'port' else SMALL, None if kind == 'port' else TYPE])
+            else: r = await pg.evaluate(ONE, [kind, pid, TYPE if kind == 'port' else SMALL, None if kind == 'port' else TYPE, INN, ROUTE])
             res.append(r)
             bad = r.get('why') or (r.get('lie', {}).get('land') if r.get('lie') else None)
-            if bad: print('allesteder:', kind, r.get('name'), r.get('ll'), json.dumps({k: r.get(k) for k in ('why', 'to', 'nm', 'min', 'end', 'log', 'hits', 'clash', 'asleep', 'h', 'hands')}, ensure_ascii=False), flush=True)
+            if bad: print('allesteder:', kind, r.get('name'), r.get('ll'), json.dumps({k: r.get(k) for k in ('why', 'to', 'nm', 'min', 'end', 'log', 'hits', 'clash', 'asleep', 'h', 'hands', 'inn')}, ensure_ascii=False), flush=True)
             if i % 25 == 0: print('   ', i, '/', len(todo), round(time.time() - t0), 's', flush=True)
-        json.dump(res, open(os.path.join(ROOT, 'tests', 'out', 'allesteder%s.json' % ('_' + TYPE if TYPE != 'kyst21' else '')), 'w'), ensure_ascii=False, indent=0)
+        json.dump(res, open(os.path.join(ROOT, 'tests', 'out', 'allesteder%s%s.json' % ('_' + TYPE if TYPE != 'kyst21' else '', '_%d' % PART[0] if PART else '')), 'w'), ensure_ascii=False, indent=0)
         done = [r for r in res if not r.get('skip')]
         by = lambda k: [r for r in done if r['kind'] == k]
         print('places:', len(done), {k: len(by(k)) for k in ('port', 'rorbu', 'naust', 'havn')}, '| harbours with no berth for her:', sum(1 for r in res if r.get('none')), '| skipped:', [(r['kind'], r['id'], r['skip']) for r in res if r.get('skip')][:8])
@@ -217,5 +256,8 @@ async def main():
         print(ok(all(r.get('why0') for r in sl)), 'the game says why at each of them (siteWhy)')
         tb = [r for r in done if r.get('tideBound')]
         print('places she leaves only nearer high water (not stuck; %d):' % len(tb), [(r['kind'], r.get('name'), r['tideBound']) for r in tb[:12]])
+        # the rorbuer taken away (07d-rorbu.js RORBU_GONE): no boat is offered them, and the game says why
+        gone = await pg.evaluate("() => [...RBID.values()].filter(R => R.gone).map(R => [R.id, R.name, Object.keys(VESSELS).some(t => siteFits(t, R.id)), (siteWhy('kyst15', R.id) || [''])[0]])")
+        print(ok(all(not g[2] and g[3] for g in gone)), 'the rorbuer taken away (%d) are offered no boat, and the game says why' % len(gone), [(g[0], g[1]) for g in gone])
         print('errors:', errs[:4]); await br.close()
 asyncio.run(main())
