@@ -1,5 +1,8 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['kapplop2-131126', '16.11.2026', 'Ukas tavle i kappløpet', 'This week\'s board in the race', [
+       ['Kappløpet har fått ukas tavle: de 20 raskeste i klassen din denne uka, med båtnavn og brukernavn, og din plass. Trykk på en annen klasse for å se den. Ny tavle hver mandag.', 'The race has this week\'s board: the 20 fastest in your class this week, with boat names and user names, and your place. Tap another class to see it. A new board every Monday.'],
+       ['Sesong-appen viser ukas beste i klassen din og plassen din. Tider som ikke kan være seilt, kommer ikke på tavla.', 'The Sesong app shows this week\'s best in your class and your place. Times that cannot have been sailed do not go on the board.']]],
     ['rank1-161126', '16.11.2026', 'Nivå og ferdigheter', 'Level and skills', [
        ['Fartstida er nå nivået ditt, med xp mot neste nivå. Se Milepæler › Merker.', 'Your sea time is now your level, with xp towards the next. See Milestones › Badges.'],
        ['Du har egne ferdigheter i juksa, line, garn, teiner, sløying, ising og krabbesortering. De vokser med jobben du gjør om bord, opp til et tak som stiger med årene, og gjør deg raskere på dekk.', 'You have skills of your own in jigging, longline, nets, pots, gutting, icing and crab sorting. They grow with the work you do aboard, up to a ceiling that rises with the years, and make you faster on deck.'],
