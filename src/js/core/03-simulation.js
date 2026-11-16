@@ -1383,7 +1383,7 @@ function streakTouch(){
   const gap = st.last ? dayNum(today) - dayNum(st.last) : 1; if (gap <= 0) return null;   // the clock went back: nothing happens
   const before = st.pct, lost = Math.min(before, STREAK.decay * (gap - 1));
   st.pct = Math.min(STREAK.max, before - lost + STREAK.step); st.days++; st.best = Math.max(st.best, st.pct); st.last = today;
-  const r = {before, lost, pct:st.pct, missed:gap - 1};
+  const r = {before, lost, pct:st.pct, missed:gap - 1}; STREAK.now = {day:today, pct:st.pct, days:st.days};   // (today's, for «Mens du var borte», ui/08-actions.js)
   if (r.missed > 0 && lost > 0) log('Innloggingsbonus: du var borte ' + r.missed + (r.missed > 1 ? ' dager' : ' dag') + ', og bonusen falt ' + lost + ' %. Dagens innlogging gir 1 %, så nå er den ' + st.pct + ' %.',
     'Login bonus: you were away ' + r.missed + ' day' + (r.missed > 1 ? 's' : '') + ' and the bonus fell ' + lost + ' %. Today\'s login adds 1 %, so it is now ' + st.pct + ' %.');
   else log('Innloggingsbonus: ' + st.pct + ' % ekstra på fiskeprisen.', 'Login bonus: ' + st.pct + ' % extra on the fish price.');
