@@ -175,10 +175,15 @@ async def main():
           for (let i = 0; i < 20; i++) step();
           const dm = dist(c, b.pos), to = Math.atan2(b.pos.x - c.x, -(b.pos.y - c.y)), down = (90 - g) * Math.PI / 180;
           out.lie = {kn:+(dm * 1000 / 1200 / KN_MS).toFixed(2), pct:+(100 * dm * 1000 / 1200 / 12).toFixed(1), off:+(Math.abs(dynAng(to, down)) * 180 / Math.PI).toFixed(0), across:+Math.abs(Math.sin(dynAng(b.heading, (270 - g) * Math.PI / 180))).toFixed(2)};
-          // jigging: never more than the 400 m and a minute's drift off the ground she started on
+          // jigging with a hand aboard: never more than the 400 m and a minute's drift off the ground she started on (a hand at the
+          // helm runs her back up); alone at the rail nobody is at the helm, and she drifts on (Jonas 15.11.2026, tests/unit/roret.test.mjs)
+          const crew0 = S.crew; S.crew = [Object.assign(genCrew(), {bi:false, off:false, sleepW:false, fatigue:10, morale:62, traits:[]})];
           b.status = 'fishing'; b.fishUntil = S.t + 600; b.driftHome = null; const home = {...b.pos}; let far = 0, ups = 0;
           for (let i = 0; i < 60; i++){ step(); far = Math.max(far, dist(home, b.pos)); if (b.drv && b.drv.up) ups++; }
           out.jig = {far:Math.round(far * 1000), ups, said:S.log.slice(-12).some(l => /Kjører opp igjen/.test(l.no || ''))};
+          S.crew = []; b.driftHome = null; const home2 = {...b.pos}; let far2 = 0, ups2 = 0;
+          for (let i = 0; i < 60; i++){ step(); far2 = Math.max(far2, dist(home2, b.pos)); if (b.drv && b.drv.up) ups2++; }
+          out.jigAlone = {far:Math.round(far2 * 1000), ups:ups2, said:S.log.slice(-12).some(l => /Ingen står ved roret/.test(l.no || ''))}; S.crew = crew0;
           // toward land: from the open spot east until the land is 0.2 km off, the wind blowing her onto it
           b.status = 'idle'; b.fishUntil = null; let q = {x:c.x, y:c.y}; for (let i = 0; i < 200 && coastDist(q) > 0.2; i++) q = {x:q.x + 0.05, y:q.y};
           b.pos = {...q}; b.drv = null; b.driftHome = null; let land = false, minC = 9;
@@ -195,7 +200,9 @@ async def main():
           helmOff(); b.type = 'trebat'; applyVessel(); return out; }""")
         lie, jig, land, quay = e['lie'], e['jig'], e['land'], e['quay']
         check(1.5 <= lie['pct'] <= 7 and lie['off'] < 30 and lie['across'] > 0.8, 'lying still (the sjark, 12 m/s) she falls off across the wind and drifts downwind at 1.5-7 % of it', lie)
-        check(jig['far'] < 400 + 60 and jig['ups'] > 0 and jig['said'], 'jigging she is run back up over the ground when she has drifted 400 m off it, and it is said', jig)
+        check(jig['far'] < 400 + 60 and jig['ups'] > 0 and jig['said'], 'jigging with a hand aboard she is run back up over the ground when she has drifted 400 m off it, and it is said', jig)
+        ja = e['jigAlone']
+        check(ja['ups'] == 0 and ja['far'] > 400 and ja['said'], 'jigging alone nobody is at the helm: she never runs back by herself, drifts on, and it is said', ja)
         check(not land['land'] and land['min'] >= 0.05 and land['said'], 'drifting onto the land the engine holds her off it (60 m), and it is said', land)
         hq = quay['hits']
         check(len(hq) > 0 and hq[0]['kn'] > 3 and quay['minZ'] > quay['half'] - 1.5 and quay['said'], 'by hand into the quay at about 6 knots: the blow is kept with its energy, she does not go into the quay, and it is said', quay)

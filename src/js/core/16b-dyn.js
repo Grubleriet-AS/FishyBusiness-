@@ -438,7 +438,33 @@ function dynDrift(type, p, H){
 // along), and work out the next: across the wind, held off the land by the engine (she never drifts ashore with someone awake aboard;
 // asleep and alone is 15-energy.js sleepDrift), and jigging, driven back up over the ground she started on when she has drifted 400 m
 // off it, as jiggers do (once a stop it is said)
-const LIE = {up:0.4, land:0.06};
+// The engine runs her only with someone at the helm (Jonas 15.11.2026: «så lenge ingen står ved roret på en båt, så skal den jo ikke
+// kunne gå av seg selv»; alone with the jig on the old wooden boat she sped back to where the jigging began). The run back up over the
+// ground takes a hand of the crew at the helm while the others jig; alone at the rail there is nobody, so she drifts on, and the log says
+// so once. Back to the gear and off the land take someone awake aboard, who leaves what they do for the helm. While the engine has her,
+// b.lieHelm is the minute, and workCtx puts someone at the helm (13-work.js), so the deck shows who steers.
+// (sw: how she turns with no way on, Jonas the same day: «når båten står i ro så vil den sakte men sikkert dreie på vinden». She falls off
+// to where the wind's moment on her side is nothing: across it when the push is amidships, with her bow further off downwind when the
+// windage sits forward (P.xw, the big boats with the wheelhouse forward); slowly, at a pace set by the wind's push on her and her yaw
+// inertia: a time constant tau minutes at 8 m/s, longer in a light wind and for a big boat (the push goes as U², the moment of inertia
+// as L⁴ against the arm and area as L²), and none under calm (min m/s). The 3D view and the chart turn her over the minute, lieTurn.)
+const LIE = {up:0.4, land:0.06, sw:{tau:4, min:1, maxTau:40}};
+// someone to take the helm while the engine runs her lying still: why 'up' (back up over the jigging ground: a hand of the crew, since
+// you or they stand at the rail jigging, and alone you are there yourself), else (to the gear, off the land) anyone awake aboard
+// (an ocean vessel's watch on deck counts as hands, 04-crew.js lagOnDeck)
+function lieHelmCan(why){
+  let lag = 0; try { lag = typeof lagOnDeck === 'function' ? lagOnDeck(S.t / 60, false).length : 0; } catch (e){}
+  if (why === 'up') return crewAboard(S.t / 60).length + lag > 0;
+  return gearLieCrew() || lag > 0;
+}
+// the heading she turns to lying still (radians, grid), and how much of the way she goes in a minute
+function lieTurn(type, hd, D, U){
+  const cal = dynCal(type), P = cal.P, off = clamp(Math.PI / 2 - (P.xw || 0) / Math.max(1, P.L) * 10, 0.6, Math.PI / 2);   // (0.04 L forward: 68 degrees off downwind)
+  const to = [D.a + off, D.a - off].reduce((m, c) => Math.abs(dynAng(hd, c)) < Math.abs(dynAng(hd, m)) ? c : m);
+  if (!(U > LIE.sw.min)) return {to:hd, k:0};
+  const tau = clamp(LIE.sw.tau * (8 / U) ** 2 * Math.sqrt(Math.max(1, P.L) / 10), 0.5, LIE.sw.maxTau);
+  return {to, k:1 - Math.exp(-1 / tau)};
+}
 // lying by her own gear (spilltest 3, U2; Jonas 05.11.2026, V2 B): she keeps within half a nautical mile of the nearest of her buoys
 // (r), run back to a quarter mile (back) at five knots on the engine, and the alarm goes when she is a mile off (alarm)
 const GEARLIE = {r:0.5 * NM, back:0.25 * NM, alarm:1 * NM, kn:5};
@@ -457,42 +483,48 @@ function gearWatch(b){
 }
 function lieDrift(H){
   const b = S.boat, dv = b.drv, ok = ['fishing', 'idle', 'adrift'].includes(b.status) && !b.anch && !b.port && !b.gop && !helmOn() && !(typeof tutOn === 'function' && tutOn());
-  b.drv = null;
+  b.drv = null; b.lieHelm = null; b.lieHd = null;
   if (!ok){ b.driftHome = null; return; }
   if (dv && dv.t === S.t - 1 && dv.st === b.status) b.pos = {x:b.pos.x + dv.x, y:b.pos.y + dv.y};
   if (!b.driftHome || b.driftHome.st !== b.status) b.driftHome = {x:b.pos.x, y:b.pos.y, st:b.status, said:false};
   let D; try { D = dynDrift(b.type, b.pos, H); } catch (e){ return; }
-  // she falls off across the wind (the nearer side), over a few minutes
-  const across = [D.a + Math.PI / 2, D.a - Math.PI / 2].reduce((m, c) => Math.abs(dynAng(b.heading || 0, c)) < Math.abs(dynAng(b.heading || 0, m)) ? c : m);
-  b.heading = ((b.heading || 0) + dynAng(b.heading || 0, across) * (1 - Math.exp(-1 / 3)) + 2 * Math.PI) % (2 * Math.PI);
+  // she falls off across the wind (the nearer side), slowly, as the wind turns her (lieTurn); the 3D view and the chart turn her over the
+  // minute from where she lay (b.lieHd, ui/04-panels-instruments.js livePose)
+  { const h0 = b.heading || 0; let U = 0; try { U = windAt(H, b.pos); } catch (e){} const T = lieTurn(b.type, h0, D, U);
+    b.heading = ((h0 + dynAng(h0, T.to) * T.k) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI); b.lieHd = {t:S.t, h0, h1:b.heading}; }
   const home = b.driftHome;
   // lying by her gear: beyond half a mile, the engine runs her back up to within a quarter (V2 B); asleep and alone, or with no diesel,
   // she drifts as before
   if (b.status === 'idle'){
     const nb = gearBuoyNear(b.pos);
     if (!nb || nb.d <= GEARLIE.back) b.lieRun = false; else if (nb.d > GEARLIE.r) b.lieRun = true;
-    if (nb && b.lieRun && b.fuel > 0 && gearLieCrew()){
+    if (nb && b.lieRun && b.fuel > 0 && lieHelmCan('gear')){
       const st = Math.min(nb.d - GEARLIE.back * 0.8, GEARLIE.kn * NM / 60), to = {x:b.pos.x + (nb.p.x - b.pos.x) / nb.d * st, y:b.pos.y + (nb.p.y - b.pos.y) / nb.d * st};
       let clear = true; try { clear = !isLand(to) && !groundCheck(b.pos, to); } catch (e){}
       if (clear){
         fuelUse(b, fuelLph(GEARLIE.kn, windAt(H)) / 60);
         if (!home.lieSaid){ home.lieSaid = true; log('Ligger på været ved blåsa: motoren holder båten innen en halv nautisk mil.', 'Lying by the buoy: the engine keeps her within half a nautical mile.', 'nav'); }
-        b.heading = Math.atan2(nb.p.x - b.pos.x, -(nb.p.y - b.pos.y));
+        b.heading = Math.atan2(nb.p.x - b.pos.x, -(nb.p.y - b.pos.y)); b.lieHd = null; b.lieHelm = S.t;
         b.drv = {x:to.x - b.pos.x, y:to.y - b.pos.y, t:S.t, st:b.status, up:true}; return;
       }
     }
   }
   // jigging: back up over the ground (at five knots, the minute it takes)
+  // (only with a hand at the helm: alone at the rail she drifts on, and it is said once)
   if (b.status === 'fishing' && dist(b.pos, home) > LIE.up){
-    const d = dist(b.pos, home), st = Math.min(d, 5 * NM / 60);
-    if (!home.said){ home.said = true; log('Dere har drevet av feltet. Kjører opp igjen og driver over det på nytt.', 'You have drifted off the ground. Running back up to drift over it again.', 'nav'); }
-    b.drv = {x:(home.x - b.pos.x) / d * st, y:(home.y - b.pos.y) / d * st, t:S.t, st:b.status, up:true}; return;
+    if (lieHelmCan('up') && b.fuel > 0){
+      const d = dist(b.pos, home), st = Math.min(d, 5 * NM / 60);
+      if (!home.said){ home.said = true; log('Dere har drevet av feltet. Kjører opp igjen og driver over det på nytt.', 'You have drifted off the ground. Running back up to drift over it again.', 'nav'); }
+      b.heading = Math.atan2(home.x - b.pos.x, -(home.y - b.pos.y)); b.lieHd = null; b.lieHelm = S.t; b.drv = {x:(home.x - b.pos.x) / d * st, y:(home.y - b.pos.y) / d * st, t:S.t, st:b.status, up:true}; return;
+    }
+    if (!home.off){ home.off = true; log('Båten har drevet av feltet. Ingen står ved roret, så hun driver videre.', 'The boat has drifted off the ground. Nobody is at the helm, so she drifts on.', 'nav'); }
   }
   // (only what turns with the tide, tx and ty: the coastal current runs one way and would take a boat left lying far down the coast)
   const C = curBoat(b, H), step = {x:(D.e + C.tx) * 60 / 1000, y:(-D.n + C.ty) * 60 / 1000}, km = Math.hypot(step.x, step.y), to = {x:b.pos.x + step.x, y:b.pos.y + step.y};
   if (km < 1e-4) return;
   let held = true; try { held = isLand(to) || !!groundCheck(b.pos, to) || coastDist(to) < LIE.land; } catch (e){}
-  if (held){ if (!home.held){ home.held = true; log(b.status === 'adrift' ? 'Båten driver mot land og blir liggende der.' : 'Båten driver mot land. Motoren holder henne unna.', b.status === 'adrift' ? 'The boat drifts in toward the land and lies there.' : 'The boat drifts toward the land. The engine holds her off.', 'nav'); } return; }
+  // (nobody awake to take the helm, or no diesel: no engine, she lies against the land as one adrift does)
+  if (held){ const eng = b.status !== 'adrift' && b.fuel > 0 && lieHelmCan('land'); if (eng) b.lieHelm = S.t; if (!home.held){ home.held = true; log(!eng ? 'Båten driver mot land og blir liggende der.' : 'Båten driver mot land. Motoren holder henne unna.', !eng ? 'The boat drifts in toward the land and lies there.' : 'The boat drifts toward the land. The engine holds her off.', 'nav'); } return; }
   b.drv = {x:step.x, y:step.y, t:S.t, st:b.status};
 }
 // ---- the state, in step with the boat the rest of the game reads ----

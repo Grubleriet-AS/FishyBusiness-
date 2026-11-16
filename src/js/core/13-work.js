@@ -150,7 +150,10 @@ function workCtx(as){
   // on its way to it (the gutted fish, and the round fish waiting for the knife)
   // (round a quay, OB2: the helm is held until she lies made fast, and the lines and the fenders have their hands; 05-vessels.js moorPhase)
   const mp = as === 'fishing' || typeof moorPhase !== 'function' ? null : moorPhase(b);
-  return {s, stop, mp, fort:!!mp, ror:s === 'sailing' || s === 'unmooring' || s === 'engine' || mp === 'in' || mp === 'lines' || mp === 'out', fiske:s === 'fishing' && !g && !stop, haling:!!g && !stop, gk, setting:!!g && g.op === 'set' && (gk === 'line' || gk === 'garn') && !g.auto,
+  // (lying still, the minute the engine runs her back up over the ground, to her gear or holds her off the land, someone is at the helm:
+  // 16b-dyn.js lieDrift, b.lieHelm; Jonas 15.11.2026, never by herself)
+  const lieHelm = as !== 'fishing' && (s === 'fishing' || s === 'idle') && !g && !b.anch && !b.port && b.lieHelm != null && S.t - b.lieHelm <= 1;
+  return {s, stop, mp, fort:!!mp, ror:s === 'sailing' || s === 'unmooring' || s === 'engine' || mp === 'in' || mp === 'lines' || mp === 'out' || lieHelm, lieHelm, fiske:s === 'fishing' && !g && !stop, haling:!!g && !stop, gk, setting:!!g && g.op === 'set' && (gk === 'line' || gk === 'garn') && !g.auto,
     blogg:!!g && g.op === 'haul' && gk !== 'teine' && !stop && s !== 'aground', gutKg:cg ? gut : 0, iceKg:icing ? gut + ice : 0,
     sort:!!g && gk === 'teine' && g.op === 'haul', hands:g && gk === 'garn' && g.op === 'haul' ? 2 : 1, sloy:deck && gut > 0.01, is:deck && icing && (ice > 0.01 || gut > 0.01), iceNow:icing ? ice : 0, kokk:as !== 'fishing' && mealDue(), pause:true};
 }
@@ -215,8 +218,9 @@ function workAssign(as){
   if (ctx.fiske && !ctx.stop && typeof window !== 'undefined' && window.jigActive){ const me = P.find(p => !p.c); if (me) put(me, 'fiske', 'jig'); }
   const free = () => P.filter(p => !p.st), bestOf = (L, k) => L.slice().sort((a, b) => workScore(b, k, ctx, 1) - workScore(a, k, ctx, 1))[0];
   // the helm, while she is driven: you, else the mate, else the skipper, else the best seaman
-  if (ctx.ror){ const me = P.find(p => !p.c), m = P.find(p => p.c && p.c.mate), sk = actingSkipper(), o = sk && P.find(p => p.c === sk);
-    const who = me || m || o || P.slice().sort((a, b) => b.c.attr.sjo - a.c.attr.sjo)[0]; put(who, 'ror', me ? 'skipper' : m ? 'mate' : o ? 'opsk' : 'seaman'); }
+  // (lying still with the engine running her, one not jigging by hand takes it: you at the rail with «Jukse selv» stay there)
+  if (ctx.ror){ const me = P.find(p => !p.c && !(ctx.lieHelm && p.st === 'fiske')), m = P.find(p => p.c && p.c.mate), sk = actingSkipper(), o = sk && P.find(p => p.c === sk);
+    const who = me || m || o || P.filter(p => p.c).sort((a, b) => b.c.attr.sjo - a.c.attr.sjo)[0] || P[0]; put(who, 'ror', who === me ? 'skipper' : who === m ? 'mate' : who === o ? 'opsk' : who.c ? 'seaman' : 'skipper'); }
   // the cook who has started the meal stays at the stove until it is served (14-crewlife.js mealMinute; before, the deck could take her
   // to the table between two minutes, another started over, and the meal came late: mannskapshot.py)
   if (ctx.kokk){ const M = mealState(), ck = M.cook && P.find(p => p.c && p.c.id === M.cook.id && !p.st && pTired(p) < 0.85); if (ck) put(ck, 'kokk', 'cook'); }

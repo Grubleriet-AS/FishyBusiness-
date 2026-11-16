@@ -9,7 +9,8 @@
 //   and the deeper the water (a long scope in deep water holds worse)
 // A drag with someone awake is noticed: the anchor is dropped again 150 m downwind (rest lost, the watch tired), and in a gale the
 // boat weighs and goes to the nearest quay. Everyone asleep: she drifts toward the land until she is stopped or runs aground.
-const ANCH = {maxDepth:40, minDepth:4, clear:0.15, hold:0.9, gale:1.4, rate:0.6, reset:0.15, fall:90, pay:30, plan:{ring:[0.4, 0.9, 1.6, 2.6, 4, 6, 9, 13], bearings:16}};
+// across: how far off the rode she lies with the wind dead against an equal stream (radians, 55 degrees)
+const ANCH = {across:0.96, maxDepth:40, minDepth:4, clear:0.15, hold:0.9, gale:1.4, rate:0.6, reset:0.15, fall:90, pay:30, plan:{ring:[0.4, 0.9, 1.6, 2.6, 4, 6, 9, 13], bearings:16}};
 // how the place lies: depth and shelter, and what the boat's own limits make of the weather there. Level: 0 sheltered, 1 some, 2 exposed.
 function anchorSpot(p, boatType){
   let depth = 0, expo = 1, cd = 0; try { if (isLand(p)) return {ok:false, why:'land'}; depth = depthF(p); expo = expoFar(p) / 255; cd = coastDist(p); } catch (e){ return {ok:false, why:'nomap'}; }
@@ -141,7 +142,7 @@ function anchorForce(type, p, H){
   if (q) for (const [h0, tp, from] of [[q.w, q.tp, q.dir], [q.sw, q.swTp, q.swDir]]){ if (!(h0 > 0.02) || !(tp > 0.3)) continue;
     const k = (2 * Math.PI / tp) ** 2 / 9.81, F = 0.5 * 1025 * 9.81 * (h0 * h0 / 16) * V.beam * Math.tanh(1.3 * k * P.T) ** 2, w = (from - g + 180) * RAD;
     x += F * Math.sin(w); y -= F * Math.cos(w); Fs += F; }
-  return {x, y, Fw, Fc, Fs, U, cur:c};
+  return {x, y, Fw, Fc, Fs, U, cur:c, aw};
 }
 function dropAnchor(auto){
   const b = S.boat; if (b.status === 'port' || b.anch) return false;
@@ -187,9 +188,15 @@ function anchorSwing(H){
   // the way the push goes (with none she stays as she lies: the rode out astern of her bow)
   const dx = T > 1 ? F.x / T : -Math.sin(hd0), dy = T > 1 ? F.y / T : Math.cos(hd0);
   const X = anchorReach(a.out, h, T / g.w) / 1000, wsh = F.Fw / (F.Fw + F.Fc + F.Fs + 1);
-  const per = 3 + g.L / 8, amp = (3 + 12 * wsh * sstep(2, 10, F.U)) * RAD, ph = amp * Math.sin(2 * Math.PI * S.t / per);
+  // wind against the stream (Jonas 15.11.2026: «når man ligger på anker, da vil jo vind og strøm påvirke hvordan båten dreier»): the wind
+  // pushes on what is above the water and the stream on what is under it, so when they pull opposite ways and are near each other she does
+  // not lie head to the rode but across, the wind on one side (the side the wind blows her stern to), and sheers more; with one of them
+  // much the stronger she lies head to it as before (wind-rode or tide-rode). opp: 0 with them together or one alone, 1 dead against and equal
+  const aw = F.aw != null ? F.aw : Math.atan2(F.x, -F.y), cw = F.Fc > 1 && F.cur ? Math.atan2(F.cur.x, -F.cur.y) : aw;
+  const opp = F.Fw > 1 && F.Fc > 1 ? Math.max(0, -Math.cos(dynAng(aw, cw))) * Math.min(F.Fw, F.Fc) / Math.max(F.Fw, F.Fc) : 0, side = Math.sign(dynAng(cw, aw)) || 1;
+  const per = 3 + g.L / 8, amp = (3 + 12 * wsh * sstep(2, 10, F.U) + 10 * opp) * RAD, ph = amp * Math.sin(2 * Math.PI * S.t / per);
   const c = Math.cos(ph), s = Math.sin(ph), ux = dx * c - dy * s, uy = dx * s + dy * c;
-  const tx = a.x + ux * (X + g.fair / 1000), ty = a.y + uy * (X + g.fair / 1000), th = Math.atan2(-ux, uy) + 0.4 * ph;
+  const tx = a.x + ux * (X + g.fair / 1000), ty = a.y + uy * (X + g.fair / 1000), th = Math.atan2(-ux, uy) + 0.4 * ph + side * opp * ANCH.across;
   const k = 1 - Math.exp(-1 / (1 + g.L / 20)), nx = b.pos.x + (tx - b.pos.x) * k, ny = b.pos.y + (ty - b.pos.y) * k;
   a.mv = {x:nx - b.pos.x, y:ny - b.pos.y, hd:((hd0 + dynAng(hd0, th) * k) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI), t:S.t};
 }
