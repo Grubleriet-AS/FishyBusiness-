@@ -146,3 +146,6 @@ Hver fase er én økt. T3 og T5 går på GPU-maskinen; resten kan gjøres her.
 ## 10. Status
 
 13.11.2026: planen skrevet, valgene tatt, stilen lagt til (del 4b) med stilarket `trailer/stil/stilark-1.jpg`. Rollelista og kystnotbåtens plass lagt inn samme dag; V5 tatt samme dag: kystnotbåten vises som de andre båtene. Neste er T1 (faktasjekk og prøvebilder), som kan gjøres uten GPU. T3 venter på Jonas' «klar».
+
+16.11.2026 (lanseringsdagen, traileren ut kl. 19): **m3** satt opp for GPU-maskinen. Jonas: «jeg tenker dermed traileren må lages i testutgivelsen» og «vi må ta nye klipp. De fleste som vi har fra før er utdaterte siden flere av båtene har fått grafiske revisjoner». Alle klipp filmes på nytt fra testutgaven etter `trailer/tools/START-M3.md`; klippkartene `trailer/audio/music-edit-m3-no.json` og `-en.json`; tekstene i begge språk i `M3` i `trailer/tools/titles.py` (`--lang no|en`); nye klippfiler `06b`, `10b`, `18b` (lav kveldssol ved Svalbard) og `19-online-kai` (fire andre spilleres båter). Kuttet for å rekke det i dag: grensesnittet (V1 A), mottaket og kartet som zoomer ut, og de fem korte. Kystnotbåten er fortsatt låst i testutgaven (`lock:true`); Jonas har sagt at hun kommer straks og vises som de andre (V5).
+

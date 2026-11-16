@@ -37,7 +37,7 @@ def main():
     E = json.load(open(a.edit, encoding='utf-8')); fps = E['fps']; size = E['size']; w, h = map(int, size.split('x'))
     out = a.out or os.path.join(ROOT, 'trailer', 'out', 'rough', E['name'] + '.mp4'); fdir = os.path.join(os.path.dirname(out), E['name'] + '-frames')
     os.makedirs(fdir, exist_ok=True)
-    N = int(round(E['dur'] * fps)); clips = sorted(E['clips'], key=lambda c: c['at']); TT = os.path.join(ROOT, 'trailer', 'out', 'titles')
+    N = int(round(E['dur'] * fps)); clips = sorted(E['clips'], key=lambda c: c['at']); TT = os.path.join(ROOT, 'trailer', 'out', E.get('titles', 'titles'))   # m3: titles-no or titles-en
     rng = range(N) if not a.frames else range(*map(int, a.frames.split(':')))
     if not a.frames:
         for f in os.listdir(fdir): os.remove(os.path.join(fdir, f))
