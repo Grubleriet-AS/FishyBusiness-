@@ -171,6 +171,7 @@ function plan3Apply(o){
 }
 // make it: the ring's map in, the answers derived, then Driftsplan 2's legs (plan2Make). From anywhere: at sea or in port, aboard or not
 async function plan3Make(o, cb){
+  if (!o.ring){ const w = gL('Velg et sted for planen: trykk i kartplotteren der båten skal fiske.', 'Choose a place for the plan: tap the chart plotter where the boat is to fish.'); o.err = w; if (cb) cb(w); return; }
   // (out to where a string laid with its middle at the ring's edge ends, plan3Heads)
   { const S3 = plan3Split(o), L = Math.max(0, ...(S3.n || []).map(n => plan3StrKm(o, {n, lk:o.lk}))); try { await mapNeed(o.ring, o.ring.r + 2 + L / 2); } catch (e){} }
   // (the skipper and the mate the plan names, put back when the plan is not made)

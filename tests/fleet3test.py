@@ -19,7 +19,7 @@ async def main():
           const v1 = curVessel(), v2 = newVesselObj('snekke', 'husoy');
           // something to report on each vessel
           S.boat.engH = 150; S.boat.svcAt = 0;
-          withVessel(v2, () => { const c = Object.assign(genCrew(), {bi:false, off:false}); S.crew = [c]; S.boat.fuel = 10; S.ops = Object.assign(plan2New({home:'husoy'}), {on:false, stop:{t:S.t, k:'roles', no:'Når du ikke er om bord, må både en skipper og en styrmann være utnevnt.', en:'When you are not aboard, both a skipper and a mate must be appointed.', fix:'mannskap'}}); });
+          withVessel(v2, () => { const c = Object.assign(genCrew(), {bi:false, off:false}); S.crew = [c]; S.boat.fuel = 10; S.ops = Object.assign(plan2New({v:DRV3, home:'husoy'}), {on:false, stop:{t:S.t, k:'roles', no:'Når du ikke er om bord, må både en skipper og en styrmann være utnevnt.', en:'When you are not aboard, both a skipper and a mate must be appointed.', fix:'mannskap'}}); });
           // the cod quota 95 % fished on the first vessel: a quiet line on her card, not an alert (Jonas 07.11.2026)
           const H0 = S.t / 60; R.acc = access(); quotaState().torsk = codLimitNow(H0) * 0.95;
           R.alerts = PHONE.alerts().map(a => a.id + ':' + a.k);

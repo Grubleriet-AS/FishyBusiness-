@@ -52,7 +52,7 @@ async def main():
           // a working day from Husøy (which has a fish plant): jig at the end of the local boats' route into Øyfjorden, land, and home
           S.t = Math.round((Date.UTC(2028, 4, 8, 0) - EPOCH) / 6e4); S.cash = 5e6; S.stock = initStock(); S.settings.autoW = 14;
           const rt = FLEET.find(f => f.home === 'husoy' && f.L < 15).rt[0], end = rt[rt.length - 1];
-          const mk = () => plan2New({home:'husoy', rig:'juksa', jig:true, places:[{id:'a', k:'juks', x:end[0], y:end[1]}], dep:5, wx:{wind:16, hs:3.5}, land:{mode:'near', port:null, when:'trip'}});   // (Driftsplan 2 since Ø12 C 08.11.2026)
+          const mk = () => plan2New({v:DRV3, home:'husoy', rig:'juksa', jig:true, places:[{id:'a', k:'juks', x:end[0], y:end[1]}], dep:5, wx:{wind:16, hs:3.5}, land:{mode:'near', port:null, when:'trip'}});   // (Driftsplan 2 since Ø12 C 08.11.2026)
           const hand = () => Object.assign(genCrew(), {bi:false, off:false}); const v1 = curVessel();
           // the first boat has room for one hand, so it runs the plan with you aboard, from home (Husøy: you rest in the boathouse between
           // the days; away from home with no rorbu and no bunk the plan waits for your rest, rightly); the second boat is the first with a

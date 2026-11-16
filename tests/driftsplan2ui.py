@@ -43,12 +43,19 @@ JS = r"""(async () => { TAB.held = true;
   act('p2-g3', {g:'line'}); act('p2-bait3', {v:'sild'});
   // Start from the sea: the boat lies at sea, out of port
   { b.status = 'idle'; b.port = null; b.pos = {x:sea.x + 1.5, y:sea.y}; S.plan = null; await mapNeed(b.pos, 6); act('p2-start'); for (let k = 0; k < 400 && !o.on; k++) await new Promise(r => setTimeout(r, 100)); R.sea = {on:o.on, err:o.err, places:o.places.length}; }
+  // the catch gutted aboard or round (R1 V1 A): on the page, and the boat's own setting
+  { const pg2 = page(); R.gut = {row:pg2.includes('data-pa="p2-gut"')}; act('p2-gut', {v:'0'}); R.gut.round = S.boat.gutAboard === false; act('p2-gut', {v:'1'}); R.gut.back = S.boat.gutAboard === undefined; }
   // the statistics, then Slett from the game's own dialog
   o.stats.days.push({d:gDate(S.t / 60).toISOString().slice(0, 10), trips:1, kg:312, kr:5400, lott:1800, cost:600, conf:0, sp:{torsk:280, hyse:32}, port:{[o.M]:312}}); R.stats = page().includes('p2-stat') && /Torsk \d+ %/.test(text());
   act('p2-pause'); act('p2-reset'); await new Promise(r => setTimeout(r, 200)); const del = document.getElementById('p2Del'); R.delDialog = !!del && /Stedet, redskapet og statistikken/.test(document.getElementById('modal').innerText); if (del) del.click(); R.deleted = S.ops === null;
   // an old v4 plan when the page opens: switched off with a word (plan3Retire), and the intro is shown
   { b.status = 'port'; b.port = 'husoy'; b.pos = {...HP.p}; S.plan = null; S.sets = []; const v4 = plan2New({home:'husoy', rig:'line', places:[]}); v4.on = false; S.ops = v4; const n0 = S.msgs.length; const p = page();
     R.v4 = {gone:S.ops === null, intro:p.includes('p2-new'), msg:(S.msgs.slice(n0).map(m => m.no).join(' ') || '').slice(0, 160)}; }
+  // (the control 16.11.2026) gear of your own in the sea and a new plan with no ring: no «Hent redskapet», which had nothing to make the plan from
+  { S.ops = null; S.sets = [{id:'sx', vid:S.cur, kind:'line', n:2, lk:'hyse', hooks:1200, a:{...sea}, b:{x:sea.x + 1, y:sea.y}, tSet:S.t - 600, fid:null}]; act('p2-new'); const p = page(); R.noFetch = !p.includes('data-pa="p2-fetch"'); S.sets = []; S.ops = null; }
+  // an old plan winding up (plan3Retire): its own card with «Nå», and no new plan over it while it runs
+  { const v4 = plan2New({home:'husoy', rig:'line', places:[]}); v4.on = true; v4.retire = true; v4.fetch = true; S.ops = v4; const p = page(); act('p2-new');
+    R.retiring = {card:/Den gamle driftsplanen er slått av/.test(p), now:p.includes('Nå:'), kept:S.ops === v4}; S.ops = null; }
   // a page ready for the screenshots: the plan again, started, a few minutes on
   act('p2-new'); act('p2-g3', {g:'line'}); await put(sea); act('p2-start'); for (let k = 0; k < 400 && !S.ops.on; k++) await new Promise(r => setTimeout(r, 100)); for (let i = 0; i < 30; i++){ DYN.on = false; step(); }
   TAB.held = false; lastWall = Date.now(); return R; })()"""
@@ -75,6 +82,9 @@ async def main():
         c = r['changed']; print(ok(c['rig'] == 'juksa' and c['places'] == 0 and not c['made'] and abs(c['r'] - c['want']) < 1e-3), 'after a pause the gear changes: what the plan found goes, and the ring takes the jig\'s size', c)
         print(ok(r['sea']['on'] and r['sea']['places'] >= 1), 'Start from the sea, out of port', r['sea'])
         print(ok(r['stats'] and r['delDialog'] and r['deleted']), 'the statistics, and Slett through the game\'s dialog', [r['stats'], r['delDialog'], r['deleted']])
+        print(ok(r['gut']['row'] and r['gut']['round'] and r['gut']['back']), 'the catch gutted aboard or round, on the plan\'s page (R1 V1 A)', r['gut'])
+        print(ok(r['noFetch']), 'gear of your own in the sea and a new plan with no ring: no «Hent redskapet» (it had nothing to make the plan from)', r['noFetch'])
+        print(ok(r['retiring']['card'] and r['retiring']['now'] and r['retiring']['kept']), 'an old plan winding up has its own card with «Nå», and no new plan is made over it', r['retiring'])
         v = r['v4']; print(ok(v['gone'] and v['intro'] and 'Lag en ny driftsplan' in v['msg']), 'an old v4 plan is switched off with a word when the page opens, and the intro is shown', v)
         # the page in both formats: no sideways overflow, the buttons at least 44 px high
         for w, h in [(800, 1280), (1280, 800)]:
