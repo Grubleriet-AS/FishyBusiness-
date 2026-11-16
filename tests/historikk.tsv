@@ -5093,3 +5093,4 @@
 2026-11-16 19:10	ccr-5e1ba2f4-pusvyd	9a6040c4+	kapplop	FEIL	0	lite	samtidig	avsluttet med kode 1
 2026-11-16 19:11	ccr-5e1ba2f4-pusvyd	9a6040c4+	admintest	OK	11	lite	samtidig	
 2026-11-16 19:11	ccr-5e1ba2f4-pusvyd	9a6040c4+	kapplop	FEIL	21	lite	samtidig	FEIL ruta Lindesnes–Bergen {"err": "Fant ingen rute dit."}
+2026-11-16 19:13	ccr-5e1ba2f4-pusvyd	d02aac6b+	docktest	OK	59	lite	alene	
