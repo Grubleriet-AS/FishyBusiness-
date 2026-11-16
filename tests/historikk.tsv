@@ -5102,3 +5102,30 @@
 2026-11-16 19:21	plan/2026-11-16-134	f74cdf32+	profiltest	FEIL	27	lite	alene	FEIL liggende: Fartstid kommer uten ny innlasting når serveren har fått migreringen
 2026-11-16 19:22	plan/2026-11-16-134	f74cdf32+	profiltest	OK	29	lite	samtidig	
 2026-11-16 19:22	plan/2026-11-16-134	f74cdf32+	cloudtest	OK	45	lite	samtidig	
+2026-11-16 19:29	plan/2026-11-16-134	c10fce21	posttest	OK	27	lite	samtidig	
+2026-11-16 19:29	plan/2026-11-16-134	c10fce21	turtest	OK	21	lite	samtidig	
+2026-11-16 19:29	plan/2026-11-16-134	c10fce21	lagtest	OK	9	lite	samtidig	
+2026-11-16 19:29	plan/2026-11-16-134	c10fce21	tutfull	OK	7	lite	samtidig	
+2026-11-16 19:29	plan/2026-11-16-134	c10fce21	shoptest	OK	42	lite	samtidig	
+2026-11-16 19:29	plan/2026-11-16-134	c10fce21	selltest	LES	28	lite	samtidig	
+2026-11-16 19:29	plan/2026-11-16-134	c10fce21	r4test	OK	18	lite	samtidig	
+2026-11-16 19:29	plan/2026-11-16-134	c10fce21	cashfxtest	OK	11	lite	samtidig	
+2026-11-16 19:29	plan/2026-11-16-134	c10fce21	havtur	FEIL	0	lite	samtidig	FEIL hele kysten mangler i tools/map/out/game (release.py og game.py)
+2026-11-16 19:30	plan/2026-11-16-134	c10fce21	rundshot	OK	30	lite	samtidig	
+2026-11-16 19:30	plan/2026-11-16-134	c10fce21	turlinjetest	OK	9	lite	samtidig	
+2026-11-16 19:30	plan/2026-11-16-134	c10fce21	hbtest	OK	20	lite	samtidig	
+2026-11-16 19:30	plan/2026-11-16-134	c10fce21	itemcardtest	OK	30	lite	samtidig	
+2026-11-16 19:33	plan/2026-11-16-134	c10fce21	telefonflate	OK	191	lite	samtidig	
+2026-11-16 19:33	plan/2026-11-16-134	c10fce21	docktest	OK	66	lite	samtidig	
+2026-11-16 19:33	plan/2026-11-16-134	c10fce21	quotatest	OK	18	lite	samtidig	
+2026-11-16 19:33	plan/2026-11-16-134	c10fce21	kystvakttest	FEIL	8	lite	samtidig	FEIL havsjekken trenger hele kysten i tools/map/out/game (release.py og game.py)
+2026-11-16 19:33	plan/2026-11-16-134	c10fce21	kvotemarkedtest	OK	29	lite	samtidig	
+2026-11-16 19:33	plan/2026-11-16-134	c10fce21	kystkarttest	OK	15	lite	samtidig	
+2026-11-16 19:33	plan/2026-11-16-134	c10fce21	merketest	OK	17	lite	samtidig	
+2026-11-16 19:33	plan/2026-11-16-134	c10fce21	sonetest	OK	10	lite	samtidig	
+2026-11-16 19:33	plan/2026-11-16-134	c10fce21	krabbefabrikktest	OK	21	lite	samtidig	
+2026-11-16 19:34	plan/2026-11-16-134	c10fce21	profiltest	OK	28	lite	samtidig	
+2026-11-16 19:34	plan/2026-11-16-134	c10fce21	booktest	OK	24	lite	samtidig	
+2026-11-16 19:34	plan/2026-11-16-134	c10fce21	cloudtest	OK	48	lite	samtidig	
+2026-11-16 19:34	plan/2026-11-16-134	c10fce21	friendtest	OK	8	lite	samtidig	
+2026-11-16 19:34	plan/2026-11-16-134	c10fce21	seasontest	OK	7	lite	samtidig	
