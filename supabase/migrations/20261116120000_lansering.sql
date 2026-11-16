@@ -70,9 +70,9 @@ begin
   if not is_admin() then raise exception 'admin only'; end if;
   if on_ is null then raise exception 'bad value'; end if;
   if on_ then
-    update founders_cfg set start = coalesce(start, now()), paused = false;
+    update founders_cfg set start = coalesce(start, now()), paused = false where one;   -- (a where: Supabase's safeupdate refuses an update without one)
   else
-    update founders_cfg set paused = true;   -- (paused, not reset: the accounts made while it was on still count when it is on again)
+    update founders_cfg set paused = true where one;   -- (paused, not reset: the accounts made while it was on still count when it is on again)
   end if;
   return admin_founders();
 end $$;
