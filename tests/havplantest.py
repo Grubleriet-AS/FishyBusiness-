@@ -137,6 +137,8 @@ HS = r"""window.SNO = (() => {
 # part 11 (DP3-4): a ring plan for the autoliner or the snow crab vessel, made, searched and played two days closed
 P11 = r"""async ([kind, where]) => { const H = kind === 'auto' ? HPT : SNO; await (kind === 'auto' ? HPT.reset(7, 'port', where || undefined) : SNO.reset(7, 'port', SNO.TF)); const F = H.F; if (!F || !F.length) return {err:'ingen felt'};
   // (made on the page as a player makes it: «Lag driftsplan», Redskap, the ring as a tap on the chart sets it, PLAN2UI.ringPut, and Start)
+  // (the engine just serviced: the hours of the parts before would stop it now and then, svcOverdue, and the search's time is measured without that)
+  S.boat.svcAt = S.boat.engH || 0;
   S.ops = null; PHONE.dact('drift', 'p2-new', {}); const o = S.ops; if (!o) return {err:'p2-new laget ingen plan'}; PHONE.dact('drift', 'p2-g3', {g:kind === 'auto' ? 'line' : 'teiner'});
   const gk = plan3GearKey(o.rig), t0 = performance.now(), why = await new Promise(res => PLAN2UI.ringPut(o, {x:F[0].x, y:F[0].y}, res)); if (why) return {err:'ringen: ' + why, gk};
   PHONE.dact('drift', 'p2-start', {}); for (let k = 0; k < 1200 && !o.on && !o.err; k++) await new Promise(r => setTimeout(r, 100)); if (!o.on) return {err:o.err || 'Start satte ikke planen i gang', gk};
