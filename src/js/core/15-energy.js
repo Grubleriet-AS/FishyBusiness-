@@ -98,9 +98,10 @@ const energyOff = () => !!(S.adm && S.adm.noEnergy);
 // left. The energy model itself (ENERGY, RORBU, the crews' fatigue) is never made harder to sell more: tests/skiptest.py locks the
 // numbers, and the free way, rest in the naust or at a rorbu, stays as it is (docs/engasjement.md). The prices are the database's
 // (supabase/migrations/20261012120000_skippertak.sql); the game shows its own, and the two must agree (as HAILL and BOOSTS).
-const SKIP = {light:{h:24, nok:29, no:'Skippertak Light', en:'Skippertak Light'},
-  std:{h:48, nok:39, no:'Skippertak', en:'Skippertak'},
-  max:{h:96, nok:49, no:'Skippertak Max', en:'Skippertak Max', best:true}};
+// the same ladder as Turbotrim (Jonas 16.11.2026): one effect, four lengths; the three of before (old) stay for what is bought
+const SKIP = {s2:{h:12, nok:29, no:'Skippertak, 2 timer', en:'Skippertak, 2 hours'}, s8:{h:48, nok:79, no:'Skippertak, 8 timer', en:'Skippertak, 8 hours'},
+  s24:{h:144, nok:149, no:'Skippertak, 24 timer', en:'Skippertak, 24 hours'}, s72:{h:432, nok:299, best:true, no:'Skippertak, 3 døgn', en:'Skippertak, 3 days'},
+  light:{h:24, nok:29, old:true, no:'Skippertak Light', en:'Skippertak Light'}, std:{h:48, nok:39, old:true, no:'Skippertak', en:'Skippertak'}, max:{h:96, nok:49, old:true, no:'Skippertak Max', en:'Skippertak Max'}};
 const skipOn = () => !!(S.skip && S.skip.until != null && S.t < S.skip.until);
 const skipLeft = () => skipOn() ? (S.skip.until - S.t) / 60 : 0;   // game hours left
 // the crews of the whole fleet (the vessel you are on keeps hers in S.crew, the others in their own fields: VKEYS)

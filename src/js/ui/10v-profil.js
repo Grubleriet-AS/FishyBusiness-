@@ -6,8 +6,8 @@
 // changes, at most every ten minutes with the shared world (ui/10h-world.js worldShare); the sea time, the name, the catch landed and the
 // place on the total list are the server's own. Everything is open to all (Jonas: «Alt åpent, ikke valgbart»). Haill is never in it.
 // The picture: the player's own, shrunk to 256 px, shown to others only once the admin has approved it (Jonas: «Eget bilde med
-// godkjenning»; players from 13 years). «Ferdigheter»: the player has no skill figures of their own in the game (only the crew has, core/
-// 13-work.js stSkill), so the profile shows what the player has done: the milestones and the biggest fish of each species (09b-records.js).
+// godkjenning»; players from 13 years). «Ferdigheter»: the player's own skills since RANK1 (core/09e-fartstid.js fsSkills), sent as prof.sk;
+// the milestones and the biggest fish of each species (09b-records.js) in a card of their own.
 const PROF = (() => {
   const C = new Map(), L2 = (no, en) => S.lang === 'en' ? en : no;
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'})[c]);
@@ -26,13 +26,21 @@ const PROF = (() => {
     return e;
   }
   function open(hid){ want = hid || null; if (typeof PHONE !== 'undefined') PHONE.open('profil'); }
+  // the player's own skills (RANK1, core/09e-fartstid.js fsSkills), one decimal each; {} before they exist
+  const mySk = () => { if (typeof fsSkills !== 'function' || typeof FSK === 'undefined') return {}; const sk = fsSkills() || {}, o = {};
+    for (const k of FSK.keys) if (isFinite(sk[k])) o[k] = Math.round(sk[k] * 10) / 10; return o; };
+  // the skills as bars to 5 (the same bars as Milepæler's «Nivå og ferdigheter», phone/08-home-papers-merker.js fsCard)
+  const skBars = sk => { const en = S.lang === 'en', ks = typeof FSK !== 'undefined' ? FSK.keys : Object.keys(sk || {}), top = typeof FSK !== 'undefined' ? FSK.top : 5;
+    const rows = ks.filter(k => isFinite((sk || {})[k])).map(k => { const v = +sk[k], nm = typeof FSK_NAME !== 'undefined' && FSK_NAME[k] ? FSK_NAME[k][en ? 1 : 0] : k;
+      return '<div class="rk-sk"><span class="rk-n">' + esc(nm) + '</span><span class="rk-bar"><i style="width:' + (Math.min(1, v / top) * 100).toFixed(1) + '%"></i></span><span class="rk-v">' + (en ? v.toFixed(1) : v.toFixed(1).replace('.', ',')) + '</span></div>'; });
+    return rows.length ? '<div class="rk-list">' + rows.join('') + '</div>' : ''; };
   // the game's own figures for the profile
   function figures(){
     const fl = S.fleet || [], value = fl.reduce((a, v) => { try { return a + vesselValue(v); } catch (e){ return a; } }, 0);
     const debt = ((S.loan && S.loan.bal) || 0) + ((S.loanIN && S.loanIN.bal) || 0), spare = (S.bank && S.bank.spare) || 0;
     const recs = Object.values(typeof recState === 'function' ? recState() : (S.rec || {})).filter(r => r && r.kg > 0).sort((a, b) => b.kg - a.kg).slice(0, 6).map(r => ({sp:r.sp, kg:+(+r.kg).toFixed(1)}));
     return {fleet:fl.length, value:Math.round(value), worth:Math.round(value + (S.cash || 0) + spare - debt), company:String(S.company || '').slice(0, 40), form:S.form === 'AS' ? 'AS' : 'ENK',
-      ach:S.ach && S.ach.d ? Object.keys(S.ach.d).length : 0, boats:fl.slice(0, 20).map(v => ({n:String(vget(v, 'boatName') || '').slice(0, 24), t:(vget(v, 'boat') || {}).type || ''})), recs};
+      ach:S.ach && S.ach.d ? Object.keys(S.ach.d).length : 0, boats:fl.slice(0, 20).map(v => ({n:String(vget(v, 'boatName') || '').slice(0, 24), t:(vget(v, 'boat') || {}).type || ''})), recs, sk:mySk()};
   }
   let lastPut = '';
   async function put(){
@@ -89,7 +97,11 @@ const PROF = (() => {
         kv(L2('Form', 'Form'), P.form === 'AS' ? L2('Aksjeselskap', 'Limited company') : L2('Enkeltpersonforetak', 'Sole proprietorship')) +
         kv(L2('Selskapsverdi', 'Company worth'), krN(P.worth)) + kv(L2('Flåtens verdi', 'Fleet value'), krN(P.value)) + kv(L2('Båter', 'Boats'), fmt(P.fleet, 0)) +
         (P.boats || []).map(b => kv(esc(b.n || '–'), vName(b.t))).join('') + '</div>');
-      h.push('<div class="ph-card"><h4>' + L2('Ferdigheter', 'Skills') + '</h4>' + kv(L2('Milepæler', 'Milestones'), fmt(P.ach || 0, 0)) +
+      // the skills themselves (Jonas 16.11.2026: «Ferdigheter skal vises inne i spillerprofilen»): your own from the game, another's
+      // from the server (prof.sk, 20261116210000_profil_ferdigheter.sql); then the milestones and the biggest fish in their own card
+      const bars = skBars(me ? mySk() : P.sk);
+      h.push('<div class="ph-card"><h4>' + L2('Ferdigheter', 'Skills') + '</h4>' + (bars || '<p class="ph-note">' + L2('Ferdighetene vises når spilleren har vært inne i en nyere versjon av spillet.', 'The skills show once the player has been in a newer version of the game.') + '</p>') + '</div>');
+      h.push('<div class="ph-card"><h4>' + L2('Milepæler og rekorder', 'Milestones and records') + '</h4>' + kv(L2('Milepæler', 'Milestones'), fmt(P.ach || 0, 0)) +
         ((P.recs || []).length ? '<p class="ph-note" style="margin:6px 0 2px">' + L2('Største fisk', 'Biggest fish') + '</p>' + P.recs.map(r => kv(esc(typeof spName === 'function' && SPECIES[r.sp] ? spName(r.sp) : r.sp), fmt(r.kg, 1) + ' kg')).join('') : '') + '</div>');
     } else if (!me) h.push('<div class="ph-card"><p class="ph-note">' + L2('Spilleren har ikke vært inne siden profilene kom.', 'The player has not been in since the profiles came.') + '</p></div>');
     if (me) h.push('<p class="ph-note" style="padding:0 4px">' + L2('Profilen din er åpen for alle spillerne.', 'Your profile is open to all the players.') + '</p>');

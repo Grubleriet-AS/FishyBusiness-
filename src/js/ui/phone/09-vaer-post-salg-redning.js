@@ -126,7 +126,7 @@
         h.push('<div class="ph-card"><p class="ph-note">' + (fsK ? L('Topplista etter fartstid kommer snart.', 'The leaderboard by sea time is coming soon.') : L('Topplista i kroner og totalt kommer snart.', 'The leaderboard in kroner and in total is coming soon.')) + '</p></div>');
       } else if (fsK && T && !T.err){
         // RANK1-c (steg 134, Jonas 16.11.2026, V4 A: «Fane i topplista»): the registered players by the server's sea time, with the level
-        // only (the skills are the player's own, and haill is never shown); a guest sees only themselves (ui/10h-world.js worldTop)
+        // only on the list (the skills are on the profile from #97, a tap away; haill is never shown); a guest sees only themselves (ui/10h-world.js worldTop)
         const d = T.data, rows = d ? d.rows || [] : null, lv = y => { y = Math.max(0, y | 0); return L('Nivå ', 'Level ') + Math.min(y, 40) + (y > 40 ? ' ★' + (y - 40) : ''); };
         h.push('<div class="ph-card"><h4>' + L('Kystens mest erfarne', 'The coast\'s most experienced') + '</h4>' + (!d ? '<p class="ph-note">' + L('Henter topplista …', 'Fetching the leaderboard …') + '</p>'
           : !rows.length ? '<p class="ph-note">' + L('Ingen har fartstid ennå.', 'No one has sea time yet.') + '</p>'
@@ -136,7 +136,7 @@
               const who = r.me ? me : escT(un && un !== '–' ? un : bn && bn !== '–' ? bn : L('Ukjent skipper', 'Unknown skipper'));
               return '<tr class="' + (r.me ? 'me' : '') + (r.hid ? ' pf-tap' : '') + '"' + tap + '><td>' + r.rank + '</td><td>' + who + fb(r.f) + (!r.me && un && bn && bn !== '–' ? co(bn) : '') + '</td><td class="n">' + lv(r.y) + '</td></tr>'; }).join('') +
             (d.mine && d.mine.rank > rows.length ? '<tr class="me"><td>' + d.mine.rank + '</td><td>' + me + '</td><td class="n">' + lv(d.mine.y) + '</td></tr>' : '') + '</table>') +
-          '<p class="ph-note">' + L('Hele kysten: de registrerte spillerne etter fartstida si, slik serveren har den. Bare nivået vises; ferdighetene dine er dine egne. Trykk på en skipper for å se profilen.', 'The whole coast: the registered players by their sea time, as the server has it. Only the level shows; your skills are your own. Tap a skipper to see the profile.') +
+          '<p class="ph-note">' + L('Hele kysten: de registrerte spillerne etter fartstida si, slik serveren har den. Trykk på en skipper for å se profilen med ferdighetene.', 'The whole coast: the registered players by their sea time, as the server has it. Tap a skipper to see the profile with the skills.') +
             (d && d.n ? ' ' + L(d.n + (d.n === 1 ? ' skipper' : ' skippere') + ' på lista.', d.n + (d.n === 1 ? ' skipper' : ' skippers') + ' on the list.') : '') +
             (typeof isGuest === 'function' && isGuest() ? ' ' + L('Som gjest står du bare på din egen liste; de andre ser deg ikke før du har registrert deg.', 'As a guest you are only on your own list; the others do not see you until you register.') : '') +
             '</p></div>');

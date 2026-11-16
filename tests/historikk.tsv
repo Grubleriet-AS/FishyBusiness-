@@ -5057,6 +5057,29 @@
 2026-11-16 17:01	ccr-5e1ba2f4-pusvyd	cc750522+	errtest	OK	47	lite	samtidig	
 2026-11-16 17:01	ccr-5e1ba2f4-pusvyd	cc750522+	jukseboot	OK	11	lite	samtidig	
 2026-11-16 16:27	ccr-349425a1-raf94t	a7f24b0+	fartstidtest	OK	14	lite	alene	
+2026-11-16 16:53	ccr-349425a1-raf94t	ea9e439+	hailltest	FEIL	15	lite	samtidig	avsluttet med kode 1
+2026-11-16 16:53	ccr-349425a1-raf94t	ea9e439+	kjoptest	FEIL	8	lite	samtidig	avsluttet med kode 1
+2026-11-16 16:53	ccr-349425a1-raf94t	ea9e439+	skiptest	FEIL	8	lite	samtidig	FEIL 4a. prisene i spillet og i migreringen er like: 1, 2 og 4 døgn for 29, 39 og 49 kr  {"game": {"s4": [24, 29], "s12": [72, 49], "s24": [144, 79], "s72": [43
+2026-11-16 16:54	ccr-349425a1-raf94t	6ffb4af	docktest	FEIL	62	lite	samtidig	FEIL telefonen har appene, med Kvote, Regler, Kaiboden, Patchnotes og Admin i rekkefølge  ['rederi', 'drift', 'ordl', 'nett', 'salg', 'kvote', 'regler', 'kaibod
+2026-11-16 16:56	ccr-349425a1-raf94t	6ffb4af	telefonflate	FEIL	157	lite	samtidig	FEIL stående nettbrett: alle appene er på hjemskjermen med navnet sitt  {'rederi': 'Rederi', 'profil': 'Profil', 'social': 'Fellesskap'}
+2026-11-16 16:56	ccr-349425a1-raf94t	6ffb4af	csptest	OK	92	lite	samtidig	
+2026-11-16 16:59	ccr-349425a1-raf94t	6ffb4af+	hailltest	FEIL	15	lite	samtidig	avsluttet med kode 1
+2026-11-16 17:02	ccr-349425a1-raf94t	6ffb4af+	kjoptest	FEIL	180	lite	samtidig	FEIL back from Stripe the game gives the haill and the trim on the boat, tells the server, and clears ?kjop from the address  {"r": {"inv": 1, "own": 0, "srv": 
+2026-11-16 17:02	ccr-349425a1-raf94t	6ffb4af+	skiptest	FEIL	16	lite	samtidig	FEIL 5c. staaende: fanene er store nok for en finger, fanene og kortene er innenfor skjermen  {"tabH": 35, "tabRight": 751, "cardRight": 755, "W": 800}
+2026-11-16 17:02	ccr-349425a1-raf94t	6ffb4af+	docktest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-16 17:03	ccr-349425a1-raf94t	6ffb4af+	telefonflate	OK	188	lite	samtidig	
+2026-11-16 17:05	ccr-349425a1-raf94t	6ffb4af+	boostklokke	FEIL	155	lite	samtidig	FEIL A boot, no remainder: kjøpet kom ikke fram i testen {'sr': True, 'h': 0, 't': 363619, 'w': 363619} ["Cannot read properties of undefined (reading 't0')"]
+2026-11-16 17:06	ccr-349425a1-raf94t	6ffb4af+	hailltest	FEIL	15	lite	samtidig	avsluttet med kode 1
+2026-11-16 17:08	ccr-349425a1-raf94t	6ffb4af+	kjoptest	FEIL	148	lite	samtidig	avsluttet med kode 1
+2026-11-16 17:08	ccr-349425a1-raf94t	6ffb4af+	skiptest	OK	16	lite	samtidig	
+2026-11-16 17:08	ccr-349425a1-raf94t	6ffb4af+	docktest	OK	63	lite	samtidig	
+2026-11-16 17:08	ccr-349425a1-raf94t	6ffb4af+	boostklokke	OK	59	lite	samtidig	
+2026-11-16 17:09	ccr-349425a1-raf94t	6ffb4af+	hailltest	LES	33	lite	samtidig	
+2026-11-16 17:11	ccr-349425a1-raf94t	6ffb4af+	kjoptest	FEIL	164	lite	samtidig	FEIL HS3: a trim bought for a boat that is not in the fleet is not given, and not marked as given (it is asked about again)  {"trim": {"k": "turbo", "left": 66,
+2026-11-16 17:11	ccr-349425a1-raf94t	6ffb4af+	skiptest	OK	17	lite	samtidig	
+2026-11-16 17:15	ccr-349425a1-raf94t	6ffb4af+	kjoptest	OK	219	lite	samtidig	
+2026-11-16 17:15	ccr-349425a1-raf94t	6ffb4af+	telefonflate	OK	206	lite	samtidig	
+2026-11-16 17:16	ccr-349425a1-raf94t	6ffb4af+	skiptest	OK	14	lite	alene	
 2026-11-16 17:05	ccr-5e1ba2f4-pusvyd	c647c862	boottest	OK	39	lite	samtidig	
 2026-11-16 17:06	ccr-5e1ba2f4-pusvyd	c647c862	docktest	OK	71	lite	samtidig	
 2026-11-16 17:10	ccr-5e1ba2f4-pusvyd	c647c862	telefonflate	OK	270	lite	samtidig	
@@ -5069,6 +5092,15 @@
 2026-11-16 17:13	ccr-5e1ba2f4-pusvyd	c647c862	planhjem	OK	18	lite	samtidig	
 2026-11-16 17:14	ccr-5e1ba2f4-pusvyd	615db1fc	havplantest	FEIL	1429	lite	samtidig	FEIL spot check Egersund: the plan made, out from Egersund, the lenker set and hauled, fish aboard [[{'lat': 58.249999999999986, 'lon': 4.9}, {'lat': 58.3826273
 2026-11-16 17:14	ccr-5e1ba2f4-pusvyd	615db1fc	havnstengt	FEIL	40	lite	samtidig	FEIL a berth in Bodø to put the boat at (vec packs in the build?) {'err': 'no berth'}
+2026-11-16 17:21	ccr-349425a1-raf94t	fe832d7	skiptest	OK	16	lite	samtidig	
+2026-11-16 17:21	ccr-349425a1-raf94t	fe832d7	docktest	OK	61	lite	samtidig	
+2026-11-16 17:25	ccr-349425a1-raf94t	b1d06aa+	skiptest	OK	15	lite	alene	
+2026-11-16 17:25	ccr-349425a1-raf94t	b1d06aa+	skiptest	FEIL	15	lite	alene	FEIL 4c. kvitteringen: en pakke er ett kjøp, én linje med prisen én gang (Haill × 8 for 129 kr, Sesongpakken for 149 kr)  {"its": ["Haill × 8 · 💎 129 krlevert",
+2026-11-16 17:33	ccr-349425a1-raf94t	b1d06aa+	kjoptest	OK	196	lite	samtidig	
+2026-11-16 17:33	ccr-349425a1-raf94t	b1d06aa+	hailltest	LES	32	lite	samtidig	
+2026-11-16 17:33	ccr-349425a1-raf94t	b1d06aa+	boostklokke	OK	60	lite	samtidig	
+2026-11-16 17:33	ccr-349425a1-raf94t	b1d06aa+	skiptest	OK	19	lite	samtidig	
+2026-11-16 17:34	ccr-349425a1-raf94t	b1d06aa+	telefonflate	OK	158	lite	samtidig	
 2026-11-16 17:31	plan/2026-11-16-134	13134443+	hbtest	OK	20	lite	samtidig	
 2026-11-16 17:32	plan/2026-11-16-134	f7b0d538	docktest	OK	69	lite	samtidig	
 2026-11-16 17:32	plan/2026-11-16-134	f7b0d538	fartstidtest	OK	18	lite	samtidig	
@@ -5077,6 +5109,15 @@
 2026-11-16 17:32	plan/2026-11-16-134	f7b0d538	skiptest	OK	18	lite	samtidig	
 2026-11-16 17:33	plan/2026-11-16-134	f7b0d538	trip2	OK	32	lite	samtidig	
 2026-11-16 17:34	plan/2026-11-16-134	f7b0d538	driftsplan2test	OK	101	lite	alene	
+2026-11-16 18:53	ccr-349425a1-raf94t	694671d+	sqltest	FEIL	58	lite	samtidig	FEIL the shop: a quote only for a real product and a signed-in player, one grant per paid purchase however often Stripe tells it, given and done once, a refund 
+2026-11-16 18:53	ccr-349425a1-raf94t	694671d+	skiptest	OK	16	lite	samtidig	
+2026-11-16 18:55	ccr-349425a1-raf94t	694671d+	kjoptest	OK	169	lite	samtidig	
+2026-11-16 18:55	ccr-349425a1-raf94t	694671d+	hailltest	LES	34	lite	samtidig	
+2026-11-16 18:55	ccr-349425a1-raf94t	694671d+	boostklokke	OK	59	lite	samtidig	
+2026-11-16 18:56	ccr-349425a1-raf94t	694671d+	guesttest	OK	75	lite	samtidig	
+2026-11-16 18:57	ccr-349425a1-raf94t	694671d+	sqltest	OK	58	lite	alene	
+2026-11-16 18:57	ccr-349425a1-raf94t	2682819+	skiptest	OK	14	lite	alene	
+2026-11-16 19:35	ccr-349425a1-raf94t	cab81f4+	skiptest	OK	15	lite	alene	
 2026-11-13 22:38	plan/2026-11-13-118	dde010a3	boottest	OK	33	lite	samtidig	
 2026-11-13 22:41	plan/2026-11-13-118	dde010a3	telefonflate	OK	191	lite	samtidig	
 2026-11-13 22:41	plan/2026-11-13-118	dde010a3	docktest	OK	65	lite	samtidig	
@@ -5132,3 +5173,24 @@
 2026-11-16 19:41	plan/2026-11-16-134	c4ba7c42	starttest	OK	431	lite	samtidig	
 2026-11-16 19:41	plan/2026-11-16-134	c4ba7c42	streaktest	OK	75	lite	samtidig	
 2026-11-16 19:55	plan/2026-11-16-134	c4ba7c42	teleport3d	OK	835	3d	alene	
+2026-11-16 19:38	ccr-349425a1-raf94t	56b52aa	sqltest	OK	60	lite	samtidig	
+2026-11-16 19:38	ccr-349425a1-raf94t	56b52aa	skiptest	OK	15	lite	samtidig	
+2026-11-16 19:40	ccr-349425a1-raf94t	56b52aa	kjoptest	OK	164	lite	samtidig	
+2026-11-16 19:53	ccr-349425a1-raf94t	4d42f83+	skiptest	OK	15	lite	alene	
+2026-11-16 19:56	ccr-349425a1-raf94t	4d42f83+	sqltest	OK	62	lite	samtidig	
+2026-11-16 19:56	ccr-349425a1-raf94t	4d42f83+	profiltest	OK	21	lite	samtidig	
+2026-11-16 19:57	ccr-349425a1-raf94t	4d42f83+	skiptest	OK	14	lite	alene	
+2026-11-16 20:02	ccr-349425a1-raf94t	4d42f83+	csptest	OK	91	lite	samtidig	
+2026-11-16 20:02	ccr-349425a1-raf94t	4d42f83+	boottest	OK	28	lite	samtidig	
+2026-11-16 20:02	ccr-349425a1-raf94t	4d42f83+	skiptest	OK	15	lite	samtidig	
+2026-11-16 20:02	ccr-349425a1-raf94t	4d42f83+	profiltest	OK	20	lite	samtidig	
+2026-11-16 20:04	ccr-349425a1-raf94t	4d42f83+	kjoptest	OK	158	lite	samtidig	
+2026-11-16 20:09	ccr-349425a1-raf94t	4d42f83+	docktest	OK	64	lite	samtidig	
+2026-11-16 20:10	ccr-349425a1-raf94t	4d42f83+	telefonflate	OK	146	lite	samtidig	
+2026-11-16 20:11	ccr-349425a1-raf94t	4d42f83+	profiltest	FEIL	20	lite	alene	FEIL liggende: et trykk på raden åpner spillerens profil med navnet, Founder #1, selskapsverdien og ferdighetene (sju søyler, Juksa 3,2) {"app": "profil", "ola"
+2026-11-16 20:11	ccr-349425a1-raf94t	ee215f8	skiptest	OK	18	lite	samtidig	
+2026-11-16 20:11	ccr-349425a1-raf94t	ee215f8	profiltest	OK	22	lite	samtidig	
+2026-11-16 20:22	plan/2026-11-16-134	88249630+	profiltest	OK	33	lite	samtidig	
+2026-11-16 20:23	plan/2026-11-16-134	88249630+	docktest	OK	68	lite	samtidig	
+2026-11-16 20:25	plan/2026-11-16-134	88249630+	telefonflate	OK	159	lite	samtidig	
+2026-11-16 20:25	plan/2026-11-16-134	88249630+	cloudtest	OK	54	lite	samtidig	

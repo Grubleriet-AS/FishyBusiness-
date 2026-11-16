@@ -50,7 +50,7 @@ async def hs4(br, handle, st, calls, errs):
     ago = lambda h: (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=h)).isoformat()
     dn = lambda id_, product, data, h: {'id': id_, 'product': product, 'data': data, 'done': True, 'done_at': ago(h)}
     SEE = """({stock:haillStock(S.haillInv, S.haillSrv, S.haillUsed), inv:[(S.haillInv || {}).haill || 0, (S.haillInv || {}).luksus || 0], on:S.haill ? {type:S.haill.type, age:Math.round(S.t - S.haill.t0)} : null, boost:haillBoost(),
-      trim:S.boat.trim ? {k:S.boat.trim.k, left:+trimLeft(S.boat).toFixed(2)} : null, vx:+(BOAT.vmax / VESSELS[S.boat.type].vmax).toFixed(2), skip:S.skip ? {k:S.skip.k, left:+skipLeft().toFixed(2)} : null, credit:S.yardCredit || 0,
+      trim:trimRec(S.boat) ? {k:trimRec(S.boat).k, left:+trimLeft(S.boat).toFixed(2)} : null, vx:+(BOAT.vmax / VESSELS[S.boat.type].vmax).toFixed(2), skip:S.skip ? {k:S.skip.k, left:+skipLeft().toFixed(2)} : null, credit:S.yardCredit || 0,
       cos:Object.keys(S.cos || {}).sort(), fix:(CLOUD.q || []).filter(e => e.k === 'srv_fix').map(e => e.d.what).sort(), thanks:S.msgs.filter(m => /Takk for kjøpet/.test(m.no)).length, rc:!!document.querySelector('#modal:not([hidden]) .shoprc'), hs4:SHOP.hs4})"""
     claim = "(async () => { CLOUD.sid = CLOUD.sid || 'sid_test'; CLOUD.q = []; const n = await shopClaim(); await new Promise(r => setTimeout(r, 300)); const o = " + SEE + "; o.n = n; return o; })()"
     cur = await pg.evaluate("(async () => { S.tut = 0; S.cash = 50000; await shopClaim(); return S.cur; })()")
@@ -67,7 +67,7 @@ async def hs4(br, handle, st, calls, errs):
           'HS4: the save\'s own haill are all brought over once (4 haill of its own and the one the server still keeps, 3 luksus, 1 thank-you, and the luksus aboard; the 4 credits only within what the server delivered: 0), the haill aboard stays as old as it was, and the numbers in the save are gone', {'a': {k: a[k] for k in ('hs4', 'stock', 'inv', 'credit', 'on', 'boost')}, 'calls': ic, 'again': a2['stock']})
     # b. written into the save, then the next start: the haill in store, the haill aboard, a trim, Skippertak, the credit and a
     # paint design are what the server says, not what the save says
-    await pg.evaluate("""(() => { S.haillInv = {haill:50, luksus:9}; S.haillSrv.push({id:999, type:'luksus'}); S.haill = {type:'luksus', t0:S.t, how:'inv'}; S.boat.trim = {k:'turbo', t0:S.t, until:S.t + 72 * 60}; applyVessel();
+    await pg.evaluate("""(() => { S.haillInv = {haill:50, luksus:9}; S.haillSrv.push({id:999, type:'luksus'}); S.haill = {type:'luksus', t0:S.t, how:'inv'}; S.trim = {k:'turbo', t0:S.t, until:S.t + 72 * 60}; applyVessel();
       S.skip = {k:'max', t0:S.t, until:S.t + 96 * 60}; S.yardCredit = 9; S.cos = {ripe:1, logo:1}; save(); })()""")
     b0 = await pg.evaluate(SEE)
     await pg.reload(); await pg.wait_for_function("typeof SHOP !== 'undefined' && CLOUD.user && SHOP.ready === true", timeout=120000)
@@ -92,7 +92,7 @@ async def hs4(br, handle, st, calls, errs):
     # ends further out does not last: the next claim puts the server's back, and the fix is counted
     st['grants'] += [dn(60, 'trim_turbo', {'give': 'trim', 'k': 'turbo', 'boat': cur}, 2), dn(61, 'skip', {'give': 'skip', 'k': 'std'}, 1), dn(62, 'verft_na', {'give': 'yard', 'boat': cur}, 30), dn(63, 'haill', {'give': 'haill', 'type': 'haill'}, 30)]; st['owned'] = ['des_ripe']
     c = await pg.evaluate(claim)
-    await pg.evaluate("(() => { S.boat.trim.until += 1000 * 60; applyVessel(); S.skip.until += 5000 * 60; S.yardCredit = 7; S.haillSrv = S.haillSrv.concat([{id:998, type:'luksus'}]); S.cos = {lakk:1}; S.haill = {type:'luksus', t0:S.t, how:'inv'}; })()")
+    await pg.evaluate("(() => { trimRec(S.boat).until += 1000 * 60; applyVessel(); S.skip.until += 5000 * 60; S.yardCredit = 7; S.haillSrv = S.haillSrv.concat([{id:998, type:'luksus'}]); S.cos = {lakk:1}; S.haill = {type:'luksus', t0:S.t, how:'inv'}; })()")
     c2 = await pg.evaluate(claim)
     want = lambda r: r['trim'] and r['trim']['k'] == 'turbo' and abs(r['trim']['left'] - 60) < 0.5 and r['vx'] == 2 and r['skip'] and r['skip']['k'] == 'std' and abs(r['skip']['left'] - 42) < 0.5 and r['credit'] == 1 and r['stock'] == {'haill': 6, 'luksus': 3, 'takk': 1} and r['cos'] == ['ripe'] and r['on']['age'] >= 119
     check(want(c) and c['thanks'] == 0 and not c['rc'], 'HS4: what the server has delivered comes to a save without it: the trim and Skippertak with the time that is left (60 h, 42 h), the credit, the haill and the design, with no new confirmation', {k: c[k] for k in ('trim', 'vx', 'skip', 'credit', 'stock', 'cos', 'thanks')})
@@ -250,7 +250,7 @@ async def hs4(br, handle, st, calls, errs):
     # i. a server from before the migration (the new functions answer 404): the game as after HS3, all of it. What is in the save stands,
     # the pub draws itself, and the chapter's haill is the game's own
     st['hs4'] = False
-    i = await pg.evaluate("""(async () => { SHOP.hs4 = null; S.boat.trim = {k:'turbo', t0:S.t, until:S.t + 72 * 60}; applyVessel(); S.haillInv = {haill:3, luksus:0}; await shopClaim(); const hs4 = SHOP.hs4, trim = S.boat.trim && S.boat.trim.k, inv = S.haillInv.haill;
+    i = await pg.evaluate("""(async () => { SHOP.hs4 = null; S.trim = {k:'turbo', t0:S.t, until:S.t + 72 * 60}; applyVessel(); S.haillInv = {haill:3, luksus:0}; await shopClaim(); const hs4 = SHOP.hs4, trim = trimRec(S.boat) && trimRec(S.boat).k, inv = S.haillInv.haill;
       const ask = achHaillAsk(); S.pubE = null; const c0 = S.cash, d = await PUBW.round(); return {hs4, trim, inv, ask, k:!!(d && d.seg), paid:c0 - S.cash}; })()""")
     check(i == {'hs4': False, 'trim': 'turbo', 'inv': 3, 'ask': False, 'k': True, 'paid': 1000}, 'HS4: against a server from before the migration the game is as after HS3: what is in the save stands, the pub draws itself and the chapter\'s haill is the game\'s own', i)
     await ctx.close()
@@ -358,8 +358,8 @@ async def main():
             pg = await ctx.new_page(); pg.on('pageerror', lambda e: errs.append(str(e)))
             # 1. not set up yet: «Snart i salg», and a tap gives nothing
             await boot(pg, url()); await pg.wait_for_timeout(1500)
-            r = await pg.evaluate("""(async () => { S.tut = 0; const n0 = (S.haillInv || {}).haill || 0; PHONE.open('haill'); await new Promise(r => setTimeout(r, 300));
-              const b = document.querySelector('#phone [data-pa=haillbuy][data-k=haill]'), lab = b && b.textContent; b.click(); await new Promise(r => setTimeout(r, 300));
+            r = await pg.evaluate("""(async () => { S.tut = 0; const n0 = (S.haillInv || {}).haill || 0; PHONE.open('haill'); await new Promise(r => setTimeout(r, 300)); { const t = document.querySelector('#phone [data-pa=sub][data-s=boost]'); if (t) { t.click(); await new Promise(r => setTimeout(r, 200)); } }
+              const b = document.querySelector('#phone [data-pa=kbbuy][data-k=hp_h1]'), lab = b && b.textContent; b.click(); await new Promise(r => setTimeout(r, 300));
               const n1 = (S.haillInv || {}).haill || 0; PHONE.show(false); return {mode:shopMode(), lab, given:n1 - n0, fine:!!document.querySelector('#phone .shop-fine')}; })()""")
             check(r['mode'] == 'off' and r['lab'] == 'Snart i salg' and r['given'] == 0 and not r['fine'], 'before Stripe is set up a signed-in player sees «Snart i salg» and gets nothing free', r)
             # 2. set up: the price on the button, the consent line, and a tap goes straight to Stripe with the right product and boat
@@ -367,12 +367,12 @@ async def main():
             await pg.wait_for_function("SHOP.ready !== null", timeout=60000)
             st['ready'] = True
             await pg.evaluate("shopStart()"); await pg.wait_for_function("SHOP.ready === true", timeout=20000)
-            r = await pg.evaluate("""(async () => { PHONE.open('haill'); await new Promise(r => setTimeout(r, 300)); const b = document.querySelector('#phone [data-pa=haillbuy][data-k=haill]');
+            r = await pg.evaluate("""(async () => { PHONE.open('haill'); await new Promise(r => setTimeout(r, 300)); { const t = document.querySelector('#phone [data-pa=sub][data-s=boost]'); if (t) { t.click(); await new Promise(r => setTimeout(r, 200)); } } const b = document.querySelector('#phone [data-pa=kbbuy][data-k=hp_h1]');
               const f = document.querySelector('#phone .shop-fine'), cs = f && getComputedStyle(f); return {mode:shopMode(), lab:b.textContent, fine:f && f.textContent, size:cs && parseFloat(cs.fontSize), op:cs && +cs.opacity, cur:S.cur}; })()""")
-            check(r['mode'] == 'live' and r['lab'] == 'Kjøp · 💎 29 kr' and r['fine'] and 'angreretten' in r['fine'] and r['size'] <= 11 and r['op'] < 0.8, 'set up: the button shows the price, with a small quiet line on the right of withdrawal under it', r)
+            check(r['mode'] == 'live' and r['lab'] == 'Kjøp · 💎 39 kr' and r['fine'] and 'angreretten' in r['fine'] and r['size'] <= 11 and r['op'] < 0.8, 'set up: the button shows the price, with a small quiet line on the right of withdrawal under it', r)
             cur = r['cur']
             async with pg.expect_navigation(url='**/checkout.stripe.test/**', timeout=45000):
-                await pg.evaluate("document.querySelector('#phone [data-pa=haillbuy][data-k=haill]').click()")
+                await pg.evaluate("document.querySelector('#phone [data-pa=kbbuy][data-k=hp_h1]').click()")   # (the Boostere tab is on from the line above)
             co = [c for c in calls if c[0] == 'checkout']
             check(co and co[-1][1].get('product') == 'haill' and co[-1][1].get('boat') == cur and co[-1][2] == 'Bearer tok_test' and 'checkout.stripe.test' in pg.url, 'a tap asks shop-checkout for the haill with the player\'s token and boat, and goes straight to Stripe', {'call': co[-1][1] if co else None, 'url': pg.url})
             # 3. back from Stripe: the grants are given, the server told, nothing twice
@@ -385,7 +385,7 @@ async def main():
             # a saved game: no first screen, the game goes straight on (boot() waits for the new game's «Start»)
             pg2.set_default_timeout(120000); await pg2.goto(url('kjop=cs_test_1'))
             await pg2.wait_for_function("typeof SHOP !== 'undefined' && CLOUD.user && SHOP.ready === true && (S.shopGiven || []).length >= 3", timeout=120000); await pg2.wait_for_timeout(800)
-            r = await pg2.evaluate("""({inv:""" + STOCK + """.haill, own:(S.haillInv || {}).haill || 0, srv:(S.haillSrv || []).map(x => x.id), trim:S.boat.trim && S.boat.trim.k, vmax:BOAT.vmax, spec:VESSELS[S.boat.type].vmax, diesel:canBoost(VESSELS[S.boat.type]),
+            r = await pg2.evaluate("""({inv:""" + STOCK + """.haill, own:(S.haillInv || {}).haill || 0, srv:(S.haillSrv || []).map(x => x.id), trim:trimRec(S.boat) && trimRec(S.boat).k, vmax:BOAT.vmax, spec:VESSELS[S.boat.type].vmax, diesel:canBoost(VESSELS[S.boat.type]),
               given:S.shopGiven, qs:location.search, toast:(document.getElementById('toast') || {}).textContent || ''})""")
             done = [c[1].get('ids') for c in calls[n0:] if c[0] == 'shop_done']
             check(r['inv'] == 1 and (not r['diesel'] or (r['trim'] == 'turbo' and abs(r['vmax'] - r['spec'] * 2) < 0.05)) and r['given'] == [7, 8, 9] and done and done[0] == [7, 8, 9] and 'kjop' not in r['qs'],
@@ -438,8 +438,8 @@ async def main():
             ctx2 = await br.new_context(viewport={'width': 1100, 'height': 800}); await ctx2.add_init_script(STUB); await ctx2.route('https://sb.test/**', handle)
             pg4 = await ctx2.new_page(); pg4.on('pageerror', lambda e: errs.append(str(e)))
             await boot(pg4, BASE + '#notut,nocloud,ro0'); await pg4.wait_for_timeout(800)
-            r5 = await pg4.evaluate("""(async () => { S.tut = 0; const n0 = (S.haillInv || {}).haill || 0; PHONE.open('haill'); await new Promise(r => setTimeout(r, 300));
-              const b = document.querySelector('#phone [data-pa=haillbuy][data-k=haill]'), lab = b && b.textContent; if (b) b.click(); await new Promise(r => setTimeout(r, 300));
+            r5 = await pg4.evaluate("""(async () => { S.tut = 0; const n0 = (S.haillInv || {}).haill || 0; PHONE.open('haill'); await new Promise(r => setTimeout(r, 300)); { const t = document.querySelector('#phone [data-pa=sub][data-s=boost]'); if (t) { t.click(); await new Promise(r => setTimeout(r, 200)); } }
+              const b = document.querySelector('#phone [data-pa=kbbuy][data-k=hp_h1]'), lab = b && b.textContent; if (b) b.click(); await new Promise(r => setTimeout(r, 300));
               const n1 = (S.haillInv || {}).haill || 0; PHONE.show(false); return {on:CLOUD.on, pub:pubHost(), mode:shopMode(), lab, given:n1 - n0}; })()""")
             check(not r5['on'] and r5['pub'] and r5['mode'] == 'off' and r5['lab'] == 'Snart i salg' and r5['given'] == 0,
                   "#nocloud on the game's own site: the shop is closed («Snart i salg») and a tap gives nothing (Ø6 funn 5)", r5)
@@ -447,8 +447,8 @@ async def main():
         # 6. the shop closed for new accounts (P5, 10.11.2026, 20261110170000_shop_gate.sql): the server's hello says shop:false, and
         # with Stripe set up the button still says «Snart i salg», a tap asks for no payment and gives nothing; without it, the price
         st['ready'] = True; st['hello'] = {'shop': False}; n0 = len([c for c in calls if c[0] == 'checkout'])
-        ask = """(async () => { S.tut = 0; const n0 = (S.haillInv || {}).haill || 0; PHONE.open('haill'); await new Promise(r => setTimeout(r, 300));
-          const b = document.querySelector('#phone [data-pa=haillbuy][data-k=haill]'), lab = b && b.textContent, fine = !!document.querySelector('#phone .shop-fine'); if (TAP) b.click(); await new Promise(r => setTimeout(r, 600));
+        ask = """(async () => { S.tut = 0; const n0 = (S.haillInv || {}).haill || 0; PHONE.open('haill'); await new Promise(r => setTimeout(r, 300)); { const t = document.querySelector('#phone [data-pa=sub][data-s=boost]'); if (t) { t.click(); await new Promise(r => setTimeout(r, 200)); } }
+          const b = document.querySelector('#phone [data-pa=kbbuy][data-k=hp_h1]'), lab = b && b.textContent, fine = !!document.querySelector('#phone .shop-fine'); if (TAP) b.click(); await new Promise(r => setTimeout(r, 600));
           const n1 = (S.haillInv || {}).haill || 0; PHONE.show(false); return {off:CLOUD.shopOff, mode:shopMode(), lab, given:n1 - n0, fine}; })()"""
         ctx3 = await br.new_context(viewport={'width': 1100, 'height': 800}); await ctx3.add_init_script(STUB); await ctx3.route('https://sb.test/**', handle)
         pg6 = await ctx3.new_page(); pg6.on('pageerror', lambda e: errs.append(str(e)))
@@ -457,7 +457,7 @@ async def main():
         st['hello'] = {'shop': True}; await pg6.reload(); await pg6.wait_for_function("typeof SHOP !== 'undefined' && CLOUD.user && SHOP.ready === true", timeout=120000)
         r6b = await pg6.evaluate(ask.replace('TAP', 'false'))
         check(r6['off'] is True and r6['mode'] == 'off' and r6['lab'] == 'Snart i salg' and r6['given'] == 0 and not r6['fine'] and r6['asked'] == 0 and 'stripe' not in pg6.url
-              and r6b['off'] is False and r6b['mode'] == 'live' and '29 kr' in (r6b['lab'] or ''),
+              and r6b['off'] is False and r6b['mode'] == 'live' and '39 kr' in (r6b['lab'] or ''),
               'the shop closed for new accounts: «Snart i salg», no payment asked and nothing given; with shop:true the price is back', {'closed': r6, 'open': r6b})
         # 7. (HS2) this is a new game on the same account (a new device, a save that went on without the purchase): the haill bought in
         # step 3 was delivered and never switched on, so the server still holds it, and it is back in store with no confirmation
@@ -469,7 +469,7 @@ async def main():
         # (HS3) and in the whole run the turbo trim and the yard done now of step 3 were delivered to the first game some minutes ago: this
         # new game has them again, the trim with a little under its 72 hours left, the yard as a credit, each with one line and no confirmation
         if not ONLY:
-            r7b = await pg6.evaluate("({trim:S.boat.trim && S.boat.trim.k, left:+trimLeft(S.boat).toFixed(2), vx:+(BOAT.vmax / VESSELS[S.boat.type].vmax).toFixed(2), credit:S.yardCredit || 0, back:S.msgs.filter(m => /lagt inn igjen/.test(m.no)).map(m => m.no), given:S.shopGiven || []})")
+            r7b = await pg6.evaluate("({trim:trimRec(S.boat) && trimRec(S.boat).k, left:+trimLeft(S.boat).toFixed(2), vx:+(BOAT.vmax / VESSELS[S.boat.type].vmax).toFixed(2), credit:S.yardCredit || 0, back:S.msgs.filter(m => /lagt inn igjen/.test(m.no)).map(m => m.no), given:S.shopGiven || []})")
             check(r7b['trim'] == 'turbo' and 68 < r7b['left'] < 72 and r7b['vx'] == 2 and r7b['credit'] == 1 and len(r7b['back']) == 2 and 8 in r7b['given'] and 9 in r7b['given'] and r7['thanks'] == 0 and not r7['rc'],
                   'HS3: a new game on the same account gets the trim and the yard done now of the first game again at the start: the trim with the time that is left, the yard as a credit, one line each and no confirmation', r7b)
         # switched on in the Luck app: on at once, the server told once, and not back at the next claim
@@ -507,8 +507,8 @@ async def main():
         # real hour is GAME_RATE game hours taken from the game's minute now (core backT)
         ago = lambda h: (datetime.datetime.now(datetime.timezone.utc) - datetime.timedelta(hours=h)).isoformat()
         dn = lambda id_, product, data, h: {'id': id_, 'product': product, 'data': data, 'done': True, 'done_at': ago(h)}
-        cur6 = await pg6.evaluate("(() => { delete S.boat.trim; applyVessel(); S.skip = null; S.yardCredit = 0; S.jobs = (S.jobs || []).filter(j => !YARD_KINDS.includes(j.kind)); CLOUD.sid = CLOUD.sid || 'sid_test'; document.getElementById('modal').hidden = true; window.__th0 = S.msgs.filter(m => /Takk for kjøpet/.test(m.no)).length; return S.cur; })()")   # (the confirmation of step 8's haill is closed and not counted)
-        SEE = """({trim:S.boat.trim ? {k:S.boat.trim.k, left:+trimLeft(S.boat).toFixed(2), until:Math.round(trimUntil(S.boat))} : null, vx:+(BOAT.vmax / VESSELS[S.boat.type].vmax).toFixed(2), skip:S.skip ? {k:S.skip.k, left:+skipLeft().toFixed(2), until:Math.round(S.skip.until)} : null, en:S.energy, credit:S.yardCredit || 0,
+        cur6 = await pg6.evaluate("(() => { delete S.boat.trim; delete S.trim; applyVessel(); S.skip = null; S.yardCredit = 0; S.jobs = (S.jobs || []).filter(j => !YARD_KINDS.includes(j.kind)); CLOUD.sid = CLOUD.sid || 'sid_test'; document.getElementById('modal').hidden = true; window.__th0 = S.msgs.filter(m => /Takk for kjøpet/.test(m.no)).length; return S.cur; })()")   # (the confirmation of step 8's haill is closed and not counted)
+        SEE = """({trim:trimRec(S.boat) ? {k:trimRec(S.boat).k, left:+trimLeft(S.boat).toFixed(2), until:Math.round(trimUntil(S.boat))} : null, vx:+(BOAT.vmax / VESSELS[S.boat.type].vmax).toFixed(2), skip:S.skip ? {k:S.skip.k, left:+skipLeft().toFixed(2), until:Math.round(S.skip.until)} : null, en:S.energy, credit:S.yardCredit || 0,
           back:S.msgs.filter(m => /lagt inn igjen/.test(m.no)).map(m => m.no), logs:S.log.filter(l => /lagt inn igjen/.test(l.no)).length, thanks:S.msgs.filter(m => /Takk for kjøpet/.test(m.no)).length - window.__th0, rc:!!document.querySelector('#modal:not([hidden]) .shoprc'),
           given:(S.shopGiven || []).slice(), ev:(CLOUD.q || []).filter(e => e.k === 'shop_back').map(e => e.d)})"""
         claim = "(async () => { CLOUD.q = []; const m0 = S.msgs.length; await shopClaim(); await new Promise(r => setTimeout(r, 300)); const o = " + SEE + "; o.newMsg = S.msgs.length - m0; return o; })()"
@@ -531,20 +531,24 @@ async def main():
         check(b['trim'] and b['trim']['until'] == a['trim']['until'] and b2['trim']['until'] == a['trim']['until'] and b['newMsg'] == 0 and b2['newMsg'] == 0 and b2['ev'] == [] and len(b2['back']) == len(a['back']),
               'HS3: a trim that is in the save is not given twice: asked again, the end stands and nothing is said', {'first': a['trim'], 'again': b['trim'], 'again2': b2['trim'], 'msgs': len(b2['back'])})
         # one whose time has passed (a pump, 24 h, delivered five real hours ago: 30 game hours) gives nothing, and is not asked about again
-        await pg6.evaluate("(() => { delete S.boat.trim; applyVessel(); })()"); st['grants'] = [dn(51, 'trim_pump', {'give': 'trim', 'k': 'pump', 'boat': cur6}, 5)]
+        await pg6.evaluate("(() => { delete S.boat.trim; delete S.trim; applyVessel(); })()"); st['grants'] = [dn(51, 'trim_pump', {'give': 'trim', 'k': 'pump', 'boat': cur6}, 5)]
         c = await pg6.evaluate(claim)
         check(c['trim'] is None and c['vx'] == 1 and c['newMsg'] == 0 and c['ev'] == [] and 51 in c['given'], 'HS3: a trim whose time has passed is not given again', {k: c[k] for k in ('trim', 'vx', 'newMsg', 'given')})
         # two of the same kind after each other (a pump five real hours ago and one 4.5 hours ago: the first ended six game hours ago,
         # but when it was bought the second was added to it, and ended 24 h later): the same end as when they were bought, 18 h left
-        await pg6.evaluate("(() => { delete S.boat.trim; applyVessel(); S.shopGiven = S.shopGiven.filter(x => x !== 51); })()")
+        await pg6.evaluate("(() => { delete S.boat.trim; delete S.trim; applyVessel(); S.shopGiven = S.shopGiven.filter(x => x !== 51); })()")
         st['grants'] = [dn(53, 'trim_pump', {'give': 'trim', 'k': 'pump', 'boat': cur6}, 4.5), dn(51, 'trim_pump', {'give': 'trim', 'k': 'pump', 'boat': cur6}, 5)]
         d = await pg6.evaluate(claim)
         check(d['trim'] and d['trim']['k'] == 'pump' and abs(d['trim']['left'] - 18) < 0.4 and d['vx'] == 1.5 and d['newMsg'] == 1 and len(d['ev']) == 1,
               'HS3: two trims of the same kind after each other come back with the end they had when they were bought (18 h left), in one line', {'trim': d['trim'], 'vx': d['vx'], 'newMsg': d['newMsg'], 'msg': d['back'][-1:], 'ev': d['ev']})
-        # a trim for a boat that is not in the fleet is not given
-        await pg6.evaluate("(() => { delete S.boat.trim; applyVessel(); })()"); st['grants'] = [dn(54, 'trim_turbo', {'give': 'trim', 'k': 'turbo', 'boat': 'not_in_fleet'}, 1)]
+        # a trim for a boat that is not in the fleet
+        await pg6.evaluate("(() => { delete S.boat.trim; delete S.trim; applyVessel(); })()"); st['grants'] = [dn(54, 'trim_turbo', {'give': 'trim', 'k': 'turbo', 'boat': 'not_in_fleet'}, 1)]
         e = await pg6.evaluate(claim)
-        check(e['trim'] is None and e['newMsg'] == 0 and e['vx'] == 1 and 54 not in e['given'], 'HS3: a trim bought for a boat that is not in the fleet is not given, and not marked as given (it is asked about again)', {k: e[k] for k in ('trim', 'vx', 'newMsg', 'given')})
+        # (the trim is the fleet's since 16.11.2026, Jonas: «Den gjelder alle fartøyene i flåten»: one bought on a boat sold since is
+        # still paid for, and goes on the fleet, once)
+        e2 = await pg6.evaluate(claim)
+        check(e['trim'] and e['trim']['k'] == 'turbo' and e['newMsg'] == 1 and e['vx'] == 2 and 54 in e['given'] and e2['newMsg'] == 0 and e2['trim']['until'] == e['trim']['until'],
+              'HS3: a trim bought on a boat that is no longer in the fleet goes on the fleet (the trim is the fleet\'s), once', {'first': {k: e[k] for k in ('trim', 'vx', 'newMsg', 'given')}, 'again': {k: e2[k] for k in ('trim', 'newMsg')}})
         # Skippertak (48 h) delivered one real hour ago: 42 h left, rested; again: not twice. One whose time has passed: nothing, and no rest
         await pg6.evaluate("S.energy = 40"); st['grants'] = [dn(55, 'skip', {'give': 'skip', 'k': 'std'}, 1)]
         f = await pg6.evaluate(claim); f2 = await pg6.evaluate(claim)
@@ -559,7 +563,7 @@ async def main():
         check(g1['credit'] == 1 and g1['newMsg'] == 1 and 'Ferdig nå' in g1['back'][-1] and g2['credit'] == 1 and g2['newMsg'] == 0 and g1['thanks'] == 0,
               'HS3: the yard done now delivered and not in the save is kept as a credit for the next yard job, once', {'first': {k: g1[k] for k in ('credit', 'newMsg', 'thanks')}, 'msg': g1['back'][-1:], 'again': g2['credit']})
         # a server from before HS3's migration (the delivered ones are not answered): nothing is given again, as before
-        await pg6.evaluate("(() => { delete S.boat.trim; applyVessel(); S.shopGiven = S.shopGiven.filter(x => x !== 50); })()"); st['hs3'] = False; st['grants'] = [dn(50, 'trim_turbo', {'give': 'trim', 'k': 'turbo', 'boat': cur6}, 2)]
+        await pg6.evaluate("(() => { delete S.boat.trim; delete S.trim; applyVessel(); S.shopGiven = S.shopGiven.filter(x => x !== 50); })()"); st['hs3'] = False; st['grants'] = [dn(50, 'trim_turbo', {'give': 'trim', 'k': 'turbo', 'boat': cur6}, 2)]
         h1 = await pg6.evaluate(claim); st['hs3'] = True
         check(h1['trim'] is None and h1['newMsg'] == 0, 'HS3: against a server from before the migration nothing is given again, as before', {k: h1[k] for k in ('trim', 'vx', 'newMsg')})
         # the ids are kept by age, not the last 200: 300 newer ids do not push out one the server can still list

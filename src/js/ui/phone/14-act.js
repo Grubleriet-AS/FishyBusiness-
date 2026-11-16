@@ -97,7 +97,8 @@
     else if (a === 'hbshow'){ HBUI.show(d.id); return; }   // «Vis meg» in Håndboka: the phone closes and the tip points (07c-handbook.js)
     else if (a === 'hbskip'){ HBUI.toggle(+d.ch); }
     else if (a === 'hball'){ HBUI.only = null; }
-    else if (a === 'sub'){ sub[app] = d.s; if (app === 'post') sub.postArt = null; }
+    else if (a === 'sub'){ sub[KBT.includes(app) ? 'kaiboden' : app] = d.s;   // (Kaiboden's tabs: one window for haill, trim and skip)
+      if (app === 'post') sub.postArt = null; }
     else if (a === 'acy') sub.acy = d.y;                // the year shown in the bank's accounts
     else if (a === 'bkmv'){ const B = bankS(), k = d.k === 'skatt' ? 'skatt' : 'spare', v = d.v === '-all' ? -B[k] : +d.v; if (!bankMove(k, v)) toast(L(v > 0 ? 'Brukskontoen er tom.' : 'Kontoen er tom.', v > 0 ? 'The current account is empty.' : 'The account is empty.')); }
     else if (a === 'bkauto'){ const B = bankS(); if (d.v === 'auto') B.auto = true; else { B.auto = false; B.pct = clamp(+d.v || 0.4, 0, 0.6); } }
@@ -185,7 +186,19 @@
     else if (a === 'hullclean'){ if (!atKind('verft') || (S.jobs || []).some(j => j.kind === 'hull')) return; const c = 1500 + Math.round(BOAT.len * 400 / 100) * 100; if (spendable() < c) return;
       if (!queueJob({kind:'hull', h:6, no:'Skrogrens på slipp', en:'Hull cleaning on the slip'})){ toast(L('Arbeidskøen er full.', 'The work queue is full.')); return; } buyMark(); book('verft', -c, 'Skrogrens på slipp', 'Hull cleaning on the slip'); log('Bestilte skrogrens på slipp, ' + kr(c) + '.', 'Ordered a hull cleaning on the slip, ' + kr(c) + '.'); receipt(L('Skrogrens på slipp', 'Hull cleaning on the slip'), 'yard', 'hull'); }
     // (another kind than the one on takes its place and the rest of its time: asked first, as the haill is; the same kind adds its hours)
-    else if (a === 'trimbuy'){ const b = S.boat, B = BOOSTS[d.k], on = trimOn(b); if (!B || !canBoost(VESSELS[b.type])) return; if (on && on !== B && trimPend !== d.k){ trimPend = d.k; return true; } trimPend = null;
+    // Kaiboden's one window (kbShop): the packs of haill, the season pack; a trim or Skippertak goes the way it went before
+    else if (a === 'kbbuy'){ const k = d.k;
+      // (the first luxury luck is free: taken first, as haillbuy asks; and a pack whose trim would take the place of an old one of another
+      // kind on now asks first, as trimbuy does: trimPend, the note at the top of kbShop)
+      if (/^hp_/.test(k) && tutFree('haill')){ toast(L('Hent den gratis luksushaillen først.', 'Take the free luxury luck first.')); return true; }
+      if (/^pk_/.test(k) && PACKS[k.slice(3)]){ const on = trimOn(S.boat); if (on && boostKind(trimRec(S.boat).k) !== boostKind(PACKS[k.slice(3)].trim) && trimPend !== k){ trimPend = k; return true; } trimPend = null; }
+      if (/^hp_/.test(k) && HAILL_PACKS[k.slice(3)]){ const P = HAILL_PACKS[k.slice(3)]; payBuy(k, () => { for (let i = 0; i < P.n; i++) giveHaill('haill', 'shop'); toast(L(P.n + ' haill ligger i Mine boostere. Slå på når du vil.', P.n + ' luck wait in My boosters. Switch on when you want.')); }); }
+      else if (k === 'luksus') return act0('haillbuy', {k:'luksus'});
+      else if (/^pk_/.test(k) && PACKS[k.slice(3)]){ const P = PACKS[k.slice(3)]; payBuy(k, () => { for (let i = 0; i < P.haill; i++) giveHaill('haill', 'shop'); const w = trimWords(P.trim, trimSet(P.trim)); log(w.no, w.en); giveSkip(P.skip); toast(L(P.no + ': haill i Mine boostere, Turbotrim og Skippertak er på.', P.en + ': luck in My boosters, Turbo tune and Skippertak are on.')); }); }
+      else if (BOOSTS[k]) return act0('trimbuy', {k});
+      else if (/^sk_/.test(k)) return act0('skipbuy', {k:k.slice(3)});
+    }
+    else if (a === 'trimbuy'){ const b = S.boat, B = BOOSTS[d.k], on = trimOn(b); if (!B || !canBoost(VESSELS[b.type])) return; if (on && boostKind(trimRec(b).k) !== boostKind(d.k) && trimPend !== d.k){ trimPend = d.k; return true; } trimPend = null;
       payBuy(d.k, () => { const w = trimWords(d.k, trimSet(d.k)); log(w.no, w.en); toast(L(B.no + ': ', B.en + ': ') + fmt(BOAT.vmax, 1) + ' kn'); }); }
     else if (a === 'trim0'){ trimPend = null; return true; }
     else if (/^km/.test(a)){ if (!kmAct(a, d)) return; }   // Kvotemarkedet (phone/04b-kvotemarked.js, KM3)
@@ -307,7 +320,7 @@
     else if (a === 'cloth'){ buyMark(); const why = clothBuy(d.k); if (why){ toast(why); return true; } receipt(CLOTHES[d.k][S.lang], 'cloth', d.k); }
     else if (a === 'haillbuy'){ if (tutFree('haill') && d.k !== 'luksus') return; const k = d.k, got = () => { giveHaill(k, 'shop'); toast(HAILL[k][S.lang] + L(' ligger i beholdningen. Trykk «Aktiver» når du vil bruke den.', ' is in store. Tap «Switch on» when you want it.')); };
       if (tutFree('haill')){ tutMark('free_haill'); got(); } else payBuy(k, got); }
-    else if (a === 'skipbuy'){ const k = d.k; if (!SKIP[k]) return; payBuy('sk_' + k, () => { const n = giveSkip(k); if (n) toast(n + L(': du og mannskapet er uthvilt i ' + Math.round(skipLeft()) + ' timer.', ': you and the crew are rested for ' + Math.round(skipLeft()) + ' hours.')); }); }
+    else if (a === 'skipbuy'){ const k = d.k; if (!SKIP[k]) return; payBuy('sk_' + k, () => { const n = giveSkip(k); if (n) toast(n + L(': du og mannskapet er uthvilt i ' + Math.round(skipLeft() / GAME_RATE) + ' timer.', ': you and the crew are rested for ' + Math.round(skipLeft() / GAME_RATE) + ' hours.')); }); }
     else if (a === 'haillon'){ if (S.haill && haillStage() && haillPend !== d.k){ haillPend = d.k; return true; } haillPend = null; if (useHaill(d.k)) toast(HAILL[d.k][S.lang] + L(' er aktivert: +', ' is on: +') + Math.round(haillBoost() * 100) + ' %.'); }
     else if (a === 'haill0'){ haillPend = null; }
     else if (a === 'jobOT'){ const j = (S.jobs || [])[+d.i]; if (!j || j.until == null || j.ot) return; const left = Math.max(0, j.until - S.t) / 60, c = Math.round(left / 2 * 950 / 10) * 10; if (spendable() < c){ toast(t('no_cash')); return; }

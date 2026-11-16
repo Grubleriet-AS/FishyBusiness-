@@ -60,7 +60,7 @@ const PHONE = (() => {
   // Haill or the Trim app (the first trip's guide, the handbook, the tests) opens Kaiboden on that tab
   const KBT = ['haill', 'trim', 'skip'];
   let kbLast = 'haill';
-  const kbTabs = a => '<div class="kb-tabs">' + [['haill', 'Haill', 'Luck'], ['trim', 'Trim', 'Tuning'], ['skip', 'Skippertak', 'Skippertak']].map(([k, no, en]) => '<button class="kb-tab' + (k === a ? ' on' : '') + '" data-pa="open" data-a="' + k + '">' + L(no, en) + '</button>').join('') + '</div>';
+  const kbTabs = () => '';   // (Kaiboden is one window with its own tabs since 16.11.2026: kbShop in 01-haill-fiske-service.js)
   // the most for the money (Jonas 12.10.2026): the biggest of each, and it is true of each (tests/skiptest.py checks it)
   const kbBest = () => ' <span class="kb-best">' + L('Mest for pengene', 'Best value') + '</span>';
   const unread = () => S.msgs.filter(m => !m.read).length;

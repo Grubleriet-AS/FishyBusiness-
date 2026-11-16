@@ -18,7 +18,7 @@ STUB = """() => {
     tot:{kind:'tot', grp:'open', rows:[row(1, 'aaaaaaaaaa', 'Havbris', 'Ola', 25000, 900000, 1, false)], mine:null, n:1},
     fs:{kind:'fs', grp:'all', rows:[{rank:1, hid:'bbbbbbbbbb', user:'Kari', boat:'Sjøsprøyt', y:43, f:null, me:false}, {rank:2, hid:'aaaaaaaaaa', user:'Ola', boat:'Havbris', y:12, f:1, me:false}], mine:{rank:9, y:2}, n:9}};
   const P = {hid:'aaaaaaaaaa', me:false, user:'Ola', fs:120000, since:'2026-11-17T08:00:00Z', f:1, img:null, boat:'Havbris', vtype:'sjark',
-    prof:{fleet:2, value:850000, worth:910000, company:'Havbris AS', form:'AS', ach:12, boats:[{n:'Havbris', t:'sjark'}, {n:'Lille Havbris', t:'trebat'}], recs:[{sp:'torsk', kg:31.5}, {sp:'kveite', kg:48}]},
+    prof:{fleet:2, value:850000, worth:910000, company:'Havbris AS', form:'AS', ach:12, boats:[{n:'Havbris', t:'sjark'}, {n:'Lille Havbris', t:'trebat'}], recs:[{sp:'torsk', kg:31.5}, {sp:'kveite', kg:48}], sk:{juksa:3.2, line:2.4, garn:1.5, teiner:1.5, sloy:2.9, is:2.7, sort:1.5, bad:9}},
     kg:25000, kr:900000, ports:4, rank:1, n:40};
   window.__old = false;
   cloudRpc = async (fn, a) => { window.__rpc.push(fn);
@@ -54,13 +54,13 @@ async def main():
             # a tap on the first row of the total list opens that player's profile
             await pg.evaluate("() => { const r = document.querySelector('#phone tr.pf-tap'); if (r) r.click(); }")
             await pg.wait_for_timeout(500); await pg.evaluate("() => PHONE.render()"); await pg.wait_for_timeout(200)
-            other = await pg.evaluate("() => ({app:PHONE.app, txt:(document.querySelector('#phone .ph-appv') || {}).innerText || ''})")
+            other = await pg.evaluate("() => ({app:PHONE.app, txt:(document.querySelector('#phone .ph-appv') || {}).innerText || '', bars:document.querySelectorAll('#phone .rk-sk').length})")
             await pg.screenshot(path=os.path.join(OUT, 'profil-annen-%s.png' % tag))
             # the own profile from the home screen
             await pg.evaluate("() => { PHONE.open('home'); }"); await pg.wait_for_timeout(200)
             await pg.evaluate("() => { const b = document.querySelector('#phone [data-pa=open][data-a=profil]'); if (b) b.click(); }")
             await pg.wait_for_timeout(500); await pg.evaluate("() => PHONE.render()"); await pg.wait_for_timeout(300)
-            mine = await pg.evaluate("() => ({app:PHONE.app, want:PROF.want, txt:(document.querySelector('#phone .ph-appv') || {}).innerText || '', pick:!!document.querySelector('#phone [data-pa=pfav]')})")
+            mine = await pg.evaluate("() => ({app:PHONE.app, want:PROF.want, txt:(document.querySelector('#phone .ph-appv') || {}).innerText || '', pick:!!document.querySelector('#phone [data-pa=pfav]'), bars:document.querySelectorAll('#phone .rk-sk').length})")
             await pg.screenshot(path=os.path.join(OUT, 'profil-egen-%s.png' % tag))
             # RANK1-c: a top_list that does not know 'fs' answers 'kg': the tab says it is coming
             async def fsSoon():
@@ -84,8 +84,8 @@ async def main():
             await pg.wait_for_timeout(500); await pg.evaluate("() => PHONE.render()"); await pg.wait_for_timeout(200)
             old = await pg.evaluate("() => ({soon:/kommer snart|coming soon/.test((document.querySelector('#phone .ph-appv') || {}).innerText || ''), rpc:window.__rpc.slice(-4)})")
             fs404 = await fsSoon()
-            res[tag] = {'hid0': hid0, 'tab': tab, 'got': got, 'other': {'app': other['app'], 'ola': 'Ola' in other['txt'], 'founder': 'Founder #1' in other['txt'], 'worth': '910' in other['txt'], 'skills': 'Milepæler' in other['txt'] or 'Milestones' in other['txt']},
-                        'mine': {'app': mine['app'], 'want': mine['want'], 'wait': 'venter på godkjenning' in mine['txt'] or 'waiting for approval' in mine['txt'], 'pick': mine['pick'], 'open': 'åpen for alle' in mine['txt'] or 'open to all' in mine['txt']},
+            res[tag] = {'hid0': hid0, 'tab': tab, 'got': got, 'other': {'app': other['app'], 'ola': 'Ola' in other['txt'], 'founder': 'Founder #1' in other['txt'], 'worth': '910' in other['txt'], 'skills': 'Milepæler' in other['txt'] or 'Milestones' in other['txt'], 'bars': other['bars'], 'juksa': 'Juksa' in other['txt'] and '3,2' in other['txt']},
+                        'mine': {'app': mine['app'], 'want': mine['want'], 'wait': 'venter på godkjenning' in mine['txt'] or 'waiting for approval' in mine['txt'], 'pick': mine['pick'], 'open': 'åpen for alle' in mine['txt'] or 'open to all' in mine['txt'], 'bars': mine['bars']},
                         'old': old['soon'], 'fsKg': fsKg, 'fs404': fs404, 'fsBack': fsBack, 'fsOut': fsOut, 'errs': errs}
             print(tag, json.dumps(res[tag], ensure_ascii=False))
             await pg.close()
@@ -95,8 +95,8 @@ async def main():
         print('OK  ' if z['filt'] and z['table'] and z['kinds'] == 0 and z['groups'] == 0 else 'FEIL', tag + ': topplista står alene, valgene er gjemt bak Filter-knappen (Jonas 16.11.2026)', json.dumps(z))
         print('OK  ' if r['tab'] and g['kg'] and g['kg']['rows'] == 3 and not g['kg']['kr'] and g['kg']['badge'] == 2 and g['kr'] and g['kr']['kr'] and 'Sjøsprøyt' in g['kr']['first'] and g['tot'] and g['tot']['rows'] == 1 else 'FEIL',
               tag + ': topplista i kilo (3 rader, merket på to), kroner (kr-kolonnen, Sjøsprøyt først) og totalt', json.dumps(g, ensure_ascii=False))
-        o = r['other']; print('OK  ' if o['app'] == 'profil' and o['ola'] and o['founder'] and o['worth'] and o['skills'] else 'FEIL', tag + ': et trykk på raden åpner spillerens profil med navnet, Founder #1, selskapsverdien og ferdighetene', json.dumps(o))
-        m = r['mine']; print('OK  ' if m['app'] == 'profil' and m['want'] is None and m['wait'] and m['pick'] and m['open'] else 'FEIL', tag + ': egen profil fra hjemskjermen, bildet venter på godkjenning, knappen for å velge bilde, «åpen for alle»', json.dumps(m))
+        o = r['other']; print('OK  ' if o['app'] == 'profil' and o['ola'] and o['founder'] and o['worth'] and o['skills'] and o['bars'] == 7 and o['juksa'] else 'FEIL', tag + ': et trykk på raden åpner spillerens profil med navnet, Founder #1, selskapsverdien og ferdighetene (sju søyler, Juksa 3,2)', json.dumps(o))
+        m = r['mine']; print('OK  ' if m['app'] == 'profil' and m['want'] is None and m['wait'] and m['pick'] and m['open'] and m['bars'] == 7 else 'FEIL', tag + ': egen profil fra hjemskjermen, bildet venter på godkjenning, knappen for å velge bilde, «åpen for alle», egne ferdigheter (sju søyler)', json.dumps(m))
         print('OK  ' if r['old'] else 'FEIL', tag + ': en database uten top_list: kroner sier «kommer snart»')
         f = g.get('fs') or {}
         print('OK  ' if f.get('rows') == 2 and 'Nivå 40 ★3' in f.get('txt', '') and 'Nivå 12' in f.get('txt', '') and 'Kari' in f.get('first', '') and 'Nivå 2' in f.get('txt', '') and not f.get('kr') and not f.get('kg') and f.get('badge') == 1 else 'FEIL',
