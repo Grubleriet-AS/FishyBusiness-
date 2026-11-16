@@ -238,7 +238,7 @@
   // swing; null when the gait has let go of the feet (standing square at his place: the pose has them)
   const FOTIN = {x:0, z:0, y:0, h:0, dt:0, w:[0.12, 0.12], reach:0, carry:false, ok:null, fy:null, avoid:null};
   function footNow(st, LL){
-    const q = st.fq, s = q.s, I = FOTIN, now = FOT.clock != null ? FOT.clock : performance.now() / 1000, so = st.sea && st.sea.a && st.sea.a.sl ? st.sea.a.sl.o : null, R = (LL.th + LL.sn) * LEMMER.REACH, v = 0.84 - FOT.DROP + (so ? Math.hypot(so.sr, so.sf) * FOT.SLOPE : 0);   // (on a deck that heels a foot down the slope is further down: shorter steps)
+    const q = st.fq, s = q.s, I = FOTIN, now = FOT.clock != null ? FOT.clock : performance.now() / 1000, so = st.sea && st.sea.a && st.sea.a.sl ? st.sea.a.sl.o : null, R = (LL.th + LL.sn) * LEMMER.REACH, v = 0.84 - FOT.DROP;
     I.x = q.x; I.z = q.z; I.h = q.h; I.y = q.y || 0; I.fy = q.fy || null; I.avoid = q.avoid || null; I.dt = s.tp == null ? undefined : now - s.tp; s.tp = now; I.carry = !!q.carry; I.ok = q.ok || null;
     I.w[0] = so ? Math.abs(so.fr[0]) : 0.12; I.w[1] = so ? Math.abs(so.fr[1]) : 0.12; I.reach = Math.sqrt(Math.max(0, R * R - v * v)) - 0.005;
     const o = footStep(s, I); return o.on ? o : null; }
@@ -279,12 +279,14 @@
     // the sea legs (seaNow): SE what the sea asks of him, hy0 the hips' way up or down, ox/oz their shift in the world and lx/lz the
     // torso's lean per metre over them; up3 moves a point of the upper body at height hh with it
     // (the hips are over the feet along SE.sq: plumb, or along the deck's normal where there is no room to stand upright)
+    // (FB3: the deck's slopes to his right and ahead as he is headed, st.h, not turned at the work: the feet are placed that way, W0)
+    const FSL = FW && st.dn && st.dn[1] > 0.3 ? (() => { const n = st.dn, c = Math.cos(st.h), sn = Math.sin(st.h); return [-(n[0] * c + n[2] * sn) / n[1], -(n[0] * sn - n[2] * c) / n[1]]; })() : [0, 0];
     const SE = st.sea && !sit && !LB[2] ? seaNow(st, h, y) : null, hH = 0.92 + dy, hS = SE ? hH + SE.hipY : hH, hy0 = SE ? hS * SE.sqU - hH : 0, hR = (SE ? SE.hipR + hS * SE.sqR : 0) + (FW ? FW.hipR : 0), hF = SE ? SE.hipF + hS * SE.sqF : 0;
     // (the upper body turns about the hips with the torso's lean, lth towards [ldx, ldz], and goes with the hips: up3 moves a point of it)
     const ox = SE ? R[0] * hR + F[0] * hF : 0, oz = SE ? R[1] * hR + F[1] * hF : 0, lth = SE ? Math.hypot(SE.leanR, SE.leanF) : 0, ldx = lth > 1e-9 ? (R[0] * SE.leanR + F[0] * SE.leanF) / lth : 0, ldz = lth > 1e-9 ? (R[1] * SE.leanR + F[1] * SE.leanF) / lth : 0;
     const lcs = Math.cos(lth), lsn = Math.sin(lth), bend0 = LB[1] * bk + (st.slump || 0) * 0.45, Pv = SE ? W(bend0 * 0.4, hH, 0) : null;
     const up3 = SE ? q => { const vx = q[0] - Pv[0], u = q[1] - Pv[1], vz = q[2] - Pv[2], a = vx * ldx + vz * ldz, a2 = a * lcs + u * lsn; q[0] += ox + (a2 - a) * ldx; q[1] = Pv[1] + hy0 - a * lsn + u * lcs; q[2] += oz + (a2 - a) * ldz; return q; } : q => q;
-    const LG = SJOBEIN.log && st.dn ? {idx, npc:!st.deck, task:st.task, walk:!!st.walk, ev:!!(st.ev || st.fx), on:!!SE, x:st.x, y, z:st.z, h, n:st.dn || null, feet:[], hips:[], kf:[], fs:FS ? {plant:FS.plant.slice(), lift:FS.lift.slice(), x:st.fq.x, z:st.fq.z, h:st.fq.h, hs:st.h, v:FS.v, L:FS.L, cad:FS.cad, fa:FS.fa.slice(), fr:FS.fr.slice(), fy:FS.fy.slice(), id:st.fq.id || null, over:[0, 0]} : null} : null;
+    const LG = SJOBEIN.log && st.dn ? {idx, npc:!st.deck, task:st.task, walk:!!st.walk, ev:!!(st.ev || st.fx), on:!!SE, x:st.x, y, z:st.z, h, n:st.dn || null, feet:[], hips:[], kf:[], fs:FS ? {plant:FS.plant.slice(), lift:FS.lift.slice(), x:st.fq.x, z:st.fq.z, h:st.fq.h, hs:st.h, v:FS.v, L:FS.L, cad:FS.cad, fa:FS.fa.slice(), fr:FS.fr.slice(), fy:FS.fy.slice(), id:st.fq.id || null, over:[0, 0], on:FS.on, task:st.task || null, mode:st.walk ? 'walk' : 'at'} : null} : null;
     let hands, seaH = SEAHANDS[st.task] || 0;
     const t = tOf(T, idx);
     // (near, the hands are drawn in their grips, the pose's points being where they hold: a hanging hand's grip is below its wrist)
@@ -573,7 +575,7 @@
       let fa = back ? (s > 0 ? 0.3 : 0.2) : sw * s * 0.28, fr = back ? (s > 0 ? -0.05 : -0.13) : s * 0.12, fup = 0.08 + (back ? 0 : Math.max(0, Math.cos(ph) * s) * 0.07 * (st.walk ? 1 : 0)), kf = back ? 0.05 : 0.07 + dip * 0.34;
       let hip = W((back ? 0.05 : dip * 0.06) + hF, 0.92 + dy + hy0 + (SE ? s * 0.11 * SE.pelv : 0), s * 0.11 + hR), foot;
       // (FB3: walking, or a step at his place not done, the foot is where it stands on the deck, footNow, its height that of the deck there)
-      if (FW){ fa = FW.fa[fi]; fr = FW.fr[fi]; fup = 0.08 + FW.lift[fi] + FW.fy[fi];   /* (a foot on a step: the deck's own height there) */ foot = W0(fa, fup + (SE ? fa * SE.sf + fr * SE.sr : 0), fr);
+      if (FW){ fa = FW.fa[fi]; fr = FW.fr[fi]; fup = 0.08 + FW.lift[fi] + FW.fy[fi];   /* (a foot on a step: the deck's own height there) */ foot = W0(fa, fup + (SE ? fa * FSL[1] + fr * FSL[0] : 0), fr);
         if (SE) kf = Math.max(0.02, kf + seaKnee(0.84, Math.hypot(hip[0] - foot[0], hip[1] - foot[1], hip[2] - foot[2]))); }
       else if (SE){ const d0 = Math.hypot(0.84 + dy - (fup - 0.08), (back ? 0.05 : dip * 0.06) - fa, s * 0.11 - fr);   // (the leg's length without the sea)
         if (!back){ fa += SE.fa[fi]; fr = SE.fr[fi]; fup += SE.lift[fi]; }

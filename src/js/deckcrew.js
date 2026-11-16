@@ -1146,7 +1146,10 @@ function crewSim(src){
           // (at the door, 'at' first: in after a hand to it, below)
           if (a.pi >= a.path.length){ a.v = 0; a.mode = g.inside && !(g.inside === 'in' && ST.PT.door && g.k === ST.PT.door.k) ? g.inside : 'at'; a.task = g.task; a.path = null; a.cell = g.k; a.blend = 0; if (a.sub && !a.sub.done) a.sub.done = t + (a.sub.hold || 2); continue; } }
         else { a.x += dx / dist * step; a.z += dz / dist * step; const fy = M.floorAt(a.x, a.z); a.y = fy === fy ? fy : a.y + (q[1] - a.y) * Math.min(1, step / Math.max(dist, 1e-3)); }
-        sideways(a, t, dt); unclip(a, t);
+        sideways(a, t, dt);
+        // (FB3: slowing to his place he is longer in its last few decimetres, where a shoulder could still touch what the place stands
+        // by and unclip could not push him off it: side on there, as in a squeeze; tests/crewclip.py «nor a body on the way»)
+        if (!unclip(a, t) && FOT.on && a.near < 0.3 && a.sqA < 1){ a.sqW = a.sqA = 1; a.sqT = t; unclip(a, t); }
       } else {
         // at the place: turn to face the work, and the blend into its pose
         a.v = 0;   // (standing: the next way starts from a stand, FB3)
@@ -1449,7 +1452,6 @@ const FOT = {
   REACHK:0.9,     // the share of the legs' reach a foot is put down at, at most (the rest is for the speed that grows in the swing, and the turn)
   HURRY:[0.85, 0.006],   // the foot that stands past this share of the reach hurries the other's swing: once more for each so many m past it
   DROP:0.085,     // m: the most the hips come down walking for a foot to reach (LEMMER.DROP standing)
-  SLOPE:0.35,     // m less of the legs' reach down per unit of the deck's slope (a foot down the slope is lower: on a deck that heels the steps are shorter)
   DIP:0.02,       // m the hips are lower walking at 1.2 m/s (the knee a little bent through the stance)
   SWAY:0.022,     // m the hips go over the foot that stands
   ARM:1,          // the arms' swing, a share of the old one (0.15 m each way at the hand) at a full step
@@ -1464,6 +1466,8 @@ const FOT = {
 // swings and how far (u), and what footStep last gave (o)
 function footState(){ return {snap:true, f:[{x:0, z:0, y:0, h:0, up:false}, {x:0, z:0, y:0, h:0, up:false}], sw:-1, u:0, from:null, Tsw:FOT.TREST, ds:1, nx:1, px:0, pz:0, ph:0, vx:0, vz:0, w:0, sl:0,
   o:{on:false, fa:[0, 0], fr:[-0.12, 0.12], fy:[0, 0], lift:[0, 0], dh:[0, 0], plant:[true, true], hipY:0, hipR:0, arm:0, v:0, L:0, cad:0}}; }
+// where someone's feet are for the others' to keep clear of: each that stands, and where the one in the air will land (s his footState)
+function footSpots(s){ return s.f.map(f => f.up && s.tg ? s.tg : [f.x, f.z]); }
 // the step's length at a speed (m, m/s), within what the legs reach horizontally (reach: m ahead or behind the hips a foot can be at most)
 function footLen(v, reach){ return Math.min(Math.sqrt(60 * FOT.WR * Math.max(0, v)), reach > 0 ? reach * FOT.REACHK / (1 - FOT.SWF / 2) : Infinity); }
 // the feet of one person walking or standing on a deck: s his state (footState), inp:
@@ -1505,10 +1509,11 @@ function footStep1(s, inp){
     const clear = q => { for (let n = 0; n < 2; n++){ if (inp.avoid) for (const p of inp.avoid) q = away(q, p[0], p[1], C.OTHER); q = away(q, s.f[1 - i].x, s.f[1 - i].z, C.SEP); } return q; };
     // (where it lands: ahead of where he will be when it is down, with his heading then; else nearer him, a little behind, narrower:
     // the first the deck has room for, clear of the feet)
-    let first = null;
-    for (const [m, wk] of [[1, 1], [0.66, 1], [0.33, 1], [0, 1], [0.33, 0.5], [0, 0.5], [-0.3, 1], [-0.3, 0.5], [0.66, 0.5]]){ const a0 = lead * m + (m < 0 ? -0.15 : 0);
-      const q = clear([px + Fa[0] * a0 + Ra[0] * sd(i) * w[i] * wk, pz + Fa[1] * a0 + Ra[1] * sd(i) * w[i] * wk]); if (!first) first = q; if (!inp.ok || inp.ok(q[0], q[1])) return [q[0], q[1], hh]; }
-    return [first[0], first[1], hh]; };
+    // (none clear of both: the first the deck has room for, close to another's foot rather than in a wall)
+    const C0 = [[1, 1], [0.66, 1], [0.33, 1], [0, 1], [0.33, 0.5], [0, 0.5], [-0.3, 1], [-0.3, 0.5], [0.66, 0.5]].map(([m, wk]) => { const a0 = lead * m + (m < 0 ? -0.15 : 0); return [px + Fa[0] * a0 + Ra[0] * sd(i) * w[i] * wk, pz + Fa[1] * a0 + Ra[1] * sd(i) * w[i] * wk]; });
+    for (const c of C0){ const q = clear(c); if (!inp.ok || inp.ok(q[0], q[1])) return [q[0], q[1], hh]; }
+    for (const c of C0){ const q = away(c, s.f[1 - i].x, s.f[1 - i].z, C.SEP); if (inp.ok(q[0], q[1])) return [q[0], q[1], hh]; }
+    const q = clear(C0[0]); return [q[0], q[1], hh]; };
   if (s.sw < 0){ s.ds += dt || 0;
     // which foot goes next: walking, the other one than last; standing, the one furthest from where it should be
     let i = s.nx; const err = j => { const q = home(j, lead, x, z, h); return Math.hypot(s.f[j].x - q[0], s.f[j].z - q[1]); }, turn = j => { let a = h - s.f[j].h; while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return Math.abs(a); };
@@ -1519,7 +1524,7 @@ function footStep1(s, inp){
   if (s.sw >= 0){ const i = s.sw; s.Tsw += (Tsw - s.Tsw) * Math.min(1, (dt || 0) / 0.2);
     // (the foot that stands must not be left further behind than the legs reach: the swing is hurried then)
     const st = rel([s.f[1 - i].x, s.f[1 - i].z]), hurry = inp.reach && -st[0] > inp.reach * C.HURRY[0] ? 1 + (-st[0] - inp.reach * C.HURRY[0]) / C.HURRY[1] : 1;
-    s.u = Math.min(1, s.u + (dt || 0) / s.Tsw * hurry); const q = target(i, (1 - s.u) * s.Tsw), e = s.u * s.u * (3 - 2 * s.u), f = s.f[i];
+    s.u = Math.min(1, s.u + (dt || 0) / s.Tsw * hurry); const q = target(i, (1 - s.u) * s.Tsw), e = s.u * s.u * (3 - 2 * s.u), f = s.f[i]; s.tg = [q[0], q[1]];   // (where it will land: for the others' feet, footSpots)
     let da = q[2] - s.from[2]; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
     f.x = s.from[0] + (q[0] - s.from[0]) * e; f.z = s.from[1] + (q[1] - s.from[1]) * e; f.h = s.from[2] + da * e;
     // (along a bow out round the foot that stands, where the straight way would pass nearer it than SEP)

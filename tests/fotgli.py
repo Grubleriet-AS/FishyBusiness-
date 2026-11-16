@@ -14,6 +14,7 @@ import asyncio, json, math, os
 from playwright.async_api import async_playwright
 
 OFF = os.environ.get('KYST_FOT') == '0'
+DBG = os.environ.get('KYST_FOTDBG') == '1'
 URL = GAME + (',fot0' if OFF else '')
 DEG = math.pi / 180
 bad = []
@@ -67,7 +68,7 @@ def sole(g, i):
 STEPS = """(([n, dt]) => { if (!window._tk){ window._tk = CREW3D.tick; CREW3D.tick = d => { if (!window.HOLD) window._tk(d); }; } window.HOLD = true;
   if (FOT.clock == null) FOT.clock = 1000; const out = [];
   for (let i = 0; i < n; i++){ FOT.clock += dt; CREW3D._st.clk; window._tk(dt); LEMMER.log.length = 0; SJOBEIN.log = []; LEMMER.redraw();
-    out.push(SJOBEIN.log.filter(g => !g.npc).map(g => ({idx:g.idx, x:g.x, y:g.y, z:g.z, n:g.n, feet:g.feet, fs:g.fs}))); }
+    out.push(SJOBEIN.log.filter(g => !g.npc).map(g => ({idx:g.idx, x:g.x, y:g.y, z:g.z, n:g.n, feet:g.feet, fs:g.fs, se_on:g.on}))); }
   SJOBEIN.log = null; return out; })"""
 
 
@@ -100,7 +101,11 @@ async def walking(pg, t, secs, roll, test):
                             continue
                         d = deckpos(g, g['feet'][i]); q = track.get((k, i))
                         if q is None: track[(k, i)] = [d, 0.0, 1]
-                        else: q[1] = max(q[1], math.hypot(d[0] - q[0][0], d[1] - q[0][1])); q[2] += 1
+                        else:
+                            dd = math.hypot(d[0] - q[0][0], d[1] - q[0][1])
+                            if dd > 0.01 and DBG and len(run.setdefault('dbg', [])) < 6: run['dbg'].append({'id': k, 'i': i, 'n': q[2], 'slide': round(dd, 3), 'fs': {kk: s[kk] for kk in ('x', 'z', 'h', 'hs', 'v', 'plant', 'fa', 'fr', 'on', 'task', 'mode')}, 'body': [g['x'], g['z']]})
+                            q[1] = max(q[1], dd); q[2] += 1
+                        if s['v'] > 0.3 and sole(g, i) > 0.01 and DBG and len(run.setdefault('dbs', [])) < 4: run['dbs'].append({'id': k, 'i': i, 'sole': round(sole(g, i), 3), 'se': g.get('se_on'), 'fy': s.get('fy'), 'fa': s['fa'], 'fr': s['fr'], 'n': g['n'], 'mode': s.get('mode'), 'task': s.get('task')})
                         if s['v'] > 0.3: run['soles'].append(sole(g, i)); run.setdefault('over', []).append(s.get('over', [0, 0])[i])
                 for key in [q for q in track if q[0] not in seen]: track.pop(key)
     await pg.evaluate("window.FROLL = null; window.HOLD = false; SJOBEIN.test = null")
@@ -111,7 +116,7 @@ async def main():
     async with async_playwright() as p:
         br = await p.chromium.launch(); pg = await br.new_page(viewport={'width': 640, 'height': 400}); errs = []; pg.on('pageerror', lambda e: errs.append(str(e)))
         await boot(pg, URL)
-        boats = await pg.evaluate(BOATS); print('båter:', boats, flush=True)
+        boats = await pg.evaluate(BOATS); boats = [b for b in boats if not os.environ.get('KYST_FOTBAT') or b in os.environ['KYST_FOTBAT'].split(',')]; print('båter:', boats, flush=True)
         med = lambda A: sorted(A)[len(A) // 2] if A else 0
         allv = {}
         for t in boats:
@@ -121,6 +126,7 @@ async def main():
                 r = await walking(pg, t, 36, roll, test); allv[(t, nm)] = r
                 sl = max(r['slides'] or [9]); so = max(r['soles'] or [9])
                 print('    (foten utenfor rekkevidde: verst %.1f mm)' % (max(r.get('over') or [0]) * 1000), flush=True)
+                if DBG: print('    dbg', json.dumps(r.get('dbg', [])[:4] + r.get('dbs', [])[:4], default=str)[:3000], flush=True)
                 print('    %-10s %-22s %3d bilder, %3d plantede steg, gli verst %.1f mm (median %.1f), såle verst %.1f mm; fart %.2f m/s, steg %.2f m, takt %.2f steg/s' % (
                     t, nm, r['frames'], len(r['slides']), sl * 1000, med(r['slides']) * 1000, so * 1000, med(r['v']), med(r['L']), med(r['cad'])), flush=True)
         S = [x for r in allv.values() for x in r['slides']]; So = [x for r in allv.values() for x in r['soles']]

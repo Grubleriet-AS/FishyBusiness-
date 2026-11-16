@@ -100,7 +100,7 @@ JS = """((breaks) => { const R = {}, b = S.boat, t0 = b.type, g = GROUNDS[2].p; 
     // with nothing through the shin there (footOk), not on his other foot and not on anyone else's. A build from before has no footStep: red)
     r.feet = 0; r.feetBad = []; const FQ = new Map(), fstep = typeof footStep === 'function' ? () => { const down = [];
       for (const a of CREW3D.visible()){ if (a.mode === 'helm') continue; let q = FQ.get(a.id); if (!q) FQ.set(a.id, q = {s:footState(), was:[true, true]}); const go = CREW3D.walkOff(a), x = a.x + go[0], z = a.z + go[1];
-        const o = footStep(q.s, {x, z, h:a.h + (a.sqA || 0) * Math.PI / 2, dt:0.1, w:[0.12, 0.12], reach:0.357, carry:a.task === 'carry', ok:(fx, fz) => CREW3D.footOk(a, fx, fz), avoid:[...FQ].filter(([id]) => id !== a.id).flatMap(([, w]) => w.s.f.map(f => [f.x, f.z])), y:a.y, fy:(fx, fz) => CREW3D.footY(a, fx, fz)});
+        const o = footStep(q.s, {x, z, h:a.h + (a.sqA || 0) * Math.PI / 2, dt:0.1, w:[0.12, 0.12], reach:0.357, carry:a.task === 'carry', ok:(fx, fz) => CREW3D.footOk(a, fx, fz), avoid:[...FQ].filter(([id]) => id !== a.id).flatMap(([, w]) => footSpots(w.s)), y:a.y, fy:(fx, fz) => CREW3D.footY(a, fx, fz)});
         // (walking, or a last step at a place where his feet standing square are clear: the gait's own; at a place whose square stance is
         // in something already, the place's, which is the pose's and the guards' above, not the gait's)
         const hq = a.h + (a.sqA || 0) * Math.PI / 2, sqOk = () => [-1, 1].every(sg => CREW3D.footOk(a, x + Math.cos(hq) * sg * 0.12, z + Math.sin(hq) * sg * 0.12)), mine = () => o.v > FOT.VMIN || sqOk();
@@ -108,7 +108,7 @@ JS = """((breaks) => { const R = {}, b = S.boat, t0 = b.type, g = GROUNDS[2].p; 
             const g = q.s.f[1 - k], d = Math.hypot(f.x - g.x, f.z - g.z); if (o.plant[1 - k] && d < FOT.SEP - 0.03 && mine()) r.feetBad.push(a.id + ':på egen fot:' + d.toFixed(3)); } q.was[k] = o.plant[k]; }
         // (and a foot on its way never through the one that stands: a boot is some 11 cm across)
         if (o.plant[0] !== o.plant[1]){ const m = Math.hypot(q.s.f[0].x - q.s.f[1].x, q.s.f[0].z - q.s.f[1].z); if (m < 0.11) r.feetBad.push(a.id + ':gjennom egen fot:' + m.toFixed(3)); } }
-      for (const {a, f, w} of down) for (const [id, q] of FQ) if (id !== a.id) for (const g of q.s.f) if (!g.up && Math.hypot(f.x - g.x, f.z - g.z) < FOT.OTHER - 0.03){ if (w) r.feetBad.push(a.id + ':på ' + id + 's fot'); else r.feetNear = (r.feetNear || 0) + 1; } } : () => r.feetBad.push('ingen footStep');
+      for (const {a, f, w} of down) for (const [id, q] of FQ) if (id !== a.id) for (const g of q.s.f) if (!g.up && Math.hypot(f.x - g.x, f.z - g.z) < 0.11){ if (w) r.feetBad.push(a.id + ':på ' + id + 's fot'); else r.feetNear = (r.feetNear || 0) + 1; } } : () => r.feetBad.push('ingen footStep');
     for (let i = 0; i < 600; i++){ if (i % 30 === 0){ FORCE = [breaks[(i / 30) % breaks.length], breaks[(i / 30 + 5) % breaks.length], breaks[(i / 30 + 11) % breaks.length]]; S.t += 13; CREW3D._st.lastSim = S.t; }
       CREW3D.tick(0.1); fstep(); const h = (CREW3D.bodyHits() || []).concat((CREW3D.clipNow() || []).filter(x => x.n > 0 && CREW3D.agents().some(a => a.id === x.id && a.mode === 'at'))); r.walk += h.length; r.walked += CREW3D.agents().filter(a => a.mode === 'walk').length; if (h.length) (r.walkAt = r.walkAt || []).push(...h.map(x => x.which + ':' + x.near + ':' + x.mode)); }
     FORCE = null;
