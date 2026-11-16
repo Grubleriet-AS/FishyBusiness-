@@ -192,7 +192,12 @@ function toastPlace(el){
 }
 // a toast that still stands when the player opens something new in the dock goes (an old «Du har ikke redskap i sjøen.» stayed over the card)
 function toastClear(){ const el = document.getElementById('toast'); if (el){ clearTimeout(toast._t); toast._keep = null; el.classList.remove('on'); } }
+// While the time away is played in (catchUp, CATCH_LEFT, AWAYR in ui/08-actions.js) nothing pops up: the lines, the messages and the
+// warnings of all those minutes stay in the log and the phone's inbox, and «Mens du var borte» tells what happened. Without this the
+// toast queue played them all back one by one after login.
+function awayQuiet(){ return (typeof AWAYR !== 'undefined' && !!AWAYR) || (typeof CATCH_LEFT !== 'undefined' && CATCH_LEFT > 0) || (typeof LANDQ !== 'undefined' && !!LANDQ.away); }
 function toast(msg, ms){
+  if (awayQuiet()) return;
   if (booting()){ (toast._q = toast._q || []).push([msg, ms]); if (toast._q.length > 12) toast._q.shift(); return; }
   // a message breaks the calm (UI 2, U2-4, ui/10c-dock.js CALM): the buttons come back with it, so it can be acted on (the try: a toast
   // before the dock's file has run finds no DOCK yet)
