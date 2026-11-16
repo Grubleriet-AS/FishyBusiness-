@@ -45,6 +45,29 @@
   // The graphics (PGFX, view3d/00-head.js, kept on the device): the level first, then what applies at once, then what needs the 3D view
   // started again (gfxPend holds those until «Bruk»).
   let gfxPend = null;
+  // the game's own channels (Jonas 16.11.2026: «Kan du legge inn link til discord, tiktok, instagram, facebook og sånne ting noen steder?
+  // Jeg tenker vi må ha en socials-side med linker»): the Fellesskap app and a line in «Om spillet». A channel without its address is
+  // left out, so a new one is one line here
+  const SOCIAL = [
+    {k:'discord', n:'Discord', url:'https://discord.gg/zHej7f8j6', no:'Snakk med andre skippere, meld feil og få nytt først.', en:'Talk with other skippers, report bugs and hear the news first.', c:'#5865f2',
+      ic:'<path d="M8.5 7.5c2.3-.7 4.7-.7 7 0M7 16.5c3.2 1.3 6.8 1.3 10 0M8.2 7.6C6.6 10 5.9 12.7 6 15.8c1 .9 2.1 1.5 3.3 1.9l.8-1.5M15.8 7.6c1.6 2.4 2.3 5.1 2.2 8.2-1 .9-2.1 1.5-3.3 1.9l-.8-1.5"/><circle cx="9.7" cy="12.6" r="1.1"/><circle cx="14.3" cy="12.6" r="1.1"/>'},
+    {k:'tiktok', n:'TikTok', url:'https://www.tiktok.com/@det.store.bla', no:'Klipp fra kysten og fra det som bygges.', en:'Clips from the coast and from what is being built.', c:'#111',
+      ic:'<path d="M14 4v10.5a3.5 3.5 0 1 1-3.5-3.5"/><path d="M14 4c.4 2.4 2 4 4.5 4.2"/>'},
+    {k:'instagram', n:'Instagram', url:'', no:'Bilder fra spillet og fra kysten.', en:'Pictures from the game and the coast.', c:'#c13584',
+      ic:'<rect x="4" y="4" width="16" height="16" rx="4.5"/><circle cx="12" cy="12" r="3.6"/><circle cx="16.8" cy="7.2" r=".9"/>'},
+    {k:'facebook', n:'Facebook', url:'', no:'Nyheter og samtaler med andre spillere.', en:'News and talk with other players.', c:'#1877f2',
+      ic:'<path d="M14.5 20v-7h2.3l.4-2.8h-2.7V8.6c0-.8.3-1.3 1.4-1.3h1.4V4.8c-.3 0-1.1-.1-2.1-.1-2.1 0-3.5 1.3-3.5 3.6v1.9H9.4V13h2.3v7"/>'},
+    {k:'youtube', n:'YouTube', url:'', no:'Lengre videoer og veiledninger.', en:'Longer videos and guides.', c:'#ff0000',
+      ic:'<rect x="3" y="6" width="18" height="12" rx="3.5"/><path d="M10.5 9.5v5l4.3-2.5z"/>'}];
+  const socialOn = () => SOCIAL.filter(s => /^https:\/\//.test(s.url));
+  const socialSvg = s => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + s.ic + '</svg>';
+  function fellesskap(){
+    const on = socialOn(), d = on.find(s => s.k === 'discord');
+    return '<div class="ph-c">' + (d ? '<div class="ph-card so-hero"><h4>' + L('Bli med i fellesskapet', 'Join the community') + '</h4><p class="ph-note">' + L('Det Store Blå blir til mens du spiller. På Discord møter du de andre skipperne, får hjelp, melder fra om feil og hører det nye først.', 'Det Store Blå is being made while you play. On Discord you meet the other skippers, get help, report bugs and hear the news first.') + '</p>' +
+      '<a class="ph-btn p so-btn" style="background:' + d.c + '" href="' + d.url + '" target="_blank" rel="noopener">' + socialSvg(d) + L('Åpne Discord', 'Open Discord') + '</a></div>' : '') +
+      '<div class="ph-card"><h4>' + L('Følg Det Store Blå', 'Follow Det Store Blå') + '</h4>' + on.map(s => '<a class="so-row" href="' + s.url + '" target="_blank" rel="noopener"><span class="so-ic" style="background:' + s.c + '">' + socialSvg(s) + '</span><span class="so-t"><b>' + s.n + '</b><small>' + L(s.no, s.en) + '</small></span><span class="so-go">›</span></a>').join('') + '</div>' +
+      '<p class="ph-note" style="padding:0 4px">' + L('Lenkene åpnes i en ny fane. Spillet går videre her.', 'The links open in a new tab. The game goes on here.') + '</p></div>';
+  }
   const GFX_OFF = [['trees', 'Trær og vind i trærne', 'Trees and wind in the trees'], ['life', 'Fugler, dyr og liv på land', 'Birds, animals and life ashore'], ['foam', 'Skum og brottsjø', 'Foam and breaking seas'],
     ['fft', 'Detaljerte bølger', 'Detailed waves'], ['shore', 'Strand, skjær og småbåthavner', 'Beaches, skerries and marinas'], ['sun', 'Solglitter og skyskygger', 'Sun glitter and cloud shadows']];
   function innstGfx(){
@@ -76,7 +99,7 @@
       .map(([k, l]) => '<button class="' + (tab === k ? 'on' : '') + '" data-pa="sub" data-s="' + k + '">' + l + '</button>').join('') + '</div>';
     // (Jonas 16.11.2026: the map's credit line is gone from the 3D view, so the sources are one tap away for every player, not only a guest)
     const legal = '<div class="ph-card"><h4>' + L('Om spillet', 'About the game') + '</h4><p class="ph-note">' + [['kilder', 'Kilder og kartdata', 'Sources and map data'], ['vilkar', 'Vilkår', 'Terms'], ['personvern', 'Personvern', 'Privacy'], ['kontakt', 'Kontakt', 'Contact']]
-      .map(([f, no, en]) => '<a href="' + f + '.html" target="_blank" rel="noopener">' + L(no, en) + '</a>').join(' · ') + '</p><p class="ph-note">' + L('Kartdata © Kartverket, Mapzen (CC BY) og © OpenStreetMap-bidragsytere (ODbL).', 'Map data © Kartverket, Mapzen (CC BY) and © OpenStreetMap contributors (ODbL).') + '</p></div>';
+      .map(([f, no, en]) => '<a href="' + f + '.html" target="_blank" rel="noopener">' + L(no, en) + '</a>').join(' · ') + '</p><p class="ph-note">' + L('Følg oss: ', 'Follow us: ') + socialOn().map(s => '<a href="' + s.url + '" target="_blank" rel="noopener">' + s.n + '</a>').join(' · ') + '</p><p class="ph-note">' + L('Kartdata © Kartverket, Mapzen (CC BY) og © OpenStreetMap-bidragsytere (ODbL).', 'Map data © Kartverket, Mapzen (CC BY) and © OpenStreetMap contributors (ODbL).') + '</p></div>';
     let body = '';
     if (tab === 'spill') body = '<div class="ph-card ph-set"><h4>' + L('Språk', 'Language') + '</h4><div class="ph-lbl">' + (S.lang === 'no' ? 'Norsk' : 'English') + '<button class="ph-btn alt" data-pa="lang" style="margin:0">' + (S.lang === 'no' ? 'English' : 'Norsk') + '</button></div></div>' +
       '<div class="ph-card"><h4>HUD</h4><div class="ph-sub"><button class="' + (S.settings.hudOff ? '' : 'on') + '" data-pa="hudShow" data-v="1">' + L('Vis HUD', 'Show HUD') + '</button><button class="' + (S.settings.hudOff ? 'on' : '') + '" data-pa="hudShow" data-v="0">' + L('Skjul HUD', 'Hide HUD') + '</button></div><p class="ph-note">' +
