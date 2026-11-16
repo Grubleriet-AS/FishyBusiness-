@@ -171,14 +171,14 @@ async def main():
           S.loan = {bal:200000, rate:0.069, pay:2300, next:S.t + 1e5}; R.loophole = deal(1e6, 66500); S.loan = null;
           // the sheet of the entry boat without and with blad B
           const sheetOf = () => { DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=trebat][data-o=u7]'); const sh = dr().querySelector('.vsheet'), x = {btns:sh.querySelectorAll('[data-pa=buylic]').length, txt:sh.textContent}; tap('[data-pa=mksel]:not([data-k])'); DOCK.close(); return x; };
-          S.fm.b = false; const s0 = sheetOf(); R.noB = {btns:s0.btns, note:/Krever blad B/.test(s0.txt)}; S.fm.b = true; const s1 = sheetOf(); R.withB = {btns:s1.btns, inn:/Innovasjon Norge/.test(s1.txt)};
+          S.fm.b = false; const s0 = sheetOf(); R.noB = {btns:s0.btns, note:/Krever blad B/.test(s0.txt)}; S.fm.b = true; const s1 = sheetOf(); R.withB = {btns:s1.btns, inn:/Kystfondet/.test(s1.txt)};
           R.goals1 = goalTxt();
           // the entry: the skiff traded in and NOK 200 000 in the bank buys the boat with a right under 7 m
           const O = LIC_OFFERS[0], price = VESSELS[O.ves].price + licValue(O); R.price = price; S.cash = 200000; R.noInn = deal(price, vesselValue(curVessel()), false).why;
           DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=trebat][data-o=u7]'); tap('[data-pa=buylic][data-ti="1"]'); DOCK.close();
           R.after = {type:S.boat.type, lic:S.lic && S.lic.id, cash:Math.round(S.cash), loan:S.loan && Math.round(S.loan.bal), loanIN:S.loanIN && Math.round(S.loanIN.bal), inUsed:!!S.inUsed, innNow:innOK()};
           R.goals2 = goalTxt();
-          DOCK.open('bank'); R.bank = dr().textContent.includes('Innovasjon Norge'); DOCK.close();
+          DOCK.open('bank'); R.bank = dr().textContent.includes('Kystfondet'); DOCK.close();
           PHONE.open('kvote'); PHONE.render(); R.papers = /blad B/.test(document.querySelector('#phone').textContent) && /Ført på blad B/.test(document.querySelector('#phone').textContent); PHONE.show(false);
           // selling a vessel pays the loans first
           const v2 = newVesselObj('snekke', 'husoy'), l0 = S.loan.bal, c0 = S.cash, val = Math.round(vesselValue(v2) * 0.9); window.confirm = () => true; PHONE.dact('rederi', 'vsell', {id:v2.id}); R.sell = {loanDown:Math.round(l0 - (S.loan ? S.loan.bal : 0)), cash:Math.round(S.cash - c0), val};
@@ -187,7 +187,7 @@ async def main():
         print(ok(not r['b9'] and r['b10'] and r['msgB']), 'blad B comes with the tenth landing day and 1 G, with a message from Fiskeridirektoratet')
         print(ok(r['mig']['b'] and r['mig']['n'] == 10 and r['migLic']), 'an old save gets blad B from its landing notes, or at once with a closed-group right')
         print(ok(r['loophole']['payoff'] == 66500 and r['loophole']['tiNet'] == 0 and r['loophole']['eqNeed'] == 200000), 'a trade-in pays off the loan first; only the rest counts as equity')
-        print(ok(r['noB']['btns'] == 0 and r['noB']['note'] and r['withB']['btns'] == 2 and r['withB']['inn']), 'a boat with a right needs blad B; with it, both buttons and the top-up from Innovasjon Norge')
+        print(ok(r['noB']['btns'] == 0 and r['noB']['note'] and r['withB']['btns'] == 2 and r['withB']['inn']), 'a boat with a right needs blad B; with it, both buttons and the top-up from Kystfondet')
         print(ok(r['noInn'] == 'eq' and r['after']['lic'] == 'u7' and r['after']['type'] == 'trebat' and r['after']['cash'] >= 0 and r['after']['loanIN'] and r['after']['loanIN'] <= r['price'] * 0.15 + 1
                  and r['after']['loan'] <= r['price'] * 0.8 + 1 and r['after']['inUsed'] and not r['after']['innNow']), 'the entry: the skiff and NOK 200 000 buy the boat with a right under 7 m with the top-up, not without it')
         g0, g1, g2 = r['goals0'], r['goals1'], r['goals2']

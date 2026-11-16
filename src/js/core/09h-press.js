@@ -69,7 +69,7 @@ function pressStory(it){
     s.h = P2('Redningsskøyta slepte ' + w[0] + ' inn' + (port ? ' til ' + port : ''), 'The rescue boat towed ' + w[1] + ' in' + (port ? ' to ' + port : '')); s.big = true;
     s.ing = P2('Redningsskøyta' + (base ? ' fra ' + base : '') + ' rykket ut og tok ' + w[0] + ' på slep ' + where.no + '.', 'The rescue boat' + (base ? ' from ' + base : '') + ' turned out and took ' + w[1] + ' in tow ' + where.en + '.');
     s.body.push(P2('Båten ble levert trygt ved kai' + (port ? ' i ' + port : '') + '.', 'The boat was brought safely to the quay' + (port ? ' at ' + port : '') + '.'),
-      P2('Redningsselskapet minner om å sjekke diesel og værmelding før man går ut.', 'The rescue service reminds skippers to check the diesel and the forecast before going out.')); }
+      P2('Kystredningen minner om å sjekke diesel og værmelding før man går ut.', 'The rescue service reminds skippers to check the diesel and the forecast before going out.')); }
   else if (it.kind === 'salv'){ const tw = typeof TUR_BOATS !== 'undefined' && TUR_BOATS[d.towed] || null, port = pressPort(d.port); if (!tw) return null;
     s.h = P2(w[0] + ' berget «' + tw + '»', w[1] + ' saved the «' + tw + '»'); s.big = true;
     s.ing = P2('«' + tw + '» hadde motorstopp og drev mot land ' + where.no + '. ' + w[0] + ' tok henne på slep' + (port ? ' inn til ' + port : '') + '.', 'The «' + tw + '» had engine trouble and drifted toward land ' + where.en + '. ' + w[1] + ' took her in tow' + (port ? ' to ' + port : '') + '.');

@@ -55,7 +55,7 @@ async def main():
         # at Svalbard the Coast Guard tows (Jonas 05.11.2026, H1b R8), from Longyearbyen, and says so in the phone and on the AIS
         sv = await pg.evaluate("""async () => { const p = P(78.10, 14.0); await mapNeed(p, 2); const r = rescueBase(p); return {base:r.n, org:r.org, km:Math.round(r.d), nm:gL(...rsOrg(r.org).boat), owner:rsOrg(r.org).org[0],
           coast:rescueBase(P(69.8, 18.5)).org}; }""")
-        print(ok(sv['org'] == 'kv' and sv['base'] == 'Longyearbyen' and sv['km'] < 60 and sv['coast'] == 'rs' and sv['owner'] == 'Kystvakten'), 'at Svalbard the Coast Guard tows from Longyearbyen; along the coast Redningsselskapet', sv)
+        print(ok(sv['org'] == 'kv' and sv['base'] == 'Longyearbyen' and sv['km'] < 60 and sv['coast'] == 'rs' and sv['owner'] == 'Kystvakten'), 'at Svalbard the Coast Guard tows from Longyearbyen; along the coast Kystredningen', sv)
         md = await pg.evaluate(RUN, 'mayday'); print('mayday:', json.dumps(md, ensure_ascii=False)[:600])
         print(ok(md['start']['hold'] == 0 and md['start']['paid'] == await pg.evaluate('PRICE.rescue') and md['end']['st'] == 'port' and 'mistet 120 kg' in md['end']['log']), 'a distress call: the catch is lost at once, and the boat is towed in all the same')
         ag = await pg.evaluate(RUN, 'aground'); print('aground:', json.dumps(ag, ensure_ascii=False)[:600])

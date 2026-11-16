@@ -78,7 +78,7 @@ const TUR_GOODS = [
   {kg:[80, 400], no:'tomme fiskekasser', en:'empty fish boxes'}, {kg:[100, 600], no:'tauverk og blåser', en:'rope and buoys'},
   {kg:[150, 1500], no:'proviant til en butikk', en:'provisions for a shop'}, {kg:[300, 3000], no:'nye garn til et fiskarlag', en:'new nets for a fishermen\'s club'}
 ];
-const TUR_BOATS = ['Måsen', 'Terna', 'Lille Viking', 'Havbris', 'Skarven', 'Fiskeørn', 'Polarlys', 'Sølvblank', 'Kvitøy', 'Brisen'];
+const TUR_BOATS = ['Måsen', 'Terna', 'Lille Viking', 'Havbris', 'Skarven', 'Fiskeørn', 'Polarstjerna', 'Sølvblank', 'Kvitøy', 'Brisen'];
 const TUR_OWNERS = ['Kåre Nilsen', 'Hallvard Olsen', 'Ragnhild Johansen', 'Per Arne Hansen', 'Sigrid Pedersen', 'Odd Karlsen', 'Bjørn Isaksen', 'Torill Mikkelsen'];
 const turL = (no, en) => S.lang === 'en' ? en : no;
 function turState(){ const T = S.turer || (S.turer = {board:[], act:[], done:[], seq:0, at:null, tip:{t:0, n:0, k:0, said:0}, mech:0, v:3, slots:TUR.boardMax}); T.tip = T.tip || {t:0, n:0, k:0, said:0};
@@ -331,7 +331,7 @@ function turLeteMinute(m, b){
     msg(turLeteWho(m), 'Tre plasser fisket. Hva så du? Svar på kortet i Oppdrag-appen.', 'Three places fished. What did you see? Answer on the card in the Oppdrag app.'); }
   else log('Plass ' + m.seen.length + ' av ' + TUR_LETE.spots + ' fisket for leteoppdraget.', 'Place ' + m.seen.length + ' of ' + TUR_LETE.spots + ' fished for the search.');
 }
-const turLeteWho = m => m.from ? turManager(m.from) : 'Havforskningsinstituttet';
+const turLeteWho = m => m.from ? turManager(m.from) : 'Havinstituttet';
 // the place as the fishers name it: the fishing ground the point lies on (Ø14 F3, feltNameAt in 01-world.js), else by the nearest plant
 // or harbour (not a shop or a yard), «ved» within 1.5 nm
 function turLetePlace(p){
@@ -554,7 +554,7 @@ function turMinute(){
       if (m.cap == null){ let cd = 1; try { cd = coastDistFar(m.p); } catch (e){} m.cap = 0.8 * cd / Math.max(0.5, 3 * (m.reach || 1)) / 60; }
       const d = Math.min(W * 0.03 * 60 / 1000, m.cap); m.p = {x:m.p.x + Math.sin(a) * d, y:m.p.y - Math.cos(a) * d};
       let ashore = false; try { ashore = isLandFar(m.p) || coastDistFar(m.p) < 0.03; } catch (e){}
-      if (ashore){ msg(m.owner, '«' + m.boat + '» drev på land før hjelpen kom fram. Redningsselskapet tar henne av.', 'The «' + m.boat + '» drifted ashore before help came. The rescue service takes her off.');
+      if (ashore){ msg(m.owner, '«' + m.boat + '» drev på land før hjelpen kom fram. Kystredningen tar henne av.', 'The «' + m.boat + '» drifted ashore before help came. The rescue service takes her off.');
         turEnd(m, false, turL('«' + m.boat + '» drev på land. Ingen bergelønn.', 'The «' + m.boat + '» drifted ashore. No salvage reward.'), 'ashore'); continue; } }
     if (m.vid !== S.cur) continue;
     if (m.stage === 'reach' && ['idle', 'fishing'].includes(b.status) && (b.v || 0) < 1.5 && dist(b.pos, m.p) < 0.15){
@@ -564,7 +564,7 @@ function turMinute(){
       if (typeof turGo === 'function') setTimeout(() => turGo(m.id), 0);
     }
     // the boat itself in tow (the rescue service, 05-vessels.js rescue): the line is let go and the other boat waits for help
-    if (m.stage === 'tow' && b.status === 'tow'){ msg(m.owner, 'Vi får vente på Redningsselskapet. Takk for forsøket.', 'We will wait for the rescue service. Thank you for trying.'); turEnd(m, false, null, 'rescue'); }
+    if (m.stage === 'tow' && b.status === 'tow'){ msg(m.owner, 'Vi får vente på Kystredningen. Takk for forsøket.', 'We will wait for the rescue service. Thank you for trying.'); turEnd(m, false, null, 'rescue'); }
   }
 }
 // The time you are stuck does not count against a deadline: aground, under tow, and in port with the hull on the slip after it (the
@@ -584,9 +584,9 @@ function turProveMinute(m, b){
     const now = turHoldSp(); if (!m.h0) m.h0 = now; m.min = (m.min || 0) + 1;
     if (m.min < m.need) return;
     m.got = {}; for (const sp in now){ const d = now[sp] - (m.h0[sp] || 0); if (d > 0.5) m.got[sp] = Math.round(d); }
-    if (!Object.keys(m.got).length){ m.bonusMax = 0; turPayOut(m, 'Havforskningsinstituttet', 'Stasjonen ga ingen fisk denne gangen. En tom stasjon er også en prøve.', 'The station gave no fish this time. An empty station is a sample too.'); return; }
+    if (!Object.keys(m.got).length){ m.bonusMax = 0; turPayOut(m, 'Havinstituttet', 'Stasjonen ga ingen fisk denne gangen. En tom stasjon er også en prøve.', 'The station gave no fish this time. An empty station is a sample too.'); return; }
     m.stage = 'measure';
-    msg('Havforskningsinstituttet', 'Fint. Mål ti fisk på målebrettet og send oss lengdene. Målebrettet ligger på oppdraget i Oppdrag-appen.', 'Good. Measure ten fish on the board and send us the lengths. The board is on the mission in the Oppdrag app.');
+    msg('Havinstituttet', 'Fint. Mål ti fisk på målebrettet og send oss lengdene. Målebrettet ligger på oppdraget i Oppdrag-appen.', 'Good. Measure ten fish on the board and send us the lengths. The board is on the mission in the Oppdrag app.');
     if (typeof toast === 'function') toast(turL('Stasjonen er fisket. Mål ti fisk i Oppdrag-appen.', 'The station is fished. Measure ten fish in the Oppdrag app.'));
   }
   if (m.kind === 'ekko' && m.stage === 'line'){ const q = m.pts[m.at]; if (!q) return; const d = dist(b.pos, q);
@@ -596,7 +596,7 @@ function turProveMinute(m, b){
     m.at++;
     if (m.at < m.pts.length){ log('Punkt ' + m.at + ' av 3 på ekkoloddlinja.', 'Point ' + m.at + ' of 3 on the echo line.'); return; }
     const saw = turEkkoSaw(m);
-    turPayOut(m, 'Havforskningsinstituttet', 'Ekkoloddlinja er kommet inn. ' + saw[0], 'The echo line has come in. ' + saw[1]);
+    turPayOut(m, 'Havinstituttet', 'Ekkoloddlinja er kommet inn. ' + saw[0], 'The echo line has come in. ' + saw[1]);
   }
 }
 // the season's move: where a species is landed most this month, 40 to 250 nm off, in season, catchable with the player's gear and with
@@ -698,7 +698,7 @@ function turProveDone(m){
   if (!m.fish || (m.meas || []).length < m.fish.length) return;
   const err = m.fish.reduce((a, f, i) => a + Math.abs(m.meas[i] - f.cm), 0) / m.fish.length, bonus = Math.round((m.bonusMax || 0) * clamp(1 - (err - 0.5) / 2.5, 0, 1) / 100) * 100;
   m.err = Math.round(err * 10) / 10; m.pay += bonus;
-  turPayOut(m, 'Havforskningsinstituttet', 'Takk for prøvene fra stasjonen ved ' + coordStr(m.p) + '. Ti fisk målt, i snitt ' + fmt(err, 1) + ' cm fra riktig lengde.', 'Thank you for the samples from the station at ' + coordStr(m.p) + '. Ten fish measured, on average ' + fmt(err, 1) + ' cm from the right length.');
+  turPayOut(m, 'Havinstituttet', 'Takk for prøvene fra stasjonen ved ' + coordStr(m.p) + '. Ti fisk målt, i snitt ' + fmt(err, 1) + ' cm fra riktig lengde.', 'Thank you for the samples from the station at ' + coordStr(m.p) + '. Ten fish measured, on average ' + fmt(err, 1) + ' cm from the right length.');
 }
 // what the echo sounder saw along the line: where the fish stood thickest, by the fish model's own density (12-heat.js heatSample)
 function turEkkoSaw(m){
@@ -851,7 +851,7 @@ function turTake(id){
   if (m.k === 'frakt'){ m.stage = 'pick'; if (S.boat.status === 'port' && S.boat.port === m.from) turLoad(m); }
   if (m.k === 'garn') turSpawn(m);
   if (m.k === 'prove'){ m.stage = m.kind === 'ekko' ? 'line' : 'fish';
-    msg('Havforskningsinstituttet', m.kind === 'ekko' ? 'Takk! Kjør linja gjennom de tre punktene i rekkefølge, høyst 8 knop, så ekkoloddet får et godt bilde.' : 'Takk! Fisk ved stasjonen ' + coordStr(m.p) + ' i ' + turMinR(m.need / 60) + ' minutter, og mål ti fisk etterpå.',
+    msg('Havinstituttet', m.kind === 'ekko' ? 'Takk! Kjør linja gjennom de tre punktene i rekkefølge, høyst 8 knop, så ekkoloddet får et godt bilde.' : 'Takk! Fisk ved stasjonen ' + coordStr(m.p) + ' i ' + turMinR(m.need / 60) + ' minutter, og mål ti fisk etterpå.',
       m.kind === 'ekko' ? 'Thank you! Run the line through the three points in order, at 8 knots at most, so the echo sounder gets a good picture.' : 'Thank you! Fish at the station ' + coordStr(m.p) + ' for ' + turMinR(m.need / 60) + ' minutes, and measure ten fish after.'); }
   if (m.k === 'foto') msg('Kystposten', 'Fint at du tar den. Vi vil ha et bilde av ' + turFyrName(m) + (m.lys ? ' ' + TUR_LYS[m.lys].no : '') + '. Snu kameraet mot fyret og trykk på utløseren når du er innen 3 km.', 'Good that you take it. We want a picture of ' + turFyrName(m) + (m.lys ? ' ' + TUR_LYS[m.lys].en : '') + '. Turn the camera to the lighthouse and press the shutter when you are within 3 km.');
   if (m.k === 'slep'){ m.stage = 'reach'; msg(m.owner, 'Takk for at du kommer! «' + m.boat + '» har motorstopp og ligger og driver ved ' + coordStr(m.p) + '.', 'Thank you for coming! The «' + m.boat + '» has engine trouble and is drifting at ' + coordStr(m.p) + '.'); }
@@ -984,7 +984,7 @@ function turWhat(m){
   if (m.k === 'frakt') return [fmt(m.kg, 0) + ' kg ' + m.what[0] + ' til ' + to, fmt(m.kg, 0) + ' kg of ' + m.what[1] + ' to ' + to];
   if (m.k === 'garn') return [(m.kind === 'garn' ? 'Tapt garnlenke' : 'Tapt line') + ' for ' + m.owner, (m.kind === 'garn' ? 'Lost string of nets' : 'Lost line') + ' for ' + m.owner];
   if (m.k === 'slep') return ['Slep «' + m.boat + '» til ' + to, 'Tow the «' + m.boat + '» to ' + to];
-  if (m.k === 'prove') return m.kind === 'ekko' ? ['Ekkoloddlinje for Havforskningsinstituttet', 'Echo line for the Institute of Marine Research'] : ['Prøvefiske for Havforskningsinstituttet', 'Survey fishing for the Institute of Marine Research'];
+  if (m.k === 'prove') return m.kind === 'ekko' ? ['Ekkoloddlinje for Havinstituttet', 'Echo line for the Ocean Institute'] : ['Prøvefiske for Havinstituttet', 'Survey fishing for the Ocean Institute'];
   if (m.k === 'foto') return ['Bilde av ' + turFyrName(m) + ' for Kystposten', 'A picture of ' + turFyrName(m) + ' for Kystposten'];
   if (m.k === 'lete'){ const pl = turLetePlace(m.p); return ['Finn ut hvor ' + SPECIES[m.sp].no.toLowerCase() + 'en står ' + pl.no, 'Find out where the ' + SPECIES[m.sp].en.toLowerCase() + ' stands ' + pl.en]; }
   return ['Sesong: ' + fmt(m.kg, 0) + ' kg ' + SPECIES[m.sp].no.toLowerCase() + ' ved ' + to, 'Season: ' + fmt(m.kg, 0) + ' kg of ' + SPECIES[m.sp].en.toLowerCase() + ' at ' + to];
