@@ -40,8 +40,10 @@ async def main():
             await pg.evaluate("() => { PHONE.open('salg'); }")
             # Salgslaget's leaderboard tab
             tab = await pg.evaluate("() => { const b = [...document.querySelectorAll('#phone [data-pa=sub]')].find(x => /Toppliste|Leaderboard/.test(x.textContent)); if (b) b.click(); return !!b; }")
+            hid0 = await pg.evaluate("() => ({kinds:document.querySelectorAll('#phone [data-pa=salgK]').length, groups:document.querySelectorAll('#phone [data-pa=salgG]').length, filt:!!document.querySelector('#phone [data-pa=salgF]'), table:!!document.querySelector('#phone table.pf-top')})")
             got = {}
             for k in ('kg', 'kr', 'tot'):
+                await pg.evaluate("() => { const f = document.querySelector('#phone [data-pa=salgF]'); if (f) f.click(); }"); await pg.wait_for_timeout(100)
                 await pg.evaluate("k => { const b = document.querySelector('#phone [data-pa=salgK][data-s=' + k + ']'); if (b) b.click(); }", k)
                 await pg.wait_for_timeout(400); await pg.evaluate("() => PHONE.render()"); await pg.wait_for_timeout(200)
                 got[k] = await pg.evaluate("""() => { const t = document.querySelector('#phone table.pf-top'); return t ? {rows:t.querySelectorAll('tr.pf-tap').length, kr:/<th class="n">kr<\\/th>/.test(t.outerHTML), badge:t.querySelectorAll('.pf-fb').length,
@@ -60,17 +62,19 @@ async def main():
             await pg.screenshot(path=os.path.join(OUT, 'profil-egen-%s.png' % tag))
             # a database without top_list: the kilos from world_top, the others «kommer snart»
             await pg.evaluate("() => { window.__old = true; for (const k in WTOP) delete WTOP[k]; WTOP_NEW.off = 0; PHONE.open('salg'); }")
+            await pg.evaluate("() => { const f = document.querySelector('#phone [data-pa=salgF]'); if (f) f.click(); }"); await pg.wait_for_timeout(100)
             await pg.evaluate("() => { const b = document.querySelector('#phone [data-pa=salgK][data-s=kr]'); if (b) b.click(); }")
             await pg.wait_for_timeout(500); await pg.evaluate("() => PHONE.render()"); await pg.wait_for_timeout(200)
             old = await pg.evaluate("() => ({soon:/kommer snart|coming soon/.test((document.querySelector('#phone .ph-appv') || {}).innerText || ''), rpc:window.__rpc.slice(-4)})")
-            res[tag] = {'tab': tab, 'got': got, 'other': {'app': other['app'], 'ola': 'Ola' in other['txt'], 'founder': 'Founder #1' in other['txt'], 'worth': '910' in other['txt'], 'skills': 'Milepæler' in other['txt'] or 'Milestones' in other['txt']},
+            res[tag] = {'hid0': hid0, 'tab': tab, 'got': got, 'other': {'app': other['app'], 'ola': 'Ola' in other['txt'], 'founder': 'Founder #1' in other['txt'], 'worth': '910' in other['txt'], 'skills': 'Milepæler' in other['txt'] or 'Milestones' in other['txt']},
                         'mine': {'app': mine['app'], 'want': mine['want'], 'wait': 'venter på godkjenning' in mine['txt'] or 'waiting for approval' in mine['txt'], 'pick': mine['pick'], 'open': 'åpen for alle' in mine['txt'] or 'open to all' in mine['txt']},
                         'old': old['soon'], 'errs': errs}
             print(tag, json.dumps(res[tag], ensure_ascii=False))
             await pg.close()
         await br.close()
     for tag, r in res.items():
-        g = r['got']
+        g = r['got']; z = r['hid0']
+        print('OK  ' if z['filt'] and z['table'] and z['kinds'] == 0 and z['groups'] == 0 else 'FEIL', tag + ': topplista står alene, valgene er gjemt bak Filter-knappen (Jonas 16.11.2026)', json.dumps(z))
         print('OK  ' if r['tab'] and g['kg'] and g['kg']['rows'] == 3 and not g['kg']['kr'] and g['kg']['badge'] == 2 and g['kr'] and g['kr']['kr'] and 'Sjøsprøyt' in g['kr']['first'] and g['tot'] and g['tot']['rows'] == 1 else 'FEIL',
               tag + ': topplista i kilo (3 rader, merket på to), kroner (kr-kolonnen, Sjøsprøyt først) og totalt', json.dumps(g, ensure_ascii=False))
         o = r['other']; print('OK  ' if o['app'] == 'profil' and o['ola'] and o['founder'] and o['worth'] and o['skills'] else 'FEIL', tag + ': et trykk på raden åpner spillerens profil med navnet, Founder #1, selskapsverdien og ferdighetene', json.dumps(o))

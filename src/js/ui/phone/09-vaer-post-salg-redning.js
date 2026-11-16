@@ -106,10 +106,18 @@
       // opens the player's profile, ui/10v-profil.js; ui/10h-world.js worldTop)
       const kind = sub.salgK === 'kr' || sub.salgK === 'tot' ? sub.salgK : 'kg', tot = kind === 'tot';
       const w = weekOf(H), which = sub.salgW === 'prev' ? w - 1 : w, grp = sub.salgG || (S.lic ? 'lukket' : 'open'), T = typeof worldTop === 'function' ? worldTop(Math.max(0, which), grp, kind) : null;
-      h.push('<div class="ph-sub" style="padding:0 0 6px">' + [['kg', L('Kilo', 'Kilos')], ['kr', L('Kroner', 'Kroner')], ['tot', L('Totalt', 'Total')]].map(([k, n]) => '<button class="' + (kind === k ? 'on' : '') + '" data-pa="salgK" data-s="' + k + '">' + n + '</button>').join('') + '</div>');
-      if (!tot){
-        h.push('<div class="ph-sub" style="padding:0 0 6px"><button class="' + (grp === 'open' ? 'on' : '') + '" data-pa="salgG" data-s="open">' + L('Åpen gruppe', 'Open group') + '</button><button class="' + (grp === 'lukket' ? 'on' : '') + '" data-pa="salgG" data-s="lukket">' + L('Lukket gruppe', 'Closed group') + '</button></div>');
-        h.push('<div class="ph-sub" style="padding:0 0 8px"><button class="' + (which === w ? 'on' : '') + '" data-pa="salgW" data-s="now">' + L('Denne uka', 'This week') + '</button><button class="' + (which !== w ? 'on' : '') + '" data-pa="salgW" data-s="prev">' + L('Forrige uke', 'Last week') + '</button></div>');
+      // (Jonas 16.11.2026: «La topplisten med norges beste båter stå for seg selv og gjem alle søkemulighetene bak en filter-knapp»: one
+      // button with what the list shows now; a tap opens the choices under it, and a choice closes them again)
+      const kindN = {kg:L('Kilo', 'Kilos'), kr:L('Kroner', 'Kroner'), tot:L('Totalt', 'Total')};
+      const now = tot ? kindN.tot : [kindN[kind], grp === 'lukket' ? L('lukket gruppe', 'closed group') : L('åpen gruppe', 'open group'), which === w ? L('denne uka', 'this week') : L('forrige uke', 'last week')].join(' · ');
+      h.push('<div class="pf-filt"><button class="ph-btn alt' + (sub.salgF ? ' on' : '') + '" data-pa="salgF">' + L('Filter', 'Filter') + ' ▾</button><span class="ph-note">' + now + '</span></div>');
+      if (sub.salgF){
+        h.push('<div class="ph-card pf-fbox"><div class="ph-sub" style="padding:0 0 6px">' + ['kg', 'kr', 'tot'].map(k => '<button class="' + (kind === k ? 'on' : '') + '" data-pa="salgK" data-s="' + k + '">' + kindN[k] + '</button>').join('') + '</div>');
+        if (!tot){
+          h.push('<div class="ph-sub" style="padding:0 0 6px"><button class="' + (grp === 'open' ? 'on' : '') + '" data-pa="salgG" data-s="open">' + L('Åpen gruppe', 'Open group') + '</button><button class="' + (grp === 'lukket' ? 'on' : '') + '" data-pa="salgG" data-s="lukket">' + L('Lukket gruppe', 'Closed group') + '</button></div>');
+          h.push('<div class="ph-sub" style="padding:0"><button class="' + (which === w ? 'on' : '') + '" data-pa="salgW" data-s="now">' + L('Denne uka', 'This week') + '</button><button class="' + (which !== w ? 'on' : '') + '" data-pa="salgW" data-s="prev">' + L('Forrige uke', 'Last week') + '</button></div>');
+        }
+        h.push('</div>');
       }
       const escT = v => String(v).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'})[c]), me = escT(S.boatName || L('Deg', 'You')) + ' <small>(' + L('deg', 'you') + ')</small>';
       const co = c => c ? '<br><small class="ph-note">' + escT(c) + '</small>' : '';

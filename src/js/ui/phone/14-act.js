@@ -1,4 +1,4 @@
-  const NAV = new Set(['open', 'home', 'back', 'close', 'lang', 'sub', 'shop0', 'salgW', 'salgG', 'salgK', 'vsel', 'goto', 'vfollow', 'vboard', 'vname', 'vsell']);
+  const NAV = new Set(['open', 'home', 'back', 'close', 'lang', 'sub', 'shop0', 'salgW', 'salgG', 'salgK', 'salgF', 'vsel', 'goto', 'vfollow', 'vboard', 'vname', 'vsell']);
   function act(a, d){
     const was = app, done = SEL_APPS.includes(app) && !NAV.has(a) ? withSel(() => act0(a, d)) : act0(a, d);
     // a link to a page that lives in the drawer now (Neste mål, Rederi's «Åpne») closes the phone and opens the drawer
@@ -101,11 +101,12 @@
     else if (a === 'artback'){ sub.postArt = null; }
     else if (a === 'zlic'){ if (zoneLicApply(d.k)) toast(L('Lisensen er gitt.', 'The licence is granted.')); }   // H1b R4: a licence for a foreign zone (03e-rules.js)
     else if (a === 'ruchk'){ const c = ruChk(); c[d.k] = /^-?\d+(\.\d+)?$/.test(d.v) ? +d.v : d.v === 'null' ? null : d.v; S.ruChk = c; sub.regler = 'sjekk'; }
-    else if (a === 'salgW'){ sub.salgW = d.s; }
-    else if (a === 'salgG'){ sub.salgG = d.s; }
+    else if (a === 'salgW'){ sub.salgW = d.s; sub.salgF = false; }
+    else if (a === 'salgG'){ sub.salgG = d.s; sub.salgF = false; }
     else if (a === 'tow'){ rescue(true); toast(L('Redningsskøyta er på vei.', 'The rescue boat is on its way.')); }
     else if (a === 'pfav'){ PROF.avAsk(); }
-    else if (a === 'salgK'){ sub.salgK = d.s; }
+    else if (a === 'salgK'){ sub.salgK = d.s; sub.salgF = false; }
+    else if (a === 'salgF'){ sub.salgF = !sub.salgF; }
     else if (a === 'agfree'){ const why = agFree(); toast(why ? L(why[0], why[1]) : L('Båten ligger på trygt vann, med skroget som før.', 'The boat lies on safe water, with the hull as before.')); save(); if (typeof refreshAll === 'function') refreshAll(); }
     else if (a === 'unstuck'){ const why = unstuck(); toast(why ? L(why[0], why[1]) : L('Båten ligger nå på trygt vann.', 'The boat now lies on safe water.')); if (!why && typeof refreshAll === 'function') refreshAll(); }
     else if (a === 'mayday'){ confirmMayday = true; }
