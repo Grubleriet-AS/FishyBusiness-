@@ -5129,3 +5129,6 @@
 2026-11-16 19:34	plan/2026-11-16-134	c10fce21	cloudtest	OK	48	lite	samtidig	
 2026-11-16 19:34	plan/2026-11-16-134	c10fce21	friendtest	OK	8	lite	samtidig	
 2026-11-16 19:34	plan/2026-11-16-134	c10fce21	seasontest	OK	7	lite	samtidig	
+2026-11-16 19:41	plan/2026-11-16-134	c4ba7c42	starttest	OK	431	lite	samtidig	
+2026-11-16 19:41	plan/2026-11-16-134	c4ba7c42	streaktest	OK	75	lite	samtidig	
+2026-11-16 19:55	plan/2026-11-16-134	c4ba7c42	teleport3d	OK	835	3d	alene	
