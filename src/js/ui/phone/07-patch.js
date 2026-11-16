@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['folk-161126', '16.11.2026', 'Nye folk om bord', 'New people aboard', [
+       ['Folkene om bord og på kaia har fått nye kropper, med hender, ansikt og klær som bøyer seg med bevegelsen.', 'The people aboard and on the quay have new bodies, with hands, faces and clothes that bend as they move.']]],
     ['navnfix-161126', '16.11.2026', 'Brukernavnet på profilen', 'The player name on the profile', [
        ['Sto profilen din «Uten navn» selv om du hadde et brukernavn i Innstillinger, hentes navnet nå inn på kontoen når du starter spillet. Er navnet tatt, blir du bedt om å velge et nytt.', 'If your profile said «No name» although you had a player name in Settings, the name is now taken to your account when you start the game. If the name is taken, you are asked to choose a new one.']]],
     ['d4drift-161126', '16.11.2026', 'Driftsplanen i Om bord', 'The plan aboard', [
