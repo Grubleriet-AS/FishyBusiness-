@@ -181,7 +181,7 @@ async def main():
           S.t = Math.round(t0 * 60) - 30; b.type = 'sjark'; applyVessel(); S.equip.garnhaler = true; b.rig = 'garn'; b.fuel = BOAT.fuelCap; b.port = 'husoy'; b.pos = {...portById('husoy').p}; b.status = 'port'; b.gop = null;
           S.crew = [hand(), hand()]; setSkipper(S.crew[0].id); setMate(S.crew[1].id); S.me = 'nobody'; S.pgear = newPGear(); S.pgear.nets.push({id:'np', mesh:180, n:30, cond:1}); S.pgear.kits.n = 2;
           const rt = FLEET.find(f => f.home === 'husoy' && f.L < 15).rt[0], end = rt[rt.length - 1];
-          const o = S.ops = plan2New({home:'husoy', rig:'garn', jig:false, places:[{id:'g', k:'felt', x:end[0], y:end[1], n:30, soak:24}], dep:5, wx:{wind:16, hs:3.5}, land:{mode:'near', port:null, when:'trip'}});   // (Driftsplan 2 since Ø12 C 08.11.2026)
+          const o = S.ops = plan2New({v:DRV3, home:'husoy', rig:'garn', jig:false, places:[{id:'g', k:'felt', x:end[0], y:end[1], n:30, soak:24}], dep:5, wx:{wind:16, hs:3.5}, land:{mode:'near', port:null, when:'trip'}});   // (Driftsplan 2 since Ø12 C 08.11.2026)
           const err = await new Promise(r => plan2Make(o, r)); o.on = true;
           const s0 = S.sales.length, days = []; for (let d = 0; d < 3; d++){ for (let i = 0; i < 1440; i++){ DYN.on = false; step(); if (i % 240 === 0) await new Promise(r => setTimeout(r, 0)); } days.push(S.sets.filter(s => !s.lost).map(s => Math.round((S.t - s.tSet) / 60))); }
           const R = {err, days, sales:S.sales.slice(s0).map(x => x.kg), stop:o.stop};

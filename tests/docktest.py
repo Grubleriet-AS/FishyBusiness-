@@ -134,7 +134,8 @@ async def run(p, w, h, tag):
     apps = await pg.evaluate("[...document.querySelectorAll('#phone .ph-app')].map(x => x.dataset.a)")
     # in the groups' order from UI 2, U2-6 (Jonas 06.11.2026, V6 A): Drift, Handel og regler, Deg, Verden, System
     BASE = ['drift', 'ordl', 'nett', 'salg', 'kvote', 'regler', 'kaiboden', 'merker', 'vaer', 'post', 'meld', 'redning', 'patch', 'tilbake', 'innst', 'admin']   # Nettet from 30.10.2026 (M2); and since 05.10.2026 Notatbok, Sesong and Folk among them, and Tilbakemelding, and Fiskeguide from 08.10.2026; Haill and Trim in Kaiboden, and Håndboka and Garderoben
-    check([a for a in apps if a in BASE] == BASE and all(a in BASE + ['sesong', 'guide', 'folk', 'handbok', 'garderobe'] for a in apps), 'telefonen har appene, med Kvote, Regler, Kaiboden, Patchnotes og Admin i rekkefølge', apps)
+    # (Profil and Rederi from «Klar for flere skippere», 16.11.2026: «Ny app: Profil», «Alle appene er på telefonen fra første dag»)
+    check([a for a in apps if a in BASE] == BASE and all(a in BASE + ['sesong', 'guide', 'folk', 'handbok', 'garderobe', 'profil', 'rederi'] for a in apps), 'telefonen har appene, med Kvote, Regler, Kaiboden, Patchnotes og Admin i rekkefølge', apps)
     # the home screen in groups with a heading each, and every tile on the same glass (UI 2, U2-6: V6 A, V2 A)
     gr = await pg.evaluate("[...document.querySelectorAll('#phone .ph-grp')].map(g => [g.dataset.g, (g.querySelector('h5') || {}).textContent, g.querySelectorAll('.ph-app').length])")
     check([g[0] for g in gr] == ['drift', 'handel', 'deg', 'verden', 'system'] and [g[1] for g in gr] == ['Drift', 'Handel og regler', 'Deg', 'Verden', 'System'] and all(g[2] > 0 for g in gr), 'hjemskjermen har gruppene Drift, Handel og regler, Deg, Verden og System med overskrift, ingen tom', gr)
@@ -142,7 +143,7 @@ async def run(p, w, h, tag):
     check(len(gl) == 1 and 'gradient' not in gl[0], 'alle flisene har samme glass, ikke hver sin farge', gl[:3])
     # the Rederi app only once the company is founded in the bank (Jonas 06.10.2026)
     rd = await pg.evaluate("(() => { const has = () => [...document.querySelectorAll('#phone .ph-app')].some(x => x.dataset.a === 'rederi'); const f0 = S.form, r0 = has(); S.form = 'AS'; PHONE.open('home'); const r1 = has(); S.form = f0; PHONE.open('home'); return [r0, r1]; })()")
-    check(rd == [False, True], 'Rederi-appen kommer først når rederiet er stiftet', rd)
+    check(rd == [True, True], 'Rederi-appen står på telefonen fra første dag, også før rederiet er stiftet (patchnotes «Klar for flere skippere», 16.11.2026)', rd)
     # the patch notes: a badge until the app is opened, then the latest updates as short lists, newest first
     pn = await pg.evaluate("""(() => { const bd = () => { const e = document.querySelector('#phone .ph-app[data-a=patch] .bd'); return e ? e.textContent : null; }, b0 = bd();
       document.querySelector('#phone .ph-app[data-a=patch]').click(); const cards = [...document.querySelectorAll('#phView .patchc')];

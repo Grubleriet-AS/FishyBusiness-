@@ -20,7 +20,7 @@ def check(ok, what, extra=''):
 # a plan2 day-rhythm jig plan on a sjark with 2 crew, you aboard or not; Skippertak from the start (skip0) or bought at minute giveAt
 PLAN = """async (args) => { D2.reset(args.seed || 25); const home = D2.boat('sjark', 2, !!args.me); await mapNeed(portById(home).p, 14);
   const J = D2.spots(2, 2.5, 6);
-  const o = S.ops = plan2New({home, rig:'juksa', jig:true, places:[D2.juks('j1', J[0]), D2.juks('j2', J[1])], dep:5, land:{mode:'near', port:null, when:'trip'}, rhythm:'day', days:3});
+  const o = S.ops = plan2New({v:DRV3, home, rig:'juksa', jig:true, places:[D2.juks('j1', J[0]), D2.juks('j2', J[1])], dep:5, land:{mode:'near', port:null, when:'trip'}, rhythm:'day', days:3});
   o.M = D2.plant(o);
   const err = await D2.make(o); if (err) return {err}; o.on = true;
   if (args.energy != null) S.energy = args.energy;

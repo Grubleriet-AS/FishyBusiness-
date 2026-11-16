@@ -371,7 +371,7 @@ const CATCHUP_CAP = 72 * 60;
 // CATCH_LEFT and is played by the tick once the packs are in, so a slow network makes the clock wait, never guess.
 let CATCH_LEFT = 0;
 // (the time away, away: also while Autonav finds a way round shallow water, sailWaiting in core/05-vessels.js)
-function playMinutes(n, away){ let i = 0; LANDQ.away = !!away; try { for (; i < n; i++){ if (!simAreaReady() || (away && sailWaiting())){ CATCH_LEFT += n - i; break; } step(); } } finally { LANDQ.away = false; } return i; }   // (LANDQ.away: no queue at the plants while the time away is played, core/07-harbours.js)
+function playMinutes(n, away){ let i = 0; LANDQ.away = !!away; try { for (; i < n; i++){ if (!simAreaReady() || (away && (sailWaiting() || drWaiting()))){ CATCH_LEFT += n - i; break; } step(); } } finally { LANDQ.away = false; } return i; }   // (LANDQ.away: no queue at the plants while the time away is played, core/07-harbours.js)
 // on the world's clock (core/01-world.js) the time away is what the game is behind it, all of it; more than two weeks is skipped to the
 // last two (the clock moves on, the simulation plays the last two weeks)
 const WORLD_SIM_MAX = 14 * 24 * 60;

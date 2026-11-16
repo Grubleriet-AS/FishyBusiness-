@@ -45,9 +45,13 @@ function drFetch(o, pairs, vid){
     for (const q of pairs){ const key = drLK(q.a, q.ap, q.b, q.bp), L0 = o.legs[key]; if (L0 && (!L0.none || S.t - (L0.t || 0) < 60)) continue;
       let r = null; try { r = await leiaRoute(q.a, q.b, q.ap || null, q.bp || null); } catch (e){ console.error(e); }
       drLegPut(o, key, r, q.a, q.b); }
-  })().finally(() => DRBUSY.delete(vid));
-  DRBUSY.set(vid, job); return job;
+  })().finally(() => { DRBUSY.delete(vid); DRBUSY_T.delete(vid); });
+  DRBUSY.set(vid, job); DRBUSY_T.set(vid, Date.now()); return job;
 }
+// (a plan waits for a leg being fetched: the catch-up while the game was closed stops until it is in, as for the sailing's replan,
+// sailWaiting, so the boat does not lie «Finding the way …» for the rest of a chunk of up to 3000 minutes; 20 s at most; DP3-4)
+const DRBUSY_T = new Map();
+function drWaiting(){ const now = Date.now(); for (const t of DRBUSY_T.values()) if (now - t < 20000) return true; return false; }
 // a leg that was not found is tried again after an hour
 function drLegsStale(o){ for (const k in o.legs) if (o.legs[k].none && S.t - (o.legs[k].t || 0) > 60) delete o.legs[k]; }
 

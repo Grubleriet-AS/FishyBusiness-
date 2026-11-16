@@ -1095,7 +1095,7 @@ function crewSim(src){
     ST.crateFill = ctx.crateFill || 0;
   }
   // everyone straight to their place (the first frame, a change of boat, the clock run on)
-  function snap(){ for (const a of A){ a.sub = null; a.put = a.relief = null; a.door = a.out = 0; if (!a.goal){ a.mode = 'in'; continue; } const p = ST.M.at(a.goal.k); a.x = p[0]; a.y = p[1]; a.z = p[2]; a.cell = a.goal.k; a.h = a.goal.h; a.task = a.goal.task; a.mode = a.goal.inside ? a.goal.inside : 'at'; a.path = null; } }
+  function snap(){ for (const a of A){ a.sub = null; a.v = 0; a.put = a.relief = null; a.door = a.out = 0; if (!a.goal){ a.mode = 'in'; continue; } const p = ST.M.at(a.goal.k); a.x = p[0]; a.y = p[1]; a.z = p[2]; a.cell = a.goal.k; a.h = a.goal.h; a.task = a.goal.task; a.mode = a.goal.inside ? a.goal.inside : 'at'; a.path = null; } }
   const dropY = p => { if (!ready()) return null; const u = ST.M0.hit(p, [p[0], p[1] - 12, p[2]]); return u < 0 ? null : p[1] - u * 12; };
   function tick(dt){
     if (!ready()) return; dt = Math.min(0.1, Math.max(0, dt || 0)); ST.clk += dt; const t = nowS();
@@ -1136,15 +1136,23 @@ function crewSim(src){
         // along the way: towards the next cell's centre, turning as it goes, and slowly or not at all when she rolls hard
         const q = M.at(a.path[Math.min(a.pi, a.path.length - 1)]), dx = q[0] - a.x, dz = q[2] - a.z, dist = Math.hypot(dx, dz);
         const want = Math.atan2(dx, -dz); let dh = dist > 1e-3 ? want - a.h : 0; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI;
-        a.h += Math.max(-TURN * dt, Math.min(TURN * dt, dh)); const climb = Math.abs(q[1] - a.y) > 0.4 ? 0.45 : 1, step = spd * clamp(0.7 + 0.3 * ef, 0.76, 1.04) * climb * dt * (Math.abs(dh) > 1.2 ? 0.3 : 1);
+        a.h += Math.max(-TURN * dt, Math.min(TURN * dt, dh)); const climb = Math.abs(q[1] - a.y) > 0.4 ? 0.45 : 1, vw = spd * clamp(0.7 + 0.3 * ef, 0.76, 1.04) * climb * (Math.abs(dh) > 1.2 ? 0.3 : 1);
+        // (FB3: the speed goes up and down at FOT.ACC, and comes down to a stand where the way ends: no walker at full speed from a
+        // stand or to one. A turn on the way slows him the same way)
+        let step = vw * dt; if (FOT.on){ let rem = dist; for (let j = a.pi + 1; j < a.path.length; j++){ const p0 = M.at(a.path[j - 1]), p1 = M.at(a.path[j]); rem += Math.hypot(p1[0] - p0[0], p1[2] - p0[2]); }
+          const v0 = a.v || 0, vt = Math.min(vw, Math.max(FOT.VMIN, Math.sqrt(2 * FOT.ACC * rem))); a.v = vt > v0 ? Math.min(vt, v0 + FOT.ACC * dt) : Math.max(vt, v0 - FOT.ACC * dt); step = a.v * dt; }
         a.mode = 'walk'; a.task = a.sub && a.sub.carry ? 'carry' : null; a.near = dist;
         if (dist <= step + 1e-6){ a.x = q[0]; a.z = q[2]; a.y = q[1]; a.cell = a.path[Math.min(a.pi, a.path.length - 1)]; a.pi++;   // the point is reached this very step: no jump, ever
           // (at the door, 'at' first: in after a hand to it, below)
-          if (a.pi >= a.path.length){ a.mode = g.inside && !(g.inside === 'in' && ST.PT.door && g.k === ST.PT.door.k) ? g.inside : 'at'; a.task = g.task; a.path = null; a.cell = g.k; a.blend = 0; if (a.sub && !a.sub.done) a.sub.done = t + (a.sub.hold || 2); continue; } }
+          if (a.pi >= a.path.length){ a.v = 0; a.mode = g.inside && !(g.inside === 'in' && ST.PT.door && g.k === ST.PT.door.k) ? g.inside : 'at'; a.task = g.task; a.path = null; a.cell = g.k; a.blend = 0; if (a.sub && !a.sub.done) a.sub.done = t + (a.sub.hold || 2); continue; } }
         else { a.x += dx / dist * step; a.z += dz / dist * step; const fy = M.floorAt(a.x, a.z); a.y = fy === fy ? fy : a.y + (q[1] - a.y) * Math.min(1, step / Math.max(dist, 1e-3)); }
-        sideways(a, t, dt); unclip(a, t);
+        sideways(a, t, dt);
+        // (FB3: slowing to his place he is longer in its last few decimetres, where a shoulder could still touch what the place stands
+        // by and unclip could not push him off it: side on there, as in a squeeze; tests/crewclip.py «nor a body on the way»)
+        if (!unclip(a, t) && FOT.on && a.near < 0.3 && a.sqA < 1){ a.sqW = a.sqA = 1; a.sqT = t; unclip(a, t); }
       } else {
         // at the place: turn to face the work, and the blend into its pose
+        a.v = 0;   // (standing: the next way starts from a stand, FB3)
         let dh = g.h - a.h; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI; a.h += Math.max(-TURN * dt, Math.min(TURN * dt, dh));
         a.blend = Math.min(1, a.blend + dt / 0.4); a.task = g.dyn ? dynTask(g) : g.task; a.sqW = 0; a.sqA = Math.max(0, (a.sqA || 0) - dt * 6);
         if (a.sub && a.sub.tub && !a.sub.done) a.sub.done = t + a.sub.hold;   // (the tub's errand from where he stands already)
@@ -1298,6 +1306,16 @@ function crewSim(src){
   function seaStepOk(a, dr, da){
     const M = ST.M, P = seaAt(a), C = SJOBEIN, s = Math.abs(dr) > 0.35 ? (dr > 0 ? 1 : -1) : 1, r = s * (0.12 + C.WIDE) + dr * C.STEPLEN, f = da * C.STEPLEN, q = P.W(f, 0, r), q2 = P.W(f + da * 0.12, 0.45, r + dr * 0.12);
     return M.ok(M.cellOf(q[0], q[2])) && M.hit(P.W(0, 0.92, s * 0.11), P.W(f, 0.1, r)) < 0 && M.hit(P.W(f, 0.45, r), q2) < 0; }
+  // (FB3: whether a foot walking may be put down at x, z on the deck someone a is on: deck under it at his height (not the walking
+  // map's cells, which keep a body's room from the walls: a foot by the rail is outside them and on the deck), no gear there (inKit),
+  // nothing through the shin, and nothing between him and it at the shin's height: no foot in a wall, a tub or the kit)
+  // (the deck's height at x, z near someone a: the walking map's floor, or outside its cells the model's own deck within a step of
+  // his height; null with no deck there)
+  function footY(a, x, z){ const M = ST.M; const fy = M.floorAt(x, z); if (fy === fy) return Math.abs(fy - a.y) <= FOT.RISE ? fy : null;
+    const u = ST.M0.hit([x, a.y + FOT.RISE, z], [x, a.y - FOT.RISE, z]); return u < 0 ? null : a.y + FOT.RISE - u * FOT.RISE * 2; }
+  function footOk(a, x, z){ const M = ST.M, fy = footY(a, x, z); if (fy == null || fy < a.y - FOT.DROP) return false;   // (no lower under him than the hips go down for it: it would hang over the deck there) if (!src && inKit(x, z) > 0) return false;
+    if (M.hit([x, fy + 0.45, z], [x, fy + 0.06, z]) >= 0) return false; const go = walkOff(a), y0 = Math.max(a.y, fy); return M.hit([a.x + go[0], y0 + 0.3, a.z + go[1]], [x, y0 + 0.3, z]) < 0; }   // (at the shin's height: a foot goes over a sill or a hatch's coaming lower than that, not through a wall)
+
   // the nearest rail from where someone stands, ahead or to either side within 3 m (a fish that slips over the side goes over it):
   // the way [forward, right] in the boat's frame, how far, and its top over the deck; null with none (a wall is not a rail)
   function railNear(a){ const M = ST.M; let best = null;
@@ -1348,7 +1366,7 @@ function crewSim(src){
   return {tick, agents, visible, anchorOf, on, setPlan, poseLines:(k, rail) => poseSegs(k, rail), hitsAt:(k, cell, h, rail, off) => { const M = ST.M, p = M.at(cell), F = [Math.sin(h), -Math.cos(h)], Rv = [Math.cos(h), Math.sin(h)], o = off || [0, 0]; return poseSegs(k, rail).map((q, i) => M.hit([p[0] + o[0] + F[0] * q[0][0] + Rv[0] * q[0][2], p[1] + q[0][1], p[2] + o[1] + F[1] * q[0][0] + Rv[1] * q[0][2]], [p[0] + o[0] + F[0] * q[1][0] + Rv[0] * q[1][2], p[1] + q[1][1], p[2] + o[1] + F[1] * q[1][0] + Rv[1] * q[1][2]]) >= 0 ? i : -1).filter(i => i >= 0); }, landSlots:() => ready() ? landSlots() : [], landNow, iceBox:() => ready() ? iceBox() : null, setCrane, setIce,
     // (for the view: nothing of the boat between two points in her frame, and the first thing of her under a point, its height)
     clearLine:(a, b) => !ready() || ST.M0.hit(a, b) < 0, dropY, quaySide:() => ready() ? quaySide() : 1, netTubs:n => ready() ? netTubs(n) : [], gear:() => ready() && !src && S.pgear ? rigGear() : null, magOn:() => ready() && magOn(), lineTubs, stools:() => ready() && !src && !(ST.G || {}).hand ? stools() : [], setMag:P => { TUBC.mag = P && P.length ? P : null; }, tubAccount:() => TUBL, tubWhy:() => { if (!ready()) return null; const tg = tubCount(), kind = tg.op ? tg.op.kind : TUBL.Wk || 'set', P = tubSpots(), j = TUBL.job ? null : STAMPER.want(TUBL, tg.op), a = j ? tubCarrier(tg.op)[0] : null;
-    const p0 = j ? tubPos(j.from.at, j.from.i, kind, (STAMPER.by(TUBL, j.id) || {}).wk) : null, p1 = j ? tubPos(j.to.at, j.to.i, kind) : null; return {spots:P, job:j, who:a ? a.id : null, s0:j && a ? tubStand(p0, j.from.at === 'slot' ? tubSlot(0)[1] : j.from.at === 'nest' ? P.nest[1] : p0[1], a.id) : null, s1:j && a ? tubStand(p1, j.to.at === 'slot' ? tubSlot(0)[1] : j.to.at === 'nest' ? P.nest[1] : p1[1], a.id) : null, p0, p1, pace:TUBL.pace, cs:TUBL.cs, comp:(() => { const C = deckComp(ST.M), c = a ? ST.M.cellOf(a.x, a.z) : -1, PT = ST.PT || {}; return {me:c >= 0 ? C[c] : null, haling:PT.haling && PT.haling.k != null ? C[PT.haling.k] : null, sloy:PT.sloy && PT.sloy.k != null ? C[PT.sloy.k] : null, nComp:Math.max(...C) + 1}; })()}; }, NET_TUB, setJig, setRoll, setSea, seaRoom:a => ready() ? seaRoom(a) : null, seaRail:a => ready() ? seaRail(a) : null, seaStepOk:(a, dr, da) => ready() && seaStepOk(a, dr, da), seaClip, seaScan, seaFeet, setHelm, setMoor, moorMan, moorHands, moorAt, places:() => ready() ? places() : null, reset, clipNow, clipScan, clipWhy, bodyHits, kitHits, kitAt:(k, off) => ready() && kitAt(k, off), walkOff, holds, railAt:(k, h) => ready() ? railAt(k, h) : null, railNear:a => ready() ? railNear(a) : null, _st:ST};
+    const p0 = j ? tubPos(j.from.at, j.from.i, kind, (STAMPER.by(TUBL, j.id) || {}).wk) : null, p1 = j ? tubPos(j.to.at, j.to.i, kind) : null; return {spots:P, job:j, who:a ? a.id : null, s0:j && a ? tubStand(p0, j.from.at === 'slot' ? tubSlot(0)[1] : j.from.at === 'nest' ? P.nest[1] : p0[1], a.id) : null, s1:j && a ? tubStand(p1, j.to.at === 'slot' ? tubSlot(0)[1] : j.to.at === 'nest' ? P.nest[1] : p1[1], a.id) : null, p0, p1, pace:TUBL.pace, cs:TUBL.cs, comp:(() => { const C = deckComp(ST.M), c = a ? ST.M.cellOf(a.x, a.z) : -1, PT = ST.PT || {}; return {me:c >= 0 ? C[c] : null, haling:PT.haling && PT.haling.k != null ? C[PT.haling.k] : null, sloy:PT.sloy && PT.sloy.k != null ? C[PT.sloy.k] : null, nComp:Math.max(...C) + 1}; })()}; }, NET_TUB, setJig, setRoll, setSea, seaRoom:a => ready() ? seaRoom(a) : null, seaRail:a => ready() ? seaRail(a) : null, seaStepOk:(a, dr, da) => ready() && seaStepOk(a, dr, da), footOk:(a, x, z) => !ready() || footOk(a, x, z), footY:(a, x, z) => ready() ? footY(a, x, z) : a.y, seaClip, seaScan, seaFeet, setHelm, setMoor, moorMan, moorHands, moorAt, places:() => ready() ? places() : null, reset, clipNow, clipScan, clipWhy, bodyHits, kitHits, kitAt:(k, off) => ready() && kitAt(k, off), walkOff, holds, railAt:(k, h) => ready() ? railAt(k, h) : null, railNear:a => ready() ? railNear(a) : null, _st:ST};
 }
 const CREW3D = crewSim(null);
 // where the lines and the fenders are, in the boat's frame (x to starboard, z aft) from the model's measures (vessel3d.js geoOf), with the
@@ -1410,6 +1428,125 @@ function seaState(){ return {qr:0, vr:0, qf:0, vf:0, hy:0, y:null, k:0, env:0, e
 // how much further forward a knee goes when its leg, dref long from hip to ankle before, is dnow long (the thigh and the shin keep
 // their length, so a shorter leg is a knee more bent)
 function seaKnee(dref, dnow){ const L2 = SJOBEIN.SEG * SJOBEIN.SEG, a = dref / 2, b = dnow / 2; return Math.sqrt(Math.max(0, L2 - b * b)) - Math.sqrt(Math.max(0, L2 - a * a)); }
+// ---- the feet walking (FB3, steg 121, 16.11.2026; docs/planer/folk-2.md FB3; Jonas 16.11.2026: «Start FB3 i en ny økt»): a foot on
+// the deck stays where it was put, in the boat's frame, until the body has gone past it; then it is lifted and swung along a bow to
+// where it lands ahead (rule 5 of «Arkitekturen for bevegelsen»: planted or swinging, no skating). The step's length and its beat
+// come of the speed, as people walk: the step's length over the cadence (the walk ratio) stays near 0.0060 m per step a minute
+// (Sekiya and Nagasaki; the walk ratio of adults walking at their own pace), so L = sqrt(60 * WR * v): 0.66 m and 1.83 steps a
+// second at 1.2 m/s, 0.53 m and 1.47 at 0.78. A step is never longer than the legs reach (the figure's hips are 0.84 m over the
+// ankle, so the stance's last part is reached by the hips coming down: DROP); a faster beat makes up the rest. One who turns on
+// the spot steps round, one who stops takes a last step to stand square. The numbers are here and nowhere else; «#fot0» turns it
+// all off (the feet as the old sine, the agents without acceleration).
+const FOT = {
+  on:!(typeof location !== 'undefined' && /fot0/.test(String(location.hash || ''))),
+  WR:0.0060,      // m per (step a minute): the walk ratio, step length over cadence
+  SWF:0.84,       // the share of a step's time the swinging foot is in the air (stance 58 % of a stride, swing 42 %)
+  TSW:[0.24, 0.55],   // s: the shortest and the longest swing
+  TREST:0.36,     // s: a swing on the spot (turning, the last step)
+  LIFT:0.075,     // m the ankle goes up at most in the swing (less for a short step)
+  TURN:0.45,      // rad the body turns from a foot before that foot steps round after it
+  NEAR:0.02,      // m from where a foot should stand (standing) that is near enough: no last step
+  SEP:0.17,       // m: the least between the two feet where one is put down
+  RISE:0.45,      // m: the most a foot is put down over or under where he stands (a step on deck, walkY)
+  OTHER:0.16,     // m: the least between a foot put down and anyone else's (two passing on a narrow deck)
+  REACHK:0.9,     // the share of the legs' reach a foot is put down at, at most (the rest is for the speed that grows in the swing, and the turn)
+  HURRY:[0.75, 0.01],    // the foot that stands past this share of the reach (from where it would stand under him) hurries the other's swing: once more for each so many m past it
+  DROP:0.085,     // m: the most the hips come down walking for a foot to reach (LEMMER.DROP standing)
+  DIP:0.02,       // m the hips are lower walking at 1.2 m/s (the knee a little bent through the stance)
+  SWAY:0.022,     // m the hips go over the foot that stands
+  ARM:1,          // the arms' swing, a share of the old one (0.15 m each way at the hand) at a full step
+  CARRY:{len:0.82, arm:0, dip:0.035},   // one who carries: a shorter step, no swing of the arms, lower hips
+  ACC:2.5,        // m/s² the agents speed up and slow down at (deckcrew tick): at full speed in 0.5 s, about a step (2 was asked for; the shortest ways took 15-21 % longer, the work as a whole up to 10 %: tests/crewwalk.py)
+  VMIN:0.06,      // m/s: slower is standing (for the gait)
+  TV:0.1,         // s: the speed and the turn are taken over this long (the frames' own jitter out of it)
+  log:null,       // the tests: an array footStep writes each foot's planting to
+  clock:null      // the tests: s, the drawing's clock for the feet instead of the page's (tests/fotgli.py steps it with the agents)
+};
+// one person's feet from frame to frame: where each stands on the deck (x, z in the boat's frame) and its heading there, which one
+// swings and how far (u), and what footStep last gave (o)
+function footState(){ return {snap:true, f:[{x:0, z:0, y:0, h:0, up:false}, {x:0, z:0, y:0, h:0, up:false}], sw:-1, u:0, from:null, Tsw:FOT.TREST, ds:1, nx:1, px:0, pz:0, ph:0, vx:0, vz:0, w:0, sl:0,
+  o:{on:false, fa:[0, 0], fr:[-0.12, 0.12], fy:[0, 0], lift:[0, 0], dh:[0, 0], plant:[true, true], hipY:0, hipR:0, arm:0, v:0, L:0, cad:0}}; }
+// where someone's feet are for the others' to keep clear of: each that stands, and where the one in the air will land (s his footState)
+function footSpots(s){ return s.f.map(f => f.up && s.tg ? s.tg : [f.x, f.z]); }
+// the step's length at a speed (m, m/s), within what the legs reach horizontally (reach: m ahead or behind the hips a foot can be at most)
+function footLen(v, reach){ return Math.min(Math.sqrt(60 * FOT.WR * Math.max(0, v)), reach > 0 ? reach * FOT.REACHK / (1 - FOT.SWF / 2) : Infinity); }
+// the feet of one person walking or standing on a deck: s his state (footState), inp:
+//   x, z, h   where he is and his heading in the boat's frame (m; rad, 0 ahead along -z, as the agents have it)
+//   dt        s since the last call (none, or over half a second: the feet are put under him, nothing swings)
+//   w         [left, right] m out from his middle each foot stands (the sea legs' width)
+//   reach     m a foot may be ahead of or behind the hips (the legs' reach with the hips down FOT.DROP)
+//   carry     he carries something (the shorter step)
+//   ok        (x, z) => whether a foot may be put down there (nothing in the way); none: anywhere
+//   avoid     [[x, z], ...] the feet of the others near him (none: nobody)
+//   y, fy     the deck's height under him, and (x, z) => under a foot there (none: level)
+// Gives (the same object each time, s.o): fa, fr each foot's place [left, right] ahead and to his right of where he is (m), fy the
+// deck's height under it over the deck under him (a step), lift its height off the deck, dh its heading less his (a foot that stands keeps its own), plant whether it stands, hipY the hips' way down
+// walking, hipR their way to his right (over the foot that stands), arm the arms' swing (-1 to 1, the right arm ahead when it is
+// over 0), v the speed, L the step's length, cad steps a second, on whether the gait has the feet (walking, or a step not done).
+// Pure but for s.
+function footStep(s, inp){
+  // (a long frame, the tablet at 15 a second, is gone through in steps of at most 1/40 s from where he was, so the swing and its
+  // hurry have the time they need; the feet are the same as at 60 a second)
+  if (!s.snap && Math.hypot(inp.x - s.px, inp.z - s.pz) > 0.6) s.snap = true;   // (put somewhere else at once: the feet with him)
+  const dt = inp.dt; if (!s.snap && dt > 1 / 40 && dt <= 0.5){ const n = Math.ceil(dt * 40), x0 = s.px, z0 = s.pz; let dh = inp.h - s.ph; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI; const h0 = s.ph, q = Object.assign({}, inp, {dt:dt / n});
+    for (let i = 1; i <= n; i++){ const u = i / n; q.x = x0 + (inp.x - x0) * u; q.z = z0 + (inp.z - z0) * u; q.h = i === n ? inp.h : h0 + dh * u; footStep1(s, q); } return s.o; }
+  return footStep1(s, inp); }
+function footStep1(s, inp){
+  const C = FOT, o = s.o, dt = inp.dt, x = inp.x, z = inp.z, h = inp.h, w = inp.w || [0.12, 0.12], F = [Math.sin(h), -Math.cos(h)], R = [Math.cos(h), Math.sin(h)], sd = i => i ? 1 : -1;
+  const home = (i, lead, px, pz, hh) => { const Fa = [Math.sin(hh), -Math.cos(hh)], Ra = [Math.cos(hh), Math.sin(hh)]; return [px + Fa[0] * lead + Ra[0] * sd(i) * w[i], pz + Fa[1] * lead + Ra[1] * sd(i) * w[i]]; };
+  let dh = h - s.ph; while (dh > Math.PI) dh -= 2 * Math.PI; while (dh < -Math.PI) dh += 2 * Math.PI;
+  if (s.snap || !(dt >= 0) || dt > 0.5){ s.snap = false; for (const i of [0, 1]){ const p = home(i, 0, x, z, h); s.f[i] = {x:p[0], z:p[1], y:inp.y || 0, h, up:false}; } s.sw = -1; s.u = 0; s.vx = s.vz = s.w = 0; s.ds = 1; s.px = x; s.pz = z; s.ph = h; }
+  else if (dt > 0){ const k = 1 - Math.exp(-dt / C.TV); s.vx += ((x - s.px) / dt - s.vx) * k; s.vz += ((z - s.pz) / dt - s.vz) * k; s.w += (dh / dt - s.w) * k; s.px = x; s.pz = z; s.ph = h; }
+  const v = Math.hypot(s.vx, s.vz), walk = v > C.VMIN, cy = inp.carry ? C.CARRY : null, L = walk ? footLen(v, inp.reach) * (cy ? cy.len : 1) : 0, Ts = walk ? L / v : Infinity;
+  const Tsw = walk ? Math.min(C.TSW[1], Math.max(C.TSW[0], C.SWF * Ts)) : C.TREST, lead = walk ? Math.min(L * (1 - C.SWF / 2), (inp.reach || Infinity) * C.REACHK) : 0, DS = walk ? Math.max(0, Ts - Tsw) : 0.05;
+  const rel = q => { const dx = q[0] - x, dz = q[1] - z; return [dx * F[0] + dz * F[1], dx * R[0] + dz * R[1]]; };
+  // (the way he goes: the feet land ahead along it, not along his heading, so side on in a squeeze or backing off he steps all the
+  // same; kontrollen 16.11.2026. And how far a foot is from where it would stand under him, whichever way that is)
+  const U = walk ? [s.vx / v, s.vz / v] : F, back = j => -((s.f[j].x - x) * U[0] + (s.f[j].z - z) * U[1]), off = j => { const q = home(j, 0, x, z, h); return Math.hypot(s.f[j].x - q[0], s.f[j].z - q[1]); };
+  // (where a foot lands: ahead of where he will be when it is down, with his heading then; moved in towards him while the deck has
+  // something there, and clear of the other foot)
+  const target = (i, rem) => { const hh = h + s.w * rem, px = x + s.vx * rem, pz = z + s.vz * rem, Ra = [Math.cos(hh), Math.sin(hh)], Fa = [Math.sin(hh), -Math.cos(hh)], ca = Math.cos(s.w * rem), sa = Math.sin(s.w * rem), Ut = [U[0] * ca - U[1] * sa, U[0] * sa + U[1] * ca];   // (the way he goes turned as he turns, until it is down)
+    // (out from anyone else's feet, inp.avoid, by OTHER, and from his other foot by SEP, along the line between them, or to his own
+    // side when they would be on one spot)
+    const away = (q, px2, pz2, m) => { let ex = q[0] - px2, ez = q[1] - pz2, d = Math.hypot(ex, ez); if (d >= m) return q; if (d < 1e-4){ ex = Ra[0] * sd(i); ez = Ra[1] * sd(i); d = 1; } return [px2 + ex / d * (m + 1e-3), pz2 + ez / d * (m + 1e-3)]; };
+    const clear = q => { for (let n = 0; n < 2; n++){ if (inp.avoid) for (const p of inp.avoid) q = away(q, p[0], p[1], C.OTHER); q = away(q, s.f[1 - i].x, s.f[1 - i].z, C.SEP); } return q; };
+    // (where it lands: ahead of where he will be when it is down, with his heading then; else nearer him, a little behind, narrower:
+    // the first the deck has room for, clear of the feet)
+    // (none clear of both: the first the deck has room for, close to another's foot rather than in a wall)
+    const C0 = [[1, 1], [0.66, 1], [0.33, 1], [0, 1], [0.33, 0.5], [0, 0.5], [-0.3, 1], [-0.3, 0.5], [0.66, 0.5]].map(([m, wk]) => { const a0 = lead * m + (m < 0 ? -0.15 : 0); return [px + Ut[0] * a0 + Ra[0] * sd(i) * w[i] * wk, pz + Ut[1] * a0 + Ra[1] * sd(i) * w[i] * wk]; });
+    for (const c of C0){ const q = clear(c); if (!inp.ok || inp.ok(q[0], q[1])) return [q[0], q[1], hh]; }
+    for (const c of C0){ const q = away(c, s.f[1 - i].x, s.f[1 - i].z, C.SEP); if (inp.ok(q[0], q[1])) return [q[0], q[1], hh]; }
+    const q = clear(C0[0]); return [q[0], q[1], hh]; };
+  if (s.sw < 0){ s.ds += dt || 0;
+    // which foot goes next: walking, the other one than last; standing, the one furthest from where it should be
+    let i = s.nx; const err = j => { const q = home(j, lead, x, z, h), f = s.f[j]; if (!walk && f.hx && Math.hypot(f.hx[0] - q[0], f.hx[1] - q[1]) < C.NEAR) return 0;   /* (it went for this place and was put where there was room: settled) */ return Math.hypot(f.x - q[0], f.z - q[1]); }, turn = j => { let a = h - s.f[j].h; while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return Math.abs(a); };
+    if (!walk && err(1 - i) + turn(1 - i) * 0.2 > err(i) + turn(i) * 0.2) i = 1 - i;
+    const far = Math.max(off(i), off(1 - i));
+    const go = walk ? (s.ds >= DS && back(i) > -0.05) || far > (inp.reach || Infinity) * 0.97 : err(i) > C.NEAR || turn(i) > C.TURN;
+    if (go){ s.sw = i; s.u = 0; s.from = [s.f[i].x, s.f[i].z, s.f[i].h, s.f[i].y]; s.Tsw = Tsw; s.f[i].up = true; s.sl = 0; s.hx = walk ? null : home(i, 0, x, z, h); } }
+  if (s.sw >= 0){ const i = s.sw; s.Tsw += (Tsw - s.Tsw) * Math.min(1, (dt || 0) / 0.2);
+    // (the foot that stands must not be left further behind than the legs reach: the swing is hurried then)
+    const so = off(1 - i), hurry = inp.reach && so > inp.reach * C.HURRY[0] ? 1 + (so - inp.reach * C.HURRY[0]) / C.HURRY[1] : 1;
+    s.u = Math.min(1, s.u + (dt || 0) / s.Tsw * hurry); const q = target(i, (1 - s.u) * s.Tsw), e = s.u * s.u * (3 - 2 * s.u), f = s.f[i]; s.tg = [q[0], q[1]];   // (where it will land: for the others' feet, footSpots)
+    let da = q[2] - s.from[2]; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
+    f.x = s.from[0] + (q[0] - s.from[0]) * e; f.z = s.from[1] + (q[1] - s.from[1]) * e; f.h = s.from[2] + da * e;
+    // (along a bow out round the foot that stands, where the straight way would pass nearer it than SEP)
+    { const g = s.f[1 - i], dx = q[0] - s.from[0], dz = q[1] - s.from[1], l2 = dx * dx + dz * dz; if (l2 > 1e-6){ const k = Math.max(0, Math.min(1, ((g.x - s.from[0]) * dx + (g.z - s.from[1]) * dz) / l2)), cx = s.from[0] + dx * k - g.x, cz = s.from[1] + dz * k - g.z, dm = Math.hypot(cx, cz);
+      // (the bow at its widest where the way is nearest the other foot, k along it, and nothing at either end)
+      if (dm < C.SEP){ let nx = cx, nz = cz; if (dm < 1e-4){ nx = R[0] * sd(i); nz = R[1] * sd(i); } else { nx /= dm; nz /= dm; } const kk = Math.max(0.15, Math.min(0.85, k)), wv = e < kk ? Math.sin(Math.PI / 2 * e / kk) : Math.sin(Math.PI / 2 * (1 - e) / (1 - kk)), b = (C.SEP - dm) * wv; f.x += nx * b; f.z += nz * b; } } }
+    const ty = inp.fy ? inp.fy(q[0], q[1]) : null; f.y = s.from[3] + ((ty == null ? (inp.y || 0) : ty) - s.from[3]) * e;
+    const len = Math.hypot(q[0] - s.from[0], q[1] - s.from[1]); s.sl = Math.max(s.sl, len);
+    o.lift[i] = C.LIFT * Math.min(1, 0.4 + s.sl / 0.5) * Math.sin(Math.PI * s.u); o.lift[1 - i] = 0;
+    if (s.u >= 1){ f.up = false; f.hx = s.hx; o.lift[i] = 0; s.sw = -1; s.nx = 1 - i; s.ds = 0; if (C.log) C.log.push({i, x:f.x, z:f.z, L:len}); } }
+  else o.lift[0] = o.lift[1] = 0;
+  for (const i of [0, 1]){ const q = rel([s.f[i].x, s.f[i].z]); o.fa[i] = q[0]; o.fr[i] = q[1]; o.fy[i] = s.f[i].y - (inp.y || 0); let a = s.f[i].h - h; while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; o.dh[i] = a; o.plant[i] = !s.f[i].up; }
+  const k = Math.min(1, v / 1.2), sw = s.sw >= 0 ? Math.sin(Math.PI * s.u) : 0;
+  o.hipY = -(cy ? cy.dip : C.DIP) * k; o.hipR = s.sw >= 0 ? C.SWAY * Math.min(1, 0.3 + k) * sw * sd(1 - s.sw) : 0;
+  o.arm = Math.max(-1, Math.min(1, (o.fa[0] - o.fa[1]) / 0.56)) * (cy ? cy.arm : C.ARM);
+  o.v = v; o.L = L; o.cad = walk ? v / Math.max(L, 1e-3) : 0;
+  o.on = walk || s.sw >= 0 || Math.abs(o.dh[0]) > C.TURN / 2 || Math.abs(o.dh[1]) > C.TURN / 2 || Math.max(...[0, 1].map(i => Math.hypot(o.fa[i], o.fr[i] - sd(i) * w[i]))) > C.NEAR;
+  return o;
+}
 // ---- the limbs (FB2, steg 123, 13.11.2026; docs/planer/folk-2.md; Jonas: «Kjør på med FB2 i en ny økt»): the upper arm, the forearm,
 // the thigh and the shin keep their length. A hand or a foot is where the work has it, and the elbow or the knee is found from it
 // (ik2, the reckoning armTo had for the skiff's skipper); a hand further off than the arm reaches takes the body with it (reachBody:
@@ -1839,9 +1976,9 @@ function armHand(s, hd, sd, L, o, cl){ const H = LEMMER.HAND; let zx = hd[0] - s
     zx += fx * 0.8; zy += fy * 0.8; zz += fz * 0.8; l = Math.hypot(zx, zy, zz) || 1; zx /= l; zy /= l; zz /= l; }
   return o; }
 // how far the hips come down for both feet to be within the legs' reach: hips and feet as [x, up, z] in any level frame
-function legDrop(hips, feet, L){ const C = LEMMER, R = (L.th + L.sn) * C.REACH; let dr = 0;
-  for (const i of [0, 1]){ const hx = hips[i][0] - feet[i][0], hz = hips[i][2] - feet[i][2], h2 = hx * hx + hz * hz, v = hips[i][1] - feet[i][1]; dr = Math.max(dr, h2 >= R * R ? C.DROP : v - Math.sqrt(R * R - h2)); }
-  return Math.min(C.DROP, Math.max(0, dr)); }
+function legDrop(hips, feet, L, most){ const C = LEMMER, R = (L.th + L.sn) * C.REACH, mx = most == null ? C.DROP : most; let dr = 0;
+  for (const i of [0, 1]){ const hx = hips[i][0] - feet[i][0], hz = hips[i][2] - feet[i][2], h2 = hx * hx + hz * hz, v = hips[i][1] - feet[i][1]; dr = Math.max(dr, h2 >= R * R ? mx : v - Math.sqrt(R * R - h2)); }
+  return Math.min(mx, Math.max(0, dr)); }
 // the sea legs of one person standing or walking on a deck: s his state (seaState), inp what the deck does where he stands, in his own
 // frame (ahead and to his right, level in the world):
 //   sr, sf   the deck's slope to his right and ahead (m up per m; from the deck's normal, so roll and pitch seen his way)

@@ -34,8 +34,15 @@ jobs:
           python-version: '3.11'
       - name: The whole coast's map packs and the game
         run: |
-          pip install requests playwright==1.56.0
-          python3 -m playwright install --with-deps chromium
+          # (Playwright 1.63.0 as everywhere else; the browser first, then its system packages tried three times and let go with a
+          # warning, as deploy.yml does: ubuntu-latest became Ubuntu 26.04 on 16.11.2026, and «install --with-deps» with 1.56.0 stopped
+          # the job there: «Playwright does not support chromium on ubuntu26.04-x64»)
+          pip install requests playwright==1.63.0
+          python3 -m playwright install chromium
+          for i in 1 2 3; do
+            if timeout 180 python3 -m playwright install-deps chromium; then break; fi
+            if [ "$i" = 3 ]; then echo "::warning::Chromium's system packages could not be installed. Going on: the pairs say whether the browser starts."; else sleep 15; fi
+          done
           python3 tools/map/game.py
           node build.mjs
       - name: Autonav between the plants
