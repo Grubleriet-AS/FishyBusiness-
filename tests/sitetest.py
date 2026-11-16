@@ -14,6 +14,9 @@ async def main():
         pg = await b.new_page(viewport={'width': 960, 'height': 600}); errs = []
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await boot(pg)
+        # (a picture of the full scene under SwiftShader takes 95-160 s on the test machines, 16.11.2026: the screenshots' 120 s was the
+        # limit the test stopped at since 08.11.2026, with every check before it green)
+        pg.set_default_timeout(400000)
         await pg.wait_for_function("G3.isActive()", timeout=90000); await pg.wait_for_timeout(3000)
         r = await pg.evaluate("""(() => { const L = G3._debug.sitesNow(), n = L.find(s => s.k === 'naust'), sh = L.find(s => s.k === 'shop'), R = {kinds:L.map(s => s.k)};
           if (n){ const at = (x, y) => [n.o[0] + n.u[0] * x - n.n[0] * y, n.o[1] + n.u[1] * x - n.n[1] * y], land = q => isLand({x:q[0] / 1000, y:q[1] / 1000});

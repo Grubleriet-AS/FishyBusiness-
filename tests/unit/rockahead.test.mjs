@@ -17,6 +17,13 @@ export default function (t){
     R = [[100.5, 100.011]]; t.ok(!!K.rockOnLeg(a, b, 0.012), 'midt på etappen, 11 m fra linja: fanget');
     R = [[100.5, 100.012]]; t.ok(!K.rockOnLeg(a, b, 0.012), 'midt på etappen, 12 m fra linja: fri (12 m er grensa)');
     R = [[101.005, 100.005]]; t.ok(!!K.rockOnLeg(a, b, 0.012), 'en stein like forbi enden, 7 m unna: fanget (etappen etter går fra den)');
+    // (a leg of no length is a point: the fine lane's wet cells ask rockOnLeg(q, q, r), 11-route.js leiaLane, and the naust's way out;
+    // 16.11.2026, the skip of a rock abeam made it find none, and the lane went 3 m from a rock at Helligvær, tests/allpairs.py)
+    R = [[100.0029, 100.001]]; t.ok(!!K.rockOnLeg(a, a, 0.0135), 'en celle i lanen (et punkt), stein 3 m unna: ikke våt (rockOnLeg(q, q))');
+    R = [[100.02, 100]]; t.ok(!K.rockOnLeg(a, a, 0.0135), 'et punkt, stein 20 m unna: fri');
+    // (a rock in a harbour is not counted by the way round a mark, as the search does not count it: obsRock, 11b-obstacles.js)
+    { const ih = K.get('inHarbour'); K.set('inHarbour', p => Math.abs(p.x - 100.5) < 1e-6); R = [[100.5, 100.001], [100.7, 100.02]];
+      const m = K.obsRock(a, b); K.set('inHarbour', ih); t.ok(Math.abs(m - 0.02) < 1e-6, 'en stein i havna 1 m fra etappen telles ikke, den neste utenfor 20 m unna gjør (obsRock ' + (m * 1000).toFixed(0) + ' m)'); }
     R = [[100.5, 100.010]]; t.ok(!K.obsSafe(a, b, null), 'veien rundt et merke: ikke 10 m fra en stein (obsSafe)');
   } finally { M.random = rnd; for (const n in keep) K.set(n, keep[n]); }
 }

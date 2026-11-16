@@ -384,10 +384,12 @@ async function leiaLegFail(p, q, tick, endP, endQ, strict){
   const rk = rockOnLeg(p, q, strict ? 0.025 : 0.012); return rk ? {x:rk[0], y:rk[1]} : null;
 }
 // the first rock within r km of the leg (01-world.js rocksIn), or null; not one behind its start or abeam of it, which the leg goes
-// away from (the leg before had it ahead at its end; groundCheck the same)
+// away from (the leg before had it ahead at its end; groundCheck the same). A leg of no length is a point (rockOnLeg(q, q, r), the fine
+// lane's wet cells, leiaLane): every rock within r of it counts (16.11.2026: the skip above made the point test find none, and the lane
+// to the net at Helligvær, Tustna and Averøy went 3 m from a rock, tests/allpairs.py)
 function rockOnLeg(a, b, r){
-  const x0 = Math.min(a.x, b.x) - r, x1 = Math.max(a.x, b.x) + r, y0 = Math.min(a.y, b.y) - r, y1 = Math.max(a.y, b.y) + r, dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy || 1e-9;
-  for (const q of rocksAlong(a, b, r)){ if (q[0] < x0 || q[0] > x1 || q[1] < y0 || q[1] > y1) continue; const u0 = ((q[0] - a.x) * dx + (q[1] - a.y) * dy) / L2; if (u0 <= 0) continue; const u = Math.min(1, u0); if (Math.hypot(a.x + dx * u - q[0], a.y + dy * u - q[1]) < r) return q; }
+  const x0 = Math.min(a.x, b.x) - r, x1 = Math.max(a.x, b.x) + r, y0 = Math.min(a.y, b.y) - r, y1 = Math.max(a.y, b.y) + r, dx = b.x - a.x, dy = b.y - a.y, pt = dx * dx + dy * dy < 1e-12, L2 = dx * dx + dy * dy || 1e-9;
+  for (const q of rocksAlong(a, b, r)){ if (q[0] < x0 || q[0] > x1 || q[1] < y0 || q[1] > y1) continue; const u0 = pt ? 0 : ((q[0] - a.x) * dx + (q[1] - a.y) * dy) / L2; if (!pt && u0 <= 0) continue; const u = Math.min(1, u0); if (Math.hypot(a.x + dx * u - q[0], a.y + dy * u - q[1]) < r) return q; }
   return null;
 }
 // Every leg of the way once more, as the boat will sail it: a step between two cells was never checked as a line (land between two
@@ -597,7 +599,7 @@ async function leiaSplit(a, b, aPort, bPort, opt, r0){
       soft:((r1.st && r1.st.soft) || 0) + ((r2.st && r2.st.soft) || 0)});
     // one way: pulled tight over the point where the pieces meet, and round the things in the water as one
     let pts = [a].concat(r1.wps, r2.wps); try { pts = await leiaPull(pts, sd, st); } catch (e){ console.warn('leiaSplit pull', e); }
-    const wps = obsRoute(a, pts.slice(1)), nm = wps.reduce((acc, q, i) => acc + dist(i ? wps[i - 1] : a, q), 0) / NM;
+    const wps = obsRoute(a, pts.slice(1), true), nm = wps.reduce((acc, q, i) => acc + dist(i ? wps[i - 1] : a, q), 0) / NM;
     return {wps, nm, st};
   }
   return null;
@@ -746,7 +748,7 @@ async function leiaRoute0(a, b, aPort, bPort, pocket, opt0){
   if (!(opt0 && opt0.noPull)) safe = await leiaPull(safe, sd, st);
   // a leg that still passes a bridge's pier, a pier or a mark (the search's cells are 100 m and more) goes round it: under a bridge
   // between its piers, round the rest on the shorter side
-  const wps = obsRoute(a, safe.slice(1)), nm = wps.reduce((acc, q, i) => acc + dist(i ? wps[i - 1] : a, q), 0) / NM;
+  const wps = obsRoute(a, safe.slice(1), true), nm = wps.reduce((acc, q, i) => acc + dist(i ? wps[i - 1] : a, q), 0) / NM;
   st.ms = performance.now() - T0;
   return {wps, nm, st};
 }

@@ -146,9 +146,12 @@ const obsClear = (a, b, clr) => !obsSegHit(a, b, clr);
 // a new leg of a way round: no land, nothing too near, and no more dangerous than the leg it stands in for (ref, legHazard of it): as
 // deep, and clear of rocks, or where that leg passed rocks within 25 m, at least 15 m from them or as far as that leg (groundCheck runs
 // aground within 12 m; trip2's way back under Gisundbrua passed 7 m nearer a rock than the drawn leg and ran onto it, 05.10.2026)
+// (a rock inside a harbour is not counted, as the search and the legs' check do not count it, the harbours being dredged (11-route.js
+// leiaRocks, leiaLegFail): the way round a mark by Tustna took its leave to pass 9 m from two rocks outside the harbour from a rock 1 m
+// off the last leg inside it, and groundCheck stops her for those, tests/allpairs.py 16.11.2026)
 function obsRock(a, b){
   const dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy || 1e-12; let m = Infinity;
-  for (const q of rocksAlong(a, b, 0.03)){
+  for (const q of rocksAlong(a, b, 0.03)){ if (inHarbour({x:q[0], y:q[1]})) continue;
     const u = clamp(((q[0] - a.x) * dx + (q[1] - a.y) * dy) / L2, 0, 1); m = Math.min(m, Math.hypot(a.x + dx * u - q[0], a.y + dy * u - q[1])); }
   return m;
 }
@@ -158,6 +161,10 @@ function obsSafe(a, b, ref){
   // round a mark passed 10 m from a rock that legHazard's count did not have)
   // (where the leg it stands in for has rocks near it already, no nearer than that leg, below: trip2's drawn route under Gisundbrua, obstest)
   if (!(ref && ref.rocks) && rockOnLeg(a, b, 0.013)) return false;
+  // (Autonav's own route, HIND.auto: never a rock within 12 m ahead outside a harbour, as groundCheck stops her for one, whatever the leg
+  // it stands in for had: by Tustna that leg ran into the harbour, where no rock is asked, and the way round stepped out of it, 9 m from
+  // two, tests/allpairs.py 16.11.2026. A drawn route keeps the rule above, trip2 under Gisundbrua)
+  if (HIND.auto && !inHarbour(b) && rockOnLeg(a, b, 0.0125)) return false;
   const sd = safeDepth(), h = legHazardMemo(a, b, sd);
   // (the second try round a thing, obsDetourAny: a leg deep enough for the boat and 8 m from rocks will do, where none as good as the
   // drawn leg goes round it; that leg ran over the mark; 13 m from rocks, above)
@@ -250,7 +257,11 @@ function obsDetour(a, b, depth = 3, ref){
 // and as far from rocks as the worst of them. Bokn and Kopervik, 14.11.2026, tests/allesteder.py, steg 126: the route's points 100 m
 // apart with a mark or a bridge's pier between them, and the way round a zigzag of 35-40 m legs that the 21 m coastal vessel ran
 // through wide, onto the mark)
-function obsRoute(a, wps){
+function obsRoute(a, wps, auto){
+  const was = HIND.auto; HIND.auto = !!auto;
+  try { return obsRoute0(a, wps); } finally { HIND.auto = was; }
+}
+function obsRoute0(a, wps){
   const out = []; let p = a;
   for (let i = 0; i < wps.length; i++){ const q = wps[i];
     if (obsClear(p, q)){ out.push(q); p = q; continue; }
