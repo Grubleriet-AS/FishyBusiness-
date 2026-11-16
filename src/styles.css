@@ -744,6 +744,7 @@ body.hudstrip #hud .hmin{position:absolute;top:0;right:0}
 #hud .hs2{justify-content:space-between;gap:4px;font-size:11px}
 #hud .g2{display:inline-flex;align-items:center;gap:3px;min-width:0;color:var(--t-on-dark)} #hud .g2 svg{width:12px;height:12px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.85} #hud .g2 b{font-weight:700;white-space:nowrap}
 #hud .g2.r1{color:#ffcf7a} #hud .g2.r2{color:#ff9b91}
+#hud .row.hwind b{display:inline-flex;align-items:center;gap:4px} #hud .row.hwind b.r1{color:#ffcf7a} #hud .row.hwind b.r2{color:#ff9b91} #hud .row.hwind svg{width:13px;height:13px;flex:none;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 #hud .st.nx .l3{flex:1 1 auto;min-width:0} #hud .st.nx .l3d{flex:none;white-space:nowrap}
 #hud .st.nx .l3s{flex:0 1000 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.9em;opacity:.85}   /* (the real time gives way first: shrinks a thousand times faster than the event before it) */
 body.hudstrip #hud .st.nx{margin:0;min-height:15px;font-size:11px!important;line-height:1.25;gap:4px} body.hudstrip #hud .st.nx small{font-size:.9em} body.hudstrip #hud .st.nx .l3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}   /* (!important: #hud .st sets 12.5px so) */
@@ -2107,3 +2108,14 @@ body.vplot #hud{background:rgba(11,23,32,.78)!important}
 /* the tattoos as painted flash (14.11.2026, ui/05-tattoo-art.js): on the flash's own paper; one not earned yet is a grey stencil */
 .tat-img{flex:none;width:64px;height:64px;border-radius:10px;background:#fbf6ea var(--tat-atlas) no-repeat}
 .tat-img.off{filter:grayscale(1);opacity:.35}
+/* the strip on a narrow phone: six figures with the wind, seven with the bleeding tub (16.11.2026); last, so it holds over the 3D view's */
+@media (max-width:420px){#hud .hs2,body.v3d #hud .hs2{gap:1px} #hud .g2,body.v3d #hud .g2{gap:1px} #hud .g2 svg,body.v3d #hud .g2 svg{width:10px;height:10px} #hud .hs2,body.v3d #hud .hs2{font-size:9.5px}}
+/* the profile and the founders' badge (ui/10v-profil.js, 16.11.2026) */
+.pf-fb{display:inline-block;margin:2px 0 0 6px;padding:1px 6px;border-radius:9px;background:linear-gradient(135deg,#e8c96a,#b8872c);color:#2a1c05;font:700 10px/1.5 var(--sans);letter-spacing:.02em;vertical-align:middle;white-space:nowrap}
+.pf-head{display:flex;gap:12px;align-items:center}
+.pf-img{width:64px;height:64px;border-radius:50%;object-fit:cover;flex:none;background:#28507f}
+.pf-none{display:inline-flex;align-items:center;justify-content:center;color:#fff;font:700 26px/1 var(--sans)}
+.pf-top tr.pf-tap{cursor:pointer}
+.pf-ais{margin-top:6px}
+.pf-filt{display:flex;align-items:center;gap:10px;padding:0 0 8px} .pf-filt .ph-btn{margin:0;width:auto;flex:none;padding:6px 14px} .pf-filt .ph-note{margin:0}
+.pf-fbox{padding-top:10px;padding-bottom:10px}

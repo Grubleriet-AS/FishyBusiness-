@@ -231,3 +231,13 @@ Steg D5 i `docs/planer/design-ombygging.md` (Jonas 13.11.2026, valg 2 A: «telef
 - **Jonas 13.11.2026, spurt etter utrullingen med bildene (A boksen står, B flata dekker alt, C dekker alt bare stående): «A: Boksen står».**
 - **Økta valgte:** HUD-en står ved siden av (liggende) og over (stående) flata, i stedet for at flata dekker alt. Snus ved å ta `--ph-hr` og `--ph-hb` ut av `#phone` i D5-blokka (da fyller flata skjermen). Knappelinja skjules i begge formater, også der flata ikke ville ligget over den, så regelen er én.
 
+
+
+## Lanseringen 16.11.2026: appene, vinden og Profil
+
+- **Alle appene fra start** (Jonas: «Gi tilgang til alle apper fra start»): `APPS_ALL` i `ui/07c-handbook.js` gjelder `appShown` og Rederi-appen. Tipsene merker fortsatt «ny».
+- **Vinden i statusboksen** (Jonas: «Vindretning og styrke må vises i statusboks (har blitt borte)»):
+  - I boksen står den som første rad: «↙ NØ 5 m/s», pila den veien vinden blåser, gul fra 11 m/s og rød fra 17.
+  - I stripa står den som siste tall.
+  - På telefoner opp til 420 px har stripa tettere mellomrom og skrift på 9,5 px. Til 380 px står sjøen som ikon alene mens bløggekaret vises (målt i verste fall på 360 px).
+- **Profil-appen** er ny, først i gruppa Deg (se skyen-og-felles-verden.md).

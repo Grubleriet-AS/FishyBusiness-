@@ -4811,6 +4811,15 @@
 2026-11-15 21:56	fbfix/samlet	79a55074+	dbg23o	OK	48	3d	alene	
 2026-11-15 21:58	fbfix/samlet	79a55074+	pikseltest	OK	117	3d	alene	
 2026-11-15 22:00	fbfix/samlet	79a55074+	pikseltest	OK	79	3d	alene	
+2026-11-15 22:41	ccr-as1-alle	6676b3fb	havnstengt	OK	22	lite	samtidig	
+2026-11-15 22:41	ccr-as1-alle	6676b3fb	trip2	OK	39	lite	samtidig	
+2026-11-15 23:47	ccr-as1-alle	1e9bd16a	autonavtest	OK	33	lite	samtidig	
+2026-11-15 23:47	ccr-as1-alle	1e9bd16a	trip2	OK	41	lite	samtidig	
+2026-11-15 23:49	ccr-as1-alle	1e9bd16a	utfrakai	OK	95	lite	samtidig	
+2026-11-15 23:49	ccr-as1-alle	1e9bd16a	harbourtest	OK	17	lite	samtidig	
+2026-11-16 00:00	ccr-as1-alle	1e9bd16a	colregtest	FEIL	746	lite	samtidig	FEIL Autonav viker også når ingen visning spør etter båtene (261 m ut, 209 m fra linja til slutt)
+2026-11-16 00:00	ccr-as1-alle	1e9bd16a	hulltest	OK	72	lite	samtidig	
+2026-11-16 00:15	ccr-as1-alle	1e9bd16a	colregtest	FEIL	864	lite	alene	FEIL Autonav viker også når ingen visning spør etter båtene (261 m ut, 207 m fra linja til slutt)
 2026-11-16 00:05	ccr-5e1ba2f4-pusvyd	6676b3fb+	dyntest	FEIL	263	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
 2026-11-16 00:05	ccr-5e1ba2f4-pusvyd	6676b3fb+	anchorswing	FEIL	8	lite	samtidig	FEIL Bodø mN905 rute fra anker {"held": true, "upAfter": 5, "moved": 134, "st": "sailing"}
 2026-11-16 00:05	ccr-5e1ba2f4-pusvyd	6676b3fb+	anchortest	OK	38	lite	samtidig	
@@ -4837,3 +4846,10 @@
 2026-11-16 02:55	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2test	FEIL	59	lite	alene	FEIL S14 the statistics survive a save and a reload [216, None]
 2026-11-16 02:58	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2test	FEIL	108	lite	alene	FEIL S9 30 h closed in the middle gives the same landings as open (kg within 2 %, kr within 3 %: the price follows the species and sizes, which vary a little be
 2026-11-16 03:00	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2test	OK	104	lite	alene	
+2026-11-16 00:59	ccr-as1-alle	be908af6	trip2	OK	43	lite	samtidig	
+2026-11-16 00:59	ccr-as1-alle	be908af6	autonavtest	OK	34	lite	samtidig	
+2026-11-16 00:59	ccr-as1-alle	be908af6	havnstengt	OK	19	lite	samtidig	
+2026-11-16 02:11	ccr-as1-alle	b924e295+	trip2	OK	47	lite	samtidig	
+2026-11-16 02:11	ccr-as1-alle	b924e295+	autonavtest	OK	36	lite	samtidig	
+2026-11-16 02:15	ccr-as1-alle	b924e295+	dyntest	FEIL	266	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-16 02:15	ccr-as1-alle	b924e295+	utfrakai	OK	96	lite	samtidig	

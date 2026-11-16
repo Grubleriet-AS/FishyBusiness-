@@ -214,7 +214,7 @@ function sell(){
   if (acc !== 'none'){ q.ffTot += saleKg; q.ffCod += codFF; }
   if (acc === 'open') qyAt(H).me += codQ / 1000;   // your landings count in the open group's catch (03d-quota.js)
   bkLanded(H, bkOk || 0, holdTotal());   // the Greenland halibut's maximum quota and the week's 7 %
-  { const ks = {}; for (const x of S.hold) ks[x.sp] = (ks[x.sp] || 0) + x.kg; wshLand(port.id, H, acc === 'lukket' && S.lic.hav ? 'hav' : acc, ks, codQ); if (WSH.rec) setTimeout(worldShare, 4000); }   // for the other players
+  { const ks = {}, kr = {}; for (const x of S.hold) ks[x.sp] = (ks[x.sp] || 0) + x.kg; for (const r of Object.values(lines)) kr[r.sp] = (kr[r.sp] || 0) + (r.sum || 0); wshLand(port.id, H, acc === 'lukket' && S.lic.hav ? 'hav' : acc, ks, codQ, kr); if (WSH.rec) setTimeout(worldShare, 4000); }   // for the other players
   q.conf += confKg + crabSmall; q.confKr += confKr + crabKr;
   const arr = Object.values(lines).sort((a, c) => ALLSP.indexOf(a.sp) - ALLSP.indexOf(c.sp) || a.c - c.c || 'EABXV'.indexOf(a.g) - 'EABXV'.indexOf(c.g));
   // lott goes to those who were aboard; a crew member given time off gets none for this trip

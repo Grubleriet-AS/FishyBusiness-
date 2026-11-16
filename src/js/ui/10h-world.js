@@ -97,6 +97,7 @@ async function worldShare(){
     const sold = Q.l.length;
     while (Q.l.length){ try { await cloudRpc('land_put', Q.l[0]); } catch (e){ if (!/ 400$/.test(e.message)) throw e; } Q.l.shift(); }
     if (sold) for (const k in WTOP) WTOP[k].at = 0;   // the leaderboard is fetched again with them
+    if (typeof PROF !== 'undefined') PROF.put();   // the profile's own figures, when they changed (ui/10v-profil.js)
     // the cells are taken out of the queue while they go, so fish taken meanwhile waits for the next time, and what did not go goes back
     const C = Q.c, cells = Object.entries(C).filter(([, kg]) => kg >= 0.05), gh = +(S.t / 60).toFixed(2); Q.c = {};
     try { for (let i = 0; i < cells.length; i += 500){ const part = cells.slice(i, i + 500);
@@ -119,13 +120,20 @@ async function worldShare(){
 // group their companies'. Fetched when a list is shown, at most once a minute a list, and again after this game's sales have gone up;
 // null without the cloud (the phone then shows the Senja fleet). ----
 const WTOP = {};
-function worldTop(w, grp){
+// The launch (Jonas 16.11.2026: «Bedre toppliste. Superviktig for å skape konkurranse»): kind 'kg' (as before), 'kr' (the week's catch value)
+// or 'tot' (all the value landed since the start, every group; w and grp do not count), by top_list (20261116120000_lansering.sql), with
+// the public id for the profile and the founders' number. Where the database does not have top_list yet, 'kg' comes from world_top and
+// the others say so (e.old).
+const WTOP_NEW = {off:0};
+function worldTop(w, grp, kind){
   if (typeof CLOUD === 'undefined' || !CLOUD.on || !CLOUD.user) return null;
-  grp = grp === 'lukket' ? 'lukket' : 'open';
-  const key = w + '|' + grp, e = WTOP[key] || (WTOP[key] = {at:0, data:null, busy:false, err:false});
+  grp = grp === 'lukket' || grp === 'all' ? grp : 'open'; kind = kind === 'kr' || kind === 'tot' ? kind : 'kg';
+  const key = (kind === 'tot' ? 'tot' : w + '|' + grp + (kind === 'kr' ? '|kr' : '')), e = WTOP[key] || (WTOP[key] = {at:0, data:null, busy:false, err:false, old:false});
   if (!e.busy && Date.now() - e.at > 60000){
     e.busy = true;
-    cloudRpc('world_top', {w, grp}).then(d => { e.data = d; e.err = false; }).catch(() => { e.err = true; })
+    const old = () => kind === 'kg' ? cloudRpc('world_top', {w, grp:grp === 'all' ? (S.lic ? 'lukket' : 'open') : grp}) : Promise.resolve(null).then(() => { e.old = true; return null; });
+    (Date.now() < WTOP_NEW.off ? old() : cloudRpc('top_list', {kind, w, grp}).catch(x => { if (!/ 404$/.test(x.message)) throw x; WTOP_NEW.off = Date.now() + 600000; return old(); }))
+      .then(d => { e.data = d; e.err = false; }).catch(() => { e.err = true; })
       .finally(() => { e.busy = false; e.at = Date.now(); if (PHONE.isOpen() && (PHONE.app === 'salg' || PHONE.app === 'post')) PHONE.render(); });
   }
   return e;

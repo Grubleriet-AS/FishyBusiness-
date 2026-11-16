@@ -74,8 +74,12 @@ const HICON = {fuel:'<svg viewBox="0 0 24 24"><path d="M5 20V5.5A1.5 1.5 0 0 1 6
   hold:'<svg viewBox="0 0 24 24"><path data-fish d="M22.5 12Q15.5 1.5 8.5 12L2.5 17.5v-11L8.5 12Q15.5 22.5 22.5 12z"/><circle cx="17" cy="10.3" r="1.5" fill="currentColor" stroke="none"/></svg>',
   en:'<svg viewBox="0 0 24 24"><path d="M13 2.5L5 13.5h6L10 21.5l9-11h-6z"/></svg>',
   sea:'<svg viewBox="0 0 24 24"><path d="M2 10c3.3-1.6 6.7-1.6 10 0s6.7 1.6 10 0"/><path d="M2 16c3.3-1.6 6.7-1.6 10 0s6.7 1.6 10 0"/></svg>',
+  // the wind: an arrow the way it blows, turned by hudWindIcon (north up, as the little chart)
+  wind:'<svg viewBox="0 0 24 24"><path d="M12 21V4"/><path d="M6 10l6-6 6 6"/></svg>',
   // the bleeding tub (Tony 06.11.2026): a tub with its water line
   kar:'<svg viewBox="0 0 24 24"><path d="M3 7h18l-2 13H5z"/><path d="M6 13c2-1 4-1 6 0s4 1 6 0"/></svg>'};
+// the wind's arrow: it points the way the wind blows (from d, degrees, so to d + 180), north up
+const hudWindIcon = d => HICON.wind.replace('<svg ', '<svg class="wdir" style="transform:rotate(' + Math.round(((d || 0) + 180) % 360) + 'deg)" ');
 // the four figures the gauges and the strip show: the share 0–1, the text, and the class that colours a warning (yellow r1, red r2)
 function hudFigures(){
   const b = S.boat, H = S.t / 60, W = windAt(H), hs = hsAt(b.pos, H), atSea = b.status !== 'port', lvl = riskLevel(W, hs), L = (a, c) => S.lang === 'no' ? a : c;
@@ -85,10 +89,14 @@ function hudFigures(){
     // full is red with «Full», nearly full yellow (spilltest 3, U5); a freezer vessel's in tonnes of product (H2b); the strip says only «Full»
     hold:{v:holdP, txt:full ? L('Full', 'Full') + ' · ' + HF.short : HF.short, short:full ? L('Full', 'Full') : HF.short, tiny:full ? L('Full', 'Full') : HF.short.replace(/ kg$/, ''), cls:full ? 'r2' : holdP >= 0.9 ? 'r1' : ''},
     en:{v:energyOff() ? 1 : e / 100, txt:energyOff() ? L('av', 'off') : asleep() ? L('sover', 'asleep') : Math.round(e) + ' %', tiny:energyOff() ? L('av', 'off') : asleep() ? L('sover', 'asleep') : Math.round(e) + '%', cls:asleep() || (!energyOff() && e < ENERGY.dim) ? 'r2' : !energyOff() && e < ENERGY.warn ? 'r1' : ''},
-    sea:{v:atSea ? (lvl + 1) / 3 : 0.15, txt:fmt(hs, 1) + ' m', cls:atSea ? 'r' + lvl : ''},
+    sea:{v:atSea ? (lvl + 1) / 3 : 0.15, txt:fmt(hs, 1) + ' m', tiny:fmt(hs, 1), cls:atSea ? 'r' + lvl : ''},
+    // the wind where she is, from where and how hard (Jonas 16.11.2026: «Vindretning og styrke må vises i statusboks (har blitt borte)»: it
+    // stood only behind the tap since Kystlys U3); yellow from strong breeze, red from gale. A narrow phone's strip has the figure alone
+    // (the arrow gives the direction; at 360 px the strip was 16 px too wide with «NØ 12»)
+    wind:(() => { const d = windDir(H), n = dirName(d) + ' ' + fmt(W, 0); return {d, v:clamp(W / 25, 0, 1), txt:n + ' m/s', short:n, tiny:fmt(W, 0), cls:W >= 17 ? 'r2' : W >= 11 ? 'r1' : ''}; })(),
     // the bleeding tub (Tony 06.11.2026: «nivå bløggekar må vises på en intuitiv måte»): kg in it of its size, yellow from half full
     // (the haul slows, core/10-gear.js haulSlow), red at 90 % (full stops the fishing to gut); shown while she fishes or something lies in it
-    kar:(() => { const kg = deckPending(), cap = tubCap(), p = cap > 0 ? kg / cap : 0; return {v:p, txt:fmt(kg, 0) + ' / ' + fmt(cap, 0) + ' kg', short:fmt(kg, 0) + '/' + fmt(cap, 0), tiny:Math.round(p * 100) + '%', cls:p >= 0.9 ? 'r2' : p >= 0.5 ? 'r1' : '', on:atSea && (b.status === 'fishing' || kg > 0.5)}; })()};
+    kar:(() => { const kg = deckPending(), cap = tubCap(), p = cap > 0 ? kg / cap : 0; return {v:p, txt:fmt(kg, 0) + ' / ' + fmt(cap, 0) + ' kg', short:fmt(kg, 0) + '/' + fmt(cap, 0), tiny:String(Math.round(p * 100)), cls:p >= 0.9 ? 'r2' : p >= 0.5 ? 'r1' : '', on:atSea && (b.status === 'fishing' || kg > 0.5)}; })()};
 }
 // the third line (U2-1, plan 4.2): the warning that applies now (the rules ✕ or !, a synchronous roll with the advice, the buoy a mile off
 // with «Kjør dit»), or the next event («Fisket er ferdig 09:01 · om 30 min i ekte tid»); when neither, what the pill over the buttons used
@@ -172,10 +180,11 @@ function renderHud(){
     // a phone upright (47 vw, as wide as the little chart, Jonas 06.11.2026): the figures without their units (the icons say what they
     // are; the card has them whole), and «I havn» without the place, which stands on line 3
     const narrow = up && window.innerWidth <= 560;
-    const g2 = (k, f, lbl) => '<span class="g2 g-' + k + (f.cls ? ' ' + f.cls : '') + '" title="' + lbl + '">' + HICON[k] + '<b>' + (narrow ? (f.tiny || f.short || f.txt) : (f.short || f.txt)) + '</b></span>';
+    // (with the bleeding tub and the wind there are seven figures: on a phone up to 380 px the sea is its icon alone then, in its risk colour)
+    const g2 = (k, f, lbl) => '<span class="g2 g-' + k + (f.cls ? ' ' + f.cls : '') + '" title="' + lbl + '">' + (k === 'wind' ? hudWindIcon(f.d) : HICON[k]) + '<b>' + (narrow ? (f.tiny || f.short || f.txt) : (f.short || f.txt)) + '</b></span>';
     const stTxt = narrow && b.status === 'port' && !b.land && !b.shift && !b.fueling && !(S.plan && S.plan.depAt) ? L('I havn', 'In port') : statusText();
     setHtml(hud, '<div class="hs1"><span class="ht">' + hm(H) + '</span><i class="dot ' + dot + '"></i><span class="hs">' + stTxt + '</span><b class="hc' + (S.cash < 0 ? ' r2' : '') + '">' + kr(cashShown()) + '</b></div>' +
-      '<div class="hs2">' + g2('fuel', F.fuel, 'Diesel') + g2('hold', F.hold, L('Last', 'Hold')) + (F.kar.on ? g2('kar', F.kar, L('Bløggekar', 'Bleeding tub')) : '') + g2('en', F.en, L('Energi', 'Energy')) + g2('sea', F.sea, L('Sjø', 'Sea')) + '</div>' + hudLine3('strip'));
+      '<div class="hs2">' + g2('fuel', F.fuel, 'Diesel') + g2('hold', F.hold, L('Last', 'Hold')) + (F.kar.on ? g2('kar', F.kar, L('Bløggekar', 'Bleeding tub')) : '') + g2('en', F.en, L('Energi', 'Energy')) + g2('sea', narrow && F.kar.on && window.innerWidth <= 380 ? {...F.sea, tiny:'\u200b'} : F.sea, L('Sjø', 'Sea')) + g2('wind', F.wind, L('Vind', 'Wind')) + '</div>' + hudLine3('strip'));
   } else {
   // «Kystlys» U3 (docs/planer/ui-redesign.md, V5 A, 04.11.2026): the status box is instruments, not a table of eleven rows. Four gauges
   // on one row (diesel, hold, energy, sea), under them only what matters now (the rules at sea, a roll, the cold, the luck, the fleet),
@@ -186,6 +195,8 @@ function renderHud(){
   const gauges = card ? '<div class="gauges open">' + gs + '</div>' : '<button type="button" class="gauges' + (showAll ? ' open' : '') + '" data-hfull aria-label="' + L('Vis alle tallene', 'Show all the figures') + '">' + gs + '</button>';
   // what matters now, as rows with what to do
   const now = [];
+  // the wind first, always (Jonas 16.11.2026): from where and how hard, the arrow the way it blows
+  now.push('<div class="row hwind"><span>' + t('wind') + '</span><b class="' + F.wind.cls + '">' + hudWindIcon(F.wind.d) + ' ' + F.wind.txt + '</b></div>');
   // water in the boat (Fysikk 3): the leak and the pump, red while it rises, with «Kjør til verft»
   if (atSea){ const hw = hullWarn(b); if (hw) now.push('<div class="row warn"><span>' + L('Skroget', 'The hull') + '</span><b class="' + hw.cls + '">' + hw.long + '</b><button type="button" class="hgo" data-hgo="yard">' + L('Verft', 'Yard') + '</button></div>'); }
   if (S.fleet && S.fleet.length > 1) now.push('<div class="row"><span>' + L('Båt', 'Vessel') + '</span><b>' + S.boatName + (meAboard() ? ' ⚓' : '') + '</b></div>');
@@ -206,7 +217,6 @@ function renderHud(){
   if (haillStage()) now.push('<div class="row"><span>' + L('Haill', 'Luck') + '</span><b class="haill">' + haillStage()[S.lang] + ' +' + Math.round(haillBoost() * 100) + ' %</b></div>');
   // the whole table behind the tap: the figures the gauges round off, the wind, the bonus and the bank's other accounts
   const full = !showAll ? '' : '<div class="hfull">' +
-    '<div class="row"><span>' + t('wind') + '</span><b>' + dirName(windDir(H)) + ' ' + fmt(W, 1) + ' m/s</b></div>' +
     '<div class="row"><span>' + t('waves') + '</span><b>' + fmt(hs, 1) + ' m' + (atSea ? ' <span class="r' + lvl + '">' + t('risk' + lvl) + '</span>' : '') + '</b></div>' +
     '<div class="row"><span>' + t('fuel') + '</span><b>' + fmt(b.fuel, 0) + ' / ' + BOAT.fuelCap + ' L</b></div>' +
     '<div class="row"><span>' + t('hold') + '</span><b>' + HF.txt + (HF.fz ? ' ' + L('produkt', 'product') : '') + '</b></div>' + (HF.fz ? '<div class="row"><span>' + L('Rund vekt', 'Round weight') + '</span><b>' + HF.rnd + '</b></div>' : '') +

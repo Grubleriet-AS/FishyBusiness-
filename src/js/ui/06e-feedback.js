@@ -250,8 +250,65 @@ const FEEDBACK = (() => {
     if (typeof cloudEv === 'function') cloudEv('fb_nudge', {why});
     return true;
   }
+  // Aground (Jonas 16.11.2026, before the launch: «Ved grunnstøting får spillere på opp en boks med spørsmål om grunnstøtingen var spillets
+  // skyld slik at vi kan følge det opp (men vi må også automatisk lagre data fra øyeblikket), de skal også få muligheten til å flytte båten
+  // ut på havet igjen uten skade på skrog»): every time, not held back as the reminders are. runAground (core/01-world.js) puts the moment
+  // in the queue S.agQ (each vessel of the fleet, the dialog only where the player is aboard); each report goes to us with the player's
+  // answer and a picture of the game (ag_put, its own limit; fb_send2 where the database does not have it yet). One not answered in ten
+  // real minutes (the dialog shut, the game closed) goes with the answer «none». A refusal that will not pass (the day's limit, no
+  // player) drops it; anything else waits ten minutes. Then the way out: agFree (core/05-vessels.js), also from the Redning app.
+  const AG_ANS = {ja:['Ja, spillets feil', 'Yes, the game\'s fault'], nei:['Nei, min feil', 'No, my fault'], vet:['Vet ikke', 'Not sure']};
+  const AGS = {busy:false, next:0, shot:{}, ans:null};
+  const agQ = () => S.agQ || (S.agQ = []);
+  const agDrop = R => { const i = agQ().indexOf(R); if (i >= 0) agQ().splice(i, 1); delete AGS.shot[R.id]; };
+  async function agSend(R){
+    if (!R || AGS.busy || Date.now() < AGS.next || !CLOUD.on || !CLOUD.user) return false;
+    AGS.busy = true;
+    try {
+      const img = AGS.shot[R.id] ? await AGS.shot[R.id] : null;
+      let im = null; if (img){ try { const el = new Image(); await new Promise(q => { el.onload = q; el.onerror = q; el.src = img; }); im = el.naturalWidth ? shrink(el, el.naturalWidth, el.naturalHeight) : null; } catch (e){} }
+      const a = R.ans || 'ingen', body = '[Grunnstøting] Spillerens svar: ' + (AG_ANS[a] ? AG_ANS[a][0] : R.me ? 'ikke svart' : 'ikke spurt (spilleren var ikke om bord)') + '. ' + (R.boatName ? 'Båt: ' + R.boatName + '. ' : '') +
+        (R.how ? 'Styrt av: ' + R.how + '. ' : '') + (R.v != null ? R.v + ' knop. ' : '') + (R.dAt != null ? 'Kartdybde der: ' + R.dAt + ' m, dypgang ' + R.draft + ' m.' : '');
+      const rep = {...R}; delete rep.wall; const m = {...meta(), ag:rep};
+      try { await cloudRpc('ag_put', {body, img:im ? im.url : null, meta:m}); }
+      catch (e){ if (!/ 404$/.test(e.message)) throw e; await cloudRpc('fb_send2', {topic:'bug', body, rating:null, imgs:im ? [im.url] : [], meta:m}); }
+      agDrop(R); save(); if (typeof cloudEv === 'function') cloudEv('aground_ans', {ans:a}); return true;
+    } catch (e){
+      if (/too many|no player|bad /.test(String(e && e.message))){ agDrop(R); save(); }   // (it will not pass: dropped, not tried every minute)
+      else AGS.next = Date.now() + 10 * 60e3;
+      return false;
+    } finally { AGS.busy = false; }
+  }
+  // the reports answered, or not answered in ten real minutes, go one at a time
+  function agFlush(){ const R = agQ().find(r => r.ans != null || Date.now() - (r.wall || 0) >= 10 * 60e3); if (R) agSend(R); }
+  setInterval(() => { try { if (S) agFlush(); } catch (e){} }, 60e3);
+  function agOut(){ const m = $('modal');
+    if (typeof agCan !== 'function' || !agCan()){ m.hidden = true; return; }
+    m.innerHTML = '<div class="box" role="dialog" aria-modal="true"><div class="ob fb-nudge"><h2>' + L2('Flytte båten ut?', 'Move the boat out?') + '</h2><p>' +
+      L2('Spillet er nytt, og vi vil ikke at en feil hos oss skal koste deg båten. Du kan flytte henne ut på trygt vann med skroget som før grunnstøtingen. Det koster ingenting.',
+        'The game is new, and we do not want a mistake on our side to cost you the boat. You can move her out to safe water with the hull as it was before she ran aground. It costs nothing.') + '</p>' +
+      (AGS.ans === 'ja' ? '<p class="note">' + L2('Vil du fortelle mer, for eksempel hva kartet viste? Skriv det i Tilbakemelding-appen.', 'Want to tell us more, for instance what the chart showed? Write it in the Feedback app.') + '</p>' : '') +
+      '<div class="btns"><button class="btn" id="agStay">' + L2('La henne stå', 'Leave her') + '</button><button class="btn primary" id="agGo">' + L2('Flytt båten ut', 'Move the boat out') + '</button></div></div></div>';
+    m.hidden = false;
+    $('agStay').onclick = () => { m.hidden = true; toast(L2('Du kan flytte båten ut senere i Redning-appen.', 'You can move the boat out later in the Redning app.'), 6000); };
+    $('agGo').onclick = () => { m.hidden = true; const why = agFree(); toast(why ? L2(why[0], why[1]) : L2('Båten ligger på trygt vann, med skroget som før.', 'The boat lies on safe water, with the hull as before.'), 6000); save(); if (typeof refreshAll === 'function') refreshAll(); };
+    $('agGo').focus();
+  }
+  function aground(id, n = 0){
+    const R = agQ().find(r => r.id === id); if (!R || R.ans != null) return false;
+    const m = $('modal');
+    // (another dialog or the phone up: asked when it is shut, for up to two minutes; then the report goes without the answer)
+    if (!m || !m.hidden || (typeof PHONE !== 'undefined' && PHONE.isOpen())){ if (n < 40) setTimeout(() => aground(id, n + 1), 3000); return false; }
+    if (typeof G3 !== 'undefined' && G3.isActive() && G3.snap) AGS.shot[R.id] = G3.snap(900).catch(() => null);
+    modal('<div class="ob fb-nudge"><h2>' + L2('Du gikk på grunn', 'You ran aground') + '</h2><p>' +
+      L2('Spillet er nytt, og en grunnstøting kan skyldes en feil hos oss: kartet, dybden, ruta eller Autonav. Det som skjedde, med et bilde av skjermen, er lagret og blir sendt til oss. Var det spillets skyld?',
+        'The game is new, and running aground may be a mistake on our side: the chart, the depth, the route or Autonav. What happened, with a picture of the screen, has been saved and will be sent to us. Was it the game\'s fault?') + '</p>' +
+      '<div class="btns">' + Object.keys(AG_ANS).map(k => '<button class="btn' + (k === 'ja' ? ' primary' : '') + '" data-ag="' + k + '">' + L2(AG_ANS[k][0], AG_ANS[k][1]) + '</button>').join('') + '</div></div>');
+    m.querySelectorAll('[data-ag]').forEach(el => { el.onclick = () => { const k = el.dataset.ag; R.ans = k; save(); agSend(R); AGS.ans = k; agOut(); }; });
+    return true;
+  }
   // typing keeps the text between redraws (the page is drawn anew on every tap), and the count follows
   function input(v){ D.body = String(v).slice(0, MAXTXT); D.done = false; const n = document.querySelector('#phone .fb-n'); if (n) n.textContent = D.body.length + ' / ' + MAXTXT;
     const b = document.querySelector('#phone .fb-send'); if (b) b.disabled = !canSend(); }
-  return {page, act, input, pick, meta, nudge, TOPICS, LIM, get draft(){ return D; }};
+  return {page, act, input, pick, meta, nudge, aground, agFlush, TOPICS, LIM, get draft(){ return D; }};
 })();

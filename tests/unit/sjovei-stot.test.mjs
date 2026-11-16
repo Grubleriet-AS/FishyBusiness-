@@ -138,6 +138,12 @@ export default function (t){
   S1.log.push({t:S1.t, no:'Kastet loss fra Husøy.', en:'Cast off from Husøy.'});
   const H1 = S1.t / 60, n = {id:'c99', name:'Sjøsprøyt', type:'sjark', p:{x:at.x, y:at.y - 0.008}, hd:90 * R, cog:90 * R, v:9, st:'out', coast:true, L:10.5, B:4, T:1.5, cls:'pow'};
   const pre = {p:{x:at.x, y:at.y}, hd:0, cog:0, v:8};
+  // SJV.harm off (Jonas 16.11.2026, the first weeks: no damage from a collision with another vessel): the blow, the log and § 164, no damage
+  // to either and nothing paid. Then on, for the checks below, which are the damage and the payment as they are with it on
+  { t.ok(K.SJV.harm === false, 'SJV.harm står av som standard'); const c0h = S1.cash, rh = K.sjvBlow(Object.assign({}, n, {id:'c98'}), 6, 5e4, H1, pre);
+    t.ok(rh && rh.kn === 6 && !b1.dmg && rh.own === 0 && rh.oth === 0 && rh.owe === 0 && rh.got === 0 && S1.cash === c0h && /«Sjøsprøyt» tok ikke skade/.test(S1.log.slice(-3).map(l => l.no).join(' ')),
+      'SJV.harm av: støtet på 6 knop står i dagboka, men ingen skade på noen av båtene og ingen betaling', rh && {dmg:b1.dmg, own:rh.own, oth:rh.oth, owe:rh.owe});
+    S1.clashes = []; S1.radio = []; K.SJV.clash.clear(); K.SJV.E.clear(); K.SJV.harm = true; }
   const rec = K.sjvBlow(n, 6, 5e4, H1, pre), logs = S1.log.slice(-3).map(l => l.no).join(' | '), vhf = (S1.radio || []).filter(r => r.from === 'VHF 16');
   t.ok(rec && rec.kn === 6 && b1.dmg && b1.dmg.h > 0, 'støtet på 6 knop skader ditt skrog (hullHit)', rec && {kA:rec.kA, kB:rec.kB, dmg:b1.dmg});
   t.ok(rec.kA < rec.kB, 'den tyngre kystbåten (75 t) tar mindre av støtet enn sjarken (32 t): massene', [rec.kA, rec.kB]);
@@ -165,6 +171,14 @@ export default function (t){
   t.eq(JSON.stringify(b1.dmg), dmg0, 'skroget er som før');
   // with the game running: a step into a vessel laid in the list near her gives the blow, the impulse and the stand-by
   K.DYN.on = true; K.SJV.vid = S1.cur; K.SJV.at = S1.t / 60; K.SJV.clash.clear(); K.SJV.E.clear(); K.SJV.tc.wall = 0;
+  // (as the game runs, SJV.ghost: through the coast's own vessel, no blow, no damage; Jonas 16.11.2026. Then off, for the blows below)
+  { t.ok(K.SJV.ghost === true, 'SJV.ghost: spillerens båt går gjennom kystens egne båter'); const Hg = S1.t / 60, dg = {X:d.X, Y:d.Y, psi:0, u:4, v:0, r:0}, n0 = K.SJV.nClash, dmgG = JSON.stringify(b1.dmg);
+    const mg = {id:'c78', name:'Havgløtt', type:'sjark', p:{x:dg.X / 1000, y:(dg.Y - 8) / 1000}, hd:90 * R, cog:90 * R, v:0, st:'out', coast:true, L:10.5, B:4, T:1.5, cls:'pow'};
+    K.SJV.tl = {vid:S1.cur, H:Hg, X:dg.X, Z:dg.Y, v:[{n:mg, x:dg.X, z:dg.Y - 8, ve:0, vz:0, hd:90 * R, L:10.5, B:4, m:K.sjvMass(mg)}], f:[], g:[]};
+    const tg = K.sjvTouch(b1, dg, K.dynCalOf(b1).P), lpG = {H:Hg - 6 / 3600, ax:b1.pos.x, ay:b1.pos.y, ahd:0, bx:b1.pos.x + 0.015, by:b1.pos.y, bhd:270 * R}; K.SJV.lp.set('c79', lpG);
+    const sg = K.sjvSweep({id:'c79', name:'Sjøsprøyt II', type:'sjark', p:{x:b1.pos.x - 0.002, y:b1.pos.y}, hd:270 * R, cog:270 * R, v:10, st:'out', coast:true, L:10.5, B:4, cls:'pow'}, {p:{x:b1.pos.x, y:b1.pos.y}, hd:0, cog:0, v:0, cls:'pow', L:15, B:6.6}, Hg, 1, true);
+    t.ok(tg === null && sg === null && dg.u === 4 && K.SJV.nClash === n0 && JSON.stringify(b1.dmg) === dmgG, 'gjennom en NPC: ikke noe støt, farten står, ingen skade (sjvTouch og sjvSweep)', {tg, sg, u:dg.u});
+    K.SJV.lp.clear(); K.SJV.ghost = false; }
   const Pm = K.dynCalOf(b1).P, Hn = S1.t / 60, m = {id:'c77', name:'Havørn', type:'sjark', p:{x:d.X / 1000, y:(d.Y - 8) / 1000}, hd:90 * R, cog:90 * R, v:0, st:'out', coast:true, L:10.5, B:4, T:1.5, cls:'pow'};
   K.SJV.tl = {vid:S1.cur, H:Hn, X:d.X, Z:d.Y, v:[{n:m, x:d.X, z:d.Y - 8, ve:0, vz:0, hd:90 * R, L:10.5, B:4, m:K.sjvMass(m)}], f:[], g:[]};
   const u0 = d.u, tr = K.sjvTouch(b1, d, Pm);
@@ -185,4 +199,5 @@ export default function (t){
   const sw = K.sjvSweep(wn, {p:{x:ax, y:ay}, hd:0, cog:0, v:0, cls:'pow', L:15, B:6.6}, H2, 1, true);
   t.ok(sw && sw.kn > 8 && sw.law === '161' && sw.fb === 1 && (b1.pos.x !== ax || b1.pos.y !== ay), 'sveipet mellom to blikk: hun gikk inn i siden på deg mens du lå stille; hennes skyld (regel 2), og du er skjøvet ut', sw && {kn:sw.kn, fb:sw.fb, sit:sw.sit});
   t.eq(K.sjvSweep(wn, {p:{x:ax, y:ay}, hd:0, v:0, cls:'pow', L:15, B:6.6}, H2 + dts, 1, false), null, 'uten at spillet går (on false): ingen sveip');
+  K.SJV.ghost = true;
 }

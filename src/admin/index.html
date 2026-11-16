@@ -87,7 +87,7 @@ async function load(){
   catch (e){ if (SES){ $('#app').innerHTML = '<main><div class="card warn">' + esc(e.message) + '</div><button id="reLogin">Logg inn på nytt</button></main>';
     $('#reLogin').onclick = () => { SES = null; sessionStorage.clear(); render(); }; } }   // (no onclick in the HTML: the page's CSP allows only its own script)
 }
-const TABS = [['oversikt', 'Oversikt'], ['trakt', 'Trakt'], ['tid', 'Spilletid'], ['frafall', 'Frafall'], ['bruk', 'Spillbruk'], ['okonomi', 'Økonomi i spillet'], ['penger', 'Penger'], ['teknikk', 'Teknikk'], ['geo', 'Geografi'], ['tilbake', 'Tilbakemeldinger'], ['agent', 'Agent'], ['logoer', 'Logoer'], ['navn', 'Brukernavn'], ['avis', 'Kystposten'], ['merker', 'Merker'], ['juks', 'Juks'], ['kommer', 'Kommer'], ['sponsorer', 'Sponsorer'], ['mediekort', 'Mediekort']];
+const TABS = [['oversikt', 'Oversikt'], ['trakt', 'Trakt'], ['tid', 'Spilletid'], ['frafall', 'Frafall'], ['bruk', 'Spillbruk'], ['okonomi', 'Økonomi i spillet'], ['penger', 'Penger'], ['teknikk', 'Teknikk'], ['geo', 'Geografi'], ['tilbake', 'Tilbakemeldinger'], ['agent', 'Agent'], ['lansering', 'Lansering'], ['logoer', 'Logoer'], ['navn', 'Brukernavn'], ['avis', 'Kystposten'], ['merker', 'Merker'], ['juks', 'Juks'], ['kommer', 'Kommer'], ['sponsorer', 'Sponsorer'], ['mediekort', 'Mediekort']];
 function render(){
   if (!DEMO && !SES) return loginView();
   if (!DATA) { $('#app').innerHTML = '<main class="note">Henter …</main>'; return load(); }
@@ -101,6 +101,7 @@ function render(){
   if (TAB === 'tilbake') fbWire();
   if (TAB === 'agent') agWire();
   if (TAB === 'logoer') lgWire();
+  if (TAB === 'lansering') lnWire();
   if (TAB === 'sponsorer') spWire();
   if (TAB === 'mediekort' && $('#mkPrint')) $('#mkPrint').onclick = () => window.print();
   if (TAB === 'navn') nmWire();
@@ -357,6 +358,34 @@ VIEW.agent = () => {
       ((r.prs || []).length ? '<p>' + r.prs.map(x => /^https:\/\/github\.com\//.test(String(x.url)) ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener">' + esc(x.title || x.url) + '</a>' : esc(x.title || x.url)).join('<br>') + '</p>' : '') + '</div>').join('')
       : '<p class="note">Ingen rapporter ennå.</p>');
 };
+// ---------- the launch (16.11.2026, supabase/migrations/20261116120000_lansering.sql): the founders' count and the profile pictures ----------
+// Jonas: «de 100 første som leverer fisk får merket», counted from the moment the switch is turned here (accounts made before it are the
+// test accounts and never count); and «Eget bilde med godkjenning»: a player's profile picture shows to others only once approved here.
+let LN = null;
+async function lnLoad(){ await null;
+  try { LN = DEMO ? {f:{from:null, n:0, list:[]}, av:[]} : {f:await rpc('admin_founders', {}), av:await rpc('admin_av_list', {})}; } catch (e){ LN = {err:e.message}; }
+  if (TAB === 'lansering') render(); }
+VIEW.lansering = () => {
+  if (!LN){ lnLoad(); return '<p class="note">Henter …</p>'; }
+  if (LN.err) return card('Lansering', '<p class="warn">' + esc(LN.err) + '</p>', 'Er migreringen supabase/migrations/20261116120000_lansering.sql kjørt?');
+  const F = LN.f || {}, on = !!F.from;
+  return '<div class="grid">' + kpi('Founders', nf(F.n || 0, 0) + ' / 100', on ? 'teller fra ' + new Date(F.from).toLocaleString('nb-NO') : 'tellingen er av') + kpi('Bilder som venter', nf((LN.av || []).length, 0), 'godkjenn eller avvis') + '</div>' +
+    '<div class="card"><h3>Founders-merket</h3><p class="note">De 100 første som leverer fisk etter at du slår på, får merket med nummeret sitt for alltid. Kontoer laget før du slo på, gjester og admin teller aldri. Slår du av, telles ingen flere; de som har nummer, beholder det.</p>' +
+      '<button id="lnF" data-on="' + (on ? 0 : 1) + '">' + (on ? 'Stopp tellingen' : 'Start founders-tellingen nå') + '</button> <button id="lnR">Oppdater</button>' +
+      ((F.list || []).length ? '<table><tr><th>#</th><th>Navn</th><th>Levert første gang</th></tr>' + F.list.map(r => '<tr><td>' + nf(r.no, 0) + '</td><td>' + esc(r.name || r.who) + '</td><td>' + new Date(r.at).toLocaleString('nb-NO') + '</td></tr>').join('') + '</table>' : '') + '</div>' +
+    '<div class="card"><h3>Profilbilder</h3><p class="note">Bildet vises for andre spillere først når du har godkjent det. Spillerne kan være fra 13 år.</p></div>' +
+    ((LN.av || []).length ? '<div class="lggrid">' + LN.av.map(r => '<div class="card lgrow"><img class="lgimg" alt="" src="' + (/^data:image\/(webp|png|jpeg);base64,/.test(r.img || '') ? r.img : '') + '">' +
+      '<p class="note">' + esc(r.name || r.who) + ' · ' + new Date(r.at).toLocaleString('nb-NO') + '</p><button data-avok="' + esc(r.who) + '">Godkjenn</button> <button data-avno="' + esc(r.who) + '">Avvis</button></div>').join('') + '</div>'
+      : '<p class="note">Ingen bilder venter.</p>');
+};
+function lnWire(){
+  if ($('#lnR')) $('#lnR').onclick = () => { LN = null; render(); };
+  if ($('#lnF')) $('#lnF').onclick = async e => { const b = e.currentTarget, on = b.dataset.on === '1';
+    if (on && !confirm('Starte founders-tellingen nå? De 100 første som leverer fisk fra nå av, og som har laget kontoen etter dette, får merket.')) return;
+    b.disabled = true; try { if (!DEMO) await rpc('admin_founders_set', {on_:on}); LN = null; render(); } catch (x){ b.disabled = false; alert(x.message); } };
+  document.querySelectorAll('[data-avok],[data-avno]').forEach(b => b.onclick = async () => { const ok = !!b.dataset.avok, who = b.dataset.avok || b.dataset.avno;
+    b.disabled = true; try { if (!DEMO) await rpc('admin_av_set', {who, ok}); LN = null; render(); } catch (x){ b.disabled = false; alert(x.message); } });
+}
 // ---------- the players' logos (Malerverkstedet; supabase/migrations/20261007110000_logos.sql) ----------
 // Every uploaded picture, newest first. One that is offensive is taken away with a reason: the player reads it in the game and may put
 // up another without paying again; the boats near show none until then.
