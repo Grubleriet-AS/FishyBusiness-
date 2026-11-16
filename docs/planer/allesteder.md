@@ -96,6 +96,18 @@ Rullet ut til testutgaven med fjerde og femte del (6d397aca, 14.11.2026, versjon
 - **Trondheim verft** flyttet 271 m (`lukkflytt.py --vei`): innseilingen var for grunn på sjøkartnull, og seks rorbuer i fjorden sto fast i den. `leiaRoute` sjekker nå havnas innseiling som båten seiler den før den legges til en reserverute.
 - **Fylkene** (`tools/regions/fylke.json`) for de åtte flyttede stedene satt der de ligger nå, samme kommune; Kartverket svarer ikke fra skyen.
 
+## Gjort 15.–16.11.2026 (helkjøring 12–15, Jonas' økt, grenen `ccr-as1-alle`)
+
+- Rettinger i Autonav: rorbuenes vei ut (havnas leia sjekket mot dypgang nå, ikke søkemarginen), skjær som ligger bak eller tvers av en etappe er ikke «forut» (`rockOnLeg`, `groundCheck`), veien rundt et merke holder 13 m fra skjær der etappen selv ikke har dem (`obsSafe`), veien langs kaia inn til naustet tas ikke der den snur helt eller går over grunt vann (`dynLineBuild`), og Autonav søker en ny vei til rutas ende før den gir opp ved grunt vann (`sailReplan`).
+- Ti rorbuer tatt bort (`gone`): Austgulen, Langvasseid, Indre Koiøyholman, Spåkenes, Nordøya, Lille Mårøya, Utskor, Sør-Gutvika, Klevald, Mølstrevåg.
+- De vanlige havnene (3 311) er stengt for spillerne (Jonas 15.11.2026, `HAVN.shut`, `docs/systemer/npc-trafikk.md` 4.16c).
+- Spillerens båt går gjennom kystens egne båter (Jonas 16.11.2026, `SJV.ghost` i `core/05e-sjovei.js`).
+- Helkjøringene på laveste lavvann: 12: 76 steder røde; 13: 17; 14: 14 (7 ferjemøter); 15: 1 av 1 027 (Tussøy utstyrsbutikk, rettet etterpå).
+
+## Slutt (16.11.2026)
+
+Steget er ferdig (Jonas: «godt nok»). Det som står åpent, med Jonas' ja: hendene tar over ved rundt 11 % av stedene (Ferdig når-målet var 1 %); båten kommer fram, men skyves forbi der den står fast. `dyntest` er rød på ringnot38 (taktisk diameter, stopp) fra før steget. NPC-havnene (`KYST_ALLE=havn`) er ikke kjørt, og trenger ikke det mens de er stengt for spillerne.
+
 ## Funnene etter sjette kjøring (14.11.2026, hele kysten, 1 045 steder; `tests/out/logs/allesteder-6.log`)
 
 - **Ingen rute** (8): rorbuene Langvasseid, Austein, Åsværgården, Austgulen; naustene Tufjord, Gjesvær, Sørarnøy, Hidrasund (som før: punkt 3 under).
@@ -144,7 +156,7 @@ Første kjøring 13.11.2026 hadde 136 funn; nå 38, og havnene (mottak, butikker
 
 Funnet underveis: **Kopervik verft** står fast fordi omveien rundt pilarene under brua (`obsRoute`) er en S-sving på 30–100 m som en 21 m båt ikke kan ta; hun rygger og går fram om igjen (`T.bow`). Gjelder trolig også Tananger, Hellvik og Brettesnes (sjekkes).
 
-## Neste
+## Neste (før helkjøring 12; avløst av «Slutt»)
 
 Rekkefølgen for fjerde kjøring står i «Oppgaven (fjerde kjøring)» i `docs/planer/start/126.md` (ferger og hurtigbåter, stedene der hendene måtte ta henne, rorbuene og naustene uten vei ut, landleggene, tilstanden mellom stedene, NPC-havnene). Lista under er fra andre del.
 
