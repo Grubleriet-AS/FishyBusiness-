@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['navnfix-161126', '16.11.2026', 'Brukernavnet på profilen', 'The player name on the profile', [
+       ['Sto profilen din «Uten navn» selv om du hadde et brukernavn i Innstillinger, hentes navnet nå inn på kontoen når du starter spillet. Er navnet tatt, blir du bedt om å velge et nytt.', 'If your profile said «No name» although you had a player name in Settings, the name is now taken to your account when you start the game. If the name is taken, you are asked to choose a new one.']]],
     ['d4drift-161126', '16.11.2026', 'Driftsplanen i Om bord', 'The plan aboard', [
        ['Driftsplanen står under Om bord › Mannskap og drift, under mannskapet. Driftsplan i telefonen, kartet og varslene fra rederiet åpner den der, og fanene i Om bord står fast øverst.', 'The operations plan is under Aboard › Crew and plan, below the crew. Operations plan on the phone, the chart and the company\'s alerts open it there, and the tabs of Aboard stay at the top.']]],
     ['kapplop2-131126', '16.11.2026', 'Ukas tavle i kappløpet', 'This week\'s board in the race', [

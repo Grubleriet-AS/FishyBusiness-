@@ -5331,3 +5331,8 @@
 2026-11-16 21:45	claude/production-release-prep-cn15pt	d90b66a8	kjoptest	OK	165	lite	samtidig	
 2026-11-16 21:45	claude/production-release-prep-cn15pt	d90b66a8	docktest	OK	62	lite	samtidig	
 2026-11-16 22:08	claude/production-release-prep-cn15pt	65269f0f	navnshot	OK	1361	3d	alene	
+2026-11-16 22:50	claude/production-release-prep-cn15pt	eef41111+	cloudtest	FEIL	47	lite	alene	FEIL a name in the save that the server does not hold is claimed for the account; when another account has it, it leaves the save and a new one is asked for  {"
+2026-11-16 22:51	claude/production-release-prep-cn15pt	eef41111+	cloudtest	OK	52	lite	samtidig	
+2026-11-16 22:51	claude/production-release-prep-cn15pt	eef41111+	trip2	OK	39	lite	samtidig	
+2026-11-16 22:52	claude/production-release-prep-cn15pt	eef41111+	docktest	OK	63	lite	samtidig	
+2026-11-16 22:54	claude/production-release-prep-cn15pt	eef41111+	kjoptest	OK	163	lite	samtidig	

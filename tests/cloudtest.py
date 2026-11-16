@@ -197,6 +197,17 @@ async def main():
         check(nmc == 'Kystjenta' and 'Velg et brukernavn' in ask['t'] and ask['closers'] == 0 and 'Senere' not in ask['t'] and ask['open1'] and 'mellomrom' in ask['bad'].lower() and ask['open2'] and 'tatt' in ask['taken']
               and nc == [{'name': 'Havørn_1'}, {'name': 'Havørn_2'}] and ok2 == {'user': 'Havørn_2', 'closed': True, 'asking': False} and rm == {'user': None, 'msg': True},
               'every account has a player name: one taken on another device comes down; without one the card has no way round it, refuses a bad or taken name and closes on a free one; one the admin took away is gone with the reason', {'mine': nmc, 'ask': ask, 'ok': ok2, 'claim': nc, 'removed': rm})
+        # a name in the save that the server does not hold for this account (16.11.2026, Jonas' own profile said «Uten navn»: the save
+        # came from another account, which has the name): it is claimed for this account, and when another has it, it goes from the
+        # save and the player is asked for a new one. Before, the save's name stood in Settings while everyone else saw none
+        replies['name_mine'] = {}; replies['name_claim'] = '"ok"'; n0 = len(calls)
+        nk1 = await pg.evaluate("async () => { S.user = 'Lagringsnavn'; await nameCheck(); return S.user; }")
+        nkc = [c[1] for c in calls[n0:] if c[0] == 'name_claim']
+        replies['name_claim'] = '"taken"'
+        nk2 = await pg.evaluate("async () => { S.user = 'Lagringsnavn'; document.getElementById('modal').hidden = true; await nameCheck(); const r = {user:S.user, asking:!!NAME_ASK}; if (NAME_ASK){ clearInterval(NAME_ASK.iv); NAME_ASK = null; } document.getElementById('modal').hidden = true; return r; }")
+        check(nk1 == 'Lagringsnavn' and nkc == [{'name': 'Lagringsnavn'}] and nk2 == {'user': None, 'asking': True},
+              'a name in the save that the server does not hold is claimed for the account; when another account has it, it leaves the save and a new one is asked for', {'claimed': nk1, 'calls': nkc, 'taken': nk2})
+        replies['name_mine'] = {'name': 'Havørn_2', 'removed': False}; replies['name_claim'] = '"ok"'
         # the shared world V2: my sale and the fish my boat took go up; the other players' open-group cod, deliveries and catch come down
         k = await pg.evaluate("stockIdx(S.boat.pos)")
         replies['land_put'] = 'null'; replies['catch_put'] = 'null'; n0 = len(calls)
