@@ -119,6 +119,17 @@ export default function (t){
       t.ok(y2 && !(fc(y2.st, y2.e, other.st) * fc(y2.st, y2.e, other.e) < 0 && fc(other.st, other.e, y2.st) * fc(other.st, other.e, y2.e) < 0), 'en annen lenke over plassen: lina dreies så de ikke krysser (' + (y2 ? (y2.hdg * 180 / Math.PI).toFixed(0) + '°' : '–') + ')');
       K.set('isLand', p => kmTrue(p, C) > 0.5); const y3 = plan3Lay(o, q, {x:C.x, y:C.y}, []); K.set('isLand', () => false);
       t.ok(y3 === null, 'en vik på 1 km der lenka på 3,6 km skulle ligge: den legges ikke (søket tar den neste plassen)');
+      // the pattern kept when the plan is made (plan3SokPrep): shorter with the sounder that sees further, all of it inside the ring, seeing
+      // every candidate, ending at a field's fixed point, and the headings each string can lie in at each candidate
+      { const {plan3SokPrep} = K, spots = cand.map(c => ({x:c[0], y:c[1], s:kmTrue({x:c[0], y:c[1]}, C)})), P0 = o.places.map(q => ({...q})), Kp = plan3SokPrep(o, spots), T = Object.keys(HEAT.tiers);
+        const inside = T.every(t => Kp.track[t].every(c => kmTrue({x:c[0], y:c[1]}, C) <= r + 1e-6)), ends = T.every(t => { const L = Kp.track[t][Kp.track[t].length - 1], q = o.places.find(x => x.id === Kp.end[t]); return q && (!L || kmTrue({x:L[0], y:L[1]}, q) < 1e-3); });
+        t.ok(Kp.km.basic > Kp.km.chirp && Kp.km.chirp >= Kp.km.sonar && T.every(t => Kp.seen[t].length === Kp.cand.length), 'mønsteret: kortere (eller like kort) med ekkoloddet som ser lenger (det enkle ' + Kp.km.basic + ' km, CHIRP ' + Kp.km.chirp + ', sonaren ' + Kp.km.sonar + '), og alle ' + Kp.cand.length + ' kandidatene sett');
+        t.ok(inside && ends, 'hele mønsteret inne i ringen, og det ender på en fast plass der leiene er lagret');
+        t.ok(Kp.lay.f1 && Object.keys(Kp.lay.f1).length === Kp.reach.f1.length && Object.values(Kp.lay.f1).every(hs => hs.length >= 1), 'retningene lenka kan ligge i, lest fra kartet når planen lages, for hver kandidat feltet når');
+        K.set('isLand', p => p.x > C.x + 0.2 && p.x < C.x + 0.3 && Math.abs(p.y - C.y) < 0.8);   // (a skerry wall across the middle of the ring)
+        const Kw = plan3SokPrep(o, spots), crossW = T.some(t => { const pts = [o.places[0]].concat(Kw.track[t].map(c => ({x:c[0], y:c[1]}))); for (let j = 1; j < pts.length; j++){ const a = pts[j - 1], b = pts[j]; for (let k = 0; k <= 100; k++){ const x = a.x + (b.x - a.x) * k / 100, y = a.y + (b.y - a.y) * k / 100; if (x > C.x + 0.2 && x < C.x + 0.3 && Math.abs(y - C.y) < 0.8) return true; } } return false; });
+        t.ok(!crossW && Kw.km.basic > Kp.km.basic - 1e-9, 'et skjær midt i ringen: mønsteret går aldri over det (' + Kw.km.basic + ' km mot ' + Kp.km.basic + ')');
+        K.set('isLand', () => false); o.places = P0; }
       for (const [k, v] of keep) K.set(k, v); }
     // (1) the search in the day: before the sets, with its length, its time and its fuel
     const had = 'fmt' in globalThis; if (!had) globalThis.fmt = (x, d2) => (+x).toFixed(d2).replace('.', ',');   // (fmt is the UI's, ui/02-format-state.js)

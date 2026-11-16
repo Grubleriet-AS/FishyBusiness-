@@ -71,11 +71,12 @@ async def main():
         print(ok(f.get('sets') == [] and f.get('hold') == 0 and f.get('status') == 'port' and f.get('port') == r.get('M') and r.get('gone')), 'D the gear hauled, the catch landed, the boat lies at the plant, and the plan is gone', [f.get('sets'), f.get('hold'), f.get('status'), f.get('port'), r.get('M'), r.get('gone')])
         # ---- DP3-2: the search. The harness's hook records each set as it goes out (its start, its end, the field) and the search trips
         await pg.evaluate(r'''() => { window.rec3 = o => { const R = {sets:{}, sok:[], cur:null}; R.hook = () => { for (const s of mySets()) if (!R.sets[s.id]){ const q = o.places.find(x => x.id === s.fid); R.sets[s.id] = {fid:s.fid, a:{x:s.a.x, y:s.a.y}, b:{x:s.b.x, y:s.b.y}, t:S.t, at0:q && q.at ? {x:q.at.x, y:q.at.y} : null}; }
-            const pl = S.plan; if (pl && pl.sok != null && pl.idx >= pl.sok){ if (!R.cur) R.cur = {t0:S.t, x:S.boat.pos.x, y:S.boat.pos.y}; } else if (R.cur){ R.cur.t1 = S.t; R.sok.push(R.cur); R.cur = null; } };
+            const pl = S.plan; if (pl && pl.sok != null && pl.idx >= pl.sok){ if (!R.cur){ R.cur = {t0:S.t, x:S.boat.pos.x, y:S.boat.pos.y}; try { R.now = PLAN2UI.nowOf(o)[0]; } catch (e){ R.now = 'feil: ' + e.message; } } }
+            else if (pl && pl.sok != null && !R.now0 && S.boat.status === 'sailing'){ try { R.now0 = PLAN2UI.nowOf(o)[0]; } catch (e){ R.now0 = 'feil: ' + e.message; } } else if (R.cur){ R.cur.t1 = S.t; R.sok.push(R.cur); R.cur = null; } };
           R.out = () => { const c = o.ring, inR = p => kmTrue(p, c) <= c.r + 0.05, frac = s => { let k = 0; for (let j = 0; j <= 20; j++) if (inR({x:s.a.x + (s.b.x - s.a.x) * j / 20, y:s.a.y + (s.b.y - s.a.y) * j / 20})) k++; return k / 21; };
             const L = Object.values(R.sets), mid = s => ({x:(s.a.x + s.b.x) / 2, y:(s.a.y + s.b.y) / 2});
             return {n:L.length, allIn:L.every(s => inR(mid(s))), dA:L.map(s => +kmTrue(mid(s), c).toFixed(2)), onAt:L.map(s => { const q = o.places.find(x => x.id === s.fid); return q && s.at0 ? +kmTrue(mid(s), s.at0).toFixed(2) : null; }), len:L.map(s => +kmTrue(s.a, s.b).toFixed(2)), frac:L.map(s => +frac(s).toFixed(2)), sok:R.sok.map(x => Math.round(x.t1 - x.t0)),
-              at:o.places.map(q => q.at ? [+q.at.x.toFixed(3), +q.at.y.toFixed(3)] : null), atIn:o.places.every(q => !q.at || inR(q.at)), sokN:o.sokN || 0, last:o.sokLast, km:o.sok && o.sok.km, cand:o.sok && o.sok.cand.length, seen:o.sok && Object.fromEntries(Object.entries(o.sok.seen).map(([k, v]) => [k, v.length])), r:c.r}; };
+              now:R.now, now0:R.now0, at:o.places.map(q => q.at ? [+q.at.x.toFixed(3), +q.at.y.toFixed(3)] : null), atIn:o.places.every(q => !q.at || inR(q.at)), sokN:o.sokN || 0, last:o.sokLast, km:o.sok && o.sok.km, cand:o.sok && o.sok.cand.length, seen:o.sok && Object.fromEntries(Object.entries(o.sok.seen).map(([k, v]) => [k, v.length])), r:c.r}; };
           return R; }; }''')
         # E: line, the crew alone with a skipper of experience 4 (you ashore), the simple sounder; two days closed
         E = r'''(async (mode, tag) => { D2.reset(5); const home = D2.boat('sjark', 2, false); D2.gear('line', 8); S.crew[0].attr.erf = 4; await mapNeed(portById(home).p, 14);
@@ -91,7 +92,8 @@ async def main():
             ks = [t for t in r['text'] if 'Søker etter fisken' in t]; i_s = next((i for i, t in enumerate(r['text']) if 'Søker etter' in t), 99); i_set = next((i for i, t in enumerate(r['text']) if 'Setter' in t), -1)
             print(ok(r['sok'] and r['sok']['h'] > 0 and r['sok']['km'] > 0 and r['sok']['l'] > 0 and i_s < i_set and ks and 'leser bildet' in ks[0]), 'E the day searches the ring before the line is set, with its km, minutes and fuel, and who reads the picture', ks[:1])
             print(ok(R['sokN'] >= 1 and R['last'] and R['last']['tier'] == 'basic' and abs(R['last']['erf'] - 4) < 1e-9 and all(R['at']) and R['atIn']), 'E the pattern is sailed and read by the skipper (experience 4) with the simple sounder: every field has its spot in the ring', [R['sokN'], R['last'], R['at']])
-            print(ok(R['sok'] and all(5 <= m <= 90 for m in R['sok'])), 'E the search in the ring takes its time on the sea (minutes)', R['sok'])
+            print(ok(R['sok'] and all(5 <= m <= 90 for m in R['sok']) and abs(R['sok'][0] - r['sok']['h'] * 60) <= 0.25 * r['sok']['h'] * 60), 'E the search in the ring takes its time on the sea at cruising speed, as the day reckons it (minutes sailed, planned)', [R['sok'], round(r['sok']['h'] * 60)])
+            print(ok(R.get('now0') and 'På vei ut til ringen' in R['now0'] and R.get('now') and 'Søker etter fisken' in R['now'] and ' min og ' in R['now']), '«Nå» on the way out and in the ring, with the time and the fuel left', [R.get('now0'), R.get('now')])
             print(ok(R['n'] >= 2 and R['allIn'] and all(x is not None and x <= 0.15 for x in R['onAt'])), 'E every string lies with its middle (where the catch is reckoned) in the ring, on the spot the search found', [R['n'], R['dA'], R['onAt']])
             print(ok(r['stats']['kg'] > 0 and r['ops']['on'] and not r['ops']['stop']), 'E the catch is landed and the plan still on after two days', [r['stats']['kg'], r['ops']['on'], r['ops']['stop']])
             # G: the same two days open (the loop let go every ten minutes) with the same seed: the same places and the same sets
@@ -110,6 +112,27 @@ async def main():
             R = r['R']; print('F:', json.dumps({k: r[k] for k in ('at1', 'at2', 'moved', 'sets', 'msgs', 'log')}, ensure_ascii=False)[:900])
             print(ok(r['msgs'] and R['sokN'] >= 2 and r['moved'] is not None and r['moved'] >= 0.4 - 1e-6 and len(r['sets']) >= 2), 'F a haul under half of the field\'s first: she searches again and the field moves before the nets go out', [r['moved'], R['sokN'], len(r['sets'])])
             print(ok(R['allIn'] and R['atIn'] and all(x is not None and x <= 0.15 for x in R['onAt']) and not r['ops']['stop']), 'F every string with its middle in the ring on the spot found, before and after the move, and the plan goes on', [R['dA'], R['onAt'], r['ops']['stop']])
+        # H (measured, DP3-2): on the real sea at Senja, the fish where the search puts field 1 (density through what the line takes, plan3Truth)
+        # against the best candidate the field reaches, by the sounder and the reader's experience, over 60 seeds; the gear laid as in the game
+        r = await pg.evaluate(r'''(async () => { D2.reset(7); const home = D2.boat('sjark', 2, false); D2.gear('line', 8); await mapNeed(portById(home).p, 14);
+          const C = D2.spots(1, 5, 10)[0], err = await mk3(C, 'line', {lk:'hyse', bait:'sild'}), o = S.ops; if (err) return {err};
+          const H = S.t / 60, take = plan3Take(o, H), K = o.sok, q = o.places[0], P = i => ({x:K.cand[i][0], y:K.cand[i][1]}), tv = i => plan3Truth(P(i), H, take);
+          const best = Math.max(...K.reach[q.id].map(tv)), mean = Math.max(1e-9, K.reach[q.id].reduce((a, i) => a + tv(i), 0) / K.reach[q.id].length), out = {};
+          for (const tier of ['basic', 'chirp', 'sonar']) for (const erf of [1, 3, 5]){ let a = 0, top = 0; for (let k = 1; k <= 60; k++){ for (const x of o.places){ x.at = null; x.move = false; } o.sokN = 0; const g = plan3Search(o, [q.id], H, {tier, erf, seed:k})[0]; const v = g.i >= 0 ? tv(g.i) : 0; a += v; if (v >= best - 1e-12) top++; }
+            out[tier + erf] = [Math.round(100 * a / 60 / best), Math.round(100 * top / 60)]; }
+          return {out, best:+best.toFixed(3), meanPct:Math.round(100 * mean / best), n:K.reach[q.id].length}; })()''')
+        print('H målt (prosent av den beste plassen i snitt, prosent av gangene den beste): ', json.dumps(r, ensure_ascii=False))
+        if not r.get('err'):
+            o_ = r['out']; print(ok(o_['chirp5'][0] >= o_['chirp1'][0] and o_['chirp5'][0] >= o_['basic5'][0] and all(v[0] <= 100 for v in o_.values())), 'H on the real sea: experience and the CHIRP bring the gear nearer the best spot, never past it', o_)
+        # I (measured, DP3-2): nets for four days with nothing forced: how often a haul falls under half of the field's first there, and moves
+        r = await pg.evaluate(r'''(async () => { D2.reset(8); const home = D2.boat('sjark', 2, false); D2.gear('garn', 18); await mapNeed(portById(home).p, 14);
+          const C = D2.spots(1, 5, 10)[0], err = await mk3(C, 'garn'), o = S.ops; if (err) return {err};
+          plan2Start(o); const L = await D2.run(4 * 1440, 'closed', 'I');
+          const hauls = (S.gearLog || []).filter(e => e.tHaul && e.kind === 'garn').map(e => [+e.x.toFixed(2), +e.y.toFixed(2), Math.round(e.kg / Math.max(1, e.n))]);
+          return {hauls, sokN:o.sokN || 0, moved:L.msgs.filter(m => /halvparten/.test(m[1])).length, fields:o.places.length, on:o.on, stop:o.stop}; })()''')
+        print('I målt:', json.dumps(r, ensure_ascii=False)[:600])
+        if not r.get('err'):
+            nh = len(r['hauls']); print(ok(nh >= 2 and r['moved'] <= max(1, nh // 2) and r['on'] and not r['stop']), 'I four days of nets: the plan moves a field only when the catch falls, not at every haul', [nh, r['moved'], r['sokN']])
         print('sidefeil:', errs[:5])
         await b.close()
 

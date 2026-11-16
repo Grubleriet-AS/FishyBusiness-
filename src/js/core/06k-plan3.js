@@ -169,7 +169,8 @@ function plan3Apply(o){
 }
 // make it: the ring's map in, the answers derived, then Driftsplan 2's legs (plan2Make). From anywhere: at sea or in port, aboard or not
 async function plan3Make(o, cb){
-  try { await mapNeed(o.ring, o.ring.r + 2); } catch (e){}
+  // (out to where a string laid with its middle at the ring's edge ends, plan3Heads)
+  { const S3 = plan3Split(o), L = Math.max(0, ...(S3.n || []).map(n => plan3StrKm(o, {n, lk:o.lk}))); try { await mapNeed(o.ring, o.ring.r + 2 + L / 2); } catch (e){} }
   // (the skipper and the mate the plan names, put back when the plan is not made)
   const was = (S.crew || []).map(c => [c, !!c.sk, !!c.mate]), back = () => { for (const [c, sk, mt] of was){ if (sk) c.sk = true; else delete c.sk; if (mt) c.mate = true; else delete c.mate; } };
   const why = plan3Derive(o); if (why){ back(); o.err = why; o.made = null; if (cb) cb(why); return; }
@@ -281,8 +282,17 @@ function plan3SokPrep(o, spots){
       else { let k = seq.length - 1; while (k > 0){ let j = 0; while (j < k - 1 && !clean(seq[k].p, seq[j].p, seq[k].k, seq[j].k)) j++; out.push(seq[j].p); k = j; } } }
     let L = 0, prev = A0; for (const p of out){ L += kmTrue(prev, p); prev = p; }
     track[t] = out.map(p => [+p.x.toFixed(4), +p.y.toFixed(4)]); ends[t] = end.id; seen[t] = [...S0].sort((a, b) => a - b); km[t] = Math.round(L * 1000) / 1000;
+    // (a sounder that sees further sees at least as much along a shorter-ranged one's pattern: that pattern when it is shorter)
+    for (const t2 of Object.keys(track)){ if (t2 === t || !(km[t2] < km[t]) || !(HEAT.tiers[t2].r <= R)) continue;
+      const pp = [A0].concat(track[t2].map(c => ({x:c[0], y:c[1]}))), S2 = new Set(); for (let j = 0; j < pp.length; j++){ const a = pp[Math.max(0, j - 1)], b = pp[j], n = Math.max(1, Math.ceil(kmTrue(a, b) / 0.1)); for (let k = 0; k <= n; k++){ const p = {x:a.x + (b.x - a.x) * k / n, y:a.y + (b.y - a.y) * k / n}; for (const i of all) if (kmTrue(p, P(i)) <= R) S2.add(i); } }
+      if (S2.size >= seen[t].length){ track[t] = track[t2].slice(); ends[t] = ends[t2]; km[t] = km[t2]; seen[t] = [...S2].sort((a, b) => a - b); } }
   }
-  return {cand:pts, reach, track, end:ends, seen, km};
+  // the headings each field's string can lie in at each candidate it reaches, read from the map now (a string's end can be kilometres from
+  // where the boat will be when she reads the search, outside the waters loaded round her, MAPD.simR); the search then only keeps the
+  // strings from crossing each other, so it reads nothing of the map and plays the same open and closed
+  const lay = {};
+  if (p2Kind(o)) for (const q of A) if (q.k === 'felt'){ lay[q.id] = {}; for (const i of reach[q.id]){ const hs = plan3Heads(o, q, P(i)); if (hs.length) lay[q.id][i] = hs.map(h => +h.toFixed(4)); } }
+  return {cand:pts, reach, track, end:ends, seen, km, lay};
 }
 // where the search's pattern ends (a place's fixed point) for the sounder the boat has
 function plan3SokEnd0(o, tier){ const K = o.sok, id = K && K.end ? K.end[tier || plan3Tier()] : null; return o.places.find(q => q.id === id) || o.places[0]; }
@@ -293,18 +303,24 @@ function plan3StrKm(o, q){ const kind = p2Kind(o); if (!kind || !q || !(q.n > 0)
 // the ring), then turned; both ends at sea on 5 m or more, the string clear of land (legClear, as the set itself checks it, setGeomExact),
 // open by the rules at its start (gearRules), a clean hop to its start from the field's fixed point, and crossing no other field's string.
 // {st (where the set starts), e, hdg} or null. (A line of 4 tubs of haddock line is 3.6 km, the ring for line 3.7 km across)
-function plan3Lay(o, q, at, segs){
-  const L = plan3StrKm(o, q), kind = p2Kind(o); if (!(L > 0.01)) return {st:{x:at.x, y:at.y}, e:{x:at.x, y:at.y}, hdg:null};
-  const c = o.ring, h0 = kmTrue(at, c) > 0.05 ? Math.atan2(c.x - at.x, -(c.y - at.y)) : 0, half = L / 2;   // (the string's length is laid out in the frame's km, as setGeomExact does)
-  const cross = (a, b, p, r) => { const f = (u, v, w) => (v.x - u.x) * (w.y - u.y) - (v.y - u.y) * (w.x - u.x); return f(a, b, p) * f(a, b, r) < 0 && f(p, r, a) * f(p, r, b) < 0; };
-  const sp = kind === 'teine' ? potSp() : null, gear = kind === 'teine' ? 'teiner' : kind;
+const plan3Ends = (o, q, at, h) => { const half = plan3StrKm(o, q) / 2, ux = Math.sin(h), uy = -Math.cos(h); return {st:{x:at.x - ux * half, y:at.y - uy * half}, e:{x:at.x + ux * half, y:at.y + uy * half}}; };   // (the string's length laid out in the frame's km, as setGeomExact does)
+// the headings the string can lie in at a spot, in the order tried (reads the map; plan3SokPrep keeps them)
+function plan3Heads(o, q, at){
+  const kind = p2Kind(o), out = []; if (!(plan3StrKm(o, q) > 0.01)) return out;
+  const c = o.ring, h0 = kmTrue(at, c) > 0.05 ? Math.atan2(c.x - at.x, -(c.y - at.y)) : 0, sp = kind === 'teine' ? potSp() : null, gear = kind === 'teine' ? 'teiner' : kind;
   for (const dh of [0, 0.4, -0.4, 0.8, -0.8, 1.2, -1.2, 1.57]) for (const flip of [0, Math.PI]){
-    const h = ((h0 + dh + flip) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI), ux = Math.sin(h), uy = -Math.cos(h), st = {x:at.x - ux * half, y:at.y - uy * half}, e = {x:at.x + ux * half, y:at.y + uy * half};
+    const h = ((h0 + dh + flip) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI), {st, e} = plan3Ends(o, q, at, h);
     try { if (isLand(st) || isLand(e) || depthF(st) < 5 || depthF(e) < 5 || !legClear(st, e) || !plan3Clean(q, st)) continue;
       if (ruBlockMsg({p:st, len:BOAT.len, gear, sp})) continue; } catch (err){ continue; }
-    if ((segs || []).some(z => cross(st, e, z.st, z.e))) continue;
-    return {st, e, hdg:h};
+    out.push(h); if (out.length >= 6) break;
   }
+  return out;
+}
+// the string at a spot: the first of the headings kept (or read now, hs undefined: the unit test) that crosses no other field's string
+function plan3Lay(o, q, at, segs, hs){
+  if (!(plan3StrKm(o, q) > 0.01)) return {st:{x:at.x, y:at.y}, e:{x:at.x, y:at.y}, hdg:null};
+  const cross = (a, b, p, r) => { const f = (u, v, w) => (v.x - u.x) * (w.y - u.y) - (v.y - u.y) * (w.x - u.x); return f(a, b, p) * f(a, b, r) < 0 && f(p, r, a) * f(p, r, b) < 0; };
+  for (const h of hs || plan3Heads(o, q, at)){ const {st, e} = plan3Ends(o, q, at, h); if ((segs || []).some(z => cross(st, e, z.st, z.e))) continue; return {st, e, hdg:h}; }
   return null;
 }
 // the search as the day reckons it: the pattern's length, the hours at cruising speed, the fuel, the sounder and who reads it
@@ -345,7 +361,7 @@ function plan3Search(o, ids, H, opt){
     const ok = (K.reach[q.id] || []).filter(i => Rn[i] != null && !(bad && kmTrue(bad, P(i)) < DRP3.spaceKm));
     // (the best by the reading that the gear will lie at: the string with its middle there, plan3Lay; opt.lay false in the unit test, no map)
     let best = -1, lay = null; for (const g of [gap, DRP3.spaceKm, 0]){ const L = ok.filter(i => mine.every(z2 => kmTrue(z2, P(i)) >= g - 1e-9)).sort((a, b) => Rn[b] - Rn[a] || a - b);
-      for (const i of L){ const y = q.k === 'juks' || opt.lay === false ? {st:P(i), e:P(i), hdg:null} : plan3Lay(o, q, P(i), segs); if (y){ best = i; lay = y; break; } } if (best >= 0) break; }
+      for (const i of L){ const y = q.k === 'juks' || opt.lay === false ? {st:P(i), e:P(i), hdg:null} : K.lay ? (K.lay[q.id] && K.lay[q.id][i] ? plan3Lay(o, q, P(i), segs, K.lay[q.id][i]) : null) : plan3Lay(o, q, P(i), segs); if (y){ best = i; lay = y; break; } } if (best >= 0) break; }
     q.at = best >= 0 ? P(best) : null; q.st = lay && lay.hdg != null ? {x:lay.st.x, y:lay.st.y} : null; q.hdg = lay && lay.hdg != null ? lay.hdg : null; q.move = false; q.q1 = null; q.sokT = S.t; q.sokN = n;
     if (q.k !== 'juks'){ put.push(q.at || q); if (lay) segs.push(lay); }
     out.push({id, i:best, v:best >= 0 ? Rn[best] : null, at:q.at});

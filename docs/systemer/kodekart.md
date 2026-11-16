@@ -1200,97 +1200,97 @@ The plan's shared parts (Ø12 C, 08.11.2026). The old operations plan (23.10.202
 - **61** a closed place at the hour H (Jonas 23.10.2026); o: {fields, jigs, rig, jig}. (plan2Check asks it; the quota is not the plan's
   - 63 `drRulesWhy(o, H)`
 
-## `src/js/core/06g-plan2.js` (458 linjer)
+## `src/js/core/06g-plan2.js` (470 linjer)
 
 Driftsplan 2: the day is the plan (26.10.2026, docs/planer/driftsplan-2/02-design.md). Part 1: the model, the day and the check.
 
 - **1** Driftsplan 2: the day is the plan (26.10.2026, docs/planer/driftsplan-2/02-design.md). Part 1: the model, the day and the check.
-  - 24 `p2When(H, H0)`
-  - 34 `p2MeRate(pid, anchor)`
-  - 45 `p2MeRestH(e, rate)`
-  - 50 `p2Units(kind, lk)`
-  - 57 `p2Left(o, q)`
-  - 59 `p2LineKind(o)`
-  - 78 `plan2New(over)`
-  - 88 `plan2Ops()`
-- **102** the places: a point, a port, or a key ('H' home, 'Q' the home quay, 'M' the plant, 'A' the rest anchorage)
-  - 103 `plan2P(o, k)`
-  - 112 `plan2LegH(o, a, ap, b, bp, v)`
-- **119** the state the day is reckoned from: where she lies, the hold, the gear in the sea and aboard, the crew, you. Tests pass their own
-  - 120 `plan2State(o)`
-  - 138 `plan2StateOf(o)`
-  - 139 `plan2RestOk(pid)`
-  - 141 `plan2Ready(kind, st, lk)`
-  - 145 `plan2NextDep(o, H, from)`
-  - 155 `plan2Watch(H)`
-  - 156 `plan2Roles(st)`
-- **162** the ocean vessel's day (H2c of docs/planer/havsteget-h2-autoline.md, 05.11.2026): the autoline in a loop on the fields, round the
-  - 170 `p2AutoEnd(o, st)`
-  - 180 `planDayAuto(o, H0, st)`
-- **232** the day. H0: the hour the day begins (the departure). Returns {t0, steps:[{t, k, …}], end, why:[no, en], skipped:[{id, no, en}]}.
-  - 236 `p2TripLen(o)`
-  - 237 `p2TripLast(o, dayIndex)`
-  - 242 `p2LandsToday(o, dayIndex)`
-  - 248 `planDay(o, H0, st)`
-- **364** the day as text: [[clock, no, en], …], one line a step, the skipped places and the reason last
-  - 365 `planDayText(o, day)`
-- **399** the check: errors keep the plan from being switched on, warnings only inform (as driftCheck; the rhythm's rules from Jonas 26.10.2026)
-  - 403 `plan2WatchWhy(st, aboard, short)`
-  - 413 `p2Kits()`
-  - 414 `plan2Check(o, st)`
+  - 26 `p2When(H, H0)`
+  - 36 `p2MeRate(pid, anchor)`
+  - 47 `p2MeRestH(e, rate)`
+  - 52 `p2Units(kind, lk)`
+  - 59 `p2Left(o, q)`
+  - 61 `p2LineKind(o)`
+  - 80 `plan2New(over)`
+  - 90 `plan2Ops()`
+- **107** the places: a point, a port, or a key ('H' home, 'Q' the home quay, 'M' the plant, 'A' the rest anchorage)
+  - 108 `plan2P(o, k)`
+  - 117 `plan2LegH(o, a, ap, b, bp, v)`
+- **124** the state the day is reckoned from: where she lies, the hold, the gear in the sea and aboard, the crew, you. Tests pass their own
+  - 125 `plan2State(o)`
+  - 143 `plan2StateOf(o)`
+  - 144 `plan2RestOk(pid)`
+  - 146 `plan2Ready(kind, st, lk)`
+  - 150 `plan2NextDep(o, H, from)`
+  - 160 `plan2Watch(H)`
+  - 161 `plan2Roles(st)`
+- **167** the ocean vessel's day (H2c of docs/planer/havsteget-h2-autoline.md, 05.11.2026): the autoline in a loop on the fields, round the
+  - 175 `p2AutoEnd(o, st)`
+  - 185 `planDayAuto(o, H0, st)`
+- **237** the day. H0: the hour the day begins (the departure). Returns {t0, steps:[{t, k, …}], end, why:[no, en], skipped:[{id, no, en}]}.
+  - 241 `p2TripLen(o)`
+  - 242 `p2TripLast(o, dayIndex)`
+  - 247 `p2LandsToday(o, dayIndex)`
+  - 253 `planDay(o, H0, st)`
+- **373** the day as text: [[clock, no, en], …], one line a step, the skipped places and the reason last
+  - 374 `planDayText(o, day)`
+- **411** the check: errors keep the plan from being switched on, warnings only inform (as driftCheck; the rhythm's rules from Jonas 26.10.2026)
+  - 415 `plan2WatchWhy(st, aboard, short)`
+  - 425 `p2Kits()`
+  - 426 `plan2Check(o, st)`
 
-## `src/js/core/06h-plan2-engine.js` (547 linjer)
+## `src/js/core/06h-plan2-engine.js` (572 linjer)
 
 Driftsplan 2, part 2: the engine (26.10.2026, docs/planer/driftsplan-2/02-design.md chapter 2). It follows the day that planDay
 
 - **1** Driftsplan 2, part 2: the engine (26.10.2026, docs/planer/driftsplan-2/02-design.md chapter 2). It follows the day that planDay
   - 8 `plan2Key(o)`
   - 11 `plan2Here(o)`
-  - 21 `plan2TideMin()`
-  - 22 `plan2LegOk(o, a, ap, b, bp)`
-- **30** making the plan: the plant, the anchorages, the legs and the shelter ports. Async; cb(err) when done
-  - 31 `plan2Make(o, cb)`
-- **76** what the plan says, waits for and stops at
-  - 81 `plan2ActWhy(w, why)`
-  - 83 `plan2Abort(o)`
-  - 86 `plan2Wait(o, k, no, en, until, open)`
-  - 92 `plan2Stop(o, k, no, en, fix)`
-  - 102 `plan2Pause(o)`
-  - 111 `plan2Start(o)`
-  - 116 `plan2Resume(o)`
-  - 118 `plan2CrewWhy(o, work)`
-  - 131 `plan2Wx()`
-  - 136 `plan2WxAhead(o, H, dur, pts, L)`
-  - 145 `plan2WxWait(o, wx, H)`
-  - 152 `plan2WxFirstOk(o, H, dur, pts)`
-- **153** shelter without a search (part 3): back the way she came to the last place or port she passed, and from a place the kept leg to its
-  - 156 `plan2Shelter(W, hsOver)`
-  - 179 `plan2Cut(o, why)`
-  - 191 `plan2RulesWhy(o, H, placesOnly)`
-  - 198 `plan2RulesOpenAt(o, H)`
-- **199** the engine: each minute, on each vessel (05-vessels.js calls it)
-  - 201 `plan2Step(H)`
-  - 217 `plan2Decide(o, H)`
-  - 248 `plan2MeRest(o, H)`
-  - 260 `plan2SkipGiven()`
-  - 270 `p2DayEnd(d)`
-  - 272 `plan2Boundary(o, H)`
-  - 291 `plan2Spent(o, H)`
-  - 300 `plan2NewDay(o, H)`
-  - 312 `plan2CostDay(o, r)`
-  - 315 `plan2Caught(o, tr)`
-  - 316 `plan2StatDay(o, d)`
-- **317** a trip: the steps from i0 to the next port call, as waypoints on the kept legs
-  - 318 `plan2Trip(o, D, i0)`
-  - 371 `plan2Go(o, H, i0)`
-  - 418 `plan2Sea(o, H)`
-  - 466 `plan2WorkStop(o, H, W, hs)`
-  - 477 `plan2WorkWait(o, H, wx, pts, port)`
-  - 488 `plan2Landed(pid, k)`
-  - 497 `plan2Report(pid, kg, total, landed)`
-  - 509 `plan2Bait(o, s)`
-  - 527 `plan2Egn(o, s)`
-  - 534 `plan2WatchTick(H)`
+  - 23 `plan2TideMin()`
+  - 24 `plan2LegOk(o, a, ap, b, bp)`
+- **32** making the plan: the plant, the anchorages, the legs and the shelter ports. Async; cb(err) when done
+  - 33 `plan2Make(o, cb)`
+- **78** what the plan says, waits for and stops at
+  - 83 `plan2ActWhy(w, why)`
+  - 85 `plan2Abort(o)`
+  - 88 `plan2Wait(o, k, no, en, until, open)`
+  - 94 `plan2Stop(o, k, no, en, fix)`
+  - 104 `plan2Pause(o)`
+  - 113 `plan2Start(o)`
+  - 118 `plan2Resume(o)`
+  - 120 `plan2CrewWhy(o, work)`
+  - 133 `plan2Wx()`
+  - 138 `plan2WxAhead(o, H, dur, pts, L)`
+  - 147 `plan2WxWait(o, wx, H)`
+  - 154 `plan2WxFirstOk(o, H, dur, pts)`
+- **155** shelter without a search (part 3): back the way she came to the last place or port she passed, and from a place the kept leg to its
+  - 158 `plan2Shelter(W, hsOver)`
+  - 181 `plan2Cut(o, why)`
+  - 193 `plan2RulesWhy(o, H, placesOnly)`
+  - 200 `plan2RulesOpenAt(o, H)`
+- **201** the engine: each minute, on each vessel (05-vessels.js calls it)
+  - 203 `plan2Step(H)`
+  - 219 `plan2Decide(o, H)`
+  - 250 `plan2MeRest(o, H)`
+  - 262 `plan2SkipGiven()`
+  - 272 `p2DayEnd(d)`
+  - 274 `plan2Boundary(o, H)`
+  - 293 `plan2Spent(o, H)`
+  - 302 `plan2NewDay(o, H)`
+  - 314 `plan2CostDay(o, r)`
+  - 317 `plan2Caught(o, tr)`
+  - 318 `plan2StatDay(o, d)`
+- **319** a trip: the steps from i0 to the next port call, as waypoints on the kept legs
+  - 320 `plan2Trip(o, D, i0)`
+  - 394 `plan2Go(o, H, i0)`
+  - 442 `plan2Sea(o, H)`
+  - 491 `plan2WorkStop(o, H, W, hs)`
+  - 502 `plan2WorkWait(o, H, wx, pts, port)`
+  - 513 `plan2Landed(pid, k)`
+  - 522 `plan2Report(pid, kg, total, landed)`
+  - 534 `plan2Bait(o, s)`
+  - 552 `plan2Egn(o, s)`
+  - 559 `plan2WatchTick(H)`
 
 ## `src/js/core/06i-plan2-sno.js` (230 linjer)
 
@@ -1306,6 +1306,49 @@ Driftsplan 2 for the snow crab vessel (H3c of docs/planer/havsteget-h3-snokrabbe
   - 91 `planDaySno(o, H0, st)`
   - 199 `p2SnoText(o, s, pl, kl, at)`
   - 211 `p2SnoCheck(o, st, ER, Wn)`
+
+## `src/js/core/06k-plan3.js` (400 linjer)
+
+Driftsplan 3: the plan is a ring and a gear (16.11.2026, docs/planer/driftsplan-3.md). Part 1 (DP3-1): the model and «find the plan».
+
+- **1** Driftsplan 3: the plan is a ring and a gear (16.11.2026, docs/planer/driftsplan-3.md). Part 1 (DP3-1): the model and «find the plan».
+  - 28 `plan3GearKey(rig)`
+  - 37 `plan3Gear()`
+  - 50 `plan3New(ring, rig, pick)`
+- **57** the ring's water: points on a grid inside it where the gear can stand (sea, deep enough and not too deep, open by the rules).
+  - 59 `plan3Spots(o)`
+  - 75 `plan3Split(o)`
+  - 88 `plan3Places(o, spots)`
+- **96** the home: the place by the ring the crew sleep well at, and you when you are aboard, the nearest of them; a rorbu's night counts a
+  - 98 `plan3HomeScore(c)`
+  - 99 `plan3Home(o)`
+  - 115 `plan3Rhythm(o)`
+  - 123 `plan3Wx()`
+  - 129 `plan3Roles()`
+  - 138 `plan3RingWhy(o, spots)`
+- **144** «find the plan»: the answers from the ring, the gear, the boat and the crew, into the v4 fields the engine reads. Pure but for the
+  - 146 `plan3Derive(o, spots)`
+  - 163 `plan3Apply(o)`
+  - 171 `plan3Make(o, cb)`
+- **179** the old plans when DRIFT3 is on (Jonas 16.11.2026: «Den slåes av og melding gies. Båten kjøres til nærmeste fiskemottak på
+  - 183 `plan3Retire(o)`
+- **208** DP3-2: the search with the echo sounder (16.11.2026, docs/planer/driftsplan-3.md chapter 3, «Søket med ekkoloddet»).
+  - 218 `plan3Tier()`
+  - 222 `plan3Reader()`
+  - 231 `plan3Take(o, H)`
+  - 240 `plan3Truth(p, H, take, den)`
+  - 244 `plan3See(p, H, tier, take, den, ahead)`
+  - 250 `plan3Clean(a, b)`
+  - 261 `plan3SokPrep(o, spots)`
+  - 298 `plan3SokEnd0(o, tier)`
+  - 300 `plan3StrKm(o, q)`
+  - 308 `plan3Heads(o, q, at)`
+  - 320 `plan3Lay(o, q, at, segs, hs)`
+  - 327 `plan3SokEst(o)`
+  - 334 `plan3SokNeed(o, st)`
+  - 348 `plan3Search(o, ids, H, opt)`
+  - 374 `plan3SokEnd(o, tr, H)`
+  - 386 `plan3HaulWatch(o, H)`
 
 ## `src/js/core/06j-hopp.js` (156 linjer)
 
@@ -3097,24 +3140,24 @@ the Mannskap page in the drawer (once «Arbeid»): the samhold on top, «På dek
   - 134 `lagCardHtml()`
   - 148 `energyUi()`
 
-## `src/js/ui/05d-plan2.js` (415 linjer)
+## `src/js/ui/05d-plan2.js` (419 linjer)
 
 Driftsplan 2, part 5: the page (docs/planer/driftsplan-2/02-design.md 4.1). The day first («I dag» with where she is now, or the
 
 - **1** Driftsplan 2, part 5: the page (docs/planer/driftsplan-2/02-design.md 4.1). The day first («I dag» with where she is now, or the
 - **26** Nå: the step she is on and when it ends, what she waits for and until when, or why she stopped
-- **50** the day: today's as the engine follows it (with «← nå»), or the next as planDay reckons it from the answers
-- **79** Hjem (GUI review U14 A, 05.11.2026): the naust first, then the rorbuer nearest the places, then the rest; no yard (it is no home);
-- **113** Redskap
-- **127** Plasser: the list in the order she works them
-- **178** Levering
-- **221** Vær
-- **236** Rytme
-- **250** Mannskap
-- **273** the top: Start or Pause, Nå, and the button that fixes a stop
-- **291** the statistics (R9): today, the last seven days, and all
-- **308** the page
-  - 409 `plan2Copy(vid)`
+- **54** the day: today's as the engine follows it (with «← nå»), or the next as planDay reckons it from the answers
+- **83** Hjem (GUI review U14 A, 05.11.2026): the naust first, then the rorbuer nearest the places, then the rest; no yard (it is no home);
+- **117** Redskap
+- **131** Plasser: the list in the order she works them
+- **182** Levering
+- **225** Vær
+- **240** Rytme
+- **254** Mannskap
+- **277** the top: Start or Pause, Nå, and the button that fixes a stop
+- **295** the statistics (R9): today, the last seven days, and all
+- **312** the page
+  - 413 `plan2Copy(vid)`
 
 ## `src/js/ui/05e-merker.js` (86 linjer)
 

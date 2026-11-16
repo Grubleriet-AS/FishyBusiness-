@@ -224,7 +224,7 @@ function plan2Decide(o, H){
   const next = () => { r.i++; r.wait = null; o.hold = 0; plan2Decide(o, H); };
   switch (s.k){
     case 'avgang': return plan2Go(o, H, r.i + 1);
-    case 'sett': case 'trekk': case 'juks': case 'vent': return plan2Go(o, H, r.i);
+    case 'sett': case 'trekk': case 'juks': case 'vent': case 'sok': return plan2Go(o, H, r.i);
     case 'lever':
       if (!atM) return plan2Go(o, H, r.i);
       if (holdTotal() < 0.5) return next();
@@ -324,7 +324,11 @@ function plan2Trip(o, D, i0){
   const v5 = o.v === DRV3 && !auto && !D.sno, vv5 = Math.max(1, BOAT.vcruise || 7); let atQ = null, sokAt = null, sokIds = null, sokEnd = null;
   // (the spot is where the string starts, q.st, laid with its middle where the fish stood, q.at; a jig place has q.at only)
   const spot = q => q.st || q.at;
-  if (v5 && !here.port){ const q = o.places.find(x => spot(x) && dist(here.p, spot(x)) < 0.05); if (q){ atQ = q; prev = {x:spot(q).x, y:spot(q).y}; } }
+  // (at the far end of a field's string, where a haul ends and a trip cut after a haul that fell begins, plan3HaulWatch: back along the
+  // string to its start, which is clean, rather than a straight line from out there)
+  const endOf = q => q.st && q.at ? {x:2 * q.at.x - q.st.x, y:2 * q.at.y - q.st.y} : null;
+  if (v5 && !here.port){ let q = o.places.find(x => spot(x) && dist(here.p, spot(x)) < 0.05); if (q){ atQ = q; prev = {x:spot(q).x, y:spot(q).y}; }
+    else if ((q = o.places.find(x => endOf(x) && dist(here.p, endOf(x)) < 0.1))){ wps.push({x:q.st.x, y:q.st.y, port:null, fish:0, leia:true}); h += kmTrue(here.p, q.st) / (Math.max(1, BOAT.vcruise || 7) * NM); atQ = q; prev = {x:q.st.x, y:q.st.y}; } }
   const back = () => { if (!atQ) return 0; const q = atQ; atQ = null; if (dist(prev, q) < 0.005) return 0; wps.push({x:prev.x, y:prev.y, port:null, fish:0, leia:true}); const hh = kmTrue(prev, q) / (vv5 * NM); prev = {x:q.x, y:q.y}; prevPort = null; return hh; };
   // (a leg from a place at sea begins at the place itself: she has drifted off it while fishing, and the kept leg is safe from the place, not from wherever she lies)
   const leg = (p, port) => { const hb = back(); return hb + leg0(p, port); };
@@ -425,7 +429,7 @@ function plan2Go(o, H, i0){
   const here = plan2Here(o);
   if (S.rest && S.rest.w === 'koye' && o.rhythm !== 'watch') restEnd();   // up from the bunk at anchor (ashore the departure ends the rest, depart)
   S.plan = {wps:T.wps, idx:0, speed:BOAT.vmax, full:true, returning:false, depAt:null, ops:true, opsK:T.kind, unsafe:[], noJig:!!T.noJig, p2:{from:i0, to:T.to, start:{x:here.p.x, y:here.p.y, port:here.port}}};
-  if (T.sokIds) S.plan.sok = T.sok;   // (the first waypoint of the search's pattern, for «Nå»)
+  if (T.sokIds){ S.plan.sok = T.sok; S.plan.speed = Math.min(BOAT.vmax, BOAT.vcruise || BOAT.vmax); }   // (the first waypoint of the search's pattern, for «Nå»; the search at cruising speed, as the day reckons it)
   r.trip = {from:i0, to:T.to, t0:S.t, kg0:holdTotal(), anchor:!!T.wps[T.wps.length - 1].anchor}; if (T.sokIds){ r.trip.sok = T.sokIds; r.trip.sokEnd = T.sokEnd; } r.wait = null; o.hold = 0; o.stop = null;
   if (T.kind === 'home') log('Går hjem til ' + (portById(o.home) || {name:'?'}).name + (o.homeA && T.wps[T.wps.length - 1].anchor ? ' og legger seg til ankers' : '') + '.', 'Going home to ' + (portById(o.home) || {name:'?'}).name + (o.homeA && T.wps[T.wps.length - 1].anchor ? ' to lie at anchor' : '') + '.');
   else if (T.kind === 'land') log('Går til ' + (portById(o.M) || {name:'mottaket'}).name + ' for å levere.', 'Going to ' + (portById(o.M) || {name:'the plant'}).name + ' to land.');
