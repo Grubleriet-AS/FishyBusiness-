@@ -226,8 +226,11 @@ function hbReady(){ const H = hbState(); return HB.filter(x => !H.seen[x.id] && 
 // and sees everything as it did
 const APP_ALWAYS = ['vaer', 'meld', 'redning', 'handbok', 'tilbake', 'innst', 'admin'];
 const HB_APP = {nett:'nett', guide:'guide', lykke:'kaiboden', regler:'regler', kystvakt:'regler', sesong:'sesong', post:'post', meld:'meld', drift:'drift', topp:'salg', merker:'merker', patch:'patch', oppdrag:'ordl', venner:'folk', rederi:'rederi', kvote:'kvote', vaer:'vaer', redning:'redning'};
+// Jonas 16.11.2026, before the launch: «Gi tilgang til alle apper fra start»: every app is on the phone from the first minute (APPS_ALL);
+// the handbook's tips still mark an app «ny» when they first point at it. false gives the staggered start back
+const APPS_ALL = true;
 function appShown(id){
-  if (!S.apps || APP_ALWAYS.includes(id) || S.apps[id]) return true;
+  if (APPS_ALL || !S.apps || APP_ALWAYS.includes(id) || S.apps[id]) return true;
   // Venner is out as soon as the player is registered (Tony 06.11.2026: a friend request came with «Svar i Venner-appen», and the app was
   // not on the phone before the third landing); a guest sees it with the rest from the third landing
   if (id === 'folk' && !tutOn() && typeof isGuest === 'function' && !isGuest()) return true;
