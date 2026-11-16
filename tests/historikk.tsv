@@ -4826,6 +4826,26 @@
 2026-11-16 00:05	ccr-5e1ba2f4-pusvyd	6676b3fb+	worktest	FEIL	21	lite	samtidig	FEIL one hauls the line while one bleeds and the others gut and ice, and the hauler goes as fast as with one aboard (by the hauler's own pace) {'st': 'ror,sloy,
 2026-11-16 00:18	ccr-5e1ba2f4-pusvyd	6676b3fb+	dyntest	FEIL	263	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
 2026-11-16 00:18	ccr-5e1ba2f4-pusvyd	6676b3fb+	worktest	OK	27	lite	samtidig	
+2026-11-16 01:55	claude/blissful-cannon-ctb8e9	c8b1c62+	driftsplan3test	OK	75	lite	alene	
+2026-11-16 01:59	claude/blissful-cannon-ctb8e9	c8b1c62+	driftsplan3test	OK	75	lite	alene	
+2026-11-16 02:01	claude/blissful-cannon-ctb8e9	c8b1c62+	driftsplan2test	OK	109	lite	alene	
+2026-11-16 02:18	claude/blissful-cannon-ctb8e9	3dd1c21+	driftsplan3test	FEIL	77	lite	alene	FEIL «Nå» on the way out and in the ring, with the time and the fuel left ['Kaster loss', 'Søker etter fisken i ringen med ekkoloddet (11,6 km, om lag 44 min og
+2026-11-16 02:20	claude/blissful-cannon-ctb8e9	3dd1c21+	driftsplan2test	OK	111	lite	alene	
+2026-11-16 02:22	claude/blissful-cannon-ctb8e9	3dd1c21+	driftsplan3test	OK	76	lite	alene	
+2026-11-16 02:24	claude/blissful-cannon-ctb8e9	3dd1c21+	driftsplan3test	OK	83	lite	alene	
+2026-11-16 02:48	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2ui	FEIL	76	lite	alene	avsluttet med kode 1
+2026-11-16 02:49	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2ui	FEIL	78	lite	samtidig	FEIL a ring in the sea is set, 2 nm across for the line, named by the place and its distance; the plan is ready [None, {'r': 1.852, 'want': 1.852}, False, True]
+2026-11-16 02:49	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2map	FEIL	75	lite	samtidig	FEIL your own mark: a finger held still sets a pin of your own, beside the plan's ring [0, 0, {'ring': True, 'pins': 0}]
+2026-11-16 02:51	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2ui	OK	91	lite	samtidig	
+2026-11-16 02:51	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2map	FEIL	85	lite	samtidig	FEIL your own mark: a finger held still sets a pin of your own, beside the plan's ring [0, 0, {'ring': True, 'pins': 0}]
+2026-11-16 02:52	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2gui	OK	152	lite	samtidig	
+2026-11-16 02:52	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan3test	FEIL	77	lite	samtidig	avsluttet med kode 1
+2026-11-16 02:52	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2test	FEIL	49	lite	alene	FEIL S12 v3 and v2 are switched off with a word, the gear in the sea, the crew, the catch and the money stay; a v4 is kept; the old plan's code is gone {'v3': T
+2026-11-16 02:54	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan3test	OK	85	lite	samtidig	
+2026-11-16 02:54	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2map	OK	74	lite	samtidig	
+2026-11-16 02:55	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2test	FEIL	59	lite	alene	FEIL S14 the statistics survive a save and a reload [216, None]
+2026-11-16 02:58	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2test	FEIL	108	lite	alene	FEIL S9 30 h closed in the middle gives the same landings as open (kg within 2 %, kr within 3 %: the price follows the species and sizes, which vary a little be
+2026-11-16 03:00	claude/blissful-cannon-ctb8e9	faa26815+	driftsplan2test	OK	104	lite	alene	
 2026-11-16 00:59	ccr-as1-alle	be908af6	trip2	OK	43	lite	samtidig	
 2026-11-16 00:59	ccr-as1-alle	be908af6	autonavtest	OK	34	lite	samtidig	
 2026-11-16 00:59	ccr-as1-alle	be908af6	havnstengt	OK	19	lite	samtidig	
@@ -4833,3 +4853,49 @@
 2026-11-16 02:11	ccr-as1-alle	b924e295+	autonavtest	OK	36	lite	samtidig	
 2026-11-16 02:15	ccr-as1-alle	b924e295+	dyntest	FEIL	266	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
 2026-11-16 02:15	ccr-as1-alle	b924e295+	utfrakai	OK	96	lite	samtidig	
+2026-11-16 03:06	claude/blissful-cannon-ctb8e9	95811a44+	trip2	OK	34	lite	samtidig	
+2026-11-16 03:07	claude/blissful-cannon-ctb8e9	95811a44+	docktest	FEIL	62	lite	samtidig	FEIL telefonen har appene, med Kvote, Regler, Kaiboden, Patchnotes og Admin i rekkefølge  ['rederi', 'drift', 'ordl', 'nett', 'salg', 'kvote', 'regler', 'kaibod
+2026-11-16 03:07	claude/blissful-cannon-ctb8e9	95811a44+	csptest	FEIL	44	lite	samtidig	FEIL it talks only to itself, the channel's Supabase project, WorkOS and the relay (cloud.json); the local build also has the tests' stand-ins  {"connect-src": 
+2026-11-16 03:07	claude/blissful-cannon-ctb8e9	95811a44+	skipdrift	FEIL	20	lite	samtidig	FEIL Skippertak Max i fire døgn: planen går døgnet rundt (timer på sjøen og fangst mot ingen drikk)  {"h": [0, 0], "kg": [0, 0], "turer": [0, 0]}
+2026-11-16 03:07	claude/blissful-cannon-ctb8e9	95811a44+	fleet2test	FEIL	31	lite	samtidig	FEIL both vessels went out, at the same time
+2026-11-16 03:08	claude/blissful-cannon-ctb8e9	95811a44+	rundshot	FEIL	30	lite	samtidig	FEIL bryteren på Fiske-fanen og i driftsplanen setter båtens valg {'box': True, 'off': True, 'on': True, 'plan': False, 'plan1': True}
+2026-11-16 03:08	claude/blissful-cannon-ctb8e9	95811a44+	geartest	FEIL	41	lite	samtidig	FEIL standing plan: the net station is hauled and set again every day, and the catch is landed
+2026-11-16 03:08	claude/blissful-cannon-ctb8e9	95811a44+	rorbutest	OK	17	lite	samtidig	
+2026-11-16 03:08	claude/blissful-cannon-ctb8e9	95811a44+	bunktest	OK	19	lite	samtidig	
+2026-11-16 03:09	claude/blissful-cannon-ctb8e9	95811a44+	dockrow	OK	44	lite	samtidig	
+2026-11-16 03:10	claude/blissful-cannon-ctb8e9	95811a44+	roetest	OK	122	lite	samtidig	
+2026-11-16 03:19	claude/blissful-cannon-ctb8e9	95811a44+	trip2	OK	33	lite	samtidig	
+2026-11-16 03:20	claude/blissful-cannon-ctb8e9	95811a44+	docktest	FEIL	62	lite	samtidig	FEIL telefonen har appene, med Kvote, Regler, Kaiboden, Patchnotes og Admin i rekkefølge  ['rederi', 'drift', 'ordl', 'nett', 'salg', 'kvote', 'regler', 'kaibod
+2026-11-16 03:20	claude/blissful-cannon-ctb8e9	95811a44+	csptest	FEIL	44	lite	samtidig	FEIL it talks only to itself, the channel's Supabase project, WorkOS and the relay (cloud.json); the local build also has the tests' stand-ins  {"connect-src": 
+2026-11-16 03:20	claude/blissful-cannon-ctb8e9	95811a44+	skipdrift	OK	54	lite	samtidig	
+2026-11-16 03:20	claude/blissful-cannon-ctb8e9	95811a44+	fleet2test	OK	38	lite	samtidig	
+2026-11-16 03:21	claude/blissful-cannon-ctb8e9	95811a44+	fleet3test	FEIL	16	lite	samtidig	FEIL an alert opens the Drift page in the drawer on the second vessel, following stays on the first
+2026-11-16 03:21	claude/blissful-cannon-ctb8e9	95811a44+	opsowntest	OK	47	lite	samtidig	
+2026-11-16 03:21	claude/blissful-cannon-ctb8e9	95811a44+	rundshot	OK	30	lite	samtidig	
+2026-11-16 03:22	claude/blissful-cannon-ctb8e9	95811a44+	geartest	OK	42	lite	samtidig	
+2026-11-16 03:22	claude/blissful-cannon-ctb8e9	95811a44+	rorbutest	OK	17	lite	samtidig	
+2026-11-16 03:22	claude/blissful-cannon-ctb8e9	95811a44+	bunktest	OK	18	lite	samtidig	
+2026-11-16 03:23	claude/blissful-cannon-ctb8e9	95811a44+	dockrow	OK	43	lite	samtidig	
+2026-11-16 03:24	claude/blissful-cannon-ctb8e9	95811a44+	roetest	OK	124	lite	samtidig	
+2026-11-16 03:24	claude/blissful-cannon-ctb8e9	95811a44+	driftsplan2ui	FEIL	76	lite	samtidig	FEIL the page says what the plan chose and the day with the search, «Nå», and no expected catch [True, True, '']
+2026-11-16 03:25	claude/blissful-cannon-ctb8e9	95811a44+	driftsplan2map	OK	76	lite	samtidig	
+2026-11-16 03:27	claude/blissful-cannon-ctb8e9	13d01497	driftsplan2gui	OK	154	lite	samtidig	
+2026-11-16 03:27	claude/blissful-cannon-ctb8e9	13d01497	driftsplan3test	OK	93	lite	samtidig	
+2026-11-16 03:52	claude/blissful-cannon-ctb8e9	13d01497	trytest	OK	1549	3d	alene	
+2026-11-16 03:54	claude/blissful-cannon-ctb8e9	13d01497+	driftsplan2test	OK	110	lite	alene	
+2026-11-16 03:55	claude/blissful-cannon-ctb8e9	13d01497+	docktest	FEIL	60	lite	samtidig	FEIL telefonen har appene, med Kvote, Regler, Kaiboden, Patchnotes og Admin i rekkefølge  ['rederi', 'drift', 'ordl', 'nett', 'salg', 'kvote', 'regler', 'kaibod
+2026-11-16 03:55	claude/blissful-cannon-ctb8e9	13d01497+	csptest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-16 03:56	claude/blissful-cannon-ctb8e9	13d01497+	fleet3test	OK	16	lite	samtidig	
+2026-11-16 03:57	claude/blissful-cannon-ctb8e9	13d01497+	driftsplan2ui	OK	75	lite	samtidig	
+2026-11-16 03:57	claude/blissful-cannon-ctb8e9	13d01497+	csptest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-16 03:58	claude/blissful-cannon-ctb8e9	13d01497+	docktest	FEIL	60	lite	samtidig	FEIL telefonen har appene, med Kvote, Regler, Kaiboden, Patchnotes og Admin i rekkefølge  ['rederi', 'drift', 'ordl', 'nett', 'salg', 'kvote', 'regler', 'kaibod
+2026-11-16 03:59	claude/blissful-cannon-ctb8e9	13d01497+	csptest	FEIL	43	lite	alene	FEIL it talks only to itself, the channel's Supabase project, WorkOS and the relay (cloud.json); the local build also has the tests' stand-ins  {"connect-src": 
+2026-11-16 04:01	claude/blissful-cannon-ctb8e9	13d01497+	docktest	OK	63	lite	samtidig	
+2026-11-16 04:01	claude/blissful-cannon-ctb8e9	13d01497+	csptest	OK	92	lite	samtidig	
+2026-11-16 04:07	claude/blissful-cannon-ctb8e9	a92ddf90	driftsplan3test	OK	90	lite	samtidig	
+2026-11-16 04:07	claude/blissful-cannon-ctb8e9	a92ddf90	driftsplan2ui	OK	85	lite	samtidig	
+2026-11-16 04:09	claude/blissful-cannon-ctb8e9	a92ddf90	driftsplan2gui	OK	141	lite	samtidig	
+2026-11-16 04:09	claude/blissful-cannon-ctb8e9	a92ddf90	driftsplan2map	OK	75	lite	samtidig	
+2026-11-16 04:09	claude/blissful-cannon-ctb8e9	a92ddf90	docktest	OK	61	lite	samtidig	
+2026-11-16 04:11	claude/blissful-cannon-ctb8e9	a92ddf90	csptest	OK	91	lite	samtidig	
+2026-11-16 04:13	claude/blissful-cannon-ctb8e9	210c8179	driftsplan2test	OK	112	lite	alene	

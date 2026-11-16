@@ -44,7 +44,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Playwright
-        run: pip install playwright==1.63.0 && python -m playwright install --with-deps chromium
+        run: pip install playwright==1.63.0 && (python -m playwright install --with-deps chromium || python -m playwright install chromium)   # (apt on the runner can fail; the browser itself is what the job needs)
       - name: Opphavet
         id: origin
         env:

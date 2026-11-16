@@ -20,7 +20,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - run: pip install playwright==1.48.0 && python -m playwright install --with-deps chromium
+      # (1.63.0 as everywhere else: 1.48.0 does not support chromium on Ubuntu 26.04, ubuntu-latest since 16.11.2026; the system packages may fail on apt)
+      - run: pip install playwright==1.63.0 && (python -m playwright install --with-deps chromium || python -m playwright install chromium)
       - name: SAS's low fare calendar
         run: python3 tools/fly/fly.py fly-out
       - name: The release

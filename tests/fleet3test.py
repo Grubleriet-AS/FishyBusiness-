@@ -19,7 +19,7 @@ async def main():
           const v1 = curVessel(), v2 = newVesselObj('snekke', 'husoy');
           // something to report on each vessel
           S.boat.engH = 150; S.boat.svcAt = 0;
-          withVessel(v2, () => { const c = Object.assign(genCrew(), {bi:false, off:false}); S.crew = [c]; S.boat.fuel = 10; S.ops = Object.assign(plan2New({home:'husoy'}), {on:false, stop:{t:S.t, k:'roles', no:'Når du ikke er om bord, må både en skipper og en styrmann være utnevnt.', en:'When you are not aboard, both a skipper and a mate must be appointed.', fix:'mannskap'}}); });
+          withVessel(v2, () => { const c = Object.assign(genCrew(), {bi:false, off:false}); S.crew = [c]; S.boat.fuel = 10; S.ops = Object.assign(plan2New({v:DRV3, home:'husoy'}), {on:false, stop:{t:S.t, k:'roles', no:'Når du ikke er om bord, må både en skipper og en styrmann være utnevnt.', en:'When you are not aboard, both a skipper and a mate must be appointed.', fix:'mannskap'}}); });
           // the cod quota 95 % fished on the first vessel: a quiet line on her card, not an alert (Jonas 07.11.2026)
           const H0 = S.t / 60; R.acc = access(); quotaState().torsk = codLimitNow(H0) * 0.95;
           R.alerts = PHONE.alerts().map(a => a.id + ':' + a.k);
@@ -29,7 +29,7 @@ async def main():
           R.quotaLine = view().includes('Torskekvoten 95 % fisket'); R.quotaAlert = view().includes('nesten brukt opp');
           // an alert opens the right app on the right vessel, without changing the vessel you follow
           const go = [...document.querySelectorAll('[data-pa="goto"]')].find(x => x.dataset.id === v2.id && x.dataset.a === 'drift'); go.click();
-          R.goto = {app:DOCK.page, sel:PHONE.sel, cur:S.cur, crewShown:document.getElementById('drawerBody').innerText.includes(vget(v2, 'crew')[0].name.split(' ')[0])};
+          R.goto = {app:DOCK.page, sel:PHONE.sel, cur:S.cur, crewShown:document.getElementById('drawerBody').innerText.includes('«' + vget(v2, 'boatName') + '»')};   // (the second vessel's own page: its name in the title; the Crew row went with Driftsplan 3, DP3-3)
           // equipment bought with the selector on the second vessel is fitted there (in the equipment shop, with her at its quay:
           // docs/handelssteder.md)
           const bu = PORTS.filter(p => p.sted === 'butikk').sort((x, y) => dist(x.p, v2.boat.pos) - dist(y.p, v2.boat.pos))[0]; await mapNeed(bu.p, 3); withVessel(v2, () => dock(bu.id));

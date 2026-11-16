@@ -14,6 +14,9 @@ D2 = r"""window.D2 = (() => {
   const hod = t => driftClock(driftHod(t / 60)), when = t => 'D' + (Math.floor((t - T0) / 1440) + 1) + ' ' + hod(t);
   function reset(sd){
     TAB.held = true; DYN.on = false; WX_FORCE = null; seed(sd || 1);
+    // (Driftsplan 3 is on since DP3-3, 16.11.2026, and switches a v4 plan off: this test plays the engine with Driftsplan 2's answers, the
+    // same engine a v5 plan runs, so it switches DRIFT3 off for itself; driftsplan3test and driftsplan2ui check the switching off)
+    if (window.D2_V4) DRIFT3 = false;
     S.fleet = S.fleet.filter(v => v.id === S.cur); S.me = S.cur;
     S.t = T0; S.qseed = 12345; S.stock = initStock(); S.marks = []; S.sales = []; S.log = []; S.msgs = []; S.sets = []; S.gearLog = []; S.jobs = [];
     S.energy = 100; S.sleep = null; S.rest = null; S.skip = null; S.drowsy = false; S.enWarn = false; S.cash = 1e6; S.tut = 0; S.settings.autoOn = false; S.lic = null; S.quota = null; S.shelter = null; S.plan = null; S.draft = []; S.tripOwner = false;
@@ -77,7 +80,7 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         try: await boot(pg)
         except Exception as e: print('FEIL boot:', str(e)[:200], 'sidefeil:', errs[:5]); raise
-        await pg.evaluate(D2)
+        await pg.evaluate("window.D2_V4 = true"); await pg.evaluate(D2)
         # the crew's own life (a fever, a wedding, 14-crewlife.js) is not what is tested here: it would give the skipper days off by chance
         await pg.evaluate("lifeDay = () => {}; lifeInjury = () => {};")
         R = {}; S1L = None
@@ -251,11 +254,12 @@ async def main():
         if S1L:
             d = S1L['stats']['days']; sm = S1L['stats']['sum']
             print(ok(len(d) >= 3 and sum(x['kg'] for x in d) == sm['kg'] and sum(x['trips'] for x in d) == sm['trips'] and all(x['sp'] and x['port'] for x in d[:3])), 'S14 three days with kg, kr, species and plant, and the sum adds up', [(x['d'], x['kg'], x['kr'], list(x['sp'].items())[:3], x['port']) for x in d[:3]])
-            r = await pg.evaluate("""(async () => { D2.reset(29); const home = D2.boat('sjark', 2, true); const o = S.ops = plan2New({home, rig:'juksa', places:[D2.juks('j1', {x:portById(home).p.x, y:portById(home).p.y - 3})]}); o.stats.days.push({d:'2028-03-06', trips:1, kg:216, kr:3875, lott:2087, cost:761, conf:0, sp:{torsk:120}, port:{botnhamn:216}}); o.stats.sum.kg = 216; save(); return S.ops.stats.sum.kg; })()""")
+            r = await pg.evaluate("""(async () => { D2.reset(29); const home = D2.boat('sjark', 2, true); const o = S.ops = plan3New({x:portById(home).p.x, y:portById(home).p.y - 3}, 'juksa', {tackle:'mark'}); o.home = home; o.stats.days.push({d:'2028-03-06', trips:1, kg:216, kr:3875, lott:2087, cost:761, conf:0, sp:{torsk:120}, port:{botnhamn:216}}); o.stats.sum.kg = 216; save(); return S.ops.stats.sum.kg; })()""")
             await pg.reload(); await pg.wait_for_timeout(2500)
-            r2 = await pg.evaluate("S.ops && S.ops.v === 4 && S.ops.stats && S.ops.stats.days.length === 1 && S.ops.stats.days[0].kg === 216 && S.ops.stats.sum.kg === 216")
+            # (a v5 plan since DP3-3: a v4 plan is switched off when the game starts with DRIFT3 on, which is what it should do now)
+            r2 = await pg.evaluate("S.ops && S.ops.v === 5 && S.ops.stats && S.ops.stats.days.length === 1 && S.ops.stats.days[0].kg === 216 && S.ops.stats.sum.kg === 216")
             print(ok(r == 216 and r2), 'S14 the statistics survive a save and a reload', [r, r2])
-            await pg.evaluate(D2)
+            await pg.evaluate("window.D2_V4 = true"); await pg.evaluate(D2)
         # ---- part 3: the weather without a search, the energy and the tiredness, the watches, the rules with a date, the takeover
         print('== S4: været. Grense 10 m/s. Dag 1: 12 m/s kl. 03–08. Dag 2: fint ved avgang, 15 m/s kl. 11–14. Mannskapet alene.')
         L = await pg.evaluate("""(async () => { D2.reset(24); const home = D2.boat('sjark', 2, false); D2.gear('line', 4); S.pgear.bait = {makrell:60}; await mapNeed(portById(home).p, 14);

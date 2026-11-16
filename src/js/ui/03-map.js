@@ -724,7 +724,7 @@ function renderDyn(){
   }
   // passive gear in the sea
   g.push(gearSvg(u));
-  if (typeof PLANMAP !== 'undefined') g.push(PLANMAP.svg(u));   // Driftsplan 2's places in plan mode (ui/03g-planmap.js)
+  if (typeof PLANMAP !== 'undefined') g.push(PLANMAP.svg(u));   // the operations plan's ring and fields (ui/03g-planmap.js)
   // other vessels (AIS)
   const Hn = (S.t + liveFrac()) / 60;
   AISNOW = npcStates(Hn).filter(aisShown);
@@ -813,7 +813,7 @@ if (window.visualViewport){ visualViewport.addEventListener('resize', pinKb); vi
 const ptrs = new Map(); let drag = null, pinch = null;
 svg.addEventListener('pointerdown', e => {
   svg.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY});
-  if (ptrs.size === 1){ drag = {sx:e.clientX, sy:e.clientY, cx:view.cx, cy:view.cy, moved:false}; const mp = toMap(e.clientX, e.clientY); drag.set = setGrab(mp); drag.pm = !drag.set && typeof PLANMAP !== 'undefined' ? PLANMAP.grab(mp) : null; drag.wp = drag.set || drag.pm ? null : routeGrab(mp);   // (a plan's pin before a waypoint, ui/03g-planmap.js)
+  if (ptrs.size === 1){ drag = {sx:e.clientX, sy:e.clientY, cx:view.cx, cy:view.cy, moved:false}; const mp = toMap(e.clientX, e.clientY); drag.set = setGrab(mp); drag.pm = !drag.set && typeof PLANMAP !== 'undefined' ? PLANMAP.grab(mp) : null; drag.wp = drag.set || drag.pm ? null : routeGrab(mp);   // (PLANMAP.grab has nothing to drag since Driftsplan 3, ui/03g-planmap.js)
     // a finger held still sets your own mark: told at the lift by the events' own times, not by a timer, which on a slow frame ran
     // before the lift of a plain tap and turned a waypoint into a mark (tut.py, 06.10.2026)
     drag.t0 = e.timeStamp; drag.pin = !drag.set && !drag.wp && !drag.pm && !SETM; }
@@ -838,7 +838,7 @@ function ptrUp(e){
   if (drag && drag.wp){ const g = drag.wp; drag.wp = null; ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; if (ptrs.size === 0) drag = null; if (e.type === 'pointerup') routeDragEnd(g); else routeDragCancel(g); return; }
   const tap = drag && !drag.moved && ptrs.size === 1 && e.type === 'pointerup';
   ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null;
-  if (tap && typeof PLANMAP !== 'undefined' && PLANMAP.isOn()){ PLANMAP.tap(toMap(e.clientX, e.clientY), 16 / view.px); if (ptrs.size === 0) drag = null; return; }   // plan mode: every tap is a place or a pin (ui/03g-planmap.js)
+  if (tap && typeof PLANMAP !== 'undefined' && PLANMAP.isOn()){ PLANMAP.tap(toMap(e.clientX, e.clientY), 16 / view.px); if (ptrs.size === 0) drag = null; return; }   // plan mode: every tap sets or moves the plan's ring (ui/03g-planmap.js)
   if (tap && drag.pin && e.timeStamp - drag.t0 >= PIN_HOLD){ pinAdd(toMap(e.clientX, e.clientY)); if (ptrs.size === 0) drag = null; return; }
   if (tap && SETM){ setAim(toMap(e.clientX, e.clientY)); if (ptrs.size === 0) drag = null; return; }
   if (tap){ const mp = toMap(e.clientX, e.clientY), rr = 16 / view.px; const ph = (S.pins || []).find(q => dist(q, mp) < rr && !(q.until && q.until <= S.t)); if (ph){ pinOpen(ph.id); return; } if (typeof SHARE !== 'undefined' && SHARE.tap(mp, rr)) return; if (typeof PTOW !== 'undefined' && PTOW.tap(mp, rr)) return; const gh = gearHit(mp, rr * 0.8); if (gh){ gearTap(gh); renderDyn(); return; } let hit = null, bd = 1e9; for (const n of AISNOW){ const d = dist(n.p, mp); if (d < rr && d < bd){ bd = d; hit = n; } } if (hit && (hit.st === 'port' || hit.v === 0) && PORTS.some(q => dist(q.p, mp) < rr * 1.6)) hit = null; if (hit){ AISSEL = hit.id; renderDyn(); renderAisCard(); return; } const og = otherGearHit(mp, rr * 0.8); if (og){ otherGearCard(og); return; } tapName(mp, rr); addWaypoint(mp); }

@@ -1,94 +1,64 @@
-"""Driftsplan 2's page (ui/05d-plan2.js, part 5 of docs/planer/driftsplan-2/02-design.md): the Drift app shows the day first
-(«I dag» as the engine follows it, else the next day as planDay reckons it), then the answers as rows (Hjem, Redskap, Plasser, Levering, Vær,
-Rytme, Mannskap), then the statistics. A new plan comes filled in; rows open where they are tapped; places come from the own marks; the
-plan is started (made first), paused, and a stopped plan shows the button that fixes it; the gear in the sea gets «Hent redskapet» while
-the plan is off; the plan is copied to another vessel. Screenshots of the page in 800×1280, 1280×800 and 384×853 go to tests/out/."""
+"""The operations plan's page (ui/05d-plan2.js), Driftsplan 3 since DP3-3 (docs/planer/driftsplan-3.md, 16.11.2026): two choices, Sted (a
+ring on the chart) and Redskap (only what is aboard, with the bait, the line's kind or the jig's tackle under it), then Start from anywhere
+(plan3Make), «Nå», what the plan chose, the day with the search, the statistics and Slett. Without 3D. The checks: the intro, a new plan with
+only the two rows, the gear aboard and nothing else, the bait and the line's kind, a ring on land refused and one in the sea set, Start from
+port and from the sea, the place and the gear locked while the plan runs and changed after a pause (what the plan found goes), an old v4
+plan switched off when the page is opened, and Slett. Screenshots in 800×1280 and 1280×800 go to tests/out/."""
 from _env import GAME, boot
 import asyncio, json, os
 from playwright.async_api import async_playwright
 ok = lambda c: 'OK  ' if c else 'FEIL'
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'out')
 
-# (the game's own loop is held the whole time, TAB.held as tick() reads it first: the test plays the minutes itself, and tick() playing
-# its own between the rounds made the jig run to a different hour from run to run; Ø2 05.11.2026)
-JS = """(async () => { TAB.held = true;
+JS = r"""(async () => { TAB.held = true;
   const R = {}; S.tut = 0; S.settings.lang = 'no'; S.lang = 'no'; window.confirm = () => true;
-  const b = S.boat, HP = portById('husoy'); b.type = 'sjark'; applyVessel(); b.status = 'port'; b.port = 'husoy'; b.pos = {...HP.p}; S.plan = null; S.ops = null; S.draft = []; S.me = S.cur; S.cash = 500000;
-  const ole = Object.assign(genCrew(), {bi:false, off:false, name:'Ole Mikalsen', known:[true, true]}), per = Object.assign(genCrew(), {bi:false, off:false, name:'Per Hansen', known:[true, true]}); S.crew = [ole, per];
+  const b = S.boat, HP = portById('husoy'); b.type = 'sjark'; applyVessel(); b.status = 'port'; b.port = 'husoy'; b.pos = {...HP.p}; S.plan = null; S.ops = null; S.draft = []; S.me = S.cur; S.cash = 500000; S.sets = [];
+  S.crew = [Object.assign(genCrew(), {bi:false, off:false, name:'Ole Mikalsen', known:[true, true]}), Object.assign(genCrew(), {bi:false, off:false, name:'Per Hansen', known:[true, true]})];
+  S.equip.linehaler = true; S.pgear.kits.n = 6; const LN = S.pgear.lines.hyse; LN.n = 8; LN.baited = 8; LN.bt = {makrell:8}; S.pgear.nets = []; S.pgear.pots.big = 0;
   await mapNeed(HP.p, 14);
-  const sea = []; for (let r = 2.5; r < 12 && sea.length < 3; r += 0.5) for (let a = 0; a < 24 && sea.length < 3; a++){ const q = {x:HP.p.x + r * Math.sin(a * 0.26), y:HP.p.y - r * Math.cos(a * 0.26)}; try { if (!isLand(q) && depthF(q) > 20 && coastDist(q) > 0.4 && sea.every(z => dist(z, q) > 1) && !ruBlockMsg({p:q, len:BOAT.len, gear:'juksa', sp:null})) sea.push(q); } catch (e){} }
-  S.marks.push({x:sea[0].x, y:sea[0].y, t:S.t - 300, kgph:52, q:1}, {x:sea[2].x, y:sea[2].y, t:S.t - 400, kgph:30, q:1});
-  const page = () => PHONE.page('drift'), act = (a, d) => PHONE.dact('drift', a, d || {});
-  R.intro = page().includes('p2-new') && !page().includes('dr-new');
-  // a new plan comes filled in: home where the crew sleep well, the rig she has, the best catch mark as the jig place
-  act('p2-new'); const o = S.ops; R.fresh = {v:o.v, home:o.home, rest:plan2RestOk(o.home), rig:o.rig, places:o.places.map(q => q.k)};
-  const p1 = page(); R.rows = ['Hjem', 'Redskap', 'Plasser', 'Levering', 'Vær', 'Rytme', 'Mannskap'].every(k => p1.includes('>' + k + '<'));
-  R.dayCard = /I morgen|Neste dag|I dag/.test(p1) && p1.includes('dr-pv') && /Går fra/.test(p1) && /Hjem til/.test(p1);   // (a jig day that lands when the hold is full has no landing line before the catch is in)
-  // the rows open and shut where they are tapped
-  act('p2-row', {k:'home'}); R.homeOpen = page().includes('data-pa="p2-home"'); act('p2-row', {k:'home'}); R.homeShut = !page().includes('data-pa="p2-home"');
-  // the weather: the numbers and the presets; the rhythm: round the clock locked with two hands, the hour out
-  act('p2-row', {k:'wx'}); act('p2-wx-preset', {v:'safe'}); R.wx1 = {...o.wx}; act('p2-wx-w', {d:'1'}); act('p2-wx-h', {d:'1'}); R.wx2 = {...o.wx};
-  act('p2-row', {k:'rhythm'}); R.watchOff = /data-v="watch" disabled/.test(page()); act('p2-dep', {d:'1'}); act('p2-dep', {d:'1'}); R.dep = o.dep;
-  // on a boat with bunks and you aboard, three crew make four hands: round the clock opens (Jonas 27.10.2026)
-  { const t0 = b.type, c0 = S.crew; b.type = 'kyst15'; applyVessel(); S.crew = [ole, per, Object.assign(genCrew(), {bi:false, off:false, name:'Kari Nilsen', known:[true, true]})]; R.watchOn4 = !/data-v="watch" disabled/.test(page()) && plan2Check(Object.assign({}, o, {rhythm:'watch'})).errors.every(e => !/Døgndrift/.test(e)); b.type = t0; applyVessel(); S.crew = c0; }
-  // a jig place from the suggestions (the own marks), its order, and one removed
-  act('p2-row', {k:'places'}); act('p2-add', {k:'juks'}); const p2 = page(); R.sugg = p2.includes('Fangstplass'); act('p2-addp', {i:'0'}); R.places2 = o.places.length;
-  const q0 = o.places[0].id; act('p2-pdn', {i:'0'}); R.order = o.places[1].id === q0; act('p2-pdel', {id:o.places[1].id}); R.places3 = o.places.length;
-  // a line rig: the fields, their units and soak, and the line's bait at home
-  S.equip.linehaler = true; S.pgear.kits.n = 6; const LN = S.pgear.lines.hyse; LN.n = 4; LN.baited = 4; LN.bt = {makrell:4}; S.pgear.bait = {makrell:40};
-  act('p2-row', {k:'rig'}); act('p2-rig', {g:'line'}); R.rig = o.rig; act('p2-jig', {v:'1'});
-  act('p2-row', {k:'places'}); act('p2-add', {k:'felt'}); R.suggF = page().includes('p2-addp'); R.sugg0 = PLAN2UI.put(o, 'felt', sea[1]); const f = o.places.find(q => q.k === 'felt'); R.field = f && {n:f.n, soak:f.soak};
-  act('p2-pn', {id:f.id, d:'-1'}); act('p2-ps', {id:f.id, d:'1'}); R.field2 = {n:f.n, soak:f.soak};
-  // the day on the page follows every change at once (point 6): the set's tubs in the day's text are the field's now
-  R.live = page().includes('Setter ' + f.n + ' ') && !page().includes('Setter ' + (f.n + 1) + ' ');
-  // the units stop at what the boat owns (four tubs of haddock line): + past it changes nothing; a second kind gets its own toggle
-  for (let k = 0; k < 8; k++) act('p2-pn', {id:f.id, d:'1'}); R.clamp = {n:f.n, left:p2Left(o, f), own:p2Units('line', 'hyse')};
-  S.pgear.lines.bank.n = 10; S.pgear.lines.bank.baited = 10; S.pgear.lines.bank.bt = {makrell:10}; const p9 = page(); R.lkToggle = p9.includes('p2-plk') && /Hyseline/.test(p9); act('p2-plk', {id:f.id}); R.lk = f.lk; R.leftBank = p2Left(o, f); act('p2-plk', {id:f.id});
-  R.rigTxt = page().includes('markkroker') && /Line: 4 hyseline, 10 bankline/.test(page());
-  // land is refused
-  let land = null; for (let r = 0.2; r < 3 && !land; r += 0.1) for (let a = 0; a < 24 && !land; a++){ const q = {x:HP.p.x + r * Math.sin(a * 0.26), y:HP.p.y - r * Math.cos(a * 0.26)}; try { if (isLand(q) && !inHarbour(q)) land = q; } catch (e){} }
-  R.landRefused = !!land && !PLAN2UI.put(o, 'felt', land);
-  // the landing: a plant chosen, and the rule
-  act('p2-row', {k:'land'}); const p5 = page(); R.landRows = p5.includes('Nærmeste mottak') && p5.includes('Når lasten er full') && p5.includes('Hver tur'); act('p2-land-when', {v:'days'}); act('p2-land-days', {d:'1'}); R.land = {...o.land}; act('p2-land-when', {v:'trip'});
-  // without you aboard the plan waits for a skipper and a mate
-  S.me = 'nobody'; const p6 = page(); R.notReady = p6.includes('Ikke klar ennå') && /skipper og en styrmann|skipper og styrmann/.test(p6);
-  setSkipper(ole.id); setMate(per.id); R.ready = !page().includes('Ikke klar ennå');
-  // Start: the plan is made (the plant, the legs), then on; «Nå» and «I dag» are shown
-  act('p2-start'); for (let k = 0; k < 300 && !o.on; k++) await new Promise(r => setTimeout(r, 100)); R.on = o.on; R.M = o.M; R.made = plan2Made(o); R.err = o.err;
-  for (let i = 0; i < 60; i++){ DYN.on = false; step(); }
-  // (the jig place stands first in the list, so the line is set in the afternoon: played on, with the loop let go, until it stands in the sea;
-  // up to 20 hours, because the jig goes on past its hour while the deck stands still with the tub full, 40 minutes at noon in Ø2's run)
-  for (let i = 0; i < 1200 && !mySets().length; i++){ DYN.on = false; step(); if (i % 10 === 9) await new Promise(r => setTimeout(r, 0)); }
-  R.after60 = {t:driftClock(driftHod(S.t / 60)), status:S.boat.status, port:S.boat.port, i:o.run && o.run.i, wait:o.run && o.run.wait && o.run.wait.no, sets:mySets().length, opsK:S.plan && S.plan.opsK, steps:o.run && o.run.day && o.run.day.steps.map(s => s.k + (s.t != null ? '@' + driftClock(driftHod(s.t)) : '')), log:S.log.slice(-6).map(e => e.no)};
-  const p3 = page(); R.now = p3.includes('Nå:'); R.today = p3.includes('I dag') && p3.includes(' ←'); R.landVal = p3.includes(portById(o.M).name);
-  R.line = PLAN2UI.line().includes('Driftsplan');
-  // pause; the gear in the sea while the plan is off gets «Hent redskapet»
-  act('p2-pause'); R.paused = !o.on && !o.stop;
-  // U4 (Jonas 05.11.2026: «Ja, pause stopper båten der den er»): she lies still where she was, and the page says so, not «I dag ←»
-  { const st0 = S.boat.status, p0 = {...S.boat.pos}, pp = page(); for (let i = 0; i < 30; i++){ DYN.on = false; step(); } R.pauseStill = {before:st0, status:S.boat.status, plan:!!S.plan, moved:Math.round(dist(p0, S.boat.pos) * 1000), now:/Nå: <\\/b>På pause/.test(pp), arrow:pp.includes(' ←'), next:pp.includes('Når du starter igjen'), anch:!!S.boat.anch, drift:o.paused && o.paused.drift, saysAnch:/ligger til ankers der den var/.test(pp), saysDrift:/driver med vinden der den var/.test(pp)}; }
-  // the line stands in the sea (set at 06:15): «Hent redskapet» goes out, hauls it whatever the soak, lands and switches the plan off
-  const p7 = page(); R.fetchBtn = mySets().length >= 1 && p7.includes('p2-fetch') && /har stått/.test(p7);
-  const gl0 = (S.gearLog || []).length; act('p2-fetch'); R.fetchOn = o.on && !!o.fetch; let fm = 0; const tr = [], stt = () => { const r = o.run, pl = S.plan; return (pl ? (pl.ops ? pl.opsK : 'own') : '-') + ':' + S.boat.status + (S.boat.port ? '@' + S.boat.port : '') + (S.boat.gop ? '/' + S.boat.gop.op : '') + (S.boat.land ? '/land' : '') + (r && r.day ? '#' + r.i + (r.day.steps[r.i] ? r.day.steps[r.i].k : '') : '') + (r && r.wait ? '?' + r.wait.k : '') + (S.boat.landWait ? '/lw' : ''); }; let was = null;
-  for (; fm < 1440 && o.on; fm++){ DYN.on = false; step(); if (fm % 10 === 9) await new Promise(r => setTimeout(r, 0)); const x = stt(); if (x !== was){ tr.push(driftClock(driftHod(S.t / 60)) + ' ' + x + ' h' + Math.round(holdTotal())); was = x; } } R.fetchTrace = tr.slice(0, 40); R.fetchDay = o.run && o.run.day ? o.run.day.steps.map(s => s.k) : null;
-  R.fetched = {anchUp:!S.boat.anch || S.boat.status === 'port', sets:mySets().length, on:o.on, fetch:o.fetch, min:fm, trips:o.stats.sum.trips, kg:o.stats.sum.kg, newSets:(S.gearLog || []).slice(gl0).filter(e => e.tSet > S.t - fm).length, port:S.boat.port, said:S.msgs.slice(-1).map(m => m.no).join('')};
-  // a stopped plan: the reason and the button that fixes it
-  o.stop = {t:S.t, k:'closed', no:'Felt 1 er stengt (test).', en:'Field 1 is closed (test).', fix:'places'}; const p4 = page(); R.stopShown = p4.includes('Stoppet: Felt 1 er stengt') && p4.includes('p2-fix');
-  act('p2-fix'); R.fixOpens = page().includes('p2-pn'); o.stop = null;
-  // the statistics with a landing in it
-  o.stats.days.push({d:gDate(S.t / 60).toISOString().slice(0, 10), trips:1, kg:312, kr:5400, lott:1800, cost:600, conf:0, sp:{torsk:280, hyse:32}, port:{[o.M]:312}}); const p8 = page(); R.stats = p8.includes('p2-stat') && /Torsk \\d+ %/.test(p8) && p8.includes(portById(o.M).name + ' ') && p8.includes(fmt(Math.round(o.stats.days.reduce((a, d) => a + d.kg, 0))) + ' kg');
-  // Pause where she can anchor (Jonas 05.11.2026: «Ankre der det går»): she anchors and the page says so; Start lays the day from there,
-  // and the anchor comes up when she goes (depart)
-  { let q = null; for (let r = 0.4; r < 8 && !q; r += 0.1) for (let a = 0; a < 36 && !q; a++){ const z = {x:HP.p.x + r * Math.sin(a * 0.1745), y:HP.p.y - r * Math.cos(a * 0.1745)}; try { if (anchorSpot(z).ok && !inHarbour(z) && depthF(z) > 8) q = z; } catch (e){} }
-    R.anchSpot = !!q;
-    if (q){ const b2 = S.boat; S.plan = null; b2.status = 'idle'; b2.port = null; b2.pos = {...q}; b2.v = 0; o.on = true; o.stop = null; o.paused = null; o.run = null; S.energy = 100; S.crew.forEach(c => { c.fatigue = 0; });
-      act('p2-pause'); const pp = page(); const p0 = {...b2.pos}; for (let i = 0; i < 30; i++){ DYN.on = false; step(); }
-      R.anchPause = {anch:!!b2.anch, says:/ligger til ankers der den var/.test(pp), moved:Math.round(dist(p0, b2.pos) * 1000), drift:o.paused && o.paused.drift};
-      act('p2-start'); for (let k = 0; k < 300 && !o.on; k++) await new Promise(r => setTimeout(r, 100));
-      let m = 0; for (; m < 600 && (b2.anch || b2.status === 'idle'); m++){ DYN.on = false; step(); if (m % 10 === 9) await new Promise(r => setTimeout(r, 0)); }
-      R.anchStart = {on:o.on, min:m, anch:!!b2.anch, status:b2.status, opsK:S.plan && S.plan.opsK, wait:o.run && o.run.wait && o.run.wait.no}; } }
-  // copy to another vessel
-  const v2 = newVesselObj('sjark', 'husoy'); act('p2-copy', {id:v2.id}); const o2 = vget(v2, 'ops'); R.copy = !!o2 && o2.v === 4 && o2.places.length === o.places.length && !o2.on && o2.places[0].id !== o.places[0].id;
-  S.me = S.cur; o.on = true; TAB.held = false; lastWall = Date.now(); return R; })()"""
+  const page = () => PHONE.page('drift'), act = (a, d) => PHONE.dact('drift', a, d || {}), text = () => { const d = document.createElement('div'); d.innerHTML = page(); return d.innerText.replace(/\s+/g, ' '); };
+  const put = p => new Promise(res => PLAN2UI.ringPut(S.ops, p, res));
+  R.intro = page().includes('p2-new') && /to ting/.test(text()) && /stedet, en ring i kartet, og redskapet/.test(text());
+  // a new plan: v5, no ring, the two rows only, and the reason it is not ready
+  act('p2-new'); const o = S.ops; const t1 = text();
+  R.fresh = {v:o.v, ring:o.ring, rows:['Sted', 'Redskap'].every(k => page().includes('<span class="dr-rl">' + k + '</span>')), old:['Hjem', 'Plasser', 'Levering', 'Vær', 'Rytme', 'Mannskap'].filter(k => page().includes('<span class="dr-rl">' + k + '</span>')), notReady:/Ikke klar ennå/.test(t1) && /Velg et sted/.test(t1), rest:/Resten finner planen selv/.test(t1)};
+  // the gear: only what is aboard (the jig and the line, no nets, no pots), the bait and the line's kind under the line
+  act('p2-row', {k:'gear'}); const g1 = page(); R.gearAboard = {juksa:g1.includes('data-g="juksa"'), line:g1.includes('data-g="line"'), garn:g1.includes('data-g="garn"'), teiner:g1.includes('data-g="teiner"')};
+  act('p2-g3', {g:'line'}); act('p2-bait3', {v:'sild'}); const g2 = page(); R.line = {rig:o.rig, bait:o.bait, lk:o.lk, baitRow:g2.includes('data-pa="p2-bait3"'), lkRow:g2.includes('data-pa="p2-lk3"'), val:/Line · agn: sild og lodde/.test(text())};
+  const BK = S.pgear.lines.bank; BK.n = 6; BK.baited = 6; BK.bt = {makrell:6}; act('p2-lk3', {v:'bank'}); R.lk2 = {lk:o.lk, row:page().includes('data-pa="p2-lk3"')}; act('p2-lk3', {v:'hyse'}); BK.n = 0; BK.baited = 0; BK.bt = {};
+  // the ring: on land refused with the reason, in the sea set (its size the line's, 2 nm)
+  let land = null; for (let r = 1; r < 25 && !land; r += 0.5) for (let a = 0; a < 36 && !land; a++){ const q = {x:HP.p.x + r * Math.sin(a * 0.1745), y:HP.p.y - r * Math.cos(a * 0.1745)}; try { await mapNeed(q, 3); let all = isLand(q); for (let k = 0; k < 12 && all; k++) all = isLand({x:q.x + 2.1 * Math.sin(k * 0.5236), y:q.y - 2.1 * Math.cos(k * 0.5236)}) && isLand({x:q.x + 1.1 * Math.sin(k * 0.5236), y:q.y - 1.1 * Math.cos(k * 0.5236)}); if (all) land = q; } catch (e){} }
+  R.landWhy = land ? await put(land) : 'ingen landpunkt'; R.landRing = o.ring;
+  let sea = null; for (let r = 4; r < 12 && !sea; r += 0.5) for (let a = 0; a < 24 && !sea; a++){ const q = {x:HP.p.x + r * Math.sin(a * 0.26), y:HP.p.y - r * Math.cos(a * 0.26)}; try { if (!isLand(q) && depthF(q) > 40 && coastDist(q) > 0.8) sea = q; } catch (e){} }
+  R.seaWhy = await put(sea); const t2 = text(); R.ring = o.ring && {r:+o.ring.r.toFixed(3), want:+(DRP3.ring.line * NM / 2).toFixed(3)}; R.sted = /Sted\s*Ved [^·]+· 2,0 nm ring · [\d,]+ nm unna/.test(t2); R.ready = /Start planen/.test(t2) && !/Ikke klar ennå/.test(t2);
+  // Start from port: made with plan3Make, on; what the plan chose, the day with the search, and «Nå»
+  act('p2-start'); for (let k = 0; k < 400 && !o.on; k++) await new Promise(r => setTimeout(r, 100)); R.on = {on:o.on, made:plan2Made(o), err:o.err, home:o.home, M:o.M, places:o.places.length};
+  for (let i = 0; i < 30; i++){ DYN.on = false; step(); }
+  const t3 = text(); R.chosen = ['Planen valgte', 'Hjem', 'Levering', 'Rytme', 'Vær', 'Fører båten', 'Søket'].every(k => t3.includes(k)); R.day = /I dag/.test(t3) && /Søker etter fisken i ringen/.test(t3); R.now = (t3.match(/Nå: .{0,160}/) || [''])[0].slice(0, 160);
+  R.noEstimate = !/forventet|ventet fangst/i.test(t3);
+  // locked while she runs: the gear row says so and a change is refused
+  if (!/Ett redskap|Sett planen på pause for å bytte/.test(text())) act('p2-row', {k:'gear'}); R.locked = {said:/Sett planen på pause for å bytte redskap/.test(text()), refused:PLAN2UI.act('p2-g3', {g:'juksa'}) === false && o.rig === 'line'};
+  // after a pause the gear changes, and what the plan found goes (found again at the next Start)
+  act('p2-pause'); act('p2-g3', {g:'juksa'}); R.changed = {rig:o.rig, places:o.places.length, made:!!o.made, r:+(o.ring ? o.ring.r : 0).toFixed(3), want:+(DRP3.ring.juksa * NM / 2).toFixed(3)};
+  act('p2-g3', {g:'line'}); act('p2-bait3', {v:'sild'});
+  // Start from the sea: the boat lies at sea, out of port
+  { b.status = 'idle'; b.port = null; b.pos = {x:sea.x + 1.5, y:sea.y}; S.plan = null; await mapNeed(b.pos, 6); act('p2-start'); for (let k = 0; k < 400 && !o.on; k++) await new Promise(r => setTimeout(r, 100)); R.sea = {on:o.on, err:o.err, places:o.places.length}; }
+  // the catch gutted aboard or round (R1 V1 A): on the page, and the boat's own setting
+  { const pg2 = page(); R.gut = {row:pg2.includes('data-pa="p2-gut"')}; act('p2-gut', {v:'0'}); R.gut.round = S.boat.gutAboard === false; act('p2-gut', {v:'1'}); R.gut.back = S.boat.gutAboard === undefined; }
+  // the statistics, then Slett from the game's own dialog
+  o.stats.days.push({d:gDate(S.t / 60).toISOString().slice(0, 10), trips:1, kg:312, kr:5400, lott:1800, cost:600, conf:0, sp:{torsk:280, hyse:32}, port:{[o.M]:312}}); R.stats = page().includes('p2-stat') && /Torsk \d+ %/.test(text());
+  act('p2-pause'); act('p2-reset'); await new Promise(r => setTimeout(r, 200)); const del = document.getElementById('p2Del'); R.delDialog = !!del && /Stedet, redskapet og statistikken/.test(document.getElementById('modal').innerText); if (del) del.click(); R.deleted = S.ops === null;
+  // an old v4 plan when the page opens: switched off with a word (plan3Retire), and the intro is shown
+  { b.status = 'port'; b.port = 'husoy'; b.pos = {...HP.p}; S.plan = null; S.sets = []; const v4 = plan2New({home:'husoy', rig:'line', places:[]}); v4.on = false; S.ops = v4; const n0 = S.msgs.length; const p = page();
+    R.v4 = {gone:S.ops === null, intro:p.includes('p2-new'), msg:(S.msgs.slice(n0).map(m => m.no).join(' ') || '').slice(0, 160)}; }
+  // (the control 16.11.2026) gear of your own in the sea and a new plan with no ring: no «Hent redskapet», which had nothing to make the plan from
+  { S.ops = null; S.sets = [{id:'sx', vid:S.cur, kind:'line', n:2, lk:'hyse', hooks:1200, a:{...sea}, b:{x:sea.x + 1, y:sea.y}, tSet:S.t - 600, fid:null}]; act('p2-new'); const p = page(); R.noFetch = !p.includes('data-pa="p2-fetch"'); S.sets = []; S.ops = null; }
+  // an old plan winding up (plan3Retire): its own card with «Nå», and no new plan over it while it runs
+  { const v4 = plan2New({home:'husoy', rig:'line', places:[]}); v4.on = true; v4.retire = true; v4.fetch = true; S.ops = v4; const p = page(); act('p2-new');
+    R.retiring = {card:/Den gamle driftsplanen er slått av/.test(p), now:p.includes('Nå:'), kept:S.ops === v4}; S.ops = null; }
+  // a page ready for the screenshots: the plan again, started, a few minutes on
+  act('p2-new'); act('p2-g3', {g:'line'}); await put(sea); act('p2-start'); for (let k = 0; k < 400 && !S.ops.on; k++) await new Promise(r => setTimeout(r, 100)); for (let i = 0; i < 30; i++){ DYN.on = false; step(); }
+  TAB.held = false; lastWall = Date.now(); return R; })()"""
 
 async def main():
     async with async_playwright() as p:
@@ -97,39 +67,34 @@ async def main():
         pg.on('pageerror', lambda e: errs.append(str(e)))
         await boot(pg)
         r = await pg.evaluate(JS)
-        print(json.dumps(r, ensure_ascii=False))
-        print(ok(r['intro'] and r['fresh']['v'] == 4 and r['fresh']['rest'] and r['fresh']['places'] == ['juks']), 'a new plan comes filled in: home where the crew sleep well, the rig she has, the best catch mark as the jig place', r['fresh'])
-        print(ok(r['rows'] and r['dayCard']), 'the day first, then the seven rows', [r['rows'], r['dayCard']])
-        print(ok(r['homeOpen'] and r['homeShut']), 'a row opens and shuts where it is tapped')
-        print(ok(r['wx1'] == {'wind': 10, 'hs': 1.5} and r['wx2'] == {'wind': 11, 'hs': 2.0} and r['watchOff'] and r['dep'] == 6), 'the weather as numbers with presets, round the clock locked with two hands, the hour out', [r['wx1'], r['wx2'], r['watchOff'], r['dep']])
-        print(ok(r['watchOn4']), 'round the clock opens with you and three crew on a boat with bunks', r['watchOn4'])
-        print(ok(r['sugg'] and r['places2'] == 2 and r['order'] and r['places3'] == 1), 'a jig place from the own marks; the order; one removed', [r['sugg'], r['places2'], r['order'], r['places3']])
-        print(ok(r['rig'] == 'line' and r['sugg0'] and r['field'] and r['field2']['n'] == r['field']['n'] - 1 and r['field2']['soak'] == r['field']['soak'] + 1 and r['landRefused']), 'a line field, its units and soak; land is refused', [r['rig'], r['field'], r['field2'], r['landRefused']])
-        print(ok(r['live']), 'the day on the page is reckoned anew at every change', r['live'])
-        print(ok(r['clamp']['n'] == 4 and r['clamp']['own'] == 4 and r['lkToggle'] and r['lk'] == 'bank' and r['leftBank'] == 10 and r['rigTxt']), 'the units stop at the tubs the boat owns; a field\'s line kind is toggled; the gear row names the kinds and the jig\'s gear', [r['clamp'], r['lkToggle'], r['lk'], r['leftBank'], r['rigTxt']])
-        print(ok(r['landRows'] and r['land']['when'] == 'days' and r['land']['days'] == 3), 'the landing: where and when', [r['landRows'], r['land']])
-        print(ok(r['notReady'] and r['ready']), 'without you aboard the plan waits for a skipper and a mate', [r['notReady'], r['ready']])
-        print(ok(r['on'] and r['made'] and r['M'] and r['now'] and r['today'] and r['landVal'] and r['line']), 'Start makes the plan and switches it on; «Nå», «I dag» with the step she is on, and the plant are shown', [r['on'], r['M'], r['err'], r['now'], r['today'], r['landVal']])
-        print(ok(r['paused'] and r['fetchBtn'] and r['stopShown'] and r['fixOpens']), 'pause; the gear in the sea gets «Hent redskapet»; a stopped plan shows the reason and the button that fixes it', [r['paused'], r['fetchBtn'], r['stopShown'], r['fixOpens']])
-        q = r['pauseStill']; print(ok(q['status'] in ('idle', 'port') and not q['plan'] and q['now'] and not q['arrow'] and q['next'] and ((q['anch'] and q['saysAnch'] and q['moved'] < 300) or (not q['anch'] and q['status'] != 'port' and q['drift'] and q['saysDrift'] and q['moved'] < 1500) or q['before'] == 'port')), 'Pause stops the boat where she is (U4) and anchors where it can (Jonas: «Ankre der det går»): no trip, at anchor she stays put (under 300 m in 30 min) and the page says «til ankers», else she drifts with the wind (lieDrift, held off the land, under 1.5 km) and the page says why; «Nå» says the plan is paused, and the day is the next one when started again', q)
-        a, st = r.get('anchPause') or {}, r.get('anchStart') or {}
-        print(ok(r.get('anchSpot') and a.get('anch') and a.get('says') and a.get('moved', 999) < 300 and st.get('on') and not st.get('anch') and st.get('status') in ('sailing', 'fishing', 'unmooring')), 'Pause where she can anchor: she anchors, lies put and the page says «til ankers»; Start lays the day from there and the anchor comes up when she goes', {'pause': a, 'start': st})
-        print(ok(r['fetched']['anchUp']), '«Hent redskapet» after a Pause at anchor: the anchor is weighed when she goes (depart)', r['fetched'].get('anchUp'))
-        f = r['fetched']; fok = r['after60']['sets'] >= 1 and r['fetchOn'] and f['sets'] == 0 and not f['on'] and not f['fetch'] and f['trips'] >= 1 and f['newSets'] == 0 and 'hentet' in f['said']
-        print(ok(fok), '«Hent redskapet» hauls the line whatever the soak, lands, sets nothing again and switches the plan off', f)
-        if not fok: print('  dagen:', r.get('fetchDay')); [print('  ', x) for x in r.get('fetchTrace', [])]
-        print(ok(r['stats']), 'the statistics: today, seven days and all, with the species')
-        print(ok(r['copy']), 'the plan is copied to another vessel, off, with its own places')
-        # the page in both formats and on a phone: the plan on (the day card and «Nå»), and with the places open
-        for w, h in [(800, 1280), (1280, 800), (384, 853)]:
+        print(json.dumps(r, ensure_ascii=False)[:2500])
+        f = r['fresh']
+        print(ok(r['intro']), 'with no plan: the intro says the two choices and the button makes one')
+        print(ok(f['v'] == 5 and f['ring'] is None and f['rows'] and not f['old'] and f['notReady'] and f['rest']), 'a new plan: v5 with only Sted and Redskap, not ready until a place is chosen, and the rest the plan finds itself', f)
+        g = r['gearAboard']; print(ok(g['juksa'] and g['line'] and not g['garn'] and not g['teiner']), 'Redskap offers only what is aboard (the jig and the line here)', g)
+        L = r['line']; print(ok(L['rig'] == 'line' and L['bait'] == 'sild' and L['lk'] == 'hyse' and L['baitRow'] and not L['lkRow'] and L['val']), 'the line with its bait; no choice of the line\'s kind with one kind aboard', L)
+        print(ok(r['lk2']['row'] and r['lk2']['lk'] == 'bank'), 'with both kinds of line aboard, the kind is chosen under the line', r['lk2'])
+        print(ok(isinstance(r['landWhy'], str) and 'Flytt ringen' in r['landWhy'] and r['landRing'] is None), 'a ring on land is refused with the reason', r['landWhy'])
+        print(ok(r['seaWhy'] is None and r['ring'] and abs(r['ring']['r'] - r['ring']['want']) < 1e-3 and r['sted'] and r['ready']), 'a ring in the sea is set, 2 nm across for the line, named by the place and its distance; the plan is ready', [r['seaWhy'], r['ring'], r['sted'], r['ready']])
+        o = r['on']; print(ok(o['on'] and o['made'] and o['home'] and o['M'] and o['places'] >= 1), 'Start from port makes the plan (plan3Make) and switches it on', o)
+        print(ok(r['chosen'] and r['day'] and 'Nå:' in r['now'] and r['noEstimate']), 'the page says what the plan chose and the day with the search, «Nå», and no expected catch', [r['chosen'], r['day'], r['now']])
+        print(ok(r['locked']['said'] and r['locked']['refused']), 'while the plan runs, the gear cannot be changed and the page says why', r['locked'])
+        c = r['changed']; print(ok(c['rig'] == 'juksa' and c['places'] == 0 and not c['made'] and abs(c['r'] - c['want']) < 1e-3), 'after a pause the gear changes: what the plan found goes, and the ring takes the jig\'s size', c)
+        print(ok(r['sea']['on'] and r['sea']['places'] >= 1), 'Start from the sea, out of port', r['sea'])
+        print(ok(r['stats'] and r['delDialog'] and r['deleted']), 'the statistics, and Slett through the game\'s dialog', [r['stats'], r['delDialog'], r['deleted']])
+        print(ok(r['gut']['row'] and r['gut']['round'] and r['gut']['back']), 'the catch gutted aboard or round, on the plan\'s page (R1 V1 A)', r['gut'])
+        print(ok(r['noFetch']), 'gear of your own in the sea and a new plan with no ring: no «Hent redskapet» (it had nothing to make the plan from)', r['noFetch'])
+        print(ok(r['retiring']['card'] and r['retiring']['now'] and r['retiring']['kept']), 'an old plan winding up has its own card with «Nå», and no new plan is made over it', r['retiring'])
+        v = r['v4']; print(ok(v['gone'] and v['intro'] and 'Lag en ny driftsplan' in v['msg']), 'an old v4 plan is switched off with a word when the page opens, and the intro is shown', v)
+        # the page in both formats: no sideways overflow, the buttons at least 44 px high
+        for w, h in [(800, 1280), (1280, 800)]:
             await pg.set_viewport_size({'width': w, 'height': h})
             await pg.evaluate("DOCK.open('drift')"); await pg.wait_for_timeout(700)
             await pg.screenshot(path=os.path.join(OUT, 'driftsplan2ui-%dx%d.png' % (w, h)))
-            await pg.evaluate("PHONE.dact('drift', 'p2-row', {k:'places'}); DOCK.open('drift')"); await pg.wait_for_timeout(500)
-            await pg.evaluate("(() => { const e = document.querySelector('.dr-row.on'); if (!e) return; let d = e.parentElement; while (d && d !== document.body && !(d.scrollHeight > d.clientHeight + 4 && /auto|scroll/.test(getComputedStyle(d).overflowY))) d = d.parentElement; if (d) d.scrollTop = e.getBoundingClientRect().top - d.getBoundingClientRect().top + d.scrollTop - 8; })()"); await pg.wait_for_timeout(400)
-            await pg.screenshot(path=os.path.join(OUT, 'driftsplan2ui-%dx%d-plasser.png' % (w, h)))
-            ov = await pg.evaluate("(() => { const d = document.getElementById('drawerBody'); return {w:d.scrollWidth, cw:d.clientWidth}; })()")
-            print(ok(ov['cw'] > 0 and ov['w'] <= ov['cw'] + 1), 'no sideways overflow at %d px' % w, ov)
-            await pg.evaluate("PHONE.dact('drift', 'p2-row', {k:'places'}); DOCK.close()")
+            await pg.evaluate("PHONE.dact('drift', 'p2-row', {k:'gear'}); DOCK.open('drift')"); await pg.wait_for_timeout(500)
+            await pg.screenshot(path=os.path.join(OUT, 'driftsplan2ui-%dx%d-redskap.png' % (w, h)))
+            ov = await pg.evaluate("(() => { const d = document.getElementById('drawerBody'), small = [...d.querySelectorAll('button')].filter(e => e.offsetParent && e.getBoundingClientRect().height < 43.5).map(e => e.textContent.trim().slice(0, 30)); return {w:d.scrollWidth, cw:d.clientWidth, small}; })()")
+            print(ok(ov['cw'] > 0 and ov['w'] <= ov['cw'] + 1 and not ov['small']), 'no sideways overflow and no button under 44 px at %d×%d' % (w, h), ov)
+            await pg.evaluate("PHONE.dact('drift', 'p2-row', {k:'gear'}); DOCK.close()")
         print('sidefeil:', errs[:4]); await b.close()
 asyncio.run(main())
