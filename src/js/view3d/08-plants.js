@@ -572,7 +572,7 @@
     const IK = LEMMER.on, LL = limbLen(FG ? FG.sex : st), back = st.task === 'back' && !st.walk, LEG = [null, null];
     for (const s of [-1, 1]){ const fi = s < 0 ? 0 : 1;
       // (back to the rail with the legs crossed: the feet a little out, the right one over in front of the left)
-      let fa = back ? (s > 0 ? 0.3 : 0.2) : sw * s * 0.28, fr = back ? (s > 0 ? -0.05 : -0.13) : s * 0.12, fup = 0.08 + (back ? 0 : Math.max(0, Math.cos(ph) * s) * 0.07 * (st.walk ? 1 : 0)), kf = back ? 0.05 : 0.07 + dip * 0.34;
+      let fa = back ? (s > 0 ? 0.3 : 0.2) : sw * s * 0.28, fr = back ? (s > 0 ? -0.05 : -0.13) : s * 0.12, fup = 0.08 + (back ? 0 : Math.max(0, Math.cos(ph) * s) * 0.07 * (st.walk && !(FOT.on && st.fq) ? 1 : 0)),   /* (FB3: with the gait the feet are its own, and a walker held still, by the roll, stands) */ kf = back ? 0.05 : 0.07 + dip * 0.34;
       let hip = W((back ? 0.05 : dip * 0.06) + hF, 0.92 + dy + hy0 + (SE ? s * 0.11 * SE.pelv : 0), s * 0.11 + hR), foot;
       // (FB3: walking, or a step at his place not done, the foot is where it stands on the deck, footNow, its height that of the deck there)
       if (FW){ fa = FW.fa[fi]; fr = FW.fr[fi]; fup = 0.08 + FW.lift[fi] + FW.fy[fi];   /* (a foot on a step: the deck's own height there) */ foot = W0(fa, fup + (SE ? fa * FSL[1] + fr * FSL[0] : 0), fr);

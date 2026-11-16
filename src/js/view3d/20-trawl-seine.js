@@ -118,7 +118,7 @@
   // the people aboard where the agents have them (deckcrew.js): walking, at their work, or at the wheel inside the house; in the bridge
   // view nobody is drawn at the wheel, where the eye is (the skipper, or a hand who has the helm)
   // (FB3: the feet of the others aboard, where each stands on the deck, for one whose next foot is not to go on them: deckcrew.js footStep avoid)
-  function footsOf(A, me){ const out = []; for (const b of A) if (b !== me && b.fs && !b.fs.snap) out.push(...footSpots(b.fs)); return out; }
+  function footsOf(A, me){ const out = []; for (const b of A) if (b !== me && b.fs && !b.fs.snap && b.mode !== 'in' && b.mode !== 'helm') out.push(...footSpots(b.fs)); return out; }   // (not the ones inside or at the wheel: their feet are where they were last drawn)
   function drawDeckCrew(BMrel, eye, VP, t, G){
     nSetup(VP); let idx = 20; if (!GB) buildGear();
     // (the tests hold the crew's deck at a roll and a pitch of their own, where the boat is and heading her way, hold everyone's beat

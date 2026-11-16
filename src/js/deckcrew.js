@@ -1313,7 +1313,7 @@ function crewSim(src){
   // his height; null with no deck there)
   function footY(a, x, z){ const M = ST.M; const fy = M.floorAt(x, z); if (fy === fy) return Math.abs(fy - a.y) <= FOT.RISE ? fy : null;
     const u = ST.M0.hit([x, a.y + FOT.RISE, z], [x, a.y - FOT.RISE, z]); return u < 0 ? null : a.y + FOT.RISE - u * FOT.RISE * 2; }
-  function footOk(a, x, z){ const M = ST.M, fy = footY(a, x, z); if (fy == null) return false; if (!src && inKit(x, z) > 0) return false;
+  function footOk(a, x, z){ const M = ST.M, fy = footY(a, x, z); if (fy == null || fy < a.y - FOT.DROP) return false;   // (no lower under him than the hips go down for it: it would hang over the deck there) if (!src && inKit(x, z) > 0) return false;
     if (M.hit([x, fy + 0.45, z], [x, fy + 0.06, z]) >= 0) return false; const go = walkOff(a), y0 = Math.max(a.y, fy); return M.hit([a.x + go[0], y0 + 0.3, a.z + go[1]], [x, y0 + 0.3, z]) < 0; }   // (at the shin's height: a foot goes over a sill or a hatch's coaming lower than that, not through a wall)
 
   // the nearest rail from where someone stands, ahead or to either side within 3 m (a fish that slips over the side goes over it):
@@ -1450,7 +1450,7 @@ const FOT = {
   RISE:0.45,      // m: the most a foot is put down over or under where he stands (a step on deck, walkY)
   OTHER:0.16,     // m: the least between a foot put down and anyone else's (two passing on a narrow deck)
   REACHK:0.9,     // the share of the legs' reach a foot is put down at, at most (the rest is for the speed that grows in the swing, and the turn)
-  HURRY:[0.85, 0.006],   // the foot that stands past this share of the reach hurries the other's swing: once more for each so many m past it
+  HURRY:[0.75, 0.01],    // the foot that stands past this share of the reach (from where it would stand under him) hurries the other's swing: once more for each so many m past it
   DROP:0.085,     // m: the most the hips come down walking for a foot to reach (LEMMER.DROP standing)
   DIP:0.02,       // m the hips are lower walking at 1.2 m/s (the knee a little bent through the stance)
   SWAY:0.022,     // m the hips go over the foot that stands
@@ -1500,9 +1500,12 @@ function footStep1(s, inp){
   const v = Math.hypot(s.vx, s.vz), walk = v > C.VMIN, cy = inp.carry ? C.CARRY : null, L = walk ? footLen(v, inp.reach) * (cy ? cy.len : 1) : 0, Ts = walk ? L / v : Infinity;
   const Tsw = walk ? Math.min(C.TSW[1], Math.max(C.TSW[0], C.SWF * Ts)) : C.TREST, lead = walk ? Math.min(L * (1 - C.SWF / 2), (inp.reach || Infinity) * C.REACHK) : 0, DS = walk ? Math.max(0, Ts - Tsw) : 0.05;
   const rel = q => { const dx = q[0] - x, dz = q[1] - z; return [dx * F[0] + dz * F[1], dx * R[0] + dz * R[1]]; };
+  // (the way he goes: the feet land ahead along it, not along his heading, so side on in a squeeze or backing off he steps all the
+  // same; kontrollen 16.11.2026. And how far a foot is from where it would stand under him, whichever way that is)
+  const U = walk ? [s.vx / v, s.vz / v] : F, back = j => -((s.f[j].x - x) * U[0] + (s.f[j].z - z) * U[1]), off = j => { const q = home(j, 0, x, z, h); return Math.hypot(s.f[j].x - q[0], s.f[j].z - q[1]); };
   // (where a foot lands: ahead of where he will be when it is down, with his heading then; moved in towards him while the deck has
   // something there, and clear of the other foot)
-  const target = (i, rem) => { const hh = h + s.w * rem, px = x + s.vx * rem, pz = z + s.vz * rem, Ra = [Math.cos(hh), Math.sin(hh)], Fa = [Math.sin(hh), -Math.cos(hh)];
+  const target = (i, rem) => { const hh = h + s.w * rem, px = x + s.vx * rem, pz = z + s.vz * rem, Ra = [Math.cos(hh), Math.sin(hh)], Fa = [Math.sin(hh), -Math.cos(hh)], ca = Math.cos(s.w * rem), sa = Math.sin(s.w * rem), Ut = [U[0] * ca - U[1] * sa, U[0] * sa + U[1] * ca];   // (the way he goes turned as he turns, until it is down)
     // (out from anyone else's feet, inp.avoid, by OTHER, and from his other foot by SEP, along the line between them, or to his own
     // side when they would be on one spot)
     const away = (q, px2, pz2, m) => { let ex = q[0] - px2, ez = q[1] - pz2, d = Math.hypot(ex, ez); if (d >= m) return q; if (d < 1e-4){ ex = Ra[0] * sd(i); ez = Ra[1] * sd(i); d = 1; } return [px2 + ex / d * (m + 1e-3), pz2 + ez / d * (m + 1e-3)]; };
@@ -1510,20 +1513,20 @@ function footStep1(s, inp){
     // (where it lands: ahead of where he will be when it is down, with his heading then; else nearer him, a little behind, narrower:
     // the first the deck has room for, clear of the feet)
     // (none clear of both: the first the deck has room for, close to another's foot rather than in a wall)
-    const C0 = [[1, 1], [0.66, 1], [0.33, 1], [0, 1], [0.33, 0.5], [0, 0.5], [-0.3, 1], [-0.3, 0.5], [0.66, 0.5]].map(([m, wk]) => { const a0 = lead * m + (m < 0 ? -0.15 : 0); return [px + Fa[0] * a0 + Ra[0] * sd(i) * w[i] * wk, pz + Fa[1] * a0 + Ra[1] * sd(i) * w[i] * wk]; });
+    const C0 = [[1, 1], [0.66, 1], [0.33, 1], [0, 1], [0.33, 0.5], [0, 0.5], [-0.3, 1], [-0.3, 0.5], [0.66, 0.5]].map(([m, wk]) => { const a0 = lead * m + (m < 0 ? -0.15 : 0); return [px + Ut[0] * a0 + Ra[0] * sd(i) * w[i] * wk, pz + Ut[1] * a0 + Ra[1] * sd(i) * w[i] * wk]; });
     for (const c of C0){ const q = clear(c); if (!inp.ok || inp.ok(q[0], q[1])) return [q[0], q[1], hh]; }
     for (const c of C0){ const q = away(c, s.f[1 - i].x, s.f[1 - i].z, C.SEP); if (inp.ok(q[0], q[1])) return [q[0], q[1], hh]; }
     const q = clear(C0[0]); return [q[0], q[1], hh]; };
   if (s.sw < 0){ s.ds += dt || 0;
     // which foot goes next: walking, the other one than last; standing, the one furthest from where it should be
-    let i = s.nx; const err = j => { const q = home(j, lead, x, z, h); return Math.hypot(s.f[j].x - q[0], s.f[j].z - q[1]); }, turn = j => { let a = h - s.f[j].h; while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return Math.abs(a); };
+    let i = s.nx; const err = j => { const q = home(j, lead, x, z, h), f = s.f[j]; if (!walk && f.hx && Math.hypot(f.hx[0] - q[0], f.hx[1] - q[1]) < C.NEAR) return 0;   /* (it went for this place and was put where there was room: settled) */ return Math.hypot(f.x - q[0], f.z - q[1]); }, turn = j => { let a = h - s.f[j].h; while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return Math.abs(a); };
     if (!walk && err(1 - i) + turn(1 - i) * 0.2 > err(i) + turn(i) * 0.2) i = 1 - i;
-    const back = -rel([s.f[i].x, s.f[i].z])[0], far = Math.max(back, -rel([s.f[1 - i].x, s.f[1 - i].z])[0]);
-    const go = walk ? (s.ds >= DS && back > -0.05) || far > (inp.reach || Infinity) * 0.97 : err(i) > C.NEAR || turn(i) > C.TURN;
-    if (go){ s.sw = i; s.u = 0; s.from = [s.f[i].x, s.f[i].z, s.f[i].h, s.f[i].y]; s.Tsw = Tsw; s.f[i].up = true; s.sl = 0; } }
+    const far = Math.max(off(i), off(1 - i));
+    const go = walk ? (s.ds >= DS && back(i) > -0.05) || far > (inp.reach || Infinity) * 0.97 : err(i) > C.NEAR || turn(i) > C.TURN;
+    if (go){ s.sw = i; s.u = 0; s.from = [s.f[i].x, s.f[i].z, s.f[i].h, s.f[i].y]; s.Tsw = Tsw; s.f[i].up = true; s.sl = 0; s.hx = walk ? null : home(i, 0, x, z, h); } }
   if (s.sw >= 0){ const i = s.sw; s.Tsw += (Tsw - s.Tsw) * Math.min(1, (dt || 0) / 0.2);
     // (the foot that stands must not be left further behind than the legs reach: the swing is hurried then)
-    const st = rel([s.f[1 - i].x, s.f[1 - i].z]), hurry = inp.reach && -st[0] > inp.reach * C.HURRY[0] ? 1 + (-st[0] - inp.reach * C.HURRY[0]) / C.HURRY[1] : 1;
+    const so = off(1 - i), hurry = inp.reach && so > inp.reach * C.HURRY[0] ? 1 + (so - inp.reach * C.HURRY[0]) / C.HURRY[1] : 1;
     s.u = Math.min(1, s.u + (dt || 0) / s.Tsw * hurry); const q = target(i, (1 - s.u) * s.Tsw), e = s.u * s.u * (3 - 2 * s.u), f = s.f[i]; s.tg = [q[0], q[1]];   // (where it will land: for the others' feet, footSpots)
     let da = q[2] - s.from[2]; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
     f.x = s.from[0] + (q[0] - s.from[0]) * e; f.z = s.from[1] + (q[1] - s.from[1]) * e; f.h = s.from[2] + da * e;
@@ -1534,7 +1537,7 @@ function footStep1(s, inp){
     const ty = inp.fy ? inp.fy(q[0], q[1]) : null; f.y = s.from[3] + ((ty == null ? (inp.y || 0) : ty) - s.from[3]) * e;
     const len = Math.hypot(q[0] - s.from[0], q[1] - s.from[1]); s.sl = Math.max(s.sl, len);
     o.lift[i] = C.LIFT * Math.min(1, 0.4 + s.sl / 0.5) * Math.sin(Math.PI * s.u); o.lift[1 - i] = 0;
-    if (s.u >= 1){ f.up = false; o.lift[i] = 0; s.sw = -1; s.nx = 1 - i; s.ds = 0; if (C.log) C.log.push({i, x:f.x, z:f.z, L:len}); } }
+    if (s.u >= 1){ f.up = false; f.hx = s.hx; o.lift[i] = 0; s.sw = -1; s.nx = 1 - i; s.ds = 0; if (C.log) C.log.push({i, x:f.x, z:f.z, L:len}); } }
   else o.lift[0] = o.lift[1] = 0;
   for (const i of [0, 1]){ const q = rel([s.f[i].x, s.f[i].z]); o.fa[i] = q[0]; o.fr[i] = q[1]; o.fy[i] = s.f[i].y - (inp.y || 0); let a = s.f[i].h - h; while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; o.dh[i] = a; o.plant[i] = !s.f[i].up; }
   const k = Math.min(1, v / 1.2), sw = s.sw >= 0 ? Math.sin(Math.PI * s.u) : 0;

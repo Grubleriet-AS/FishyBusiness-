@@ -48,6 +48,20 @@ export default function (t){
   // 5. the deck has something where the foot would land: it is put down nearer him, where there is room
   { const r = walk(line(1.2), 6, 60, {ok:(x, z) => !(z < -2 && z > -2.6 && x > 0)}), P = []; FOT.log = P; walk(line(1.2), 6, 60, {ok:(x, z) => !(z < -2 && z > -2.6 && x > 0)}); FOT.log = null;
     t.ok(P.every(q => !(q.z < -2 && q.z > -2.6 && q.x > 0)) && r.slide < 0.01, 'en fot settes aldri ned der dekket har noe (' + P.length + ' steg, ingen i hindringen)'); }
+  // 7. walking sideways (side on in a squeeze) and backwards: he steps all the same, and no foot that stands is left further from him
+  // than the legs reach (the landing along the way he goes, not his heading; kontrollen 16.11.2026: stepping stopped and the feet
+  // were left 2.35 m behind)
+  { const far = (path, secs) => { const s = footState(), dt = 1 / 60; let worst = 0, n = 0, was = [true, true];
+      for (let i = 0; i <= secs * 60; i++){ const q = path(i * dt), o = footStep(s, {x:q[0], z:q[1], h:q[2], dt:i ? dt : undefined, w:[0.12, 0.12], reach:REACH});
+        for (const k of [0, 1]){ if (o.plant[k]) worst = Math.max(worst, Math.hypot(o.fa[k], o.fr[k] - (k ? 0.12 : -0.12))); if (o.plant[k] && !was[k]) n++; was[k] = o.plant[k]; } }
+      return {worst, n}; };
+    for (const [nm, p] of [['sidelengs', u => [gone(0.8, u), 0, 0]], ['baklengs', u => [0, gone(0.8, u), 0]]]){ const r = far(p, 4);
+      t.ok(r.n >= 6 && r.worst <= REACH + 0.13, nm + ' i 0,8 m/s: han tar steg (' + r.n + ') og ingen fot som står, er lenger fra der den skal stå enn beina rekker (' + (r.worst * 100).toFixed(0) + ' cm)'); } }
+  // 8. standing where the square stance is blocked (a foot's own place in something): one step to where there is room, then still
+  { const s = footState(), ok = (x, z) => !(x > 0.05 && x < 0.3 && z > -2.1 && z < -1.9); let steps = 0, was = [true, true], on = 0, o;   // (he walks 2 m and stops where his right foot's own place is in something)
+    for (let i = 0; i < 480; i++){ const z = -Math.min(2, gone(1.2, i / 60)); o = footStep(s, {x:0, z, h:0, dt:i ? 1 / 60 : undefined, w:[0.12, 0.12], reach:REACH, ok}); for (const k of [0, 1]){ if (o.plant[k] && !was[k] && i > 240) steps++; was[k] = o.plant[k]; } if (i > 420 && (o.lift[0] > 0 || o.lift[1] > 0)) on++; }
+    // (the gait keeps the feet where there was room: the pose would put that foot back in the thing)
+    t.ok(steps <= 1 && on === 0, 'står han der den ene foten ikke får stå rett, tar han ett steg dit det er plass og står så (' + steps + ' steg etter første sekund, en fot i lufta i ' + on + ' av de siste 60 bildene)'); }
   // 6. a jump in time (a gap over half a second): the feet are put under him at once, nothing swings
   { const s = footState(); footStep(s, {x:0, z:0, h:0, w:[0.12, 0.12], reach:REACH}); const o = footStep(s, {x:5, z:0, h:1, dt:2, w:[0.12, 0.12], reach:REACH}); t.ok(o.plant[0] && o.plant[1] && Math.abs(o.fa[0]) < 1e-9 && !o.on, 'etter et hopp i tid står føttene under ham, ingen svinger'); }
   t.ok(footLen(0, 1) === 0 && Math.abs(footLen(1.2, 0.2) - 0.2 * FOT.REACHK / (1 - FOT.SWF / 2)) < 1e-9, 'footLen: ingen fart, intet steg; rekkevidden setter taket');
