@@ -18,7 +18,7 @@ async def main():
         await boot(pg)
         await pg.evaluate(D2)
         await pg.evaluate("lifeDay = () => {}; lifeInjury = () => {};")
-        await pg.evaluate("window.mk3 = (c, rig, pick) => { const o = S.ops = plan3New(c, rig, pick); return new Promise(res => plan3Make(o, err => res(err || null))); };")
+        await pg.evaluate("() => { window.mk3 = (c, rig, pick) => { const o = S.ops = plan3New(c, rig, pick); return new Promise(res => plan3Make(o, err => res(err || null))); }; }")
 
         # A: line from port, you aboard, two in the crew; only the ring and the gear are given
         r = await pg.evaluate("""(async () => { D2.reset(1); const home = D2.boat('sjark', 2, true); D2.gear('line', 8); await mapNeed(portById(home).p, 14);
@@ -59,8 +59,9 @@ async def main():
           const F = D2.spots(2, 4, 12), o = S.ops = plan2New({home, rig:'line', jig:false, places:[D2.felt('f1', F[0], 2, 6), D2.felt('f2', F[1], 2, 6)], dep:5, land:{mode:'near', port:null, when:'trip'}});
           const e1 = await D2.make(o); if (e1) return {e1}; plan2Start(o); const L1 = await D2.run(360, 'closed', 'D1');
           const sea = mySets().length, M = o.M, r1 = plan3Retire(o), retiring = !!(r1 && o.retire && o.home === M);
+          await D2.make(o);   // (the legs again with the plant as home: in the game this search runs between frames, plan2Step waits for it)
           const L2 = await D2.run(2 * 1440, 'closed', 'D2'); const after = plan3Retire(o);
-          return {sea, retiring, M, fin:L2.fin, gone:S.ops === null && after === null, msgs:L2.msgs.concat(S.msgs.slice(-2).map(m => m.no)).slice(-6)}; })()""")
+          return {sea, retiring, M, ops:L2.ops, ev:L2.ev.slice(0, 30), fin:L2.fin, gone:S.ops === null && after === null, msgs:L2.msgs.concat(S.msgs.slice(-2).map(m => m.no)).slice(-6)}; })()""")
         print('D:', json.dumps(r, ensure_ascii=False)[:700])
         print(ok(r.get('sea', 0) > 0 and r.get('retiring')), 'D a running v4 plan with gear in the sea goes on to fetch it and land at its plant', [r.get('sea'), r.get('retiring')])
         f = r.get('fin', {})

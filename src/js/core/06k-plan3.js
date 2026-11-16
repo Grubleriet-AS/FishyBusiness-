@@ -31,7 +31,7 @@ const plan3RingKm = rig => DRP3.ring[plan3GearKey(rig)] * NM / 2;   // the ring'
 function plan3Gear(){
   const b = S.boat, out = [];
   for (const rig of Object.keys(RIGS)){
-    const kind = RIGS[rig].kind, why = rigBlock(rig);
+    const kind = RIGS[rig].kind, why = rig === rigOf() ? null : rigBlock(rig);   // (the rig she has is offered; rigBlock says «already rigged» for it)
     if (!kind){ const has = !!b.gear || ((S.equip && S.equip.jukse) || 0) > 0; if (!has || why || (typeof vesselJigs === 'function' && !vesselJigs())) continue;
       out.push({rig, gk:'juksa', tackle:['mark'].concat(b.kgear ? ['kveite'] : []), bait:[], lk:[]}); continue; }
     if (why || ownedUnits(kind) < 1) continue;
@@ -101,13 +101,14 @@ function plan3Home(o){
   return cands.length ? cands[0].id : null;
 }
 // the rhythm: the ocean vessels round the clock only (Jonas 07.11.2026); else round the clock when the boat and the people aboard allow it
-// (plan2WatchWhy), trips of three days on a boat with bunks, and day trips on one without
+// (plan2WatchWhy), and day trips otherwise: out in the morning, the catch landed fresh, the night in port (trips of several days kept the fish
+// aboard for days and rested the crew at a plant's quay, and were no better for a boat that cannot go round the clock; DP3-1 16.11.2026)
 function plan3Rhythm(o){
   if (p2Hav() || p2Lag()) return 'watch';
   const V = VESSELS[S.boat.type] || {}, st = {house:!!V.watch, bunks:V.berths || 0, crewMax:V.crewMax || 0};
   const aboard = crewAboard(null, true).length + (meAboard() ? 1 : 0);
   if (!plan2WatchWhy(st, aboard)) return 'watch';
-  return st.bunks > 0 ? 'multi' : 'day';
+  return 'day';
 }
 // the weather: «Vanlig» as this boat takes it (the page's presets before, clamped to her own limits; GUI review F5)
 function plan3Wx(){
@@ -141,7 +142,9 @@ function plan3Derive(o, spots){
   o.places = plan3Places(o, spots);
   o.wx = plan3Wx(); o.rhythm = plan3Rhythm(o); o.days = 3; o.dep = 5;
   const sno = p2Sno(o), hav = p2Hav() || p2Lag();
-  o.land = {mode:'near', port:null, when:sno ? 'days' : hav ? 'full' : o.rig === 'teiner' ? 'trip' : 'full', days:sno ? DRP2.sno.days : hav ? DRP2.hav.days : 2};
+  // the landing: a day trip lands every trip (the fish fresh at the plant the same day), a trip of days on its last day, round the clock
+  // when the hold is full; the ocean vessels by their own rules (H2c, H3c). The freshness lands sooner in each (planDay mustFresh)
+  o.land = {mode:'near', port:null, when:sno ? 'days' : hav ? 'full' : o.rhythm === 'day' ? 'trip' : o.rhythm === 'multi' ? 'days' : 'full', days:sno ? DRP2.sno.days : hav ? DRP2.hav.days : o.days};
   o.derived = {t:S.t, roles:plan3Roles()};
   if (isBerth(o.home)) havnHold(o.home);
   return null;
@@ -150,7 +153,7 @@ function plan3Derive(o, spots){
 function plan3Apply(o){
   if (o.bait && BAITS[o.bait] && S.pgear) S.pgear.baitPref = o.bait;
   if (o.rig === 'juksa' && o.tackle) S.target = o.tackle === 'kveite' && S.boat.kgear ? 'kveite' : (S.target === 'kveite' ? null : S.target);
-  if (S.boat.rig !== o.rig && !S.boat.gop){ const w = rigSet(o.rig); if (w) return w[0]; }
+  if (rigOf() !== o.rig){ const w = rigSet(o.rig); if (w) return w[0]; }
   return null;
 }
 // make it: the ring's map in, the answers derived, then Driftsplan 2's legs (plan2Make). From anywhere: at sea or in port, aboard or not

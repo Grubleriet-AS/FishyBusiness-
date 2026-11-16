@@ -48,9 +48,9 @@ Så **Start**. Det fungerer fra hvor som helst: i havn, på sjøen, eller når d
 | Hjem | Nærmeste sted ved ringen der mannskapet sover godt: køya om båten har køyer, ellers en rorbu, eller naustet om det er nærmest. Prisen teller med. |
 | Plasser, antall | Søket i ringen (under). Alt redskapet om bord brukes, fordelt på plassene søket fant. |
 | Ståtid | Standarden per redskap (`DRP2.soakDef`). |
-| Levering | Nærmeste mottak som tar båten (`p2PlantOk`), når lasten er full eller ferskheten krever det. Med teiner hver tur. |
+| Levering | Nærmeste mottak som tar båten (`p2PlantOk`). Dagdrift leverer hver tur, en flerdøgnstur turens siste dag, døgndrift når lasten er full; ferskheten kan kreve det tidligere. |
 | Vær | Båtens grenser med «Vanlig» (`DRP2.hav.wx` for havbåtene). |
-| Rytme | Køyer og fire om bord gir døgndrift. Køyer og færre gir flerdøgnstur. Ellers dagdrift. Havbåtene har bare døgndrift. |
+| Rytme | Køyer og fire om bord gir døgndrift. Ellers dagdrift: ut om morgenen, fangsten levert fersk samme dag, natta i havn (endret i DP3-1 fra flerdøgnstur på båter med køyer, som holdt fangsten om bord i flere døgn). Havbåtene har bare døgndrift. |
 | Avgang | Kl. 05, eller med en gang når planen startes. |
 | Skipper og styrmann | Mangler de, utnevner planen de to med mest erfaring om bord. Er det for få folk, sier den hva som mangler, og går ikke. |
 
