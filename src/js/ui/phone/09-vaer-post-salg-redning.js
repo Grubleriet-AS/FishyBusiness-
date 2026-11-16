@@ -105,16 +105,15 @@
       // (the launch, Jonas 16.11.2026: «Bedre toppliste»: kilos, kroner and the total since the start, the founders' badge, and a tap on a row
       // opens the player's profile, ui/10v-profil.js; ui/10h-world.js worldTop)
       const kind = sub.salgK === 'kr' || sub.salgK === 'tot' ? sub.salgK : 'kg', tot = kind === 'tot';
-      const w = weekOf(H), which = sub.salgW === 'prev' ? w - 1 : w, grp = sub.salgG || (S.lic ? 'lukket' : 'open'), T = typeof worldTop === 'function' ? worldTop(Math.max(0, which), grp, kind) : null;
+      const w = weekOf(H), which = sub.salgW === 'prev' ? w - 1 : w, grp = 'all', T = typeof worldTop === 'function' ? worldTop(Math.max(0, which), grp, kind) : null;   // (both groups on one list, Jonas 16.11.2026)
       // (Jonas 16.11.2026: «La topplisten med norges beste båter stå for seg selv og gjem alle søkemulighetene bak en filter-knapp»: one
       // button with what the list shows now; a tap opens the choices under it, and a choice closes them again)
       const kindN = {kg:L('Kilo', 'Kilos'), kr:L('Kroner', 'Kroner'), tot:L('Totalt', 'Total')};
-      const now = tot ? kindN.tot : [kindN[kind], grp === 'lukket' ? L('lukket gruppe', 'closed group') : L('åpen gruppe', 'open group'), which === w ? L('denne uka', 'this week') : L('forrige uke', 'last week')].join(' · ');
+      const now = tot ? kindN.tot : [kindN[kind], which === w ? L('denne uka', 'this week') : L('forrige uke', 'last week')].join(' · ');
       h.push('<div class="pf-filt"><button class="ph-btn alt' + (sub.salgF ? ' on' : '') + '" data-pa="salgF">' + L('Filter', 'Filter') + ' ▾</button><span class="ph-note">' + now + '</span></div>');
       if (sub.salgF){
         h.push('<div class="ph-card pf-fbox"><div class="ph-sub" style="padding:0 0 6px">' + ['kg', 'kr', 'tot'].map(k => '<button class="' + (kind === k ? 'on' : '') + '" data-pa="salgK" data-s="' + k + '">' + kindN[k] + '</button>').join('') + '</div>');
         if (!tot){
-          h.push('<div class="ph-sub" style="padding:0 0 6px"><button class="' + (grp === 'open' ? 'on' : '') + '" data-pa="salgG" data-s="open">' + L('Åpen gruppe', 'Open group') + '</button><button class="' + (grp === 'lukket' ? 'on' : '') + '" data-pa="salgG" data-s="lukket">' + L('Lukket gruppe', 'Closed group') + '</button></div>');
           h.push('<div class="ph-sub" style="padding:0"><button class="' + (which === w ? 'on' : '') + '" data-pa="salgW" data-s="now">' + L('Denne uka', 'This week') + '</button><button class="' + (which !== w ? 'on' : '') + '" data-pa="salgW" data-s="prev">' + L('Forrige uke', 'Last week') + '</button></div>');
         }
         h.push('</div>');
@@ -125,24 +124,23 @@
       if (T && T.old){
         h.push('<div class="ph-card"><p class="ph-note">' + L('Topplista i kroner og totalt kommer snart.', 'The leaderboard in kroner and in total is coming soon.') + '</p></div>');
       } else if (T && !T.err){
-        const d = T.data, rows = d ? d.rows || [] : null, pn = id => { const q = id && portById(id); return escT(q ? q.name : id || '–'); }, cl = grp === 'lukket' && !tot, money = kind !== 'kg';
-        const mine = cl && S.lic && S.company ? co(S.company) : '';
-        const title = tot ? L('Norges beste fiskere, totalt', 'Norway\'s best fishers, in total') : L('Norges beste båter', 'Norway\'s best boats') + ' · ' + (cl ? L('lukket gruppe', 'closed group') : L('åpen gruppe', 'open group'));
+        const d = T.data, rows = d ? d.rows || [] : null, pn = id => { const q = id && portById(id); return escT(q ? q.name : id || '–'); }, cl = false, money = kind !== 'kg';
+        const mine = S.lic && S.company ? co(S.company) : '';
+        const title = tot ? L('Norges beste fiskere, totalt', 'Norway\'s best fishers, in total') : L('Norges beste båter', 'Norway\'s best boats');
         h.push('<div class="ph-card"><h4>' + title + '</h4>' + (!d ? '<p class="ph-note">' + L('Henter topplista …', 'Fetching the leaderboard …') + '</p>'
-          : !rows.length ? '<p class="ph-note">' + (tot ? L('Ingen har landet ennå.', 'No one has landed yet.') : which === w ? L('Ingen har landet i ' + (cl ? 'lukket' : 'åpen') + ' gruppe denne uka ennå.', 'No one has landed in the ' + (cl ? 'closed' : 'open') + ' group this week yet.') : L('Ingen landet i ' + (cl ? 'lukket' : 'åpen') + ' gruppe forrige uke.', 'No one landed in the ' + (cl ? 'closed' : 'open') + ' group last week.')) + '</p>'
+          : !rows.length ? '<p class="ph-note">' + (tot ? L('Ingen har landet ennå.', 'No one has landed yet.') : which === w ? L('Ingen har landet denne uka ennå.', 'No one has landed this week yet.') : L('Ingen landet forrige uke.', 'No one landed last week.')) + '</p>'
           : '<table class="ph-tbl pf-top"><tr><th>#</th><th>' + L('Båt', 'Boat') + '</th>' + (tot ? '' : '<th>' + L('Mottak', 'Plant') + '</th>') + '<th class="n">kg</th>' + (money ? '<th class="n">kr</th>' : '') + '</tr>' +
-            rows.map(r => { const bn = peerName(r.boat), cn = cl || tot ? (peerName(r.company) === '–' ? (cl ? L('Ukjent rederi', 'Unknown company') : '') : peerName(r.company)) : '';
+            rows.map(r => { const bn = peerName(r.boat), cn = r.company && peerName(r.company) !== '–' ? peerName(r.company) : '';
               const un = r.user ? peerName(r.user) : '';   // the owner's player name (supabase/migrations/20261007130000_seen.sql)
               const tap = r.hid ? ' data-pa="open" data-a="profil" data-s="' + escT(r.hid) + '"' : '';
               return '<tr class="' + (r.me ? 'me' : '') + (r.hid ? ' pf-tap' : '') + '"' + tap + '><td>' + r.rank + '</td><td>' + (r.me ? me + fb(r.f) + (mine || co(cn)) : escT(bn === '–' ? L('Ukjent båt', 'Unknown boat') : bn) + fb(r.f) + co([un, cn].filter(Boolean).join(' · '))) + '</td>' +
                 (tot ? '' : '<td>' + pn(r.port) + '</td>') + '<td class="n">' + fmt(r.kg, 0) + '</td>' + (money ? '<td class="n">' + fmt(r.kr || 0, 0) + '</td>' : '') + '</tr>'; }).join('') +
             (d.mine && d.mine.rank > rows.length ? '<tr class="me"><td>' + d.mine.rank + '</td><td>' + me + mine + '</td>' + (tot ? '' : '<td></td>') + '<td class="n">' + fmt(d.mine.kg, 0) + '</td>' + (money ? '<td class="n">' + fmt(d.mine.kr || 0, 0) + '</td>' : '') + '</tr>' : '') + '</table>') +
           '<p class="ph-note">' + (tot ? L('Hele kysten: alle spillerne etter verdien av alt de har landet siden de startet. Trykk på en båt for å se profilen.', 'The whole coast: all the players by the value of everything they have landed since they started. Tap a boat to see the profile.')
-              : (cl ? L('Hele kysten: spillerne i lukket gruppe etter hvor mye de har landet i spilluka, med fartøyet, rederiet og mottaket de har levert mest til.', 'The whole coast: the players in the closed group by how much they have landed this game week, with the vessel, the company and the plant they delivered most to.')
-              : L('Hele kysten: spillerne i åpen gruppe etter hvor mye de har landet i spilluka, med båtnavnet og mottaket de har levert mest til.', 'The whole coast: the players in the open group by how much they have landed this game week, with the boat\'s name and the plant they delivered most to.')) +
+              : L('Hele kysten: alle spillerne, åpen og lukket gruppe sammen, etter hvor mye de har landet i spilluka, med båtnavnet, rederiet og mottaket de har levert mest til.', 'The whole coast: all the players, the open and the closed group together, by how much they have landed this game week, with the boat\'s name, the company and the plant they delivered most to.') +
                 (money ? ' ' + L('Rangert etter fangstverdien i kroner.', 'Ranked by the catch value in kroner.') : '') + ' ' + L('Trykk på en båt for å se profilen.', 'Tap a boat to see the profile.')) +
             (d && d.n ? ' ' + L(d.n + (d.n === 1 ? ' båt' : ' båter') + ' har landet.', d.n + (d.n === 1 ? ' boat has' : ' boats have') + ' landed.') : '') +
-            (tot ? '' : cl && !S.lic ? ' ' + L('Du fisker i åpen gruppe og er ikke med her.', 'You fish in the open group and are not on this list.') : !cl && S.lic ? ' ' + L('Du fisker i lukket gruppe og er ikke med her.', 'You fish in the closed group and are not on this list.') : '') + '</p></div>');
+            '</p></div>');
       } else if (grp === 'lukket'){
         h.push('<div class="ph-card"><p class="ph-note">' + L('Topplista for lukket gruppe, med alle spillerne langs kysten, vises når du er logget inn på detstorebla.no eller i appen.', 'The closed group\'s leaderboard, with all the players along the coast, shows when you are signed in on detstorebla.no or in the app.') + '</p></div>');
       } else {

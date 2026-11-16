@@ -127,11 +127,11 @@ const WTOP = {};
 const WTOP_NEW = {off:0};
 function worldTop(w, grp, kind){
   if (typeof CLOUD === 'undefined' || !CLOUD.on || !CLOUD.user) return null;
-  grp = grp === 'lukket' ? 'lukket' : 'open'; kind = kind === 'kr' || kind === 'tot' ? kind : 'kg';
+  grp = grp === 'lukket' || grp === 'all' ? grp : 'open'; kind = kind === 'kr' || kind === 'tot' ? kind : 'kg';
   const key = (kind === 'tot' ? 'tot' : w + '|' + grp + (kind === 'kr' ? '|kr' : '')), e = WTOP[key] || (WTOP[key] = {at:0, data:null, busy:false, err:false, old:false});
   if (!e.busy && Date.now() - e.at > 60000){
     e.busy = true;
-    const old = () => kind === 'kg' ? cloudRpc('world_top', {w, grp}) : Promise.resolve(null).then(() => { e.old = true; return null; });
+    const old = () => kind === 'kg' ? cloudRpc('world_top', {w, grp:grp === 'all' ? (S.lic ? 'lukket' : 'open') : grp}) : Promise.resolve(null).then(() => { e.old = true; return null; });
     (Date.now() < WTOP_NEW.off ? old() : cloudRpc('top_list', {kind, w, grp}).catch(x => { if (!/ 404$/.test(x.message)) throw x; WTOP_NEW.off = Date.now() + 600000; return old(); }))
       .then(d => { e.data = d; e.err = false; }).catch(() => { e.err = true; })
       .finally(() => { e.busy = false; e.at = Date.now(); if (PHONE.isOpen() && (PHONE.app === 'salg' || PHONE.app === 'post')) PHONE.render(); });

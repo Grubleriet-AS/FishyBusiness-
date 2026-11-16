@@ -3,8 +3,8 @@
 --
 --   landings.kr            the value of each landed row (the game sends it with land_put; 0 for the rows from before)
 --   land_put(...)          as in 20261110160000_cheat_flags.sql, with each item's kr, and the founders' count after the landing
---   top_list(kind, w, grp) kind 'kg': the game week's kilos (as world_top), 'kr': the game week's value, 'tot': all the value landed since
---                          the start, every group. The top 20 with the public id (hid, as pos_world's id), the player's name, the boat,
+--   top_list(kind, w, grp) kind 'kg': the game week's kilos, 'kr': the game week's value, 'tot': all the value landed since the start;
+--                          every group on one list unless grp names one. The top 20 with the public id (hid, as pos_world's id), the player's name, the boat,
 --                          the founders' number, and the caller's own place. Haill is never in it (docs/engasjement.md).
 --   founders, founders_cfg.start
 --                          Jonas 16.11.2026: «de 100 første som leverer fisk får merket», counted from the moment he turns it on in
@@ -116,26 +116,29 @@ begin
 end $$;
 
 -- ---------- 4. the leaderboard in three kinds ----------
-create or replace function public.top_list(kind text, w int default 0, grp text default 'open') returns jsonb
+-- (Jonas 16.11.2026: «La også norges beste båter være en blanding av lukket og åpen gruppe, slik at begge deler havner på samme liste»:
+-- grp 'all', the default, takes every group; each row is capped by its own group, 10 t open and 60 t closed, and the company shows where
+-- the game sent one, which it does in the closed group only. 'open' and 'lukket' still give one group)
+create or replace function public.top_list(kind text, w int default 0, grp text default 'all') returns jsonb
 language plpgsql stable security definer set search_path = public as $$
 declare p text := pid(); k text := case when top_list.kind in ('kr', 'tot') then top_list.kind else 'kg' end;
-  g text := case when top_list.grp = 'lukket' then 'lukket' else 'open' end; cap real := case when top_list.grp = 'lukket' then 60000 else 10000 end; co boolean := cheat_on();
+  g text := case when top_list.grp in ('open', 'lukket') then top_list.grp else 'all' end; co boolean := cheat_on();
 begin
   if p is null then raise exception 'not signed in'; end if;
   if k <> 'tot' and (w is null or w < 0 or w > 100000) then raise exception 'bad week'; end if;
   return (
     with l as (select x.* from landings x
-                 where (k = 'tot' or (x.acc = g and x.gh >= top_list.w * 168.0 and x.gh < (top_list.w + 1) * 168.0))
+                 where (k = 'tot' or ((g = 'all' or x.acc = g) and x.gh >= top_list.w * 168.0 and x.gh < (top_list.w + 1) * 168.0))
                    and (x.player_id = p or (not exists (select 1 from players gp where gp.id = x.player_id and gp.guest)
                         and not (co and exists (select 1 from cheat_flags cf where cf.player_id = x.player_id and cf.cleared_at is null))))),
-    t as (select l.player_id, sum(least(l.kg, cap)) kg, sum(least(l.kr, cap * 1000)) kr, (array_agg(l.boat order by l.id desc))[1] boat,
-                 (array_agg(l.company order by l.id desc))[1] company from l group by l.player_id),
+    t as (select l.player_id, sum(least(l.kg, case when l.acc = 'lukket' then 60000 else 10000 end)) kg, sum(least(l.kr, case when l.acc = 'lukket' then 60000000 else 10000000 end)) kr,
+                 (array_agg(l.boat order by l.id desc))[1] boat, (array_agg(nullif(l.company, '') order by l.id desc) filter (where l.company <> ''))[1] company from l group by l.player_id),
     pt as (select distinct on (player_id) player_id, port from (select l.player_id, l.port, sum(l.kg) s from l group by l.player_id, l.port) a order by player_id, s desc),
     r as (select t.*, pt.port, rank() over (order by case when k = 'kg' then t.kg else t.kr end desc) rk from t left join pt using (player_id))
     select jsonb_build_object(
       'kind', k, 'grp', g,
       'rows', coalesce((select jsonb_agg(jsonb_build_object('rank', rk, 'hid', left(md5('dsb' || a.player_id), 10), 'boat', boat,
-                          'company', case when g = 'lukket' or k = 'tot' then company else '' end, 'port', port,
+                          'company', coalesce(company, ''), 'port', port,
                           'kg', round(kg::numeric), 'kr', round(kr::numeric), 'me', player_id = p,
                           'f', (select fo.no from founders fo where fo.player_id = a.player_id),
                           'user', coalesce((select nm.name from names nm where nm.player_id = a.player_id and nm.removed_at is null), '')) order by rk, kg desc)

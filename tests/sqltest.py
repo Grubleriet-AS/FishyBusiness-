@@ -1704,12 +1704,15 @@ def main():
         sql("select pg_sleep(0.05)"); sql("select public.tm_hello('{}')", L2, 'authenticated'); sql("select public.tm_hello('{}')", L3, 'authenticated')
         land = lambda who, kg, kr: sql("""select public.land_put(1000, 2027, 'finnsnes', 'open', '[{"sp":"torsk","kg":%s,"kgq":0,"kr":%s}]')""" % (kg, kr), who, 'authenticated')
         land(L1, 100, 3000); land(L2, 100, 3000); land(L3, 50, 5000); land(L2, 1, 1e9)
+        # (one group list for both, Jonas 16.11.2026: L1's closed-group landing counts on the same list, with the company)
+        sql("""select public.land_put(1000, 2027, 'finnsnes', 'lukket', '[{"sp":"sei","kg":5,"kgq":0,"kr":100}]', 'Kvitbjørn', 'Kvitbjørn AS')""", L1, 'authenticated')
         LA['f'] = sql("select string_agg(player_id || ':' || no, ',' order by no) from public.founders where player_id like 'user_01LA%'")
         LA['cap'] = sql("select kr from public.landings where player_id = 'user_01LA2' and kg = 1")
         hid = lambda who: sql("select left(md5('dsb' || '%s'), 10)" % who['sub'])
-        mine = lambda kind, who: json.loads(sql("select public.top_list('%s', 5, 'open')" % kind, who, 'authenticated'))
+        mine = lambda kind, who: json.loads(sql("select public.top_list('%s', 5)" % kind, who, 'authenticated'))
         rows = lambda T: [(r['hid'], r['f']) for r in T['rows'] if r['hid'] in (hid(L1), hid(L2), hid(L3))]
         TK, TR, TT = mine('kg', L1), mine('kr', L1), mine('tot', L1)
+        LA['co'] = [r['company'] for r in TK['rows'] if r['hid'] == hid(L1)][0]
         LA['kg'] = rows(TK)[:3]; LA['kr'] = rows(TR)[:3]; LA['krMine'] = TR['mine']
         sql("""select public.prof_put('{"fleet":2,"value":850000,"worth":900000,"company":"Havbris <b>AS","form":"AS","ach":7,"boats":[{"n":"Havbris","t":"sjark"}],"recs":[{"sp":"torsk","kg":31.5}]}')""", L2, 'authenticated')
         P0 = json.loads(sql("select public.profile_get('%s')" % hid(L2), L1, 'authenticated'))
@@ -1728,7 +1731,7 @@ def main():
                     sql("select public.ag_put('x', null, '{}')", L2, 'authenticated', expect_err=True)[0],
                     sql("select topic || ':' || (meta -> 'ag' ->> 'how') || ':' || (meta ? 'pos')::text from public.feedback where player_id = 'user_01LA2' order by id desc limit 1")]
         print(ok(LA['denyP'] and LA['deny1'] and LA['on']['from'] and LA['f'] == 'user_01LA2:1,user_01LA3:2' and float(LA['cap']) == 1000
-                 and LA['kg'] == [(hid(L2), 1), (hid(L1), None), (hid(L3), 2)] and LA['kr'] == [(hid(L3), 2), (hid(L2), 1), (hid(L1), None)] and LA['krMine'] == {'kg': 100, 'kr': 3000, 'rank': 3}
+                 and LA['kg'] == [(hid(L1), None), (hid(L2), 1), (hid(L3), 2)] and LA['kr'] == [(hid(L3), 2), (hid(L2), 1), (hid(L1), None)] and LA['krMine'] == {'kg': 105, 'kr': 3100, 'rank': 3} and LA['co'] == 'Kvitbjørn AS'
                  and LA['prof'] == [1, False, 2, 'Havbris bAS', 'AS', None, 101] and LA['badAv'] and LA['wait'] == ['wait', None]
                  and LA['avDeny'] and LA['avList'] == [True] and (LA['ok'] or '').startswith('data:image/png') and all(LA['tables']) and LA['off'] == 2 and LA['ag'] == [True, True, 'bug:leia:true']),
               'the launch: founders from the admin\'s switch (an older account never, the number kept), the value capped at 1 000 kr/kg, top_list by kg and kr with the founder\'s number, the profile, and the picture only once approved; the tables closed to players', json.dumps(LA))
