@@ -207,6 +207,8 @@
   return {
     bench, benchPeers, prof, prep,
     // the quality: with a setting ('auto', 'low', 'mid', 'high') it applies it; returns the level now and the frame rate
+    // the player's graphics settings (PGFX, 00-head.js): with an object, the live ones apply at once and all are kept on the device
+    gfx(set){ if (set){ Object.assign(PGFX, set, {off:Object.assign({}, PGFX.off, set.off || {})}); try { localStorage.setItem(PGFX_KEY, JSON.stringify(PGFX)); } catch (e){} if (active) resize(); } return JSON.parse(JSON.stringify(PGFX)); },
     quality(v){ if (v){ S.settings.q3d = v; QUAL.bad = QUAL.good = 0; QUAL.cap = 2; qualSet(); } return {lvl:QUAL.lvl, set:S.settings.q3d || 'auto', fps:FPS.v, ultra:UINT}; },
     show, toggle(){ return show(!active); }, hold(on){ HOLD = !!on; if (!on) lastF = 0; else qmAlive(false); }, isActive:() => active, say:say3d, crewFx:crewFx3d, sayWorker, sayBoat, anchorAlarm:anchorAlarm3d, haltNeed:() => dynLive() ? dynHaltNeed() : active ? trkHaltNeed() : 0, get failWhy(){ return failWhy; },
     // the next frame as a JPEG data URL (or null when no frame comes within 2 s)

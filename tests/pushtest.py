@@ -47,13 +47,13 @@ async def main():
         # 1. no VAPID key yet: no switch
         calls = []; ctx, pg, errs = await page(br, calls, None)
         await boot(pg, GAME + '#notut'); await pg.wait_for_timeout(1500)
-        r = await pg.evaluate("(() => { PHONE.open('innst'); const t = document.querySelector('.ph-appv'); const has = !!document.querySelector('[data-pa=cloudPush]'); PHONE.show(false); return {has, card:!!(t && t.innerText.includes('Konto')), key:PUSH.key}; })()")
+        r = await pg.evaluate("(() => { (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); const t = document.querySelector('.ph-appv'); const has = !!document.querySelector('[data-pa=cloudPush]'); PHONE.show(false); return {has, card:!!(t && t.innerText.includes('Konto')), key:PUSH.key}; })()")
         check(r['card'] and not r['has'] and r['key'] is None, 'without the VAPID key on the server the account card has no switch for notifications', r)
         await ctx.close()
         # 2. with the key: the switch, turning it on, and the plan while away
         calls = []; ctx, pg, errs = await page(br, calls, 'BKeytest-abc_d12')
         await boot(pg, GAME + '#notut'); await pg.wait_for_timeout(1500)
-        await pg.evaluate("PHONE.open('innst')"); await pg.wait_for_timeout(300)
+        await pg.evaluate("(PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render())"); await pg.wait_for_timeout(300)
         has = await pg.evaluate("!!document.querySelector('[data-pa=cloudPush]')")
         await pg.evaluate("document.querySelector('[data-pa=cloudPush]').click()"); await pg.wait_for_timeout(800)
         on = await pg.evaluate("({push:S.settings.push, asked:window.__asked === 1, opt:!!(window.__subOpt && window.__subOpt.userVisibleOnly && window.__subOpt.applicationServerKey.length), checked:!!(document.querySelector('[data-pa=cloudPush]') || {}).checked})")
@@ -118,7 +118,7 @@ async def main():
         check(len(plans) == 2 and len(plans[0]) >= 1 and plans[1] == [], 'to the background the plan goes up; back in the app it is cleared', [len(x) for x in plans])
         # the groups on the account card, and the leaderboard's choice goes to the server
         n0 = len(calls)
-        r = await pg.evaluate("""(async () => { PHONE.open('innst'); const n = document.querySelectorAll('#phone [data-pa=cloudPushCat]').length;
+        r = await pg.evaluate("""(async () => { (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); const n = document.querySelectorAll('#phone [data-pa=cloudPushCat]').length;
           document.querySelector('#phone [data-pa=cloudPushCat][data-k=uke]').click(); await new Promise(r => setTimeout(r, 300)); const st = S.settings.pushCat.uke; PHONE.show(false); return {n, st}; })()""")
         pr = [c[1] for c in calls[n0:] if c[0] == 'push_prefs']
         check(r['n'] == 2 and r['st'] is False and pr and pr[-1].get('top') is False, 'the account card lists the two groups when notifications are on, and turning the week\'s best fisher off tells the server', {'r': r, 'prefs': pr})

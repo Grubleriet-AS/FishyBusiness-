@@ -86,7 +86,7 @@ async def main():
         check(hf['id'] == 'tut' and hf['menu'] == 'horn' and len(hf['fan']) == 5 and hf['a'] and not hf['b2'] and hf['q'] == [['SS', True]] and hf['none'], 'Horn i knappelinja mens varselet står, med 1, 2, 3 og 5 korte og ett langt; ett signal om gangen; borte uten varsel', hf)
         await pg.evaluate("(() => { S.settings.sound = false; })()"); off = await pg.evaluate(LV)
         check(off['master'] == 0, 'med lyden av i innstillingene er alt stille', off['master'])
-        has = await pg.evaluate("(() => { PHONE.open('innst'); return document.querySelectorAll('[data-pa=snd]').length; })()")
+        has = await pg.evaluate("(() => { (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'lyd'}), PHONE.render()); return document.querySelectorAll('[data-pa=snd]').length; })()")
         check(has == 5, 'Innstillinger har lydvalget (av og fire styrker)', has)
         # the music: on its own volume, playing with the sound effects off, a chord under way; off in the settings is silent
         mu = await pg.evaluate("""(() => { S.settings.sound = false; S.settings.music = 0.35; SND.tick(); const on = {lv:SND.LV.music, chord:!!SND.MUS.chord, out:!!SND.MUS.out};

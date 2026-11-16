@@ -258,7 +258,7 @@
   function buildLabels(){ labelsEl.innerHTML = ''; labelEls = []; }
   function resize(){
     const r = wrap.getBoundingClientRect(), dpr = PROF.dpr ? Math.min(window.devicePixelRatio || 1, PROF.dpr) : Math.min(window.devicePixelRatio || 1, QUAL.dpr[QUAL.lvl], QUAL.lvl ? 9 : Math.sqrt(QUAL.px0 * QUAL.pxK / Math.max(1, r.width * r.height)));
-    const w = Math.max(1, Math.round(r.width * dpr)), h = Math.max(1, Math.round(r.height * dpr));
+    const k = Math.max(0.5, Math.min(1, +PGFX.res || 1)), w = Math.max(1, Math.round(r.width * dpr * k)), h = Math.max(1, Math.round(r.height * dpr * k));   // (the player's resolution, PGFX.res)
     if (canvas.width !== w || canvas.height !== h){ canvas.width = w; canvas.height = h; }
   }
 

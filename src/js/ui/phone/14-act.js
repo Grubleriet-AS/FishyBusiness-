@@ -69,6 +69,12 @@
     }
     else if (a === 'mus'){ S.settings.music = +d.v; if (+d.v > 0) SND.start(); }
     else if (a === 'snd'){ const v = +d.v; S.settings.sound = v > 0; if (v > 0){ S.settings.vol = v; SND.start(); } }
+    // the player's graphics (Innstillinger → Grafikk; view3d/00-head.js PGFX): the live ones at once, the others held till «Bruk»
+    else if (a === 'gfx'){ if (typeof G3 !== 'undefined' && G3.gfx){ const k = d.k, v = +d.v; G3.gfx({[k]:k === 'shadow' ? v === 1 : v}); } }
+    else if (a === 'gfxOff'){ if (typeof G3 !== 'undefined' && G3.gfx){ gfxPend = gfxPend || Object.assign({}, G3.gfx().off || {}); gfxPend[d.k] = d.v === '1'; } }
+    else if (a === 'gfxApply'){ if (typeof G3 !== 'undefined' && G3.gfx && gfxPend){ G3.gfx({off:gfxPend}); gfxPend = null; save(); toast(L('Starter 3D på nytt …', 'Restarting 3D …')); setTimeout(() => location.reload(), 400); } }
+    else if (a === 'gfxReset'){ if (typeof G3 !== 'undefined' && G3.gfx){ const had = G3.gfx(), offWas = Object.keys(had.off || {}).some(k => had.off[k]); G3.gfx({res:1, fps:0, dist:1, shadow:true, off:{trees:false, life:false, foam:false, fft:false, shore:false, sun:false}}); gfxPend = null; S.settings.q3d = 'auto'; G3.quality('auto');
+        if (offWas){ save(); toast(L('Starter 3D på nytt …', 'Restarting 3D …')); setTimeout(() => location.reload(), 400); } } }
     else if (a === 'manual'){ S.settings.manual = d.v === '1'; if (!S.settings.manual) helmOff(); }
     else if (a === 'admLetter'){ show(false); showLetter(() => {}); return true; }
     else if (a === 'admNew'){

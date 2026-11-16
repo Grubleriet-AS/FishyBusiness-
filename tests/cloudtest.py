@@ -78,7 +78,7 @@ async def main():
           await cloudFlush(false);
           runAground({...S.boat.pos}); await cloudFlush(true);
           S.lastReal = Date.now(); save(); CLOUD.lastSave = 0; await cloudSaveSoon();
-          PHONE.open('innst'); const card = document.body.innerText.includes('jonas@test.no'); PHONE.show(false);
+          (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); const card = document.body.innerText.includes('jonas@test.no'); PHONE.show(false);
           PHONE.open('home'); const admIcon = !!document.querySelector('#phView [data-a=admin]'); PHONE.open('admin'); const admApp = PHONE.app === 'admin'; PHONE.show(false);
           return {sid:CLOUD.sid, consent:CLOUD.consent, card, admIcon, admApp}; }""")
         batches = [c[1] for c in calls if c[0] == 'tm_batch']; ev = [e['k'] for b in batches for e in b.get('evs', [])]
@@ -111,7 +111,7 @@ async def main():
         check(not c2['open'] and c2['told'] and puts3 and puts3[-1]['force'] is True and await pg.evaluate("!CLOUD.forceNext"), 'the account moved on with a game that has come less far: no choice, the game here goes on and is put up forced (the account keeps the other in its history), and the player is told', {'c2': c2, 'puts': [(q['base'], q['force']) for q in puts3]})
         # the earlier saves in Settings
         replies['save_hist_list'] = [{'id': 7, 'saved_at': '2030-01-01T10:00:00+00:00', 'game_t': 99999, 'summary': {'day': 40, 'cash': 512000, 'boat': 'Havørn', 'type': 'sjark', 'fleet': 2}}]
-        await pg.evaluate("(() => { PHONE.open('innst'); document.querySelector('#phone [data-pa=cloudHist]').click(); })()")
+        await pg.evaluate("(() => { (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); document.querySelector('#phone [data-pa=cloudHist]').click(); })()")
         await pg.wait_for_selector('#phone [data-pa=cloudRestore][data-id="7"]', timeout=10000)
         h = await pg.evaluate("""(() => { const r = document.querySelector('#phone [data-pa=cloudRestore][data-id="7"]').closest('.hrow'); const q = r.getBoundingClientRect(), p = document.getElementById('phone').getBoundingClientRect(); return {text:r.innerText, fits:q.right <= p.right + 1}; })()""")
         check('Dag 40' in h['text'] and 'Havørn' in h['text'] and h['fits'], "«Tidligere lagringer» in Settings lists the account's earlier saves, each with «Hent»", h)
@@ -152,7 +152,7 @@ async def main():
               "the boat's paint goes up with her place and another player's paint comes down to her model; a server without sea time or paint yet gets the place without them, and the shared world stays on", {'up': wl, 'peer': lv, 'nofs': wf, 'old': old, 'calls': wo2})
         replies['pos_put'] = 'null'; S_reset = await pg.evaluate("(() => { delete S.boat.liv; WORLDP.noLiv = false; WORLDP.noFs = false; return 1; })()")
         n0 = len(calls)
-        hide = await pg.evaluate("async () => { S.settings.showMe = false; PHONE.open('innst'); const card = document.getElementById('phView').innerText; PHONE.show(false); await worldTick(); return {card:card.includes('Vis båten min'), hasOff:typeof worldShowMe !== 'undefined'}; }")
+        hide = await pg.evaluate("async () => { S.settings.showMe = false; (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); const card = document.getElementById('phView').innerText; PHONE.show(false); await worldTick(); return {card:card.includes('Vis båten min'), hasOff:typeof worldShowMe !== 'undefined'}; }")
         wo = [c[0] for c in calls[n0:]]
         check(not hide['card'] and not hide['hasOff'] and 'pos_put' in wo and 'pos_off' not in wo and 'pos_world' in wo,
               'there is no hiding the boat: Settings has no such choice, and the place goes up even with the old setting off', {'hide': hide, 'calls': wo})
