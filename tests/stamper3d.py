@@ -112,7 +112,8 @@ async def main():
             small = {'width': 320, 'height': 200}; await pg.set_viewport_size(small)
             n = 3; why = await pg.evaluate(START, n); check(why is None, t + ': settingen begynner', why)
             for _ in range(30): await step(pg, 100)   # (the deck's account follows the new scene: laid out once, a jump)
-            await pg.evaluate("(() => { const L = CREW3D.tubAccount(); window.__SNAP = L.n.snap; })()")
+            # (the account's counts run on over the boats of one page: what this boat carried is counted from here, cb)
+            cb = await pg.evaluate("(() => { const L = CREW3D.tubAccount(); window.__SNAP = L.n.snap; return L.n.carried; })()")
             rs, bad, s0 = await run_op(pg, t, 'setting', 25, 150, small); last = rs[-1]
             check(bad == 0, t + ': setting: hver stamp er et sted, og tellingen er spillets', {'brudd': bad, 'sist': {k: last[k] for k in ('w', 'k', 'n', 'game')}})
             check(last['snap'] == s0, t + ': setting: ingen stamp lagt ut på nytt underveis', {'snap': [s0, last['snap']]})
@@ -120,7 +121,7 @@ async def main():
             # (a deck where the stern and the stack are on parts of the deck with no way between them, deckcrew.js tubSpots: the line runs
             # from the stack and the empty ones stand there until they are hauled; the sjark while she fishes, since steg 125d)
             # (one full tub may stand ready at the stern after it, deckcrew.js L.stage: baited tubs aboard and nothing hauled waiting)
-            if sp['set']: check(last['carried'] >= n and last['w']['nest'] >= n and staged(last) and last['w']['hand'] == 0, t + ': setting: de tomme står i hverandre i reiret, ingen igjen ved hekken', {'w': last['w'], 'wk': last['wk'], 'båret': last['carried'], 'op': last['op']})
+            if sp['set']: check(last['carried'] - cb >= n and last['w']['nest'] >= n and staged(last) and last['w']['hand'] == 0, t + ': setting: de tomme står i hverandre i reiret, ingen igjen ved hekken', {'w': last['w'], 'wk': last['wk'], 'båret': last['carried'] - cb, 'op': last['op']})
             else: check(staged(last) and last['w']['hand'] == 0 and last['k']['empty'] == n, t + ': setting fra stabelen (ingen vei på dekk fra stabelen til hekken): de tomme står der lina gikk fra dem', {'w': last['w'], 'plasser': sp})
             c0, sp0 = last['carried'], last['snap']   # (and none laid out anew as the haul begins: from the set's last reading)
             why = await pg.evaluate(HAUL); check(why is None, t + ': halingen begynner', why)
@@ -131,7 +132,7 @@ async def main():
             check((last['carried'] - c0 >= n or not sp['haul']) and last['w']['nest'] == 0 and staged(last) and last['w']['hand'] == 0 and last['k']['empty'] == 0, t + ': haling: de fulle står i stabelen, reiret er tomt', {'w': last['w'], 'wk': last['wk'], 'k': last['k'], 'båret': last['carried'] - c0, 'op': last['op']})
             print('   ', t, 'plasser', sp, 'mannskapet sist:', last['ag'])
             # (a deck with no spot at the stern nor by the hauler carries no tub, and has nothing to measure: said so, the snekke and the plastsjark)
-            if not sp['set'] and not sp['haul'] and last['carried'] == 0: check(True, t + ': stampen i hendene: ingen stamp bæres på dette dekket (ingen plass ved hekken eller haleren), ingenting å måle')
+            if not sp['set'] and not sp['haul'] and last['carried'] == cb: check(True, t + ': stampen i hendene: ingen stamp bæres på dette dekket (ingen plass ved hekken eller haleren), ingenting å måle')
             else: check(t in CLIPMAX and CLIPMAX[t] <= 10, t + ': stampen i hendene høyst 10 cm inn i en kropp (vakt, folk2maal-målingen)', {'cm': CLIPMAX.get(t)})
         gerr = await pg.evaluate("G3._debug.glErr()")
         check(gerr == 0, 'ingen GL-feil', gerr)
