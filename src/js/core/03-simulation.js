@@ -107,11 +107,28 @@ const upgNext = (b, k) => { const U = UPGS[k], V = VESSELS[(b || S.boat).type ||
 // (a new one takes the place of the one on, b.trim {k, t0}). x: top and cruising speed. On every boat, also one with an outboard
 // (Jonas 11.11.2026: «Trim-boost skal fungere på alle båter uavhengig om det er diesel eller bensin. Spilleren betaler for fart og skal
 // da få det de betaler for»; until then diesel engines only, and the outboard skiff had no trim to buy).
-const BOOSTS = {pump:{x:1.5, h:24, nok:29, no:'Justert dieselpumpe', en:'Tuned injection pump'}, ic:{x:1.75, h:48, nok:39, no:'Ladeluftkjøling', en:'Charge air cooling'}, turbo:{x:2, h:72, nok:49, no:'Økt turbotrykk', en:'Higher boost pressure'}};
+// The price ladder (Jonas 16.11.2026: Laksebaronen sells its 79 kr booster the most, and the players ask for dearer ones; «Kjør på med det
+// du foreslo»): one effect, four lengths, the same prices on every kind, so the cards are easy to compare. Raised the same evening (Jonas:
+// «Laksebaronen selger boostere som bare varer 8 timer til 79kr stykk, og det selger som hakka møkk»; «Vi må ikke bli for billige»;
+// «Greit, kjør det ut»): 2 / 8 / 24 hours and 3 days for 29 / 79 / 149 / 299 kr, about 10 kr an hour for 8 hours as Laksebaronen, less
+// an hour the longer, and still under what the hop costs for the same time saved (core/06j-hopp.js HOP). Turbotrim is
+// double speed; h is game hours (24 = 4 real hours). The three of before (old) stay for the grants already bought and are no longer sold.
+// g is the kind: two of the same kind add their hours, another takes the place (trimSet, boostBack).
+const BOOSTS = {t2:{x:2, h:12, nok:29, g:'x2', no:'Turbotrim, 2 timer', en:'Turbo tune, 2 hours'}, t8:{x:2, h:48, nok:79, g:'x2', no:'Turbotrim, 8 timer', en:'Turbo tune, 8 hours'},
+  t24:{x:2, h:144, nok:149, g:'x2', no:'Turbotrim, 24 timer', en:'Turbo tune, 24 hours'}, t72:{x:2, h:432, nok:299, g:'x2', best:true, no:'Turbotrim, 3 døgn', en:'Turbo tune, 3 days'},
+  pump:{x:1.5, h:24, nok:29, old:true, no:'Justert dieselpumpe', en:'Tuned injection pump'}, ic:{x:1.75, h:48, nok:39, old:true, no:'Ladeluftkjøling', en:'Charge air cooling'}, turbo:{x:2, h:72, nok:49, old:true, g:'x2', no:'Økt turbotrykk', en:'Higher boost pressure'}};
+const boostKind = k => (BOOSTS[k] && BOOSTS[k].g) || k;
 const canBoost = V => !!V;
 // (until: the end, game minutes; a trim from before it was kept ends at t0 + its hours)
-const trimUntil = b => b.trim.until != null ? b.trim.until : b.trim.t0 + BOOSTS[b.trim.k].h * 60;
-const trimOn = b => { const T = b && b.trim && BOOSTS[b.trim.k]; return T && S.t < trimUntil(b) ? T : null; };
+// The trim is the fleet's (Jonas 16.11.2026: «disse boosterne ikke er linket opp mot et spesifikt fartøy … En speedboost fungerer på alle,
+// selv båter som går på driftsplan»): S.trim, as Skippertak's S.skip, read for every vessel as the fleet loop binds her (applyVessel).
+// A save from before has it on one boat (b.trim): that one goes on till it ends.
+// (the one running first: an old save's trim on one boat, still running beside a fleet trim that has run out, is not hidden by it)
+const trimRecUntil = r => r.until != null ? r.until : r.t0 + BOOSTS[r.k].h * 60;
+const trimRec = b => { const f = S.trim && BOOSTS[S.trim.k] ? S.trim : null, o = b && b.trim && BOOSTS[b.trim.k] ? b.trim : null;
+  return f && S.t < trimRecUntil(f) ? f : o && S.t < trimRecUntil(o) ? o : f || o; };
+const trimUntil = b => { const r = trimRec(b); return !r ? -Infinity : trimRecUntil(r); };
+const trimOn = b => { const r = trimRec(b), T = r && BOOSTS[r.k]; return T && S.t < trimUntil(b) ? T : null; };
 const trimLeft = b => trimOn(b) ? (trimUntil(b) - S.t) / 60 : 0;   // game hours
 // the route's speed follows a trim that comes on or runs out (Jonas 06.11.2026: «Det skal ikke være nødvendig med refresh etter kjøp av
 // noen typer boost»): the speed chosen on the slider is knots, and Autonav and the minute step hold her under it, so a trim bought on
@@ -123,13 +140,19 @@ function trimRescale(v0){
   if (S.plan && S.plan.speed > 0 && !S.plan.full) S.plan.speed = sc(S.plan.speed);   // (full ones are speedPin's)
   if (S.draftSpeed > 0 && !S.draftFull) S.draftSpeed = sc(S.draftSpeed);
 }
+// the trim is the fleet's (16.11.2026): when it comes on or goes, the route speed of every boat follows, not only the one aboard (a boat
+// of the fleet on a route set in knots got nothing of a trim bought while another was aboard)
+function trimFleet(change){
+  const c = S.fleet && S.fleet.length ? curVessel() : null, others = (S.fleet || []).filter(v => v !== c), v0s = others.map(v => withVessel(v, () => BOAT.vmax)), v0 = BOAT.vmax;
+  change(); applyVessel(); trimRescale(v0); others.forEach((v, i) => withVessel(v, () => trimRescale(v0s[i])));
+}
 // a trim on the boat aboard (S.boat; the shop gives it inside withVessel for the boat it was bought for), and one that has run out
 // The same kind as the one on adds its hours to it (06.11.2026: no paid time lost, as Skippertak); another kind takes its place, which
 // the Trim app asks about first (phone/14-act.js trimPend). Returns 'ext' when it was added, 'new' when it came on
 function trimSet(k){
   const b = S.boat, B = BOOSTS[k]; if (!B) return null;
-  if (trimOn(b) && b.trim.k === k){ b.trim.until = trimUntil(b) + B.h * 60; return 'ext'; }
-  const v0 = BOAT.vmax, t0 = boostT(); b.trim = {k, t0, until:t0 + B.h * 60}; applyVessel(); trimRescale(v0); return 'new';   // (from the world's minute: boostT)
+  if (trimOn(b) && boostKind(trimRec(b).k) === boostKind(k)){ const u = trimUntil(b) + B.h * 60; S.trim = Object.assign({}, trimRec(b), {until:u}); delete b.trim; return 'ext'; }   // (the same kind, another length: added)
+  const t0 = boostT(); trimFleet(() => { S.trim = {k, t0, until:t0 + B.h * 60}; delete b.trim; }); return 'new';   // (from the world's minute: boostT)
 }
 // ---- a bought boost given again to a save that went on without it (HS3, 11.11.2026, docs/planer/haill-saldo.md; ui/10i-shop.js shopBack) ----
 // The game minute a grant was delivered: the server's done_at on the one clock (as worldTf, 01-world.js; done_at is the server's own
@@ -148,8 +171,8 @@ function boostBack(on, list, stack){
   for (const g of list || []){
     if (!g || !(g.h > 0) || !isFinite(g.at)) continue;
     const m = g.h * 60;
-    if (!c || (!stack && c.k !== g.k && c.t0 <= g.at)) c = {k:g.k, t0:g.at, until:g.at + m};
-    else if (!stack && c.k !== g.k) continue;
+    if (!c || (!stack && boostKind(c.k) !== boostKind(g.k) && c.t0 <= g.at)) c = {k:g.k, t0:g.at, until:g.at + m};
+    else if (!stack && boostKind(c.k) !== boostKind(g.k)) continue;
     else if (c.until <= g.at) c = {k:g.k, t0:g.at, until:g.at + m};   // (the one on had run out before it: a new one, from its own delivery)
     else if (c.t0 <= g.at) c = {k:stack ? g.k : c.k, t0:c.t0, until:c.until + m};
     else c = {k:c.k, t0:g.at, until:Math.max(g.at + m, c.t0) + (c.until - c.t0)};
@@ -159,7 +182,7 @@ function boostBack(on, list, stack){
 // the trim put back on the boat aboard with the end it had (inside withVessel for the boat it was bought for)
 function trimBack(c){
   const b = S.boat; if (!c || !BOOSTS[c.k]) return false;
-  const v0 = BOAT.vmax; b.trim = {k:c.k, t0:c.t0, until:c.until}; applyVessel(); trimRescale(v0); return true;
+  trimFleet(() => { S.trim = {k:c.k, t0:c.t0, until:c.until}; delete b.trim; }); return true;
 }
 // The ids of the grants the game has given (S.shopGiven) were the last 200; a grant delivered within a week can now come again from the
 // server (shop_pending, held), so an id must be kept as long as the server can list it: S.shopAt[id] is when the server last listed it
@@ -173,11 +196,15 @@ function givenKeep(ids, at, now, days){
 }
 // what a trim given says (the log, the confirmation of a purchase): on for its hours, or added to the one on
 function trimWords(k, how){
-  const B = BOOSTS[k], left = trimOn(S.boat) ? Math.round((trimUntil(S.boat) - boostT()) / 60) : 0, v = fmt(BOAT.vmax, 1), nm = S.boatName || '';
-  return how === 'ext' ? {no:B.no + ' på «' + nm + '» er forlenget med ' + B.h + ' timer: ' + left + ' timer igjen. Toppfart ' + v + ' knop.', en:'The ' + B.en.toLowerCase() + ' on the «' + nm + '» is extended by ' + B.h + ' hours: ' + left + ' hours left. Top speed ' + v + ' knots.'}
-    : {no:B.no + ' er på «' + nm + '» i ' + B.h + ' timer. Toppfart nå ' + v + ' knop.', en:B.en + ' is on the «' + nm + '» for ' + B.h + ' hours. Top speed now ' + v + ' knots.'};
+  const B = BOOSTS[k], left = trimOn(S.boat) ? Math.round((trimUntil(S.boat) - boostT()) / 60) : 0, v = fmt(BOAT.vmax, 1), n = (S.fleet || []).length;
+  const on = n > 1 ? ['hele flåten (' + n + ' båter)', 'the whole fleet (' + n + ' boats)'] : ['«' + (S.boatName || '') + '»', 'the «' + (S.boatName || '') + '»'];   // (the fleet's, 16.11.2026)
+  return how === 'ext' ? {no:B.no + ' på ' + on[0] + ' er forlenget med ' + B.h + ' timer: ' + left + ' timer igjen. Toppfart ' + v + ' knop.', en:B.en + ' on ' + on[1] + ' is extended by ' + B.h + ' hours: ' + left + ' hours left. Top speed ' + v + ' knots.'}
+    : {no:B.no + ' er på ' + on[0] + ' i ' + B.h + ' timer. Toppfart nå ' + v + ' knop.', en:B.en + ' is on ' + on[1] + ' for ' + B.h + ' hours. Top speed now ' + v + ' knots.'};
 }
-function trimEnd(){ const v0 = BOAT.vmax; delete S.boat.trim; applyVessel(); trimRescale(v0); }
+
+// the fleet's trim ends; an old one on the boat goes too, unless it still has paid time left (a save from before 16.11.2026)
+function trimEnd(){ const o = S.boat.trim; trimFleet(() => { delete S.trim; if (!(o && BOOSTS[o.k] && S.t < trimRecUntil(o))) delete S.boat.trim; }); }
+const trimStop = trimEnd;
 function powerX(b){ const V = VESSELS[b.type || 'skiff']; return 1 + (b.engLv && !V.outboard ? ENGUP[b.engLv - 1].p : 0); }
 const speedOfPower = (P, planing) => planing ? Math.sqrt(P) : Math.min(1.12, Math.cbrt(P));
 // every key a vessel type or a piece of equipment's boost can give BOAT (made once, applyVessel)
@@ -1286,8 +1313,8 @@ function codLimitNow(H){ const l = codLimits(H); return codOpen(H) ? l.max : l.g
 // Game hours (Jonas 05.10.2026).
 // The luck multiplies what every gear catches (the jig, line, nets and pots). The halibut luck is gone.
 const HAILL = {
-  haill:{no:'Haill', en:'Luck', nok:29, steps:[[24, 1], [48, 0.5], [72, 0.25]], d:{no:'Dobbel fiskelykke et helt døgn! Fersk haill gir +100 % fiskelykke på alle arter i 24 timer, så alt redskapet ditt fanger dobbelt så mye. Etterpå holder den seg som mellomhaill (+50 %) i 24 timer og gammelhaill (+25 %) i 24 timer til: tre døgn med ekstra fangst.', en:'Double luck for a whole day! Fresh luck gives +100% luck on every species for 24 hours, so all your gear catches twice as much. After that it lasts as middle luck (+50%) for 24 hours and old luck (+25%) for 24 more: three days of extra catch.'}},
-  luksus:{no:'Luksushaill', en:'Luxury luck', nok:59, steps:[[24, 2], [48, 1], [72, 0.5], [96, 0.25]], d:{no:'Tredobbel fiskelykke det første døgnet! Luksushaill gir +200 % fiskelykke i 24 timer. Så følger fersk haill (+100 %), mellomhaill (+50 %) og gammelhaill (+25 %) i 24 timer hver: fire døgn med ekstra fangst, og mest av alt når du trenger det.', en:'Triple luck the first day! Luxury luck gives +200% luck for 24 hours. Then come fresh luck (+100%), middle luck (+50%) and old luck (+25%) for 24 hours each: four days of extra catch, the most when you need it.'}}
+  haill:{no:'Haill', en:'Luck', nok:39, steps:[[24, 1], [48, 0.5], [72, 0.25]], d:{no:'Dobbel fiskelykke et helt døgn! Fersk haill gir +100 % fiskelykke på alle arter i 24 timer, så alt redskapet ditt fanger dobbelt så mye. Etterpå holder den seg som mellomhaill (+50 %) i 24 timer og gammelhaill (+25 %) i 24 timer til: tre døgn med ekstra fangst.', en:'Double luck for a whole day! Fresh luck gives +100% luck on every species for 24 hours, so all your gear catches twice as much. After that it lasts as middle luck (+50%) for 24 hours and old luck (+25%) for 24 more: three days of extra catch.'}},
+  luksus:{no:'Luksushaill', en:'Luxury luck', nok:79, steps:[[24, 2], [48, 1], [72, 0.5], [96, 0.25]], d:{no:'Tredobbel fiskelykke det første døgnet! Luksushaill gir +200 % fiskelykke i 24 timer. Så følger fersk haill (+100 %), mellomhaill (+50 %) og gammelhaill (+25 %) i 24 timer hver: fire døgn med ekstra fangst, og mest av alt når du trenger det.', en:'Triple luck the first day! Luxury luck gives +200% luck for 24 hours. Then come fresh luck (+100%), middle luck (+50%) and old luck (+25%) for 24 hours each: four days of extra catch, the most when you need it.'}}
 };
 // the thank-you for feedback that helped the game (Jonas 06.10.2026: «12 spilltimer med 100% "haill" i belønning om tilbakemeldingen er
 // av verdi for utviklingen av spillet. Haillet skal ikke gradvis miste effekt …, det skal vare 12timer, så ferdig»): +100 % for 12 game
@@ -1295,6 +1322,12 @@ const HAILL = {
 // ui/10i-shop.js shopClaim), into the store like the others.
 HAILL.takk = {no:'Takk-haill', en:'Thank-you luck', nok:0, reward:true, steps:[[12, 1]], stage:['Takk-haill', 'Thank-you luck'],
   d:{no:'Takk for tilbakemeldingen! Takk-haill gir +100 % fiskelykke på alle arter i 12 timer, hele tida like sterk, og så er den borte.', en:'Thank you for your feedback! Thank-you luck gives +100 % luck on every species for 12 hours, as strong all the time, and then it is gone.'}};
+// haill in packs (Jonas 16.11.2026: «husk at haill er basert på det at det er best når det er ferskt, altså første døgnet for så å gradvis
+// dabbe av»): the same haill, more of them, each switched on when the player wants (the server gives one grant each, n in the product)
+const HAILL_PACKS = {h1:{n:1, nok:39}, h3:{n:3, nok:99}, h8:{n:8, nok:229, best:true}};   // (raised 16.11.2026 with the trims)
+// the season pack («Jeg er også enig i at en samlepakke kan være et alternativ»): its content known before it is bought, no chance in it
+const PACKS = {sesong:{nok:249, haill:4, trim:'t24', skip:'s24', no:'Sjøværspakken', en:'The fishing trip pack'}};   // (renamed: Jonas 16.11.2026, «et sjøvær [er] en fisketur eller fangstekspedisjon på sjøen»; the key stays)
+const packWorth = P => HAILL_PACKS.h1.nok * P.haill + BOOSTS[P.trim].nok + SKIP[P.skip].nok;   // what the parts cost one by one (a haill at the single price)
 const HAILL_STAGE = [[2, 'Luksushaill', 'Luxury luck'], [1, 'Fersk haill', 'Fresh luck'], [0.5, 'Mellomhaill', 'Middle luck'], [0.25, 'Gammelhaill', 'Old luck']];
 const haillAge = () => S.haill ? (S.t - S.haill.t0) / 60 : 1e9;   // hours since it was switched on
 function haillBoost(){ const h = S.haill, X = h && HAILL[h.type]; if (!X) return 0; const a = haillAge(); for (const [t, v] of X.steps) if (a < t) return v; return 0; }

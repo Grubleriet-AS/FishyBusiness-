@@ -1,4 +1,5 @@
   // --- workshop: service, fitting and getting the gear ready, one job after the other while the boat is in port
+  const fbGiftCard = () => '<div class="ph-card haillc fb-gift"><h4>' + L('Gratis haill for gode tips', 'Free luck for good tips') + '</h4><p>' + L('Har du funnet en feil eller har en idé? Skriv det i Tilbakemelding-appen. Hjelper tipset oss å gjøre spillet bedre, får du 12 timer med fullt haill (+100 %) som takk.', 'Found a bug or have an idea? Write it in the Feedback app. If your tip helps us make the game better, you get 12 hours of full luck (+100 %) as a thank-you.') + '</p><button class="ph-btn" data-pa="fbOpen">' + L('Gi tilbakemelding', 'Give feedback') + '</button></div>';
   function haill(){
     // the luck aboard (its stage and the hours left), the store with «Aktiver», and the shop (the user's list 04.10.2026)
     const h = ['<div class="ph-c">'], a = S.haill, st = haillStage(), inv = haillStock(S.haillInv, S.haillSrv, S.haillUsed), hr = v => v >= 48 ? fmt(v / 24, 1) + L(' døgn', ' days') : fmt(v, 0) + L(' t', ' h');
@@ -12,14 +13,61 @@
         h.push(kv(HAILL[k][S.lang], '× ' + inv[k]) + (pend ? '<div class="ph-row2"><button class="ph-btn p" data-pa="haillon" data-k="' + k + '">' + L('Bytt ut den om bord', 'Replace the one aboard') + '</button><button class="ph-btn alt" data-pa="haill0">' + L('Avbryt', 'Cancel') + '</button></div>' : '<button class="ph-btn p" data-pa="haillon" data-k="' + k + '">' + L('Aktiver ', 'Switch on ') + HAILL[k][S.lang].toLowerCase() + '</button>')); }
       h.push('<p class="ph-note">' + L('Haill blir aldri aktivert av seg selv. En ny haill erstatter den som er om bord.', 'Luck is never switched on by itself. A new one replaces the one aboard.') + '</p></div>'); }
     const gift = tutFree('haill');
-    if (gift) h.push('<div class="ph-card haillc"><h4>' + L('Første gang er luksushaill gratis', 'The first luxury luck is free') + '</h4><p class="ph-note">' + L('Ellers koster haill 29 kr og luksushaill 59 kr. Du kan også være heldig på puben.', 'Otherwise luck is NOK 29 and luxury luck NOK 59. You can also get lucky at the pub.') + '</p></div>');
+    if (gift) h.push('<div class="ph-card haillc"><h4>' + L('Første gang er luksushaill gratis', 'The first luxury luck is free') + '</h4><p class="ph-note">' + L('Ellers koster haill ' + HAILL.haill.nok + ' kr og luksushaill ' + HAILL.luksus.nok + ' kr. Du kan også være heldig på puben.', 'Otherwise luck is NOK ' + HAILL.haill.nok + ' and luxury luck NOK ' + HAILL.luksus.nok + '. You can also get lucky at the pub.') + '</p></div>');
     for (const k of ['haill', 'luksus']){ const X = HAILL[k], free = gift && k === 'luksus';
       h.push('<div class="ph-card haillc">' + kbPic(k) + '<h4>' + X[S.lang] + (k === 'luksus' && !free ? kbBest() : '') + '</h4><p>' + X.d[S.lang] + '</p>' + (free || shopMode() !== 'live' ? '<div class="ph-kv"><span>' + L('Pris', 'Price') + '</span><span><b>' + (free ? L('gratis nå', 'free now') : realKr(X.nok)) + '</b></span></div>' : '') + '<button class="ph-btn p" data-pa="haillbuy" data-k="' + k + '"' + (gift && !free ? ' disabled' : '') + '>' + (free ? L('Hent gratis luksushaill', 'Fetch a free luxury luck') : shopLabel(X.nok)) + '</button>' + (free ? '' : shopFine()) + '</div>'); }
     // the thank-you for feedback (Jonas 06.10.2026): said where the luck is, with the way to the feedback app
-    h.push('<div class="ph-card haillc fb-gift"><h4>' + L('Gratis haill for gode tips', 'Free luck for good tips') + '</h4><p>' + L('Har du funnet en feil eller har en idé? Skriv det i Tilbakemelding-appen. Hjelper tipset oss å gjøre spillet bedre, får du 12 timer med fullt haill (+100 %) som takk.', 'Found a bug or have an idea? Write it in the Feedback app. If your tip helps us make the game better, you get 12 hours of full luck (+100 %) as a thank-you.') + '</p><button class="ph-btn" data-pa="fbOpen">' + L('Gi tilbakemelding', 'Give feedback') + '</button></div>');
+    h.push(fbGiftCard());
     h.push('<p class="ph-note">' + L('Du kan også være heldig på puben. Tida er spilltid: 24 timer i spillet er ' + fmt(24 / GAME_RATE, 0) + ' timer i virkeligheten.', 'You can also get lucky at the pub. The time is game time: 24 hours in the game is ' + fmt(24 / GAME_RATE, 0) + ' hours in real life.') + '</p></div>');
     return h.join('');
   }
+  // ---- Kaiboden in one window (Jonas 16.11.2026: «ha alle boosters samlet i samme vindu … og heller gjemme bort de man allerede eier»;
+  // «det er sannsynligvis også svært viktig hvordan de forskjellige varene er plassert og presenteres»): three tabs (sub.kaiboden),
+  // Boostere: the season pack first as one big card with what it saves (from the real prices), then one row a kind with four like cards
+  // (one effect, four amounts, the dearest marked «Mest for pengene», which it is per hour or per haill); Utseende: the paint shop and
+  // the wardrobe; Mine boostere: what is in store and what is on now, with «Slå på». The consent line once, under the cards.
+  function kbShop(){
+    const inv = haillStock(S.haillInv, S.haillSrv, S.haillUsed), nMine = (inv.haill || 0) + (inv.luksus || 0) + (inv.takk || 0) + (haillStage() ? 1 : 0) + (trimOn(S.boat) ? 1 : 0) + (skipOn() ? 1 : 0);
+    const tab = ['boost', 'utseende', 'mine'].includes(sub.kaiboden) ? sub.kaiboden : 'boost';
+    const tabs = '<div class="st-tabs kb-shop-tabs">' + [['boost', L('Boostere', 'Boosters')], ['utseende', L('Utseende', 'Looks')], ['mine', L('Mine boostere', 'My boosters') + (nMine ? ' (' + nMine + ')' : '')]]
+      .map(([k, l]) => '<button class="' + (tab === k ? 'on' : '') + '" data-pa="sub" data-s="' + k + '">' + l + '</button>').join('') + '</div>';
+    const live = shopMode() === 'live', price = n => live ? realKr(n) : realKr(n);
+    const card = (big, unit, title, sub2, k, nok, best, pic) => '<div class="kbs-card' + (best ? ' best' : '') + '">' + (best ? '<span class="kbs-tag">' + L('Mest for pengene', 'Best value') + '</span>' : '') +
+      (pic ? '<div class="kbs-pic">' + kbPic(pic) + '</div>' : '') + '<div class="kbs-big">' + big + '<small>' + unit + '</small></div><b class="kbs-t">' + title + '</b><span class="kbs-s">' + sub2 + '</span>' +
+      '<button class="ph-btn p kbs-buy" data-pa="kbbuy" data-k="' + k + '">' + (live ? L('Kjøp · ', 'Buy · ') + price(nok) : shopLabel(nok)) + '</button></div>';
+    const row = (title, note, cards, extra) => '<div class="kbs-sec"><h4>' + title + '</h4><p class="ph-note">' + note + '</p>' + (extra || '') + '<div class="kbs-row">' + cards + '</div></div>';
+    const hrs = h => h / GAME_RATE >= 48 ? fmt(h / GAME_RATE / 24, 0) + L(' døgn', ' days') : fmt(h / GAME_RATE, 0) + L(' timer', ' hours');
+    let body = '';
+    // a buy that would take the place of an old trim of another kind asks first (trimPend, 14-act.js trimbuy and kbbuy): said where it was tapped
+    const tOn = trimOn(S.boat), pend = trimPend && tOn ? '<div class="ph-card"><p class="ph-note bad">' + L('Erstatter ' + tOn.no.toLowerCase() + ', som har ' + fmt(trimLeft(S.boat) / GAME_RATE, 1) + ' timer igjen. Trykk Kjøp igjen for å bytte.', 'Replaces the ' + tOn.en.toLowerCase() + ', which has ' + fmt(trimLeft(S.boat) / GAME_RATE, 1) + ' hours left. Tap Buy again to change.') +
+      '</p><button class="ph-btn alt" data-pa="trim0">' + L('Avbryt', 'Cancel') + '</button></div>' : '';
+    if (tab === 'boost'){
+      const P = PACKS.sesong, save = Math.round((1 - P.nok / packWorth(P)) * 100);
+      body += '<div class="kbs-hero"><div><span class="kbs-tag hero">' + L('Spar ' + save + ' %', 'Save ' + save + ' %') + '</span><h4>' + L(P.no, P.en) + '</h4><p>' +
+        L(P.haill + ' haill, Turbotrim og Skippertak i 24 timer. Alt du trenger for en lang økt på feltet.', P.haill + ' luck, Turbo tune and Skippertak for 24 hours. All you need for a long run on the grounds.') + '</p>' +
+        '<p class="ph-note">' + L('Kjøpt hver for seg: ', 'Bought one by one: ') + fmt(packWorth(P), 0) + ' kr</p></div><button class="ph-btn p kbs-buy" data-pa="kbbuy" data-k="pk_sesong">' + (live ? L('Kjøp · ', 'Buy · ') + realKr(P.nok) : shopLabel(P.nok)) + '</button></div>' + (/^pk_/.test(trimPend || '') ? pend : '');
+      body += row(L('Haill · dobbel fangst', 'Luck · double catch'), L('Full kraft de første ' + fmt(HAILL.haill.steps[0][0] / GAME_RATE, 0) + ' timene, så svakere til den er borte etter ' + fmt(HAILL.haill.steps[HAILL.haill.steps.length - 1][0] / GAME_RATE, 0) + ' timer. Ligger i Mine boostere til du slår den på.', 'Full strength the first ' + fmt(HAILL.haill.steps[0][0] / GAME_RATE, 0) + ' hours, then weaker till it is gone after ' + fmt(HAILL.haill.steps[HAILL.haill.steps.length - 1][0] / GAME_RATE, 0) + ' hours. Waits in My boosters till you switch it on.'),
+        Object.entries(HAILL_PACKS).map(([k, X]) => card('×' + X.n, L(X.n === 1 ? ' haill' : ' haill', ' luck'), X.n === 1 ? L('Én haill', 'One luck') : X.n + L(' haill', ' luck'), fmt(X.nok / X.n, 0) + L(' kr per haill', ' kr each'), 'hp_' + k, X.nok, X.best, 'haill')).join('') +
+        card('+200', ' %', HAILL.luksus[S.lang], L('Tredobbel fangst de første ' + fmt(HAILL.luksus.steps[0][0] / GAME_RATE, 0) + ' timene', 'Triple catch the first ' + fmt(HAILL.luksus.steps[0][0] / GAME_RATE, 0) + ' hours'), 'luksus', HAILL.luksus.nok, false, 'luksus'));
+      body += row(L('Turbotrim · dobbel fart', 'Turbo tune · double speed'), L('Gjelder alle båtene i flåten, også de som går på driftsplan. Kjøper du mer, legges tida til.', 'For every boat in the fleet, those on the operations plan too. Buy more and the time is added.'),
+        Object.entries(BOOSTS).filter(([, B]) => !B.old).map(([k, B]) => card(hrs(B.h).split(' ')[0], ' ' + hrs(B.h).split(' ')[1], L('Dobbel fart', 'Double speed'), fmt(B.nok / (B.h / GAME_RATE), 1) + L(' kr per time', ' kr an hour'), k, B.nok, B.best, 'turbo')).join(''), BOOSTS[trimPend] ? pend : '');
+      body += row(L('Skippertak · uthvilt hele flåten', 'Skippertak · the whole fleet rested'), L('Du og mannskapet på alle båtene trenger ikke hvile. Kjøper du mer, legges tida til.', 'You and the crews of every boat need no rest. Buy more and the time is added.'),
+        Object.entries(SKIP).filter(([, X]) => !X.old).map(([k, X]) => card(hrs(X.h).split(' ')[0], ' ' + hrs(X.h).split(' ')[1], L('Uthvilt', 'Rested'), fmt(X.nok / (X.h / GAME_RATE), 1) + L(' kr per time', ' kr an hour'), 'sk_' + k, X.nok, X.best, 'sk_max')).join(''));
+      if (tutFree('haill')) body = '<div class="ph-card haillc"><h4>' + L('Første luksushaill er gratis', 'The first luxury luck is free') + '</h4><button class="ph-btn p" data-pa="haillbuy" data-k="luksus">' + L('Hent den', 'Take it') + '</button></div>' + body;
+      body += shopFine();
+    } else if (tab === 'utseende'){
+      body = '<div class="ph-card"><h4>' + L('Malerverkstedet', 'The paint shop') + '</h4><p class="ph-note">' + L('Farger, design, flagg, registreringsmerke og rederilogo på båtene dine. Det du kjøper, er ditt for alltid.', 'Colours, designs, flags, registration mark and company logo on your boats. What you buy is yours for good.') + '</p><button class="ph-btn p" data-pa="open" data-a="maler">' + L('Åpne Malerverkstedet', 'Open the paint shop') + '</button></div>' +
+        '<div class="ph-card"><h4>' + L('Garderoben', 'The wardrobe') + '</h4><p class="ph-note">' + L('Klær og utseende for skipperen og mannskapet.', 'Clothes and looks for the skipper and the crew.') + '</p><button class="ph-btn" data-pa="open" data-a="garderobe">' + L('Åpne Garderoben', 'Open the wardrobe') + '</button></div>';
+    } else {
+      body = haill().replace(/^<div class="ph-c">/, '').replace(/<\/div>$/, '').split('<div class="ph-card haillc">' + kbPic('haill'))[0];   // (the luck aboard and the store, with «Aktiver»)
+      const b = S.boat, on = trimOn(b);
+      body += '<div class="ph-card"><h4>Turbotrim</h4>' + (on ? kv(L('På hele flåten', 'On the whole fleet'), '+' + Math.round((on.x - 1) * 100) + ' % ' + L('fart', 'speed')) + kv(L('Går ut om', 'Ends in'), fmt(trimLeft(b) / GAME_RATE, 1) + L(' timer', ' hours')) : '<p class="ph-note">' + L('Ingen trim på flåten nå.', 'No tune on the fleet now.') + '</p>') + '</div>';
+      body += '<div class="ph-card"><h4>Skippertak</h4>' + (skipOn() ? kv(L('Går ut om', 'Ends in'), fmt(skipLeft() / GAME_RATE, 1) + L(' timer', ' hours')) : '<p class="ph-note">' + L('Ikke på nå.', 'Not on now.') + '</p>') + '</div>';
+      body += fbGiftCard();   // (the free way to luck, under what is in store: a takk-haill lands there)
+    }
+    return '<div class="ph-c">' + tabs + body + '</div>';
+  }
+  const kbShopFrom = () => kbShop;   // (the old pages haill, trim and skip are the one window now; the tab is chosen on opening, 06-render.js show)
   // --- the tackle shop on the quay: a purchase takes two taps, the second one confirms the price
   // the first-trip guide hands out the hand jig and the first fill of ice (07b-first-trip.js)
   // a purchase takes two taps: the first turns the button itself into «Bekreft · price» with a small ✕ beside it, for a few seconds
