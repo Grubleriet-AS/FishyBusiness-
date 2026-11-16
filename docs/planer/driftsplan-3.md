@@ -133,3 +133,4 @@ Jonas 16.11.2026: «V1: A», «V2: A».
 ## Status
 
 - 16.11.2026: planen skrevet (Jonas' økt, grenen `claude/blissful-cannon-ctb8e9`). Klarsignal og V1 A, V2 A samme dag. DP3-1 pågår i samme økt.
+- 16.11.2026: **DP3-1 ferdig** (steg 129, samme økt og gren): `core/06k-plan3.js`, «Driftsplan 3» i `docs/systemer/driftsplan.md`. Endret fra planen: rytmen er dagdrift når døgndrift ikke går (ikke flerdøgnstur), og dagdrift leverer hver tur. `DRIFT3` er av. Neste: DP3-2, `docs/planer/start/130.md`.

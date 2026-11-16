@@ -7,7 +7,7 @@
 // Old plans (v4 and older) are switched off with a word once DRIFT3 is on, and a running one fetches its gear, lands at the plant and lies
 // there (Jonas 16.11.2026: «Trekk først, så lever»; plan2Ops). DRIFT3 stays off until the page (DP3-3) is built, so the game never has the
 // new plan with the old page.
-const DRIFT3 = false;
+let DRIFT3 = false;   // (a let, so the unit test can switch it on for plan2Ops)
 const DRV3 = 5;
 const DRP3 = {
   // the ring's diameter in nautical miles, fixed per gear (Jonas 16.11.2026: «Fast per redskap»; start values for the play tests)
@@ -146,11 +146,12 @@ function plan3Derive(o, spots){
   // when the hold is full; the ocean vessels by their own rules (H2c, H3c). The freshness lands sooner in each (planDay mustFresh)
   o.land = {mode:'near', port:null, when:sno ? 'days' : hav ? 'full' : o.rhythm === 'day' ? 'trip' : o.rhythm === 'multi' ? 'days' : 'full', days:sno ? DRP2.sno.days : hav ? DRP2.hav.days : o.days};
   o.derived = {t:S.t, roles:plan3Roles()};
-  if (isBerth(o.home)) havnHold(o.home);
   return null;
 }
-// the bait and the tackle the plan fishes with go on the boat's own gear (they are vessel fields: S.pgear, S.target), when it starts
+// the bait and the tackle the plan fishes with go on the boat's own gear (they are vessel fields: S.pgear, S.target), and the boat is
+// rigged and her harbour berth held, once the plan is made (nothing of it stays when the making fails)
 function plan3Apply(o){
+  if (isBerth(o.home)) havnHold(o.home);
   if (o.bait && BAITS[o.bait] && S.pgear) S.pgear.baitPref = o.bait;
   if (o.rig === 'juksa' && o.tackle) S.target = o.tackle === 'kveite' && S.boat.kgear ? 'kveite' : (S.target === 'kveite' ? null : S.target);
   if (rigOf() !== o.rig){ const w = rigSet(o.rig); if (w) return w[0]; }
@@ -159,26 +160,36 @@ function plan3Apply(o){
 // make it: the ring's map in, the answers derived, then Driftsplan 2's legs (plan2Make). From anywhere: at sea or in port, aboard or not
 async function plan3Make(o, cb){
   try { await mapNeed(o.ring, o.ring.r + 2); } catch (e){}
-  const why = plan3Derive(o); if (why){ o.err = why; o.made = null; if (cb) cb(why); return; }
-  const w = plan3Apply(o); if (w){ o.err = w; if (cb) cb(w); return; }
-  return plan2Make(o, cb);
+  // (the skipper and the mate the plan names, put back when the plan is not made)
+  const was = (S.crew || []).map(c => [c, !!c.sk, !!c.mate]), back = () => { for (const [c, sk, mt] of was){ if (sk) c.sk = true; else delete c.sk; if (mt) c.mate = true; else delete c.mate; } };
+  const why = plan3Derive(o); if (why){ back(); o.err = why; o.made = null; if (cb) cb(why); return; }
+  return plan2Make(o, err => { if (err){ back(); if (cb) cb(err); return; } const w = plan3Apply(o); if (w){ o.err = w; o.made = null; back(); } if (cb) cb(w || null); });
 }
 // ---- the old plans when DRIFT3 is on (Jonas 16.11.2026: «Den slåes av og melding gies. Båten kjøres til nærmeste fiskemottak på
 // automatikk, så den ikke driver avgårde», «Trekk først, så lever»): a v4 plan that runs and that someone aboard can sail fetches the gear
 // in the sea and lands the hold at its plant, and lies there; then it is gone. One that is off, held by you, or that nobody aboard can
 // sail, is gone at once and the boat lies where she is. Returns the plan to run (the retiring one) or null
 function plan3Retire(o){
-  const name = S.boatName;
-  if (o.retire){ if (o.on) return o; S.ops = null; msg(gL('Driftsplan', 'Operations plan'), '«' + name + '» ligger ved ' + ((portById(S.boat.port) || {}).name || 'mottaket') + '. Lag en ny driftsplan under Driftsplan: velg et sted og et redskap.', '«' + name + '» lies at ' + ((portById(S.boat.port) || {}).name || 'the plant') + '. Make a new operations plan under Operations plan: choose a place and a gear.'); return null; }
-  const work = mySets().length > 0 || holdTotal() >= 0.5, cw = plan2CrewWhy(o, true);
-  if (o.on && !o.held && work && !cw && o.M){
+  const name = S.boatName, T = gL('Driftsplan', 'Operations plan'), sea = () => mySets().length ? [' Redskapet i sjøen står der det står.', ' The gear in the sea stays where it is.'] : ['', ''];
+  const again = [' Lag en ny driftsplan under Driftsplan: velg et sted og et redskap.', ' Make a new operations plan under Operations plan: choose a place and a gear.'];
+  if (o.retire){ if (o.on) return o; S.ops = null; const at = S.boat.status === 'port' ? (portById(S.boat.port) || {}).name : null, s2 = sea();
+    // (it stopped on the way, plan2Stop, or left gear: where she lies, why, and the gear that still stands)
+    if (o.stop || !at || s2[0]) msg(T, 'Den gamle driftsplanen for «' + name + '» kom ikke helt i mål' + (o.stop ? ': ' + o.stop.no : '.') + ' Båten ligger ' + (at ? 'ved ' + at : 'der den er') + '.' + s2[0] + again[0], 'The old operations plan for «' + name + '» did not finish' + (o.stop ? ': ' + o.stop.en : '.') + ' The boat lies ' + (at ? 'at ' + at : 'where she is') + '.' + s2[1] + again[1]);
+    else msg(T, '«' + name + '» ligger ved ' + at + '.' + again[0], '«' + name + '» lies at ' + at + '.' + again[1]);
+    return null; }
+  // who can sail her: a wait (a day off, nets with you alone, a one-hand boat while you are ashore) is no reason to drop the plan, it
+  // waits as Driftsplan 2 does; a skipper and a mate not named are named by the plan when two aboard can be (plan3Roles)
+  const work = mySets().length > 0 || holdTotal() >= 0.5; let cw = plan2CrewWhy(o, true);
+  if (cw && !cw.wait && cw.k === 'roles'){ plan3Roles(); cw = plan2CrewWhy(o, true); }
+  if (o.on && !o.held && work && (!cw || cw.wait) && o.M){
     if (S.plan && S.plan.ops) plan2Abort(o);
     o.retire = true; o.fetch = true; o.home = o.M; o.homeA = null; o.anchor = false; o.run = null; o.hold = 0; o.paused = null; o.stop = null;
-    msg(gL('Driftsplan', 'Operations plan'), 'Driftsplanen er laget på nytt, og den gamle planen for «' + name + '» er slått av. Båten trekker redskapet, leverer fangsten på ' + ((portById(o.M) || {}).name || 'mottaket') + ' og blir liggende der.', 'The operations plan has been made anew, and the old plan for «' + name + '» is switched off. The boat hauls the gear, lands the catch at ' + ((portById(o.M) || {}).name || 'the plant') + ' and lies there.');
+    const M = portById(o.M) || {};
+    msg(T, 'Driftsplanen er laget på nytt, og den gamle planen for «' + name + '» er slått av. Båten trekker redskapet, leverer fangsten på ' + (M.name || 'mottaket') + ' og blir liggende der.', 'The operations plan has been made anew, and the old plan for «' + name + '» is switched off. The boat hauls the gear, lands the catch at ' + (M.name || 'the plant') + ' and lies there.');
     return o;
   }
-  S.ops = null;
-  const sea = mySets().length ? gL(' Redskapet i sjøen står der det står.', ' The gear in the sea stays where it is.') : '';
-  msg(gL('Driftsplan', 'Operations plan'), 'Driftsplanen er laget på nytt, og den gamle planen for «' + name + '» er slått av. Båten blir liggende der den er.' + sea + ' Lag en ny plan under Driftsplan: velg et sted og et redskap.', 'The operations plan has been made anew, and the old plan for «' + name + '» is switched off. The boat lies where she is.' + sea + ' Make a new plan under Operations plan: choose a place and a gear.');
+  if (S.plan && S.plan.ops) plan2Abort(o);   // (a trip of the plan's under way stops where she is)
+  S.ops = null; const s3 = sea();
+  msg(T, 'Driftsplanen er laget på nytt, og den gamle planen for «' + name + '» er slått av. Båten blir liggende der den er.' + s3[0] + again[0], 'The operations plan has been made anew, and the old plan for «' + name + '» is switched off. The boat lies where she is.' + s3[1] + again[1]);
   return null;
 }

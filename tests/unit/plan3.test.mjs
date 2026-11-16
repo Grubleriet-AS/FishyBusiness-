@@ -50,6 +50,24 @@ export default function (t){
     t.ok(plan3Retire(v4) === null && S.ops === null, 'en v4-plan som er av: borte med en gang, båten blir liggende og redskapet står'); }
   { const v4 = {v:DRV2, on:true, held:{t:0}, places:[], rig:'line', land:{}, M}; S.ops = v4;
     t.ok(plan3Retire(v4) === null && S.ops === null, 'en v4-plan du har tatt over: borte, båten er din'); }
+  // who can sail her (the control 16.11.2026): a wait is no reason to drop the plan; the plan names a skipper and a mate when it can
   { S.me = 'annen'; const v4 = {v:DRV2, on:true, held:null, places:[], rig:'line', land:{}, M}; S.ops = v4; S.sets = [{vid:S.cur, kind:'line', n:4, fid:'f1'}];
-    t.ok(plan3Retire(v4) === null && S.ops === null, 'ingen om bord som kan føre båten: planen er borte og båten blir liggende'); S.me = null; }
+    t.ok(plan3Retire(v4) === v4 && v4.retire, 'skiffen med plass til én, du i land: planen venter på deg som før og henter redskapet da, den blir ikke borte'); S.me = null; }
+  const {applyVessel, genCrew, crewSkipper, crewMate} = K;
+  S.boat.type = 'sjark'; applyVessel();
+  { S.me = 'annen'; S.crew = []; const v4 = {v:DRV2, on:true, held:null, places:[], rig:'line', land:{}, M}; S.ops = v4; S.sets = [{vid:S.cur, kind:'line', n:4, fid:'f1'}];
+    t.ok(plan3Retire(v4) === null && S.ops === null, 'sjarken uten noen om bord og du i land: ingen kan føre henne, planen er borte og båten blir liggende'); }
+  { S.crew = [genCrew(), genCrew()]; for (const c of S.crew){ c.bi = false; c.off = false; delete c.sk; delete c.mate; }
+    const v4 = {v:DRV2, on:true, held:null, places:[], rig:'line', land:{}, M}; S.ops = v4; S.sets = [{vid:S.cur, kind:'line', n:4, fid:'f1'}];
+    const r = plan3Retire(v4);
+    t.ok(r === v4 && crewSkipper() && crewMate() && crewSkipper() !== crewMate(), 'to om bord uten skipper og styrmann: planen utnevner dem og henter redskapet (' + (crewSkipper() || {}).name + ', ' + (crewMate() || {}).name + ')'); S.me = null; }
+  // a trip of the plan's under way, with nothing to fetch: it stops where she is when the plan is dropped
+  { const v4 = {v:DRV2, on:true, held:null, places:[], rig:'juksa', land:{}, M}; S.ops = v4; S.sets = []; S.hold = []; S.plan = {ops:true, wps:[], idx:0}; S.boat.status = 'sailing';
+    t.ok(plan3Retire(v4) === null && S.plan === null && S.boat.status === 'idle', 'planen borte midt på en tur uten redskap eller fangst: turen stopper der båten er (' + S.boat.status + ')'); }
+  // the way in the game: plan2Ops with DRIFT3 on
+  { K.set('DRIFT3', true); const v4 = {v:DRV2, on:true, held:null, places:[], rig:'line', land:{}, M}; S.ops = v4; S.sets = [{vid:S.cur, kind:'line', n:4, fid:'f1'}]; S.me = null;
+    t.ok(plan2Ops() === v4 && v4.retire && v4.home === M, 'med DRIFT3 på: plan2Ops slår den gamle planen av gjennom plan3Retire, og den henter redskapet');
+    v4.on = false; v4.stop = {no:'Fant ingen vei.', en:'Found no way.'}; const n0 = S.msgs.length;
+    t.ok(plan2Ops() === null && S.ops === null && /kom ikke helt i mål: Fant ingen vei/.test((S.msgs[S.msgs.length - 1] || {}).no || ''), 'stoppet underveis: borte, og meldingen sier hvorfor og at redskapet står (' + ((S.msgs[S.msgs.length - 1] || {}).no || '').slice(0, 90) + ')');
+    const o5 = plan3New({x:500, y:300}, 'juksa'); S.ops = o5; t.ok(plan2Ops() === o5, 'en v5-plan går også med DRIFT3 på'); K.set('DRIFT3', false); }
 }
