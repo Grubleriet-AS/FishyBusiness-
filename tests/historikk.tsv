@@ -4829,3 +4829,7 @@
 2026-11-16 00:59	ccr-as1-alle	be908af6	trip2	OK	43	lite	samtidig	
 2026-11-16 00:59	ccr-as1-alle	be908af6	autonavtest	OK	34	lite	samtidig	
 2026-11-16 00:59	ccr-as1-alle	be908af6	havnstengt	OK	19	lite	samtidig	
+2026-11-16 02:11	ccr-as1-alle	b924e295+	trip2	OK	47	lite	samtidig	
+2026-11-16 02:11	ccr-as1-alle	b924e295+	autonavtest	OK	36	lite	samtidig	
+2026-11-16 02:15	ccr-as1-alle	b924e295+	dyntest	FEIL	266	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-16 02:15	ccr-as1-alle	b924e295+	utfrakai	OK	96	lite	samtidig	
