@@ -241,3 +241,26 @@ Steg D5 i `docs/planer/design-ombygging.md` (Jonas 13.11.2026, valg 2 A: «telef
   - I stripa står den som siste tall.
   - På telefoner opp til 420 px har stripa tettere mellomrom og skrift på 9,5 px. Til 380 px står sjøen som ikon alene mens bløggekaret vises (målt i verste fall på 360 px).
 - **Profil-appen** er ny, først i gruppa Deg (se skyen-og-felles-verden.md).
+
+## Innstillinger i faner og grafikkvalgene (16.11.2026)
+
+Jonas 16.11.2026: «Kan du fikse innstillinger-siden slik at den har faner øverst og ser mer proff ut? … skjule manuell styring … godt med grafikk-innstillinger slik at spillere kan prøve å justere selv».
+
+- **Fanene** (`sub.innst`, `ui/phone/05-rigg-innst-admin.js innst`):
+  - **Spill:** språk, HUD, hjemsted og sikkerhet.
+  - **Grafikk:** se under.
+  - **Lyd:** lyd og musikk.
+  - **Konto:** kontoen, installering, Om spillet, lagret spill og nullstilling.
+  - Admin-verktøyene står i Admin-appen, bare for Jonas (`adminOk`).
+- **Manuell styring** er ikke spillerens valg lenger. Jonas: «Jeg vil bare ikke at spillere skal ha mulighet til å manuelt kjøre båten selv. De skal bruke kartplotteren til å lage ruter».
+  - Kortet står i Admin-appen.
+  - `ui/11-boot.js` setter `S.settings.manual = false` for alle uten `adminOk`.
+- **Grafikkvalgene** (`PGFX` i `view3d/00-head.js`, `G3.gfx`):
+  - Valgene lagres per enhet i `localStorage['kystfiske_gfx']`, ikke i den delte lagringen.
+  - **Virker straks:**
+    - `res`: 50–100 % av nivåets piksler, i `18-setup.js resize`;
+    - `fps`: tak på 30, 45 eller 60 bilder/s, eller fri, i `24-cinema.js frame0`. Bilder holdt igjen av taket teller ikke som treg enhet for Auto (`qualTick`);
+    - `dist`: 0,7, 1 eller 1,4 × hvor langt bygg og havner tegnes i full detalj (`chunkR`, `lodK`);
+    - `shadow`: solskyggene i `01-shaders.js` og byggenes skygger i `04-vec-packs.js`.
+  - **Etter «Bruk og start 3D på nytt»** (siden lastes på nytt): `off.trees` (trær og vind), `off.life`, `off.foam` (skum, brottsjø og NPC-skum), `off.fft` (detaljerte bølger), `off.shore` (strand, skjær og marina) og `off.sun`. De er de samme bryterne som testenes `#trees0` og lignende.
+  - «Egendefinert» vises når noe er endret, og «Tilbake til standard» setter alt tilbake og Auto.

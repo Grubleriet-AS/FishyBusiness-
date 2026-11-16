@@ -8,7 +8,7 @@
   // of its own, decided by the cell's hash and looked for again when the eye has moved 120 m; on «Lav» only the birds of the cliffs,
   // the whales and the lights. #life0 in the address: none of it.
   const FUGL = /*@include(data/fuglefjell.json)*/null;
-  const LIFE = {on:!/life0/.test(location.hash), M:null, at:-1e9, O:[1e9, 1e9], eag:[], cor:[], eid:[], shp:[], lamps:[], cars:[], cliff:[], carM:null, nEag:0, nCor:0, nEid:0, nShp:0, nCar:0, nLamp:0, nSmoke:0, nCliff:0};
+  const LIFE = {on:!/life0/.test(location.hash) && !PGFX.off.life, M:null, at:-1e9, O:[1e9, 1e9], eag:[], cor:[], eid:[], shp:[], lamps:[], cars:[], cliff:[], carM:null, nEag:0, nCor:0, nEid:0, nShp:0, nCar:0, nLamp:0, nSmoke:0, nCliff:0};
   const LIFE_K = ['havorn', 'havorn_wR', 'havorn_wL', 'skarv', 'skarv_tork', 'ternM', 'ternF', 'sauK', 'sauM', 'porpoise', 'orca', 'humpback', 'fluke'];
   function lifeModels(){
     if (LIFE.M !== null) return LIFE.M;

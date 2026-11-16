@@ -67,7 +67,7 @@ async def main():
               'after the second landing casting off waits: the letter from Fiskeridirektoratet shows the nameless boat by her mark, the money and the fish, says it takes ten seconds and that the names come afterwards, says the game lives only in this browser, offers a luxury luck, and «Ikke nå» closes it', d['t'][:300])
         # 4. a guest cannot buy, and the account card says what a guest is
         g = await pg.evaluate("""(() => { payBuy('haill', () => { window.__given = 1; }); const t = (document.querySelector('#modal .ob.reg') || {}).innerText || ''; document.getElementById('modal').hidden = true;
-          PHONE.open('innst'); const card = document.getElementById('phView').innerText; PHONE.show(false); return {t, given:!!window.__given, card:card.includes('Du spiller som gjest') && card.includes('Registrer meg')}; })()""")
+          (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); const card = document.getElementById('phView').innerText; PHONE.show(false); return {t, given:!!window.__given, card:card.includes('Du spiller som gjest') && card.includes('Registrer meg')}; })()""")
         check('Kjøp krever registrering' in g['t'] and not g['given'] and g['card'], 'a guest cannot buy with real money (the letter asks to register instead), and Settings says the game lives in this browser until then', g)
         # 5. «Registrer meg»: the game up first, a one-time code kept on the device, then WorkOS
         await pg.evaluate("(() => { CLOUD.regT = 0; depart(); })()"); await pg.wait_for_selector('#regGo', timeout=10000)

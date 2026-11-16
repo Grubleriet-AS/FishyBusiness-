@@ -47,6 +47,16 @@ const G3 = (() => {
   // rise by 8 % within 6 s, the pixels were not what held it back (the processor or the driver), the step is taken back and no more
   // are tried this session. pxK goes back up a step after 10 s well over 45 frames a second.
   QUAL.pxK = 1; QUAL.pxMin = 0.5;
+  // the player's own graphics settings (Jonas 16.11.2026: «godt med grafikk-innstillinger slik at spillere kan prøve å justere selv og
+  // kanskje finne ut hva som er best på deres enhet»; Innstillinger → Grafikk, ui/phone/05-rigg-innst-admin.js): kept per device in
+  // localStorage, not in the shared save, since a tablet and a phone want different ones, and read before the save is. Live: res (the
+  // share of the level's pixels, 0.5–1), fps (a cap on the frames a second, 0 none; it saves the battery), dist (how far out buildings and
+  // harbours are drawn in full detail), shadow. After «Bruk» (the 3D view starts again): off.trees, off.life, off.foam, off.fft, off.shore,
+  // off.sun, as the tests' #trees0 and its kin
+  const PGFX_KEY = 'kystfiske_gfx';
+  const PGFX = (() => { let g = {}; try { g = JSON.parse(localStorage.getItem(PGFX_KEY) || '{}') || {}; } catch (e){}
+    return Object.assign({res:1, fps:0, dist:1, shadow:true}, g, {off:Object.assign({}, g.off || {})}); })();
+  const PGF = {last:0};
   const PXS = {bad:0, good:0, tryAt:0, fps0:0, prev:1, no:false};
   function pxTick(dt, fps, now){
     if (QUAL.lvl !== 0 || QUAL.fix || !fps) { PXS.bad = PXS.good = 0; PXS.tryAt = 0; return; }   // (a trial left off Low is not judged later against another frame rate)
@@ -103,6 +113,7 @@ const G3 = (() => {
     if (QM.hang.length >= 2 && qmDown('heng')) QM.hang = [];
   }
   function qualTick(dt, fps, now){
+    if (PGFX.fps && fps >= PGFX.fps * 0.85) fps = 60;   // (frames held back by the player's cap are not a slow device)
     if (!QM.chk){ QM.chk = true; qmCrashCheck(); }
     pxTick(dt, fps, now);
     if (qualSet() !== 'auto' || QUAL.fix || !fps) return QUAL.lvl;

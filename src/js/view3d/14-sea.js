@@ -303,7 +303,7 @@
   // 8 bits hold it), rolls the birth windows, and FOAM_FS adds the foam made this frame; the sea shader reads it (foamBind, unit 7) and
   // ages it as exp(-age / tau). «#foam0» in the address turns it off (the sea as before, for the comparison); it is off too on the lite
   // and the basic sea, on the low quality (the far shader draws the near sea there), and when no framebuffer can be made.
-  const FOAM = {on:!/foam0/.test(location.hash), ok:false, N:0, M:600, tex:[null, null], fb:[null, null], r:0, ox:0, oz:0, t0:[0, 0], win:[160, 32], tau:[14, 6], now:[0, 0], prog:null, pB:null, fresh:true, why:'', ms:0, sh:[0, 0], n:0, G:[0, 0], C:[0, 0], gs:[0, 0], cur:{x:0, y:0}, curT:-1e9, Cw:[0, 0], CwT:[0, 0], cs:[0, 0], spq:new Float32Array(256), spc:0, spl:new Float32Array(16), spv:null, spn:0};
+  const FOAM = {on:!/foam0/.test(location.hash) && !PGFX.off.foam, ok:false, N:0, M:600, tex:[null, null], fb:[null, null], r:0, ox:0, oz:0, t0:[0, 0], win:[160, 32], tau:[14, 6], now:[0, 0], prog:null, pB:null, fresh:true, why:'', ms:0, sh:[0, 0], n:0, G:[0, 0], C:[0, 0], gs:[0, 0], cur:{x:0, y:0}, curT:-1e9, Cw:[0, 0], CwT:[0, 0], cs:[0, 0], spq:new Float32Array(256), spc:0, spl:new Float32Array(16), spv:null, spn:0};
   FOAM.spv = [0, 1, 2, 3].map(k => FOAM.spl.subarray(k * 4, k * 4 + 4));   // (the four patches' views, made once)
   const foamLive = () => FOAM.on && FOAM.ok;
   const foamSize = () => QUAL.lvl >= 2 ? 1024 : 512;
@@ -424,7 +424,7 @@
   // into the map just written, over a quad round her way (NPCF_VS/FS, MAX blending), so a sea with no boats near costs nothing: in the
   // map's own pass six more hulls per texel made SwiftShader's frames slow enough to time wakeshot out. Off with «#npcfoam0», and where
   // MAX blending is missing (WebGL 1 without EXT_blend_minmax).
-  const NPCFOAM_OFF = /npcfoam0/.test(location.hash), NPF = new Map(), NFO = {prog:null, buf:null, max:0, why:'', last:[]};
+  const NPCFOAM_OFF = /npcfoam0/.test(location.hash) || !!PGFX.off.foam, NPF = new Map(), NFO = {prog:null, buf:null, max:0, why:'', last:[]};
   function foamNPC(qx, qz, Dx, Dz, gx, gz){
     if (NPCFOAM_OFF || NFO.why) return;
     let L0 = []; try { L0 = typeof npcNow !== 'undefined' ? npcNow : []; } catch (e){ L0 = []; }
@@ -498,7 +498,7 @@
   // step says it hits her. Its height: Hs as the wave's amplitude, held under k a 0.42 (where a wave breaks: its crest at the cusp, and
   // the Jacobian foam, F3, whitens it). Looked up once a second; the group's place and height every frame from the game's clock.
   // «#brott0» in the address: off (for the comparison). BRV.fix: a group given by hand (tests/brottshot.py).
-  const BRV = {on:!/brott0/.test(location.hash), t:-9, list:[], e:null, c:[0, 0], D:[0, 1], s:0, ia:0, iw:0, f:0, i:-1, G:1, A:0, gmax:8, fix:null};
+  const BRV = {on:!/brott0/.test(location.hash) && !PGFX.off.foam, t:-9, list:[], e:null, c:[0, 0], D:[0, 1], s:0, ia:0, iw:0, f:0, i:-1, G:1, A:0, gmax:8, fix:null};
   WV.brott = BRV;
   function brvE(x, z){ const qx = x - BRV.c[0], qz = z - BRV.c[1], a = (qx * BRV.D[0] + qz * BRV.D[1] - BRV.s) * BRV.ia, c = (-qx * BRV.D[1] + qz * BRV.D[0]) * BRV.iw; return BRV.f * Math.exp(-a * a - c * c); }
   function brvStep(){

@@ -24,7 +24,8 @@ async def main():
         port0 = await pg.evaluate("S.boat.port")
         # 1. the setting, from the phone's settings
         await pg.evaluate("() => { S.settings.manual = false; }")
-        has = await pg.evaluate("(() => { PHONE.open('innst'); return !!document.querySelector('[data-pa=manual]'); })()")
+        # (16.11.2026: the manual helm is in the Admin app only; players have none, ui/11-boot.js; this runs on localhost, where adminOk holds)
+        has = await pg.evaluate("(() => { PHONE.open('admin'); return !!document.querySelector('[data-pa=manual]'); })()")
         await pg.evaluate("() => { S.settings.manual = true; PHONE.show(false); }")
         await pg.wait_for_timeout(600)
         s = await pg.evaluate(ST)

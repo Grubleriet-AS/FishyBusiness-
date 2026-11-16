@@ -147,7 +147,7 @@
   // The hull's life for the next draw of a hull (LIFE_GL; #life0 in the address: off). key: one per boat ('me', or the NPC's id); M: her
   // model matrix relative to the eye without her scale; sv: her scale (NPCs are one model stretched to their size); age 0-1 (0 for your
   // own boat and other players'; HL.meAge, 0, is the tests' handle on your own); keep: the wear is on (wearOn), so uWear's scratches and damage stay. lifeOff() after the hull.
-  const HL = {on:!/life0/.test(location.hash), meAge:0}, WETS = new Map(), SV1 = [1, 1, 1];
+  const HL = {on:!/life0/.test(location.hash) && !PGFX.off.life, meAge:0}, WETS = new Map(), SV1 = [1, 1, 1];
   // how high the sea last wetted her at the bow and the stern, to port and to starboard: the sea's height (seaH, the waves the screen
   // draws) over the hull's waterline at those points, kept as the highest and drying 3.5 cm a second (a painted side runs off in a few
   // seconds, the dark of the wet a little longer); under way the bow wave climbs her stem (about a third of v²/2g, the stagnation height)

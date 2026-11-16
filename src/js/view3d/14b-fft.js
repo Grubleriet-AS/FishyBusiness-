@@ -8,7 +8,7 @@
   // they never race with the game's 6x. The worker gets the time the frame after next will show (FFT.lat ahead), and its result goes up
   // when it comes; it is never asked again before it has answered, so it never queues. WebGL 2 only (RGBA16F with the levels from the
   // worker, no extension needed); elsewhere, with «#fft0» in the address, or if the worker fails, the sea is as before.
-  const FFT = {on:!/fft0/.test(location.hash), ok:false, w:null, busy:false, tex:[null, null, null], have:false, cpu:null, cpuL:-1, st:[[0, 0, 0], [0, 0, 0]], key:'', keyT:-1e9, sentT:0, sentAt:0, lat:0.02, ms:0, up:0, n:0, why:'', bufs:null, A0:1, aniso:null, bl:/fftbl1/.test(location.hash), src:null, si:[0, 1, 2], tA:0, tB:0, tC:0, got:0, pend:false, fb:null, prog:null, f:-1, hold:0, fdt:0.017, lt:null};
+  const FFT = {on:!/fft0/.test(location.hash) && !PGFX.off.fft, ok:false, w:null, busy:false, tex:[null, null, null], have:false, cpu:null, cpuL:-1, st:[[0, 0, 0], [0, 0, 0]], key:'', keyT:-1e9, sentT:0, sentAt:0, lat:0.02, ms:0, up:0, n:0, why:'', bufs:null, A0:1, aniso:null, bl:/fftbl1/.test(location.hash), src:null, si:[0, 1, 2], tA:0, tB:0, tC:0, got:0, pend:false, fb:null, prog:null, f:-1, hold:0, fdt:0.017, lt:null};
   const FFTT = HFFT.tiles;
   function fftWorker(){
     const src = [hfftHash, hfftLgam, hfftPlan, hfft1, hfft2, hfftSpec, hfftFrame, hfftMips, hfftCapFit].map(f => f.toString()).join('\n') + '\n' +

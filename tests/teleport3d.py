@@ -85,7 +85,7 @@ async def main():
           Q.fix = true; Q.lvl = 2; return out; }""")
         check(a[:3] == [1, 0, 0] and a[3] >= 1, 'Auto: ned ett nivå etter 4 s under 28 bilder/s, ikke straks opp igjen, opp etter 30 s med god margin', a)
         # the setting on the phone: Auto, Lav, Middels, Høy, Ultra
-        await pg.evaluate("PHONE.open('innst')"); nb = await pg.evaluate("document.querySelectorAll('#phView [data-pa=q3d]').length"); await pg.evaluate("PHONE.show(false)")
+        await pg.evaluate("(PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'grafikk'}), PHONE.render())"); nb = await pg.evaluate("document.querySelectorAll('#phView [data-pa=q3d]').length"); await pg.evaluate("PHONE.show(false)")
         check(nb == 5, 'Innstillinger på telefonen har grafikkvalget (Auto, Lav, Middels, Høy, Ultra)', nb)
         check(not errs, 'ingen sidefeil', errs[:3])
         await b.close()

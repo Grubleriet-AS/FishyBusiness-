@@ -5,7 +5,7 @@
   // colours; four in five berths taken from May to September, one in three in the winter (the rest are on land). Where they lie is
   // decided by the berth's hash, so everyone sees the same. #marina0 in the address: none.
   const MARINA = /*@include(data/marina.json)*/null;
-  const MAR = {on:!/marina0/.test(location.hash), M:null, near:[], at:-1e9, O:[1e9, 1e9], n:0};
+  const MAR = {on:!/marina0/.test(location.hash) && !PGFX.off.shore, M:null, near:[], at:-1e9, O:[1e9, 1e9], n:0};
   function marinaModels(){
     if (MAR.M) return MAR.M;
     const W = [0.93, 0.93, 0.91], RB = [0.55, 0.12, 0.1], DK = [0.12, 0.14, 0.17], M = [];

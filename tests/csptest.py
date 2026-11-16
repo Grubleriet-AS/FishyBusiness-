@@ -153,7 +153,7 @@ window.DSB_AUTHKIT = {createClient: async () => ({getUser: () => null, getAccess
     except Exception: pass
     await pg.wait_for_function("S.intro === true && CLOUD.on === true", timeout=30000)
     st = await pg.evaluate("""(async () => { S.tut = 0; document.getElementById('modal').hidden = true; const w = ms => new Promise(r => setTimeout(r, ms));
-      PHONE.show(true); PHONE.open('innst'); await w(400); const acc = document.getElementById('phView').innerText;
+      PHONE.show(true); (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); await w(400); const acc = document.getElementById('phView').innerText;
       PHONE.open('haill'); await w(600); const shop = document.getElementById('phView').innerText; PHONE.show(false);
       return {guest:CLOUD.guest === true, on:CLOUD.on, acc:acc.includes('Du spiller som gjest'), shop:shop.length > 40, mode:typeof shopMode === 'function' ? shopMode() : null}; })()""")
     await pg.wait_for_timeout(1500)

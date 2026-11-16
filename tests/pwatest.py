@@ -42,7 +42,7 @@ async def main():
         check(ok and off['sim'], 'uten nett åpner spillet igjen fra mellomlageret', off)
         await ctx.set_offline(False)
         # the save as a code, out from Innstillinger and back in
-        await pg.evaluate("(() => { S.cash = 123456; save(); PHONE.open('innst'); document.querySelector('[data-pa=saveOut]').click(); })()")
+        await pg.evaluate("(() => { S.cash = 123456; save(); (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); document.querySelector('[data-pa=saveOut]').click(); })()")
         await pg.wait_for_function("document.getElementById('saveCode') && document.getElementById('saveCode').value.startsWith('KYST2:')", timeout=10000)
         code = await pg.evaluate("document.getElementById('saveCode').value")
         await pg.evaluate("(() => { S.cash = 1; save(); document.querySelector('[data-pa=saveIn]').click(); })()")
