@@ -4956,3 +4956,58 @@
 2026-11-16 15:15	ccr-349425a1-raf94t	a6ca767+	cloudtest	OK	41	lite	alene	
 2026-11-16 15:51	claude/blissful-cannon-ctb8e9	dbe6f257	boottest	OK	26	lite	alene	
 2026-11-16 15:53	claude/blissful-cannon-ctb8e9	46caaa55	boottest	OK	25	lite	alene	
+2026-11-16 16:18	ccr-5e1ba2f4-pusvyd	5984d333+	driftsplan2map	OK	61	lite	samtidig	
+2026-11-16 16:18	ccr-5e1ba2f4-pusvyd	5984d333+	driftsplan2ui	OK	62	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	havplantest	FEIL	1151	lite	samtidig	FEIL spot check Egersund: the plan made, out from Egersund, the lenker set and hauled, fish aboard [[{'lat': 58.249999999999986, 'lon': 4.9}, {'lat': 58.3826273
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	driftsplan2kyst	OK	0	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	rundshot	OK	29	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	hbtest	OK	15	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	itemcardtest	OK	24	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	jukseboot	OK	10	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	savestest	OK	7	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	trip2	OK	34	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	boottest	OK	31	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	worldtest	OK	19	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	errtest	OK	36	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	bootgtest	OK	152	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	havnstengt	FEIL	38	lite	samtidig	FEIL a berth in Bodø to put the boat at (vec packs in the build?) {'err': 'no berth'}
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	docktest	FEIL	58	lite	samtidig	FEIL telefonen har appene, med Kvote, Regler, Kaiboden, Patchnotes og Admin i rekkefølge  ['rederi', 'drift', 'ordl', 'nett', 'salg', 'kvote', 'regler', 'kaibod
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	skattetest	OK	6	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	lotttest	OK	7	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	boktest	FEIL	8	lite	samtidig	FEIL the bank shows the statement and the year's accounts (staende)
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	skiptest	OK	15	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	opptest	OK	76	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	vesseltest	OK	16	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	aerendshot	OK	13	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	laerlingshot	OK	13	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	avtaleshot	OK	11	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	telefonflate	FEIL	156	lite	samtidig	FEIL stående nettbrett: alle appene er på hjemskjermen med navnet sitt  {'rederi': 'Rederi', 'profil': 'Profil', 'social': 'Fellesskap'}
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	uishots	OK	89	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	navbarshot	OK	30	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	dockrow	OK	44	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	roetest	OK	123	lite	samtidig	
+2026-11-16 16:38	ccr-5e1ba2f4-pusvyd	cc750522	hudtest	OK	119	lite	samtidig	
+2026-11-16 16:40	ccr-5e1ba2f4-pusvyd	cc750522	driftsplan2test	OK	97	lite	alene	
+2026-11-16 16:40	ccr-5e1ba2f4-pusvyd	cc750522	boktest	FEIL	9	lite	samtidig	FEIL the bank shows the statement and the year's accounts (staende)
+2026-11-16 16:41	ccr-5e1ba2f4-pusvyd	cc750522	docktest	FEIL	61	lite	samtidig	FEIL telefonen har appene, med Kvote, Regler, Kaiboden, Patchnotes og Admin i rekkefølge  ['rederi', 'drift', 'ordl', 'nett', 'salg', 'kvote', 'regler', 'kaibod
+2026-11-16 16:43	ccr-5e1ba2f4-pusvyd	cc750522	telefonflate	FEIL	146	lite	samtidig	FEIL stående nettbrett: alle appene er på hjemskjermen med navnet sitt  {'rederi': 'Rederi', 'profil': 'Profil', 'social': 'Fellesskap'}
+2026-11-16 16:44	ccr-5e1ba2f4-pusvyd	cc750522+	boktest	OK	9	lite	samtidig	
+2026-11-16 16:45	ccr-5e1ba2f4-pusvyd	cc750522+	docktest	OK	62	lite	samtidig	
+2026-11-16 16:46	ccr-5e1ba2f4-pusvyd	cc750522+	telefonflate	OK	143	lite	samtidig	
+2026-11-16 16:47	ccr-5e1ba2f4-pusvyd	cc750522+	driftsplan2ui	OK	60	lite	samtidig	
+2026-11-16 16:47	ccr-5e1ba2f4-pusvyd	cc750522+	driftsplan2map	OK	58	lite	samtidig	
+2026-11-16 16:49	ccr-5e1ba2f4-pusvyd	cc750522+	driftsplan2gui	OK	112	lite	samtidig	
+2026-11-16 16:49	ccr-5e1ba2f4-pusvyd	cc750522+	boottest	OK	30	lite	samtidig	
+2026-11-16 16:50	ccr-5e1ba2f4-pusvyd	cc750522+	bootgtest	OK	144	lite	samtidig	
+2026-11-16 16:50	ccr-5e1ba2f4-pusvyd	cc750522+	hbtest	OK	16	lite	samtidig	
+2026-11-16 16:56	ccr-5e1ba2f4-pusvyd	cc750522+	planhjem	FEIL	15	lite	alene	FEIL a running v4 plan whose home is gone hauls, lands at its plant and lies there  {"ops": null, "log": "Driftsplanen er laget på nytt, og den gamle planen for
+2026-11-16 16:57	ccr-5e1ba2f4-pusvyd	cc750522+	planhjem	FEIL	15	lite	alene	FEIL a Driftsplan 3 plan whose home is gone stops, and the log says Start finds a new home  {"ops": {"v": 5, "on": false, "home": null, "retire": false, "fetch"
+2026-11-16 16:57	ccr-5e1ba2f4-pusvyd	cc750522+	planhjem	OK	15	lite	alene	
+2026-11-16 16:57	ccr-5e1ba2f4-pusvyd	cc750522+	planhjem	FEIL	15	lite	alene	FEIL a running v4 plan whose home is gone hauls, lands at its plant and lies there  {"ops": null, "log": "Driftsplanen er laget på nytt, og den gamle planen for
+2026-11-16 16:58	ccr-5e1ba2f4-pusvyd	cc750522+	boottest	OK	36	lite	samtidig	
+2026-11-16 16:58	ccr-5e1ba2f4-pusvyd	cc750522+	savestest	OK	9	lite	samtidig	
+2026-11-16 17:01	ccr-5e1ba2f4-pusvyd	cc750522+	bootgtest	OK	188	lite	samtidig	
+2026-11-16 17:01	ccr-5e1ba2f4-pusvyd	cc750522+	trip2	OK	44	lite	samtidig	
+2026-11-16 17:01	ccr-5e1ba2f4-pusvyd	cc750522+	worldtest	OK	21	lite	samtidig	
+2026-11-16 17:01	ccr-5e1ba2f4-pusvyd	cc750522+	errtest	OK	47	lite	samtidig	
+2026-11-16 17:01	ccr-5e1ba2f4-pusvyd	cc750522+	jukseboot	OK	11	lite	samtidig	
