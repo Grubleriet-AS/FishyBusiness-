@@ -180,8 +180,15 @@ function trimWords(k, how){
 function trimEnd(){ const v0 = BOAT.vmax; delete S.boat.trim; applyVessel(); trimRescale(v0); }
 function powerX(b){ const V = VESSELS[b.type || 'skiff']; return 1 + (b.engLv && !V.outboard ? ENGUP[b.engLv - 1].p : 0); }
 const speedOfPower = (P, planing) => planing ? Math.sqrt(P) : Math.min(1.12, Math.cbrt(P));
+// every key a vessel type or a piece of equipment's boost can give BOAT (made once, applyVessel)
+let BOAT_KEYS = null;
 function applyVessel(){
-  const b = S.boat; Object.assign(BOAT, VESSELS[b.type || 'skiff']);
+  const b = S.boat, Vt = VESSELS[b.type || 'skiff'];
+  // (a key the type before left, a switch in the fleet: back to what a fresh load of this type gives, the skiff's or none, before the type
+  // goes on; DP3-4 16.11.2026: the autoliner after the snow crab vessel kept its pots, tanks, ice class and provisions)
+  if (!BOAT_KEYS){ BOAT_KEYS = new Set(); for (const ty in VESSELS) for (const k in VESSELS[ty]) BOAT_KEYS.add(k); for (const k in EQUIP) if (EQUIP[k].boost) for (const j in EQUIP[k].boost) BOAT_KEYS.add(j); }
+  for (const k of BOAT_KEYS) if (!(k in Vt)){ if (k in VESSELS.skiff) BOAT[k] = VESSELS.skiff[k]; else delete BOAT[k]; }
+  Object.assign(BOAT, Vt);
   reqFill(S.equip, b.type || 'skiff');   // the gear the rules ask for is always aboard (V6 A, Ø11.5)
   for (const k in EQUIP) if (EQUIP[k].boost && S.equip && S.equip[k] && equipFits(k, b.type || 'skiff')) Object.assign(BOAT, EQUIP[k].boost);
   BOAT.fuelK = fuelKOf(BOAT);   // the boat burns BOAT.lph at cruising speed, with the engine the boosts gave her

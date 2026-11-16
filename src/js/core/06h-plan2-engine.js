@@ -303,6 +303,11 @@ function plan2NewDay(o, H){
   const st = plan2State(o), day = planDay(o, H, st), r0 = o.run;
   o.run = {day, i:0, t0:H, dayN:(r0 && r0.dayN || 0) + 1, cost0:S.stats.costs, trip:null, wait:day.auto && r0 && r0.wait && (r0.wait.k === 'wx' || (day.sno && r0.wait.k === 'idle')) ? r0.wait : null, closed:null};   // (the ocean vessel's wait for the weather is said once while it lasts, H2c; the snow crab's wait for the season, the quota or the soak too, H3c)
   if (o.t0 == null) o.t0 = S.t;
+  // (the ocean vessel's hold past DRP2.hav.full when the day is laid, not in the middle of a trip (plan2Sea): the same word to the player, once
+  // a full hold; o.fullSaid goes when she has landed)
+  const full = day.auto && !day.sno && st.hold >= DRP2.hav.full * st.cap, M = (portById(o.M) || {name:'mottaket'}).name, pc = Math.round(100 * st.hold / st.cap);
+  if (full && !o.fullSaid){ o.fullSaid = true; log('Lasten er ' + pc + ' % full. ' + (st.sets.length ? 'Trekker det som står inn på magasinene, så går skipet til ' : 'Skipet går til ') + M + '.', 'The hold is ' + pc + ' % full. ' + (st.sets.length ? 'Hauling what stands back to the magazines, then the ship goes to ' : 'The ship goes to ') + M + '.'); }
+  else if (!full) o.fullSaid = null;
   // a day with nothing to sail waits for the next: the reasons are the day's own
   if (!day.steps.some(s => ['sett', 'trekk', 'juks', 'vent', 'lever', 'agn'].includes(s.k) || (s.k === 'hjem' && !plan2Here(o).port))){
     const why = day.skipped.map(x => x.no).join('; ') || day.why[0], whyEn = day.skipped.map(x => x.en).join('; ') || day.why[1];
@@ -364,11 +369,13 @@ function plan2Trip(o, D, i0){
     }
     if (sno && (s.k === 'lever' || s.k === 'agn' || s.k === 'hjem')) h += leave();
     // (Driftsplan 3: the haul and the set again are two visits, so a haul that fell can send her searching before the gear goes out, plan3HaulWatch)
-    if (s.k === 'sett'){ const q = P(s.pid), pv = D.steps[i - 1]; if (!v5 && pv && pv.k === 'trekk' && pv.pid === s.pid && (kind !== 'line' || s.again)) continue;   // nets, pots and the autoline are set again by the haul
+    // (the autoline is set again by the haul from the hauling port as before, also on Driftsplan 3: a field is one string of up to 13 km,
+    // and the haul that fell is not searched again on the ocean vessels)
+    if (s.k === 'sett'){ const q = P(s.pid), pv = D.steps[i - 1]; if ((!v5 || auto) && pv && pv.k === 'trekk' && pv.pid === s.pid && (kind !== 'line' || s.again)) continue;   // nets, pots and the autoline are set again by the haul
       const a = goQ(q); pts.push(a); wps.push({x:a.x, y:a.y, port:null, fish:0, act:{op:'cycle', kind, n:s.n, fid:s.pid, final:true, only:'set', spec:kind === 'line' ? {lk:s.lk || q.lk || 'hyse'} : null, hdg:q.hdg != null ? q.hdg : null}}); h += s.h; }
     else if (s.k === 'trekk'){ const q = P(s.pid), a = goQ(q); pts.push(a);
       if (s.wait > 1 / 60){ wps.push({x:a.x, y:a.y, port:null, fish:Math.max(0.1, Math.round(s.wait * 10) / 10)}); if (!p2Jig(o)) noJig = true; h += s.wait; }   // she is there before the soak is up: jigs (or waits) by the gear until then
-      wps.push({x:a.x, y:a.y, port:null, fish:0, act:{op:'cycle', kind, n:s.n, fid:s.pid, final:v5 || !(s.reset && (kind !== 'line' || s.lk === 'auto')), only:'haul', due:s.due != null ? s.due : s.t}}); h += s.h; }
+      wps.push({x:a.x, y:a.y, port:null, fish:0, act:{op:'cycle', kind, n:s.n, fid:s.pid, final:(v5 && !auto) || !(s.reset && (kind !== 'line' || s.lk === 'auto')), only:'haul', due:s.due != null ? s.due : s.t}}); h += s.h; }
     else if (s.k === 'juks'){ const q = s.pid ? P(s.pid) : null; if (q){ const a = goQ(q); pts.push(a); } const w = {x:prev.x, y:prev.y, port:null, fish:Math.max(0.1, Math.round(s.h * 10) / 10)}; if (jn > 1 && q){ w.jc = ++jc; w.jn = jn; } wps.push(w); h += s.h; }
     else if (s.k === 'vent'){ const q = P(s.pid), a = goQ(q); pts.push(a); wps.push({x:a.x, y:a.y, port:null, fish:Math.max(0.1, Math.round((s.until - s.t) * 10) / 10)}); noJig = true; h += s.until - s.t; }
     // (Driftsplan 3, DP3-2: the search, a trip of its own that ends in the ring when the pattern is sailed; plan3SokEnd reads it there)
@@ -467,7 +474,7 @@ function plan2Sea(o, H){
     // the hold at DRP2.hav.full: nothing more is set, the lenker standing are hauled home to the magazines, and the next day is the way to
     // the plant (planDayAuto). A haul in hand finishes without setting again
     if (!pl.full && holdLoad() >= DRP2.hav.full * capHold() && (b.gop || pl.wps.slice(pl.idx).some(w => w.act))){
-      pl.full = true; if (b.gop && b.gop.op === 'haul') b.gop.reset = false;
+      pl.full = true; o.fullSaid = true; if (b.gop && b.gop.op === 'haul') b.gop.reset = false;
       const rest = pl.wps.slice(pl.idx).filter(w => !(w.act && w.act.only === 'set')).map(w => w.act ? Object.assign({}, w, {act:Object.assign({}, w.act, {final:true})}) : w);
       pl.wps = pl.wps.slice(0, pl.idx).concat(rest); if (pl.unsafe) pl.unsafe = pl.unsafe.slice(0, pl.idx).concat(rest.map(() => false));
       log('Lasten er ' + Math.round(100 * holdLoad() / capHold()) + ' % full. Trekker det som står inn på magasinene, så går skipet til ' + (portById(o.M) || {name:'mottaket'}).name + '.', 'The hold is ' + Math.round(100 * holdLoad() / capHold()) + ' % full. Hauling what stands back to the magazines, then the ship goes to ' + (portById(o.M) || {name:'the plant'}).name + '.');

@@ -31,7 +31,9 @@ function plan3GearKey(rig){
   return RIGS[rig] ? rig : 'juksa';
 }
 // the gear in a sentence, «for juksa», «for line» (rigName says «Bare juksa» for the rig)
-const plan3GearWord = rig => rig === 'juksa' || !RIGS[rig] ? ['juksa', 'the jig'] : [RIGS[rig].no.toLowerCase(), RIGS[rig].en.toLowerCase()];
+// (the ocean vessels' gear by its own name: «8,0 nm over for autoline», not «for line», DP3-4)
+const plan3GearWord = rig => { const gk = plan3GearKey(rig); if (gk === 'auto') return ['autoline', 'the autoline']; if (gk === 'sno') return ['snøkrabbeteiner', 'the snow crab pots'];
+  return rig === 'juksa' || !RIGS[rig] ? ['juksa', 'the jig'] : [RIGS[rig].no.toLowerCase(), RIGS[rig].en.toLowerCase()]; };
 const plan3RingKm = rig => DRP3.ring[plan3GearKey(rig)] * NM / 2;   // the ring's radius, true km
 // the gear the boat has aboard (and in the sea) and can rig for, with the choices under it: the bait (line and pots), the line's kind
 // (when she has both), the jig's tackle (the mark hooks, and the halibut pilk with that gear aboard). The nets have nothing under them, and
@@ -177,7 +179,7 @@ async function plan3Make(o, cb){
   // (the skipper and the mate the plan names, put back when the plan is not made)
   const was = (S.crew || []).map(c => [c, !!c.sk, !!c.mate]), back = () => { for (const [c, sk, mt] of was){ if (sk) c.sk = true; else delete c.sk; if (mt) c.mate = true; else delete c.mate; } };
   const why = plan3Derive(o); if (why){ back(); o.err = why; o.made = null; if (cb) cb(why); return; }
-  return plan2Make(o, err => { if (err){ back(); if (cb) cb(err); return; } const w = plan3Apply(o); if (w){ o.err = w; o.made = null; back(); } if (cb) cb(w || null); });
+  return plan2Make(o, err => { if (err){ back(); if (cb) cb(err); return; } const w = plan3Apply(o); if (w){ o.err = w; o.made = null; back(); } else o.p3v = 4; if (cb) cb(w || null); });   // (p3v: made by DP3-4's rules, PLAN2UI start)
 }
 // ---- the old plans when DRIFT3 is on (Jonas 16.11.2026: «Den slåes av og melding gies. Båten kjøres til nærmeste fiskemottak på
 // automatikk, så den ikke driver avgårde», «Trekk først, så lever»): a v4 plan that runs and that someone aboard can sail fetches the gear
@@ -223,9 +225,11 @@ const P3TIER = {basic:['ekkoloddet', 'the echo sounder'], chirp:['CHIRP-ekkolodd
 // who reads the picture: you when you are aboard (a fixed low experience until the ranking step 134), else the skipper; an ocean vessel's
 // teams have a skipper of their own (H2b) of middling experience
 function plan3Reader(){
+  // (the ocean vessel's teams have their own skipper on the bridge, H2b: he reads it, also with you aboard; DP3-4)
+  if (p2Lag()) return {erf:3, who:gL('skipperen', 'the skipper')};
   if (meAboard()) return {erf:DRP3.sok.meErf, who:null};
   const sk = actingSkipper(); if (sk && sk.attr) return {erf:sk.attr.erf, who:sk.name};
-  return {erf:p2Lag() ? 3 : DRP3.sok.meErf, who:null};
+  return {erf:DRP3.sok.meErf, who:null};
 }
 // how far the reading misses: the spread of its log, from experience 1 to 5
 const plan3Sig = erf => { const [a, b] = DRP3.sok.sig; return a + (b - a) * clamp((erf - 1) / 4, 0, 1); };

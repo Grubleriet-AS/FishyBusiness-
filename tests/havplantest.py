@@ -12,7 +12,7 @@
 #    strings standing, landing, out again), and a season frozen and a season live against the landing notes (tonnes, trips, days between
 #    landings); the page for the snow crab vessel in both formats
 # LITE (no 3D). Needs the whole coast in tools/map/out/game (python3 tools/map/release.py and game.py).
-import asyncio, json, os, sys
+import asyncio, json, re, os, sys
 from playwright.async_api import async_playwright
 from _env import *
 ok = lambda c: 'OK  ' if c else 'FEIL'
@@ -56,7 +56,7 @@ H = r"""window.HPT = (() => {
     const b = S.boat, o = S.ops, L = {ev:[], log0:S.log.length, msg0:S.msgs.length, t0:S.t, days:[], kg0:holdTotal()}; let was = null, d0 = null, k = 0;
     // (closed: as catchUp, an hour at a time; playMinutes stops where the simulation's map is not in yet (simAreaReady) and the game plays
     // the rest when it is, CATCH_LEFT, so here the map is let in and the hour played on)
-    if (mode === 'closed'){ const T1 = S.t + n; let i = 0, idle = 0; while (S.t < T1 && idle < 400){ if (hook) hook(i); const t0 = S.t; playMinutes(Math.min(60, T1 - S.t), true); CATCH_LEFT = 0; i += S.t - t0;
+    if (mode === 'closed'){ const T1 = S.t + n; let i = 0, idle = 0; while (S.t < T1 && idle < 400){ if (hook) hook(i); const t0 = S.t; playMinutes(Math.min(window.HPT_CHUNK || 60, T1 - S.t), true); CATCH_LEFT = 0; i += S.t - t0;
         if (S.t === t0){ idle++; await new Promise(r => setTimeout(r, 50)); } else idle = 0; const s2 = st(b, o); if (s2 !== was){ L.ev.push([when(S.t), s2, Math.round(holdTotal())]); was = s2; } } L.idle = idle; }
     // (open: as the game's loop, a minute only when the simulation's map round the boat is in, 08-actions.js tick)
     else for (let i = 0; i < n; i++){ let w = 0; while (!simAreaReady() && w++ < 400){ const R = Math.random; Math.random = NATIVE; await new Promise(r => setTimeout(r, 25)); Math.random = R; } if (hook) hook(i); DYN.on = false; step(); const r = o.run; if (r && r.day && r.t0 !== d0){ d0 = r.t0; if (L.days.length < 4) L.days.push({at:when(S.t), text:planDayText(o, r.day).map(x => x[0] + ' ' + x[1]).slice(0, 14)}); }
@@ -135,16 +135,25 @@ HS = r"""window.SNO = (() => {
 })();"""
 
 # part 11 (DP3-4): a ring plan for the autoliner or the snow crab vessel, made, searched and played two days closed
-P11 = r"""async kind => { const H = kind === 'auto' ? HPT : SNO; await (kind === 'auto' ? HPT.reset(7, 'port') : SNO.reset(7, 'port', SNO.TF)); const F = H.F; if (!F || !F.length) return {err:'ingen felt'};
-  const o = S.ops = plan3New({x:F[0].x, y:F[0].y}, kind === 'auto' ? 'line' : 'teiner'), t0 = performance.now(), err = await new Promise(res => plan3Make(o, e => res(e || null))); if (err) return {err};
-  const R = {ms:Math.round(performance.now() - t0), r:o.ring.r, fields:o.places.map(q => q.n), km:o.sok && o.sok.km, cand:o.sok && o.sok.cand.length, tier:plan3Tier(), lay:o.sok && Object.values(o.sok.lay || {}).map(L => Object.keys(L).length)};
-  const d = planDay(o, S.t / 60, plan2StateOf(o)); R.day = planDayText(o, d).map(x => x[0] + ' ' + x[1]).slice(0, 8); R.sokStep = !!d.steps.find(x => x.k === 'sok');
-  let sokT = null; const sok = [], seen = {}; plan2Start(o);
-  await HPT.run(2 * 1440, 'closed', () => { const pl = S.plan; if (pl && pl.sok != null && pl.idx >= pl.sok){ if (sokT == null) sokT = S.t; } else if (sokT != null){ sok.push(S.t - sokT); sokT = null; } for (const s of mySets()) if (!seen[s.id]) seen[s.id] = {fid:s.fid, a:{...s.a}, b:{...s.b}}; });
+P11 = r"""async ([kind, where]) => { const H = kind === 'auto' ? HPT : SNO; await (kind === 'auto' ? HPT.reset(7, 'port', where || undefined) : SNO.reset(7, 'port', SNO.TF)); const F = H.F; if (!F || !F.length) return {err:'ingen felt'};
+  // (made on the page as a player makes it: «Lag driftsplan», Redskap, the ring as a tap on the chart sets it, PLAN2UI.ringPut, and Start)
+  S.ops = null; PHONE.dact('drift', 'p2-new', {}); const o = S.ops; if (!o) return {err:'p2-new laget ingen plan'}; PHONE.dact('drift', 'p2-g3', {g:kind === 'auto' ? 'line' : 'teiner'});
+  const gk = plan3GearKey(o.rig), t0 = performance.now(), why = await new Promise(res => PLAN2UI.ringPut(o, {x:F[0].x, y:F[0].y}, res)); if (why) return {err:'ringen: ' + why, gk};
+  PHONE.dact('drift', 'p2-start', {}); for (let k = 0; k < 1200 && !o.on && !o.err; k++) await new Promise(r => setTimeout(r, 100)); if (!o.on) return {err:o.err || 'Start satte ikke planen i gang', gk};
+  // (an autoliner's plan from step 131 on the test edition, its two fields of four lenker and no p3v, paused in port with nothing in the
+  // sea: made again by DP3-4's rules at the next Start)
+  let stale = null; if (kind === 'auto' && !where){ PHONE.dact('drift', 'p2-pause', {}); o.places = o.places.slice(0, 2); o.places.forEach(q => { q.n = 4; }); delete o.p3v;
+    PHONE.dact('drift', 'p2-start', {}); for (let k = 0; k < 1200 && !(o.on && o.p3v); k++) await new Promise(r => setTimeout(r, 100)); stale = {on:o.on, p3v:o.p3v || null, n:o.places.map(q => q.n)}; }
+  // (the work plan3Make does on the main thread, the map in: plan3Derive again on a copy, the spots, the places and the search's pattern and lay)
+  const o2 = JSON.parse(JSON.stringify(o)), cw = (S.crew || []).map(c => [c, c.sk, c.mate]), td = performance.now(); plan3Derive(o2); const deriveMs = Math.round(performance.now() - td); for (const [c, sk, mt] of cw){ c.sk = sk; c.mate = mt; }
+  const R = {ms:Math.round(performance.now() - t0), deriveMs, gk, stale, r:o.ring.r, fields:o.places.map(q => q.n), km:o.sok && o.sok.km, cand:o.sok && o.sok.cand.length, tier:plan3Tier(), lay:o.sok && Object.values(o.sok.lay || {}).map(L => Object.keys(L).length)};
+  const d = planDay(o, S.t / 60, plan2StateOf(o)); R.day = planDayText(o, d).map(x => x[0] + ' ' + x[1]).slice(0, 8); const sk = d.steps.find(x => x.k === 'sok'); R.sokStep = !!sk; R.sokPlan = sk ? Math.round(sk.h * 60) : null;
+  let sokT = null; const sok = [], seen = {};
+  const vs = []; window.HPT_CHUNK = 5; const LR = await HPT.run(2 * 1440, 'closed', () => { const pl = S.plan; if (pl && pl.sok != null && pl.idx >= pl.sok){ if (sokT == null) sokT = S.t; if (vs.length < 80) vs.push(+(S.boat.v || 0).toFixed(1)); } else if (sokT != null){ sok.push(S.t - sokT); sokT = null; } for (const s of mySets()) if (!seen[s.id]) seen[s.id] = {fid:s.fid, a:{...s.a}, b:{...s.b}}; }); window.HPT_CHUNK = 0;
   const inR = p => kmTrue(p, o.ring) <= o.ring.r + 0.05, mid = s => ({x:(s.a.x + s.b.x) / 2, y:(s.a.y + s.b.y) / 2}), fieldOf = s => o.places.find(q => q.id === String(s.fid).split('#')[0]), S2 = Object.values(seen);
-  R.after = {sokN:o.sokN || 0, last:o.sokLast, at:o.places.map(q => !!q.at), atIn:o.places.every(q => !q.at || inR(q.at)), sets:S2.length, sokMin:sok,
+  R.ev = LR.ev.slice(0, 14); R.vs = vs.filter((v, i) => i % 4 === 0); R.vc = [BOAT.vcruise, BOAT.vmax]; R.log = LR.log.slice(0, 10); R.after = {sokN:o.sokN || 0, last:o.sokLast, at:o.places.map(q => !!q.at), atIn:o.places.every(q => !q.at || inR(q.at)), sets:S2.length, sokMin:sok,
     midOnAt:kind === 'auto' ? S2.map(s => { const q = fieldOf(s); return q && q.at ? +kmTrue(mid(s), q.at).toFixed(2) : null; }) : null,
-    snoNear:kind === 'sno' ? S2.map(s => { const q = fieldOf(s); return q && q.at ? +kmTrue(s.a, q.at).toFixed(1) : null; }).slice(0, 8) : null, on:o.on, stop:o.stop, kg:Math.round(holdTotal())};
+    snoNear:kind === 'sno' ? S2.map(s => { const q = fieldOf(s), k = +String(s.fid).split('#')[1]; return q && q.at ? +kmTrue(s.a, p2SnoLenke(q, k).a).toFixed(2) : null; }) : null, snoMid:kind === 'sno' && o.places[0].at ? (() => { const q = o.places[0], L = [...Array(q.n).keys()].map(k => p2SnoLenke(q, k)), xs = L.flatMap(l => [l.a.x, l.b.x]), ys = L.flatMap(l => [l.a.y, l.b.y]); return +kmTrue({x:(Math.min(...xs) + Math.max(...xs)) / 2, y:(Math.min(...ys) + Math.max(...ys)) / 2}, q.at).toFixed(2); })() : null, on:o.on, stop:o.stop, kg:Math.round(holdTotal())};
   return R; }"""
 
 async def main():
@@ -296,7 +305,7 @@ async def main():
             for mode in [m for m in ['frys', 'lev'] if m in SEL] or ['frys', 'lev']:   # (python3 havplantest.py 9 lev: only the live season)
                 Z = await pg.evaluate("""(async (mode) => { await SNO.reset(21, 'port'); S.boat.snoMode = mode; const o = SNO.plan(); const err = await HPT.make(o); if (err) return {err}; plan2Start(o); const t0 = performance.now();
                   const Q = snoQuota(S.t / 60), end = (Date.UTC(2027, 6, 1) - EPOCH) / 6e4; let lastY = 0;
-                  while (S.t < end){ await HPT.run(10 * 1440, 'closed'); const q = quotaState(); if (o.run && o.run.wait && o.run.wait.k === 'idle' && !mySets().length && holdTotal() < 1) break; if (performance.now() - t0 > 400000) break; }
+                  while (S.t < end){ await HPT.run(10 * 1440, 'closed'); const q = quotaState(); if (o.run && o.run.wait && o.run.wait.k === 'idle' && !mySets().length && holdTotal() < 1) break; if (performance.now() - t0 > 1000000) break; }   /* (a guard only: the season is played to its end; the check must not hang on how busy the machine is) */
                   const q = quotaState(), LOG = SNO.LOG, gaps = LOG.slice(1).map((x, i) => (x.t - LOG[i].t) / 1440);
                   const lost = (S.sets || []).filter(s => s.lost).length, ms = Math.round(performance.now() - t0);
                   return {mode, Q:{base:Q.base, max:Q.max, extra:Q.extra}, ord:q.snokrabbe, tq:q.snoTq, conf:q.conf, n:LOG.length, LOG:LOG.map(x => [x.d, Math.round((x.ord + x.tq) / 100) / 10, Math.round(x.live / 100) / 10, Math.round(x.kr / 1e5) / 10]), gaps:gaps.map(g => +g.toFixed(1)), lost, ms, until:gDate(S.t / 60).toISOString().slice(0, 10), wait:o.run && o.run.wait && o.run.wait.no, inSea:mySets().length}; })""", mode)
@@ -325,8 +334,10 @@ async def main():
                 # the chart: the ring, and every string of the fields round their spot
                 await pg.evaluate("PLANMAP.open(S.cur)"); await pg.wait_for_timeout(1500)
                 await pg.screenshot(path=os.path.join(OUT, 'havplan-sno-kart-%dx%d.png' % (w, h)))
-                mp = await pg.evaluate("(() => ({lines:document.querySelectorAll('.pm-string').length, ring:document.querySelectorAll('.pm-ring').length}))()")
-                print(ok(mp['lines'] >= 40 and mp['ring'] == 1), 'the chart draws the ring and every string of the fields (%d)' % mp['lines'], mp)
+                mp = await pg.evaluate("(() => ({lines:document.querySelectorAll('.pm-string').length, ring:document.querySelectorAll('.pm-ring').length, bar:(document.getElementById('pmBar') || {innerText:''}).innerText.replace(/\\s+/g, ' '), far:Math.round(kmTrue(nearestPort(S.ops.ring).p, S.ops.ring) / NM)}))()")
+                print(ok(mp['lines'] >= 40 and mp['ring'] == 1), 'the chart draws the ring and every string of the fields (%d)' % mp['lines'], {k: mp[k] for k in ('lines', 'ring')})
+                if w == 800: print(ok('8,0 nm over for snøkrabbeteiner' in mp['bar']), 'the bar names the gear by its own name, «for snøkrabbeteiner», not «for teiner»', mp['bar'][-60:])
+                if w == 800: print(ok(mp['far'] < 20 or re.search(r'Ringen ligger \d+ nm [NSØV]{1,2} av ', mp['bar'])), 'a ring far at sea is named by its distance and bearing from the nearest port, not «ved» it (%d nm out)' % mp['far'], mp['bar'][:160])
                 await pg.evaluate("PLANMAP.close()"); await pg.wait_for_timeout(300)
         if want('6'):
             print('== 6: siden i begge formater')
@@ -350,15 +361,21 @@ async def main():
             # set round them; two days played closed. The autoline in fields of two lenker laid with their middle on the spot; the snow
             # crab's strings in their pattern round it
             print('== 11: ringen og søket for havbåtene (DP3-4)')
-            for kind in ['auto', 'sno']:
-                R = await pg.evaluate(P11, kind)
-                print('  %s:' % kind, json.dumps(R, ensure_ascii=False)[:1500])
+            # (the autoliner from Vannareid in the north, and the spot checks of part 7 in the middle and the south; the snow crab only fishes north)
+            for kind, where, tag in [('auto', None, 'Vannareid'), ('auto', {'plant': [62.47, 6.15], 'ground': [62.9, 5.2]}, 'Ålesund'), ('auto', {'plant': [58.45, 5.99], 'ground': [58.25, 4.9], 'raw': True}, 'Egersund'), ('sno', None, 'Båtsfjord')]:
+                R = await pg.evaluate(P11, [kind, where])
+                print('  %s %s:' % (kind, tag), json.dumps(R, ensure_ascii=False)[:4000])
+                kind_ = kind; kind = kind + ' ' + tag
                 if R.get('err'): print('FEIL %s: planen ble ikke laget: %s' % (kind, R['err'])); continue
                 a = R['after']
-                print(ok(R['sokStep'] and a['sokN'] >= 1 and all(a['at']) and a['atIn']), '%s: the plan from the ring (8 nm) and the gear, searched with the echo sounder before the gear goes out, every field with its spot in the ring' % kind, [R['sokStep'], a['sokN'], a['at']])
+                if R.get('stale'): print(ok(R['stale']['on'] and R['stale']['p3v'] == 4 and max(R['stale']['n']) <= 2), '%s: a plan of fields of four lenker from step 131, paused in port, is made again by the new rules at Start' % kind, R['stale'])
+                print(ok(R['gk'] == kind_ and R['sokStep'] and a['sokN'] >= 1 and all(a['at']) and a['atIn']), '%s: the plan made on the page (Redskap, the ring set as a tap on the chart, Start) from the ring (8 nm) and the gear, searched with the echo sounder before the gear goes out, every field with its spot in the ring' % kind, [R['sokStep'], a['sokN'], a['at']])
                 print(ok(a['sets'] >= 1 and not a['stop']), '%s: the gear set after the search, and the plan goes on' % kind, [a['sets'], a['stop'], a['kg']])
-                if kind == 'auto': print(ok(a['midOnAt'] and all(x is not None and x <= 0.2 for x in a['midOnAt'])), 'auto: each field\'s string of lenker lies with its middle on the spot the search found', a['midOnAt'])
-                else: print(ok(a['snoNear'] and all(x is not None and x <= 25 for x in a['snoNear'])), 'sno: the strings stand in their pattern round the spot the search found', a['snoNear'])
+                print(ok(R['deriveMs'] < 3000), '%s: the plan is found in %.1f s on the main thread once the map is in (plan3Derive; %.1f s with the map loading)' % (kind, R['deriveMs'] / 1000, R['ms'] / 1000), R['deriveMs'])
+                sm = a['sokMin'][0] if a['sokMin'] else None
+                print(ok(sm is not None and R['sokPlan'] and abs(sm - R['sokPlan']) <= max(20, 0.25 * R['sokPlan'])), '%s: the search took about as long at sea as the day reckoned it (minutes, played closed in steps of 5)' % kind, [sm, R['sokPlan']])
+                if kind_ == 'auto': print(ok(a['midOnAt'] and all(x is not None and x <= 0.2 for x in a['midOnAt'])), kind + ': each field\'s string of lenker lies with its middle on the spot the search found', a['midOnAt'])
+                else: print(ok(a['snoNear'] and all(x is not None and x <= 0.05 for x in a['snoNear']) and a['snoMid'] is not None and a['snoMid'] <= 1.5), kind + ': every string set stands where the pattern with its middle on the spot puts it, and the pattern\'s middle is on the spot (Jonas 16.11.2026: «A Midten på plassen»)', [a['snoMid'], a['snoNear'][:8]])
         print('sidefeil:', errs[:5])
         await b.close()
 asyncio.run(main())

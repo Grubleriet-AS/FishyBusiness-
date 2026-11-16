@@ -35,7 +35,7 @@ const PLANMAP = (() => {
   function render(){
     const o = ops(); if (!on || !o){ bar.hidden = card.hidden = true; return; }
     bar.hidden = false; card.hidden = true;
-    const d = fmt(DRP3.ring[plan3GearKey(o.rig)], 1), where = o.ring ? L('Ringen ligger ved ' + PLAN2UI.ringName(o.ring) + '. Trykk et annet sted for å flytte den.', 'The ring lies near ' + PLAN2UI.ringName(o.ring) + '. Tap elsewhere to move it.') : L('Trykk i sjøen der båten skal fiske.', 'Tap the sea where the boat is to fish.');
+    const d = fmt(DRP3.ring[plan3GearKey(o.rig)], 1), where = o.ring ? L('Ringen ligger ' + PLAN2UI.ringName(o.ring) + '. Trykk et annet sted for å flytte den.', 'The ring lies ' + PLAN2UI.ringName(o.ring) + '. Tap elsewhere to move it.') : L('Trykk i sjøen der båten skal fiske.', 'Tap the sea where the boat is to fish.');
     bar.innerHTML = '<div class="pm-h"><b>' + L('Driftsplan: stedet for «', 'Operations plan: the place for «') + S.boatName + '»</b><button type="button" data-pm="done">' + L('Ferdig', 'Done') + '</button></div>' +
       '<div class="pm-t"><span class="pm-hint">' + (busy ? L('Sjekker ringen …', 'Checking the ring …') : where) + ' ' + L('Ringen er ' + d + ' nm over for ' + plan3GearWord(o.rig)[0] + '.', 'The ring is ' + d + ' nm across for ' + plan3GearWord(o.rig)[1] + '.') + '</span></div>' +
       (msg ? '<div class="pm-day pm-why">' + msg + '</div>' : '');

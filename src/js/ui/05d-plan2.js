@@ -85,8 +85,10 @@ const PLAN2UI = (() => {
   // 2 enkle valg: sted og redskap»); the plan finds the rest when it is started (plan3Make, core/06k-plan3.js). The rows of Driftsplan 2
   // (home, places, landing, weather, rhythm, crew) are gone from the page: the plan chooses them and the page says what it chose.
   // a ring's place: the nearest harbour's name and how far the boat is from it
-  const ringName = c => { const p = nearestPort(c); return p ? p.name : '?'; };
-  const ringVal = o => o.ring ? L('Ved ', 'Near ') + ringName(o.ring) + ' · ' + fmt(DRP3.ring[plan3GearKey(o.rig)], 1) + L(' nm ring · ', ' nm ring · ') + fmt(kmTrue(S.boat.pos, o.ring) / NM, 1) + L(' nm unna', ' nm away') : L('ikke valgt', 'not chosen');
+  // (where the ring lies: «ved Husøy», or out at sea, the ocean vessels' ring often hundreds of nm out, «230 nm NØ av Gamvik» in true bearing)
+  const ringName = c => { const p = nearestPort(c); if (!p) return '?'; const d = kmTrue(p.p, c) / NM; if (d < 20) return L('ved ', 'near ') + p.name;
+    const k = Math.round(trueDeg(Math.atan2(c.x - p.p.x, p.p.y - c.y), p.p) / 45) % 8; return fmt(d, 0) + ' nm ' + DIRS[S.lang === 'no' ? 'no' : 'en'][k] + L(' av ', ' of ') + p.name; };
+  const ringVal = o => o.ring ? (w => w[0].toUpperCase() + w.slice(1))(ringName(o.ring)) + ' · ' + fmt(DRP3.ring[plan3GearKey(o.rig)], 1) + L(' nm ring · ', ' nm ring · ') + fmt(kmTrue(S.boat.pos, o.ring) / NM, 1) + L(' nm unna', ' nm away') : L('ikke valgt', 'not chosen');
   const locked = o => o.on || o.building || busy;
   function stedBody(o){
     const d = fmt(DRP3.ring[plan3GearKey(o.rig)], 1);
@@ -209,7 +211,11 @@ const PLAN2UI = (() => {
   function start(o){
     const C = check3(o); if (!C.ok){ toast(C.errors[0]); return; }
     const go = () => { plan2Start(o); toast(L('Driftsplanen er på.', 'The plan is on.')); };
-    if (plan2Made(o) && o.places.length){ go(); return; }
+    // (an ocean vessel's plan made before DP3-4, on the test edition only: its fields of four lenker and no lay for the snow crab's pattern;
+    // made again at the next Start when none of its gear is in the sea, else it goes on with the fields it has)
+    const stale = o.v === DRV3 && (p2Auto(o) || p2Sno(o)) && (o.p3v || 0) < 4 && !plan2State(o).sets.length;
+    if (plan2Made(o) && o.places.length && !stale){ go(); return; }
+    if (stale) redo(o);
     busy = true; plan3Make(o, err => { busy = false; if (err) toast(err); else go(); rerender(); });
   }
   // the gear in the sea is fetched on one trip while the plan is off (choice 2 A): a day of hauls without setting again, then home

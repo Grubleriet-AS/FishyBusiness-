@@ -4903,3 +4903,15 @@
 2026-11-16 04:33	claude/blissful-cannon-ctb8e9	600b3019+	driftsplan2kyst	FEIL	200	lite	samtidig	FEIL Bergen: B the plan made from the page (line 2 + 2, a jig place) is made and starts [None, None, ['Velg minst én juksplass.']]
 2026-11-16 04:35	claude/blissful-cannon-ctb8e9	600b3019+	havplantest	FEIL	26	lite	samtidig	avsluttet med kode 1
 2026-11-16 04:36	claude/blissful-cannon-ctb8e9	600b3019+	driftsplan2kyst	FEIL	41	lite	samtidig	FEIL Bergen: the plan page and the town's run threw: Page.evaluate: ReferenceError: atQ is not defined
+2026-11-16 04:54	claude/blissful-cannon-ctb8e9	e3cf04a1	havplantest	FEIL	1078	lite	samtidig	FEIL a week on the plan catches as a week by hand on the same fields (within 15 %): 50062 kg against 39466 kg, 26.8 %
+2026-11-16 04:54	claude/blissful-cannon-ctb8e9	e3cf04a1	driftsplan2kyst	OK	151	lite	samtidig	
+2026-11-16 05:13	claude/blissful-cannon-ctb8e9	e3cf04a1+	havplantest	FEIL	1040	lite	alene	FEIL the hold at 95 %: the strings hauled home, the landing at the plant, the other crew signs on [0, 1, 584675, [0, 1]]
+2026-11-16 05:34	claude/blissful-cannon-ctb8e9	e3cf04a1+	driftsplan3test	OK	59	lite	samtidig	
+2026-11-16 05:34	claude/blissful-cannon-ctb8e9	e3cf04a1+	driftsplan2ui	OK	46	lite	samtidig	
+2026-11-16 05:34	claude/blissful-cannon-ctb8e9	e3cf04a1+	driftsplan2map	OK	27	lite	samtidig	
+2026-11-16 05:37	claude/blissful-cannon-ctb8e9	e3cf04a1+	driftsplan2test	FEIL	123	lite	alene	FEIL S9 30 h closed in the middle gives the same landings as open (kg within 2 %, kr within 3 %: the price follows the species and sizes, which vary a little be
+2026-11-16 11:24	claude/blissful-cannon-ctb8e9	e3cf04a1+	havplantest	FEIL	231	lite	samtidig	avsluttet med kode 1
+2026-11-16 11:24	claude/blissful-cannon-ctb8e9	e3cf04a1+	fleet2test	OK	46	lite	samtidig	
+2026-11-16 11:24	claude/blissful-cannon-ctb8e9	e3cf04a1+	fleet3test	OK	14	lite	samtidig	
+2026-11-16 11:24	claude/blissful-cannon-ctb8e9	e3cf04a1+	vesseltest	OK	20	lite	samtidig	
+2026-11-16 11:44	claude/blissful-cannon-ctb8e9	e3cf04a1+	havplantest	FEIL	1193	lite	alene	FEIL auto Vannareid: the search took about as long at sea as the day reckoned it (minutes, played closed in steps of 5) [310, 221]

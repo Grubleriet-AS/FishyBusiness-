@@ -32,7 +32,10 @@ const p2SnoKm = () => SNOC.lenke * GEAR.teine.km;
 const p2SnoH = () => { const P = POTS.sno; return {set:SNOC.lenke * P.set / 60, haul:SNOC.lenke * P.haul / 60, bait:SNOC.lenke * P.bait}; };
 function p2SnoLenke(q, k){
   const D = DRP2.sno, W = Math.max(1, Math.min(q.n, D.cols)), r = Math.floor(k / W), c = k % W, h = q.hdg != null ? q.hdg : 0, km = p2SnoKm();
-  const ux = Math.sin(h), uy = -Math.cos(h), vx = Math.cos(h), vy = Math.sin(h), off = (c - (W - 1) / 2) * D.col, al = r * D.row, m = q.at || q;   // (round the spot the search found, Driftsplan 3 DP3-4, else the field's point)
+  // (Driftsplan 3, DP3-4: the pattern with its middle on the spot the search found, q.at; Jonas 16.11.2026, «A Midten på plassen»: the middle
+  // rows stand in the ring and the outer ones go out of it, as a long line's ends do. Without a spot it starts at the field's point, as before)
+  const ux = Math.sin(h), uy = -Math.cos(h), vx = Math.cos(h), vy = Math.sin(h), off = (c - (W - 1) / 2) * D.col, m = q.at || q, R = Math.ceil(Math.max(1, q.n) / W);
+  const al = r * D.row - (q.at ? ((R - 1) * D.row + km) / 2 : 0);
   const a = {x:m.x + vx * off + ux * al, y:m.y + vy * off + uy * al};
   return {k, a, b:{x:a.x + ux * km, y:a.y + uy * km}, hdg:h, fid:q.id + '#' + k};
 }

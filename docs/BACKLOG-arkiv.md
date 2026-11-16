@@ -2,6 +2,11 @@
 
 Flyttet hit fra `docs/BACKLOG.md` 12.11.2026, så backloggen bare har det som er åpent. Nye «Strøket»-avsnitt skrives øverst her (dato, steg, gren, commit). Les med `grep`; fila leses aldri hel.
 
+## Strøket 16.11.2026 (steg 132, Jonas' økt, gren `claude/blissful-cannon-ctb8e9`)
+
+- **`havplantest` «the hold at 95 %»** (rød siden 07.11.2026, i regresjonen 11., 13., 14. og 15.11.2026): meldingen om å trekke lenkene inn på magasinene kom bare når lasten passerte 95 % midt i en tur. Nå sier `plan2NewDay` den også når lasten er full når dagen legges, én gang per full last (`o.fullSaid`, `core/06h-plan2-engine.js`). Grønn i steg 132.
+- **`havplantest`, stikkprøven Egersund** (rød 06.11.2026, «Fant ingen vei mellom Egersund og felt 1»): grønn i steg 132 (del 7 og del 11 med ringen og søket fra Egersund).
+
 ## Strøket 16.11.2026 (steg 131, Jonas' økt, gren `claude/blissful-cannon-ctb8e9`)
 
 - **Slippjobben og Ubuntus pakkespeil** (fra steg 102): `autonav.yml`, `ferje.yml`, `fly.yml` og `autofix.yml` bruker Playwright 1.63.0 og går videre når systempakkene ikke kommer, som `deploy.yml`. «Autonav langs hele kysten» stoppet 16.11.2026 fordi `ubuntu-latest` ble Ubuntu 26.04, som Playwright 1.56 ikke støtter.

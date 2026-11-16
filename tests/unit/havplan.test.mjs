@@ -195,4 +195,13 @@ export default function (t){
       b.type = t0; K.applyVessel(); S0.ops = ops0; S0.lag = null; }
     for (const nm in keep) K.set(nm, keep[nm]);
   }
+  // a switch between vessel types leaves nothing of the one before (DP3-4, 16.11.2026: the autoliner after the snow crab vessel kept
+  // BOAT.pot 'sno', so its plan page offered «Fryste klør / Levende krabbe»): what BOAT has is what a fresh load of the type gives
+  { const S0 = K.get('S'), b = S0.boat, t0 = b.type, B = K.get('BOAT'), V = K.VESSELS;
+    b.type = 'snokrabbe'; K.applyVessel(); const had = B.pot; b.type = 'autoliner'; K.applyVessel();
+    const left = []; for (const ty in V) for (const k in V[ty]) if (!(k in V.autoliner) && !(k in V.skiff) && B[k] !== undefined && !left.includes(k)) left.push(k);
+    t.ok(had === 'sno' && B.pot === V.autoliner.pot && !left.length, 'fra snøkrabbefartøyet til autolineren: ingen felt igjen fra snøkrabbefartøyet (pot ' + B.pot + ', igjen: ' + (left.join(', ') || 'ingen') + ')');
+    const sk = []; for (const k in V.skiff) if (!(k in V.autoliner) && B[k] !== V.skiff[k] && typeof V.skiff[k] !== 'object') sk.push(k);
+    t.ok(!sk.length, 'og det autolineren ikke har selv, er som etter en fersk lasting: sjekta sitt (' + (sk.join(', ') || 'alt likt') + ')');
+    b.type = t0; K.applyVessel(); }
 }
