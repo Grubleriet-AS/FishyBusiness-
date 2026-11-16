@@ -660,7 +660,8 @@ function newState(){
     equip:{vhf:false, ais:false, plotter:false, chirp:false, sonar:false, jukse:0, motor90:false}, crew:[], loan:null, member:false, msgs:[], sales:[], order:null, owned:['trebat'], lic:null, qseed:WCLOCK.on ? WORLD_SEED : Math.floor(Math.random() * 1e9), fm:{n:0, last:-1, kr:0, b:false}, haill:null, haillInv:{haill:0, luksus:0}, pubE:-1e9, target:'mix', streak:null, clothes:{olje:0, varme:0}, orders:null, rep:{}, bors:null, cevt:null, workLog:[], stock:initStock(), marks:[], navrows:[], incidents:[], lore:{}, tattoos:{}, tat:{}, pgear:newPGear(), sets:[], gseq:0, ops:null, company:'', boatName:'', tut:0, jobs:[], prep:{}, tripBuff:null, draftDep:null,
     plan:null, draft:[], draftSpeed:16, draftFull:true, trail:[{x:home.p.x, y:home.p.y, port:home.id}],
     settings:{deckFirst:true, autoOn:true, autoW:11, autoTo:'near', catchByWork:true, radarKit:true},
-    hold:[], log:[], market:{}, stats:{revenue:0, costs:0, trips:0, kg:0}, lastSale:null, fishPlanH:3, lastIceWarn:-1e9, intro:false};
+    hold:[], log:[], market:{}, stats:{revenue:0, costs:0, trips:0, kg:0}, lastSale:null, fishPlanH:3, lastIceWarn:-1e9, intro:false,
+    bank:{kkOld:false}};   // (a new game has no overdraft until the sea time; 03-simulation.js kkOpen)
 }
 const KEEP_MIN = 60 * 24 * 60;
 function log(no, en, k){ if (VTAG && S.fleet && S.fleet.length > 1 && S.boatName){ no = S.boatName + ': ' + no; en = S.boatName + ': ' + en; } S.log.push(k ? {t:S.t, no, en, k} : {t:S.t, no, en}); while (S.log.length > 4000 || (S.log.length && S.log[0].t < S.t - KEEP_MIN)) S.log.shift(); if (hooks.onLog) hooks.onLog(); }
@@ -979,17 +980,17 @@ function unstuckSpot(){
 }
 // Aground in the first weeks (Jonas 16.11.2026, before the launch: «de skal også få muligheten til å flytte båten ut på havet igjen uten
 // skade på skrog da det er en stor sannsynlighet for at skaden skyldes spillet, ikke brukeren nå i startfasen»): every time, the hull
-// as it was before she ran aground (S.agSnap, runAground in 01-world.js) and the boat out on safe water as «Sitter båten fast?» puts her.
+// as it was before she ran aground (b.agSnap, runAground in 01-world.js) and the boat out on safe water as «Sitter båten fast?» puts her.
 // AG.free false takes the offer away again.
 const AG = {free:true};
-const agCan = () => AG.free && S.boat.status === 'aground' && !!S.agSnap;
+const agCan = () => AG.free && S.boat.status === 'aground' && !!S.boat.agSnap;
 function agFree(){
   if (!agCan()) return ['Båten står ikke på grunn.', 'The boat is not aground.'];
-  const b = S.boat, A = S.agSnap, dmg0 = b.dmg, at0 = S.unstuckAt;
+  const b = S.boat, A = b.agSnap, dmg0 = b.dmg, at0 = S.unstuckAt;
   b.dmg = A.dmg ? JSON.parse(JSON.stringify(A.dmg)) : null; if (typeof hullSync === 'function') hullSync(b);
   S.unstuckAt = 0; const why = unstuck();
   if (why){ b.dmg = dmg0; if (typeof hullSync === 'function') hullSync(b); S.unstuckAt = at0; return why; }   // (no safe water near: as she was)
-  b.tripBad = A.tripBad; S.agSnap = null;
+  b.tripBad = A.tripBad; b.agSnap = null; S.unstuckAt = at0;   // (and «Sitter båten fast?» is not held back by it)
   const inc = (S.incidents || []).filter(i => i.k === 'aground').pop(); if (inc) inc.freed = true;
   log('Skroget er som før grunnstøtingen.', 'The hull is as it was before she ran aground.', 'nav');
   return null;

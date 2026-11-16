@@ -1723,10 +1723,14 @@ def main():
         LA['ok'] = json.loads(sql("select public.profile_get('%s')" % hid(L2), L1, 'authenticated'))['img']
         LA['tables'] = [sql("select count(*) from public.%s" % t_, L1, 'authenticated', expect_err=True)[0] for t_ in ('founders', 'founders_cfg', 'profiles', 'avatars')]
         LA['off'] = json.loads(sql("select public.admin_founders_set(false)", AD2, 'authenticated'))['n']
+        # the grounding report (ag_put): a feedback of topic bug with meta.ag, not counted in the player's 20 a day; one without ag is refused
+        LA['ag'] = [bool(sql("""select public.ag_put('[Grunnstøting] Spillerens svar: Ja', null, '{"ag":{"v":6.5,"how":"leia"},"pos":[69.3,17.5]}')""", L2, 'authenticated')),
+                    sql("select public.ag_put('x', null, '{}')", L2, 'authenticated', expect_err=True)[0],
+                    sql("select topic || ':' || (meta -> 'ag' ->> 'how') || ':' || (meta ? 'pos')::text from public.feedback where player_id = 'user_01LA2' order by id desc limit 1")]
         print(ok(LA['denyP'] and LA['deny1'] and LA['on']['from'] and LA['f'] == 'user_01LA2:1,user_01LA3:2' and float(LA['cap']) == 1000
                  and LA['kg'] == [(hid(L2), 1), (hid(L1), None), (hid(L3), 2)] and LA['kr'] == [(hid(L3), 2), (hid(L2), 1), (hid(L1), None)] and LA['krMine'] == {'kg': 100, 'kr': 3000, 'rank': 3}
                  and LA['prof'] == [1, False, 2, 'Havbris bAS', 'AS', None, 101] and LA['badAv'] and LA['wait'] == ['wait', None]
-                 and LA['avDeny'] and LA['avList'] == [True] and (LA['ok'] or '').startswith('data:image/png') and all(LA['tables']) and LA['off'] == 2),
+                 and LA['avDeny'] and LA['avList'] == [True] and (LA['ok'] or '').startswith('data:image/png') and all(LA['tables']) and LA['off'] == 2 and LA['ag'] == [True, True, 'bug:leia:true']),
               'the launch: founders from the admin\'s switch (an older account never, the number kept), the value capped at 1 000 kr/kg, top_list by kg and kr with the founder\'s number, the profile, and the picture only once approved; the tables closed to players', json.dumps(LA))
         # the load of 5 000 players (plan 5b; KYST_LAST=5000): landings and catches for that many players, then what world_get costs
         NL = int(os.environ.get('KYST_LAST') or 0)

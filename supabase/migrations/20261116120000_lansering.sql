@@ -261,3 +261,26 @@ begin
 end $$;
 revoke all on function public.profile_get(text) from public, anon, authenticated;
 grant execute on function public.profile_get(text) to authenticated;
+
+-- ---------- 8. the grounding report (Jonas 16.11.2026: «vi må også automatisk lagre data fra øyeblikket») ----------
+-- Sent by the game after every grounding with the player's answer (was it the game's fault?) and a picture of the game, as a feedback of
+-- topic bug that the admin and the feedback agent see as any other, marked meta.ag. Its own limit (40 a day): it does not take from the
+-- player's 20 feedbacks a day (fb_send). A guest's goes too; nothing about the player but the game's own figures and the device (cloudMeta).
+create or replace function public.ag_put(body text, img text, meta jsonb) returns bigint
+language plpgsql security definer set search_path = public as $$
+declare p text := pid(); fid bigint; ps jsonb;
+begin
+  if p is null then raise exception 'not signed in'; end if;
+  if not exists (select 1 from players where id = p) then raise exception 'no player'; end if;
+  if (select count(*) from feedback f where f.player_id = p and f.ts > now() - interval '1 day' and f.meta ? 'ag') >= 40 then raise exception 'too many today'; end if;
+  if body is null or char_length(btrim(body)) < 1 then raise exception 'bad body'; end if;
+  if img is not null and (char_length(img) > 700000 or img !~ '^data:image/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$') then raise exception 'bad image'; end if;
+  if meta is null or jsonb_typeof(meta) <> 'object' or coalesce(jsonb_typeof(meta -> 'ag'), '') <> 'object' or octet_length(meta::text) > 8000 then raise exception 'bad meta'; end if;
+  ps := meta -> 'pos'; meta := meta - 'pos';
+  if jsonb_typeof(ps) = 'array' and jsonb_array_length(ps) = 2 and jsonb_typeof(ps -> 0) = 'number' and jsonb_typeof(ps -> 1) = 'number'
+     and abs((ps ->> 0)::numeric) <= 90 and abs((ps ->> 1)::numeric) <= 180 then meta := meta || jsonb_build_object('pos', ps); end if;
+  insert into feedback (player_id, topic, body, rating, img, meta) values (p, 'bug', left(btrim(body), 4000), null, img, meta) returning id into fid;
+  return fid;
+end $$;
+revoke all on function public.ag_put(text, text, jsonb) from public, anon, authenticated;
+grant execute on function public.ag_put(text, text, jsonb) to authenticated;

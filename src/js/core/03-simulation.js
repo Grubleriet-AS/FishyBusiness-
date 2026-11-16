@@ -1001,8 +1001,10 @@ function bookResult(y){ bookYear(); const Y = S.stats.y[y] || {}; let inc = 0, c
 // the fifth year comes in the first week for one who plays steadily); a company (AS) has it as before. The one place sea time opens
 // something.
 const BANK = {kkMin:20000, kkF:0.10, kkRate:0.10, kkFsY:5, spRate:0.035, autoMax:0.5, pcts:[0.3, 0.4, 0.5], spPcts:[0, 0.1, 0.2, 0.3]};
-function bankS(){ const B = S.bank || (S.bank = {}); for (const [k, v] of [['skatt', 0], ['spare', 0], ['auto', true], ['pct', 0.4], ['spPct', 0], ['kkAcc', 0], ['spAcc', 0], ['spYr', 0], ['warnD', -1]]) if (B[k] == null) B[k] = v; return B; }
-const kkOpen = () => S.form === 'AS' || fsOf(fsState().p).y >= BANK.kkFsY;
+function bankS(){ const B = S.bank || (S.bank = {}); if (B.kkOld == null) B.kkOld = S.cash < 0; for (const [k, v] of [['skatt', 0], ['spare', 0], ['auto', true], ['pct', 0.4], ['spPct', 0], ['kkAcc', 0], ['spAcc', 0], ['spYr', 0], ['warnD', -1]]) if (B[k] == null) B[k] = v; return B; }
+// (a game from before 16.11.2026 that stood below zero when it was first loaded keeps its overdraft, kkOld: nobody is locked out by the
+// change; a new game has kkOld false from newState)
+const kkOpen = () => S.form === 'AS' || !!bankS().kkOld || fsOf(fsState().p).y >= BANK.kkFsY;
 const kkLimit = () => !kkOpen() ? 0 : Math.max(BANK.kkMin, Math.round((S.fleet || []).reduce((a, v) => a + vesselValue(v), 0) * BANK.kkF / 1000) * 1000);
 // what can be spent now: the current account and the overdraft not yet used
 const spendable = () => S.cash + kkLimit();

@@ -89,13 +89,14 @@ function hudFigures(){
     // full is red with «Full», nearly full yellow (spilltest 3, U5); a freezer vessel's in tonnes of product (H2b); the strip says only «Full»
     hold:{v:holdP, txt:full ? L('Full', 'Full') + ' · ' + HF.short : HF.short, short:full ? L('Full', 'Full') : HF.short, tiny:full ? L('Full', 'Full') : HF.short.replace(/ kg$/, ''), cls:full ? 'r2' : holdP >= 0.9 ? 'r1' : ''},
     en:{v:energyOff() ? 1 : e / 100, txt:energyOff() ? L('av', 'off') : asleep() ? L('sover', 'asleep') : Math.round(e) + ' %', tiny:energyOff() ? L('av', 'off') : asleep() ? L('sover', 'asleep') : Math.round(e) + '%', cls:asleep() || (!energyOff() && e < ENERGY.dim) ? 'r2' : !energyOff() && e < ENERGY.warn ? 'r1' : ''},
-    sea:{v:atSea ? (lvl + 1) / 3 : 0.15, txt:fmt(hs, 1) + ' m', cls:atSea ? 'r' + lvl : ''},
+    sea:{v:atSea ? (lvl + 1) / 3 : 0.15, txt:fmt(hs, 1) + ' m', tiny:fmt(hs, 1), cls:atSea ? 'r' + lvl : ''},
     // the wind where she is, from where and how hard (Jonas 16.11.2026: «Vindretning og styrke må vises i statusboks (har blitt borte)»: it
-    // stood only behind the tap since Kystlys U3); yellow from strong breeze, red from gale
-    wind:(() => { const d = windDir(H), n = dirName(d) + ' ' + fmt(W, 0); return {d, v:clamp(W / 25, 0, 1), txt:n + ' m/s', short:n, tiny:n, cls:W >= 17 ? 'r2' : W >= 11 ? 'r1' : ''}; })(),
+    // stood only behind the tap since Kystlys U3); yellow from strong breeze, red from gale. A narrow phone's strip has the figure alone
+    // (the arrow gives the direction; at 360 px the strip was 16 px too wide with «NØ 12»)
+    wind:(() => { const d = windDir(H), n = dirName(d) + ' ' + fmt(W, 0); return {d, v:clamp(W / 25, 0, 1), txt:n + ' m/s', short:n, tiny:fmt(W, 0), cls:W >= 17 ? 'r2' : W >= 11 ? 'r1' : ''}; })(),
     // the bleeding tub (Tony 06.11.2026: «nivå bløggekar må vises på en intuitiv måte»): kg in it of its size, yellow from half full
     // (the haul slows, core/10-gear.js haulSlow), red at 90 % (full stops the fishing to gut); shown while she fishes or something lies in it
-    kar:(() => { const kg = deckPending(), cap = tubCap(), p = cap > 0 ? kg / cap : 0; return {v:p, txt:fmt(kg, 0) + ' / ' + fmt(cap, 0) + ' kg', short:fmt(kg, 0) + '/' + fmt(cap, 0), tiny:Math.round(p * 100) + '%', cls:p >= 0.9 ? 'r2' : p >= 0.5 ? 'r1' : '', on:atSea && (b.status === 'fishing' || kg > 0.5)}; })()};
+    kar:(() => { const kg = deckPending(), cap = tubCap(), p = cap > 0 ? kg / cap : 0; return {v:p, txt:fmt(kg, 0) + ' / ' + fmt(cap, 0) + ' kg', short:fmt(kg, 0) + '/' + fmt(cap, 0), tiny:String(Math.round(p * 100)), cls:p >= 0.9 ? 'r2' : p >= 0.5 ? 'r1' : '', on:atSea && (b.status === 'fishing' || kg > 0.5)}; })()};
 }
 // the third line (U2-1, plan 4.2): the warning that applies now (the rules ✕ or !, a synchronous roll with the advice, the buoy a mile off
 // with «Kjør dit»), or the next event («Fisket er ferdig 09:01 · om 30 min i ekte tid»); when neither, what the pill over the buttons used
@@ -179,10 +180,11 @@ function renderHud(){
     // a phone upright (47 vw, as wide as the little chart, Jonas 06.11.2026): the figures without their units (the icons say what they
     // are; the card has them whole), and «I havn» without the place, which stands on line 3
     const narrow = up && window.innerWidth <= 560;
+    // (with the bleeding tub and the wind there are seven figures: on a phone up to 380 px the sea is its icon alone then, in its risk colour)
     const g2 = (k, f, lbl) => '<span class="g2 g-' + k + (f.cls ? ' ' + f.cls : '') + '" title="' + lbl + '">' + (k === 'wind' ? hudWindIcon(f.d) : HICON[k]) + '<b>' + (narrow ? (f.tiny || f.short || f.txt) : (f.short || f.txt)) + '</b></span>';
     const stTxt = narrow && b.status === 'port' && !b.land && !b.shift && !b.fueling && !(S.plan && S.plan.depAt) ? L('I havn', 'In port') : statusText();
     setHtml(hud, '<div class="hs1"><span class="ht">' + hm(H) + '</span><i class="dot ' + dot + '"></i><span class="hs">' + stTxt + '</span><b class="hc' + (S.cash < 0 ? ' r2' : '') + '">' + kr(cashShown()) + '</b></div>' +
-      '<div class="hs2">' + g2('fuel', F.fuel, 'Diesel') + g2('hold', F.hold, L('Last', 'Hold')) + (F.kar.on ? g2('kar', F.kar, L('Bløggekar', 'Bleeding tub')) : '') + g2('en', F.en, L('Energi', 'Energy')) + g2('sea', F.sea, L('Sjø', 'Sea')) + g2('wind', F.wind, L('Vind', 'Wind')) + '</div>' + hudLine3('strip'));
+      '<div class="hs2">' + g2('fuel', F.fuel, 'Diesel') + g2('hold', F.hold, L('Last', 'Hold')) + (F.kar.on ? g2('kar', F.kar, L('Bløggekar', 'Bleeding tub')) : '') + g2('en', F.en, L('Energi', 'Energy')) + g2('sea', narrow && F.kar.on && window.innerWidth <= 380 ? {...F.sea, tiny:'\u200b'} : F.sea, L('Sjø', 'Sea')) + g2('wind', F.wind, L('Vind', 'Wind')) + '</div>' + hudLine3('strip'));
   } else {
   // «Kystlys» U3 (docs/planer/ui-redesign.md, V5 A, 04.11.2026): the status box is instruments, not a table of eleven rows. Four gauges
   // on one row (diesel, hold, energy, sea), under them only what matters now (the rules at sea, a roll, the cold, the luck, the fleet),

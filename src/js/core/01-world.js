@@ -278,21 +278,24 @@ function runAground(p){
   const w = S.plan && S.plan.wps[S.plan.idx], how = S.plan ? (w && (w.leia || w.obs || w.auto) ? 'leia' : S.plan.returning ? 'return' : S.plan.ops ? 'ops' : 'route') : (typeof helmOn === 'function' && helmOn()) ? 'helm' : (typeof asleep === 'function' && asleep()) ? 'sleep' : 'drift';
   // what it did to the hull, by the speed and the bottom (Fysikk 3, 16c-hull.js): sand or rock, scratches, damage, a leak
   // the hull and the moment as they were (Jonas 16.11.2026, the first weeks: the player may move her out with no damage, agFree in
-  // 05-vessels.js, and what happened goes to us whatever the player answers, ui/06e-feedback.js aground): S.agSnap the hull before,
-  // S.agRep the report, kept in the save until it is sent
+  // 05-vessels.js, and what happened goes to us whatever the player answers, ui/06e-feedback.js aground): b.agSnap the hull before,
+  // S.agQ the reports, kept in the save until they are sent
   const ll = q => { try { const g = natLL(q); return [Math.round(g.lat * 1e5) / 1e5, Math.round(g.lon * 1e5) / 1e5]; } catch (e){ return null; } };
   const dep = q => { try { return Math.round(depthF(q) * 10) / 10; } catch (e){ return null; } };
-  S.agSnap = {t:S.t, dmg:b.dmg ? JSON.parse(JSON.stringify(b.dmg)) : null, tripBad:!!b.tripBad};
-  S.agRep = {t:Math.round(S.t), at:ll(p), from:b.pos ? ll(b.pos) : null, hd:Math.round(((b.heading || 0) * 180 / Math.PI + 360) % 360), v:v0, how, type:b.type,
+  // (the hull on the boat itself, so each vessel of the fleet has her own; the reports in a queue, so a second grounding before the first
+  // has gone loses nothing; the dialog only where the player is aboard)
+  b.agSnap = {t:S.t, dmg:b.dmg ? JSON.parse(JSON.stringify(b.dmg)) : null, tripBad:!!b.tripBad};
+  const R = {id:S.cur + ':' + Math.round(S.t), vid:S.cur, boatName:S.boatName || '', me:meAboard(), wall:Date.now(), t:Math.round(S.t), at:ll(p), from:b.pos ? ll(b.pos) : null, hd:Math.round(((b.heading || 0) * 180 / Math.PI + 360) % 360), v:v0, how, type:b.type,
     draft:BOAT.draft, dAt:dep(p), dFrom:b.pos ? dep(b.pos) : null, wp:S.plan ? S.plan.idx : null,
     wps:S.plan ? S.plan.wps.slice(Math.max(0, S.plan.idx - 1), S.plan.idx + 3).map(q => [...(ll(q) || []), q.leia ? 1 : q.obs ? 2 : q.auto ? 3 : 0]) : null,
     trail:(S.trail || []).slice(-4).map(q => ll(q)), ans:null};
   const g = typeof hullGround === 'function' ? hullGround(p, v0, b) : {rock:true, dh:1, dA:0};
-  S.agRep.rock = !!g.rock; S.agRep.dh = Math.round((g.dh || 0) * 1000) / 1000; S.agRep.dA = Math.round(g.dA || 0);
+  R.rock = !!g.rock; R.dh = Math.round((g.dh || 0) * 1000) / 1000; R.dA = Math.round(g.dA || 0);
+  S.agQ = (S.agQ || []).concat([R]).slice(-10);
   b.pos = {x:p.x, y:p.y}; b.status = 'aground'; b.v = 0; b.tripBad = true; if (typeof hullGround !== 'function') b.damage = 1;
   const bed = g.rock ? ['på fjell', 'on rock'] : ['på sandbunn', 'on a sandy bottom'], what = g.dA > 0 ? ['Skroget er slått inn, og det lekker.', 'The hull is stove in, and she is leaking.'] : g.dh > 0 && !g.rock ? ['Skroget fikk skrammer, og roret og propellen tok skade.', 'The hull got scratches, and the rudder and the propeller were damaged.'] : g.dh > 0 ? ['Skroget er skadet.', 'The hull is damaged.'] : ['Skroget fikk skrammer.', 'The hull got scratches.'];
   log('Gikk på grunn ' + bed[0] + ' ' + pl.no + (v0 >= 1 ? ' i ' + fmt(v0, 1) + ' knop' : '') + '. ' + what[0], 'Ran aground ' + bed[1] + ' ' + pl.en + (v0 >= 1 ? ' at ' + fmt(v0, 1) + ' knots' : '') + '. ' + what[1], 'nav');
-  if (typeof FEEDBACK !== 'undefined') setTimeout(() => FEEDBACK.aground(), 1500);   // was it the game's fault? and the way out (ui/06e-feedback.js)
+  if (typeof FEEDBACK !== 'undefined' && R.me) setTimeout(() => FEEDBACK.aground(R.id), 1500);   // was it the game's fault? and the way out (ui/06e-feedback.js)
   S.incidents = S.incidents || []; S.incidents.push({t:S.t, k:'aground', boat:S.boatName || 'Havbris', no:pl.no, en:pl.en, v:v0, how}); if (S.incidents.length > 60) S.incidents.shift();
   pressPut('aground', {type:b.type});   // Kystposten (09h-press.js; Jonas: «Uhell burde havne i avisen»)
   if (hooks.onAground) hooks.onAground();

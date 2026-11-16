@@ -9,6 +9,10 @@ export default function (t){
   t.ok(!K.kkOpen() && K.kkLimit() === 0, 'like før ' + K.BANK.kkFsY + ' års fartstid: fortsatt ingen');
   S.fs.p = K.fsNeed(K.BANK.kkFsY);
   t.ok(K.kkOpen() && K.kkLimit() >= 20000 && K.spendable() === 5000 + K.kkLimit(), K.BANK.kkFsY + ' års fartstid: kassekreditten er der, minst 20 000 kr', K.kkLimit());
-  S.fs.p = 0; S.form = 'AS';
+  // a game from before the change, below zero when loaded (no kkOld yet): keeps its overdraft; one above zero does not get it
+  S.fs.p = 0; delete S.bank.kkOld; S.cash = -8000;
+  t.ok(K.kkOpen() && K.kkLimit() >= 20000, 'en gammel lagring i minus beholder kassekreditten (kkOld)', S.bank);
+  S.bank = {}; S.cash = 5000; t.ok(!K.kkOpen(), 'en gammel lagring i pluss får den ikke før fartstiden', S.bank);
+  S.form = 'AS';
   t.ok(K.kkOpen() && K.kkLimit() >= 20000, 'aksjeselskap: kassekreditt med en gang', K.kkLimit());
 }
