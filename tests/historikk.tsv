@@ -5609,3 +5609,8 @@
 2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	driftsplan2ui	OK	60	lite	samtidig	
 2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	rundshot	OK	24	lite	samtidig	
 2026-11-17 11:52	claude/hopeful-mayer-48bgvv	ba84b9a7	driftsplan2test	OK	95	lite	alene	
+2026-11-17 12:55	claude/hopeful-mayer-48bgvv	a18989ce+	driftsplan3test	OK	70	lite	samtidig	
+2026-11-17 12:55	claude/hopeful-mayer-48bgvv	a18989ce+	skipdrift	OK	45	lite	samtidig	
+2026-11-17 12:56	claude/hopeful-mayer-48bgvv	a18989ce+	fleet2test	OK	40	lite	samtidig	
+2026-11-17 12:56	claude/hopeful-mayer-48bgvv	a18989ce+	driftsplan2ui	OK	62	lite	samtidig	
+2026-11-17 12:58	claude/hopeful-mayer-48bgvv	a18989ce+	driftsplan2test	FEIL	90	lite	alene	FEIL S9 30 h closed in the middle gives the same landings as open (kg within 2 %, kr within 3 %: the price follows the species and sizes, which vary a little be
