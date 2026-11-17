@@ -10,9 +10,12 @@ const REGIONS = [
   ['vfin', 'Vest-Finnmark', 'West Finnmark', (la, lo) => la >= 70.05],
   ['troms', 'Troms', 'Troms', (la, lo) => la >= 68.8 && lo >= 16.4],
   ['lofv', 'Lofoten og Vesterålen', 'Lofoten and Vesterålen', (la, lo) => la >= 67.75],
-  ['hel', 'Helgeland og Salten', 'Helgeland and Salten', (la, lo) => la >= 65.0],
-  ['tro', 'Trøndelag', 'Trøndelag', (la, lo) => la >= 63.3],
-  ['more', 'Møre og Romsdal', 'Møre og Romsdal', (la, lo) => la >= 62.0],
+  // (the county lines are not straight across the coast: Leka with Gutvik is Trøndelag south of Bindal, Smøla and Aure are Møre og
+  // Romsdal level with Hitra, Selje and Stad are Vestland level with Vanylven; tilbakemelding #143, 17.11.2026. Checked against every
+  // port's county from Kartverket in src/data/port-regions.json, tools/regions/fylke.py)
+  ['hel', 'Helgeland og Salten', 'Helgeland and Salten', (la, lo) => la >= 65.0 && !(la < 65.2 && lo < 12.0)],
+  ['tro', 'Trøndelag', 'Trøndelag', (la, lo) => la >= 63.3 && !(la < 63.6 && lo < 8.5)],
+  ['more', 'Møre og Romsdal', 'Møre og Romsdal', (la, lo) => la >= 62.0 && !(la < 62.2 && lo < 5.45)],
   ['vest', 'Vestlandet', 'Western Norway', (la, lo) => la >= 59.2],
   ['sor', 'Rogaland og Sørlandet', 'Rogaland and the south coast', () => true]
 ];
