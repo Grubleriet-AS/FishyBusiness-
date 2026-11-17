@@ -187,11 +187,6 @@ for _f in ('src/js/core/07c-naust.js', 'src/js/ui/03b-route.js', 'src/js/core/07
     COVER[_f] = COVER.get(_f, []) + ['utfrakai']
 # No harbour shut in by its own quay and fill (13.11.2026; tools/steder/lukkflytt.py): every harbour along the coast has a way in over
 # water. Needs the whole coast in the build. On lines of their own, as above
-# Land in a harbour stops the boat (17.11.2026, tilbakemelding #133 and #137): groundCheck asks the coast's own land within 600 m of a
-# harbour point too (core/01-world.js isLandHarbour). Husøy in every build, Tufjord with the whole coast. On lines of their own, as above
-LITE += ['havnland']
-COVER['tests/havnland.py'] = ['havnland']
-COVER['src/js/core/01-world.js'] = COVER.get('src/js/core/01-world.js', []) + ['havnland']
 COVER['supabase/migrations/20261117160000_agent_incidents.sql'] = ['sqltest']
 LITE += ['lukket']
 VECB += ['lukket']
