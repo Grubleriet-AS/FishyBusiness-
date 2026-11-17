@@ -851,13 +851,53 @@ def name_strips(G):
     out.append([[G(x_of(0.0, zb) - 0.02, y, zb) for y in ys], [G(x_of(0.0, zt0) - 0.02, y, zt0) for y in ys]])
     return out
 
+TUBS = [(0.97, 0.50), (1.04, -0.52)]       # the catch tubs' centres (x, y), both along her: 0.37-1.57 to port, 0.44-1.64 to starboard
+ISK = (1.855, 0.93, 0.47)                  # the ice box (x, y, scale of the 300 l tub): 1.60-2.11 under the board (1.55-2.12), clear of the net tub (2.12)
+def _rr(cx, cy, hx, hy, R, n=8):
+    """a rounded rectangle's outline in plan (the rim of a tub along her: hx fore and aft, hy across)"""
+    out = []
+    for sx, sy in ((1, 1), (-1, 1), (-1, -1), (1, -1)):
+        a0 = math.atan2(sy, sx)
+        for k in range(n + 1):
+            a = a0 - math.pi / 4 + math.pi / 2 * k / n; out.append((cx + sx * (hx - R) + R * math.cos(a), cy + sy * (hy - R) + R * math.sin(a)))
+    return out
+def kit_clear():
+    """the least clearance (m) from the rims of the catch tubs and the ice box to the cockpit's liner and the transom's inside, from the
+    sole up to the gunwale (the rim stands over it): the liner runs straight from its foot on the sole (yb, at x_of(x, ZC) aft of 0.8)
+    to the gunwale's inner edge (yi), the transom's inside from x_of(XC0, ZC) on the sole to x_of(XC0, zs) at the top. Below 0 a tub
+    stands out through the hull (tilbakemelding #129)"""
+    st = [XC0 + 0.01 * k for k in range(0, 360)]
+    rows = [((x_of(s, ZC) if s < 0.8 else s), yb(s), x_of(s, zs(s)), yi(s), zs(s) - 0.006) for s in st]
+    def liner(px, h):
+        prev = None
+        for fx, fy, tx, ty, tz in rows:
+            t = min(1.0, h / (tz - ZC)); xw, yw = fx + (tx - fx) * t, fy + (ty - fy) * t
+            if xw >= px: return yw if prev is None else prev[1] + (yw - prev[1]) * (px - prev[0]) / max(1e-9, xw - prev[0])
+            prev = (xw, yw)
+        return prev[1]
+    things = [(cx, cy, 0.60, 0.50, 0.15) for cx, cy in TUBS] + [(ISK[0], ISK[1], 0.54 * ISK[2], 0.36 * ISK[2], 0.14 * ISK[2])]
+    worst = []
+    for cx, cy, hx, hy, R in things:
+        w = 9.0
+        for h in (0.0, 0.15, 0.3, 0.45, 0.6):
+            ax = x_of(XC0, ZC) + (x_of(XC0, zs(XC0)) - x_of(XC0, ZC)) * min(1.0, h / (zs(XC0) - 0.006 - ZC))
+            for px, py in _rr(cx, cy, hx, hy, R): w = min(w, px - ax, liner(max(px, ax), h) - abs(py))
+        worst.append(w)
+    gap = (TUBS[0][1] - 0.50) - (TUBS[1][1] + 0.50)
+    return worst, gap
+
 def kit_places(G):
     """the places where the game sets the deck kit (nothing that can be bought is modelled in, only its place, 19.10.2026): the liferaft
     in its cradle on the starboard side of the hard top, the radome on the port side of it; the ring buoys on the stern rail's side runs,
     facing out (the first, with the light and the line, to starboard); the fish tubs (Jonas 04.11.2026, docs/planer/fiskekar-dekk.md: no
-    hold, the catch in white 500 kg tubs on deck, as many as her capacity): two 460 l tubs aft in the cockpit, the first along the
-    port side against the transom, the second athwart in the starboard quarter aft of the bleeding tub; no room for a third (a tub
-    stacked on a full one would have to be carried there first) ([x, y, z, ry, litres, the place it stands on, -1: the deck]); the ice box under the gutting board ([x, y, z, ry, scale]); the net
+    hold, the catch in white 500 kg tubs on deck, as many as her capacity): two 460 l tubs aft in the cockpit, side by side along her
+    (the long axis fore and aft), the first to port, the second to starboard; no room for a third (a tub stacked on a full one would
+    have to be carried there first) ([x, y, z, ry, litres, the place it stands on, -1: the deck]). The tub is 1.20 x 1.00 m over its
+    rim (tools/deck/fisk.py kar460) and the cockpit's sole narrows aft in the round stern (the liner's foot yb: 0.84 m at x 0.12,
+    1.04 at 0.5, 1.11 at 1.2), so two side by side only fit from x 0.37 forward (tilbakemelding #129, 17.11.2026: the first athwart
+    tub and the one against the transom stood 0.2-0.3 m out through the quarters and 5 cm into the transom's foot; now 3 cm inside
+    the liner and the transom, 2 cm apart, kit_clear() checks it); the ice box under the gutting board, forward of the port tub and
+    aft of the net tub ([x, y, z, ry, scale]); the net
     tub, the line tubs and the freight forward in the cockpit to port (the net and the line rig never stand together), clear of the
     skipper, the seat and the bleeding tub to starboard"""
     r = lambda a: round(a, 3); zt = zh(2.75, 0.55)
@@ -868,8 +908,8 @@ def kit_places(G):
     return {'raft': [G(2.72, -0.55, zt) + [r(math.pi / 2)]],
             'buoys': [G(0.50, -yb_, zb) + [r(math.pi / 2 - a)], G(0.50, yb_, zb) + [r(-(math.pi / 2 - a))]],
             'radar': G(2.72, 0.60, zt),
-            'tubs': [G(0.72, 0.58, ZC) + [0.0, 460, -1], G(0.62, -0.60, ZC) + [r(math.pi / 2), 460, -1]],
-            'iskasse': G(1.70, 0.95, ZC) + [0.0, 0.6],
+            'tubs': [G(*TUBS[0][:2], ZC) + [0.0, 460, -1], G(*TUBS[1][:2], ZC) + [0.0, 460, -1]],
+            'iskasse': G(*ISK[:2], ZC) + [0.0, ISK[2]],
             'garn': {'at': G(2.72, 0.68, ZC), 'ry': 0.0},
             'stamps': {'at': G(2.50, 0.90, ZC), 'ry': r(math.pi / 2)},
             'cargo': [G(2.72, 0.66, ZC) + [0.0]]}
@@ -882,8 +922,9 @@ def anchors():
     G = lambda x, y, z: [round(v, 3) for v in to_game((x, y, z))]
     hx = 2.05; hy = -(ysh(hx) - 0.12); px, py = POLE
     return {'bower': bower(G), 'eye': G(SKIP[0], SKIP[1], ZC + 1.65), 'skipperAt': G(SKIP[0], SKIP[1], ZC), 'hp': -0.32, 'fov': 62,
-            # the hands: the fisher at the hauler on the starboard gunwale, the one who guts at the board to port, one aft by the catch tub
-            'crewSpots': [G(1.98, -0.62, ZC) + [1.57], G(1.84, 0.42, ZC) + [-1.57], G(1.35, -0.45, ZC) + [3.14]],
+            # the hands: the fisher at the hauler on the starboard gunwale, the one who guts at the board to port, one forward of the catch
+            # tubs facing them (between them and the bleeding tub; 1.35 m stood in the starboard tub once it was moved, #129)
+            'crewSpots': [G(1.98, -0.62, ZC) + [1.57], G(1.84, 0.42, ZC) + [-1.57], G(1.80, -0.30, ZC) + [3.14]],
             # typed lights (B8; rule 23 (d)(i), under 12 m): the all-round white on the mast on the hard top, 2 m over the side lights
             # (annex I 2(d)); the side lights on the trunk's sides; the stern light on the flag staff's head; the work light under the hard top
             'lights': [[G(MASTX, 0, white_z()), [1, 0.95, 0.85], 'allround'],
@@ -909,8 +950,8 @@ def anchors():
             # the jigging places (OB6 09.11.2026, om-bord.md 4.3, F15, F21): the search along her rails (view3d jigRail) put place 2 in the
             # corner by the dashboard with the hard top's post through the one standing there, and the third out on the side deck by the
             # cabin. The places in the order the machines are bolted on, [side (1 starboard, -1 port), z in the game's frame]: starboard
-            # aft of the hauler and forward of the stern rail's first post (model x 1.60), the fisher free at the cockpit's rail between
-            # the hauler and the catch tub; port in the open side between the hard top's posts (x 2.55), forward of the gutting board.
+            # aft of the hauler and forward of the stern rail's first post (model x 1.60), the fisher at the cockpit's rail between the
+            # hauler and the catch tub (the starboard tub reaches 1.64 since #129: he stands at the machine's forward side); port in the open side between the hard top's posts (x 2.55), forward of the gutting board.
             # Only two: the third side place on a 1.8 m sole has the helm seat, the board, the ice box or a catch tub in it
             'jigZ': [[1, round(XM - 1.60, 3)], [-1, round(XM - 2.55, 3)]],
             'kit': kit_places(G)}
@@ -950,6 +991,8 @@ def check():
     ey = ZC + 1.65
     out.append(('øyet %.2f m over vindskjermens fot, %.2f under taket' % (ey - ttop(WSX, 0), HTZ - ey), ey - ttop(WSX, 0) > 0.2 and HTZ - ey > 0.15))
     out.append(('sløyebordet %.2f m over dørken, ytterkanten %.2f m utenfor ripa (vessel3d: bredden ±5 %%)' % (gut_top() - ZC, 0.03), 0.8 <= gut_top() - ZC <= 0.95))
+    kc, gap = kit_clear()
+    out.append(('fiskekarene %.3f og %.3f m innenfor foringen og speilet, iskassa %.3f; %.3f m mellom karene (tilbakemelding #129: minst 0,02)' % (kc[0], kc[1], kc[2], gap), min(kc) >= 0.02 and gap >= 0.015))
     for s, ok_ in out: print(('OK   ' if ok_ else 'FEIL ') + s)
     return all(o for _, o in out)
 
