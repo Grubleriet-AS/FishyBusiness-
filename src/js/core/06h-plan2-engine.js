@@ -177,6 +177,24 @@ function plan2Shelter(W, hsOver){
   log(why[0] + '. Går i ly til ' + (portById(to) || {name:'?'}).name + (back.length ? ' samme vei tilbake' : '') + '.', why[1] + '. Going to shelter at ' + (portById(to) || {name:'?'}).name + (back.length ? ', back the same way' : '') + '.');
   return true;
 }
+// The weather holds her and she is out (17.11.2026; Jonas: «når driftsplanen stopper må jo båten på til land eller noe, ikke bare ligge
+// midt på havet? Også må den starte igjen automatisk så snart den har anledning»): she goes home on the way Autonav finds (kept in o.legs,
+// fetched first when it is not there, drFetch), and waits there; in port plan2Landed lays the day again, and the engine sends her out
+// when the forecast lets her (the wait's hour, as before). True when she is on her way home or the way is being found. Not for an
+// ocean vessel (she lies to where she is, H2c), nor at the home anchorage
+function plan2WxHome(o, H, wx){
+  const b = S.boat, here = plan2Here(o), home = portById(o.home); if (here.port || !home || BOAT.cls === 'hav' || (o.homeA && dist(b.pos, o.homeA) < 0.4)) return false;
+  const L = drLeg(o, here.p, null, home.p, home.id);
+  if (!L){ plan2Wait(o, 'route', 'Finner veien hjem …', 'Finding the way home …', H + 10 / 60); drFetch(o, [{a:here.p, ap:null, b:home.p, bp:home.id}]); return true; }
+  const wps = (L.w || []).map(z => ({x:z[0], y:z[1], port:null, fish:0, leia:true})).concat([{x:home.p.x, y:home.p.y, port:home.id, fish:0}]);
+  const r = o.run || (o.run = {day:null, i:0, trip:null, wait:null}); r.i = r.day ? r.day.steps.length : 0; r.day = null; r.trip = null;
+  if (b.gop) gopAbort('return'); if (b.status === 'fishing') endFishing('move');
+  S.plan = {wps, idx:0, speed:BOAT.vmax, full:true, returning:true, ops:true, opsK:'ly', unsafe:wps.map(() => false), p2:{from:r.i, to:r.i, ly:true, start:{x:here.p.x, y:here.p.y, port:null}}};
+  const why = wx.h > wx.lim ? ['sjøen blir ' + wx.h.toFixed(1).replace('.', ',') + ' m', 'the sea gets to ' + wx.h.toFixed(1) + ' m'] : ['vinden blir ' + Math.round(wx.w) + ' m/s', 'the wind gets to ' + Math.round(wx.w) + ' m/s'];
+  plan2Wait(o, 'wxhome', 'Været holder båten inne: ' + why[0] + '. Går hjem til ' + home.name + ' og venter der, og går ut igjen når været tillater det.', 'The weather keeps her in: ' + why[1] + '. Going home to ' + home.name + ' to wait there, and out again when the weather allows.', null);
+  if (!depart()){ S.plan = null; plan2Wait(o, 'cant', 'Båten kom ikke av sted. Prøver igjen om en halv time.', 'The boat could not leave. Trying again in half an hour.', H + 0.5); }
+  return true;
+}
 // the day is cut short (you are out of energy, the crew are tired): no more jigging, the hauls that are due are still done, the rest stands
 function plan2Cut(o, why){
   const b = S.boat, pl = S.plan, H = S.t / 60; if (!pl || pl.cut) return; pl.cut = why;
@@ -426,6 +444,7 @@ function plan2Go(o, H, i0){
   // (she goes out on the next hours' forecast, DRP2.fcH; a gale later in the day sends her to shelter when it comes, plan2Shelter)
   const wx = D.auto ? {ok:true} : plan2WxAhead(o, H, Math.min(Math.max(1, T.h), DRP2.fcH), T.pts);
   if (!wx.ok){
+    if (plan2WxHome(o, H, wx)) return;
     const at = plan2WxFirstOk(o, H, Math.max(1, T.h), T.pts), why = wx.w > wx.wind ? ['vinden blir ' + fmt(wx.w, 0) + ' m/s, og grensen er ' + wx.wind + ' m/s', 'the wind gets to ' + fmt(wx.w, 0) + ' m/s, and the limit is ' + wx.wind + ' m/s'] : ['sjøen blir ' + fmt(wx.h, 1) + ' m, og grensen er ' + fmt(wx.lim, 1) + ' m', 'the sea gets to ' + fmt(wx.h, 1) + ' m, and the limit is ' + fmt(wx.lim, 1) + ' m'];
     if (at != null){ plan2Wait(o, 'wx', 'Venter på været: ' + why[0] + '. Går kl. ' + driftClock(driftHod(at)) + '.', 'Waiting for the weather: ' + why[1] + '. Leaving at ' + driftClock(driftHod(at)) + '.', at); return; }
     // the day is lost to the weather: the next one at the hour
