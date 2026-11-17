@@ -276,12 +276,12 @@ function srvApply(st){
   // (new: delivered by this very answer, or within the last minutes and not confirmed here yet, should that answer have been lost)
   const isNew = g => !!g.held && !given.includes(g.id) && (g.new === true || wn - ms(g) < 120000);
   const snap = () => JSON.stringify([S.trim || null, S.haillSrv, S.haillInv, S.haill, S.skip, S.yardSrv, S.yardCredit, S.hopVoid, S.cos, S.pubE, (S.fleet || []).map(v => (v.id === S.cur ? S.boat : v.boat || {}).trim || null)]), was = snap();
-  let thanks = 0, gifts = 0;
+  let thanks = 0, gifts = 0, refs = 0;
   // 1. the haill in store: the server's unused, never one switched on here. The game's own numbers are gone (srvImport)
   const had = S.haillSrv || []; S.haillSrv = haillMirror(list.filter(g => g.held), S.haillUsed); S.haillInv = {haill:0, luksus:0}; S.haillOld = [];
   for (const x of S.haillSrv){ const g = list.find(y => y.id === x.id), d = g.data;
     if (isNew(g)){ given.push(g.id); seen[g.id] = wn;
-      if (d.reward) thanks++; else if (d.gift) gifts++;
+      if (d.ref) refs++; else if (d.reward) thanks++; else if (d.gift) gifts++;
       else if (!d.pub && !d.ach && !d.imp){ say(g, 'Ligger i Haill-appen. Trykk «Aktiver» når du vil bruke den.', 'It is in the Luck app. Tap «Switch on» when you want it.'); names.push(HAILL[d.type][lang]); } }
     else if (!had.some(y => y.id === x.id) && !given.includes(g.id) && !d.pub && !d.ach && !d.imp && typeof cloudEv === 'function') cloudEv('haill_back', {id:x.id, type:x.type}); }
   // 2. the haill aboard: the server's, unless it is not told of the one here yet
@@ -347,21 +347,25 @@ function srvApply(st){
   // 8. tonight's round at the pub, taken on another device or before a save was lost
   if (world && st.pub && st.pub.e === pubEvening(S.t / 60) && S.pubE !== st.pub.e) S.pubE = st.pub.e;
   { const keep = givenKeep(given, seen, wn, 8); if (keep.length !== given.length) given.splice(0, given.length, ...keep); }
-  if (snap() === was && !ids.length && !rc.length && !thanks && !gifts){ if ((S.yardQ || []).length) haillTell(); return 0; }
+  if (snap() === was && !ids.length && !rc.length && !thanks && !gifts && !refs){ if ((S.yardQ || []).length) haillTell(); return 0; }
   save(); if (typeof cloudSaveSoon === 'function') cloudSaveSoon(true);
   if (ids.length) cloudRpc('shop_done', {ids}).catch(e => console.error(e));
   if ((S.yardQ || []).length) haillTell();
   if (rc.length) shopThanks(rc);
-  shopWords(gifts, thanks);
+  shopWords(gifts, thanks, refs);
   if (typeof PHONE !== 'undefined' && PHONE.isOpen()) PHONE.render(); if (typeof refreshAll === 'function') refreshAll();
   return names.length;
 }
-// the directorate's message for the welcome gift, and the thanks for feedback that helped
-function shopWords(gifts, thanks){
+// the directorate's message for the welcome gift, the thanks for feedback that helped, and for a friend invited who has landed fish
+// (ref_haill, supabase/migrations/20261117180000_verv.sql)
+function shopWords(gifts, thanks, refs){
   if (gifts){ msg('Fiskeridirektoratet', 'Du er ført i fiskermanntallet i eget navn. Spillet ditt er lagret på kontoen, og en luksushaill ligger om bord som velkomstgave. God tur!', 'You are in the fishermen’s register in your own name. Your game is saved to the account, and a luxury luck is aboard as a welcome gift. Good fishing!');
     toast(shopL('Registrert! Luksushaill om bord.', 'Registered! A luxury luck aboard.')); }
   if (thanks){ const no = 'Takk for tilbakemeldingen! Den hjalp oss å gjøre spillet bedre. ' + (thanks > 1 ? thanks + ' takk-haill' : 'Takk-haill') + ' med 12 timer fullt haill ligger i Haill-appen. Aktiver det når du vil.',
       en = 'Thank you for your feedback! It helped us make the game better. ' + (thanks > 1 ? thanks + ' thank-you lucks' : 'Thank-you luck') + ' with 12 hours of full luck ' + (thanks > 1 ? 'are' : 'is') + ' in the Luck app. Switch it on when you like.';
+    msg('Det Store Blå', no, en); toast(shopL(no, en)); }
+  if (refs){ const no = (refs > 1 ? refs + ' venner du inviterte, har' : 'En venn du inviterte, har') + ' levert fisk. Takk! ' + (refs > 1 ? refs + ' takk-haill' : 'Takk-haill') + ' med 12 timer fullt haill ligger i Haill-appen.',
+      en = (refs > 1 ? refs + ' friends you invited have' : 'A friend you invited has') + ' landed fish. Thank you! ' + (refs > 1 ? refs + ' thank-you lucks' : 'Thank-you luck') + ' with 12 hours of full luck ' + (refs > 1 ? 'are' : 'is') + ' in the Luck app.';
     msg('Det Store Blå', no, en); toast(shopL(no, en)); }
 }
 async function shopClaim(){
@@ -378,7 +382,7 @@ async function shopClaim(){
   let srv = SHOP.hs; if (srv == null && list.some(g => g.held)) srv = SHOP.hs = true;
   if (srv == null && (S.haillSrv.length || list.some(isH))) srv = await haillProbe();
   haillInit();
-  const given = S.shopGiven || (S.shopGiven = []), seen = S.shopAt || (S.shopAt = {}), tNow = worldNow(), back = [], old = S.haillOld, ids = [], names = [], mir = [], fresh = new Set(), unk = SHOP.unk || (SHOP.unk = new Set()); let thanks = 0, gifts = 0; const rc = SHOP.rc = [];   // (rc is this call's own: another call may start while this one waits for shop_done)
+  const given = S.shopGiven || (S.shopGiven = []), seen = S.shopAt || (S.shopAt = {}), tNow = worldNow(), back = [], old = S.haillOld, ids = [], names = [], mir = [], fresh = new Set(), unk = SHOP.unk || (SHOP.unk = new Set()); let thanks = 0, gifts = 0, refs = 0; const rc = SHOP.rc = [];   // (rc is this call's own: another call may start while this one waits for shop_done)
   for (const g of list){
     // (a haill delivered before and not used, kept on the server: into the copy, with no words. One that went into the game's own
     // numbers, from a page or a server before HS2, is used on the server now, so it is never counted twice)
@@ -394,7 +398,7 @@ async function shopClaim(){
       if (srv){ mir.push(g); fresh.add(g.id); } else { old.push(g.id); if (old.length > 200) old.splice(0, old.length - 200); }
       // (the welcome gift for registering, HS1 10.11.2026: one grant per account, made by the server's tm_hello and never by the game,
       // supabase/migrations/20261110150000_reg_gift.sql; no purchase, so no confirmation and no price: the directorate's message below)
-      if (d.reward){ if (srv) giveHaill(d.type, how, g.id); else giveHaill(d.type, how); thanks++; }
+      if (d.reward){ if (srv) giveHaill(d.type, how, g.id); else giveHaill(d.type, how); if (d.ref) refs++; else thanks++; }
       else if (d.gift){ if (srv) giveHaill(d.type, how, g.id); else giveHaill(d.type, how); gifts++; }
       else names.push(shopGive(g, srv));
     }
@@ -413,7 +417,7 @@ async function shopClaim(){
   save(); if (typeof cloudSaveSoon === 'function') cloudSaveSoon(true);
   if (ids.length) try { await cloudRpc('shop_done', {ids}); } catch (e){ console.error(e); }
   if (rc.length) shopThanks(rc);
-  shopWords(gifts, thanks);
+  shopWords(gifts, thanks, refs);
   if (typeof PHONE !== 'undefined' && PHONE.isOpen()) PHONE.render(); if (typeof refreshAll === 'function') refreshAll();
   return names.length;
 }

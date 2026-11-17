@@ -77,6 +77,45 @@ async function cloudToken(force){ if (force){ if (Date.now() - (CLOUD.forceAt ||
 // (WorkOS) takes it all along: guest_claim() gives a one-time code here, kept on the device over the sign-in, and guest_merge(code) moves
 // everything to the account. A device that has been signed in before (CLOUD_SIGNED) meets the gate as before.
 const GUEST_KEY = 'dsb_guest', GUEST_CODE = 'dsb_guest_code', REG_GIFT = 'dsb_reg_gift', GUEST_LANDS = 2, NAMES_KEY = 'dsb_names';
+// the invite link (tilbakemelding #132, Jonas 17.11.2026; supabase/migrations/20261117180000_verv.sql): ?verv=<code> is kept on the
+// device (REF_KEY) over the guest's play and the sign-in, and handed in once the friend is registered (refClaim); the one who invited
+// gets a takk-haill from the server when the friend has landed fish, at most five a month
+const REF_KEY = 'dsb_ref', REF_RE = /^[0-9a-f]{8}$/;
+(() => { try { if (typeof location === 'undefined' || !location.search) return; const q = new URLSearchParams(location.search), c = String(q.get('verv') || '').trim().toLowerCase(); if (!q.has('verv')) return;
+  if (REF_RE.test(c) && !localStorage.getItem(REF_KEY)) localStorage.setItem(REF_KEY, c);
+  q.delete('verv'); history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); } catch (e){} })();
+async function refClaim(){
+  let c = null; try { c = localStorage.getItem(REF_KEY); } catch (e){}
+  if (!c || !CLOUD.user || CLOUD.guest) return;
+  try { const r = await cloudRpc('ref_claim', {code:c}); try { localStorage.removeItem(REF_KEY); } catch (e){} cloudEv('ref_claim', {r:String(r)}); }
+  catch (e){ if (!/ 404$/.test(String(e && e.message))) console.warn('ref_claim', e); }   // (kept: tried again at the next start)
+}
+async function refLoad(){
+  // (a server without the migration answers 404: the row stays away until it has it)
+  try { CLOUD.ref = await cloudRpc('ref_mine', {}); } catch (e){ CLOUD.ref = / 404$/.test(String(e && e.message)) ? {none:true} : {err:true}; }
+  if (typeof PHONE !== 'undefined' && PHONE.isOpen()) PHONE.render();
+}
+const refUrl = code => (typeof location !== 'undefined' && /^https:$/.test(location.protocol) && /detstorebla\.no$/.test(location.hostname) ? location.origin : 'https://detstorebla.no') + '/?verv=' + code;
+async function refShare(){
+  const R = CLOUD.ref; if (!R || !R.code) return;
+  const url = refUrl(R.code), text = cloudL('Bli med og fisk langs kysten i Det Store Blå.', 'Come fishing along the coast in Det Store Blå.');
+  cloudEv('ref_share', {});
+  try { if (navigator.share){ await navigator.share({title:'Det Store Blå', text, url}); return; } } catch (e){ if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(url); toast(cloudL('Lenka er kopiert.', 'The link is copied.')); }
+  catch (e){ const i = document.getElementById('accRef'); if (i){ i.focus(); i.select(); } toast(cloudL('Kopier lenka i feltet.', 'Copy the link in the field.')); }
+}
+// in the account card: the link, and how it has gone this month (fetched the first time the card is shown)
+function refRow(){
+  const L2 = cloudL, R = CLOUD.ref;
+  if (CLOUD.ref === undefined){ CLOUD.ref = null; refLoad(); }
+  if (R && R.none) return '';
+  const head = '<div class="acc-ref"><b>' + L2('Inviter en venn', 'Invite a friend') + '</b><p class="ph-note">' +
+    L2('Når en venn du inviterer, har registrert seg og levert fisk, får du takk-haill: 12 timer med fullt haill. Inntil 5 i måneden.', 'When a friend you invite has registered and landed fish, you get a thank-you luck: 12 hours of full luck. Up to 5 a month.') + '</p>';
+  if (!R) return head + '<p class="ph-note">' + L2('Henter lenka …', 'Getting the link …') + '</p></div>';
+  if (R.err || !R.code) return head + '<p class="ph-note">' + L2('Lenka kan ikke hentes nå.', 'The link cannot be had now.') + '</p><button class="ph-btn alt" data-pa="cloudRefLoad">' + L2('Prøv igjen', 'Try again') + '</button></div>';
+  return head + '<input id="accRef" readonly value="' + gEsc(refUrl(R.code)) + '"><button class="ph-btn p" data-pa="cloudRefShare">' + L2('Del lenka', 'Share the link') + '</button>' +
+    '<p class="ph-note">' + L2('Denne måneden: ' + R.month + ' av ' + R.max + '.', 'This month: ' + R.month + ' of ' + R.max + '.') + (R.waiting ? ' ' + L2('Venter på at ' + R.waiting + (R.waiting > 1 ? ' venner' : ' venn') + ' leverer fisk.', 'Waiting for ' + R.waiting + (R.waiting > 1 ? ' friends' : ' friend') + ' to land fish.') : '') + '</p></div>';
+}
 function guestGet(){ try { return JSON.parse(localStorage.getItem(GUEST_KEY) || 'null'); } catch (e){ return null; } }
 async function guestAuth(path, body){
   const c = CLOUD_CFG, r = await fetch(c.supabaseUrl.replace(/\/$/, '') + '/auth/v1/' + path, {method:'POST', headers:{'Content-Type':'application/json', apikey:c.supabaseAnon}, body:JSON.stringify(body)});
@@ -214,6 +253,7 @@ async function cloudGate(){
   try {
     const h = await cloudRpc('tm_hello', {meta:cloudMeta()}); CLOUD.consent = h ? h.consent : null; CLOUD.owned = (h && h.owned) || []; CLOUD.admin = !!(h && h.admin === true); CLOUD.shopOff = !!(h && h.shop === false);   // (shopOff: the shop closed for accounts made after the switch, P5 10.11.2026, 20261110170000_shop_gate.sql)
     if (typeof bootgReport === 'function') bootgReport();   // a start before that locked: told now, before this one builds the game (11-boot.js BOOTG)
+    refClaim();   // a friend's invite code, once registered (no wait: the start does not hang on it)
     // the save: which of the game here and the account's goes on (cloudSync)
     if (sessionStorage.getItem('dsb_force')){ sessionStorage.removeItem('dsb_force'); CLOUD.forceNext = true; }   // a game taken back (cloudRestore)
     await cloudClaim(true);   // this device takes the game; the one that had it sends its last state first (cloudClaim)
@@ -743,7 +783,7 @@ function cloudCard(){
   return '<div class="ph-card"><h4>' + L2('Konto', 'Account') + '</h4><p class="ph-note">' + L2('Logget inn som ', 'Signed in as ') + (u.email || '').replace(/</g, '&lt;') + '. ' +
     L2('Spillet lagres også på kontoen, så du kan fortsette på en annen enhet.', 'The game is also saved to the account, so you can go on from another device.') + '</p><p class="ph-note" id="syncNote">' + cloudStatusText() + '</p>' +
     '<button class="ph-btn alt" data-pa="cloudSaveNow">' + L2('Lagre nå', 'Save now') + '</button>' + histRows() +
-    '<label><span>' + L2('Del bruksstatistikk', 'Share usage statistics') + '</span><input type="checkbox" data-pa="cloudStat"' + (CLOUD.consent ? ' checked' : '') + '></label>' + pushCardRow() +
+    '<label><span>' + L2('Del bruksstatistikk', 'Share usage statistics') + '</span><input type="checkbox" data-pa="cloudStat"' + (CLOUD.consent ? ' checked' : '') + '></label>' + pushCardRow() + refRow() +
     '<div class="acc-name"><label for="accUser">' + L2('Brukernavn', 'Player name') + (S.user ? ': <b>' + gEsc(S.user) + '</b>' : '') + '</label><input id="accUser" maxlength="20" autocomplete="off" placeholder="' + L2('Vises ved båten din', 'Shown beside your boat') + '"><button class="ph-btn alt" data-pa="cloudName">' + L2('Lagre', 'Save') + '</button></div><p class="ph-note" id="accUserNote">' + L2('Ett ord, 3–20 tegn: bokstaver, tall, punktum, bindestrek eller understrek.', 'One word, 3–20 characters: letters, digits, dots, hyphens or underscores.') + '</p>' +
     (S.unnamed ? '<div class="acc-name"><label for="accBoat">' + L2('Døp båten', 'Name the boat') + '</label><input id="accBoat" maxlength="20" autocomplete="off" placeholder="' + L2('F.eks. Havbris', 'e.g. Havbris') + '"><button class="ph-btn alt" data-pa="cloudBoat">' + L2('Døp', 'Name') + '</button></div>' : '') +
     '<button class="ph-btn alt" data-pa="cloudOut">' + L2('Logg ut', 'Sign out') + '</button><button class="ph-btn alt" data-pa="cloudDel">' + L2('Slett kontoen', 'Delete the account') + '</button>' +
@@ -786,6 +826,8 @@ function cloudAct(a, d){
   if (a === 'cloudSignIn'){ if (isGuest()) guestRegister(true); return true; }
   if (a === 'cloudReg'){ guestAsk(guestDue() ? 'due' : 'soft'); return true; }
   if (a === 'cloudHist'){ cloudHist(); return true; }
+  if (a === 'cloudRefShare'){ refShare(); return true; }
+  if (a === 'cloudRefLoad'){ CLOUD.ref = null; refLoad(); return true; }
   if (a === 'cloudName'){ const v = String(($('accUser') || {}).value || '').trim(); const w = v ? nameWhy(v) : cloudL('Skriv et brukernavn først.', 'Type a player name first.'); if (w){ toast(w, 6000); const n = $('accUserNote'); if (n){ n.textContent = w; n.classList.add('bad'); } return false; } nameTake(v); return true; }
   if (a === 'cloudBoat'){ const v = String(($('accBoat') || {}).value || '').trim(); if (!v) return false; boatChristen(v); return true; }
   if (a === 'cloudRestore'){ cloudRestore(d && d.id); return true; }
