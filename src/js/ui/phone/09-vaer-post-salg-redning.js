@@ -126,6 +126,8 @@
       const escT = v => String(v).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'})[c]), me = escT(S.boatName || L('Deg', 'You')) + ' <small>(' + L('deg', 'you') + ')</small>';
       const co = c => c ? '<br><small class="ph-note">' + escT(c) + '</small>' : '';
       const fb = no => typeof PROF !== 'undefined' ? PROF.badge(no) : '';
+      // the badge explained under the list when it is on it (tilbakemelding #121: its title is never shown on a touch screen)
+      const fbWhy = d => d && ((d.rows || []).some(r => r && r.f) || (d.mine && d.mine.f)) && typeof PROF !== 'undefined' && PROF.why ? ' ' + PROF.why() : '';
       // (Jonas 16.11.2026: «Det burde også stå noe sånt som "Din plassering #420" … øverst over tabellen», and «scrolle nedover
       // laaaaangt»: the place on top, and the next hundred fetched as the bottom comes into view, worldTopMore in ui/10h-world.js)
       const topPlace = d => !d ? '' : '<p class="pf-place">' + (d.mine && d.mine.rank ? L('Din plassering', 'Your place') + ' <b>#' + fmt(d.mine.rank, 0) + '</b>' + (d.n ? ' <span>' + L('av ', 'of ') + fmt(d.n, 0) + '</span>' : '')
@@ -149,6 +151,7 @@
             (d.mine && d.mine.rank > rows.length ? '<tr class="me"><td>' + d.mine.rank + '</td><td>' + me + '</td><td class="n">' + lv(d.mine.y) + '</td></tr>' : '') + '</table>' + topMore(T)) +
           '<p class="ph-note">' + L('Hele kysten: de registrerte spillerne etter fartstida si, slik serveren har den. Trykk på en skipper for å se profilen med ferdighetene.', 'The whole coast: the registered players by their sea time, as the server has it. Tap a skipper to see the profile with the skills.') +
             (d && d.n ? ' ' + L(d.n + (d.n === 1 ? ' skipper' : ' skippere') + ' på lista.', d.n + (d.n === 1 ? ' skipper' : ' skippers') + ' on the list.') : '') +
+            fbWhy(d) +
             (typeof isGuest === 'function' && isGuest() ? ' ' + L('Som gjest står du bare på din egen liste; de andre ser deg ikke før du har registrert deg.', 'As a guest you are only on your own list; the others do not see you until you register.') : '') +
             '</p></div>');
       } else if (fsK){
@@ -171,6 +174,7 @@
               : L('Hele kysten: alle spillerne, åpen og lukket gruppe sammen, etter hvor mye de har landet ' + (per === 'm' ? 'denne spillmåneden' : 'i spilluka') + ', med båtnavnet, rederiet og mottaket de har levert mest til.', 'The whole coast: all the players, the open and the closed group together, by how much they have landed ' + (per === 'm' ? 'this game month' : 'this game week') + ', with the boat\'s name, the company and the plant they delivered most to.') +
                 (by === 'kr' ? ' ' + L('Rangert etter fangstverdien i kroner.', 'Ranked by the catch value in kroner.') : '') + ' ' + L('Trykk på en båt for å se profilen.', 'Tap a boat to see the profile.')) +
             (d && d.n ? ' ' + L(d.n + (d.n === 1 ? ' båt' : ' båter') + ' har landet.', d.n + (d.n === 1 ? ' boat has' : ' boats have') + ' landed.') : '') +
+            fbWhy(d) +
             '</p></div>');
       } else if (grp === 'lukket'){
         h.push('<div class="ph-card"><p class="ph-note">' + L('Topplista for lukket gruppe, med alle spillerne langs kysten, vises når du er logget inn på detstorebla.no eller i appen.', 'The closed group\'s leaderboard, with all the players along the coast, shows when you are signed in on detstorebla.no or in the app.') + '</p></div>');
