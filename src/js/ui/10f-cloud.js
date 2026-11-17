@@ -998,13 +998,19 @@ function guestOpenAsk(){
   setTimeout(go, 6000);
 }
 // without the cloud (the artifact, the tests) there is no registering: the boat is named at the same point, after the second landing or
-// from the second opening (the tests, #notut, land many times and get it only when they ask)
+// from the second opening (the tests, #notut, land many times and get it only when they ask). A registered player whose boat still goes
+// by her mark (the name was optional when the account was made; Jonas 17.11.2026: «mange spillere ikke har døpt båtene sine, så kanskje
+// vi må gi de en liten "heads-up"») is asked the same way after a landing, once a session and at most NUDGE_MAX times in all; a guest
+// names her when registering (guestAsk)
+const NUDGE_MAX = 3;
 function nameNudge(force){
-  if ((typeof CLOUD !== 'undefined' && CLOUD.on) || !S.unnamed || NAME_ASKED || tutOn() || (NOTUT && !force)) return;
+  const cloud = typeof CLOUD !== 'undefined' && CLOUD.on;
+  if (!S.unnamed || NAME_ASKED || tutOn() || (NOTUT && !force)) return;
+  if (cloud && (isGuest() || !CLOUD.user || (S.nameNudgeN || 0) >= NUDGE_MAX)) return;
   if ((S.landN || 0) < GUEST_LANDS && (S.opens || 0) < 2) return;
-  NAME_ASKED = true;
-  const go = () => { const m = document.getElementById('modal'); if (m && !m.hidden){ setTimeout(go, 4000); return; }
-    modal('<div class="ob"><h2>' + cloudL('Døp båten', 'Name the boat') + '</h2><p>' + cloudL('Båten har gått på registreringsmerket lenge nok. Hva skal hun hete?', 'The boat has gone by her registration mark long enough. What will she be called?') + '</p>' +
+  NAME_ASKED = true; if (cloud) S.nameNudgeN = (S.nameNudgeN || 0) + 1;
+  const go = () => { const m = document.getElementById('modal'); if (m && !m.hidden){ setTimeout(go, 4000); return; } if (!S.unnamed) return;
+    modal('<div class="ob"><h2>' + cloudL('Døp båten', 'Name the boat') + '</h2><p>' + cloudL('Båten har gått på registreringsmerket lenge nok. Hva skal hun hete?', 'The boat has gone by her registration mark long enough. What will she be called?') + (cloud ? ' ' + cloudL('Navnet males på skroget, og andre spillere ser det ved båten din.', 'The name is painted on the hull, and other players see it beside your boat.') : '') + '</p>' +
       '<label for="nmBoat">' + cloudL('Båtens navn', 'Boat name') + '</label><input id="nmBoat" maxlength="20" autocomplete="off" placeholder="' + cloudL('F.eks. Havbris', 'e.g. Havbris') + '">' +
       '<div class="btns"><button class="btn" data-close>' + cloudL('Senere', 'Later') + '</button><button class="btn primary" data-close id="nmGo">' + cloudL('Døp båten', 'Name her') + '</button></div></div>');
     document.getElementById('nmGo').addEventListener('click', () => boatChristen(document.getElementById('nmBoat').value)); };

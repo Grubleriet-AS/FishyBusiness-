@@ -1,4 +1,4 @@
-  const NAV = new Set(['open', 'home', 'back', 'close', 'lang', 'sub', 'shop0', 'salgW', 'salgG', 'salgK', 'salgF', 'salgP', 'topMore', 'vsel', 'goto', 'vfollow', 'vboard', 'vname', 'vsell', 'lopcls']);
+  const NAV = new Set(['open', 'home', 'back', 'close', 'lang', 'sub', 'shop0', 'salgW', 'salgG', 'salgK', 'salgF', 'salgP', 'topMore', 'vsel', 'goto', 'vfollow', 'vboard', 'vname', 'coname', 'vsell', 'lopcls']);
   function act(a, d){
     const was = app, done = SEL_APPS.includes(app) && !NAV.has(a) ? withSel(() => act0(a, d)) : act0(a, d);
     // a link to a page that lives in the drawer now (Neste mål, Rederi's «Åpne») closes the phone and opens the drawer
@@ -267,8 +267,16 @@
       if (mbSale(v)){ toast(L('«' + vget(v, 'boatName') + '» ligger til salgs hos Kystmegleren.', 'The «' + vget(v, 'boatName') + '» is for sale at Kystmegleren.')); return; }   // (B1: locked at the yard until the sale is over)
       S.me = v.id; log('Du gikk om bord på «' + vget(v, 'boatName') + '».', 'You went aboard the «' + vget(v, 'boatName') + '».');
       if (v.id !== S.cur){ storeVessel(curVessel()); bindVessel(v); if (typeof G3 !== 'undefined') G3.vesselChanged(); refreshAll(); } }
-    else if (a === 'vname'){ const v = vesselById(d.id); if (!v) return; const nm = (prompt(L('Nytt navn på båten', 'New name for the vessel'), vget(v, 'boatName') || '') || '').replace(/[<>&"]/g, '').trim().slice(0, 20); if (!nm) return;
-      if (v.id === S.cur) S.boatName = nm; else v.boatName = nm; loreRename(nm); }
+    else if (a === 'vname'){ const v = vesselById(d.id); if (!v) return; const unn = v.id === S.cur && S.unnamed;
+      const nm = (prompt(unn ? L('Hva skal båten hete?', 'What will the boat be called?') : L('Nytt navn på båten', 'New name for the vessel'), unn ? '' : vget(v, 'boatName') || '') || '').replace(/[<>&"]/g, '').trim().slice(0, 20); if (!nm) return;
+      // (the boat that goes by her mark is christened: the name painted on, S.unnamed gone; before, the name was set and she stayed unnamed)
+      if (v.id === S.cur){ boatChristen(nm); return; }
+      v.boatName = nm; loreRename(nm); }
+    // the company's name (Jonas 17.11.2026); an AS keeps « AS» at the end, the name as long as when founded (28)
+    else if (a === 'coname'){ if (!S.company) return; const as = S.form === 'AS', base = as ? S.company.replace(/ AS$/, '') : S.company;
+      let nm = (prompt(L('Nytt navn på rederiet', 'New name for the company'), base) || '').replace(/[<>&"]/g, '').replace(/\s+/g, ' ').trim().replace(/ AS$/i, '').slice(0, as ? 25 : 28);
+      if (nm.length < 2 || nm === base) return; if (as) nm += ' AS';
+      const was = S.company; S.company = nm; log('Rederiet ' + was + ' heter nå ' + nm + '.', 'The company ' + was + ' is now called ' + nm + '.'); toast(L('Rederiet heter nå ' + nm + '.', 'The company is now called ' + nm + '.')); save(); }
     // «Selg nå» (B4, V6 A): the broker buys her at once for 90 % of her value (core/09k-market.js mbQuickSell); the loans are paid first
     else if (a === 'vsell'){ const v = vesselById(d.id), w = mbQuickWhy(v); if (w){ if (w !== 'gone') toast(mbWhyTxt(w)); return; }
       const val = mbQuick(v), nm = vget(v, 'boatName');

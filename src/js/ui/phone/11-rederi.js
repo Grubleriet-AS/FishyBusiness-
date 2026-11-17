@@ -59,14 +59,15 @@
       // the buttons: the main one first, then the second, then «⋯» with the rest
       const take = me ? '' : '<button class="ph-btn' + (canBoard ? ' p' : '') + '" data-pa="vboard" data-id="' + v.id + '"' + (canBoard ? '' : ' disabled data-why="' + (sale ? L('Ligger til salgs', 'For sale') : why) + '"') + '>' + L('Ta roret', 'Take the helm') + '</button>';
       const follow = cur ? '' : '<button class="ph-btn ' + (canBoard ? 'alt' : 'p') + '" data-pa="vfollow" data-id="' + v.id + '">' + L('Følg', 'Follow') + '</button>';
-      const more = ['<button class="ph-btn alt" data-pa="vname" data-id="' + v.id + '">' + L('Gi nytt navn', 'Rename') + '</button>'];
+      // (a boat that still goes by her mark is named up front, not behind «⋯»)
+      const unn = cur && S.unnamed, more = unn ? [] : ['<button class="ph-btn alt" data-pa="vname" data-id="' + v.id + '">' + L('Gi nytt navn', 'Rename') + '</button>'];
       if (!me && all.length > 1){ const q = mbQuickWhy(v), sw = q === 'sea' ? L('Må ligge i havn', 'Must lie in port') : q === 'order' ? L('Går i innbytte', 'Being traded in') : q === 'listed' ? L('Ligger til salgs', 'For sale') : '';
         more.push('<button class="ph-btn red" data-pa="vsell" data-id="' + v.id + '"' + (sw ? ' disabled data-why="' + sw + '"' : '') + '>' + L('Selg nå til Kystmegleren · ', 'Sell now to Kystmegleren · ') + kr(mbQuick(v)) + '</button>'); }
       // the broker (Kystmegleren and delivery, M4; the sales between players, B): what is under way stands on the card, the offers sit behind «⋯»
       const mg = me && !mbSale(v) ? '' : mgOwnRow(v), mgOn = !!mbSale(v) || (mktState().del || []).some(d => d.vid === v.id);
       if (mg && !mgOn) more.push(mg);
       { const mvb = mbMoveBtn(v); if (mvb) more.push(mvb); }   // (KM4: the right to another boat of yours, or kept as a free right)
-      h.push('<div class="ph-card fl"><div class="fl-h"><h4>«' + vget(v, 'boatName') + '»' + (me ? ' ⚓' : '') + '</h4>' + tags + '</div><p class="ph-note fl-type">' + VESSELS[vb.type].name[S.lang] + '</p>' +
+      h.push('<div class="ph-card fl"><div class="fl-h"><h4>' + (cur && S.unnamed ? gEsc(S.boatName) : '«' + gEsc(vget(v, 'boatName')) + '»') + (me ? ' ⚓' : '') + '</h4>' + tags + '</div><p class="ph-note fl-type">' + VESSELS[vb.type].name[S.lang] + '</p>' +
         '<div class="fl-st"><i class="fl-dot ' + dot + '"></i><span>' + sm.status + (inp ? '' : ' · ' + sm.pos) + '</span></div>' +
         (sm.nx ? '<div class="fl-nx">⏱ ' + sm.nx.txt + ' ' + hm(sm.nx.t / 60) + ' <small>· ' + inReal(sm.nx.t - S.t) + '</small></div>' : '') +
         '<div class="fl-bars"><div><span>' + L('Last', 'Hold') + ' <b>' + fmt(sm.hold, 0) + ' / ' + fmt(sm.cap, 0) + ' kg</b></span>' + bar(sm.hold, sm.cap, sm.hold >= sm.cap - 1 ? 'warn' : '') + '</div>' +
@@ -74,10 +75,12 @@
         '<p class="ph-note fl-meta">' + meta.join(' · ') + (sm.ops && sm.ops.on && sm.now ? '<br>' + L('Driftsplan: ', 'Plan: ') + L(sm.now[0], sm.now[1]) : '') + '</p>' +
         sm.al.map(a => '<div class="fl-al"><span>' + L(a.no, a.en) + '</span><button class="ph-btn sm" data-pa="goto" data-id="' + a.id + '" data-a="' + a.app + '">' + L('Åpne', 'Open') + '</button></div>').join('') +
         (mgOn ? mg : '') +
-        '<div class="fl-btns">' + (canBoard ? take + follow : follow + take) + '<details class="fl-more"><summary aria-label="' + L('Mer', 'More') + '">⋯</summary><div class="fl-menu">' + more.join('') + '</div></details></div></div>');
+        '<div class="fl-btns">' + (unn ? '<button class="ph-btn p" data-pa="vname" data-id="' + v.id + '">' + L('Døp båten', 'Name the boat') + '</button>' : '') + (canBoard ? take + follow : follow + take) + (more.length ? '<details class="fl-more"><summary aria-label="' + L('Mer', 'More') + '">⋯</summary><div class="fl-menu">' + more.join('') + '</div></details>' : '') + '</div></div>');
     }
     h.push(mbFreeCard());   // (KM4: the rights the company keeps without a boat)
-    h.push('<div class="ph-card"><h4>' + (S.company || L('Rederiet', 'The company')) + '</h4>' + kv(L('Båter', 'Vessels'), all.length) + kv(L('Konto', 'Account'), kr(S.cash)) + kv(L('Inntekt i dag', 'Income today'), kr(Math.round(all.reduce((a, x) => a + x.s.inc, 0)))) + '</div>');
+    // (the company's name can be changed, Jonas 17.11.2026: «Noen spillere ønsker å kunne bytte navn på rederiet»; an AS keeps « AS»)
+    h.push('<div class="ph-card"><h4>' + gEsc(S.company || L('Rederiet', 'The company')) + '</h4>' + kv(L('Båter', 'Vessels'), all.length) + kv(L('Konto', 'Account'), kr(S.cash)) + kv(L('Inntekt i dag', 'Income today'), kr(Math.round(all.reduce((a, x) => a + x.s.inc, 0)))) +
+      (S.company ? '<button class="ph-btn alt" data-pa="coname">' + L('Bytt navn på rederiet', 'Rename the company') + '</button>' : '') + '</div>');
     // the year's result from the books (tilbakemelding #9, Jonas 09.10.2026; Økonomi 2, Ø1): one line, the whole accounts, the loans and the balance sheet in the bank's Regnskap tab
     { const yR = bookResult(yearH(H)), dep = Math.round(depBase() * TAX.dep * yearFrac(H));
       h.push('<div class="ph-card fl-acc"><span>' + L('Regnskap ', 'Accounts ') + yearH(H) + ': ' + kr(yR.res - dep) + L(' før skatt', ' before tax') + '</span><button class="ph-btn sm" data-pa="open" data-a="bank" data-s="regnskap">' + L('Bank', 'Bank') + ' ›</button></div>'); }

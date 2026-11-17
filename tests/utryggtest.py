@@ -60,6 +60,14 @@ async def main():
         c = await pg.evaluate("""async (w) => { S.plan = null; S.boat.status = 'idle'; S.boat.port = null; S.boat.v = 0; S.boat.pos = {x:w.o.x, y:w.o.y}; S.draft = [{x:w.x, y:w.y, port:null, fish:0}]; hzCache.k = ''; doAct({dataset:{act:'start'}, disabled:false});
           await new Promise(r => setTimeout(r, 200)); const g = document.getElementById('ruGo'); return {plan:!!S.plan, hz:!!document.getElementById('hzGo') && !document.getElementById('modal').hidden}; }""", dict(end0, o=f['o']))
         check(c['plan'] and not c['hz'], 'a route started by code (not the button) is not asked', c)
+        # a yellow leg Autonav laid (its legs may count on the tide, which the yellow does not) is not asked about: the dialog would
+        # only offer Autonav again; on such a leg she is held back and taken round (tilbakemelding #126, PR #105)
+        al = await pg.evaluate("""async (w) => { S.plan = null; S.boat.status = 'idle'; S.boat.port = null; S.boat.v = 0; S.boat.pos = {x:w.o.x, y:w.o.y}; S.draft = [{x:w.x, y:w.y, port:null, fish:0, leia:true}]; hzCache.k = ''; panelDirty = true; setTab('route'); routeChanged(); renderPanel(); await new Promise(r => setTimeout(r, 400));
+          let hz = draftHazards(); for (let i = 0; i < 20 && /^wait/.test(hzCache.k); i++){ await new Promise(r => setTimeout(r, 300)); hzCache.k = ''; hz = draftHazards(); }
+          document.querySelector('[data-act=start]').click(); await new Promise(r => setTimeout(r, 200)); const asked = !document.getElementById('modal').hidden && !!document.getElementById('hzGo');
+          if (asked) document.getElementById('modal').hidden = true;
+          return {yellow:hz.filter(h => h.unsafe).length, asked, plan:!!S.plan, unsafe:S.plan ? S.plan.unsafe : null}; }""", dict(end0, o=f['o']))
+        check(al['yellow'] == 1 and not al['asked'] and al['plan'] and al['unsafe'] == [False], 'a yellow leg Autonav laid starts at once, not asked about and not marked unsafe', al)
         print('sidefeil', errs)
         await br.close()
 asyncio.run(main())
