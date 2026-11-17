@@ -79,6 +79,8 @@ function hopRun(paid){
   if (iS < 0) return {why:['Ruta har ikke noe mål.', 'The route has no end.']};
   const save = {pos:b.pos, v:b.v, heading:b.heading, idx:pl.idx, speed:pl.speed, dspeed:S.draftSpeed, trim:S.trim, btrim:b.trim}, T = trimOn(b), tEnd = T ? trimUntil(b) : -1;
   let m = 0, fuel = 0, trimMin = 0, why = null, heading = b.heading, ended = false; const track = [];
+  // (the fleet's trim running out scales every boat's route speed down, trimFleet: the other boats' are put back below too)
+  const cv = T && S.fleet ? curVessel() : null, oth = cv ? S.fleet.filter(v => v !== cv).map(v => [v, withVessel(v, () => [S.plan ? S.plan.speed : null, S.draftSpeed])]) : [];
   try {
     while (pl.idx <= iS){
       if (m >= HOP.maxMin){ why = ['Ruta er for lang til å regne ut her.', 'The route is too long to work out here.']; break; }
@@ -99,7 +101,8 @@ function hopRun(paid){
     heading = b.heading;
   } catch (e){ console.warn('hopRun', e); why = why || ['Turen kunne ikke regnes ut herfra.', 'The trip could not be worked out from here.']; }
   finally { b.pos = save.pos; b.v = save.v; b.heading = save.heading; pl.idx = save.idx;
-    if (ended){ if (save.trim) S.trim = save.trim; else delete S.trim; b.trim = save.btrim; applyVessel(); pl.speed = save.speed; S.draftSpeed = save.dspeed; } }
+    if (ended){ if (save.trim) S.trim = save.trim; else delete S.trim; b.trim = save.btrim; applyVessel(); pl.speed = save.speed; S.draftSpeed = save.dspeed;
+      for (const [v, o] of oth) withVessel(v, () => { if (S.plan && o[0] != null) S.plan.speed = o[0]; S.draftSpeed = o[1]; }); } }
   // (the price on the whole real minutes, as the server works it out: supabase/migrations/20261112200000_hopp.sql hop_price)
   const realMin = Math.max(1, Math.round(m / GAME_RATE));
   return {why, stop:iS, w:pl.wps[iS], min:m, real:m / GAME_RATE, realMin, kr:hopPrice(realMin), fuel, trimMin, track, heading};
