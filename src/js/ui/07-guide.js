@@ -52,7 +52,6 @@ function panelRoute(){
     const H1 = S.plan.depAt / 60, rest = S.plan.wps.slice(S.plan.idx);
     h.push('<h3>' + t('dep_planned') + '</h3><p>' + dayStr(H1) + ' ' + hm(H1) + ' <small class="note">' + inReal(S.plan.depAt - S.t) + '</small> · ' + dirName(windDir(H1)) + ' ' + fmt(fcWind(H1, S.t / 60), 0) + ' m/s</p>');
     h.push('<ul class="wps">' + rest.map((w, i) => '<li' + (w.auto ? ' class="auto"' : '') + '><span class="n' + (w.fish > 0 ? ' f' : '') + '">' + wpName(S.plan.idx + i + 1) + '</span><span class="lbl">' + (w.port ? portById(w.port).name : coordStr(w)) + '<small>' + (w.port ? '' : w.auto ? wpTag(w) : (w.fish > 0 ? t('fish_h', w.fish) : t('no_fish'))) + '</small></span></li>').join('') + '</ul>');
-    if (S.settings.autoOn) h.push('<p class="note">' + (S.lang === 'no' ? 'Blåser det mer enn ' + S.settings.autoW + ' m/s ved avgang, venter båten en time om gangen.' : 'If it blows more than ' + S.settings.autoW + ' m/s at departure, the boat waits an hour at a time.') + '</p>');
     h.push('<div class="btns"><button class="btn primary" data-act="depnow">' + t('dep_go') + '</button><button class="btn" data-act="depcancel">' + t('dep_cancel') + '</button></div>');
     return h.join('');
   }
@@ -191,7 +190,6 @@ function fcChart(){
   for (let i = 0; i <= 48; i++) d += (i ? 'L' : 'M') + x(i).toFixed(1) + ',' + y(fcWind(now + i, now)).toFixed(1);
   const g = ['<svg viewBox="0 0 ' + W + ' ' + Hh + '" class="fc" role="img" aria-label="' + t('fc') + '">'];
   [[10.8, 'var(--warn)'], [13.9, 'var(--bad)']].forEach(([v, c]) => g.push('<line x1="' + l + '" x2="' + (W - r) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="' + c + '" stroke-dasharray="3 3" stroke-width="1"/>'));
-  if (S.settings.autoOn) g.push('<line x1="' + l + '" x2="' + (W - r) + '" y1="' + y(S.settings.autoW) + '" y2="' + y(S.settings.autoW) + '" stroke="var(--mag)" stroke-width="1"/>');
   g.push('<path d="' + d + 'L' + x(48) + ',' + y(0) + ' L' + x(0) + ',' + y(0) + ' Z" fill="var(--water)" opacity=".12"/>');
   g.push('<path d="' + d + '" fill="none" stroke="var(--ink)" stroke-width="1.8"/>');
   [0, 5, 10, 15, 20, 25].forEach(v => g.push('<text x="' + (l - 5) + '" y="' + (y(v) + 3.5) + '" font-size="10" text-anchor="end" fill="var(--muted)">' + v + '</text>'));
@@ -227,9 +225,7 @@ function panelWx(){
     h.push('<tr><td>' + lab + '</td><td class="r' + riskLevel(w, 0) + '">' + dirName(windDir(Hh)) + ' ' + fmt(w, 0) + '</td><td class="r' + riskLevel(0, ho) + '">' + fmt(ho, 1) + ' m</td><td class="r' + riskLevel(w, hh) + '">' + fmt(hh, 1) + ' m</td></tr>');
   }
   h.push('</tbody></table><p class="note">' + t('fc_n') + '</p>');
-  h.push('<label class="tog"><input type="checkbox" id="setAuto"' + (S.settings.autoOn ? ' checked' : '') + '><span>' + t('auto') + '<small>' + t('auto_n') + '</small></span></label>');
-  h.push('<div class="range"><input type="range" min="6" max="20" step="1" value="' + S.settings.autoW + '" id="autoW" aria-label="' + t('auto') + '"' + (S.settings.autoOn ? '' : ' disabled') + '><output id="autoWOut">' + S.settings.autoW + ' m/s</output></div>');
-  h.push('<label><span>' + t('auto_to') + '</span> <select id="autoTo"' + (S.settings.autoOn ? '' : ' disabled') + '><option value="near"' + (S.settings.autoTo !== 'home' ? ' selected' : '') + '>' + t('auto_near') + '</option><option value="home"' + (S.settings.autoTo === 'home' ? ' selected' : '') + '>' + t('auto_home') + '</option></select></label>');
+  // (the wind's turn-back setting is gone, 17.11.2026: the boat runs for shelter by herself on the sea, 05-vessels.js seaLim)
   return h.join('');
 }
 // where a landing has got to, for the action bar and the harbour panel

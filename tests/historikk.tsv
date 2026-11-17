@@ -5619,3 +5619,15 @@
 2026-11-17 14:05	ccr-1bf3e190-ptkcq3	c422c12f+	synctest	OK	70	lite	samtidig	
 2026-11-17 14:05	ccr-1bf3e190-ptkcq3	c422c12f+	cloudtest	OK	49	lite	samtidig	
 2026-11-17 14:06	ccr-1bf3e190-ptkcq3	c422c12f+	rttest	OK	51	lite	samtidig	
+2026-11-17 12:55	claude/hopeful-mayer-48bgvv	a18989ce+	driftsplan3test	OK	70	lite	samtidig	
+2026-11-17 12:55	claude/hopeful-mayer-48bgvv	a18989ce+	skipdrift	OK	45	lite	samtidig	
+2026-11-17 12:56	claude/hopeful-mayer-48bgvv	a18989ce+	fleet2test	OK	40	lite	samtidig	
+2026-11-17 12:56	claude/hopeful-mayer-48bgvv	a18989ce+	driftsplan2ui	OK	62	lite	samtidig	
+2026-11-17 12:58	claude/hopeful-mayer-48bgvv	a18989ce+	driftsplan2test	FEIL	90	lite	alene	FEIL S9 30 h closed in the middle gives the same landings as open (kg within 2 %, kr within 3 %: the price follows the species and sizes, which vary a little be
+2026-11-17 13:21	claude/hopeful-mayer-48bgvv	0c25df84+	autonavtest	FEIL	38	lite	samtidig	FEIL 6. Autonav Vannareid → Honningsvåg: 100 m-celler, ingen etappe grunnstøter  {'n': 25, 'nm': 167.1, 'ms': 89, 'cell': 0.2, 'maxSlice': 8.1, 'mended': 0, 'ba
+2026-11-17 13:21	claude/hopeful-mayer-48bgvv	0c25df84+	crewlifetest	OK	9	lite	samtidig	
+2026-11-17 13:21	claude/hopeful-mayer-48bgvv	0c25df84+	geartest	OK	35	lite	samtidig	
+2026-11-17 13:21	claude/hopeful-mayer-48bgvv	0c25df84+	hopptest	OK	6	lite	samtidig	
+2026-11-17 13:21	claude/hopeful-mayer-48bgvv	0c25df84+	kapplop	FEIL	18	lite	samtidig	FEIL ruta Lindesnes–Bergen {"err": "Fant ingen rute dit."}
+2026-11-17 13:24	claude/hopeful-mayer-48bgvv	0c25df84+	kjoptest	OK	151	lite	samtidig	
+2026-11-17 13:25	claude/hopeful-mayer-48bgvv	0c25df84+	driftsplan2test	OK	93	lite	alene	

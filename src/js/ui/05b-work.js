@@ -166,9 +166,10 @@ $('slSkip').onclick = () => { if (wakeEarly(false)){ save(); panelDirty = true; 
 hooks.onLieTo = (W, hs, limW) => { if (typeof toast !== 'function') return; const L = (no, en) => S.lang === 'no' ? no : en;
   toast(L('Uvær: ' + (BOAT.cls === 'hav' ? 'skipet' : 'båten') + ' ligger bi med baugen mot sjøen til det løyer.', 'Storm: the ' + (BOAT.cls === 'hav' ? 'ship' : 'boat') + ' lies to, head to the sea, until it eases.')); };
 hooks.onTurnBack = (plan, sea, W, hs, limW, limHs) => { if (typeof toast !== 'function') return; const L = (no, en) => S.lang === 'no' ? no : en, f = x => x.toFixed(1).replace('.', S.lang === 'no' ? ',' : '.');
-  toast(sea ? L('Sjøen er ' + f(hs) + ' m, over grensen ' + f(limHs) + ' m i driftsplanen. Båten snur mot nærmeste kai.', 'The sea is ' + f(hs) + ' m, over the ' + f(limHs) + ' m limit of the plan. The boat turns to the nearest quay.')
-    : plan ? L('Vinden er ' + f(W) + ' m/s, over grensen ' + f(limW) + ' m/s i driftsplanen. Båten snur mot nærmeste kai.', 'The wind is ' + f(W) + ' m/s, over the ' + f(limW) + ' m/s limit of the plan. The boat turns to the nearest quay.')
-    : L('Vinden er ' + f(W) + ' m/s, over grensen din på ' + f(limW) + '. Båten snur mot nærmeste kai. Endres under Innstillinger → Snu ved.', 'The wind is ' + f(W) + ' m/s, over your limit of ' + f(limW) + '. The boat turns to the nearest quay. Change it under Settings → Turn back at.')); };
+  toast(!plan ? L('Sjøen er ' + f(hs) + ' m, nær det båten tåler. Hun går i ly til nærmeste kai.', 'The sea is ' + f(hs) + ' m, near what the boat can take. She runs for shelter to the nearest quay.')
+    : sea ? L('Sjøen er ' + f(hs) + ' m, over grensen ' + f(limHs) + ' m i driftsplanen. Båten snur mot nærmeste kai.', 'The sea is ' + f(hs) + ' m, over the ' + f(limHs) + ' m limit of the plan. The boat turns to the nearest quay.')
+    : L('Vinden er ' + f(W) + ' m/s, over grensen ' + f(limW) + ' m/s i driftsplanen. Båten snur mot nærmeste kai.', 'The wind is ' + f(W) + ' m/s, over the ' + f(limW) + ' m/s limit of the plan. The boat turns to the nearest quay.')
+); };
 hooks.onEnergy = k => { if (typeof toast !== 'function') return; const L = (no, en) => S.lang === 'no' ? no : en;
   // the bunk on a boat with berths, the nearest rorbu on one without (15-energy.js restTip; Ø8b M1, before «Gå til kai» on both)
   if (k === 'warn'){ const r = restTip(myBoat()); toast(L('Du er sliten (25 %). Arbeidet ditt går tregere. ', 'You are tired (25 %). Your work goes slower. ') + L(r[0], r[1])); }

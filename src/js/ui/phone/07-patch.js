@@ -2,7 +2,9 @@
   const PATCH = [
     ['vaerhjem-171126', '17.11.2026', 'Driftsplanen og været', 'The plan and the weather', [
        ['Driftsplanen stopper ikke lenger for vind, bare for sjøen båten ikke tåler.', 'The plan no longer stops for wind, only for a sea the boat cannot take.'],
-       ['Holder været båten inne mens hun er ute, går hun hjem og venter der, og går ut igjen av seg selv når været tillater det.', 'When the weather keeps the boat in while she is out, she goes home to wait there, and goes out again by herself when the weather allows.']]],
+       ['Holder været båten inne mens hun er ute, går hun hjem og venter der, og går ut igjen av seg selv når været tillater det.', 'When the weather keeps the boat in while she is out, she goes home to wait there, and goes out again by herself when the weather allows.'],
+       ['Driftsplanen ser på været der den skal fiske, ikke der båten ligger. En plan i ly kan gå selv om det blåser der du er.', 'The plan looks at the weather where it will fish, not where the boat lies. A plan in shelter can go even when it blows where you are.'],
+       ['Båten snur ikke lenger for vind. Hun går i ly av seg selv når sjøen blir nær det hun tåler. Innstillingen «Snu ved» er tatt bort.', 'The boat no longer turns back for wind. She runs for shelter by herself when the sea gets near what she can take. The «Turn back at» setting is gone.']]],
     ['ingenko-171126', '17.11.2026', 'Ingen kø ved mottakene', 'No queue at the plants', [
        ['Det er ikke lenger kø ved fiskemottakene. Du losser med en gang du ligger ved mottakskaia, også når andre losser der samtidig.', 'There is no longer a queue at the fish plants. You land as soon as you lie at the plant\'s quay, also when others land there at the same time.']]],
     ['drivanker-171126', '17.11.2026', 'Juksing alene og drivanker', 'Jigging alone and the drift anchor', [
