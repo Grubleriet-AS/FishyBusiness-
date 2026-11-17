@@ -122,8 +122,17 @@ function motionAt(p, H, head, kn, St = stabOf()){
   // (the heel: the wind's, and the list from the load across her, OB15; which side the wind is on is not reckoned here, so they add)
   return {roll:Math.min(0.9, Math.sqrt(r2)), heel:windHeel(St, windAt(H, p)) + Math.abs(St.list || 0), av:Math.sqrt(a2), res, GM:St.GM, Tr:St.Tr, deckEdge:St.deckEdge};
 }
-// the steady heel from a beam wind: the pressure 0.5 rho U^2 1.2 on the side above water, its lever over the weight and GM
-function windHeel(St, U){ const A = St.L * (St.f + (St.decked ? 1.4 : 0.15)), Z = St.T / 2 + St.f / 2 + (St.decked ? 0.9 : 0.1), lw = 0.5 * 1.25 * U * U * 1.2 * A * Z / (St.D * 1000 * 9.81); return Math.atan(lw / Math.max(St.GM, 0.04)); }
+// the steady heel from a beam wind: the pressure 0.5 rho U^2 1.2 on the side above water, its lever over the weight and GM.
+// (17.11.2026, Jonas with a boat at the quay in 23 m/s laid over some 30 degrees: «Båtene krenger også enormt mye i vinden. Kanskje for
+// mye?»: the house took the whole length of the boat, 7 m x 1.4 m on the old wooden boat, so she heeled 39 degrees in 23 m/s, her
+// deck edge under. The side is now the hull's freeboard the whole length and the house over WH.len of it, each at its own height;
+// and moored, the lines take the wind's push at the deck, so the lever is from the deck up (the hull's side below the deck leans
+// against it), never under WH.moor of the free one: 17 and some 4 degrees for the wooden boat in 23 m/s, a sjark 5 and 1)
+const WH = {len:0.3, house:1.4, open:0.15, moor:0.25};
+function windHeel(St, U, moored){
+  const Ah = St.L * St.f, Ac = St.decked ? WH.len * St.L * WH.house : St.L * WH.open, zh = St.f / 2, zc = St.f + (St.decked ? WH.house / 2 : WH.open / 2), A = Ah + Ac;
+  const zw = (Ah * zh + Ac * zc) / A, free = St.T / 2 + zw, Z = moored ? Math.max(free * WH.moor, zw - St.f) : free;
+  const lw = 0.5 * 1.25 * U * U * 1.2 * A * Z / (St.D * 1000 * 9.81); return Math.atan(lw / Math.max(St.GM, 0.04)); }
 // how steady she is: 0 good, 1 reduced (rank below IMO's 0.35 m, or rolling to 60 % of the deck edge), 2 critical (GM under 0.15 m, or
 // rolling to 90 % of the deck edge), with the reason
 function stabState(M){

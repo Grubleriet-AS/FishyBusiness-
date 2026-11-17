@@ -30,7 +30,7 @@ Fila er `core/03c-stability.js`.
   - Vindsjø og dønning møtes hver for seg med møtefrekvensen ωe = |ω − k·v·cos μ|.
   - Rullet svarer på bølgehellingen π·Hs/λ på tvers som en dempet svingning (0,12 av kritisk for spredt sjø), med resonans når møteperioden treffer rulleperioden.
   - Hiv og stamp følger bølger lengre enn skroget og jevner ut de kortere. Vertikal akselerasjon regnes en tredjedel av lengden foran midten.
-  - Vind fra siden gir slagside: 0,5·ρ·U²·1,2 på siden over vann (`windHeel`).
+  - Vind fra siden gir slagside: 0,5·ρ·U²·1,2 på siden over vann (`windHeel`). **17.11.2026** (Jonas, en båt ved kai i 23 m/s lagt over rundt 30°: «Båtene krenger også enormt mye i vinden. Kanskje for mye?», «Gjelder dette flere båter? Det må fikses»): styrhuset tok hele båtens lengde (trebåten 39° i 23 m/s, ripa under). Nå er siden fribordet hele lengden og huset over `WH.len` (0,3) av den, hver i sin høyde, og fortøyd tar trossene vinden i dekkshøyde, så armen går fra dekket og opp (aldri under `WH.moor`, 0,25, av den frie): trebåten 15° og 3,8° i 23 m/s, snekka 9° og 2,3°, sjarken 3,4° og 0,9°. 3D-en bruker den fortøyde når båten ligger i havn (`view3d/16-motion.js`). Enhetstest `vindkreng` (18 OK; rød før: 10 FEIL).
 - **Arbeidet** (`hsWork`, `motionHere`):
   - Fiske og arbeid om bord (`catchFactors` med bølgehøyden den får, `workTeam`, `teamEff`) bruker bølgehøyden skalert med hvor mye båten beveger seg, mot det samme skroget i drift med siden mot sjøen og tomt dekk. `simday` er uendret (±10 %), og `progweek` gir 312 211 kr mot 312 801 kr uten.
   - Kalibreringen holder derfor i snitt, mens kurs, fart, last og resonans teller.
