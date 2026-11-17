@@ -1,6 +1,6 @@
 # Fiskarlag 2: egne lag og oppdrag som passer laget
 
-Plan 17.11.2026. Valgene tatt samme dag (V1–V4 A); venter på «kjør på».
+Plan 17.11.2026, skrevet om samme dag etter Jonas' ønske om ekte gildemekanikk. Valgene er tatt (under); venter på «kjør på» for FL1.
 
 ## Hva Jonas ba om
 
@@ -8,6 +8,9 @@ Plan 17.11.2026. Valgene tatt samme dag (V1–V4 A); venter på «kjør på».
 - 17.11.2026: Fiskarlaget skal være det første som bygges videre på, «der flere bruker skal kunne gå sammen for å løse oppgaver, og forhåpentligvis skape litt intern og ekstern konkurranse».
 - 17.11.2026, valg: **bare egne lag med kode** (ikke automatiske lag per strekning).
 - 17.11.2026, om oppgavene: «Oppdragene må være kontekstuelle og tilpasset hvor brukerne i fiskarlaget er, hva de har igjen av kvote, hva de eventuelt kan fiske fritt og slike ting tror jeg. Kom gjerne med forslag til hvordan denne funksjonen kan bli så bra som mulig.»
+- 17.11.2026: «Burde det bli en egen app?» Så: «det er svært viktig at ikke dette bare blir en tom skall-funksjon. Den må ha ekte dybde og verdi for spillerne, skape samhold og sånt. Jeg tenker man må kunne sette navn på fiskarlaget.»
+- 17.11.2026: «Jeg tenker vi må bruke skikkelige guild-mechanics som er brukt suksessfullt i andre spill» (chat, roller, regler, donasjoner og hjelp, gildebank, bonuser, raid, felles oppgaver, gildekrig, territorium, rankinglister).
+- 17.11.2026, valgene: **fri chat i laget (alle spillere er over 13 år)**; **«fiskarlaget kun eksisterer i fiskarlag-appen, samt bordet på puben»**; **lagsligaen** er den første konkurransen mellom lagene.
 
 Grunnlaget: `docs/research/spillermonster-2026-11-17.md`. Fiskarlaget per havn har 3 medlemmer på 3 havner, 0 nådde mål og 1 lapp siden 05.10; 15 spillere med hjemhavn er spredt på 13 havner; puben er åpnet av 4–10 nye; ingen åpnet topplistene på lanseringsdagen.
 
@@ -19,65 +22,100 @@ Grunnlaget: `docs/research/spillermonster-2026-11-17.md`. Fiskarlaget per havn h
 - **Det som er fritt:** hyse under 11 m uten grense, hyse og sei uten maksimalkvote i åpen gruppe, «fritt fiske» om høsten når gruppekvoten ikke tas, lange og brosme (5.5 i `docs/systemer/kvoter-og-regler.md`, `core/03d-quota.js`).
 - **Landingene på serveren:** `landings` (art, kg, mottak, landsdel, spilltime `gh`), med jukse-merkene (`cheat_on`) som alt holder merkede kontoer ute av lagets mål.
 
-## Hvordan det blir så bra som mulig
+## Rammen Jonas har satt
 
-1. **Laget er folk du har valgt.** Hvem som helst starter et lag og får en kode og en lenke (`detstorebla.no/?lag=K7M2QX`) som deles med telefonens delemeny. Lenken er også veien inn for nye spillere: den som åpner den, lander i spillet med laget ventende etter første tur. Det er den eneste vekstkroken spillet ikke har i dag.
-2. **Laget heter etter et sted,** valgt fra stedsnavnene i spillet (havner, felt, fyr), aldri fri tekst. «Laget fra Hekkingen», «Gryllefjord-laget». To lag kan ha samme sted; koden skiller dem.
-3. **Oppdraget lages av laget, ikke for et gjennomsnitt.** Hver medlems spill sender et lite sammendrag når det endres (art for art: kilo igjen å lande innenfor kvoten, eller «fritt»; redskapet; båtklassen; landsdel og sist brukte mottak). Serveren lager tre forslag for uka av det laget faktisk kan, og laget velger ett. Hvert medlem ser i tillegg **sin del**: hva *din* båt kan bidra med, og hvor fisken står nærmest deg, regnet i ditt eget spill med de samme funksjonene som tavla bruker.
-4. **Oppdragene følger kysten og kalenderen.** Skrei om vinteren i nord, sei og hyse når torskekvoten er tom, fritt fiske når det åpner, krabbe og blåkveite for dem som har redskapet. Er torskekvoten tom for alle, foreslås aldri torsk.
-5. **Ingen blir dratt ned.** Målet regnes av de medlemmene som har vært i spillet siste to spilluker; den som er borte, teller ikke i målet og mister ingenting. Alt teller bare oppover.
-6. **Konkurransen er rettferdig mellom store og små lag:** lag mot lag måles i hvor stor del av eget mål laget nådde, ikke i tonn. Inne i laget vises de beste bidragene i uka, aldri en sisteplass.
-7. **Det vises der spilleren er:** linja etter hvert salg («Laget: 3,2 av 8 t sei, din del 640 kg»), en stripe i kartplotteren mens oppdraget pågår, lagets kort i Sesong-appen, og Kystposten søndag. Puben beholder tavla.
+- **Laget finnes bare i appen «Fiskarlaget» og ved lagets bord i puben.** Ingen sjøhus i verden, ingen vimpel på båtene i 3D, ingen lagsnavn på felt i kartet og ingen lagsbåter i kartplotteren. Det som ellers viser laget, er lenker inn i appen: linja etter salget, merket på app-ikonet og Kystposten. (Tolkning: kartet og sjøen er uten lag; si fra om linja etter salget og ikonmerket også er for mye.)
+- **Bare egne lag med navn og kode.** Lagene kan være åpne, så nye i nærheten kan spørre om å bli med, og formannen godtar.
+- **Ingen fordeler i spillet fra laget** utover det oppdragene betaler etter balanseregelen. Lagskasse og sjøhus med bonuser er tatt ut med rammen over.
 
-### Typene lagsoppdrag (forslagene serveren kan lage)
+## Gildemekanikken, oversatt til kysten
 
-| Type | Eksempel | Når den kan foreslås |
+| Mekanikk | I Det Store Blå | Fase |
+|---|---|---|
+| Navn og identitet | Fritt navn, kontrollert som brukernavnene (`NAME_RE`, unikt, `names_banned`, admin-fanen tar bort med grunn). Vimpel av to farger og et symbol, vist i appen og ved bordet i puben. «Stiftet uke 47, 2026». | FL1 |
+| Roller | **Formann** (alt), **styret** (opptil tre: godtar nye, skjuler meldinger, melder laget på i ligaen), **medlem**, **lærling** (første to uker). Formannen borte i fire uker → rollen går til det styremedlemmet som har vært lengst i laget, ellers til det medlemmet som har vært lengst med. | FL1 |
+| Regler for opptak | Åpent med søknad, bare med kode, eller lukket. Krav laget kan sette: fartstid, landsdel, språk. Aldri krav om aktivitet. | FL1 |
+| Gildechat | **Lagsprat:** fri tekst for registrerte i laget. Ordfilter på serveren, rapport-knapp, formann og styre skjuler, admin-fane med rapportene, utestengelse fra all lagsprat, meldingene slettes etter 30 dager, høyst 1 melding per 3 s og 300 tegn. Pluss reaksjoner på medlemmenes landinger («Godt fiska!»). Krever endringer i `src/legal/` (personvern og vilkår), som går som PR til Jonas. | FL2 |
+| Felles oppgaver | **Ukas lagsoppdrag**, laget av medlemmenes kvoterom, redskap og det som er fritt; tre forslag, medlemmene stemmer. Hver ser «din del». | FL3–FL4 |
+| Raid (felles helselinje) | **Storoppdraget:** en sjelden, stor ordre (eksportordre, skreisesongen) med én felles stolpe over ti spilldøgn. | FL4 |
+| Hjelp | **«Be om en hånd»** med egninga på land: andre i laget trykker «Hjelp til» i appen, hver hjelp korter egnetida litt (høyst halvparten). Egnere på land er ekte; tida er arbeid, ikke lagt inn for å selge. | FL6 |
+| Gildenivå | **Lagets år:** XP fra levert fangst og nådde mål. Nivåene gir plasser (12 → 16 → 20), symboler til vimpelen og titler. Går aldri ned. Nytt lag starter med XP fra medlemmenes siste fire uker (aldri på null). | FL5 |
+| Gildekrig og rangering | **Lagsligaen:** runder på to spilluker, divisjoner etter lagets størrelse, opp og ned etter hver runde, poeng i prosent av eget mål. Kystposten skriver om vinnerne. | FL5 |
+| Historie | **Lagets logg** skriver seg selv (nådd mål, store fisker, opprykk, nye medlemmer), **rekordene**, **ukas titler** (Seikongen, Speideren, Mangfoldet, Ferskingen) og **lagsmøtet** søndag kveld: kortet som bilde å dele. | FL5 |
+| Territorium | Ikke bygd (rammen: laget finnes ikke i kartet). | — |
+| Gildebank og bonuser | Ikke bygd (rammen). | — |
+
+## Appen «Fiskarlaget»
+
+I gruppa Deg, der Venner står i dag; Venner flyttes inn som fane, og Sesong-appen mister lagkortet. Ikonet får et merke når det er noe å gjøre (avstemning, ny melding, nådd mål).
+
+| Fane | Innhold |
+|---|---|
+| Uka | Lagsoppdraget, stolpen, «din del» med «Kjør dit», avstemningen. |
+| Prat | Lagsprat og reaksjonene. |
+| Laget | Navn, vimpel, nivå, medlemmene med roller og ukas bidrag, titlene, koden og «Inviter». Formannens og styrets verktøy. |
+| Ligaen | Divisjonen, plassen, opp og ned. |
+| Loggen | Lagets historie og rekordene. |
+| Venner | Vennekodene og vennelista. |
+
+**Uten lag:** «Lag i nærheten som tar imot nye» (åpne lag, med vimpel, nivå, divisjon og hvor mange som fisket denne uka), «Start et lag» og «Bli med med kode». Gjester ser det samme med «Registrer deg for å bli med». Puben: lagets bord viser vimpelen, navnet og ukas stolpe og åpner appen.
+
+## Lagsoppdragene
+
+Hver medlems spill sender et sammendrag når det endres (art for art: kilo igjen innenfor kvoten eller «fritt», redskapet, båtklassen fra `VESSELS`-feltene, landsdel, mottakene siste to uker). Serveren lager tre forslag for uka; medlemmene stemmer, og det første velges om ingen har stemt innen et spilldøgn.
+
+| Type | Eksempel | Når |
 |---|---|---|
 | Felles levering | «6 t sei til mottakene i Vesterålen innen søndag» | Arten har rom hos minst halvparten av de aktive, og sesongen er inne |
-| Bygdas bestilling | «Mottaket i Myre trenger 2 t hyse til fredag, 15 % over markedsprisen» | Et mottak flere medlemmer har levert til de siste to ukene |
-| Fritt fiske | «Fritt fiske på torsk er åpnet: laget tar 4 t før det stenges» | Bare når regelmotoren sier det er fritt |
-| Mangfold | «Lever fem ulike arter som lag denne uka» | Alltid; passer lag med ulike båter og redskap |
-| Leting | «Finn seien: tre fangstmerker over 200 kg/t delt i laget» | Bygger på delte fangstmerker (`shared_marks`, `scope 'l'`) |
-| Hjelp | «Et slep innen laget» som tillegg, aldri som hele målet | Slepet mellom spillere finnes (`ptow`) |
+| Bygdas bestilling | «Mottaket i Myre trenger 2 t hyse til fredag, 15 % over markedsprisen» | Et mottak flere medlemmer har levert til |
+| Fritt fiske | «Fritt fiske på torsk er åpnet: laget tar 4 t» | Bare når regelmotoren sier det er fritt |
+| Mangfold | «Fem ulike arter som lag» | Alltid |
+| Storoppdraget | «40 t skrei til Svolvær på ti dager» | Én gang i måneden og ved de store sesongene |
 
-Målet: summen av hva de aktive medlemmene har rom for, ganger en andel (startverdi 40 %), høyst forrige ukes faktiske landing for arten × 1,3, minst 300 kg per aktivt medlem. Startverdier som justeres i spilltesting.
+Målet: summen av rommet de aktive har × 40 %, høyst forrige ukes landing av arten × 1,3, minst 300 kg per aktivt medlem (startverdier). Aktive er de som har spilt siste to spilluker; den som er borte, trekker ingenting. Belønningen: kroner til hver som bidro etter balanseregelen (0,5 × fisketimen i tillegg til fisken, som bestillingene), merket og avisa.
 
 ## Fasene (én økt hver)
 
-**FL1. Lagene med kode.** Tabellen `lags` (id, kode, sted, grunnlegger, opprettet), `lag_members` får `lag_id`; funksjonene `lag_create(place)`, `lag_join_code(code)`, `lag_leave()`, `lag_get` på lag i stedet for havn (målet, tavla og `lag_hits` flyttes med). Høyst N medlemmer (valg V1). Gjester kan ikke bli med; lenken til en gjest gir «Registrer deg for å bli med i laget» og husker koden til etter registreringen. Klienten: lagets side (i Sesong-appen og puben), «Start et lag», «Bli med med kode», delingen med `navigator.share`, lenken `?lag=` i `ui/11-boot.js`. Spillere som er med i et havnelag i dag, får beskjed og blir stående uten lag (valg V4). Hendelser `lag_create`, `lag_join`, `lag_share`, `lag_link_open`. Tester: `lagtest` (falsk database), `sqltest` (koden, taket, gjesten, at en spiller er i ett lag), enhetstest av lenken. Migreringen kjøres først på testprosjektet av Jonas.
+**FL1. Lagene og appen.** Tabellene `lags` (id, navn, vimpel, kode, opptak, krav, stiftet) og `lag_members` med `lag_id` og rolle; `lag_create`, `lag_join_code`, `lag_apply`/`lag_accept`, `lag_leave`, `lag_kick`, `lag_role`, `lag_list_near`, navnekontrollen med `names_banned`, formannen som går videre. Appen med fanene Laget og Venner og siden uten lag; lenken `?lag=`; bordet i puben. Havnelagene tas bort med melding (V4). Tester: `sqltest`, ny `lagapp.py` (falsk database, begge formater), enhetstest av lenken. Migrering først på testprosjektet (Jonas).
 
-**FL2. Kapasiteten.** `lagCap()` i en ny `core/09p-lagcap.js`: per art kilo igjen (`turRoom`) eller «fritt», redskapet (`turSpOk`), båtklassen fra `VESSELS`-feltene (ikke navnet), landsdel, mottakene brukt siste to uker. Sendes med `lag_cap_put` når det endres, høyst én gang per spilltime. Serveren tar bare imot tall innenfor grensene og kutter ved 60 t per art (som `world_agg_get`). Enhetstester av `lagCap` på tre båter og tre steder (sør, midt, nord).
+**FL2. Lagsprat.** `lag_msgs` med filter, rapport, skjuling, utestengelse og sletting etter 30 dager; reaksjonene; fanen Prat; admin-fanen. Endringene i `src/legal/` som PR til Jonas; slippes ikke før han har sett den. Tester: `sqltest` (filteret, taktene, at bare medlemmer leser), `lagapp.py`.
 
-**FL3. Lagsoppdraget.** `lag_week_offer(w)` på serveren lager tre forslag fra kapasiteten og landingene (typene over); medlemmene stemmer innen første spilldøgn, ellers velges det første (valg V3). Framdriften regnes fra `landings` (art, mottak eller landsdel, uka). «Din del» regnes i klienten fra `lagCap` og `heatSample`. Belønningen etter valg V2 og balanseregelen, betalt én gang per medlem som bidro. Avisa (type `lag`), meldingen til dem som bidro, hendelsen `lag_goal_hit`. Tester: `sqltest` (forslagene på tre falske lag: tom torskekvote, fritt fiske, blandet flåte), `lagtest`, enhetstest av balansen.
+**FL3. Sammendraget fra båtene.** `lagCap()` i ny `core/09p-lagcap.js` fra `turRoom`/`turSpOk`; `lag_cap_put` med grensene og 60 t-taket. Enhetstester på tre båter og tre steder (sør, midt, nord).
 
-**FL4. Konkurransen og stedene den vises.** Lag mot lag i prosent av eget mål (`lag_top(w)`, landsdel og hele kysten), ukas tre beste bidrag inne i laget, linja etter salget, stripen i kartplotteren, Kystposten søndag («Ukas fiskarlag»), merket for uker med nådd mål. UI-et ses i begge formater. Tester: `lagtest`, `posttest`, skjermbilder.
+**FL4. Lagsoppdraget.** `lag_week_offer(w)`, avstemningen, framdriften fra `landings`, «din del», storoppdraget, belønningen, avisa, linja etter salget. Tester: `sqltest` (tre falske lag: tom torskekvote, fritt fiske, blandet flåte), `lagapp.py`, enhetstest av balansen.
 
-**FL5. Målingen.** Trakten i admin-dashbordet: laget opprettet → delt → noen ble med via lenken → første lagsoppdrag nådd → laget aktivt uka etter. Mål før neste runde vurderes (engasjementsregelen).
+**FL5. Nivået, ligaen og historien.** Lagets XP og nivå, ligaen med divisjoner og opprykk, loggen, rekordene, titlene, lagsmøtet med bildet, Kystposten. Tester: `sqltest`, `lagapp.py`, `posttest`.
 
-Rekkefølgen er FL1 → FL2 → FL3 → FL4 → FL5. FL1 alene gir verdi (lenken og laget), FL3 er der oppgavene kommer.
+**FL6. Hjelp med egninga og målingen.** «Be om en hånd»; trakten i admin-dashbordet (laget opprettet → delt → noen ble med → første mål nådd → aktive uka etter; spillere med lag mot uten lag, dag 7).
 
 ## Valgene
 
-- **V1. Hvor mange i et lag?** A: 2–12 (anbefalt; stort nok for et mål med folk som er borte, lite nok til at alle kjenner hverandre). B: 2–6. C: 2–20.
-- **V2. Belønningen for nådd lagsoppdrag.** A: kroner til hvert medlem som bidro, etter balanseregelen (som bestillingene, 0,5 × fisketimen i tillegg til fisken), pluss merket og avisa (anbefalt; fisken er fortsatt hovedinntekten). B: bare merket, avisa og lagets vimpel (kosmetikk). C: A pluss vimpelen når laget har nådd målet fire uker.
-- **V3. Hvem velger ukas oppdrag?** A: serveren lager tre, medlemmene stemmer, det første velges om ingen stemmer innen et spilldøgn (anbefalt; ingen venter på én person). B: serveren velger alene. C: grunnleggeren velger.
-- **V4. Havnelagene som finnes.** A: tas bort, de tre medlemmene får en melding om å starte eller bli med i et lag (anbefalt; tre spillere, ingen nådde mål). B: hvert havnelag blir et eget lag med kode, med medlemmene i.
+- V1 A: 2–12 medlemmer (nivået åpner 16 og 20).
+- V2 A: kroner etter balanseregelen, merket og avisa.
+- V3 A: medlemmene stemmer; det første velges om ingen stemmer innen et spilldøgn.
+- V4 A: havnelagene tas bort med melding.
+- V5: åpne lag, formannen (og styret) godtar.
+- V6: fri chat i laget for registrerte (alle er over 13).
+- V7: laget finnes bare i appen og ved bordet i puben.
+- V8: lagsligaen er første konkurranse mellom lag.
 
 ## Det som er antatt eller usikkert
 
-- **Kapasiteten kommer fra klienten.** Serveren kan ikke regne kvoterommet selv (kvotene og bestanden er per lagring). En jukser kan blåse opp eget rom og dermed målet; det gjør målet vanskeligere, ikke lettere, og taket på 60 t holder det. Landingene er like sårbare som i dag og dekkes av jukse-merkene.
-- **Andelen 40 %, minstemålet 300 kg og taket × 1,3** er startverdier uten måling bak. FL5 viser om målene nås.
-- **Om spillerne deler koder** vet vi ikke. 3 vennskap siden oktober tyder på at det må være lett og belønnet å dele, og at laget må gi noe til den som er alene i laget sitt de første dagene (laget kan ha ett medlem og likevel få et oppdrag tilpasset én båt).
-- **Lenken inn** (`?lag=`) krever at registreringen husker koden gjennom innloggingen; det må testes på iPhone (to av tre spillere).
+- **Lagsprat og jussen:** fri tekst mellom spillere ned til 13 år krever moderering, en måte å melde fra på, og at personvernerklæringen sier hva som lagres og hvor lenge. Det er et juridisk ansvar for Jonas, og `src/legal/` går som PR.
+- **Ordfilteret** fanger ikke alt. Rapportene og admin-fanen er det som faktisk virker; Jonas (eller noen han utpeker) må lese dem.
+- **Kapasiteten kommer fra klienten** og kan blåses opp; det gjør bare målet større, og taket holder det.
+- **Startverdiene** (40 %, 300 kg, ×1,3, nivågrensene, ligaens divisjoner) er ikke målt. FL6 viser dem.
+- **Med 40–80 spillere** blir ligaen tynn de første ukene; én divisjon til det er minst 16 lag.
+- **Lenken inn gjennom registreringen** må testes på iPhone.
 
 ## Hva planen ikke gjør
 
-- Ingen fri tekst, ingen chat og ingen VHF-kanal (A1 i `docs/forslag.md` er egen sak).
-- Ingen automatiske lag per havn eller strekning (Jonas' valg 17.11.2026).
+- Ingen lagsbåter, vimpler eller lagsnavn på sjøen eller i kartet (V7).
+- Ingen lagskasse, ingen penger eller utstyr mellom spillere, ingen fordeler i spillet fra laget.
 - Ingen ekte penger, ingen haill og ingen sponsing knyttet til lagene.
-- Ingen straff for fravær og ingen push om andres fangst (`docs/push-plan.md`: push bare om egen båt og eget redskap).
-- Lagets sjøhus og flagg på båtene (B3 i `docs/forslag.md`) er Malerverkstedet og ikke her.
+- Ingen straff for fravær og ingen push om andres fangst.
+- Ingen automatiske lag per havn eller strekning.
 
 ## Status
 
-17.11.2026: planen skrevet. Jonas valgte samme dag V1 A (2–12), V2 A (kroner etter balanseregelen, merket og avisa), V3 A (medlemmene stemmer, det første velges om ingen stemmer innen et spilldøgn), V4 A (havnelagene tas bort med melding). Venter på «kjør på» for FL1.
+17.11.2026: planen skrevet og skrevet om samme dag etter samtalen med Jonas (gildemekanikken, valgene V1–V8). Venter på «kjør på» for FL1.
