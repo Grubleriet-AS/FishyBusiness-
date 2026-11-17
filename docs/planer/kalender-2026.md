@@ -1,6 +1,6 @@
 # Kalenderen flyttes til 1. januar 2026 (plan 16.11.2026)
 
-Status: **plan, ikke bygd.** Venter på Jonas' klarsignal og valgene nederst.
+Status: **bygd 17.11.2026** (K1 og K2 i én økt). Jonas 17.11.2026 på valgene: «kalenderen baserer seg på den ekte kalenderen. jeg vil at spillet starter fra 1.januar fra nå. Sørg for at det ikke blir tull i regnskapet til spillere.» Det er valg 1 B (så snart det er bygd) og valg 2 A (videre til 2027 som i dag; ikke besvart, og kan gjøres om). Se «Bygd» nederst.
 
 ## Hva Jonas ba om
 
@@ -66,3 +66,12 @@ Det som følger av flyttingen, og som er meningen:
 - Den nullstiller ikke klokka og rører ikke penger, båter, redskap, haill eller noe annet spillerne eier.
 - Den endrer ikke farten på klokka.
 - Den endrer ikke kappløpet og ukene på topplista, som følger ekte tid.
+
+## Bygd (17.11.2026)
+
+- **Kalenderen:** `core/01-world.js` har to startpunkter: `EPOCH_LOCAL` (1. mars 2027 06:00, et lokalt bygg og testene, som før) og `EPOCH_WORLD` (21. april 2025 06:00, den felles klokka). Det gir 1. januar 2026 kl. 06 i spillet den 17.11.2026 kl. 03:00 UTC (04:00 norsk tid). Klokkeslettet og ukedagen er de samme som før i hvert minutt, så dag og natt og spillets uker flyttet seg ikke. `KPKL.start` (kvoteprisens glid) følger samme minutt.
+- **Lagringene:** `calMigrate` (samme fil) flytter hvert lagret årstall to år tilbake, én gang (`S.cal = 2026`; et nytt spill er født med merket). Feltene er funnet av en egen gjennomgang av alt som lagres: kvoteåret og åpen gruppes fangst, regnskapsårene, skatteåret og de lukkede årene, tillatelsens år (`since`, `landY`, strukturkvotene, samfisket, snøkrabbens fleks, friretten), retter uten båt og varer som venter, gruppens år (`qy`), festivalens beste torsk, og det som er merket «for året» (sesongene, merkene, første skrei). Minutter og timer røres ikke. Kjøres i `load()` bare når den felles klokka er på. Spilleren får én melding fra spillet.
+- **Regnskapet:** det som er bokført, står som 2025 med de samme postene. Første midnatt i 2026 lukkes regnskapsåret 2025 som ved et vanlig nyttår (`txClose`): ingen penger trekkes da; oppgjøret kommer på sine dager i 2026 som ellers. Forskuddsterminen i desember falt bort for året, og tas i oppgjøret.
+- **Serveren:** `supabase/migrations/20261117000000_kalender_2026.sql`: hver funksjon som regner år fra verdens timer (`km_year`, `land_put`), får det nye startpunktet, årsgrensene går fra 2026 til 2025 (funksjonene og `world_year`), og `world_year` og `landings` flyttes fra 2027 til 2025; `world_agg` tømmes. Trygg å kjøre to ganger.
+- **Tester:** `tests/unit/kalender.test.mjs` (23 sjekker), `tests/kalendertest.py` (en lagring fra før flyttingen på den felles klokka, over nyttår: flåten hel, bøkene som 2025, året lukket én gang, overskuddet lik inntekter minus kostnader og avskrivning, ikke flyttet to ganger), `sqltest` med migreringen (226 OK).
+- **Kjent og ikke rettet:** eldre meldinger og logglinjer som nevner «2027» i teksten, står som de er. En spiller med en gammel versjon åpen ser 2027 til siden lastes på nytt. Ruller vi tilbake til bygget før, leser det lagringens år som 2025 og lukker et skatteår for mye; en tilbakerulling etter dette slippet bør derfor unngås. Kvoteannonser lagt ut før flyttingen ville hatt gamle årstall; det fantes ingen (én usolgt båt uten årstall).

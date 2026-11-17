@@ -1,5 +1,8 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['kalender-171126', '17.11.2026', 'Året er 2026', 'The year is 2026', [
+       ['Kalenderen i spillet er stilt til 1. januar 2026. Alle starter året med nye kvoter og årets regler.', 'The game\'s calendar has been set to 1 January 2026. Everyone starts the year with new quotas and the year\'s rules.'],
+       ['Alt du eier, er som før: penger, båter, redskap, mannskap og lån. Det du har fisket og tjent til nå, står som 2025 i regnskapet, og regnskapsåret 2025 avsluttes som ved et vanlig nyttår.', 'Everything you own is as before: money, boats, gear, crew and loans. What you have fished and earned so far stands as 2025 in the books, and the financial year 2025 is closed as at any new year.']]],
     ['folk-161126', '16.11.2026', 'Nye folk om bord', 'New people aboard', [
        ['Folkene om bord og på kaia har fått nye kropper, med hender, ansikt og klær som bøyer seg med bevegelsen.', 'The people aboard and on the quay have new bodies, with hands, faces and clothes that bend as they move.']]],
     ['navnfix-161126', '16.11.2026', 'Brukernavnet på profilen', 'The player name on the profile', [

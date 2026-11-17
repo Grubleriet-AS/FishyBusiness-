@@ -250,6 +250,10 @@ S = load(); tabMark();   // this page has the game now (an older page left open 
 if (S && S.msgs) S.msgs = S.msgs.filter(m => !/^God morgen! Vi betaler /.test(m.no || ''));
 // the coast radio is no longer kept among the messages (21.10.2026): what it has sent moves to the deck log's list
 if (S && S.msgs && S.msgs.some(m => m.from === 'Kystradio')){ S.radio = (S.radio || []).concat(S.msgs.filter(m => m.from === 'Kystradio').map(({t, from, no, en}) => ({t, from, no, en}))).slice(-40); S.msgs = S.msgs.filter(m => m.from !== 'Kystradio'); }
+// told once, when the save's years moved with the calendar (calMigrate)
+if (S && S.calTell){ delete S.calTell; if (Array.isArray(S.msgs)) S.msgs.push({t:S.t || 0, from:'Det Store Blå', read:false,
+  no:'Kalenderen i spillet er stilt: året er nå 2026, med årets ekte kvoter og regler. Alt du eier, er som før: penger, båter, redskap, mannskap og lån. Det du har fisket og tjent til nå, står som 2025 i regnskapet og i skatten. Regnskapsåret 2025 avsluttes som ved et vanlig nyttår, og du starter 2026 med nye kvoter.',
+  en:'The game\'s calendar has been set: the year is now 2026, with the year\'s real quotas and rules. Everything you own is as before: money, boats, gear, crew and loans. What you have fished and earned so far stands as 2025 in the books and for the tax. The financial year 2025 is closed as at any new year, and you start 2026 with new quotas.'}); }
 if (S){ awayMs = Date.now() - (S.lastReal || Date.now()); } else S = newState();
 if (BOOTG.safe) bootgSafe();   // the starts before locked (BOOTG above): the routes stop before the time away is played
 // the skiff is only bought at the yard (05.10.2026, Jonas: «Den båten der skal kun være tilgjengelig for kjøp i verftet … For alle

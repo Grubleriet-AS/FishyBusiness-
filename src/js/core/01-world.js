@@ -5,10 +5,49 @@ const WCLOCK = {off:0, on:typeof location === 'undefined' ? false : !/^(localhos
 // (EPOCH_WORLD), which makes it 1 January 2026 06:00 at 17.11.2026 03:00 UTC in real time (255 game days after WORLD_T0); before, it
 // was 1 March 2027 06:00, and that is still the calendar of a local build and of the tests (EPOCH_LOCAL), which keep their own clock
 // from 0. The hour of the day is the same in both (06:00 at minute 0), so day and night did not move. The years a save has stored
-// follow once (calMigrate, core/03-simulation.js), and the server's year the same way (the migration 20261117000000_kalender_2026.sql).
+// follow once (calMigrate below), and the server's year the same way (the migration 20261117000000_kalender_2026.sql).
 const EPOCH_LOCAL = Date.UTC(2027, 2, 1, 6, 0, 0), EPOCH_WORLD = Date.UTC(2025, 3, 21, 6, 0, 0), CAL_YEARS = -2;   // (every year stored before the move: 2027 is 2025)
 const calEpoch = world => world ? EPOCH_WORLD : EPOCH_LOCAL;
 const EPOCH = calEpoch(WCLOCK.on);
+// The years a save has stored, moved with the calendar, once (o.cal says it is done; a new game is born with it, newState). Every
+// year from before the move goes back by two: all that was played until then lay in 2027, which is 2025 now, the year that ended when
+// the calendar reached 1 January 2026. So the year closes as at any new year when the save is next played: the quota year is new, the
+// tax year 2025 is closed and settled on its days in 2026, the books keep 2025 as the year before. What is in minutes and hours (the
+// gear's soak, the yard's jobs, the crew's agreements, the loan) is not touched. The fields: the quota year and the open group's
+// catch, the books, the tax year and the years closed, the right's years (since, the structure quotas, the cooperation, the snow
+// crab's flex, the last landing, the free right), the rights not on a boat and the goods waiting for one, the open group's years,
+// the festival's best cod, and what is marked as seen or won «for the year» (the seasons, the event badges, the first skrei).
+const CAL_NOW = 2026;
+function calMigrate(o){
+  if (!o || typeof o !== 'object' || o.cal === CAL_NOW) return o;
+  const yr = v => typeof v === 'number' && v >= 2026 && v < 2200 ? v + CAL_YEARS : v, seen = new Set();
+  const once = x => !!x && typeof x === 'object' && !seen.has(x) && !!seen.add(x);
+  const fy = (x, k) => { if (x && x[k] != null) x[k] = yr(x[k]); };
+  const rekey = (m, re) => { if (!once(m)) return; const ks = Object.keys(m), out = {};
+    for (const k of ks){ const q = re.exec(k), y = q ? +q[1] : NaN, k2 = q && yr(y) !== y ? k.slice(0, q.index) + k.slice(q.index).replace(q[1], String(yr(y))) : k; out[k2] = m[k]; delete m[k]; }
+    Object.assign(m, out); };
+  const st = a => { for (const s of Array.isArray(a) ? a : []) if (once(s)){ fy(s, 'from'); fy(s, 'until'); } };
+  const lic = l => { if (!once(l)) return; fy(l, 'since'); fy(l, 'landY'); st(l.st); for (const k of ['coop', 'flex', 'fu']) if (once(l[k])) fy(l[k], 'y'); };
+  const good = it => { if (!once(it)) return; fy(it, 'y'); fy(it, 'landY'); fy(it, 'since'); fy(it, 'from'); fy(it, 'until'); st(it.st); lic(it.lic); if (once(it.quota)) fy(it.quota, 'y'); };
+  for (const v of [o].concat(Array.isArray(o.fleet) ? o.fleet : [])){ if (!v) continue; lic(v.lic); if (once(v.quota)) fy(v.quota, 'y'); }
+  if (once(o.openUsed)) fy(o.openUsed, 'y');
+  if (o.stats) rekey(o.stats.y, /^(\d{4})$/);
+  if (once(o.tx)) fy(o.tx, 'y');
+  rekey(o.txY, /^(\d{4})$/);
+  if (once(o.taxLast)) fy(o.taxLast, 'y');
+  for (const f of Array.isArray(o.licFree) ? o.licFree : []) if (once(f)){ fy(f, 'y'); fy(f, 'landY'); st(f.st); }   // (its until and H0 are game hours)
+  { const W = o.mkt && o.mkt.km && o.mkt.km.wait; if (W && typeof W === 'object') for (const k in W) if (W[k]) good(W[k].item); }
+  rekey(o.qy, /^(\d{4})$/);
+  if (once(o.fest)) fy(o.fest, 'y');
+  rekey(o.seasonSeen, /(\d{4})[xa]?$/);
+  for (const e of Array.isArray(o.evPending) ? o.evPending : []) if (once(e)) fy(e, 'y');
+  if (o.ach) rekey(o.ach.ev, /(\d{4})$/);
+  if (o.press) rekey(o.press.told, /^s(\d{4})$/);
+  if (once(o.bkq)) fy(o.bkq, 'y');
+  if (typeof o.qyY === 'number') o.qyY = yr(o.qyY);
+  o.cal = CAL_NOW; o.calTell = true;
+  return o;
+}
 // the wall clock as the 3D frame being drawn sees it (tilbakemelding #106, 01.11.2026: «litt hakkete» in Firefox on a 240 Hz screen):
 // Date.now() moves in whole milliseconds, so at 4.2 ms a frame the boat's pose between the model's steps (dynPose) and the game time
 // between the minutes (currentFrac) moved 4 or 5 ms a frame, a judder of a fifth. While a 3D frame is drawn (view3d/24-cinema.js frame)
