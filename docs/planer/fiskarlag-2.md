@@ -76,6 +76,8 @@ Målet: summen av rommet de aktive har × 40 %, høyst forrige ukes landing av a
 
 ## Fasene (én økt hver)
 
+**Utrullingen (Jonas 17.11.2026: «Husk at dette må ut på test.detstorebla.no først for testing»):** hver fase rulles ut til test.detstorebla.no og testes der før noe slippes til detstorebla.no. Migreringen for fasen kjører Jonas først på testprosjektet (`xlrjbqdhdymcdjkqkulx`) før pushen som trenger den, og i produksjon først rett før slippet. Lagsprat (FL2) slippes ikke før Jonas har sett PR-en med `src/legal/`.
+
 **FL1. Lagene og appen.** Tabellene `lags` (id, navn, vimpel, kode, opptak, krav, stiftet) og `lag_members` med `lag_id` og rolle; `lag_create`, `lag_join_code`, `lag_apply`/`lag_accept`, `lag_leave`, `lag_kick`, `lag_role`, `lag_list_near`, navnekontrollen med `names_banned`, formannen som går videre. Appen med fanene Laget og Venner og siden uten lag; lenken `?lag=`; bordet i puben. Havnelagene tas bort med melding (V4). Tester: `sqltest`, ny `lagapp.py` (falsk database, begge formater), enhetstest av lenken. Migrering først på testprosjektet (Jonas).
 
 **FL2. Lagsprat.** `lag_msgs` med filter, rapport, skjuling, utestengelse og sletting etter 30 dager; reaksjonene; fanen Prat; admin-fanen. Endringene i `src/legal/` som PR til Jonas; slippes ikke før han har sett den. Tester: `sqltest` (filteret, taktene, at bare medlemmer leser), `lagapp.py`.
