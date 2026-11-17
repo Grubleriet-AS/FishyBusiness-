@@ -1,0 +1,27 @@
+OK en Autonav-rute mellom to havner {"A": "Finnsnes", "B": "Vangshamn", "n": 9, "nm": 16}
+OK 1. seilt med tida: ved kaia i Vangshamn etter 163 spillminutter {"st": "port", "port": "vangshamn"}
+SEILT {"min": 163, "fuel": 2.8370224602617427, "fresh": 90.91986389580264, "energy": 78.68055555555581, "fs": 216.00000000000043, "nm": 15.966401448321408, "engH": 2.716666666666662}
+HOPPET {"min": 163, "kr": 20, "fuel": 0, "fresh": 90.91693397905478, "energy": 90, "fs": 0.0, "nm": 0.0, "engH": 0.0, "clock": 0}
+OK 2a. hoppet: ved den samme kaia med en gang, og klokka sto stille (0 min) {"why": null, "st": "port"}
+OK 2b. verdens klokke flyttet seg ikke
+OK 2c. hoppet regnet 163 spillminutter, seilingen tok 163 (innenfor 10 %)
+OK 2d. dieselen er urørt av hoppet (seilingen brukte 2.84 l)
+OK 2e. fisken eldet like mye: ferskhet 90.92 mot 90.92 (tapet innenfor 5 %)
+OK 2f. energien din er urørt av hoppet: 90 % (seilingen: 78.68 %)
+OK 2g. motortimene er urørt av hoppet (seilingen: 2.717 t)
+OK 2h. ingen fartstid og ingen distanse for hoppet (seilingen ga 216 poeng og 16.0 nm)
+OK 2i. prisen: 20 kr for 27.2 ekte minutter
+OK 3. med turbotrim: kortere tur (87 mot 163 min), og trimmen er som før etter hoppet {"why": null, "min": 87, "trimMin": 87}
+OK 3b. tørrkjøringen setter trimmen, toppfarten og rutas fart tilbake {"min": 87, "trimMin": 40, "vmax": 14, "speed": 12, "on": true}
+FEIL 3c. trimmen går ut underveis: hoppet regnet 87 min, seilingen tok 117, og dieselen er urørt {"why": null, "min": 87, "trimMin": 40}
+MANNSKAP seilt {"fat": 2.356200000000001, "gut": 1, "ice": 0, "fresh": 90.91983317613202} hoppet {"fat": 0, "gut": 1, "ice": 0, "fresh": 90.9169339790548}
+OK 3d. mannskapets slitasje er urørt av hoppet (seilingen: +2.36, en times slitasje 2.24)
+OK 3e. sløyingen, ferskheten og isen med en hånd om bord: sløyd 1 mot 1, is 0 mot 0
+OK 3f. til fiskeplassen midt på ruta: fisker der, og sporet har de 5 punktene båten passerte {"q": {"why": null, "stop": 4}, "st": "fishing", "trail": 5}
+OK 4a. med nesten tom tank nektes ikke hoppet, og tørrkjøringen endrer ingenting {"why": null, "same": true}
+OK 4b. hardt vær på veien (30 m/s) nekter ikke hoppet, og tørrkjøringen endrer ingenting {"why": null, "same": true}
+OK 4b2. over grensa for Autonav (4 m/s satt, 6 m/s på veien) nekter ikke hoppet heller {"why": null, "risk": 0}
+OK 4c. hoppet (hopGo) går i 30 m/s {"why": null, "st": "port", "port": "vangshamn"}
+OK 4d. holdt for et hopp står båten stille i 30 spillminutter uten diesel, seiler videre når hun slippes, og holdet slutter når ruta endres og etter 35 ekte minutter {"held": {"same": true, "fuel": 0, "v": 0, "st": "sailing", "on": true, "until": 210}, "after": {"moved": true, "v": 5}, "moved": true, "ends": true}
+OK 5. ingen sidefeil []
+FEIL: 1
