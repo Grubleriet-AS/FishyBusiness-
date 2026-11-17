@@ -320,9 +320,14 @@ function groundCheck(a, c, sq = 0){
   const iceOn = typeof SEA_ICE !== 'undefined' && !!SEA_ICE, iceL = iceOn ? seaIceLim() : 0; let ic0 = iceOn ? seaIceAt(a) : 0;
   // (in a harbour the depth is not asked, it is dredged, but the coast's own land is, isLandHarbour; not on a sealed harbour's own fill,
   // which its way out crosses, quayLandLeg in 07-harbours.js, asked once, at the first such point)
-  let sealed = null;
+  // (nor within NAUST_FREE of Father's naust: its berth lies at the shore by the plant, and the way in to it, the route's last leg and
+  // berthPath along the shore, was laid on the harbour's leave and crossed the shore's points before it; allesteder 17.11.2026: the way
+  // in to the naust at Averøy, Hidrasund and Flatanger stopped 80 m short of the berth)
+  let sealed = null, nf;
+  const nearNaust = q => { if (nf === undefined){ nf = null; try { const f = typeof quayFace === 'function' && quayFace(S.home || HOME0, 'naust'); if (f) nf = {x:f.x / 1000, y:f.z / 1000}; } catch (e){} }
+    return !!nf && dist(q, nf) < NAUST_FREE; };
   for (let i = 1; i <= n; i++){ const p = {x:a.x + (c.x - a.x) * i / n, y:a.y + (c.y - a.y) * i / n};
-    if (inHarbour(p)){ if (isLandHarbour(p) && !(sealed === null ? (sealed = typeof quayLandLeg === 'function' && !!quayLandLeg(a, c)) : sealed)) return p; continue; }
+    if (inHarbour(p)){ if (isLandHarbour(p) && !nearNaust(p) && !(sealed === null ? (sealed = typeof quayLandLeg === 'function' && !!quayLandLeg(a, c)) : sealed)) return p; continue; }
     if (isLand(p) || ((i & 3) === 0 || i === n) && depthF(p) + tl < BOAT.draft + sq) return p;
     if (iceOn && (i % 10 === 0 || i === n)){ const ic = seaIceAt(p); if (ic >= iceL && ic > ic0 + 0.01) return {x:p.x, y:p.y, ice:true}; ic0 = ic; } }
   if (!inHarbour(c) && coastSegHit(a, c)) return c;   // a breakwater or a skerry thinner than the 20 m steps (01d-coast.js)
@@ -421,6 +426,7 @@ function landNat0(p){ const c = coastAt(p); if (c >= 0) return c > 0; const L = 
 // groundCheck skipped everything within 600 m of a harbour point (inHarbour: the harbours are dredged), the land too, so a boat off
 // her line there sailed over an island or through a mole and was stopped only on the first land outside, 600 m out. Off the tiles
 // with detail (the national core's 200 m) nothing: too coarse for a harbour
+const NAUST_FREE = 0.2;   // km round Father's naust where the harbour's land is left to the way in, as before (groundCheck)
 function isLandHarbour(p){
   if (!(p.x >= MAPB.x0 && p.y >= MAPB.y0 && p.x < MAPB.x1 && p.y < MAPB.y1) || !mapSimAt(p)) return false;
   return landNat0(p) && !inHarbourPocket(p);
