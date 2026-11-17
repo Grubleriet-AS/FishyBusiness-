@@ -170,7 +170,8 @@ const ACHL_SCALE = [1, 1.5, 2.5, 3];
 const achLScale = i => ACHL_SCALE[Math.min(Math.max(i, 0), ACHL_SCALE.length - 1)];
 // a gift kept from the first trip (S.ach.owe) has its scale in the save: a long badge's step is given at the step's scale now
 function achOweScale(key, scale){
-  for (const L0 of ACHL){ if (!key.startsWith(L0.id)) continue; const r = key.slice(L0.id.length); if (/^\d+$/.test(r) && +r < L0.tiers.length) return achLScale(+r); }
+  if (achOf(key)) return scale;   // a chapter's milestone first (fs5 reads like the step 5 of «fs»)
+  for (const L0 of ACHL) for (let i = 0; i < L0.tiers.length; i++) if (key === L0.id + i) return achLScale(i);
   return scale;
 }
 function achGive(key, scale, title){
