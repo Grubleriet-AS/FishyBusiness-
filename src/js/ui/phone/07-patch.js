@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['smolafylke-171126', '17.11.2026', 'Fylkene i startlista', 'The counties in the start list', [
+       ['Smøla står under Møre og Romsdal når du velger hvor du starter, Gutvik under Trøndelag og Selje under Vestland.', 'Smøla is under Møre og Romsdal when you choose where to start, Gutvik under Trøndelag and Selje under Western Norway.']]],
     ['vaerhjem-171126', '17.11.2026', 'Driftsplanen og været', 'The plan and the weather', [
        ['Driftsplanen stopper ikke lenger for vind, bare for sjøen båten ikke tåler.', 'The plan no longer stops for wind, only for a sea the boat cannot take.'],
        ['Holder været båten inne mens hun er ute, går hun hjem og venter der, og går ut igjen av seg selv når været tillater det.', 'When the weather keeps the boat in while she is out, she goes home to wait there, and goes out again by herself when the weather allows.'],
