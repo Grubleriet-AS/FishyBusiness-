@@ -81,9 +81,13 @@ jobs:
           python3 tools/release/slipp.py --dry --json --no-fetch --offline --base origin/main --head "$sha" > slipp.txt
           tail -n 1 slipp.txt > slipp.json
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
-          import json
+          import json, os
           d = json.load(open('slipp.json'))
-          print('wait=%d' % (1 if d.get('money') or d.get('legal') else 0))
+          # (an automatic fix alone, slipp/auto-*, is a fix of an error: one that touches real money goes without the label since
+          # 17.11.2026, Jonas: «Du kan fjerne regelen om at du får kjøre ut rettinger som gjelder penger, så lenge det er snakk om
+          # feilrettinger»; src/legal/ still waits, and so does a release of the working branch, which can hold new features)
+          auto = os.environ.get('GREN', '').startswith('slipp/auto-')
+          print('wait=%d' % (1 if d.get('legal') or (d.get('money') and not auto) else 0))
           print('marked=%s' % ((d.get('marked') or [''])[0]))
           print('nmig=%d' % len(d.get('migrations') or []))
           PY
