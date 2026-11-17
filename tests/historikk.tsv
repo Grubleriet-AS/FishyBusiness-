@@ -5348,3 +5348,34 @@
 2026-11-17 00:09	claude/production-release-prep-cn15pt	9f78f5af	cloudtest	OK	50	lite	samtidig	
 2026-11-17 00:09	claude/production-release-prep-cn15pt	9f78f5af	kalendertest	OK	21	lite	samtidig	
 2026-11-17 00:09	claude/production-release-prep-cn15pt	9f78f5af	boottest	OK	31	lite	samtidig	
+2026-11-17 02:55	claude/hopeful-mayer-48bgvv	95f2edf3+	selltest	LES	28	lite	samtidig	
+2026-11-17 02:55	claude/hopeful-mayer-48bgvv	95f2edf3+	shoptest	OK	43	lite	samtidig	
+2026-11-17 03:00	claude/hopeful-mayer-48bgvv	8c87779a	selltest	LES	24	lite	samtidig	
+2026-11-17 03:00	claude/hopeful-mayer-48bgvv	8c87779a	shoptest	OK	41	lite	samtidig	
+2026-11-17 03:00	claude/hopeful-mayer-48bgvv	8c87779a	vesseltest	OK	21	lite	samtidig	
+2026-11-17 03:00	claude/hopeful-mayer-48bgvv	8c87779a	fuelcal	OK	15	lite	samtidig	
+2026-11-17 03:02	claude/hopeful-mayer-48bgvv	8c87779a	bktest	OK	79	lite	samtidig	
+2026-11-17 03:02	claude/hopeful-mayer-48bgvv	8c87779a	opptest	OK	78	lite	samtidig	
+2026-11-17 03:02	claude/hopeful-mayer-48bgvv	8c87779a	tutfull	OK	7	lite	samtidig	
+2026-11-17 03:02	claude/hopeful-mayer-48bgvv	8c87779a	skattetest	OK	8	lite	samtidig	
+2026-11-17 03:02	claude/hopeful-mayer-48bgvv	8c87779a	lotttest	OK	10	lite	samtidig	
+2026-11-17 03:02	claude/hopeful-mayer-48bgvv	8c87779a	boktest	OK	10	lite	samtidig	
+2026-11-17 03:02	claude/hopeful-mayer-48bgvv	8c87779a	keeptest	OK	14	lite	samtidig	
+2026-11-17 03:02	claude/hopeful-mayer-48bgvv	8c87779a	decktest	OK	15	lite	samtidig	
+2026-11-17 03:02	claude/hopeful-mayer-48bgvv	8c87779a	simday	LES	14	lite	samtidig	
+2026-11-17 03:03	claude/hopeful-mayer-48bgvv	8c87779a	calib	LES	14	lite	samtidig	
+2026-11-17 03:03	claude/hopeful-mayer-48bgvv	8c87779a	tidetest	OK	26	lite	samtidig	
+2026-11-17 03:03	claude/hopeful-mayer-48bgvv	8c87779a	climtest	OK	16	lite	samtidig	
+2026-11-17 03:03	claude/hopeful-mayer-48bgvv	8c87779a	yardupgtest	FEIL	15	lite	samtidig	FEIL the Trim app promises the top speed each trim gives, on the speed sjark with propeller 3 and engine 2 [[], [52.7, 52.7, 52.7, 52.7, 41.7, 47.2, 52.7]]
+2026-11-17 03:13	claude/hopeful-mayer-48bgvv	8c87779a	colregtest	FEIL	600	lite	samtidig	FEIL TB1: hele kysten i bygget (python3 tools/map/release.py og game.py) for møtet ved Tromsø
+2026-11-17 03:13	claude/hopeful-mayer-48bgvv	8c87779a	dyntest	FEIL	258	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-17 03:13	claude/hopeful-mayer-48bgvv	8c87779a	helmtest	OK	26	lite	samtidig	
+2026-11-17 03:13	claude/hopeful-mayer-48bgvv	8c87779a	trip2	OK	33	lite	samtidig	
+2026-11-17 03:13	claude/hopeful-mayer-48bgvv	8c87779a	autonavtest	FEIL	49	lite	samtidig	FEIL 6. Autonav Vannareid → Honningsvåg: 100 m-celler, ingen etappe grunnstøter  {'n': 25, 'nm': 167.1, 'ms': 115, 'cell': 0.2, 'maxSlice': 10.7, 'mended': 0, '
+2026-11-17 03:13	claude/hopeful-mayer-48bgvv	8c87779a	itemcardtest	FEIL	22	lite	samtidig	FEIL Elektronikk og haler: hvert kort har det malte bildet  ['drivanker']
+2026-11-17 03:13	claude/hopeful-mayer-48bgvv	8c87779a	docktest	OK	61	lite	samtidig	
+2026-11-17 03:13	claude/hopeful-mayer-48bgvv	8c87779a	autolinetest	OK	10	lite	samtidig	
+2026-11-17 03:13	claude/hopeful-mayer-48bgvv	8c87779a	geartest	OK	37	lite	samtidig	
+2026-11-17 03:15	claude/hopeful-mayer-48bgvv	8c87779a	unittest	FEIL	123	3d	alene	avsluttet med kode 1
+2026-11-17 03:43	claude/hopeful-mayer-48bgvv	fe13a1c1	trackfollow	OK	1675	3d	alene	
+2026-11-17 03:49	claude/hopeful-mayer-48bgvv	fe13a1c1	heattest	OK	360	3d	alene	

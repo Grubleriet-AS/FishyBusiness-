@@ -83,7 +83,7 @@ const IC_ATLAS = ['jig', 'kgear', 'jigset', 'hooks', 'net', 'line', 'pot', 'kit'
   'varme', 'ice', 'bait', 'antigro', 'motor90', 'motor', 'prop', 'hold', 'tank',
   'cabin', 'galley', 'dry', 'insul', 'stab', 'gut', 'icemaker', 'box', 'potsno',
   'haill', 'luksus', 'pump', 'ic', 'turbo', 'sk_light', 'sk_std', 'sk_max',   // (Kaiboden, 14.11.2026: the luck, the tunings (BOOSTS) and Skippertak (SKIP))
-  'hp3', 'hp8', 't72', 's72', 'pakke'];   // (the price ladder, 16.11.2026: a picture for every product, KB_PIC in phone/01-haill-fiske-service.js)
+  'hp3', 'hp8', 't72', 's72', 'pakke', 'drivanker'];   // (the price ladder, 16.11.2026: a picture for every product, KB_PIC in phone/01-haill-fiske-service.js)
 const IC_COLS = 8, IC_ROWS = Math.ceil(IC_ATLAS.length / IC_COLS);
 let IC_URL = null;
 // the atlas as a blob URL once its bytes are in (the element's base64, as the letter's pictures), set on the page's root once

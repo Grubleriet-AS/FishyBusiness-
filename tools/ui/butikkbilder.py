@@ -37,13 +37,15 @@ SHEETS = {
     # the price ladder (Jonas 16.11.2026: «Sørg også for at alle produktene har forskjellige bilder. Bruk gemini»): 3 and 8 haill, the
     # 3-day Turbotrim kit, the crate of Skippertak and Sjøværspakken; the 2, 8 and 24 hour lengths use pump, ic and turbo and the three cans
     'ark-prisstige': (3, 2, ['hp3', 'hp8', 't72', 's72', 'pakke', None]),
+    # the drift anchor (17.11.2026, EQUIP.drivanker): one picture, made with the three cards above as its references
+    'ark-drivanker': (1, 1, ['drivanker']),
 }
 ORDER = ['jig', 'kgear', 'jigset', 'hooks', 'net', 'line', 'pot', 'kit', 'heavy',
          'jukse', 'linehaler', 'garnhaler', 'teinehaler', 'linesetter', 'garnrenne', 'krabbekar', 'kniv', 'hott',
          'vhf', 'ais', 'plotter', 'chirp', 'sonar', 'radar', 'radarA', 'brovakt', 'olje',
          'varme', 'ice', 'bait', 'antigro', 'motor90', 'motor', 'prop', 'hold', 'tank',
          'cabin', 'galley', 'dry', 'insul', 'stab', 'gut', 'icemaker', 'box', 'potsno',
-         'haill', 'luksus', 'pump', 'ic', 'turbo', 'sk_light', 'sk_std', 'sk_max', 'hp3', 'hp8', 't72', 's72', 'pakke']
+         'haill', 'luksus', 'pump', 'ic', 'turbo', 'sk_light', 'sk_std', 'sk_max', 'hp3', 'hp8', 't72', 's72', 'pakke', 'drivanker']
 
 
 def cut(a, x0, y0, x1, y1):
