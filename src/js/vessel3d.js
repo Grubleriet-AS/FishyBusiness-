@@ -1440,9 +1440,10 @@ function figureVB(B, x, y, z, seated, hands, kit){
 // weights a corner; the shader bends it by the bones' matrices (figpose.js figPose, figGL). Shown only behind #folk2 in the address,
 // and only in the wardrobe yet: on deck and on the quay the figure is the old one (worker.b64) until Jonas has seen this one (FB7).
 // (the new people, FB7: with «#folk2» in the address, and on the test edition by default, Jonas 15.11.2026 «Standard på testutgaven»:
-// <meta name="dsb-channel" content="test">, build.mjs KYST_CHANNEL; «#folk1» gives the old figures there. The players' edition keeps the
-// old ones until Jonas says they can have them)
-const FOLK2 = typeof location !== 'undefined' && !!location && (/folk2/.test(location.hash || '') || (!/folk1/.test(location.hash || '') && (() => { try { return (document.querySelector('meta[name=dsb-channel]') || {}).content === 'test'; } catch (e){ return false; } })()));
+// <meta name="dsb-channel" content="test">, build.mjs KYST_CHANNEL; «#folk1» gives the old figures there. The players' edition has them
+// by default too from 16.11.2026, Jonas: «GJØR DEM STANDARD»: on detstorebla.no, by the host's name, so a local build, and with it
+// the tests, keeps the old figures unless the address says #folk2, KYST_MERKE=folk2 in tests/_env.py)
+const FOLK2 = typeof location !== 'undefined' && !!location && (/folk2/.test(location.hash || '') || (!/folk1/.test(location.hash || '') && (() => { try { return (document.querySelector('meta[name=dsb-channel]') || {}).content === 'test' || /(^|\.)detstorebla\.no$/.test(location.hostname || ''); } catch (e){ return false; } })()));
 const FIGSK = {}, FIGPC = {};
 function figSkelOf(sex){ const k = sex === 'f' ? 'f' : 'm'; if (FIGSK[k]) return FIGSK[k]; const G = glbLoad('folk2'); return G && G.sk ? FIGSK[k] = figSkel(G.ex, k) : null; }
 // a part of the new file painted by the kit's zones as wkPart paints the old (1 jacket, 3 trousers, 4 skin, 5 hair, beard and

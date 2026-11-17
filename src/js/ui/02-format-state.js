@@ -147,6 +147,9 @@ function migrateV2(o){
 function load(){ try { let s = localStorage.getItem(KEY), o = s ? JSON.parse(s) : null;
   if (!o){ s = localStorage.getItem(KEY_V1); o = s ? JSON.parse(s) : null; o = o && o.v === 1 ? migrateV2(o) : null; }
   if (!o || o.v !== 2) return null;
+  // the calendar moved to 2026 on the shared clock (16.11.2026, core/01-world.js calMigrate): the years the save has stored follow, once.
+  // A local build keeps the old calendar and its saves as they are
+  if (WCLOCK.on) calMigrate(o);
   // the 29 ft fibreglass sjark of the kit left with the boats round (Jonas 17.10.2026, docs/batplan.md): a save that owned one gets the 31 ft
   // fibreglass sjark from Blender in her place, the difference waived, and keeps her 8 m right; no save in the cloud had her, local ones may
   for (const v of [o, ...(o.fleet || [])]){ if (v.boat && v.boat.type === 'jukesjark'){ v.boat.type = 'plastsjark'; if (Array.isArray(o.log)) o.log.push({t:o.t || 0, no:'Plastsjarken på 29 fot er byttet ut med plastsjarken på 31 fot, uten mellomlegg.', en:'The 29 ft fibreglass sjark has been replaced by the 31 ft fibreglass sjark, at no cost.'}); } }
