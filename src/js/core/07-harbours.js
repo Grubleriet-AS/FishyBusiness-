@@ -520,9 +520,12 @@ function mottakWhen(H, no, from){
 // at the nearest plants (land_look), which is what spreads the boats. Without the cloud, in the first trip, while the time away is
 // played (LANDQ.away: no server then), or when the server is down or without the queue (two failures, a 404), she lands as before:
 // the queue never keeps a player from landing. The NPC fleet takes no places in this round (K5).
-const LANDQ = {off:false, busy:false, fail:0, away:false, at:0, look:null, lookBusy:false};
+// Off from 17.11.2026 (Jonas, the day the game opened: «Fjern kø-funksjonen på fiskemottak. Det kommer til å være mange brukere som
+// ønsker å bruke mottakene samtidig»): on:false, so every boat lands at once, as without the cloud; a boat already in the queue lands at
+// the next ask (landQueueAsk: landQueueGo). The code and the server's functions stay, so on:true brings the queue back (kotest does).
+const LANDQ = {on:false, off:false, busy:false, fail:0, away:false, at:0, look:null, lookBusy:false};
 function landSlots(pt){ const q = pt && pt.mk && pt.mk.q ? pt.mk.q[0] : 0; return q > 0 ? clamp(Math.floor(q / 25), 1, 4) : 1; }
-function landQueueOn(){ return !LANDQ.off && !LANDQ.away && typeof havnCloud === 'function' && havnCloud() && !(typeof tutOn === 'function' && tutOn()); }
+function landQueueOn(){ return LANDQ.on && !LANDQ.off && !LANDQ.away && typeof havnCloud === 'function' && havnCloud() && !(typeof tutOn === 'function' && tutOn()); }
 // ask for the place (again while waiting, every 15 s; force: now)
 function landQueueAsk(force){
   const b = S.boat, Q = b.landQ; if (!Q || LANDQ.busy || (!force && Date.now() - LANDQ.at < 15000)) return;

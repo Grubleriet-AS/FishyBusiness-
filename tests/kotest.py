@@ -26,6 +26,11 @@ async def main():
           let answer = {go:false, ahead:1, active:1, slots:2, wait_s:300};
           window.cloudRpc = async (fn, a) => { calls.push([fn, a]); if (fn === 'land_begin') return answer; if (fn === 'land_look') return [{port:'senjahopen', active:4, waiting:1}, {port:'botnhamn', active:0, waiting:0}]; return null; };
           CLOUD.on = true; CLOUD.user = {id:'user_x', email:'x@y.no'}; LANDQ.off = false; LANDQ.fail = 0; LANDQ.look = null;
+          // the queue off (the default from 17.11.2026, Jonas: «Fjern kø-funksjonen på fiskemottak»): with the cloud on she lands at once
+          // and the server is not asked
+          LANDQ.on = false; at('husoy'); startLanding(false); await wait(120); R.off = {land:!!b.land, q:!!b.landQ, asked:calls.some(c => c[0] === 'land_begin')}; calls.length = 0;
+          // the queue on again for the checks of the queue itself below
+          LANDQ.on = true;
           at('husoy'); const ok1 = startLanding(false); await wait(120);
           R.wait = {ret:ok1, land:!!b.land, q:b.landQ && {pid:b.landQ.pid, ahead:b.landQ.ahead, wait:b.landQ.wait, slots:b.landQ.slots}, call:calls.find(c => c[0] === 'land_begin'), busy:portBusy(b) > 0,
             strip:DOCK.info().on, short:landQText(true)[1], long:landQText(false)[0]};
@@ -51,9 +56,10 @@ async def main():
           // the time away is played without the queue
           window.cloudRpc = async (fn, a) => { calls.push([fn, a]); return {go:false, ahead:3, active:2, slots:2, wait_s:900}; };
           at('husoy'); LANDQ.off = false; LANDQ.fail = 0; LANDQ.away = true; startLanding(false); LANDQ.away = false; R.away = {land:!!b.land, q:!!b.landQ};
-          window.cloudRpc = real; CLOUD.on = c0.on; CLOUD.user = c0.user; b.land = null; b.landQ = null; return R; })()""")
+          window.cloudRpc = real; CLOUD.on = c0.on; CLOUD.user = c0.user; b.land = null; b.landQ = null; LANDQ.on = false; return R; })()""")
         check(r['slots'] == {'husoy': 2, 'botnhamn': 1, 'senjahopen': 4, 'none': 1}, 'losseplassene følger kailengden: Husøy 59 m gir 2, Botnhamn 25 m 1, Senjahopen 144 m 4 (taket), ukjent kai 1', r['slots'])
         check(r['noCloud']['land'] and not r['noCloud']['q'], 'uten skyen starter lossingen som før', r['noCloud'])
+        check(r['off']['land'] and not r['off']['q'] and not r['off']['asked'], 'køen av (fra 17.11.2026): med skyen starter lossingen med en gang, og serveren blir ikke spurt', r['off'])
         w = r['wait']
         check(w['ret'] and not w['land'] and w['q'] and w['q']['ahead'] == 1 and w['q']['wait'] == 300 and w['q']['slots'] == 2 and w['call'] and w['call'][1]['port'] == 'husoy' and w['call'][1]['slots'] == 2 and w['call'][1]['dur_s'] >= 10 and w['busy'],
               'med skyen spør båten om plass (havn, kg, varighet i ekte sekunder, plasser) og venter med køen i stedet for å losse; planene ser kaia som opptatt', w)

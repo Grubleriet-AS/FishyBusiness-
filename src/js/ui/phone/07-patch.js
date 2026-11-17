@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['ingenko-171126', '17.11.2026', 'Ingen kø ved mottakene', 'No queue at the plants', [
+       ['Det er ikke lenger kø ved fiskemottakene. Du losser med en gang du ligger ved mottakskaia, også når andre losser der samtidig.', 'There is no longer a queue at the fish plants. You land as soon as you lie at the plant\'s quay, also when others land there at the same time.']]],
     ['drivanker-171126', '17.11.2026', 'Juksing alene og drivanker', 'Jigging alone and the drift anchor', [
        ['Jukser du alene og båten driver av feltet, sveiver du inn juksa, kjører opp igjen og driver over feltet på nytt. Juksingen står mens du kjører. Står du og jukser selv, driver båten videre som før.', 'Jigging alone, when the boat drifts off the ground you reel in, run back up and drift over it again. The jigging stops while you steer. When you jig by hand yourself, the boat drifts on as before.'],
        ['Nytt utstyr: drivanker. Med det ute ligger båten med baugen mot vinden og driver mye saktere mens du jukser.', 'New equipment: the drift anchor. With it out the boat lies bow to the wind and drifts much slower while you jig.']]],
