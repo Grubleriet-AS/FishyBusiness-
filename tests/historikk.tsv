@@ -5590,6 +5590,12 @@
 2026-11-17 02:39	claude/charming-mayer-4qcjdd	cde9b25+	admintest	FEIL	13	lite	alene	FEIL the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days  {"k3": {"login": tru
 2026-11-17 02:40	claude/charming-mayer-4qcjdd	cde9b25+	admintest	OK	13	lite	alene	
 2026-11-17 02:40	claude/charming-mayer-4qcjdd	cde9b25+	admintest	FEIL	13	lite	alene	FEIL the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days  {"k3": {"login": tru
+2026-11-17 10:09	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	trip2	OK	37	lite	samtidig	
+2026-11-17 10:09	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	turtest	OK	26	lite	samtidig	
+2026-11-17 10:10	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	worldtest	OK	21	lite	samtidig	
+2026-11-17 10:10	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	docktest	OK	62	lite	samtidig	
+2026-11-17 10:10	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	r4test	OK	18	lite	samtidig	
+2026-11-17 10:37	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	trackfollow	FEIL	1583	3d	alene	FEIL at the end of the route she stops exactly on the last waypoint, without running past and coming back  {"stop": 0.0, "d3d": 0.0, "d": 0.72, "rise": 0.51, "d
 2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	vesseltest	OK	20	lite	samtidig	
 2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	walktest	FEIL	13	lite	samtidig	FEIL snekke       135 cells   5.4 m2 of  21.3, places sloy,haling,ror,door,spot0,spot1,spot2,filler MISSING is, rail 10 (0 behind a wall), 153 ways (longest 9),
 2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	crewclip	FEIL	21	lite	samtidig	FEIL no foot walking put down in a wall, a tub or the kit, nor on his other foot or anyone else's (FB3; 5293 feet put down on every boat) {'pelagisk': ['me:i ti
@@ -5609,6 +5615,11 @@
 2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	driftsplan2ui	OK	60	lite	samtidig	
 2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	rundshot	OK	24	lite	samtidig	
 2026-11-17 11:52	claude/hopeful-mayer-48bgvv	ba84b9a7	driftsplan2test	OK	95	lite	alene	
+2026-11-17 12:06	fb/auto-2026-11-17-autonav-gul-etappe	2792658a+	utryggtest	FEIL	0	lite	alene	avsluttet med kode 1
+2026-11-17 12:07	fb/auto-2026-11-17-autonav-gul-etappe	2792658a+	utryggtest	FEIL	12	lite	alene	FEIL a yellow leg Autonav laid starts at once, not asked about and not marked unsafe  {"yellow": 1, "asked": true, "plan": false, "unsafe": null}
+2026-11-17 12:07	fb/auto-2026-11-17-autonav-gul-etappe	2792658a+	utryggtest	OK	11	lite	alene	
+2026-11-17 12:08	fb/auto-2026-11-17-autonav-gul-etappe	2792658a+	trip2	OK	39	lite	samtidig	
+2026-11-17 12:08	fb/auto-2026-11-17-autonav-gul-etappe	2792658a+	turtest	OK	25	lite	samtidig	
 2026-11-17 14:00	ccr-1bf3e190-ptkcq3	8c7f4ad5+	synctest	FEIL	68	lite	samtidig	FEIL with the phone silent (screen off), the tablet takes the game back by itself, without a card {"s": {"held": false, "wait": false, "gate": false, "ready": t
 2026-11-17 14:00	ccr-1bf3e190-ptkcq3	8c7f4ad5+	cloudtest	OK	50	lite	samtidig	
 2026-11-17 14:01	ccr-1bf3e190-ptkcq3	8ed85661	guesttest	OK	84	lite	samtidig	
@@ -5631,6 +5642,10 @@
 2026-11-17 13:21	claude/hopeful-mayer-48bgvv	0c25df84+	kapplop	FEIL	18	lite	samtidig	FEIL ruta Lindesnes–Bergen {"err": "Fant ingen rute dit."}
 2026-11-17 13:24	claude/hopeful-mayer-48bgvv	0c25df84+	kjoptest	OK	151	lite	samtidig	
 2026-11-17 13:25	claude/hopeful-mayer-48bgvv	0c25df84+	driftsplan2test	OK	93	lite	alene	
+2026-11-17 14:00	fb/auto-2026-11-17-autonav-gul-etappe	eafc2791	utryggtest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-17 14:00	fb/auto-2026-11-17-autonav-gul-etappe	eafc2791	trip2	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-17 14:01	fb/auto-2026-11-17-autonav-gul-etappe	eafc2791	utryggtest	OK	10	lite	samtidig	
+2026-11-17 14:01	fb/auto-2026-11-17-autonav-gul-etappe	eafc2791	trip2	OK	28	lite	samtidig	
 2026-11-17 13:37	claude/hopeful-mayer-48bgvv	0e2baaf3+	stabtest	OK	14	lite	samtidig	
 2026-11-17 13:38	claude/hopeful-mayer-48bgvv	0e2baaf3+	worktest	OK	23	lite	samtidig	
 2026-11-17 13:38	claude/hopeful-mayer-48bgvv	0e2baaf3+	trip2	OK	27	lite	samtidig	

@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['autonavgrunn-171126', '17.11.2026', 'Autonav går rundt skjær', 'Autonav goes round skerries', [
+       ['På en rute Autonav har lagt, går båten ikke lenger på grunn når hun kommer for nær et skjær. Hun stopper og finner vei rundt, også der etappen er gul fordi ruta regner med tidevannet.', 'On a route Autonav has laid, the boat no longer runs aground when she comes too close to a skerry. She stops and finds a way round, also where the leg is yellow because the route counts on the tide.']]],
     ['merkegave-171126', '17.11.2026', 'Gavene for merkene', 'The badge gifts', [
        ['Gavene for de lange merkene vokser nå med trinnet: små på første trinn, som før fra det fjerde.', 'The gifts for the long badges now grow with the step: small on the first, as before from the fourth.']]],
     ['vaerhjem-171126', '17.11.2026', 'Driftsplanen og været', 'The plan and the weather', [
