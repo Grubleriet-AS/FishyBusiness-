@@ -85,7 +85,7 @@ function hopRun(paid){
       const H = (S.t + m + 1) / 60, W = windAt(H), hs = hsAt(b.pos, H);
       if (m % 60 === 0) track.push({x:b.pos.x, y:b.pos.y});
       // (the trim runs out where it would: trimEnd as vesselStep calls it, the top speed and the route's speed down; put back below)
-      if (T && !ended && S.t + m >= tEnd){ trimEnd(); ended = true; }
+      if (T && !ended && S.t + m >= tEnd){ trimEnd(S.t + m); ended = true; }
       if (T && !ended) trimMin++;
       let v; try { v = sailV(H, hs); } catch (e){ v = Math.min(pl.speed || BOAT.vcruise, speedCap(hs)); }
       b.v = v; fuel += fuelLph(v, W) / 60;
