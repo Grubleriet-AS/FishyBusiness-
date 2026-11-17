@@ -1,6 +1,6 @@
 # Driften billig og stabil (plan, 17.11.2026)
 
-**Status:** plan, venter på klarsignal fra Jonas. Ingenting er bygd.
+**Status:** D1 og D2 er bygd (steg 137, 17.11.2026). D3 og D4 står i køen som steg 138.
 
 ## Hva Jonas ba om
 
@@ -67,4 +67,11 @@ Jonas 17.11.2026: «Jeg vil at driften og kostnadene av spillet skal være så b
 
 ## Status
 
-- 17.11.2026: planen skrevet. Venter på V1–V3 og klarsignal.
+- 17.11.2026: planen er skrevet. Jonas valgte V1 A, V2 A og V3 A, og «Kjør på D1 og D2 nå».
+- 17.11.2026, steg 137 (D1–D2), rullet ut til testutgaven:
+  - `save_beat` går hvert 15. s (`BEAT_MS`), og grensene i `cloudClaim` og `cloudPassed` er hevet like mye (35 s, 45 s og 35 s).
+  - Mens reléet er åpent, sender 15-sekundersrunden i `worldTick` bare når det har gått et minutt (`WORLD_RT_MS`). En endring (`worldSig`) og en side som kommer tilbake, sender med en gang.
+  - Båtene langt unna gjettes videre i 125 s før de bremser (`PT_MAX`, var 35), og serveren holder på en rapport i to minutter.
+  - `cloudRpc` har et tidsavbrudd på 15 s (60 s for hele lagringer). Kallene i `RPC_BG` venter 5 s etter 5xx, 401, 408, 429, tidsavbrudd eller nettfeil, så dobbelt så lenge hver gang, opptil 2 minutter, og første svar som går gjennom, nullstiller ventetida. Det spilleren gjør, og den siste lagringen med `keep`, holdes aldri tilbake. Ved 401 tvinges ny token (høyst én gang i minuttet), og kallet prøves én gang til. En gjest får ikke lenger en ny gjestekonto når fornyingen svarer 429.
+  - `tests/nedetest.py` (LITE, COVER for `10f-cloud.js` og `10h-world.js`): 12 sjekker. Den var rød mot koden før (503 og 401 sendt hver gang, ingen ventetid) og er grønn etter.
+  - **Ikke målt ennå:** hvor mange kall det sparer. Det leses i edge-loggen dagen etter slippet, mot 48 000 `save_beat`, 37 000 `pos_put` og 36 000 `pos_world` i døgnet 16.–17.11.

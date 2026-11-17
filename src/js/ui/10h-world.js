@@ -12,7 +12,12 @@ const WORLD_R = 25;   // km round the boat: about the AIS range
 // off, stops, gets a new route, changes speed), the position goes up at once instead of at the next 15 s tick (at most every 3 s), so
 // the others' games are told of a turn or a stop as soon as it is made, not up to 15 s later (worldStart checks it every second)
 function worldSig(){ const b = S && S.boat; if (!b) return ''; const pl = S.plan; return [b.status, Math.round((b.v || 0) * 2), pl ? pl.wps.length + ':' + pl.idx : '-', b.anch ? 'a' : ''].join('|'); }
-async function worldTick(){
+// timed (the 15 s tick): while the relay is open (RT.st), the boats near by come live through it, so the database is asked only once a
+// minute, for the AIS far off, the leaderboards and the others' games that cannot reach the relay (docs/planer/drift-billig-og-stabil.md
+// V2 A, 17.11.2026: pos_put and pos_world were a third of all calls). A change she makes (worldSig) and the page coming back go at once.
+const WORLD_RT_MS = 60000;
+async function worldTick(timed){
+  if (timed === true && RT.st === 'open' && Date.now() - WORLDP.last < WORLD_RT_MS - 2000) return;
   if (!CLOUD.on || !CLOUD.user || WORLDP.busy || WORLDP.off || TAB.held || TAB.lost || TAB.wait || (typeof document !== 'undefined' && document.hidden)) return;   // (only the page that has the game shows the boat)
   WORLDP.busy = true;
   try {
@@ -410,7 +415,7 @@ ptTake = function(q, now){
 function worldStart(){
   if (!CLOUD.on) return;
   WSH.rec = true; setTimeout(worldShare, 20000); setInterval(worldShare, 600000);
-  setTimeout(worldTick, 3000); setInterval(worldTick, 15000);
+  setTimeout(worldTick, 3000); setInterval(() => worldTick(true), 15000);
   setInterval(() => { if (WORLDP.put && !WORLDP.busy && Date.now() - WORLDP.put > 3000 && worldSig() !== WORLDP.sig) worldTick(); }, 1000);
   setInterval(() => { try { evCloseTick(); } catch (e){ console.warn('evClose', e); } }, 20000);
   setTimeout(lopSync, 25000); setInterval(lopSync, 30000);   // the race's attempts to the cloud (KL3)
