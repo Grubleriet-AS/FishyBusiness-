@@ -92,6 +92,16 @@ Jonas ba om det slik: «koble deg opp mot detstorebla.no/admin slik at du kan he
   - `sqltest`: bare service_role leser, uten spiller-ID og med maskering; et notat tar tilbakemeldingen ut av de nye; rapporten og forslaget kommer fram til admin; spillere og admin-innloggingen slipper ikke inn.
   - `admintest`: Agent-fanen og «Bruk forslaget».
 
+## Admin: Status-siden og det nye utseendet (17.11.2026)
+
+Jonas: «ett dashboard med noen grafer … der jeg kjapt skjønte hva statusen i spillet var» og «vanskelig å forstå hva alt faktisk betyr».
+
+- **Status** er forsiden (`VIEW.status`). Øverst står **Retningen**: en dom (fremover / står stille / tilbake) og en pil per tall mot like mange dager før. Dommen veier nye spillere, aktive per dag og «kommer tilbake etter en uke» dobbelt, og spilletimer, leveringer og registreringer enkelt. Inntekten vises, men teller ikke i dommen. Under det: seks nøkkeltall med sparkline, og linjediagrammer for nye spillere og registreringer, totalen (har prøvd spillet / har konto), aktive per dag, spilletid, «kommer tilbake» per ukekull (D1 og D7 fra `admin_funnel`), leveringer og inntekten summert gjennom perioden. Grått er perioden før. Hver graf har «Vis tallene» (tabell) og et trådkors med én verktøyboble for alle linjene (`lineChart`, `chWire`, tekst bare via `textContent`).
+- **Tallene** kommer fra `admin_trend(days)` (`supabase/migrations/20261117120000_admin_trend.sql`): én rad per norsk dato for perioden og perioden før (`new` = første økt den dagen, `reg` = konto laget den dagen, `active`, `sessions`, `hours`, `sales`, `kr`, `rev`, `payers`), og `base` (totalene før første dag) til de samlede linjene. Bare summer. Perioden er minst sju dager. Uten migreringen faller siden tilbake til `daily` fra `admin_dashboard`, med en melding. `sqltest` sjekker funksjonen.
+- **Forklaringene:** hver fane har en ingress (`INTRO`), noen også «Hva ordene betyr». Nøkkeltallene med en tekst i `HELP` (etter etiketten i `kpi()`) får et «?», og et trykk på kortet viser forklaringen. Nye nøkkeltall får en linje i `HELP`.
+- **Utseendet:** fanene er gruppert (`GROUPS`: Oversikt, Spillerne, Økonomi, Drift, Innhold, Partnere, Annet). De står i en sidekolonne fra 1100 px og som en rullbar rad under logoen i stående format. Lys og mørk følger systemet; knappen i toppen bytter og husker valget (`localStorage`). Fargene til grafene er sjekket med dataviz-validatoren mot begge flatene. Den gamle søylegrafen for spilletid med økter på egen skala (to akser) er byttet med en linje.
+- `admintest` teller 22 faner med Status først.
+
 ## Admin: det spillerne sender, vises bare renset (05.11.2026, Ø6 funn 1)
 
 - Alt i admin-siden som kommer fra spillerne (tilbakemeldingene og `meta`, navn, båtnavn, nettlesere, agentens rapporter), går gjennom `esc()` eller blir gjort om til tall. Sikkerhetsgjennomgangen fant at plasseringen i en tilbakemelding (`meta.pos`) gikk rett inn i HTML-en, så en spiller kunne sende et skript som kjørte med admin-økta (`docs/planer/sikkerhet-skyen.md`, funn 1). `fbMeta` tar nå bare to endelige tall, tittelen i `daily()` escapes, og agentens PR-lenker blir lenker bare til `https://github.com/` (b5289877).
