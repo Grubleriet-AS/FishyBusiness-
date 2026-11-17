@@ -37,6 +37,14 @@ export default function (t){
   { const it = o.mkt.km.wait.L1.item; t.eq([it.y, it.st[0].from, it.lic.since, it.quota.y], [2025, 2025, 2025, 2025], 'en kjøpt vare som venter på en båt'); }
   t.eq(Object.keys(o.seasonSeen).sort(), ['annet', 'evskrei2025', 'evskrei2025x', 'fest2025', 'fest2025a', 'skrei2025'], 'det som er sett «for året», gjelder 2025');
   t.eq([o.evPending[0].y, Object.keys(o.ach.ev), Object.keys(o.press.told).sort()], [2025, ['skrei2025'], ['ptorsk15', 's2025']], 'ventende sesongslutt, merkene og første skrei');
+  // an event still running at the move is closed with its year: the crab harvest the player took part in, not one closed already
+  { const e = {v:2, t:366000, seasonSeen:{evkrabbe2027:1, evskrei2027:1, evskrei2027x:1}}; calMigrate(e);
+    t.eq([Object.keys(e.seasonSeen).sort(), e.evPending], [['evkrabbe2025', 'evkrabbe2025x', 'evskrei2025', 'evskrei2025x'], [{id:'krabbe', y:2025}]], 'krabbehøsten som pågikk, avsluttes med året sitt (premie og merke), skreien som alt var avsluttet, røres ikke'); }
+  // separate copies of the right, as in a save's own text; a year that is already the new one; and a page from before that wrote its years again
+  { const raw = JSON.parse(JSON.stringify({v:2, t:366000, lic:{since:2027, st:[{from:2027, until:2047}]}, fleet:[{lic:{since:2027, st:[{from:2027, until:2047}]}}], tx:{y:2027}, quota:{y:2026}}));
+    calMigrate(raw); t.eq([raw.lic.since, raw.lic.st[0].until, raw.fleet[0].lic.since, raw.fleet[0].lic.st[0].until, raw.quota.y], [2025, 2045, 2025, 2045, 2024], 'to kopier av samme rett flyttes hver sin gang, én gang');
+    const old = {v:2, cal:CAL_NOW, t:368000, tx:{y:2027}, quota:{y:2027}}; calMigrate(old); t.eq([old.tx.y, old.quota.y], [2025, 2025], 'en lagring en gammel side har skrevet årene sine i etterpå, flyttes igjen');
+    const fine = {v:2, cal:CAL_NOW, t:368000, tx:{y:2026}, quota:{y:2026}}; calMigrate(fine); t.eq([fine.tx.y, fine.quota.y], [2026, 2026], 'en lagring som er riktig, røres ikke'); }
   const snap = JSON.stringify(o); calMigrate(o); t.eq(JSON.stringify(o), snap, 'en gang til endrer ingenting');
   // 3. a new game is born on the new calendar and is never moved
   const n = K.newState(); t.eq(n.cal, CAL_NOW, 'et nytt spill er født med merket'); const ns = JSON.stringify(n); calMigrate(n); t.eq(JSON.stringify(n), ns, 'og flyttes aldri');

@@ -19,7 +19,10 @@ const EPOCH = calEpoch(WCLOCK.on);
 // the festival's best cod, and what is marked as seen or won «for the year» (the seasons, the event badges, the first skrei).
 const CAL_NOW = 2026;
 function calMigrate(o){
-  if (!o || typeof o !== 'object' || o.cal === CAL_NOW) return o;
+  if (!o || typeof o !== 'object') return o;
+  // (moved already, unless a page from before the move has played it since and written its years again: the tax year is then ahead
+  // of the date of the save's own minute on the new calendar, which the game itself never writes; the kontroll 17.11.2026)
+  if (o.cal === CAL_NOW && !(o.tx && typeof o.tx.y === 'number' && typeof o.t === 'number' && o.tx.y > new Date(EPOCH_WORLD + o.t * 60000).getUTCFullYear())) return o;
   const yr = v => typeof v === 'number' && v >= 2026 && v < 2200 ? v + CAL_YEARS : v, seen = new Set();
   const once = x => !!x && typeof x === 'object' && !seen.has(x) && !!seen.add(x);
   const fy = (x, k) => { if (x && x[k] != null) x[k] = yr(x[k]); };
@@ -41,6 +44,11 @@ function calMigrate(o){
   if (once(o.fest)) fy(o.fest, 'y');
   rekey(o.seasonSeen, /(\d{4})[xa]?$/);
   for (const e of Array.isArray(o.evPending) ? o.evPending : []) if (once(e)) fy(e, 'y');
+  // an event the player took part in that was still running at the move (the crab harvest, to 30 November) ended with its year: it is
+  // closed now, with its prizes and badge, as the game closes one that has run out (core/09c-seasons.js seasonDay). Its closing days
+  // on the new calendar (in December 2025) are never played, so nothing else would close it (the kontroll 17.11.2026)
+  if (o.seasonSeen && typeof o.seasonSeen === 'object') for (const k of Object.keys(o.seasonSeen)){ const q = /^ev(.+?)(\d{4})$/.exec(k);
+    if (q && +q[2] === 2027 + CAL_YEARS && !o.seasonSeen[k + 'x']){ o.seasonSeen[k + 'x'] = 1; o.evPending = (Array.isArray(o.evPending) ? o.evPending : []).concat([{id:q[1], y:+q[2]}]); } }
   if (o.ach) rekey(o.ach.ev, /(\d{4})$/);
   if (o.press) rekey(o.press.told, /^s(\d{4})$/);
   if (once(o.bkq)) fy(o.bkq, 'y');
