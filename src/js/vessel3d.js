@@ -372,6 +372,8 @@ const GLBM = {}, glbData = (k, type) => { const id = k + '-' + type; if (typeof 
 // (only a yes is kept: the models are fetched at boot (ui/11-boot.js bootData), and a no asked before they came in was kept for good, so
 // the player's own skiff was drawn with the old hand-made kit and never with its Blender model, 31.10.2026)
 const GLBHAS = {}; function glbHas(type){ if (!GLBHAS[type]) GLBHAS[type] = !!glbData('glb', type); return GLBHAS[type]; }
+// a part held weakly by glbParse (its own class, so a part can never be taken for one)
+class PartRef { constructor(v){ this.r = new WeakRef(v); } }
 function glbParse(b64){
   const u8 = glbBytes(b64); let dv = new DataView(u8.buffer, u8.byteOffset, u8.byteLength); if (dv.getUint32(0, true) !== 0x46546C67) return null;
   const jl = dv.getUint32(12, true), J = JSON.parse(new TextDecoder().decode(u8.subarray(20, 20 + jl))), bo = 20 + jl + 8;
@@ -421,15 +423,21 @@ function glbParse(b64){
   // 240 MB on 30.10 and grew towards 650-820 MB, when Android ended the page). A part read out was then plain arrays of 8 bytes a number, a
   // corner per triangle: a revised boat was 27-47 MB so, its near model (lod0) the most, 17-33 MB (typed arrays since Ø3d, about half). The fleet and the other players' boats
   // wear only the middle (lodm) and far (lod1) versions, so their lod0 is now never read out; the GLB's own bytes (4-6 MB) are kept until
-  // every part has been read, and then let go. Unread parts are still keys of parts (Object.keys, in), and a part that fails to read is null.
+  // every part has been read, and then let go (since 17.11.2026 they are kept: see take below). Unread parts are still keys of parts (Object.keys, in), and a part that fails to read is null.
   // parts.peek(name) (not enumerable) reads a part without keeping it, for what only measures the near model once a type (glbPeek).
   const parts = {}, node = new Map(), got = new Map();
   for (const nd of J.nodes) node.set(nd.name, nd);
-  let left = node.size;
+  // Since 17.11.2026 (the crashes on the iPhone the day the game opened, Jonas: «Kjør på»): a big part read out is held weakly (a
+  // WeakRef), so once the code that asked for it has made its GPU buffers or its own copy and let it go, the browser may take it back;
+  // asked for again, it is read out again from the GLB's bytes, which are now kept (they are 4-6 MB a type against the parts' 60 MB
+  // measured after the start; the readers make copies and never change a part, so a part read again is the same). A small part
+  // (under PART_WEAK bytes), a part that failed (null), and a page without WeakRef keep it as before.
+  const PART_WEAK = 65536, weak = typeof WeakRef === 'function';
+  const size = v => v && v.p ? (v.p.byteLength || 0) + (v.n && v.n.byteLength || 0) + (v.c && v.c.byteLength || 0) : 0;
   const take = (nm, keep) => {
-    if (got.has(nm)) return got.get(nm);
+    if (got.has(nm)){ const g = got.get(nm); if (!(g instanceof PartRef)) return g; const v = g.r.deref(); if (v) return v; }
     let v = null; if (dv) try { v = read(node.get(nm)); } catch (e){ v = null; }
-    if (keep){ got.set(nm, v); if (--left <= 0) dv = null; }
+    if (keep) got.set(nm, weak && size(v) >= PART_WEAK ? new PartRef(v) : v);
     return v; };
   for (const nm of node.keys()) Object.defineProperty(parts, nm, {enumerable:true, configurable:true, get:() => take(nm, true)});
   Object.defineProperty(parts, 'peek', {value:nm => node.has(nm) ? take(nm, false) : undefined});
