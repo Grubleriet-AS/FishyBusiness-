@@ -1,5 +1,12 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['rettinger-181126', '18.11.2026', 'Rettinger fra spillerne', 'Fixes from the players', [
+       ['Nytt fiskemottak i Austafjord på Ramstadlandet (Vikna).', 'A new fish plant at Austafjord on Ramstadlandet (Vikna).'],
+       ['Den siste etappen inn til stoppet ditt etter en Autonav-rute setter ikke lenger båten på grunn; hun stopper og finner vei rundt.', 'The last leg into your stop after an Autonav route no longer runs the boat aground; she stops and finds a way round.'],
+       ['Båten går ikke lenger på grunn i svingen ut fra kaia på en gul etappe.', 'The boat no longer runs aground in the turn away from the quay on a yellow leg.'],
+       ['For anker med baugen mot vinden ligger båten nesten rett, og hun vipper ikke lenger fra side til side.', 'At anchor head to wind the boat lies almost upright, and no longer flips from side to side.'],
+       ['Lanternene lyser ikke lenger som en stor prikk på små skjermer.', 'The lanterns no longer show as a big dot on small screens.'],
+       ['Loggen sier fra når Autonav slakker av for å vike for en annen båt.', 'The log says when Autonav slows down to give way to another boat.']]],
     ['smolafylke-171126', '17.11.2026', 'Fylkene i startlista', 'The counties in the start list', [
        ['Smøla står under Møre og Romsdal når du velger hvor du starter, Gutvik under Trøndelag og Selje under Vestland.', 'Smøla is under Møre og Romsdal when you choose where to start, Gutvik under Trøndelag and Selje under Western Norway.']]],
     ['navn-171126', '17.11.2026', 'Navn på rederiet og båten', 'The company\'s and the boat\'s name', [
