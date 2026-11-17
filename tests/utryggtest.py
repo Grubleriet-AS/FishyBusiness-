@@ -17,7 +17,7 @@ FIND = """async () => { const b = S.boat, q = portById(b.port) || nearestPort(b.
   for (const r of [0.6, 0.9, 1.2, 1.6, 2.0, 2.5, 3.0]) for (let k = 0; k < 24; k++){ const t = k / 24 * 2 * Math.PI, w = {x:a.x + Math.sin(t) * r, y:a.y - Math.cos(t) * r};
     if (isLandUI(w)) continue; S.draft = [{x:w.x, y:w.y, port:null, fish:0}]; hzCache.k = ''; let hz = draftHazards();
     for (let i = 0; i < 20 && /^wait/.test(hzCache.k); i++){ await new Promise(r => setTimeout(r, 300)); hzCache.k = ''; hz = draftHazards(); }
-    const e = typeof estimate === 'function' ? estimate() : null; if (hz[0] && hz[0].unsafe && !(e && e.bad >= 0)) return {w, r, hz:hz[0]}; }
+    const e = typeof estimate === 'function' ? estimate() : null; if (hz[0] && hz[0].unsafe && !(e && e.bad >= 0)){ const o = draftOrigin(); return {w, r, hz:hz[0], o:{x:o.x, y:o.y}}; } }
   S.draft = []; return null; }"""
 
 async def main():
@@ -50,15 +50,15 @@ async def main():
         check(a['n'] >= 2 and a['yellow'] == 0 and same and a['leia'] >= 1 and a['st'] == 'port' and not a['modal'], '«La Autonav legge ruta»: the fairway to the same end, no leg yellow, and she waits for Kast loss', a)
         s2 = await pg.evaluate("""async () => { document.querySelector('[data-act=start]').click(); await new Promise(r => setTimeout(r, 300)); return {plan:!!S.plan, modal:!document.getElementById('modal').hidden, st:S.boat.status}; }""")
         check(s2['plan'] and not s2['modal'], 'the safe route starts at once, with no question', s2)
-        # «Kast loss likevel»: a new yellow route goes as drawn, its leg marked unsafe; first the boat back in port
-        k = await pg.evaluate("""async (w) => { S.plan = null; S.boat.status = 'port'; S.draft = [{x:w.x, y:w.y, port:null, fish:0}]; hzCache.k = ''; panelDirty = true; setTab('route'); routeChanged(); renderPanel(); await new Promise(r => setTimeout(r, 400));
+        # «Kast loss likevel»: a new yellow route goes as drawn, its leg marked unsafe; first the boat lying still at sea (where a route starts too)
+        k = await pg.evaluate("""async (w) => { S.plan = null; S.boat.status = 'idle'; S.boat.port = null; S.boat.v = 0; S.boat.pos = {x:w.o.x, y:w.o.y}; S.draft = [{x:w.x, y:w.y, port:null, fish:0}]; hzCache.k = ''; panelDirty = true; setTab('route'); routeChanged(); renderPanel(); await new Promise(r => setTimeout(r, 400));
           document.querySelector('[data-act=start]').click(); await new Promise(r => setTimeout(r, 200)); const asked = !document.getElementById('modal').hidden && !!document.getElementById('hzGo');
           if (asked) document.getElementById('hzGo').click(); await new Promise(r => setTimeout(r, 300));
-          return {asked, plan:!!S.plan, unsafe:S.plan ? S.plan.unsafe : null, n:S.plan ? S.plan.wps.length : 0}; }""", end0)
+          return {asked, plan:!!S.plan, unsafe:S.plan ? S.plan.unsafe : null, n:S.plan ? S.plan.wps.length : 0}; }""", dict(end0, o=f['o']))
         check(k['asked'] and k['plan'] and k['n'] == 1 and k['unsafe'] == [True], '«Kast loss likevel»: the route goes as drawn, its leg marked yellow', k)
         # code that starts a route is not asked
-        c = await pg.evaluate("""async (w) => { S.plan = null; S.boat.status = 'port'; S.draft = [{x:w.x, y:w.y, port:null, fish:0}]; hzCache.k = ''; doAct({dataset:{act:'start'}, disabled:false});
-          await new Promise(r => setTimeout(r, 200)); const g = document.getElementById('ruGo'); return {plan:!!S.plan, hz:!!document.getElementById('hzGo') && !document.getElementById('modal').hidden}; }""", end0)
+        c = await pg.evaluate("""async (w) => { S.plan = null; S.boat.status = 'idle'; S.boat.port = null; S.boat.v = 0; S.boat.pos = {x:w.o.x, y:w.o.y}; S.draft = [{x:w.x, y:w.y, port:null, fish:0}]; hzCache.k = ''; doAct({dataset:{act:'start'}, disabled:false});
+          await new Promise(r => setTimeout(r, 200)); const g = document.getElementById('ruGo'); return {plan:!!S.plan, hz:!!document.getElementById('hzGo') && !document.getElementById('modal').hidden}; }""", dict(end0, o=f['o']))
         check(c['plan'] and not c['hz'], 'a route started by code (not the button) is not asked', c)
         print('sidefeil', errs)
         await br.close()
