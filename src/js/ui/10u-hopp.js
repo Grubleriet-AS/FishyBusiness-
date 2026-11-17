@@ -69,8 +69,9 @@ function hopHoldTick(){
 }
 // back from Stripe by the browser's own back button with the page kept (bfcache): the payment page was left, the purchase not made
 window.addEventListener('pageshow', e => { if (!e.persisted) return; if (typeof SHOP !== 'undefined') SHOP.busy = false;
-  const hd = S.boat && S.boat.hopHold; if (hd && hd.pay && HOPUI.payAt){ HOPUI.payAt = 0; toast(hopL('Båten ligger stille og venter på betalingen for hoppet. Vil du seile videre, trykk ⏩ og «Avbryt».', 'The boat lies still, waiting for the payment for the hop. To sail on, tap ⏩ and «Cancel».')); } });
-document.addEventListener('visibilitychange', () => { const hd = S.boat && S.boat.hopHold;
+  const hd = S && S.boat && S.boat.hopHold; if (hd && hd.pay && HOPUI.payAt){ HOPUI.payAt = 0; toast(hopL('Båten ligger stille og venter på betalingen for hoppet. Vil du seile videre, trykk ⏩ og «Avbryt».', 'The boat lies still, waiting for the payment for the hop. To sail on, tap ⏩ and «Cancel».')); } });
+// (S is set by the boot after the page is up: hidden or shown before that, there is no hold to end)
+document.addEventListener('visibilitychange', () => { const hd = S && S.boat && S.boat.hopHold;
   if (document.visibilityState === 'hidden' && hd && !hd.pay && !HOPUI.busy){ hopHoldOff(); if (HOPUI.card){ HOPUI.card = false; $('modal').hidden = true; } } });
 // the hop: the screen goes dark first (two frames, so the dark is drawn before the work; a timer too, since a hidden page draws no
 // frames), the map at the stop and the hop (hopGo), then every kind of pack the chart and the 3D view read round the stop, as the start
