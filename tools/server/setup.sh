@@ -196,6 +196,10 @@ ufw allow 80/tcp >/dev/null; ufw allow 443/tcp >/dev/null; ufw --force enable >/
 ufw status | sed -n '1,20p'
 dpkg-reconfigure -f noninteractive unattended-upgrades
 
+# ---------- the watch on the database (tools/server/vakt, steg 138): a push through ntfy.sh when Supabase does not answer ----------
+say "The watch on the database"
+if [ -n "$HERE" ] && [ -f "$(dirname "$HERE")/vakt/setup.sh" ]; then bash "$(dirname "$HERE")/vakt/setup.sh"; else curl -fsSL "$RAW/vakt/setup.sh" | DSB_REF=$REF bash; fi
+
 # ---------- what goes into GitHub ----------
 say "Done"
 echo "Caddy serves $SITE/current at https://$DOMAIN and $SITE/test at https://test.$DOMAIN (a placeholder page until the first upload)."
