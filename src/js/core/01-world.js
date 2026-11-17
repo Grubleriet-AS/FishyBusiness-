@@ -318,7 +318,12 @@ function groundCheck(a, c, sq = 0){
   // thinner ice, so she can get out and never deeper in
   // (an ice class goes up to the limit of her class, seaIceLim, H3c)
   const iceOn = typeof SEA_ICE !== 'undefined' && !!SEA_ICE, iceL = iceOn ? seaIceLim() : 0; let ic0 = iceOn ? seaIceAt(a) : 0;
-  for (let i = 1; i <= n; i++){ const p = {x:a.x + (c.x - a.x) * i / n, y:a.y + (c.y - a.y) * i / n}; if (inHarbour(p)) continue; if (isLand(p) || ((i & 3) === 0 || i === n) && depthF(p) + tl < BOAT.draft + sq) return p;
+  // (in a harbour the depth is not asked, it is dredged, but the coast's own land is, isLandHarbour; not on a sealed harbour's own fill,
+  // which its way out crosses, quayLandLeg in 07-harbours.js, asked once, at the first such point)
+  let sealed = null;
+  for (let i = 1; i <= n; i++){ const p = {x:a.x + (c.x - a.x) * i / n, y:a.y + (c.y - a.y) * i / n};
+    if (inHarbour(p)){ if (isLandHarbour(p) && !(sealed === null ? (sealed = typeof quayLandLeg === 'function' && !!quayLandLeg(a, c)) : sealed)) return p; continue; }
+    if (isLand(p) || ((i & 3) === 0 || i === n) && depthF(p) + tl < BOAT.draft + sq) return p;
     if (iceOn && (i % 10 === 0 || i === n)){ const ic = seaIceAt(p); if (ic >= iceL && ic > ic0 + 0.01) return {x:p.x, y:p.y, ice:true}; ic0 = ic; } }
   if (!inHarbour(c) && coastSegHit(a, c)) return c;   // a breakwater or a skerry thinner than the 20 m steps (01d-coast.js)
   // (a rock behind her, or abeam where the leg begins, is not ahead: the leg goes away from it, u0 <= 0; the leg before this one had it
@@ -407,9 +412,18 @@ function decodeContours(){
 function isLand(p){
   if (!(p.x >= MAPB.x0 && p.y >= MAPB.y0 && p.x < MAPB.x1 && p.y < MAPB.y1)) return true;
   if (!mapSimAt(p)) return isLandFar(p);
-  const c = coastAt(p); let l;
-  if (c >= 0) l = c > 0; else { const L = MAPD.L.mask; l = rcell(L, Math.floor(p.x / L.c), Math.floor(p.y / L.c)) === 1; }
-  return (l || onUnitGround(p)) && !inHarbourPocket(p);
+  return (landNat0(p) || onUnitGround(p)) && !inHarbourPocket(p);
+}
+// the coast's own land at p on a tile with detail: the fine coast, else the 25 m mask
+function landNat0(p){ const c = coastAt(p); if (c >= 0) return c > 0; const L = MAPD.L.mask; return rcell(L, Math.floor(p.x / L.c), Math.floor(p.y / L.c)) === 1; }
+// The land a boat cannot sail over in a harbour either (tilbakemelding #133 and #137, 17.11.2026): the coast's own land and its
+// breakwaters, without a harbour unit's block and fill and the pockets in front of the quays (the berths and the way out lie there).
+// groundCheck skipped everything within 600 m of a harbour point (inHarbour: the harbours are dredged), the land too, so a boat off
+// her line there sailed over an island or through a mole and was stopped only on the first land outside, 600 m out. Off the tiles
+// with detail (the national core's 200 m) nothing: too coarse for a harbour
+function isLandHarbour(p){
+  if (!(p.x >= MAPB.x0 && p.y >= MAPB.y0 && p.x < MAPB.x1 && p.y < MAPB.y1) || !mapSimAt(p)) return false;
+  return landNat0(p) && !inHarbourPocket(p);
 }
 // for what looks far (the fetch rays, the local fleet, the grounds' stock): the national core only, land at 200 m
 function isLandFar(p){

@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['havnland-171126', '17.11.2026', 'Land i havna', 'Land in the harbour', [
+       ['Båten seiler ikke lenger over land eller gjennom moloen nær en havn. Kommer hun ut av kurs der, stopper hun før land og finner vei rundt, slik hun gjør ellers langs kysten.', 'The boat no longer sails over land or through the breakwater near a harbour. If she gets off course there, she stops short of the land and finds a way round, as she does elsewhere along the coast.']]],
     ['vaerhjem-171126', '17.11.2026', 'Driftsplanen og været', 'The plan and the weather', [
        ['Driftsplanen stopper ikke lenger for vind, bare for sjøen båten ikke tåler.', 'The plan no longer stops for wind, only for a sea the boat cannot take.'],
        ['Holder været båten inne mens hun er ute, går hun hjem og venter der, og går ut igjen av seg selv når været tillater det.', 'When the weather keeps the boat in while she is out, she goes home to wait there, and goes out again by herself when the weather allows.'],
