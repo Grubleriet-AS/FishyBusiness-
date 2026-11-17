@@ -72,7 +72,11 @@ const INSTALL = (() => {
 // version.json every ten minutes and when the tab comes back, and when it differs a bar comes at the top with «Oppdater nå», which
 // saves and loads the page again; ✕ puts it off half an hour. In the app the service worker takes over as soon as it is installed
 // (sw.js skipWaiting and clients.claim), so a controllerchange on a page that had a worker says the same. Nothing reloads by itself:
-// a player in the middle of a haul decides when
+// a player in the middle of a haul decides when.
+// Since 17.11.2026 (Jonas: «Kan du fjerne det varselet om ny versjon som kommer opp på skjermen? Jeg kommer til å kjøre en del
+// oppdateringer og vil ikke plage spillerne med varsler») a new version gives no bar: the player has it the next time the game is
+// opened (the service worker still fetches it in the background). Only a map pack that is gone (force) brings the bar, since the
+// page cannot load the map ahead without a reload.
 const UPDATE = (() => {
   const L = (no, en) => cloudL(no, en), mine = () => (document.querySelector('meta[name=dsb-version]') || {}).content || 'dev';
   let el = null, snooze = 0, had = false, seen = null;
@@ -96,10 +100,8 @@ const UPDATE = (() => {
     // a map pack found gone while the page was starting (01b-mapdata.js mapStale): the bar was held back by booting(), so it comes now
     try { if (typeof MAPD !== 'undefined' && MAPD.stale) bar(true); } catch (e){}
     if (mine() === 'dev') return;
-    setInterval(check, 10 * 60e3); document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(check, 1500); }); setTimeout(check, 90e3);
+    // (no polling of version.json and no bar on controllerchange any more: see above)
     if ('serviceWorker' in navigator){
-      had = !!navigator.serviceWorker.controller;
-      navigator.serviceWorker.addEventListener('controllerchange', () => { if (had){ seen = seen || 'sw'; bar(); } had = true; });
       navigator.serviceWorker.getRegistration().then(reg => { if (reg) setInterval(() => reg.update().catch(() => {}), 30 * 60e3); }).catch(() => {});
     }
   }

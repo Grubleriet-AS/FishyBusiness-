@@ -138,6 +138,8 @@ Begrensningen som gjelder: siden må forbli én fil. Alt er innebygd, også skri
 
 ## Ny versjon er ute: «Oppdater nå» (Jonas 06.11.2026)
 
+**Stripa er tatt bort (17.11.2026; Jonas: «Kan du fjerne det varselet om ny versjon som kommer opp på skjermen? Jeg kommer til å kjøre en del oppdateringer og vil ikke plage spillerne med varsler»):** `UPDATE` spør ikke lenger `version.json` og viser ingen stripe ved `controllerchange`. Spilleren får den nye versjonen neste gang spillet åpnes; tjenestearbeideren henter den fortsatt i bakgrunnen (`reg.update()` hver halvtime). Bare `UPDATE.bar(true)`, når en kartpakke er borte (`MAPD.stale`), gir fortsatt stripa, fordi siden da ikke kan laste kartet videre (`maptest`). Det som står under, er hvordan det var.
+
 Jonas: «Varsel ved oppdatering for å kjøre refresh på appen slik at de spiller på den nyeste versjonen?» Før byttet tjenestearbeideren kode stille (`skipWaiting` + `clients.claim`), og et åpent spill kjørte gammel kode til neste innlasting.
 
 - **`version.json`** ved siden av siden (`build.mjs`): `{"v": "<12 hex>", "at": "<ISO>"}`, samme versjon som `<meta name="dsb-version">` og tjenestearbeiderens cache. `tools/server/Caddyfile` har `/version.json` i `@fresh` (no-cache). **Caddyfilen på serveren må oppdateres for hånd** (den ligger ikke i utrullingen). På Pages spør klienten med `?t=` så den ikke caches.
