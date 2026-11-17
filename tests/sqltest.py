@@ -850,6 +850,9 @@ def main():
         RG['oldPend'] = [g for g in json.loads(sql("select public.shop_pending()", {'sub': 'user_01OLD', 'role': 'authenticated'}, 'authenticated')) if g['product'] == 'reg_luksus' and not g.get('held')]   # (run here after HS2's migration the delivered row is a haill the server keeps; in the real order HS2's migration came after and counted it as used)
         gAfter = sql("select (select count(*) from public.players where id = '%s') || '/' || (select data from public.saves where player_id = 'user_01GGG') || '/' || (select consent from public.players where id = 'user_01GGG')" % G['sub'])
         gAgain = json.loads(sql("select public.guest_merge('%s')" % code, C, 'authenticated'))
+        # the guest's fish on the account's all-time total and profile too (17.11.2026, 20261117020000_gjest_totalt.sql): four new players were
+        # missing from «Totalt» after the release, as player_tot went with the guest's row
+        GW['tot'] = sql("select coalesce((select round(kg)::int from public.player_tot where player_id = 'user_01GGG'), -1) || '/' || coalesce((select round(sum(least(kg, public.land_cap(acc))))::int from public.landings where player_id = 'user_01GGG'), 0)")
         # with the account the guest's landings count (guest_merge), and for everyone: no landing ahead of the shared clock, the year from
         # the game hour and not from the call, the plant and the species cleaned (Ø6 funn 2c)
         GW['wyC'] = sql("select coalesce(sum(kgq), 0) from public.world_year where player_id = 'user_01GGG' and y = 2025 and acc = 'open' and sp = 'torsk'")
@@ -869,7 +872,7 @@ def main():
                  and RG['again'] == 0 and RG['old'] == 'user_01GGG=false,user_01OLD=true' and RG['oldPend'] == []),
               'the welcome gift: tm_hello makes one grant per account however often it is called and answers as before, given and done once and never again, not for sale, never two rows; a guest gets none and the merge adds none, the account one at its first hello; the accounts there when the migration runs count as given, the guests do not (HS1)', RG)
         print(ok(abs(GW['open']) < 0.01 and GW['boats'] == 0 and GW['mkt'] and GW['cells'] == [] and GW['wy'] == '0' and 'Gjest' not in GW['evA'] and GW['evG'] == ['Gjest']
-                 and GW['wyC'] == '700' and abs(GW['openAfter'] - 700) < 0.01 and GW['ahead'][0] and 'ahead' in GW['ahead'][1] and GW['clean'] == '2025/bmØF50b/itorsk'),
+                 and GW['wyC'] == '700' and GW['tot'].split('/')[0] == GW['tot'].split('/')[1] and int(GW['tot'].split('/')[0]) >= 700 and abs(GW['openAfter'] - 700) < 0.01 and GW['ahead'][0] and 'ahead' in GW['ahead'][1] and GW['clean'] == '2025/bmØF50b/itorsk'),
               "a guest's landings and catch are the guest's alone (not in the open group's quota, the boats, the market, the cells or the event list) until the account is made, and then they count; no landing ahead of the shared clock, the year from the game hour, the plant and species cleaned (Ø6 funn 2 og 3)",
               {k: (v[1][:60] if isinstance(v, tuple) else v) for k, v in GW.items()})
         # the player's name (20261007120000_names.sql): an account takes one, unique whatever the case; a guest cannot; the admin takes an
