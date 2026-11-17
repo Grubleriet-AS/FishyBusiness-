@@ -2,6 +2,8 @@
   const PATCH = [
     ['smolafylke-171126', '17.11.2026', 'Fylkene i startlista', 'The counties in the start list', [
        ['Smøla står under Møre og Romsdal når du velger hvor du starter, Gutvik under Trøndelag og Selje under Vestland.', 'Smøla is under Møre og Romsdal when you choose where to start, Gutvik under Trøndelag and Selje under Western Norway.']]],
+    ['merkegave-171126', '17.11.2026', 'Gavene for merkene', 'The badge gifts', [
+       ['Gavene for de lange merkene vokser nå med trinnet: små på første trinn, som før fra det fjerde.', 'The gifts for the long badges now grow with the step: small on the first, as before from the fourth.']]],
     ['vaerhjem-171126', '17.11.2026', 'Driftsplanen og været', 'The plan and the weather', [
        ['Driftsplanen stopper ikke lenger for vind, bare for sjøen båten ikke tåler.', 'The plan no longer stops for wind, only for a sea the boat cannot take.'],
        ['Holder været båten inne mens hun er ute, går hun hjem og venter der, og går ut igjen av seg selv når været tillater det.', 'When the weather keeps the boat in while she is out, she goes home to wait there, and goes out again by herself when the weather allows.'],
@@ -10,7 +12,8 @@
        ['Båtene krenger mindre i vinden, og ligger nesten rett ved kai.', 'The boats heel less in the wind, and lie almost upright at the quay.'],
        ['Garn og line settes ut også når det er meldt kuling.', 'Nets and line are set also when a gale is forecast.'],
        ['Trykk på et rutepunkt i kartet for å endre fisketiden eller slette punktet. Hold og dra for å flytte det.', 'Tap a waypoint in the chart to change its fishing time or delete it. Hold and drag to move it.'],
-       ['Inviter en venn: under Innstillinger › Konto finner du din egen lenke å dele.', 'Invite a friend: under Settings › Account you find a link of your own to share.']]],
+       ['Inviter en venn: under Innstillinger › Konto finner du din egen lenke å dele.', 'Invite a friend: under Settings › Account you find a link of your own to share.'],
+       ['Fiskekarene på plastsnekka stikker ikke lenger ut gjennom skroget. De står side om side på langs akter i cockpiten.', 'The fish tubs on the fibreglass snekke no longer poke out through the hull. They stand side by side, lengthwise, aft in the cockpit.']]],
     ['ingenko-171126', '17.11.2026', 'Ingen kø ved mottakene', 'No queue at the plants', [
        ['Det er ikke lenger kø ved fiskemottakene. Du losser med en gang du ligger ved mottakskaia, også når andre losser der samtidig.', 'There is no longer a queue at the fish plants. You land as soon as you lie at the plant\'s quay, also when others land there at the same time.']]],
     ['drivanker-171126', '17.11.2026', 'Juksing alene og drivanker', 'Jigging alone and the drift anchor', [
