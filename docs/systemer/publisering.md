@@ -71,7 +71,7 @@ Jonas 17.11.2026 (V3 A i `docs/planer/drift-billig-og-stabil.md`): «Push via nt
 - **Telleren:** `servers { metrics }` i Caddyfile gir Caddys tall på admin-porten 127.0.0.1:2019, uten adresser og stier. Vakta skriver totalen og 5xx én gang i timen til `/var/lib/dsb-vakt/req.tsv`, høyst 200 linjer.
 - **`tools/server/status.sh`** bare leser. Den viser CPU (i bruk, venter på disken, steal), trykket på disken og CPU-en (PSI), minne, disk, de tyngste prosessene, tjenestene, reléets `/stats`, vaktas siste døgn, forespørsler per time og feilene i Caddy og reléet. IP-adressene i Caddys feillinjer tas ut.
 - **Testen** er `tests/vakttest.py`. Stand-ins for Supabase, ntfy.sh og Caddy, og ingen nettleser.
-- **Ikke prøvd på serveren:** oppsettet og Caddyfile med `metrics`. Økta har ikke root der, og fikk ikke laste ned Caddy for å sjekke fila. `setup.sh` sjekker Caddyfile med `caddy validate` før den tas i bruk, og beholder den gamle hvis den nye ikke holder. Jonas kjører det: `docs/spill-dette/138.md`.
+- **I drift fra 17.11.2026:** Jonas kjørte `setup.sh` på `ubuntu-8gb-hel1-1`. Caddy godtok Caddyfile med `metrics`: detstorebla.no og testadressen svarte 200 etterpå. `caddy`, `dsb-rt` og `dsb-vakt.timer` er `active`, og vakta går hvert minutt uten bom.
 
 ## Lagringsporten på vår egen server (steg 102, 11.11.2026)
 
