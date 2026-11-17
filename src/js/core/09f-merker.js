@@ -163,6 +163,16 @@ function achDraw(key, scale){
   return null;
 }
 // a gift: given now, or kept for the quay while the first trip is on
+// the long badges' gifts by step (Jonas 17.11.2026, valg A): ×1 for the first step, ×1.5 the second, ×2.5 the third, ×3 from the fourth.
+// Before, every step was ×3, and a first step is often «once» (a trip without harm, a night, a player met): a new game took ten to
+// seventeen in its first hours and the gifts paid three to five times what the fishing did. The money given before stays where it is.
+const ACHL_SCALE = [1, 1.5, 2.5, 3];
+const achLScale = i => ACHL_SCALE[Math.min(Math.max(i, 0), ACHL_SCALE.length - 1)];
+// a gift kept from the first trip (S.ach.owe) has its scale in the save: a long badge's step is given at the step's scale now
+function achOweScale(key, scale){
+  for (const L0 of ACHL){ if (!key.startsWith(L0.id)) continue; const r = key.slice(L0.id.length); if (/^\d+$/.test(r) && +r < L0.tiers.length) return achLScale(+r); }
+  return scale;
+}
 function achGive(key, scale, title){
   const A = achState();
   if (typeof tutOn === 'function' && tutOn()){ A.owe.push([key, scale, title]); return null; }
@@ -190,13 +200,13 @@ function achCheck(quiet){
       if (!A.ch[ch] && achNDone(ch) === achInCh(ch).length && achLive() && !(typeof tutOn === 'function' && tutOn())){ A.ch[ch] = now; achChapter(ch); fresh.push({ch}); if (typeof cloudEv === 'function') cloudEv('ach_ch', {ch}); }
     }
     // the gifts kept from the first trip
-    if (A.owe.length && !(typeof tutOn === 'function' && tutOn())){ const owe = A.owe; A.owe = []; for (const [key, scale, title] of owe){ const g = achGive(key, scale, title); const a = achOf(key); if (a) fresh.push({a, g}); } }
+    if (A.owe.length && !(typeof tutOn === 'function' && tutOn())){ const owe = A.owe; A.owe = []; for (const [key, scale, title] of owe){ const g = achGive(key, achOweScale(key, scale), title); const a = achOf(key); if (a) fresh.push({a, g}); } }
     for (const L0 of ACHL){ const v = L0.v();
       if (!A.lk[L0.id]){ A.lk[L0.id] = 1; if (!A.l[L0.id]){ let k0 = 0; while (k0 < L0.tiers.length && v >= L0.tiers[k0]) k0++; A.l[L0.id] = k0; continue; } }
       const got = A.l[L0.id] || 0; let k = got;
       while (k < L0.tiers.length && v >= L0.tiers[k]) k++;
       if (k > got){ A.l[L0.id] = k; if (!achLive() || A.seeding) continue;
-        for (let i = got; i < k; i++){ const g = L0.nogift ? null : achGive(L0.id + i, 3, L0.n); fresh.push({long:L0, tier:i, g}); } } }   // (nogift: honour only, «Hjelp i havsnød»)
+        for (let i = got; i < k; i++){ const g = L0.nogift ? null : achGive(L0.id + i, achLScale(i), L0.n); fresh.push({long:L0, tier:i, g}); } } }   // (nogift: honour only, «Hjelp i havsnød»)
     if (fresh.length && !quiet && typeof achShow === 'function') achShow(fresh);
   } finally { ACH_BUSY = false; }
 }
