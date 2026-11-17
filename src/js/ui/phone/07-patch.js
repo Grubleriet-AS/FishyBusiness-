@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['smolafylke-171126', '17.11.2026', 'Fylkene i startlista', 'The counties in the start list', [
+       ['Smøla står under Møre og Romsdal når du velger hvor du starter, Gutvik under Trøndelag og Selje under Vestland.', 'Smøla is under Møre og Romsdal when you choose where to start, Gutvik under Trøndelag and Selje under Western Norway.']]],
     ['navn-171126', '17.11.2026', 'Navn på rederiet og båten', 'The company\'s and the boat\'s name', [
        ['Du kan bytte navn på rederiet i Rederi-appen.', 'You can rename your company in the Company app.'],
        ['Har båten ikke fått navn ennå, kan du døpe henne rett fra kortet hennes i Rederi-appen.', 'If your boat has no name yet, you can name her right from her card in the Company app.']]],
