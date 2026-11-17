@@ -41,6 +41,8 @@ export default function (t){
   W = routeWalk({x:10, y:20}, R, 99, 0); t.eq([W.x, W.y], [12, 21], 'langs ruta: stopper ved første stopp');
   const qr = {id:'r', x:10, y:20, hd:Math.PI / 2, v:8, st:'sailing', at:0, rt:'11,20;11,21'}, d60 = spd * 60;
   P = ptPred(qr, 0, 60); t.near(P.x, 11, 1e-9, 'med rute: følger ruta etter hjørnet, ikke kursen (x)'); t.near(P.y, 20 + d60 - 1, 1e-9, 'med rute: følger ruta etter hjørnet (y)');
-  P = ptPred(qr, 0, 100); t.ok(P.y > 20 + d60 - 1, 'med rute: ingen oppbremsing etter ' + PT_MAX + ' s (ruta er kjent)');
+  // on her route she goes on at full speed for as long as the server keeps her report (two minutes), past PT_MAX
+  const tl = 110; P = ptPred({id:'r2', x:10, y:20, hd:Math.PI / 2, v:8, st:'sailing', at:0, rt:'11,20;11,40'}, 0, tl); t.near(P.y, 20 + spd * tl - 1, 1e-9, 'med rute: ingen oppbremsing etter ' + PT_MAX + ' s (ruta er kjent)');
+  t.ok(PT_MAX >= 120, 'uten rute går båten i minst to minutter før den bremser (rapportene kan komme hvert minutt)');
   PTRK.clear();
 }

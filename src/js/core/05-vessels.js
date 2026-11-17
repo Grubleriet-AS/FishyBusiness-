@@ -550,7 +550,7 @@ function npcStates(H, only){
   // the rules of the road (Ø11.1, 05e-sjovei.js): the classes, and the NPCs near the boat you follow that give way, where they are now
   return colregNpc(H, out, only);
 }
-// The other players' boats as the server last told them (ui/10h-world.js fills PEERS every 15 s: {id, boat, vtype, x, y, hd, v, st, liv,
+// The other players' boats as the server last told them (ui/10h-world.js fills PEERS every 15 s, every minute while the relay is open: {id, boat, vtype, x, y, hd, v, st, liv,
 // user, fs, at}: the owner's player name and sea time in points, core/09e-fartstid.js),
 // carried on between the reports and eased onto each new one (PTRK below), so they glide with no jump. They
 // look like the boat type they are (its length and beam pick the model, view3d.js npcKit) and carry the boat's name on the AIS.
@@ -561,7 +561,7 @@ const PEERGEAR = [];
 // another player's boat name goes into the chart's SVG and the AIS card as HTML, so nothing that could make markup is kept (the
 // server strips the same, supabase/migrations/20261006020000_toplist.sql)
 function peerName(s){ return String(s || '').replace(/[<>&"'`\\]/g, '').trim().slice(0, 24) || '–'; }
-// Between the reports (every 15 s) a peer's boat is carried on along her heading at her speed, turning as she was turning between her last
+// Between the reports (every 15–60 s) a peer's boat is carried on along her heading at her speed, turning as she was turning between her last
 // two reports (the turn dying out over PT_TURN s, so a turn at a route's corner is followed and then straightened), for up to PT_MAX s,
 // after which she slows to a stop over PT_STOP s. When a new report comes, she is not moved there at once: the gap between where she is
 // shown and where the new report puts her is taken up smoothly (PT_BLEND, longer for a bigger gap), so she glides onto the new track
@@ -569,7 +569,9 @@ function peerName(s){ return String(s || '').replace(/[<>&"'`\\]/g, '').trim().s
 // PT_SNAP km (she has been towed, or reset) is jumped. PTRK holds the track per peer.
 const PTRK = new Map();
 const PT_TURN = 6;   // s: a turn dies out over this
-const PT_MAX = 35;   // s at full speed with no new report
+// s at full speed with no new report: a far boat is heard once a minute when both games have the relay (ui/10h-world.js WORLD_RT_MS),
+// so a report can be up to two minutes old when the next comes (35 until 17.11.2026, when the reports came every 15 s)
+const PT_MAX = 125;
 const PT_STOP = 10;   // s to slow to a stop after that
 const PT_SNAP = 1.5;   // km: a bigger gap to a new report is jumped
 const ptAng = (a, b) => { let d = (b - a) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d; };
@@ -629,7 +631,7 @@ function ptTake(q, now){
   if (!T){ T = {q, w:0, off:null}; PTRK.set(q.id, T); return T; }
   const shown = ptPose(T, now), old = T.q, dt = (q.at - old.at) / 1000;
   // her turn rate from the last two reports (both under way, and not too far apart in time), as far as a boat turns
-  T.w = !q.rt && q.st === 'sailing' && old.st === 'sailing' && dt > 2 && dt < 45 ? clamp(ptAng(old.hd, q.hd) / dt, -0.25, 0.25) : 0;
+  T.w = !q.rt && q.st === 'sailing' && old.st === 'sailing' && dt > 2 && dt < PT_MAX + 10 ? clamp(ptAng(old.hd, q.hd) / dt, -0.25, 0.25) : 0;
   T.q = q; T.off = null;
   const P = ptPred(q, T.w, (now - q.at) / 1000), gx = shown.x - P.x, gy = shown.y - P.y, gd = Math.hypot(gx, gy), gh = ptAng(P.hd, shown.hd);
   if (gd < PT_SNAP && (gd > 1e-5 || Math.abs(gh) > 1e-3)) T.off = {x:gx, y:gy, hd:gh, t0:now, dur:1000 * clamp(1 + gd * 1000 / 70, 1.2, 6)};

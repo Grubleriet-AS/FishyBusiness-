@@ -69,7 +69,8 @@ function cloudMeta(){
 }
 
 // ---------- talking to Supabase ----------
-async function cloudToken(){ try { return CLOUD.guest ? await guestToken() : CLOUD.ak ? await CLOUD.ak.getAccessToken() : null; } catch (e){ return null; } }
+// force: a 401 with this token (cloudRpc) asks for a new one, at most once a minute, so a refused token cannot set off a storm of refreshes
+async function cloudToken(force){ if (force){ if (Date.now() - (CLOUD.forceAt || 0) < 60000) force = false; else CLOUD.forceAt = Date.now(); } try { return CLOUD.guest ? await guestToken(force) : CLOUD.ak ? await CLOUD.ak.getAccessToken(force ? {forceRefresh:true} : undefined) : null; } catch (e){ return null; } }
 // ---------- guests (06.10.2026; Jonas: «nye brukere ikke trenger å logge inn til å starte med», the account after the third landing) ----------
 // A new player starts at the envelope with no sign-in: a Supabase anonymous sign-in in the background (supabase/migrations/
 // 20261006180000_guest.sql), so the guest is in the shared world like everyone else and the game is kept in the cloud too. Registering
@@ -85,11 +86,11 @@ async function guestAuth(path, body){
   try { localStorage.setItem(GUEST_KEY, JSON.stringify(g)); } catch (e){}
   return g;
 }
-async function guestToken(){
+async function guestToken(force){
   let g = guestGet(); if (!g) return null;
-  if (g.exp - Date.now() / 1000 < 90){
+  if (force || g.exp - Date.now() / 1000 < 90){
     try { g = await guestAuth('token?grant_type=refresh_token', {refresh_token:g.rt}); }
-    catch (e){ if (e.status >= 400 && e.status < 500){ g = await guestAuth('signup', {data:{}}); CLOUD.user = {id:g.id, guest:true, email:''}; } else return g.at; }   // the refresh gone: a new guest (the game is on the device)
+    catch (e){ if (e.status >= 400 && e.status < 500 && e.status !== 429){ g = await guestAuth('signup', {data:{}}); CLOUD.user = {id:g.id, guest:true, email:''}; } else return g.at; }   // the refresh gone: a new guest (the game is on the device)
   }
   return g.at;
 }
@@ -99,13 +100,37 @@ async function guestStart(){
   CLOUD.guest = true; CLOUD.user = {id:g.id, guest:true, email:''};
 }
 const isGuest = () => !!(CLOUD.on && CLOUD.guest);
+// Each call has a time limit, and the calls the game makes by itself on a timer back off when the database is down (17.11.2026, Supabase
+// hung for half an hour: docs/planer/drift-billig-og-stabil.md D2): after a 5xx, a time-out or no network, that function waits 5 s, then
+// twice as long each time, up to 2 minutes, and the first answer that goes through clears it. What the player does (buying, sending, the
+// last save as the page closes) is never held back. A 401 gets a fresh token and one more go; a second 401 is a failure like a 5xx, so a
+// lapsed sign-in does not go round every few seconds (1 400 such in a day before this).
+const RPC_BG = new Set(['save_beat', 'save_head', 'save_put4', 'pos_put', 'pos_world', 'pos_near', 'gear_put', 'gear_near', 'gear_near2', 'hails_get',
+  'tm_batch', 'tm_perf', 'tm_error', 'marks_get', 'friends_get', 'news_get', 'tow_open', 'top_list', 'broker_pending', 'world_get', 'bygde_top', 'km_week', 'push_claim']);
+const RPC_SLOW = new Set(['save_put4', 'save_get', 'save_claim', 'guest_merge']);   // a whole game up or down: a slow line needs longer
+const RPCB = new Map();   // fn -> {n: failures in a row, until: ms}
+const RPC_B0 = 5000, RPC_BMAX = 120000;
+// save_beat (cloudBeat): the limits in cloudClaim and cloudPassed (prev_age, active_age, fresh) go with it, each the beat and some 20 s more
+const BEAT_MS = 15000;
+function rpcFail(fn){ const b = RPCB.get(fn) || {n:0, until:0}; b.n++; b.until = Date.now() + Math.min(RPC_BMAX, RPC_B0 * Math.pow(2, b.n - 1)); RPCB.set(fn, b); }
 async function cloudRpc(fn, args, opt){
-  const c = CLOUD_CFG, tok = opt && opt.anon ? null : await cloudToken();
+  // (opt.now: a timed call that must be asked now all the same: the player's own save, the handover, the question after the page slept)
+  const keep = !!(opt && opt.keep), bg = RPC_BG.has(fn) && !keep && !(opt && opt.now), b = RPCB.get(fn);
+  if (bg && b && Date.now() < b.until) throw new Error(fn + ' wait');
+  const c = CLOUD_CFG, tok = opt && opt.anon ? null : await cloudToken(opt && opt.fresh);
   // a publishable key (sb_publishable_…) is not a JWT and goes only as apikey; the old anon key (a JWT) also as the bearer
   const bearer = tok || (/^eyJ/.test(c.supabaseAnon) ? c.supabaseAnon : null);
-  const r = await fetch(c.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/' + fn, {method:'POST', keepalive:!!(opt && opt.keep),
-    headers:{'Content-Type':'application/json', apikey:c.supabaseAnon, ...(bearer ? {Authorization:'Bearer ' + bearer} : {})}, body:JSON.stringify(args || {})});
-  if (!r.ok) throw new Error(fn + ' ' + r.status);
+  // a request sent as the page closes (keepalive) is never cut off: it has to outlive the page
+  const ac = !keep && typeof AbortController === 'function' ? new AbortController() : null;
+  const tm = ac ? setTimeout(() => ac.abort(), RPC_SLOW.has(fn) ? 60000 : 15000) : 0;
+  let r;
+  try { r = await fetch(c.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/' + fn, {method:'POST', keepalive:keep, ...(ac ? {signal:ac.signal} : {}),
+    headers:{'Content-Type':'application/json', apikey:c.supabaseAnon, ...(bearer ? {Authorization:'Bearer ' + bearer} : {})}, body:JSON.stringify(args || {})}); }
+  catch (e){ rpcFail(fn); if (ac && ac.signal.aborted) throw new Error(fn + ' timeout'); throw e; }
+  finally { clearTimeout(tm); }
+  if (r.status === 401 && tok && !(opt && opt.fresh)) return cloudRpc(fn, args, {...(opt || {}), fresh:true});
+  if (!r.ok){ if (r.status >= 500 || r.status === 401 || r.status === 408 || r.status === 429) rpcFail(fn); throw new Error(fn + ' ' + r.status); }
+  RPCB.delete(fn);
   const t = await r.text(); return t ? JSON.parse(t) : null;
 }
 
@@ -218,9 +243,10 @@ function cloudStart(){
   setTimeout(() => { if (typeof havnRenew === 'function') havnRenew(); }, 20000); setInterval(() => { if (typeof havnRenew === 'function') havnRenew(); }, 6 * 3600e3);
   CLOUD.fp0 = cloudFp(); CLOUD.beatAt = Date.now();
   document.addEventListener('visibilitychange', () => { if (document.hidden) cloudSaveSoon(true); else { cloudWake(); if (CLOUD.noBeat) cloudCheckHead(); } });
-  addEventListener('online', () => { cloudStatus('error'); cloudSaveSoon(); cloudBeat(); if (CLOUD.noBeat) cloudCheckHead(); }); addEventListener('offline', () => cloudStatus('offline'));
-  // one device at a time: the beat every five seconds while the game is on the screen (cloudBeat); a database without it: the head
-  setInterval(() => { if (!document.hidden) cloudBeat(); }, 5000);
+  addEventListener('online', () => { RPCB.clear(); cloudStatus('error'); cloudSaveSoon(); cloudBeat(); if (CLOUD.noBeat) cloudCheckHead(); }); addEventListener('offline', () => cloudStatus('offline'));
+  // one device at a time: the beat every 15 seconds while the game is on the screen (cloudBeat; five until 17.11.2026, a third of all the
+  // calls to the database: docs/planer/drift-billig-og-stabil.md V1 A); a database without it: the head
+  setInterval(() => { if (!document.hidden) cloudBeat(); }, BEAT_MS);
   setInterval(() => { if (!document.hidden && CLOUD.noBeat) cloudCheckHead(); }, 120000); setTimeout(() => { if (CLOUD.noBeat) cloudCheckHead(); }, 20000);
   pushStart(); worldStart(); shopStart(); try { MBC.start(); } catch (e){ console.error(e); } guestGift(); namesApply(); setTimeout(nameCheck, 6000); guestOpenAsk();
   window.addEventListener('pagehide', () => { cloudSaveSoon(true); if (CLOUD.sid) cloudFlush(true); });
@@ -507,7 +533,7 @@ async function cloudSaveSoon(closing, manual){
   if (S.lastReal === CLOUD.lastSave){ if (manual) cloudStatus('ok'); return; }
   CLOUD.saving = true; if (!closing) cloudStatus('saving');
   try {
-    const fp = cloudFp(), at = S.lastReal, data = await saveCode(); if (!data) return; const iso = new Date(at).toISOString(), keep = {keep:closing && data.length < 60000};
+    const fp = cloudFp(), at = S.lastReal, data = await saveCode(); if (!data) return; const iso = new Date(at).toISOString(), keep = {keep:closing && data.length < 60000, now:!!(closing || manual)};
     let r;
     // the server counts the saves (save_put3): the game says which revision it comes from, and the cloud having moved on is refused.
     // A device from before the revisions (or a new one) asks first which revision its game is from. (A database without it: the older puts.)
@@ -537,14 +563,14 @@ async function cloudSaveSoon(closing, manual){
     if (r && r.ok){ CLOUD.lastSave = at; CLOUD.forceNext = false; TAB.rv = r.rev; CLOUD.fp0 = fp; syncSet(r.saved_at || iso, at, r.rev, S.seq); cloudStatus('ok'); }
     else if (r && r.taken && r.cloud && r.cloud.active_dev && r.cloud.active_dev !== deviceId()){ CLOUD.saving = false; cloudPassed(r.cloud); }
     else if (r && r.cloud && !closing) cloudConflict(r.cloud, r.moved);
-  } catch (e){ console.error(e); cloudStatus(navigator.onLine === false ? 'offline' : 'error'); } finally { CLOUD.saving = false; }
+  } catch (e){ if (!/ wait$/.test(e.message)) console.error(e); cloudStatus(navigator.onLine === false ? 'offline' : 'error'); } finally { CLOUD.saving = false; }
 }
 // a save soon after what matters (a landing, casting off), not only on the minute: what a player does just before switching device
 function cloudSoon(ms){ if (!CLOUD.on) return; clearTimeout(CLOUD.soonT); CLOUD.soonT = setTimeout(() => { try { save(); } catch (e){} cloudSaveSoon(); }, ms || 8000); }
 // ---------- one device at a time (13.10.2026, supabase/migrations/20261013120000_active.sql) ----------
 // Jonas: «Det skal ikke kunne være mulig å spille på to enheter samtidig … Lagringen mellom enhetene må være 100% bulletproof og
 // oppdatert til enhver tid». The account has one active device. A device that starts the game takes it (save_claim); while the game is
-// on the screen it says so every five seconds (save_beat), and learns at once when another device has taken it: then it stops playing
+// on the screen it says so every 15 seconds (save_beat, BEAT_MS), and learns at once when another device has taken it: then it stops playing
 // (TAB.held, the tick waits) and shows who has the game, and if it was playing up to the moment it was taken, its very last state goes
 // up first (the hand-over, save_put4 handoff), which the device that took it waits for. A page that slept asks before it plays again
 // (cloudWake). A device that has the game and finds a newer save from the one it took it from takes that save (if nothing has happened
@@ -556,20 +582,21 @@ async function cloudClaim(wait){
   if (!CLOUD.on || !CLOUD.user || CLOUD.guest || CLOUD.noBeat) return null;
   let cl = null;
   try { cl = await cloudRpc('save_claim', {device:deviceId(), device_name:deviceName()}); } catch (e){ if (/ 404$/.test(e.message)) CLOUD.noBeat = true; return null; }
-  if (!wait || !cl || !cl.ok || !cl.prev_dev || cl.prev_dev === deviceId() || cl.prev_age == null || cl.prev_age > 20) return cl;
+  if (!wait || !cl || !cl.ok || !cl.prev_dev || cl.prev_dev === deviceId() || cl.prev_age == null || cl.prev_age > BEAT_MS / 1000 + 20) return cl;
   // the device that had the game was heard from just now: it is open, and sends its last state within a few seconds
   const nm = cl.prev_name || cloudL('den andre enheten', 'the other device');
   cloudGateShow('<p class="cg-lead">' + cloudL('Henter spillet fra ' + gEsc(nm) + ' …', 'Fetching the game from ' + gEsc(nm) + ' …') + '</p><p class="cg-small">' +
     cloudL('Spillet settes på pause der og fortsetter her, akkurat der du slapp.', 'The game is paused there and goes on here, exactly where you left it.') + '</p>');
-  for (let i = 0; i < 30; i++){ await cloudSleep(500); try { const h = await cloudRpc('save_head', {}); if (h && h.rev > cl.rev){ cl.handed = true; break; } } catch (e){} }
+  // (as long as the other device may take to hear it has lost the game, one beat, and to send its last state)
+  for (let i = 0, n = Math.round((BEAT_MS + 15000) / 500); i < n; i++){ await cloudSleep(500); try { const h = await cloudRpc('save_head', {}, {now:true}); if (h && h.rev > cl.rev){ cl.handed = true; break; } } catch (e){} }
   cloudEv('claim_wait', {handed:!!cl.handed});
   return cl;
 }
-async function cloudBeat(){
+async function cloudBeat(now){
   if (!CLOUD.on || !CLOUD.user || CLOUD.guest || CLOUD.noBeat || TAB.lost || TAB.held || CLOUD.beating || navigator.onLine === false || !S || !S.lastReal){ TAB.wait = false; return; }
   CLOUD.beating = true;
   try {
-    const h = await cloudRpc('save_beat', {device:deviceId()});
+    const h = await cloudRpc('save_beat', {device:deviceId()}, now ? {now:true} : undefined);
     if (!h) return;   // nothing on the account yet: the first save takes it
     if (h.active_dev && h.active_dev !== deviceId()){ TAB.wait = false; return void cloudPassed(h); }
     CLOUD.beatAt = Date.parse(h.now) || Date.now();
@@ -584,7 +611,7 @@ async function cloudBeat(){
 function cloudWake(){
   if (!CLOUD.on || !CLOUD.user || CLOUD.guest || CLOUD.noBeat || TAB.lost || TAB.held || navigator.onLine === false) return;
   TAB.wait = true; clearTimeout(CLOUD.waitT); CLOUD.waitT = setTimeout(() => { TAB.wait = false; }, 8000);
-  if (!CLOUD.beating) cloudBeat();
+  if (!CLOUD.beating) cloudBeat(true);
 }
 // another device has the game: this one stops, hands over its last state if it was playing until then, and says so
 async function cloudPassed(h){
@@ -592,12 +619,12 @@ async function cloudPassed(h){
   cloudEv('passed', {dev:h.active_name || null});
   // the device that has it is silent (its screen off, closed): nothing runs there, so this one takes the game back by itself, the time
   // since played to the world's clock (an online game: the world, the clock and the plans go on with every screen off)
-  if (h.active_age != null && h.active_age > 30){ cloudGateShow('<p>' + cloudL('Henter spillet ditt …', 'Fetching your game …') + '</p>'); return cloudPlayHere(); }
-  const since = Date.parse(h.active_since || '') || 0, fresh = since && CLOUD.beatAt && since - CLOUD.beatAt < 20000;
+  if (h.active_age != null && h.active_age > BEAT_MS / 1000 + 30){ cloudGateShow('<p>' + cloudL('Henter spillet ditt …', 'Fetching your game …') + '</p>'); return cloudPlayHere(); }
+  const since = Date.parse(h.active_since || '') || 0, fresh = since && CLOUD.beatAt && since - CLOUD.beatAt < BEAT_MS + 20000;
   if (fresh && TAB.rv != null && h.rev === TAB.rv && !SAVE_OFF && !CLOUD.noPut4){
     try { const at = S.lastReal, data = await saveCode();
       const r = data && await cloudRpc('save_put4', {data, saved_at:new Date(at).toISOString(), game_t:Math.round(S.t || 0), base_rev:TAB.rv, force:false, summary:saveSum(S),
-        device:deviceId(), device_name:deviceName(), handoff:true});
+        device:deviceId(), device_name:deviceName(), handoff:true}, {now:true});
       if (r && r.ok){ TAB.rv = r.rev; CLOUD.lastSave = at; syncSet(r.saved_at, at, r.rev, S.seq); cloudEv('handoff', {}); } } catch (e){ console.error(e); }
   }
   cloudHeldShow(h);
