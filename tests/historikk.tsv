@@ -5662,3 +5662,7 @@
 2026-11-17 19:30	claude/hopeful-mayer-48bgvv	dea88154+	cloudtest	OK	44	lite	samtidig	
 2026-11-17 19:30	claude/hopeful-mayer-48bgvv	dea88154+	megletest	OK	23	lite	samtidig	
 2026-11-17 22:59	claude/hopeful-mayer-48bgvv	bd184cb1+	starttest	OK	93	lite	alene	
+2026-11-17 23:14	claude/hopeful-mayer-48bgvv	4fa9d0dc+	trip2	OK	29	lite	samtidig	
+2026-11-17 23:18	claude/hopeful-mayer-48bgvv	4fa9d0dc+	dyntest	FEIL	255	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-17 23:18	claude/hopeful-mayer-48bgvv	4fa9d0dc+	autonavtest	OK	20	lite	samtidig	
+2026-11-17 23:29	claude/hopeful-mayer-48bgvv	4fa9d0dc+	dyntest	FEIL	259	lite	alene	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int

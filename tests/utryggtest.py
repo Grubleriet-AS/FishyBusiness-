@@ -68,6 +68,14 @@ async def main():
           if (asked) document.getElementById('modal').hidden = true;
           return {yellow:hz.filter(h => h.unsafe).length, asked, plan:!!S.plan, unsafe:S.plan ? S.plan.unsafe : null}; }""", dict(end0, o=f['o']))
         check(al['yellow'] == 1 and not al['asked'] and al['plan'] and al['unsafe'] == [False], 'a yellow leg Autonav laid starts at once, not asked about and not marked unsafe', al)
+        # the last leg into the player's own stop after Autonav's way is Autonav's too (tilbakemelding #155): a yellow leg from a leia point
+        # to a plain stop is not asked about and not marked unsafe, and the plan keeps where she left (S.plan.from, #130)
+        al2 = await pg.evaluate("""async (w) => { S.plan = null; S.boat.status = 'idle'; S.boat.port = null; S.boat.v = 0; S.boat.pos = {x:w.o.x, y:w.o.y}; S.draft = [{x:(w.o.x + w.x) / 2, y:(w.o.y + w.y) / 2, port:null, fish:0, leia:true}, {x:w.x, y:w.y, port:null, fish:0}]; hzCache.k = ''; panelDirty = true; setTab('route'); routeChanged(); renderPanel(); await new Promise(r => setTimeout(r, 400));
+          let hz = draftHazards(); for (let i = 0; i < 20 && /^wait/.test(hzCache.k); i++){ await new Promise(r => setTimeout(r, 300)); hzCache.k = ''; hz = draftHazards(); }
+          document.querySelector('[data-act=start]').click(); await new Promise(r => setTimeout(r, 200)); const asked = !document.getElementById('modal').hidden && !!document.getElementById('hzGo');
+          if (asked) document.getElementById('modal').hidden = true;
+          return {yellow:hz.map(h => !!h.unsafe), asked, plan:!!S.plan, unsafe:S.plan ? S.plan.unsafe : null, from:!!(S.plan && S.plan.from)}; }""", dict(end0, o=f['o']))
+        check(al2['yellow'][1] and not al2['asked'] and al2['plan'] and al2['unsafe'] == [False, False] and al2['from'], 'the last leg from an Autonav point into the player\'s own stop counts as Autonav\'s: not asked, not unsafe; the plan keeps its start', al2)
         print('sidefeil', errs)
         await br.close()
 asyncio.run(main())

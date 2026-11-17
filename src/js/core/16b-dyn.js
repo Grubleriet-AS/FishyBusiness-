@@ -965,7 +965,11 @@ function dynAuto(d, dtG){
   // corner cut on her radius or a drift off the line at speed ran her aground on an Autonav route, tilbakemelding #96, 26.10.2026;
   // not while the hands take her along the line, the last way out, which may cross what the model would be held by)
   const a = {x:X0 / 1000, y:Y0 / 1000}, to = {x:d.X / 1000, y:d.Y / 1000}; let gp = null; try { gp = Math.hypot(d.X - X0, d.Y - Y0) > 0.01 && !(T.assist > T.s - 1 && !(pl.unsafe && pl.unsafe[pl.idx])) ? groundCheck(a, to, dynSquat(P, d.u, E.narrow)) : null; } catch (e){}
-  if (gp){ if (pl.unsafe && pl.unsafe[pl.idx] && !gp.ice){ dynWrite(b, d); runAground(gp); return; }
+  // (only where the leg runs: ground met off the leg's line, in the turn on to it at the start, is held as on a safe leg. The trebåt
+  // turning off a quay at Kvitsøy touched 23 m off her first leg at 1.3 kn and was put aground on it, tilbakemelding #130, 17.11.2026;
+  // the leg's start is where she left (S.plan.from, ui/08-actions.js) or the stop before)
+  const legA = pl.idx > 0 ? pl.wps[pl.idx - 1] : pl.from, legB = pl.wps[pl.idx], onLeg = !gp || !legA || !legB || segDist(gp, legA, legB) <= (P.B / 2 + 10) / 1000;
+  if (gp){ if (pl.unsafe && pl.unsafe[pl.idx] && !gp.ice && onLeg){ dynWrite(b, d); runAground(gp); return; }
     const fast = Math.abs(d.u) > 1.5; d.X = X0; d.Y = Y0; d.u = 0; d.v = 0;
     // (held back slowly for half a game minute, her bow on the shallows the line runs into: a way round is found from there as at speed
     // (and where none is found, she stops and says so). Before, she lay held against it with the throttle open for good: the 21 m coastal
