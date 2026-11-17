@@ -1,6 +1,6 @@
 # Fiskarlag 2: egne lag og oppdrag som passer laget
 
-Plan 17.11.2026. Venter på valgene og «kjør på».
+Plan 17.11.2026. Valgene tatt samme dag (V1–V4 A); venter på «kjør på».
 
 ## Hva Jonas ba om
 
@@ -80,4 +80,4 @@ Rekkefølgen er FL1 → FL2 → FL3 → FL4 → FL5. FL1 alene gir verdi (lenken
 
 ## Status
 
-17.11.2026: planen skrevet, venter på V1–V4 og «kjør på».
+17.11.2026: planen skrevet. Jonas valgte samme dag V1 A (2–12), V2 A (kroner etter balanseregelen, merket og avisa), V3 A (medlemmene stemmer, det første velges om ingen stemmer innen et spilldøgn), V4 A (havnelagene tas bort med melding). Venter på «kjør på» for FL1.
