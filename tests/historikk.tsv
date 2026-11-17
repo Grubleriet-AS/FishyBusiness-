@@ -5652,3 +5652,6 @@
 2026-11-17 18:55	fb/2026-11-17-havn-land	1c87054c	utfrakai	OK	103	lite	samtidig	
 2026-11-17 18:55	fb/2026-11-17-havn-land	1c87054c	naustleia	OK	12	lite	samtidig	
 2026-11-17 18:55	fb/2026-11-17-havn-land	1c87054c	trip2	OK	43	lite	samtidig	
+2026-11-17 17:06	claude/hopeful-mayer-48bgvv	57bfe35c+	kjoptest	OK	160	lite	samtidig	
+2026-11-17 17:06	claude/hopeful-mayer-48bgvv	57bfe35c+	guesttest	OK	83	lite	samtidig	
+2026-11-17 17:06	claude/hopeful-mayer-48bgvv	57bfe35c+	cloudtest	OK	51	lite	samtidig	
