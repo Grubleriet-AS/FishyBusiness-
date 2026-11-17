@@ -66,4 +66,4 @@ Et lag må ha folk i seg den dagen spilleren kommer inn, ellers er det en tom si
 
 Reglene som gjelder (`docs/engasjement.md`): sosialt er additivt (fravær trekker ingen ned), ingen fri tekst, haill synes ikke for andre, alt teller bare oppover, gjester kan ikke være med i det som deles.
 
-Valgene står i økta 17.11.2026 og i planen som skrives etter Jonas' svar (`docs/planer/fiskarlag-2.md`).
+Jonas valgte 17.11.2026 egne lag med kode og oppdrag tilpasset medlemmene; planen er `docs/planer/fiskarlag-2.md`.
