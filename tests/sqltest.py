@@ -943,6 +943,8 @@ def main():
         # the funnel (20261007150000_funnel.sql): from the first session to the third landing and the account, and coming back after
         # 1, 7 and 30 days of those who have had that long; counted as the change three new players make
         F0 = json.loads(sql("select public.admin_funnel(8)", AD2, 'authenticated'))['all']
+        # the status page's lines (20261117120000_admin_trend.sql): a row per day for this period and the one before, taken before and after
+        T0 = json.loads(sql("select public.admin_trend(14)", AD2, 'authenticated'))
         sql("""insert into public.players (id, guest) values ('user_01FN1', false), ('33333333-3333-4333-8333-333333333333', true), ('user_01FN3', false);
           insert into public.sessions (id, player_id, started_at) values ('44444444-4444-4444-8444-444444444441', 'user_01FN1', now() - interval '10 days'),
             ('44444444-4444-4444-8444-444444444442', 'user_01FN1', now() - interval '2 days'), ('44444444-4444-4444-8444-444444444443', '33333333-3333-4333-8333-333333333333', now() - interval '2 hours'),
@@ -957,6 +959,12 @@ def main():
         F1 = json.loads(sql("select public.admin_funnel(8)", AD2, 'authenticated'))
         FD = {k: F1['all'][k] - F0.get(k, 0) for k in F1['all']}
         FX = {'pl': sql("select public.admin_funnel(8)", B, 'authenticated', expect_err=True), 'mfa': sql("select public.admin_funnel(8)", AD1, 'authenticated', expect_err=True)}
+        T1 = json.loads(sql("select public.admin_trend(14)", AD2, 'authenticated'))
+        TX = {'pl': sql("select public.admin_trend(14)", B, 'authenticated', expect_err=True), 'mfa': sql("select public.admin_trend(14)", AD1, 'authenticated', expect_err=True)}
+        TS = lambda T, k: sum(r[k] for r in T['rows'])
+        TD = {k: TS(T1, k) - TS(T0, k) for k in ('new', 'reg', 'sales', 'sessions')}
+        print(ok(len(T1['rows']) == 28 and T1['rows'][-1]['day'] == T1['to'] and TD == {'new': 3, 'reg': 2, 'sales': 4, 'sessions': 5} and T1['rows'][-1]['reg'] - T0['rows'][-1]['reg'] == 2 and TX['pl'][0] and TX['mfa'][0]),
+              "the status page's trend: a row per day for two periods, the new players on their first session's day, the accounts, landings and sessions; only the admin with MFA", TD)
         print(ok(FD == {'start': 3, 'catch': 2, 'land1': 2, 'land3': 1, 'reg': 2, 'd1': 2, 'd1n': 2, 'd7': 1, 'd7n': 1, 'd30': 0, 'd30n': 0, 'tier': 2, 'tier7': 1} and FX['pl'][0] and FX['mfa'][0]
                  and F1['weeks'] and sum(w['start'] for w in F1['weeks']) >= 3 and all('tier' in w and 'tier7' in w for w in F1['weeks'])),
               "the funnel: started, first catch, first and third landing, an account, back after 1, 7 and 30 days of those who have had that long, and a tier bought within day 7 (OPP4); by the week they started; only the admin with MFA reads it", FD)

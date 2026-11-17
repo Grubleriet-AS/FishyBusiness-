@@ -6,35 +6,132 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Det Store Blå · admin</title>
 <style>
-:root{--bg:#07111d;--panel:#0e1d2f;--line:#1f3550;--ink:#e8f0f8;--dim:#93a9c1;--acc:#f2b33d;--blue:#4b9be0;--good:#53c48a;--bad:#e5645b}
+:root{color-scheme:dark;--bg:#06111d;--bg2:#081727;--panel:#0d1d30;--panel2:#11253b;--line:#1b3049;--line2:#24405f;--ink:#eaf1f8;--dim:#b1c2d4;--mute:#8ba0b6;
+  --acc:#f2b33d;--acc-ink:#1b1407;--blue:#3987e5;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--ghost:#5b6f86;--grid:#182b42;--axis:#2a4260;
+  --good:#3fc27a;--bad:#f06b62;--wash:rgba(57,135,229,.10);--shadow:0 1px 0 rgba(255,255,255,.03) inset,0 8px 24px rgba(0,0,0,.25);--r:14px}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){color-scheme:light;--bg:#eef2f6;--bg2:#e6ecf2;--panel:#ffffff;--panel2:#f5f8fb;--line:#e1e7ee;--line2:#cfd9e4;--ink:#0b1b2b;--dim:#4a5b6d;--mute:#748396;
+  --acc:#c98500;--acc-ink:#fff;--blue:#2a78d6;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--ghost:#a9b4c0;--grid:#edf1f5;--axis:#cfd8e2;--good:#0a7d3c;--bad:#c8372f;--wash:rgba(42,120,214,.09);--shadow:0 1px 2px rgba(16,40,70,.06),0 6px 18px rgba(16,40,70,.06)}}
+:root[data-theme="light"]{color-scheme:light;--bg:#eef2f6;--bg2:#e6ecf2;--panel:#ffffff;--panel2:#f5f8fb;--line:#e1e7ee;--line2:#cfd9e4;--ink:#0b1b2b;--dim:#4a5b6d;--mute:#748396;
+  --acc:#c98500;--acc-ink:#fff;--blue:#2a78d6;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--ghost:#a9b4c0;--grid:#edf1f5;--axis:#cfd8e2;--good:#0a7d3c;--bad:#c8372f;--wash:rgba(42,120,214,.09);--shadow:0 1px 2px rgba(16,40,70,.06),0 6px 18px rgba(16,40,70,.06)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:2;flex-wrap:wrap}
-header h1{font:600 20px Georgia,serif;margin:0}
-header .sp{flex:1}
-select,input,button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
-button{cursor:pointer}button.p{background:var(--acc);color:#1b1407;border:0;font-weight:600}
-nav{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;border-bottom:1px solid var(--line)}
-nav button{white-space:nowrap}nav button.on{background:var(--blue);border-color:var(--blue)}
-main{padding:16px;max-width:1280px;margin:0 auto}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:12px}
-.card h3{margin:0 0 8px;font-size:14px;color:var(--dim);font-weight:600}
-.kpi b{display:block;font-size:26px;font-weight:650}.kpi span{color:var(--dim);font-size:13px}
-table{width:100%;border-collapse:collapse;font-size:13px}td,th{padding:5px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{color:var(--dim);font-weight:600}
-.bar{display:flex;align-items:center;gap:8px;font-size:13px;margin:3px 0}.bar i{display:block;height:10px;background:var(--blue);border-radius:3px}.bar em{color:var(--dim);font-style:normal;margin-left:auto}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--blue)}
+select,input,button,textarea{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:7px 11px}
+button{cursor:pointer;transition:background .15s,border-color .15s}button:hover{border-color:var(--blue)}
+button.p{background:var(--acc);color:var(--acc-ink);border:0;font-weight:600}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+/* the frame: a side column with the groups on a wide screen, a row of tabs under the header on a narrow one */
+.shell{display:grid;grid-template-columns:minmax(0,1fr);min-height:100vh}
+.side{background:var(--bg2);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3}
+.brand{display:flex;align-items:center;gap:10px;padding:12px 16px}
+.brand svg{width:30px;height:30px;flex:none}
+.brand b{font:600 17px/1.1 Georgia,"Times New Roman",serif;letter-spacing:.2px}.brand small{display:block;color:var(--mute);font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-top:2px}
+.brand .sp{flex:1}
+nav{display:flex;gap:4px;padding:0 12px 10px;overflow-x:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(to right,#000 88%,transparent);mask-image:linear-gradient(to right,#000 88%,transparent)}nav::-webkit-scrollbar{display:none}
+nav .ng{display:none}
+nav button{white-space:nowrap;border:0;background:transparent;color:var(--dim);padding:10px 14px;min-height:42px;border-radius:10px;font-size:14.5px}
+nav button:hover{background:var(--panel);color:var(--ink)}
+nav button.on{background:var(--panel2);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line2);font-weight:600}
+nav .sep{flex:none;width:1px;background:var(--line2);margin:6px 4px}
+.body{min-width:0}
+header{display:flex;align-items:center;gap:10px;padding:14px 20px;flex-wrap:wrap;border-bottom:1px solid var(--line);background:var(--bg)}
+header .ht{font-weight:650;font-size:18px}header .sp{flex:1}
+header .upd{color:var(--mute);font-size:13px}
+header .live{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--dim);background:var(--panel);border:1px solid var(--line);padding:5px 10px;border-radius:999px}
+header .live i{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px rgba(63,194,122,.2)}
+.ib{min-width:42px;min-height:42px;padding:0;line-height:0;display:inline-grid;place-items:center}
+header select{min-height:42px}
+@media (min-width:1100px){
+  .shell{grid-template-columns:236px minmax(0,1fr)}
+  .side{height:100vh;border-bottom:0;border-right:1px solid var(--line);overflow-y:auto;display:flex;flex-direction:column}
+  .brand{padding:18px 18px 14px}
+  nav{flex-direction:column;overflow:visible;padding:4px 10px 20px;gap:1px;-webkit-mask-image:none;mask-image:none}
+  nav button{min-height:38px;padding:8px 14px}
+  nav .ng{display:block;color:var(--mute);font-size:11px;text-transform:uppercase;letter-spacing:.12em;padding:14px 12px 4px;font-weight:600}
+  nav .sep{display:none}
+  nav button{text-align:left;width:100%}
+  header{position:sticky;top:0;z-index:2;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px)}
+}
+main{padding:20px;max-width:1320px;margin:0 auto}
+.intro{margin:0 0 16px}.intro h2{margin:0 0 4px;font-size:22px;font-weight:650;letter-spacing:-.01em}.intro p{margin:0;color:var(--dim);max-width:78ch}
+.intro details{margin-top:8px}
+details>summary{cursor:pointer;color:var(--blue);font-size:13.5px;list-style:none;padding:8px 0;display:inline-block}details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"▸ ";color:var(--mute)}details[open]>summary::before{content:"▾ "}
+dl.ord{display:grid;grid-template-columns:minmax(120px,auto) 1fr;gap:6px 14px;margin:10px 0 0;font-size:13px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+dl.ord dt{font-weight:600}dl.ord dd{margin:0;color:var(--dim)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;align-items:start;margin-bottom:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;box-shadow:var(--shadow);min-width:0}
+.grid>.card{margin-bottom:0}
+.card h3{margin:0 0 10px;font-size:14px;color:var(--ink);font-weight:650}
+.card h3+.note{margin-top:-6px}
+.kpi{position:relative}
+.kpi b{display:block;font-size:26px;font-weight:650;letter-spacing:-.01em;line-height:1.2}.kpi span{color:var(--dim);font-size:13px}
+[data-help]{cursor:help;position:relative}.kpi[data-help]{padding-right:30px}
+[data-help] .q{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;border:1px solid var(--line2);color:var(--mute);font:600 11px/16px system-ui;text-align:center}
+[data-help] .help{display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);color:var(--dim);font-size:12.5px;line-height:1.45}
+[data-help].open .help{display:block}[data-help].open .q{background:var(--blue);border-color:var(--blue);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px;font-variant-numeric:tabular-nums}
+td,th{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{color:var(--mute);font-weight:600;font-size:12.5px}
+tr:hover td{background:color-mix(in srgb,var(--panel2) 70%,transparent)}
+.bar{display:flex;align-items:center;gap:10px;font-size:13px;margin:5px 0}.bar span{color:var(--ink)}
+.bar i{display:block;height:8px;background:var(--s1);border-radius:0 4px 4px 0}.bar em{color:var(--dim);font-style:normal;margin-left:auto;font-variant-numeric:tabular-nums}
+.card>h3~h3{margin-top:16px}
 .note{color:var(--dim);font-size:13px}.warn{color:var(--acc)}
 .jkrow td{border-bottom:0;padding-bottom:0}.jkd td{padding-top:2px}.jkoff{opacity:.55}.jkrow button{margin:0 4px 4px 0}
 tr.worst td{background:rgba(224,120,60,.14)}
-#login{max-width:380px;margin:12vh auto;padding:0 16px}#login .card{padding:20px}#login label{display:block;margin:10px 0 4px;color:var(--dim)}#login input{width:100%}
-svg text{fill:var(--dim);font-size:10px}
-.demo{background:#3a2a07;color:var(--acc);padding:6px 16px;font-size:13px}
+#login{max-width:400px;margin:12vh auto;padding:0 16px}#login .card{padding:24px}#login label{display:block;margin:12px 0 4px;color:var(--dim);font-size:13px}#login input{width:100%}
+#login .brand{padding:0 0 10px}
+svg text{fill:var(--mute);font-size:10px}
+.demo{background:color-mix(in srgb,var(--acc) 16%,var(--bg));color:var(--acc);padding:7px 20px;font-size:13px;border-bottom:1px solid color-mix(in srgb,var(--acc) 30%,transparent)}
+.m1{fill:var(--s1)}.m2{fill:var(--s2)}
+/* the status page */
+.hero{display:grid;grid-template-columns:1fr;gap:14px;padding:18px 20px;background:linear-gradient(135deg,color-mix(in srgb,var(--blue) 14%,var(--panel)),var(--panel) 60%)}
+.hero .vd{font-size:26px;font-weight:700;letter-spacing:-.015em;margin:2px 0 4px;display:flex;align-items:center;gap:10px}
+.hero .vd .ar{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;font-size:18px;color:#fff}
+.v-up .ar{background:var(--good)}.v-flat .ar{background:var(--ghost)}.v-down .ar{background:var(--bad)}
+.hero .eyebrow{color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.12em;font-weight:600}
+.sig{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px 18px;margin:0;padding:0;list-style:none}
+.sig li{display:flex;gap:8px;align-items:baseline;font-size:14px;color:var(--dim)}.sig li b{color:var(--ink);font-weight:600}
+.sig .dot{flex:none;width:18px;text-align:center;font-weight:700}
+.up{color:var(--good)}.down{color:var(--bad)}.flat{color:var(--mute)}
+.heronums{display:flex;flex-wrap:wrap;gap:8px 28px}.heronums div b{display:block;font-size:22px;font-weight:650}.heronums div span{font-size:12px;color:var(--mute)}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:12px 0}
+.tile{margin:0}.tile .tv{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}.tile .tv b{font-size:28px;font-weight:650;letter-spacing:-.015em}
+.tile .lbl{font-size:13px;color:var(--dim);display:block;margin-bottom:2px}
+.tile .dl{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}.tile .vs{font-size:12px;color:var(--mute);display:block}
+.tile svg.spk{display:block;width:100%;height:34px;margin-top:8px}
+.charts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,440px),1fr));gap:12px}
+.charts>.card{margin:0}
+.ch{position:relative;touch-action:pan-y}
+.ch svg{display:block;width:100%;height:auto;overflow:visible}
+.ch .gl{stroke:var(--grid);stroke-width:1}.ch .ax{stroke:var(--axis);stroke-width:1}
+.ch .ln{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ch .gh{fill:none;stroke:var(--ghost);stroke-width:1.5;stroke-linejoin:round;opacity:.8}
+.ch .xh{stroke:var(--dim);stroke-width:1;opacity:0}.ch.hov .xh{opacity:.6}
+.ch .hd{opacity:0;stroke:var(--panel);stroke-width:2}.ch.hov .hd{opacity:1}
+.ch .ed{stroke:var(--panel);stroke-width:2}
+.ch svg text{font-size:var(--fs,11px)}.ch .el{fill:var(--ink);font-weight:600}
+.tip{position:absolute;top:0;left:0;pointer-events:none;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:8px 10px;font-size:12px;box-shadow:0 8px 22px rgba(0,0,0,.25);opacity:0;transition:opacity .1s;min-width:140px;z-index:4}
+.ch.hov .tip{opacity:1}
+.tip .td{color:var(--mute);margin-bottom:4px}.tip .tr{display:flex;align-items:center;gap:8px;margin:2px 0}.tip .tr i{width:12px;height:2px;border-radius:1px;flex:none}.tip .tr b{font-size:13px;font-variant-numeric:tabular-nums}.tip .tr span{color:var(--dim)}
+.lg{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--dim);margin:-2px 0 8px}.lg span{display:inline-flex;align-items:center;gap:6px}.lg i{display:inline-block;width:14px;height:2px;border-radius:1px}
+.chh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}.chh h3{margin-bottom:2px}.chh .big{font-size:20px;font-weight:650;font-variant-numeric:tabular-nums}
+.chn{color:var(--dim);font-size:13px;margin:0 0 10px}
+details.tvw{margin-top:8px}details.tvw table{margin-top:6px}details.tvw .scroll{max-height:260px;overflow:auto}
+.pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--panel2);border:1px solid var(--line2);color:var(--dim);vertical-align:middle}
 .lggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}.lgimg{display:block;width:128px;height:128px;object-fit:contain;background:repeating-conic-gradient(#8884 0 25%,transparent 0 50%) 0 0/16px 16px;border-radius:6px}.lgoff .lgimg{opacity:.35}.lgrow textarea{width:100%;box-sizing:border-box}
-.fbbody{white-space:pre-wrap;word-break:break-word;margin:6px 0}.fbimg{display:block;max-width:100%;max-height:70vh;border-radius:8px;margin:6px 0}.fbai{border-left:3px solid var(--acc);padding:4px 10px;margin:6px 0;font-size:13px}.fbset{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;margin-top:6px}.fbset textarea{flex:1 1 260px;min-height:38px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px}
+.fbbody{white-space:pre-wrap;word-break:break-word;margin:6px 0}.fbimg{display:block;max-width:100%;max-height:70vh;border-radius:8px;margin:6px 0}.fbai{border-left:3px solid var(--acc);padding:4px 10px;margin:6px 0;font-size:13px}.fbset{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start;margin-top:6px}.fbset textarea{flex:1 1 260px;min-height:38px;background:var(--bg)}
 .sprow{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.sptw{overflow-x:auto}.sptw table{min-width:980px}.spbk{display:flex;height:10px;border-radius:5px;overflow:hidden;min-width:90px;background:var(--line)}.spbk i{display:block}.sprow input,.sprow select{min-width:140px}
-@media print{header,nav,#mkPrint,.demo{display:none!important}.mk .card{break-inside:avoid}}
+.card>table,.card>div>table{display:table}
+.card:has(>table){overflow-x:auto}
+@media print{header,nav,.side,#mkPrint,.demo{display:none!important}.shell{display:block}.mk .card{break-inside:avoid}}
 .mk-l{margin:4px 0 0 18px;padding:0}.mk-l li{margin:3px 0}
 .mk-img{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}.mk-img figure{margin:0}.mk-img img{width:100%;height:auto;border-radius:8px;display:block}.mk-img figcaption{font-size:12px;opacity:.8;margin-top:4px}
+@media (min-width:1100px){.tiles{grid-template-columns:repeat(6,minmax(0,1fr))}.tile .tv b{font-size:24px}.tile .dl{font-size:12px}}
+@media (max-width:560px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:640px){main{padding:14px}header{padding:10px 14px}.hero .vd{font-size:22px}}
 </style>
 </head>
 <body>
@@ -48,7 +145,7 @@ const DEMO = !CFG || !CFG.supabaseUrl || /[?&]demo/.test(location.search);
 const $ = s => document.querySelector(s), esc = v => String(v == null ? '–' : v).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'})[c]);
 const nf = (v, d) => v == null || isNaN(v) ? '–' : Number(v).toLocaleString('nb-NO', {maximumFractionDigits:d == null ? 1 : d});
 const pct = v => v == null ? '–' : nf(v * 100, 1) + ' %';
-let SES = JSON.parse(sessionStorage.getItem('dsbAdmin') || 'null'), DATA = null, TAB = 'oversikt', DAYS = 30;
+let SES = JSON.parse(sessionStorage.getItem('dsbAdmin') || 'null'), DATA = null, TAB = 'status', DAYS = 30;
 
 async function auth(path, body, tok){
   const r = await fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/auth/v1/' + path, {method:body ? 'POST' : 'GET', headers:{'Content-Type':'application/json', apikey:CFG.supabaseAnon, ...(tok ? {Authorization:'Bearer ' + tok} : {})}, body:body ? JSON.stringify(body) : undefined});
@@ -64,7 +161,7 @@ function keep(s){ SES = s; sessionStorage.setItem('dsbAdmin', JSON.stringify(s))
 
 // ---------- sign-in: password, then the second factor (enrolled the first time) ----------
 function loginView(msg){
-  $('#app').innerHTML = '<div id="login"><div class="card"><h1 style="font:600 24px Georgia,serif;margin:0 0 4px">Det Store Blå</h1><p class="note">Admin. Bare for eieren.</p>' +
+  $('#app').innerHTML = '<div id="login"><div class="card"><div class="brand">' + LOGO + '<div><b>Det Store Blå</b><small>Admin</small></div></div><p class="note">Bare for eieren. Logg inn med e-post, passord og totrinnskode.</p>' +
     (msg ? '<p class="warn">' + esc(msg) + '</p>' : '') +
     '<label>E-post</label><input id="em" type="email" autocomplete="username"><label>Passord</label><input id="pw" type="password" autocomplete="current-password">' +
     '<p><button class="p" id="go">Logg inn</button></p></div></div>';
@@ -87,16 +184,20 @@ async function load(){
   catch (e){ if (SES){ $('#app').innerHTML = '<main><div class="card warn">' + esc(e.message) + '</div><button id="reLogin">Logg inn på nytt</button></main>';
     $('#reLogin').onclick = () => { SES = null; sessionStorage.clear(); render(); }; } }   // (no onclick in the HTML: the page's CSP allows only its own script)
 }
-const TABS = [['oversikt', 'Oversikt'], ['trakt', 'Trakt'], ['tid', 'Spilletid'], ['frafall', 'Frafall'], ['bruk', 'Spillbruk'], ['okonomi', 'Økonomi i spillet'], ['penger', 'Penger'], ['teknikk', 'Teknikk'], ['geo', 'Geografi'], ['tilbake', 'Tilbakemeldinger'], ['agent', 'Agent'], ['lansering', 'Lansering'], ['logoer', 'Logoer'], ['navn', 'Brukernavn'], ['avis', 'Kystposten'], ['merker', 'Merker'], ['juks', 'Juks'], ['kapplop', 'Kappløp'], ['kommer', 'Kommer'], ['sponsorer', 'Sponsorer'], ['mediekort', 'Mediekort']];
+const TABS = [['status', 'Status'], ['oversikt', 'Nøkkeltall'], ['trakt', 'Trakt'], ['tid', 'Spilletid'], ['frafall', 'Frafall'], ['bruk', 'Spillbruk'], ['okonomi', 'Økonomi i spillet'], ['penger', 'Penger'], ['teknikk', 'Teknikk'], ['geo', 'Geografi'], ['tilbake', 'Tilbakemeldinger'], ['agent', 'Agent'], ['lansering', 'Lansering'], ['logoer', 'Logoer'], ['navn', 'Brukernavn'], ['avis', 'Kystposten'], ['merker', 'Merker'], ['juks', 'Juks'], ['kapplop', 'Kappløp'], ['kommer', 'Kommer'], ['sponsorer', 'Sponsorer'], ['mediekort', 'Mediekort']];
 function render(){
   if (!DEMO && !SES) return loginView();
   if (!DATA) { $('#app').innerHTML = '<main class="note">Henter …</main>'; return load(); }
-  $('#app').innerHTML = (DEMO ? '<div class="demo">Demo: tallene er oppdiktet. Med Supabase-nøklene og innlogging vises de ekte.</div>' : '') +
-    '<header><h1>Det Store Blå · admin</h1><span class="sp"></span><span class="note">Oppdatert ' + new Date(DATA.generated).toLocaleTimeString('nb-NO') + '</span>' +
-    '<select id="days">' + [1, 7, 30, 90, 365].map(d => '<option value="' + d + '"' + (d === DAYS ? ' selected' : '') + '>' + (d === 1 ? 'Siste døgn' : 'Siste ' + d + ' dager') + '</option>').join('') + '</select>' +
-    (DEMO ? '' : '<button id="out">Logg ut</button>') + '</header><nav>' + TABS.map(([k, n]) => '<button data-t="' + k + '"' + (k === TAB ? ' class="on"' : '') + '>' + n + '</button>').join('') + '</nav><main>' + (VIEW[TAB] || (() => ''))(DATA) + '</main>';
-  $('#days').onchange = e => { DAYS = +e.target.value; DATA = null; render(); };
-  document.querySelectorAll('nav button').forEach(b => b.onclick = () => { TAB = b.dataset.t; render(); });
+  const live = DATA.overview && DATA.overview.active_now != null ? '<span class="live" title="Spillere med en åpen økt nå"><i></i>' + nf(DATA.overview.active_now, 0) + ' spiller nå</span>' : '';
+  $('#app').innerHTML = '<div class="shell"><aside class="side"><div class="brand">' + LOGO + '<div><b>Det Store Blå</b><small>Admin</small></div></div>' + navHtml() + '</aside><div class="body">' +
+    (DEMO ? '<div class="demo">Demo: tallene er oppdiktet. Med Supabase-nøklene og innlogging vises de ekte.</div>' : '') +
+    '<header><span class="ht">' + esc((INTRO[TAB] || [Object.fromEntries(TABS)[TAB] || ''])[0]) + '</span><span class="sp"></span>' + live + '<span class="upd">Oppdatert ' + new Date(DATA.generated).toLocaleTimeString('nb-NO', {hour:'2-digit', minute:'2-digit'}) + '</span>' +
+    '<select id="days" aria-label="Periode">' + [1, 7, 30, 90, 365].map(d => '<option value="' + d + '"' + (d === DAYS ? ' selected' : '') + '>' + (d === 1 ? 'Siste døgn' : 'Siste ' + d + ' dager') + '</option>').join('') + '</select>' +
+    '<button id="thm" class="ib" title="Lys eller mørk" aria-label="Bytt mellom lys og mørk"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><circle cx="10" cy="10" r="7" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 3a7 7 0 0 1 0 14z" fill="currentColor"/></svg></button>' + (DEMO ? '' : '<button id="out">Logg ut</button>') + '</header><main>' + introHtml(TAB) + (VIEW[TAB] || (() => ''))(DATA) + '</main></div></div>';
+  $('#thm').onclick = () => { themeFlip(); };
+  helpWire(); chWire();
+  $('#days').onchange = e => { DAYS = +e.target.value; DATA = null; TR = null; render(); };
+  document.querySelectorAll('nav button').forEach(b => b.onclick = () => { TAB = b.dataset.t; render(); scrollTo(0, 0); });
   if ($('#out')) $('#out').onclick = () => { auth('logout', {}, SES.access_token).catch(() => {}); SES = null; sessionStorage.clear(); render(); };
   if (TAB === 'tilbake') fbWire();
   if (TAB === 'agent') agWire();
@@ -113,19 +214,17 @@ function render(){
   if (TAB === 'trakt' && $('#fnR')) $('#fnR').onclick = () => { FN = null; TU = null; HBF = null; render(); };
 }
 
-const kpi = (label, v, sub) => '<div class="card kpi"><b>' + v + '</b><span>' + label + (sub ? '<br>' + sub : '') + '</span></div>';
 const card = (title, body, note) => '<div class="card"><h3>' + title + '</h3>' + body + (note ? '<p class="note">' + note + '</p>' : '') + '</div>';
 function bars(obj, fmt){ const e = Object.entries(obj || {}).sort((a, b) => b[1] - a[1]); if (!e.length) return '<p class="note">Ingen data ennå.</p>'; const m = Math.max(...e.map(x => +x[1])) || 1;
   return e.slice(0, 25).map(([k, v]) => '<div class="bar"><span style="min-width:120px">' + esc(k) + '</span><i style="width:' + Math.max(2, 60 * v / m) + '%"></i><em>' + (fmt ? fmt(v) : nf(v, 0)) + '</em></div>').join(''); }
 function table(rows, cols){ if (!rows || !rows.length) return '<p class="note">Ingen data ennå.</p>'; return '<table><tr>' + cols.map(c => '<th>' + c[1] + '</th>').join('') + '</tr>' + rows.map(r => '<tr>' + cols.map(c => '<td>' + (c[2] ? c[2](r[c[0]], r) : esc(r[c[0]])) + '</td>').join('') + '</tr>').join('') + '</table>'; }
-function daily(d){ const W = 900, H = 200, n = Math.max(1, d.length), bw = W / n, mh = Math.max(0.1, ...d.map(x => x.hours)), ms = Math.max(1, ...d.map(x => x.sessions));
-  let s = '<svg viewBox="0 0 ' + W + ' ' + (H + 30) + '" width="100%">';
-  d.forEach((x, i) => { const h = H * x.hours / mh, y = H - h; s += '<rect x="' + (i * bw + 1) + '" y="' + y + '" width="' + Math.max(1, bw - 2) + '" height="' + h + '" fill="#4b9be0"><title>' + esc(x.day + ': ' + nf(x.hours) + ' t, ' + x.sessions + ' økter, ' + x.players + ' spillere, ' + Object.entries(x.browsers || {}).map(e => e.join(' ')).join(', ')) + '</title></rect>';
-    s += '<circle cx="' + (i * bw + bw / 2) + '" cy="' + (H - H * x.sessions / ms) + '" r="2.5" fill="#f2b33d"/>'; if (n <= 31 || i % Math.ceil(n / 15) === 0) s += '<text x="' + (i * bw + bw / 2) + '" y="' + (H + 14) + '" text-anchor="middle">' + x.day.slice(5) + '</text>'; });
-  return s + '</svg><p class="note">Søyler: timer spilt. Prikker: økter. Hold over en søyle for nettleserne.</p>'; }
+// the hours a day as a line (17.11.2026: was bars for the hours with dots for the sessions on a second scale); the sessions and players stand in the table under
+function daily(d){ if (!d.length) return '<p class="note">Ingen data ennå.</p>';
+  return lineChart([{name:'Timer spilt', cls:'s1', v:d.map(x => +x.hours || 0)}], d.map(x => x.day), {tfmt:v => nf(v, 1) + ' t'}) +
+    '<p class="note">Snitt ' + nf(d.reduce((a, x) => a + (+x.sessions || 0), 0) / d.length, 0) + ' økter og ' + nf(d.reduce((a, x) => a + (+x.players || 0), 0) / d.length, 0) + ' spillere per dag i perioden.</p>'; }
 function heat(hm){ const g = {}; let m = 0; (hm || []).forEach(x => { g[x.dow + ':' + x.hour] = x.hours; m = Math.max(m, x.hours); }); const days = ['Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lør', 'Søn'];
   let s = '<svg viewBox="0 0 760 200" width="100%">'; for (let d = 1; d <= 7; d++){ s += '<text x="0" y="' + (d * 24 + 4) + '">' + days[d - 1] + '</text>';
-    for (let h = 0; h < 24; h++){ const v = g[d + ':' + h] || 0, a = m ? v / m : 0; s += '<rect x="' + (34 + h * 30) + '" y="' + (d * 24 - 12) + '" width="28" height="22" rx="3" fill="rgba(75,155,224,' + (0.06 + 0.94 * a).toFixed(2) + ')"><title>' + days[d - 1] + ' kl. ' + h + ': ' + nf(v) + ' t</title></rect>'; } }
+    for (let h = 0; h < 24; h++){ const v = g[d + ':' + h] || 0, a = m ? v / m : 0; s += '<rect x="' + (34 + h * 30) + '" y="' + (d * 24 - 12) + '" width="28" height="22" rx="3" class="m1" fill-opacity="' + (0.06 + 0.94 * a).toFixed(2) + '"><title>' + days[d - 1] + ' kl. ' + h + ': ' + nf(v) + ' t</title></rect>'; } }
   for (let h = 0; h < 24; h += 3) s += '<text x="' + (34 + h * 30 + 8) + '" y="196">' + h + '</text>'; return s + '</svg>'; }
 const VIEW = {
   oversikt: D => { const o = D.overview; return '<div class="grid">' + kpi('Spillere i alt', nf(o.players, 0), nf(o.consented, 0) + ' deler statistikk') + kpi('Aktive nå', nf(o.active_now, 0)) + kpi('Daglig / ukentlig / månedlig', nf(o.dau, 0) + ' / ' + nf(o.wau, 0) + ' / ' + nf(o.mau, 0)) +
@@ -149,6 +248,192 @@ const VIEW = {
   geo: D => card('Land (fra nettverket, IP-adressen lagres ikke)', bars(D.geo.countries)) + card('Tidssoner', bars(D.geo.timezones)) + card('Hjemhavn i spillet', bars(D.geo.homes)),
   kommer: () => card('Venter på funksjoner i spillet', '<ul><li>Push-varsler: åpningsrate</li><li>Venner og deling: sosial klyngedynamikk, nettverkskoeffisient, viralitet, invite-to-churn og den sosiale utløseren for kjøp</li><li>Betalte boostere: bruken (tabellen er klar)</li></ul>', 'Se docs/lansering.md E.')
 };
+// ---------- the frame (17.11.2026): the tabs in groups, a short text on top of each saying what it shows, and the help behind each number ----------
+const LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lgo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4aa3f0"/><stop offset="1" stop-color="#1b4f8f"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lgo)"/><path d="M5 19c3 0 3-2 5.5-2s2.5 2 5.5 2 3-2 5.5-2 2.5 2 5.5 2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M5 24c3 0 3-2 5.5-2s2.5 2 5.5 2 3-2 5.5-2 2.5 2 5.5 2" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/><path d="M16 6l5 9h-10z" fill="#f2b33d"/></svg>';
+const GROUPS = [['Oversikt', ['status', 'oversikt']], ['Spillerne', ['trakt', 'tid', 'frafall', 'bruk', 'merker', 'kapplop', 'geo']], ['Økonomi', ['okonomi', 'penger']],
+  ['Drift', ['teknikk', 'tilbake', 'agent', 'juks']], ['Innhold', ['lansering', 'navn', 'logoer', 'avis']], ['Partnere', ['sponsorer', 'mediekort']], ['Annet', ['kommer']]];
+const INTRO = {
+  status:['Status', 'Hvor spillet er på vei, på ett blikk. Hver graf viser én ting per dag i perioden du har valgt, med den grå linja for perioden før. Pilene sier om tallet har gått opp eller ned siden da.',
+    [['Nye spillere', 'Folk som åpnet spillet for første gang den dagen (gjester og kontoer).'], ['Registreringer', 'Kontoer som ble laget den dagen. En gjest som registrerer seg, teller her.'], ['Aktive', 'Ulike spillere som spilte minst én økt den dagen.'], ['Spilletid', 'Timene spillerne faktisk var aktive (ikke tid med appen i bakgrunnen).'], ['Leveringer', 'Turer som endte med fisk solgt på et mottak.'], ['Kommer tilbake', 'Av dem som startet en uke: hvor mange som spilte igjen dagen etter (dag 1) og etter en uke (dag 7). Det beste tegnet på at spillet holder på folk.']]],
+  oversikt:['Nøkkeltall', 'De viktigste tallene samlet: hvor mange som spiller, hvor lenge og hvor ofte de kommer tilbake. Trykk på et tall for å se hva det betyr.'],
+  trakt:['Trakt', 'Veien en ny spiller går: fra konvolutten til første fisk, første levering og en konto. Der tallene faller mest, mister vi flest. Under: Første tur trinn for trinn og håndbokas tips.',
+    [['Trakt', 'Hvor mange som kommer videre fra ett steg til det neste. Prosentene er av dem som startet.'], ['Dag 1 / 7 / 30', 'Andelen som spilte igjen etter en dag, en uke og en måned, av dem som har hatt så lang tid.'], ['Median', 'Midtverdien: halvparten brukte kortere tid, halvparten lengre. Tåler enkeltspillere som blir sittende lenge bedre enn snittet.']]],
+  tid:['Spilletid', 'Når og hvor mye det spilles: per dag, per ukedag og time (norsk tid) og per måned. Bra for å velge tidspunkt for nyheter og vedlikehold.'],
+  frafall:['Frafall', 'Hvem som er i ferd med å slutte, og hva som får folk til å slutte i sinne.',
+    [['Churn-indeks', '0–100 per spiller. Høy = lenge siden sist og mindre spilletid enn uka før. Over 70 er rødt.'], ['Rage quit', 'Økter som sluttet under ett minutt etter en grunnstøting eller en dårlig levering.'], ['Død sone', 'Stedene (km i kartets rutenett) der slike økter sluttet.']]],
+  bruk:['Spillbruk', 'Hva spillerne faktisk gjør: hvilke apper og knapper som brukes, redskap, båter, grunnstøtinger og turene til mottakene.'],
+  merker:['Merker', 'Hvor langt spillerne har kommet i milepælene (merkene i spillet). Et stup mellom to merker viser hvor det stopper opp.'],
+  kapplop:['Kappløp', 'Kappløpet langs kysten: påmeldte, i mål og brutt, snittida per klasse og forsøkene som er merket som mistenkelige.'],
+  geo:['Geografi', 'Hvor spillerne er (land og tidssone fra nettverket, IP-adressen lagres ikke) og hvilken hjemhavn de har i spillet.'],
+  okonomi:['Økonomi i spillet', 'Kronene i spillet, ikke ekte penger: hvor jevnt pengene er fordelt, oppdrag mot fangst, havet og flåten, og kvotemarkedet.',
+    [['Gini', '0 betyr at alle har like mye, 1 at én har alt. Rundt 0,3–0,5 er vanlig i spill med handel.'], ['Median / 90-persentil', 'Midtspilleren og spilleren som har mer enn 90 % av de andre.']]],
+  penger:['Penger', 'Ekte penger fra butikken (Stripe): inntekt, hvor mange som betaler og hvor ofte de kjøper igjen.',
+    [['ARPU', 'Inntekt delt på antall aktive spillere i perioden.'], ['Konvertering', 'Andelen spillere som har betalt minst én gang.'], ['Forlatt kasse', 'Kjøp som ble startet, men aldri betalt.']]],
+  teknikk:['Teknikk', 'Feil, krasj og bildetakt per enhet og versjon. Rødt i bildetakt betyr at spillet hakker på den enheten.'],
+  tilbake:['Tilbakemeldinger', 'Det spillerne har sendt inn, med agentens forslag. Sett status og svar her; svaret går til spilleren.'],
+  agent:['Agent', 'Rapportene fra tilbakemeldingsagenten: hva den fant viktigst, og PR-ene den åpnet.'],
+  juks:['Juks', 'Kontoer der serveren mener tallene ikke kan være ekte. Du avgjør om merket står eller fjernes.'],
+  lansering:['Lansering', 'Founders-merket og profilbildene som venter på godkjenning.'],
+  navn:['Brukernavn', 'Navnene spillerne har valgt. Fjern et navn som ikke hører hjemme i spillet.'],
+  logoer:['Logoer', 'Logoene spillerne har lastet opp til båtene sine.'],
+  avis:['Kystposten', 'Sakene i avisa i spillet. Fjern en sak som ikke skal stå.'],
+  sponsorer:['Sponsorer', 'Sponsorene, plasseringene deres og rapporten over visningene (etter IAB-standarden).'],
+  mediekort:['Mediekort', 'Tallene for mulige samarbeidspartnere, klare til utskrift.'],
+  kommer:['Kommer', 'Målinger som venter på funksjoner som ikke er i spillet ennå.']
+};
+const HELP = {
+  'Spillere i alt':'Alle spillere som finnes i databasen, gjester og kontoer.', 'Aktive nå':'Spillere med en åpen økt de siste to minuttene.',
+  'Daglig / ukentlig / månedlig':'Ulike spillere siste døgn, siste 7 og siste 30 dager (DAU / WAU / MAU). Daglig delt på månedlig sier hvor vanedannende spillet er; over 20 % er bra.',
+  'Spilletid registrert':'All aktiv spilletid siden starten, summert.', 'Økter (avsluttet)':'Økter i perioden. I parentes: de som ble avsluttet ordentlig (resten ble lukket uten beskjed).',
+  'Snitt / median økt':'Hvor lenge en økt varer. Median er midtverdien og påvirkes mindre av de få som spiller i timevis.',
+  'Kommer tilbake':'Andelen spillere i perioden som spilte på minst to ulike dager.', 'Snitt innloggingsrekke':'Hvor mange dager på rad spillerne i snitt har åpnet spillet.',
+  'Installert som app':'Andelen som har lagt spillet på hjemskjermen (PWA). De kommer oftere tilbake.',
+  'Gini for kassa':'Hvor skjevt kronene er fordelt: 0 er helt likt, 1 er alt hos én spiller.', 'Gini for flåten':'Det samme for antall båter.',
+  'Median kasse':'Midtspillerens kasse i spillet.', '90-persentil kasse':'Kassa til en spiller som har mer enn 90 % av de andre.',
+  'Inntekt i perioden':'Ekte kroner betalt i perioden, etter at Stripe har bekreftet.', 'Betalende':'Ulike spillere som har betalt i perioden.',
+  'ARPU':'Snittinntekt per aktiv spiller (Average Revenue Per User).', 'Konvertering':'Andelen spillere som har betalt minst én gang.',
+  'Gjenkjøp':'Av dem som har betalt: andelen som har betalt mer enn én gang.', 'Tid til første kjøp':'Dager fra første økt til første kjøp, i snitt.',
+  'Refusjoner':'Andelen kjøp som ble betalt tilbake.', 'Forlatt kasse':'Kjøp som ble startet i Stripe, men ikke betalt.',
+  'Kjøpt trinn innen dag 7':'Andelen nye spillere som kjøpte et bedre utstyrstrinn i spillet den første uka (med spillets kroner).',
+  'Leveringer':'Turer som endte med salg på et mottak.', 'Snitt kast loss → levering':'Spilltid fra båten la fra kai til fangsten ble solgt.',
+  'Snitt per levering':'Hva en levering i snitt ga i spillets kroner.', 'Tid til første fisk':'Fra spillet ble åpnet til første fisk var over ripa (median).',
+  'Første fisk innen 5 min':'Andelen nye som fikk fisk innen fem minutter. Jo høyere, jo bedre første inntrykk.',
+  'Har levert fisk':'Nye spillere som har solgt fangst minst én gang.', 'Har levert tre ganger':'Nye spillere som har levert tre ganger. Da er spillet ofte blitt en vane.',
+  'Åpnet spillet':'Nye spillere i ukene som er med (bare de som deler bruksstatistikk).', 'Tilbake etter 1 døgn':'Av dem som har hatt minst ett døgn: andelen som spilte igjen dagen etter eller senere.',
+  'Tilbake etter 7 dager':'Av dem som har hatt minst en uke: andelen som spilte igjen etter sju dager. Over 15–20 % er bra for et mobilspill.', 'Tilbake etter 30 dager':'Av dem som har hatt en måned: andelen som fortsatt spiller etter 30 dager.',
+  'Synlig andel':'Andelen visninger der minst halve plakaten var synlig i minst ett sekund (IAB).', 'Målt andel':'Andelen visninger der synligheten kunne måles.'
+};
+const kpi = (label, v, sub) => { const h = HELP[label];
+  return '<div class="card kpi"' + (h ? ' data-help tabindex="0" role="button" aria-expanded="false"' : '') + '><b>' + v + '</b><span>' + label + (sub ? '<br>' + sub : '') + '</span>' + (h ? '<i class="q" aria-hidden="true">?</i><div class="help">' + esc(h) + '</div>' : '') + '</div>'; };
+function introHtml(t){ const x = INTRO[t]; if (!x) return '';
+  return '<div class="intro"><p>' + esc(x[1]) + '</p>' + (x[2] ? '<details><summary>Hva ordene betyr</summary><dl class="ord">' + x[2].map(([a, b]) => '<dt>' + esc(a) + '</dt><dd>' + esc(b) + '</dd>').join('') + '</dl></details>' : '') + '</div>'; }
+function navHtml(){ const nm = Object.fromEntries(TABS);
+  return '<nav aria-label="Faner">' + GROUPS.map(([g, ts], gi) => (gi ? '<span class="sep"></span>' : '') + '<span class="ng">' + g + '</span>' + ts.filter(t => nm[t]).map(k => '<button data-t="' + k + '"' + (k === TAB ? ' class="on" aria-current="page"' : '') + '>' + nm[k] + '</button>').join('')).join('') + '</nav>'; }
+function theme(){ let t = null; try { t = localStorage.getItem('dsbAdminTheme'); } catch (e){} if (t) document.documentElement.dataset.theme = t; }
+function themeFlip(){ const dark = document.documentElement.dataset.theme ? document.documentElement.dataset.theme === 'dark' : !matchMedia('(prefers-color-scheme: light)').matches;
+  const t = dark ? 'light' : 'dark'; document.documentElement.dataset.theme = t; try { localStorage.setItem('dsbAdminTheme', t); } catch (e){} }
+theme();
+function helpWire(){ document.querySelectorAll('[data-help]').forEach(k => { const f = () => { k.classList.toggle('open'); k.setAttribute('aria-expanded', k.classList.contains('open')); };
+  k.onclick = f; k.onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); f(); } }; }); }
+
+// ---------- the charts: lines with a crosshair and one tooltip for every series, the period before as a grey line, the numbers behind
+// as a table. Drawn as SVG strings (the page's policy runs only its own script); the hover reads CH by the chart's id ----------
+const CH = {}; let CHN = 0;
+const dm = d => { const p = String(d).slice(5, 10).split('-'); return +p[1] + '.' + +p[0] + '.'; };
+const cmp = v => { v = +v || 0; const a = Math.abs(v); return a >= 1e6 ? nf(v / 1e6, 1) + ' mill.' : a >= 1e4 ? nf(v / 1e3, 0) + 'k' : nf(v, a < 10 && v % 1 ? 1 : 0); };
+function ticks(max){ if (!(max > 0)) return [0, 1]; const raw = max / 4, p = Math.pow(10, Math.floor(Math.log10(raw))), st = [1, 2, 2.5, 5, 10].map(x => x * p).find(x => x >= raw) || p * 10;
+  const t = []; for (let v = 0; v <= max + st * 0.001; v += st) t.push(+v.toFixed(6)); if (t[t.length - 1] < max) t.push(+(t[t.length - 1] + st).toFixed(6)); return t; }
+// S: [{name, cls ('s1'|'s2'|'s3'), v:[number|null]}], X: labels (dates or weeks), ghost: the period before (same length) or null, fmt for values
+function lineChart(S, X, o){ o = o || {}; const id = 'ch' + (++CHN), W = 640, H = 214, PL = 52, PR = 40, PT = 10, PB = 34, pw = W - PL - PR, ph = H - PT - PB, n = X.length, fmt = o.fmt || cmp;
+  const all = S.flatMap(s => s.v).concat(o.ghost || []).filter(v => v != null && isFinite(v)), tk = ticks(Math.max(o.min || 0, ...all, 0)), top = tk[tk.length - 1] || 1;
+  const xp = i => PL + (n <= 1 ? pw / 2 : pw * i / (n - 1)), yp = v => PT + ph - ph * v / top;
+  const path = v => { let d = '', pen = false; v.forEach((y, i) => { if (y == null || !isFinite(y)){ pen = false; return; } d += (pen ? 'L' : 'M') + xp(i).toFixed(1) + ' ' + yp(y).toFixed(1); pen = true; }); return d; };
+  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + esc(o.label || S.map(x => x.name).join(', ')) + '">';
+  tk.forEach(t => { s += '<line class="gl" x1="' + PL + '" x2="' + (W - PR) + '" y1="' + yp(t) + '" y2="' + yp(t) + '"/><text x="' + (PL - 8) + '" y="' + (yp(t) + 3.5) + '" text-anchor="end">' + esc(fmt(t)) + '</text>'; });
+  s += '<line class="ax" x1="' + PL + '" x2="' + (W - PR) + '" y1="' + (PT + ph) + '" y2="' + (PT + ph) + '"/>';
+  const lb = Math.max(1, Math.ceil(n / (o.xn || 6))); for (let i = 0; i < n; i += lb){ if (n - 1 - i < lb * 0.5 && i !== n - 1 && n > 2) continue; s += '<text x="' + xp(i) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(o.xl ? o.xl(X[i]) : dm(X[i])) + '</text>'; }
+  if (n > 2 && (n - 1) % lb) s += '<text x="' + xp(n - 1) + '" y="' + (H - 8) + '" text-anchor="middle">' + esc(o.xl ? o.xl(X[n - 1]) : dm(X[n - 1])) + '</text>';
+  if (o.ghost) s += '<path class="gh" d="' + path(o.ghost) + '"/>';
+  if (S.length === 1 && o.area !== false){ const v = S[0].v, f = v.map((y, i) => y == null ? null : i).filter(i => i != null);
+    if (f.length > 1) s += '<path d="' + path(v) + 'L' + xp(f[f.length - 1]).toFixed(1) + ' ' + (PT + ph) + 'L' + xp(f[0]).toFixed(1) + ' ' + (PT + ph) + 'Z" style="fill:var(--' + S[0].cls + ');opacity:.1"/>'; }
+  S.forEach(x => { s += '<path class="ln" style="stroke:var(--' + x.cls + ')" d="' + path(x.v) + '"/>'; });
+  // the end: a dot on each line and its value beside it (only when the lines' ends stand apart)
+  const ends = S.map(x => { let i = x.v.length - 1; while (i >= 0 && (x.v[i] == null || !isFinite(x.v[i]))) i--; return i < 0 ? null : {i, v:x.v[i], cls:x.cls}; }).filter(Boolean);
+  const apart = ends.length < 2 || Math.abs(yp(ends[0].v) - yp(ends[1].v)) > 14;
+  ends.forEach(e => { s += '<circle class="ed" cx="' + xp(e.i) + '" cy="' + yp(e.v) + '" r="4" style="fill:var(--' + e.cls + ')"/>'; if (apart) s += '<text class="el" x="' + (xp(e.i) + 7) + '" y="' + (yp(e.v) + 4) + '">' + esc(fmt(e.v)) + '</text>'; });
+  s += '<line class="xh" x1="0" x2="0" y1="' + PT + '" y2="' + (PT + ph) + '"/>' + S.map((x, k) => '<circle class="hd" data-k="' + k + '" r="4" cx="-9" cy="-9" style="fill:var(--' + x.cls + ')"/>').join('') + '</svg>';
+  CH[id] = {S, X, ghost:o.ghost, gx:o.gx, fmt:o.tfmt || fmt, xl:o.xll || o.xl, W, PL, pw, n, xp, yp, gname:o.gname || 'Perioden før'};
+  const lg = S.length > 1 || o.ghost ? '<div class="lg">' + S.map(x => '<span><i style="background:var(--' + x.cls + ')"></i>' + esc(x.name) + '</span>').join('') + (o.ghost ? '<span><i style="background:var(--ghost)"></i>' + esc(o.gname || 'Perioden før') + '</span>' : '') + '</div>' : '';
+  const tv = '<details class="tvw"><summary>Vis tallene</summary><div class="scroll"><table><tr><th>' + (o.xh || 'Dag') + '</th>' + S.map(x => '<th>' + esc(x.name) + '</th>').join('') + (o.ghost ? '<th>' + esc(o.gname || 'Perioden før') + '</th>' : '') + '</tr>' +
+    X.map((d, i) => '<tr><td>' + esc(o.xll ? o.xll(d) : o.xl ? o.xl(d) : d) + '</td>' + S.map(x => '<td>' + (x.v[i] == null ? '–' : esc((o.tfmt || fmt)(x.v[i]))) + '</td>').join('') + (o.ghost ? '<td>' + (o.ghost[i] == null ? '–' : esc((o.tfmt || fmt)(o.ghost[i]))) + '</td>' : '') + '</tr>').reverse().join('') + '</table></div></details>';
+  return lg + '<div class="ch" data-ch="' + id + '">' + s + '<div class="tip"></div></div>' + tv; }
+// the axis text the same size on the screen whatever the chart's width (the SVG scales with its column)
+function chFont(){ document.querySelectorAll('.ch[data-ch] svg').forEach(v => { const w = v.getBoundingClientRect().width; if (w) v.style.setProperty('--fs', (11.5 * 640 / w).toFixed(2) + 'px'); }); }
+addEventListener('resize', () => chFont());
+function chWire(){ chFont(); document.querySelectorAll('.ch[data-ch]').forEach(el => { const c = CH[el.dataset.ch]; if (!c) return; const svg = el.querySelector('svg'), tip = el.querySelector('.tip'), xh = el.querySelector('.xh'), hd = el.querySelectorAll('.hd');
+  const at = e => { const r = svg.getBoundingClientRect(); if (!r.width) return; const fx = (e.clientX - r.left) / r.width * c.W, i = Math.max(0, Math.min(c.n - 1, Math.round((fx - c.PL) / c.pw * (c.n - 1))));
+    el.classList.add('hov'); const x = c.xp(i); xh.setAttribute('x1', x); xh.setAttribute('x2', x);
+    hd.forEach(h => { const v = c.S[+h.dataset.k].v[i]; if (v == null){ h.setAttribute('cy', -9); return; } h.setAttribute('cx', x); h.setAttribute('cy', c.yp(v)); });
+    tip.textContent = ''; const t = document.createElement('div'); t.className = 'td'; t.textContent = c.xl ? c.xl(c.X[i]) : new Date(c.X[i] + 'T12:00:00').toLocaleDateString('nb-NO', {weekday:'short', day:'numeric', month:'short'}); tip.appendChild(t);
+    const row = (cls, v, name) => { const r2 = document.createElement('div'); r2.className = 'tr'; const k = document.createElement('i'); k.style.background = 'var(--' + cls + ')'; const b = document.createElement('b'); b.textContent = v == null ? '–' : c.fmt(v); const sp = document.createElement('span'); sp.textContent = name; r2.append(k, b, sp); tip.appendChild(r2); };
+    c.S.forEach(s => row(s.cls, s.v[i], s.name)); if (c.ghost) row('ghost', c.ghost[i], c.gname + (c.gx ? ' (' + dm(c.gx[i]) + ')' : ''));
+    const tw = tip.offsetWidth, px = x / c.W * r.width; tip.style.transform = 'translate(' + Math.round(px + 14 + tw > r.width ? px - tw - 14 : px + 14) + 'px,6px)'; };
+  el.onpointermove = at; el.onpointerdown = at; el.onpointerleave = () => el.classList.remove('hov'); }); }
+function spark(v, cls){ const f = v.filter(x => x != null); if (f.length < 2) return ''; const W = 200, H = 34, m = Math.max(...f, 1e-9), mn = Math.min(...f, 0), n = v.length;
+  const xp = i => 2 + (W - 4) * i / (n - 1), yp = y => H - 3 - (H - 6) * (y - mn) / ((m - mn) || 1); let d = '';
+  v.forEach((y, i) => { if (y != null) d += (d ? 'L' : 'M') + xp(i).toFixed(1) + ' ' + yp(y).toFixed(1); });
+  return '<svg class="spk" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" aria-hidden="true"><path d="' + d + '" fill="none" style="stroke:var(--' + (cls || 's1') + ')" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>'; }
+
+// ---------- the status page: the direction of the game (supabase/migrations/20261117120000_admin_trend.sql), with the funnel's cohorts for
+// coming back. Without the migration it falls back on the dashboard's own days (active, sessions, hours) and says so ----------
+let TR = null, TRD = 0;
+async function trLoad(){ await null; const n = Math.max(7, DAYS); TRD = DAYS;
+  try { TR = DEMO ? trDemo(n) : await rpc('admin_trend', {days:n}); } catch (e){ TR = {err:e.message}; }
+  if (!FN) fnLoad(); if (TAB === 'status') render(); }
+function trDemo(n){ const rows = [], now = Date.now(); let base = 300;
+  for (let i = 2 * n - 1; i >= 0; i--){ const day = new Date(now - i * 864e5).toISOString().slice(0, 10), g = (2 * n - i) / (2 * n), wk = [0.8, 0.9, 1, 1, 1.05, 1.35, 1.3][new Date(now - i * 864e5).getDay()], w = (0.6 + g) * wk;
+    const nw = Math.round((6 + Math.random() * 6) * w), rg = Math.round(nw * (0.35 + Math.random() * 0.2)), act = Math.round((30 + 40 * g + Math.random() * 10) * wk);
+    rows.push({day, new:nw, reg:rg, active:act, sessions:Math.round(act * 1.7), hours:+(act * (0.45 + Math.random() * 0.2)).toFixed(1), sales:Math.round(act * 1.9), kr:Math.round(act * 1.9 * 6900), rev:Math.random() < 0.6 ? Math.round(Math.random() * 6) * 49 : 0, payers:Math.round(Math.random() * 3)}); base += 0; }
+  return {generated:new Date().toISOString(), days:n, from:rows[0].day, to:rows[rows.length - 1].day, base:{players:base, reg:120}, rows}; }
+const sum = (r, k) => r.reduce((a, x) => a + (+x[k] || 0), 0);
+function delta(cur, prev){ if (!(prev > 0)) return cur > 0 ? {t:'ny', c:'up', d:1} : {t:'–', c:'flat', d:0}; const d = (cur - prev) / prev;
+  return {d, t:(d > 0 ? '+' : d < 0 ? '−' : '±') + nf(Math.abs(d) * 100, 0) + ' %', c:Math.abs(d) < 0.03 ? 'flat' : d > 0 ? 'up' : 'down'}; }
+const arrow = c => c === 'up' ? '▲' : c === 'down' ? '▼' : '●';
+VIEW.status = D => {
+  if (!TR || TRD !== DAYS){ trLoad(); return '<p class="note">Henter …</p>'; }
+  const o = D.overview || {}, n = Math.max(7, DAYS);
+  let rows = TR.rows, prevRows = null, fb = '';
+  if (TR.err){ // fallback: the dashboard's daily rows, the period only
+    rows = (D.daily || []).map(x => ({day:x.day, active:x.players, sessions:x.sessions, hours:x.hours, new:null, reg:null, sales:null, rev:null}));
+    fb = card('Grafene for nye spillere og registreringer mangler', '<p class="warn">' + esc(TR.err).slice(0, 160) + '</p>', 'Kjør migreringen supabase/migrations/20261117120000_admin_trend.sql. Til da vises bare aktive, økter og spilletid.');
+  } else { prevRows = rows.slice(0, rows.length - n); rows = rows.slice(-n); }
+  const X = rows.map(r => r.day), col = k => rows.map(r => r[k] == null ? null : +r[k]), pcol = k => prevRows ? prevRows.map(r => +r[k] || 0) : null;
+  const M = [['new', 'Nye spillere', 'sum', 's1'], ['reg', 'Registreringer', 'sum', 's2'], ['active', 'Aktive per dag', 'avg', 's1'], ['hours', 'Spilletid', 'sum', 's1'], ['sales', 'Leveringer', 'sum', 's1'], ['rev', 'Inntekt', 'sum', 's3']];
+  const val = (r, k, how) => how === 'avg' ? (r.length ? sum(r, k) / r.length : 0) : sum(r, k);
+  const st = {}; M.forEach(([k, , how]) => { const cur = rows.some(r => r[k] != null) ? val(rows, k, how) : null; st[k] = {cur, dl:cur != null && prevRows ? delta(cur, val(prevRows, k, how)) : null}; });
+  // coming back after a week: the latest cohorts that have had seven days against the four before
+  const wk = FN && FN.weeks ? FN.weeks.filter(w => +w.d7n > 0).map(w => ({wk:w.wk, r:+w.d7 / +w.d7n, n:+w.d7n})) : [];
+  const avgR = a => { const nn = a.reduce((s, x) => s + x.n, 0); return nn ? a.reduce((s, x) => s + x.r * x.n, 0) / nn : null; };
+  const r7 = avgR(wk.slice(0, 2)), r7p = avgR(wk.slice(2, 6)), r7d = r7 != null && r7p != null ? {d:r7 - r7p, t:(r7 - r7p >= 0 ? '+' : '−') + nf(Math.abs(r7 - r7p) * 100, 0) + ' pp', c:Math.abs(r7 - r7p) < 0.02 ? 'flat' : r7 > r7p ? 'up' : 'down'} : null;
+  // the verdict: the players coming and staying weigh most
+  const W8 = {new:2, active:2, hours:1, sales:1, reg:1}; let sc = 0, wt = 0; Object.entries(W8).forEach(([k, w]) => { const d = st[k] && st[k].dl; if (d){ sc += w * Math.max(-1, Math.min(1, d.d / 0.15)); wt += w; } });
+  if (r7d){ sc += 2 * Math.max(-1, Math.min(1, r7d.d / 0.05)); wt += 2; }
+  const s = wt ? sc / wt : 0, vd = !wt ? ['flat', 'For lite data til å si noe ennå'] : s > 0.2 ? ['up', 'Spillet går fremover'] : s < -0.2 ? ['down', 'Spillet går tilbake'] : ['flat', 'Spillet står omtrent stille'];
+  const nm = {new:'Nye spillere', reg:'Registreringer', active:'Aktive spillere per dag', hours:'Spilletimer', sales:'Leveringer', rev:'Inntekt'};
+  const sig = Object.keys(nm).filter(k => st[k].dl).map(k => '<li><span class="dot ' + st[k].dl.c + '">' + arrow(st[k].dl.c) + '</span><span><b>' + nm[k] + '</b> ' + (st[k].dl.c === 'flat' ? 'omtrent som før' : st[k].dl.c === 'up' ? 'opp ' + st[k].dl.t.replace('+', '') : 'ned ' + st[k].dl.t.replace('−', '')) + '</span></li>');
+  if (r7d) sig.push('<li><span class="dot ' + r7d.c + '">' + arrow(r7d.c) + '</span><span><b>Kommer tilbake etter en uke</b> ' + pct(r7) + ' av de siste ukekullene (' + r7d.t + ')</span></li>');
+  const per = DAYS === n ? 'siste ' + n + ' dager' : 'siste ' + n + ' dager (minst en uke)';
+  const hero = '<div class="card hero"><div><div class="eyebrow">Retningen, ' + per + '</div><div class="vd v-' + vd[0] + '"><span class="ar">' + arrow(vd[0]) + '</span>' + vd[1] + '</div><p class="note" style="margin:0">Sammenlignet med de ' + n + ' dagene før.' + (TR.err ? ' Uten migreringen vises bare det som finnes.' : '') + '</p></div>' +
+    (sig.length ? '<ul class="sig">' + sig.join('') + '</ul>' : '') +
+    '<div class="heronums"><div><b>' + nf(o.active_now, 0) + '</b><span>spiller nå</span></div><div><b>' + nf(o.players, 0) + '</b><span>spillere i alt</span></div><div><b>' + nf(o.dau, 0) + ' / ' + nf(o.wau, 0) + ' / ' + nf(o.mau, 0) + '</b><span>aktive døgn / uke / måned</span></div><div><b>' + (o.mau ? pct(o.dau / o.mau) : '–') + '</b><span>daglig av månedlig (vane)</span></div></div></div>';
+  const tile = (k, label, how, cls, fmt, help) => { const t = st[k]; if (t.cur == null) return '';
+    return '<div class="card tile" data-help tabindex="0" role="button" aria-expanded="false"><span class="lbl">' + label + '</span><div class="tv"><b>' + (fmt || cmp)(t.cur) + '</b>' + (t.dl ? '<span class="dl ' + t.dl.c + '">' + arrow(t.dl.c) + ' ' + t.dl.t + '</span>' : '') + '</div><span class="vs">' + (how === 'avg' ? 'snitt per dag' : 'i alt') + (t.dl ? ', mot perioden før' : '') + '</span>' + spark(col(k), cls) + '<i class="q" aria-hidden="true">?</i><div class="help">' + esc(help) + '</div></div>'; };
+  const kr = v => cmp(v) + ' kr', tm = v => cmp(v) + ' t';
+  const tiles = '<div class="tiles">' + tile('new', 'Nye spillere', 'sum', 's1', null, 'Folk som åpnet spillet for første gang i perioden.') + tile('reg', 'Registreringer', 'sum', 's2', null, 'Nye kontoer i perioden (gjester som registrerte seg teller med).') +
+    tile('active', 'Aktive spillere', 'avg', 's1', v => nf(v, 0), 'Ulike spillere som spilte en dag, i snitt over dagene i perioden.') + tile('hours', 'Spilletid', 'sum', 's1', tm, 'Aktive timer spilt i perioden.') +
+    tile('sales', 'Leveringer', 'sum', 's1', null, 'Turer som endte med salg på et mottak.') + tile('rev', 'Inntekt', 'sum', 's3', kr, 'Ekte kroner betalt gjennom butikken i perioden.') + '</div>';
+  const ch = (title, note, big, body) => '<div class="card"><div class="chh"><h3>' + title + '</h3>' + (big ? '<span class="big">' + big + '</span>' : '') + '</div><p class="chn">' + note + '</p>' + body + '</div>';
+  const gx = prevRows ? prevRows.map(r => r.day) : null, G = k => ({ghost:pcol(k), gx});
+  let charts = '';
+  if (rows.some(r => r.new != null)) charts += ch('Nye spillere og registreringer per dag', 'Blå: første gang i spillet. Oransje: nye kontoer. Gapet mellom dem er gjestene som ikke har registrert seg (ennå).', null,
+    lineChart([{name:'Nye spillere', cls:'s1', v:col('new')}, {name:'Registreringer', cls:'s2', v:col('reg')}], X, {area:false}));
+  if (!TR.err){ let p = +TR.base.players || 0, g = +TR.base.reg || 0; const cp = [], cg = []; TR.rows.forEach(r => { p += +r.new || 0; g += +r.reg || 0; cp.push(p); cg.push(g); });
+    charts += ch('Spillere og kontoer totalt', 'Det samlede antallet som har prøvd spillet, og hvor mange av dem som har konto. Linja skal bare gå opp; brattere er bedre.', nf(cp[cp.length - 1], 0),
+      lineChart([{name:'Har prøvd spillet', cls:'s1', v:cp.slice(-n)}, {name:'Har konto', cls:'s2', v:cg.slice(-n)}], X, {area:false})); }
+  charts += ch('Aktive spillere per dag', 'Hvor mange ulike spillere som var innom hver dag. Den grå linja er perioden før: ligger blått over grått, vokser spillet.', st.active.cur != null ? nf(st.active.cur, 0) + ' <span class="note">snitt</span>' : '',
+    lineChart([{name:'Aktive', cls:'s1', v:col('active')}], X, G('active')));
+  charts += ch('Spilletid per dag', 'Timer spilt, summert over alle spillerne. Stiger den raskere enn aktive spillere, spiller hver spiller lenger.', st.hours.cur != null ? tm(st.hours.cur) : '',
+    lineChart([{name:'Timer', cls:'s1', v:col('hours')}], X, {...G('hours'), tfmt:v => nf(v, 1) + ' t'}));
+  if (wk.length > 1){ const w = FN.weeks.slice().reverse(), r = (a, b) => w.map(x => +x[b] > 0 ? Math.round(1000 * x[a] / x[b]) / 10 : null);
+    charts += ch('Kommer tilbake, per ukekull', 'For hver uke nye spillere startet: hvor mange som spilte igjen dagen etter (dag 1) og etter en uke (dag 7). Stigende linjer betyr at spillet holder bedre på folk.', null,
+      lineChart([{name:'Dag 1', cls:'s1', v:r('d1', 'd1n')}, {name:'Dag 7', cls:'s2', v:r('d7', 'd7n')}], w.map(x => x.wk), {area:false, fmt:v => nf(v, 0) + ' %', tfmt:v => nf(v, 1) + ' %', min:10, xh:'Uke', xl:d => 'u. ' + isoWeek(d), xll:d => 'Uka fra ' + dm(d), xn:8})); }
+  if (rows.some(r => r.sales != null)) charts += ch('Leveringer per dag', 'Turer som endte med fisk solgt på et mottak. Det er kjernen i spillet: flere leveringer betyr at folk faktisk fisker.', null, lineChart([{name:'Leveringer', cls:'s1', v:col('sales')}], X, G('sales')));
+  if (rows.some(r => r.rev != null)){ const cum = a => { let t = 0; return a.map(v => (t += +v || 0)); };
+    charts += ch('Inntekt, samlet gjennom perioden', 'Ekte kroner betalt gjennom butikken, lagt sammen dag for dag. Enkeltdager hopper mye; ligger den grønne linja over den grå, tjener spillet mer enn i perioden før.', st.rev.cur != null ? kr(st.rev.cur) : '',
+      lineChart([{name:'Inntekt hittil', cls:'s3', v:cum(col('rev'))}], X, {ghost:prevRows ? cum(pcol('rev')) : null, gx, tfmt:v => nf(v, 0) + ' kr'})); }
+  return fb + hero + tiles + '<div class="charts">' + charts + '</div>';
+};
+function isoWeek(d){ const t = new Date(d + 'T12:00:00Z'), day = (t.getUTCDay() + 6) % 7; t.setUTCDate(t.getUTCDate() - day + 3); const f = new Date(Date.UTC(t.getUTCFullYear(), 0, 4)); return 1 + Math.round(((t - f) / 864e5 - 3 + ((f.getUTCDay() + 6) % 7)) / 7); }
 // ---------- the missions' economy (supabase/migrations/20261017120000_turokonomi.sql): each player's income from missions against
 // landings (the brake in the game aims at about 30 %), and saves where the cash rose more than the logged landings and missions ----------
 let TURE = null;
@@ -621,7 +906,7 @@ function nwWire(){
 // a change moved it (one change at a time).
 let FN = null;
 const FN_STEPS = [['start', 'Åpnet spillet (konvolutten)'], ['catch', 'Første fangst'], ['land1', 'Første levering'], ['land3', 'Tredje levering'], ['reg', 'Registrert']];
-async function fnLoad(){ await null; try { FN = DEMO ? fnDemo() : await rpc('admin_funnel', {weeks:8}); } catch (e){ FN = {err:e.message}; } if (TAB === 'trakt') render(); }
+async function fnLoad(){ await null; try { FN = DEMO ? fnDemo() : await rpc('admin_funnel', {weeks:8}); } catch (e){ FN = {err:e.message}; } if (TAB === 'trakt' || TAB === 'status') render(); }
 function fnDemo(){
   const W = [];
   for (let i = 0; i < 6; i++){ const s = 40 + i * 7, wk = new Date(Date.now() - i * 7 * 864e5).toISOString().slice(0, 10);
@@ -769,7 +1054,7 @@ function demo(){
     tech:{errors:[{msg:'TypeError: Cannot read properties of null', n:12, last:new Date().toISOString(), versions:['p15']}], fps:[{platform:'android', quality:'auto', fps:41.2, low:18, drops:3.1, n:220}, {platform:'windows', quality:'high', fps:58.9, low:44, drops:0.2, n:140}], browsers:{chrome:1100, samsung:450, safari:250, firefox:40}, platforms:{android:1200, windows:380, ios:220, mac:40}},
     geo:{countries:{NO:380, SE:14, DE:9}, timezones:{'Europe/Oslo':388, 'Europe/Stockholm':14}, homes:{husoy:160, senjahopen:120, finnsnes:80, mN69:42, mF201:21, mM317:18, mSF98:9, mR40:6}}};
 }
-render(); setInterval(() => { if (DATA && (DEMO || SES) && TAB !== 'tilbake' && TAB !== 'agent') { DATA = null; load(); } }, 60000);
+render(); setInterval(() => { if (DATA && (DEMO || SES) && TAB !== 'tilbake' && TAB !== 'agent') { DATA = null; if (TAB === 'status') TR = null; load(); } }, 60000);
 </script>
 </body>
 </html>
