@@ -426,7 +426,7 @@ function landNat0(p){ const c = coastAt(p); if (c >= 0) return c > 0; const L = 
 // groundCheck skipped everything within 600 m of a harbour point (inHarbour: the harbours are dredged), the land too, so a boat off
 // her line there sailed over an island or through a mole and was stopped only on the first land outside, 600 m out. Off the tiles
 // with detail (the national core's 200 m) nothing: too coarse for a harbour
-const NAUST_FREE = 0.2;   // km round Father's naust where the harbour's land is left to the way in, as before (groundCheck)
+const NAUST_FREE = 0.4;   // km round Father's naust where the harbour's land is left to the way in, as before (groundCheck)
 function isLandHarbour(p){
   if (!(p.x >= MAPB.x0 && p.y >= MAPB.y0 && p.x < MAPB.x1 && p.y < MAPB.y1) || !mapSimAt(p)) return false;
   return landNat0(p) && !inHarbourPocket(p);
