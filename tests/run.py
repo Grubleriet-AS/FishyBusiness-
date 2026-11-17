@@ -35,6 +35,9 @@ LITE = ['kalendertest', 'planhjem', 'havnstengt', 'd4dorer', 'jobbstripe', 'tele
 # the session hooks and the deny list in .claude/ (Ø17, 06.11.2026): no browser, about a second. On a line of its own, so the sessions
 # that add tests to LITE above do not meet it in a merge
 LITE += ['hooktest']
+# yellow legs at the start (17.11.2026): the dialog, «La Autonav legge ruta» (draftToLeia) and «Kast loss likevel»
+LITE += ['utryggtest']
+for _f in ('src/js/ui/08-actions.js', 'src/js/ui/03b-route.js', 'tests/utryggtest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['utryggtest']))
 LITE += ['profiltest']   # topplista og profilen ved lanseringen (16.11.2026)
 LITE += ['hopptest']   # hopp over resten av ruta, kjernen (HO1, steg 104)
 LITE += ['brottaar']   # brottsjøen gjennom et år på tre steder (Ø9 F7; trenger hele kysten)

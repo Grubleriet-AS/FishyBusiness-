@@ -248,6 +248,27 @@ function deepNear(p, maxKm){
     for (let i = 0; i < 16; i++){ const a = i * Math.PI / 8, c = {x:p.x + Math.sin(a) * r, y:p.y - Math.cos(a) * r}; if (ok(c) && clearLine(c, p)) return c; } }
   return null;
 }
+// the drawn route laid again by Autonav through the same stops (17.11.2026, the groundings on yellow legs of drawn routes, #122-#124;
+// Jonas: «varsler bedre ved start av utrygge ruter … mer intuitivt hvordan autonav brukes»): each stop (a harbour, a fishing place, a
+// point where the boat does something, and the end) keeps what it was, and the way between them is the fairway's (leiaRoute), so no
+// leg is yellow. A stretch Autonav finds no way on leaves the route as it was and says why. Returns true when the route was laid
+async function draftToLeia(){
+  if (!S.draft.length || LEIA_BUSY || !canEditDraft()) return false;
+  const q0 = draftOrigin(), stops = [{p:{x:q0.x, y:q0.y}, port:draftPort(), w:null}];
+  S.draft.forEach((w, i) => { if (w.port || wpStop(w) || i === S.draft.length - 1) stops.push({p:{x:w.x, y:w.y}, port:w.port || null, w}); });
+  const before = JSON.stringify(S.draft), out = []; LEIA_BUSY = true; panelDirty = true; renderPanel();
+  try {
+    for (let i = 1; i < stops.length; i++){
+      const r = await leiaRoute(stops[i - 1].p, stops[i].p, stops[i - 1].port, stops[i].port);
+      if (r.why || !r.wps || !r.wps.length){ toast(S.lang === 'no' ? 'Autonav fant ingen trygg vei til ' + (stops[i].port ? 'havna' : 'punkt ' + (S.draft.indexOf(stops[i].w) + 1)) + '. ' + (r.why ? r.why[0] : '') : 'Autonav found no safe way to ' + (stops[i].port ? 'the harbour' : 'point ' + (S.draft.indexOf(stops[i].w) + 1)) + '. ' + (r.why ? r.why[1] : '')); return false; }
+      r.wps.forEach((q, k) => out.push(k === r.wps.length - 1 ? Object.assign({}, stops[i].w) : {x:q.x, y:q.y, port:null, fish:0, leia:true}));
+    }
+  } finally { LEIA_BUSY = false; }
+  if (JSON.stringify(S.draft) !== before){ routeChanged(); return false; }   // (changed while the way was being found)
+  draftEdit(() => { S.draft = out; });
+  toast(S.lang === 'no' ? 'Autonav la ruta i trygt vann. Se over den og kast loss.' : 'Autonav laid the route in safe water. Look it over and cast off.');
+  routeChanged(); save(); return true;
+}
 // how the drawn route compares with following the fairway through the same stops: worked out in the background, then shown
 const LEIA_CMP = {key:'', res:null, busy:false, timer:0};
 function leiaStops(){

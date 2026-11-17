@@ -24,6 +24,19 @@ function doAct(el){
         '<p class="note">' + L('Der venter båten uten å fiske eller sette redskap. Flytt punktet, eller kast loss likevel.', 'There the boat waits without fishing or setting gear. Move the point, or cast off anyway.') + '</p>' +
         '<div class="btns"><button class="btn primary" data-close>' + L('Endre ruta', 'Change the route') + '</button><button class="btn" id="ruGo">' + L('Kast loss likevel', 'Cast off anyway') + '</button></div>');
         $('ruGo').onclick = () => { $('modal').hidden = true; doAct({dataset:{act:'start', ruok:'1'}, disabled:false}); }; return; } }
+    // yellow legs (the drawn legs over water shallower than the safe depth or close by rocks, draftHazards): on those she does not
+    // steer round a shoal and can ground (core/05-vessels.js sailReplan). Before 17.11.2026 only a line in the route panel said so, and
+    // two new players grounded on such legs on the first day (#122-#124; Jonas: «varsler bedre ved start av utrygge ruter»): now the
+    // start asks, with Autonav's safe way through the same stops as the first choice
+    // (only from the button itself: code that starts a route, the tests among them, passes a plain object and is not asked)
+    if (!el.dataset.hzok && !tutOn() && typeof Element !== 'undefined' && el instanceof Element){ const sd = safeDepth(), bad = draftHazards().map((q, k) => [q, k]).filter(x => x[0].unsafe);
+      if (bad.length){ modal('<h3>' + L('Ruta går over grunt vann', 'The route crosses shallow water') + '</h3>' +
+        '<p class="warn">' + bad.slice(0, 4).map(([q, k]) => L('Etappe ', 'Leg ') + legName(k) + ' (' + [q.minD < sd ? fmt(q.minD, 1) + ' m' : '', q.rocks ? L('skjær', 'rocks') : ''].filter(Boolean).join(', ') + ')').join(', ') + (bad.length > 4 ? ' …' : '') + '</p>' +
+        '<p>' + L('På de gule etappene er det grunnere enn sikker dybde (' + sd + ' m) eller skjær tett ved. Der styrer ikke båten unna grunner selv, og hun kan gå på grunn.', 'On the yellow legs the water is shallower than the safe depth (' + sd + ' m) or there are rocks close by. There the boat does not steer clear of shoals herself, and she can run aground.') + '</p>' +
+        '<p class="note">' + L('Autonav kan legge ruta i trygt vann gjennom de samme stoppene.', 'Autonav can lay the route in safe water through the same stops.') + '</p>' +
+        '<div class="btns"><button class="btn primary" id="hzLeia">' + L('La Autonav legge ruta', 'Let Autonav lay the route') + '</button><button class="btn" data-close>' + L('Endre ruta selv', 'Change it myself') + '</button><button class="btn" id="hzGo">' + L('Kast loss likevel', 'Cast off anyway') + '</button></div>');
+        $('hzLeia').onclick = () => { $('modal').hidden = true; draftToLeia(); };
+        $('hzGo').onclick = () => { $('modal').hidden = true; doAct({dataset:{act:'start', ruok:'1', hzok:'1'}, disabled:false}); }; return; } }
     if (!meAboard() && !crewAboard().length){ toast(L(...noCrewText())); return; }
     const later = S.draftDep && S.draftDep > S.t ? S.draftDep : null;
     if (!later && b.status === 'port' && S.jobs && S.jobs.length){ toast(jobsFreight() ? L('Lasta er ikke på plass før kl. ' + hm((jobsDone() || S.t) / 60) + '.', 'The freight is not in place until ' + hm((jobsDone() || S.t) / 60) + '.') : t(jobsCrewOnly() ? 'crew_busy' : 'yard_busy', hm((jobsDone() || S.t) / 60))); return; }
