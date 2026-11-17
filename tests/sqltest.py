@@ -4,7 +4,7 @@ asked for («Dette må ingen andre enn meg ha tilgang til»): no player reads a 
 factor (aal1) is refused, the admin with aal2 gets every panel. Needs the PostgreSQL server binaries (initdb, pg_ctl); prints OK or
 FEIL, and SKIP without them."""
 import datetime
-import glob, json, os, shutil, subprocess, sys, tempfile, time
+import glob, json, os, re, shutil, subprocess, sys, tempfile, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ok = lambda c: 'OK  ' if c else 'FEIL'
@@ -1988,6 +1988,38 @@ def main():
               'the long list: top_list pages with off and n follow on without a gap or a repeat, n capped at 100, the old call gives 20, the other kinds page too', TL)
         print(ok(not TL.get('err') and TL.get('mkg') == ['tm_a', 'tm_b'] and TL.get('mkr') == ['tm_b', 'tm_a'] and TL.get('badm') and TL.get('tkg') == ['tkg', ['tm_a'], ['tm_b']] and TL.get('worth') == [123456, False]),
               'the periods: a game month by kg and by kr (a landing outside it not counted, more than 32 days refused), all time by kilos (tkg) and by kroner, the company\'s worth on the all time lists only', {k: TL.get(k) for k in ('mkg', 'mkr', 'badm', 'tkg', 'worth', 'err')})
+        # the invite link (#132, 20261117180000_verv.sql): a code per registered player, handed in once by a new account, the takk-haill
+        # to the one who invited when the friend has landed fish (also landings brought over from a guest), at most five a month
+        VR = {}
+        try:
+            U = lambda n: {'sub': 'user_01V' + n, 'role': 'authenticated'}
+            land = lambda who: sql("""select public.land_put(3000, 2025, 'finnsnes', 'open', '[{"sp":"torsk","kg":40,"kgq":40}]')""", who, 'authenticated')
+            refs = lambda who: int(sql("select count(*) from public.grants where product_id = 'ref_haill' and player_id = 'user_01V%s'" % who))
+            for n in ['REF', 'REF2', 'F1', 'F2', 'OLD', 'C3', 'C4', 'C5', 'C6', 'C7']: sql("select public.tm_hello('{}')", U(n), 'authenticated')
+            M = json.loads(sql("select public.ref_mine()", U('REF'), 'authenticated')); code = M['code']
+            VR['mine'] = [bool(re.match(r'^[0-9a-f]{8}$', code)), M['month'], M['max'], json.loads(sql("select public.ref_mine()", U('REF'), 'authenticated'))['code'] == code]
+            VR['guest'] = bool(sql("select public.ref_mine()", {'sub': '9a1c2a3e-0000-4000-8000-0000000000dd', 'role': 'authenticated', 'is_anonymous': True}, 'authenticated', expect_err=True))
+            VR['claim'] = [sql("select public.ref_claim('%s')" % code.upper(), U('F1'), 'authenticated'), refs('REF')]
+            VR['again'] = [sql("select public.ref_claim('%s')" % code, U('F1'), 'authenticated'), sql("select public.ref_claim('%s')" % code, U('REF'), 'authenticated'), sql("select public.ref_claim('ffffffff')", U('F2'), 'authenticated')]
+            sql("update public.players set created_at = now() - interval '20 days' where id = 'user_01VOLD'"); VR['old'] = sql("select public.ref_claim('%s')" % code, U('OLD'), 'authenticated')
+            land(U('F1')); VR['landed'] = refs('REF'); land(U('F1')); VR['twice'] = refs('REF')
+            land(U('F2')); VR['before'] = [sql("select public.ref_claim('%s')" % code, U('F2'), 'authenticated'), refs('REF')]
+            for n in ['C3', 'C4', 'C5', 'C6']: sql("select public.ref_claim('%s')" % code, U(n), 'authenticated'); land(U(n))
+            VR['cap'] = [refs('REF'), sql("select count(*) from public.referrals where referrer_id = 'user_01VREF' and over_at is not null")]
+            M = json.loads(sql("select public.ref_mine()", U('REF'), 'authenticated')); VR['mine5'] = [M['month'], M['total'], M['waiting']]
+            VR['pend'] = [g['product'] for g in json.loads(sql("select public.shop_pending()", U('REF'), 'authenticated')) if g['product'] == 'ref_haill']
+            # a guest who landed, then registered: guest_merge moves the landings to the account, and the reward follows
+            c2 = json.loads(sql("select public.ref_mine()", U('REF2'), 'authenticated'))['code']; sql("select public.ref_claim('%s')" % c2, U('C7'), 'authenticated'); VR['c7'] = refs('REF2')
+            sql("insert into public.landings (player_id, gh, y, port, sp, acc, kg, kgq) values ('9a1c2a3e-0000-4000-8000-0000000000ee', 3000, 2025, 'finnsnes', 'torsk', 'open', 30, 30)")
+            sql("update public.landings set player_id = 'user_01VC7' where player_id = '9a1c2a3e-0000-4000-8000-0000000000ee'"); VR['merged'] = refs('REF2')
+            VR['read'] = bool(sql("select count(*) from public.referrals", U('REF'), 'authenticated', expect_err=True)) and bool(sql("select public.ref_check('user_01VF1')", U('REF'), 'authenticated', expect_err=True))
+            VR['buy'] = bool(sql("select public.shop_quote('ref_haill')", U('REF'), 'authenticated', expect_err=True))
+        except Exception as e:
+            VR['err'] = str(e)[:300]
+        print(ok(not VR.get('err') and VR.get('mine') == [True, 0, 5, True] and VR.get('guest') and VR.get('claim') == ['ok', 0] and VR.get('again') == ['had', 'self', 'unknown'] and VR.get('old') == 'old'),
+              'the invite link: a code of 8 for a registered player and the same each time, none for a guest; a new account hands it in once (upper case too), not its own, not an unknown, not an account older than 14 days; nothing before a landing', VR)
+        print(ok(not VR.get('err') and VR.get('landed') == 1 and VR.get('twice') == 1 and VR.get('before') == ['ok', 2] and VR.get('cap') == [5, '1'] and VR.get('mine5') == [5, 5, 0] and VR.get('pend') == ['ref_haill'] * 5 and VR.get('c7') == 0 and VR.get('merged') == 1 and VR.get('read') and VR.get('buy')),
+              'the invite link: the takk-haill when the friend lands (once), at once for a friend who had landed, five a month and the sixth marked over, a guest\'s landings brought over count, nothing to read or call or buy for a player', VR)
         # the load of 5 000 players (plan 5b; KYST_LAST=5000): landings and catches for that many players, then what world_get costs
         NL = int(os.environ.get('KYST_LAST') or 0)
         if NL:
