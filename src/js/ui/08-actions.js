@@ -27,7 +27,11 @@ function doAct(el){
     if (!meAboard() && !crewAboard().length){ toast(L(...noCrewText())); return; }
     const later = S.draftDep && S.draftDep > S.t ? S.draftDep : null;
     if (!later && b.status === 'port' && S.jobs && S.jobs.length){ toast(jobsFreight() ? L('Lasta er ikke på plass før kl. ' + hm((jobsDone() || S.t) / 60) + '.', 'The freight is not in place until ' + hm((jobsDone() || S.t) / 60) + '.') : t(jobsCrewOnly() ? 'crew_busy' : 'yard_busy', hm((jobsDone() || S.t) / 60))); return; }
-    S.plan = {wps:S.draft.map(w => ({...w})), idx:0, speed:S.draftSpeed, full:!!S.draftFull, returning:false, depAt:later, unsafe:draftHazards().map(h => h.unsafe)};
+    // (unsafe: only the player's own yellow legs, not Autonav's: its legs may count on the tide, which the yellow of the route list does
+    // not, and on such a leg she was put aground on a skerry instead of held back and taken round it, as on any leg Autonav made
+    // (05-vessels.js sailReplan, 16b-dyn.js); a leg is Autonav's when it ends at a point it put there (the fairway, a way round, a
+    // harbour's way out or in), as runAground's «how» reads it (core/01-world.js). Tilbakemelding #126, 17.11.2026, Røst, in the first trip)
+    S.plan = {wps:S.draft.map(w => ({...w})), idx:0, speed:S.draftSpeed, full:!!S.draftFull, returning:false, depAt:later, unsafe:draftHazards().map((h, i) => { const w = S.draft[i]; return h.unsafe && !(w.leia || w.obs || w.auto); })};
     S.draft = []; S.draftDep = null; draftForget();
     if (later) log('Avgang planlagt ' + dayStr(later / 60) + ' kl. ' + hm(later / 60) + '.', 'Departure planned for ' + dayStr(later / 60) + ' at ' + hm(later / 60) + '.');
     else { if (b.status === 'idle') log('Ny rute satt.', 'New route set.'); depart();

@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['autonavgrunn-171126', '17.11.2026', 'Autonav går rundt skjær', 'Autonav goes round skerries', [
+       ['På en rute Autonav har lagt, går båten ikke lenger på grunn når hun kommer for nær et skjær. Hun stopper og finner vei rundt, også der etappen er gul fordi ruta regner med tidevannet.', 'On a route Autonav has laid, the boat no longer runs aground when she comes too close to a skerry. She stops and finds a way round, also where the leg is yellow because the route counts on the tide.']]],
     ['drivanker-171126', '17.11.2026', 'Juksing alene og drivanker', 'Jigging alone and the drift anchor', [
        ['Jukser du alene og båten driver av feltet, sveiver du inn juksa, kjører opp igjen og driver over feltet på nytt. Juksingen står mens du kjører. Står du og jukser selv, driver båten videre som før.', 'Jigging alone, when the boat drifts off the ground you reel in, run back up and drift over it again. The jigging stops while you steer. When you jig by hand yourself, the boat drifts on as before.'],
        ['Nytt utstyr: drivanker. Med det ute ligger båten med baugen mot vinden og driver mye saktere mens du jukser.', 'New equipment: the drift anchor. With it out the boat lies bow to the wind and drifts much slower while you jig.']]],
