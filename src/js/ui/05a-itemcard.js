@@ -40,6 +40,8 @@ const ICPIC = {
   linehaler:icSvg('<path d="M22 34V20h12v14" fill="' + IC_C.mid + '"/><circle cx="28" cy="16" r="9" fill="' + IC_C.grn + '"/><circle cx="28" cy="16" r="3" fill="#fff"/><path d="M4 6l24 1M28 25l24 9" stroke="' + IC_C.ink + '"/>' + IC_DECK),
   garnhaler:icSvg('<path d="M20 34V22h16v12" fill="' + IC_C.mid + '"/><path d="M14 10h28l-4 14H18z" fill="' + IC_C.blu + '"/><path d="M18 14h20M20 19h16" stroke="#fff" stroke-width="1.2"/><path d="M2 4l14 8M40 22l20 10" stroke="' + IC_C.mid + '" stroke-width=".9"/>' + IC_DECK),
   teinehaler:icSvg('<path d="M14 34V8h22"/><path d="M14 8l10 10"/><circle cx="36" cy="10" r="4" fill="' + IC_C.yel + '"/><path d="M36 14v8"/><rect x="28" y="22" width="16" height="10" rx="1.5" fill="' + IC_C.soft + '"/><path d="M28 27h16M36 22v10" stroke="' + IC_C.mid + '" stroke-width=".9"/>' + IC_DECK),
+  // a drift anchor: the canvas cone on its line from the bow
+  drivanker:icSvg('<path d="M4 8c10 0 16 6 22 12"/><path d="M26 20l26-10v26z" fill="' + IC_C.yel + '"/><path d="M26 20l26 2M26 20l26 14" stroke="' + IC_C.ink + '" stroke-width="1.2"/><path d="M2 30c8-3 14 3 22 0s14-3 22 0 10 2 16 0" stroke="' + IC_C.blu + '"/>'),
   // a crab tank with running water
   krabbekar:icSvg('<rect x="8" y="12" width="48" height="22" rx="2" fill="#fff"/><path d="M8 18c6-2 12 2 18 0s12-2 18 0 8 1 12 0" stroke="' + IC_C.blu + '"/><path d="M8 18h48v16H8z" fill="' + IC_C.ice + '" stroke="none"/><ellipse cx="32" cy="27" rx="6" ry="4" fill="' + IC_C.red + '"/><path d="M26 26l-6-4M38 26l6-4M27 30l-6 3M37 30l6 3" stroke="' + IC_C.red + '"/>'),
   // electronics: the radio, the AIS box, the plotter, the sounders, the radars, the watch alarm
@@ -112,6 +114,7 @@ const ICFX = {
   garnhaler:() => ['Trekker garna ' + fmt(GEAR.garn.hand, 1) + '× raskere enn for hånd · fra 7,5 m', 'Hauls the nets ' + fmt(GEAR.garn.hand, 1) + '× faster than by hand · from 7.5 m'],
   teinehaler:() => ['Teiner kan ikke trekkes uten', 'Pots cannot be hauled without one'],
   krabbekar:() => ['Krabben lever i flere døgn · uten: rundt ett', 'The crab lives for days · without: about one'],
+  drivanker:() => ['Driver ' + Math.round((1 - LIE.drogue) * 100) + ' % saktere mens du jukser', 'Drifts ' + Math.round((1 - LIE.drogue) * 100) + '% slower while you jig'],
   chirp:() => ['Ser fisken 0,75 nm rundt båten · velg art', 'Sees the fish 0.75 nm around the boat · pick the species'],
   sonar:() => ['Ser fisken 1,5 nm rundt · skiller torsk, hyse og sei · fra 10 m', 'Sees the fish 1.5 nm around · tells cod, haddock and saithe apart · from 10 m'],
   plotter:() => ['Dybdefarger, relieff og dybdekurver', 'Depth colours, relief and contours'],
@@ -165,7 +168,7 @@ const ICANCHOR = {
   jukse:() => icL('håndjuksa ' + kr(PRICE.gear), 'hand jig ' + kr(PRICE.gear))
 };
 // the Håndboka's entry each card's «Mer» opens (the search in the app is set to its title)
-const ICMORE = {jig:'juksa', kgear:'kveiteutstyr', jukse:'juksa', jigset:'kroker', linehaler:'halere', garnhaler:'halere', teinehaler:'halere', krabbekar:'teiner',
+const ICMORE = {jig:'juksa', kgear:'kveiteutstyr', jukse:'juksa', jigset:'kroker', linehaler:'halere', garnhaler:'halere', teinehaler:'halere', krabbekar:'teiner', drivanker:'juksa',
   chirp:'elektronikk', sonar:'elektronikk', plotter:'elektronikk', vhf:'elektronikk', ais:'elektronikk', brovakt:'elektronikk', radar:'elektronikk', radarA:'elektronikk',
   antigro:'montering', motor90:'montering', olje:'klaer', varme:'klaer', ice:'is', bait:'agn', net:'garn', line:'line', pot:'teiner', kit:'blaser', heavy:'blaser', hooks:'kroker', kniv:'kniv', hott:'hott',
   jukseLv:'juksa', juksesett:'kroker', linesetter:'line', garnrenne:'garn', linehalerLv:'halere', garnhalerLv:'halere', teinehalerLv:'halere', linesetterLv:'line'};   // (OPP2; the line setter and the net chute get their own entries with OPP4's kap. 8)
