@@ -1,4 +1,4 @@
-"""Folk 2, FB6 (steg 124): the new skinned figure in the wardrobe behind #folk2, beside today's. Checks that the game reads
+"""Folk 2, FB6 (steg 124): the new skinned figure in the wardrobe behind #folk2, alone (today's is no longer drawn beside it, 16.11.2026). Checks that the game reads
 src/data/folk2.b64; that every look the wardrobe can make (the bodies, hats, hairstyles, jackets, beards and shoes of looktest) builds
 a figure of the new body with no part missing, painted by the look's zones; that the shader's skinning gives the same points as the
 processor's (figSkin, which tests/unit/figpose.test.mjs holds to kropp.py's numbers) on WebGL 2 and on WebGL 1, with all 58 bones in
@@ -101,9 +101,12 @@ async def main():
             for pose, name in (('stå', 'staa'), ('hvile', 'hvile'), ('grep', 'grep')):
                 await pg.evaluate("WARD.setFolk2(%s, 0)" % json.dumps(pose)); await pg.wait_for_timeout(400)
                 px = await pg.evaluate("""(() => { const cv = document.querySelector('.wd-cv'), g = cv.getContext('webgl'), w = cv.width, h = cv.height, a = new Uint8Array(4 * w * h); g.readPixels(0, 0, w, h, g.RGBA, g.UNSIGNED_BYTE, a);
-                  let l = 0, r = 0, hash = 0; for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){ const i = (y * w + x) * 4; if (a[i + 3] > 0){ if (x < w / 2) l++; else { r++; hash = (hash * 31 + a[i] + x * 7 + y * 13) >>> 0; } } } return {l, r, of:w * h, hash, ms:WARD.folk2().ms}; })()""")
+                  let l = 0, r = 0, hash = 0, x0 = w, x1 = -1; for (let y = 0; y < h; y++) for (let x = 0; x < w; x++){ const i = (y * w + x) * 4; if (a[i + 3] > 0){ x0 = Math.min(x0, x); x1 = Math.max(x1, x); hash = (hash * 31 + a[i] + x * 7 + y * 13) >>> 0; if (x < w / 2) l++; else r++; } } return {l, r, w, x0, x1, of:w * h, hash, ms:WARD.folk2().ms}; })()""")
                 res[(tag, pose)] = px
-                check(px['l'] > 2000 and px['r'] > 2000, '%s, %s: today\'s figure is drawn to the left and the new one to the right' % (tag, pose), px)
+                # only the new figure, in the middle (Jonas 16.11.2026: the old one out of the wardrobe): what is drawn is one narrow
+                # figure about the centre line, not two set apart
+                mid = (px['x0'] + px['x1']) / 2 / px['w']; span = (px['x1'] - px['x0']) / px['w']
+                check(px['l'] > 1000 and px['r'] > 1000 and abs(mid - 0.5) < 0.1 and span < 0.5, '%s, %s: only the new figure is drawn, in the middle' % (tag, pose), px)
                 await pg.screenshot(path=os.path.join(PICS, 'garderobe_%s_%s.png' % (tag, name)))
             hs = {res[(tag, q)]['hash'] for q in ('stå', 'hvile', 'grep')}
             check(len(hs) == 3, tag + ': the three poses are three different pictures of the new figure', sorted(hs))

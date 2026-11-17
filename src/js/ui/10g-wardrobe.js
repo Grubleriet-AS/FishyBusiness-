@@ -5,8 +5,8 @@
 // portrait and landscape. «Ferdig» keeps the look, «Avbryt» throws the changes away.
 const WARD = (() => {
   let root = null, cv = null, gl = null, prog = null, buf = null, st = null, raf = 0, ro = null;
-  // Folk 2 (FB6, steg 124), behind #folk2 in the address: the new skinned figure (vessel3d.js figMesh from folk2.b64) stands beside
-  // today's, in the same look, so the two can be compared before the new one goes on deck. N2 holds its program, its draw calls and
+  // Folk 2 (FB6, steg 124), behind #folk2 in the address and on the test edition: the new skinned figure (vessel3d.js figMesh from
+  // folk2.b64) in the look, alone (since 16.11.2026 today's is no longer drawn beside it). N2 holds its program, its draw calls and
   // what was measured (the palette, the triangles, the milliseconds of its last draw). Without #folk2 nothing here is touched.
   const N2 = {on:false, prog:null, pal:0, maxV:0, draws:[], tris:0, sex:'m', ms:0, wait:0, loc:null};
   // the poses the new figure can be seen in: the model's own rest pose, the standing pose the game holds, a grip in each hand (the
@@ -51,7 +51,7 @@ const WARD = (() => {
     return '<div class="wd-view"><canvas class="wd-cv"></canvas><div class="wd-vb">'
       + '<button data-wd="turn" data-v="-1" aria-label="' + L2('Drei til venstre', 'Turn left') + '">⟲</button><button data-wd="zoom">' + (st.zoom ? L2('Hele figuren', 'Whole figure') : L2('Ansiktet', 'The face')) + '</button><button data-wd="turn" data-v="1" aria-label="' + L2('Drei til høyre', 'Turn right') + '">⟳</button>'
       + (N2.on ? '<button data-wd="pose2">' + pose2Txt() + '</button><button data-wd="bare2">' + bare2Txt() + '</button>' : '') + '</div>'
-      + (N2.on ? '<div class="wd-n2" style="position:absolute;left:0;right:0;top:8px;display:flex;justify-content:space-around;pointer-events:none;font-weight:600;text-shadow:0 1px 3px #000"><span>' + L2('I dag', 'Today') + '</span><span>' + L2('Ny', 'New') + '</span></div>'
+      + (N2.on ? ''
         + '<div class="wd-n2i" style="position:absolute;left:8px;right:8px;bottom:60px;text-align:center;pointer-events:none;font-size:12px;opacity:.8;text-shadow:0 1px 2px #000"></div>' : '') + '</div>'
       + '<div class="wd-side"><div class="wd-top"><b>' + L2('Garderoben', 'Wardrobe') + '</b><span class="wd-sp"></span><button class="wd-x" data-wd="cancel">' + L2('Avbryt', 'Cancel') + '</button><button class="wd-ok" data-wd="done">' + L2('Ferdig', 'Done') + '</button></div>'
       + '<div class="wd-tabs">' + TABS.map(t => '<button class="wd-tab' + (st.tab === t[0] ? ' on' : '') + '" data-wd="tab" data-v="' + t[0] + '">' + t[S.lang === 'no' ? 1 : 2] + '</button>').join('') + '</div>'
@@ -115,25 +115,26 @@ const WARD = (() => {
     if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)){ cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
     gl.viewport(0, 0, cv.width, cv.height); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); gl.enable(gl.DEPTH_TEST); gl.disable(gl.CULL_FACE);
     const asp = cv.width / Math.max(1, cv.height), face = st.zoom, fov = face ? 0.45 : 0.62, f = 1 / Math.tan(fov / 2);
-    // with the new figure beside today's (#folk2) the two stand apart, and the camera backs off until both are in view, with room
-    // for the names over the heads, and for the line of numbers and the five buttons under the feet
-    const two = N2.on && N2.draws.length > 0, off = two ? (face ? 0.19 : 0.48) : 0, wide = two ? (face ? 0.84 : 2.1) : 0, dist = Math.max(face ? 1.15 : two ? 3.75 : 2.85, wide / (2 * Math.tan(fov / 2) * asp));
+    // with the new figure (Folk 2) ready, only it is drawn, alone in the middle (Jonas 16.11.2026: «Den gamle modellen må fjernes fra
+    // visningen i garderoben»); today's is drawn only while the new one's file is still on its way, or where it cannot be drawn
+    // (the new figure stands at the size it has on board, WK_S, taller than today's: the camera stands back as far as it did for the
+    // two side by side, so the hat clears the top and the feet the line of numbers and the buttons)
+    const two = N2.on && N2.draws.length > 0, off = 0, dist = face ? 1.15 : two ? 3.75 : 2.85;
     const ty = face ? 1.56 : two ? 0.80 : 0.86;
     const cy = Math.cos(st.yaw), sy = Math.sin(st.yaw);
     // the figure faces -z; the camera looks at it from +z; the yaw turns the figure about its up axis
     const R = [cy, 0, -sy, 0, 1, 0, sy, 0, cy];
     const Mv = new Float32Array([cy, 0, -sy, 0, 0, 1, 0, 0, sy, 0, cy, 0, -off, -ty, -dist, 1]);
     const P = new Float32Array([f / asp, 0, 0, 0, 0, f, 0, 0, 0, 0, -(100 + 0.1) / (100 - 0.1), -1, 0, 0, -2 * 100 * 0.1 / (100 - 0.1), 0]);
+    if (two){ draw2(P, R, cy, sy, off, ty, dist); return; }
     gl.useProgram(prog);
     gl.uniformMatrix4fv(gl.getUniformLocation(prog, 'uVP'), false, mul(P, Mv)); gl.uniformMatrix3fv(gl.getUniformLocation(prog, 'uR'), false, new Float32Array(R));
     gl.uniform3fv(gl.getUniformLocation(prog, 'uL'), new Float32Array([0.35, 0.55, 0.75]));
     const at = (n, b, k) => { const a = gl.getAttribLocation(prog, n); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, k, gl.FLOAT, false, 0, 0); };
     at('aP', buf.p, 3); at('aN', buf.n, 3); at('aC', buf.c, 4);
     gl.drawArrays(gl.TRIANGLES, 0, buf.cnt);
-    if (two) draw2(P, R, cy, sy, off, ty, dist);
   }
-  // the new figure, to the right of today's: the same camera, turn and light; at the size the old one has on board (WK_S), so the two
-  // are compared at one height. Timed with the driver made to finish (a pixel read back), for the line under the figures.
+  // the new figure: the same camera, turn and light as today's had; at the size the figures have on board (WK_S). Timed with the driver made to finish (a pixel read back), for the line under the figures.
   function draw2(P, R, cy, sy, off, ty, dist){
     const s = WK_S, Mv = new Float32Array([cy * s, 0, -sy * s, 0, 0, s, 0, 0, sy * s, 0, cy * s, 0, off, -ty, -dist, 1]), u = N2.loc, M = pose2(), px = new Uint8Array(4);
     gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); const t0 = performance.now();          // (what was drawn before is done: the time is the new figure's)
