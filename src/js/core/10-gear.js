@@ -668,7 +668,8 @@ function finishHaul(g, H){
 }
 
 // ---- a station on a route or the standing plan: haul what stands here and set it again, or set new gear if nothing stands here.
-// Before a gale (over 17 m/s within 36 hours) the gear is brought home instead of set again.
+// (Before 17.11.2026 a gale in the forecast, over 17 m/s within 36 hours, brought the gear home instead of setting it again on the coast;
+// Jonas: «Ingen vindgrense på fiskeredskaper». An ocean vessel keeps her lying-to limit, which is the ship's, not the gear's.)
 // n: how many units the standing plan's field wants (06g-plan2.js); a string of nets longer than that is split, a shorter one goes as it is
 function cycleSpec(kind, want, n){
   const pg = S.pgear;
@@ -688,7 +689,7 @@ function gearCycle(w, fishAfter){
   const a = w.act, b = S.boat, H = S.t / 60;
   // (an ocean vessel's autoline stands hours, not days, and she works it in a gale: only a storm over her lying-to limit in the coming
   // twelve hours where she is keeps her from setting again, 05-vessels.js windLim; H2c)
-  let gale = false; if (BOAT.cls === 'hav'){ for (let k = 0; k <= 12; k += 3) if (windAt(H + k, w) > windLim()) gale = true; } else for (let k = 0; k <= 36; k += 3) if (windAt(H + k) > 17) gale = true;
+  let gale = false; if (BOAT.cls === 'hav'){ for (let k = 0; k <= 12; k += 3) if (windAt(H + k, w) > windLim()) gale = true; }
   // the standing plan names its field (a.fid) and what the visit is for (a.only: 'haul' or 'set'); a visit with nothing to do says so and goes on
   const s = (a.fid && mySets().find(x => x.fid === a.fid)) || mySets().find(x => x.kind === a.kind && segDist(w, x.a, x.b) < 0.5 && (!a.fid || !x.fid));
   if (s && a.only === 'set') return [gL('Redskapet står allerede på plassen.', 'The gear already stands at the place.')];
