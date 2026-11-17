@@ -252,7 +252,7 @@
         const q = xf(M, p), a = A0 * arc * lampFade(Math.hypot(q[0], q[1], q[2]), lk === 'side' || lk === 'stern' || lk === 'kv' ? lk : lk === 'masthead' || lk === 'masthead2' ? 'masthead' : 'allround', len, LF);
         if (a < 0.01) continue;
         ANCHAL.npcLit++; if (lk === 'kv') ANCHAL.kvLit++;
-        PB[0] = q[0]; PB[1] = q[1]; PB[2] = q[2]; PA[0] = a; drawPts(1, gl.POINTS, VP, col, px, true); } }
+        PB[0] = q[0]; PB[1] = q[1]; PB[2] = q[2]; PA[0] = a; drawPts(1, gl.POINTS, VP, col, px * LANT_K(), true, null, 48 * LANT_K()); } }
     // the lit windows of the ships at night: a ship model's own (its GLB's anchors.win, the windows' middles, tools/ships/), every one on
     // a ferry and some two in three on the coastal ship (the cabins' curtains; fixed per window; a model's anchors.winLit, the share lit,
     // where it has one: the merchant ships' and the cruise ship's); the old box's rows on a coastal ship drawn as the box (beyond 1.5 km)
