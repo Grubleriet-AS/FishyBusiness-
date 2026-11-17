@@ -341,7 +341,7 @@ function plan2Caught(o, tr){ if (!tr || tr.kg0 == null) return; const kg = Math.
 function plan2StatDay(o, d){ let D = o.stats.days.find(x => x.d === d); if (!D){ D = {d, trips:0, kg:0, kr:0, lott:0, cost:0, conf:0, sp:{}, port:{}}; o.stats.days.push(D); while (o.stats.days.length > 60) o.stats.days.shift(); } return D; }
 // ---- a trip: the steps from i0 to the next port call, as waypoints on the kept legs
 function plan2Trip(o, D, i0){
-  const here = plan2Here(o), kind = p2Kind(o), auto = !!D.auto, wps = [], need = [], pts = [here.p]; let prev = here.p, prevPort = here.port, h = 0, to = i0, kindK = 'fish', noJig = false, ended = false;
+  const here = plan2Here(o), kind = p2Kind(o), auto = !!D.auto, wps = [], need = [], pts = here.port ? [here.p] : []; let prev = here.p, prevPort = here.port, h = 0, to = i0, kindK = 'fish', noJig = false, ended = false;
   // (Driftsplan 3, DP3-2: the gear stands at the spot the search found, q.at, a straight hop in clean water from the field's fixed point,
   // whose legs are kept; she goes to the point, hops to the spot, and back to the point before the next leg. atQ: the place she is at the spot of)
   // (the autoline too since DP3-4; the snow crab's strings stand round the spot themselves, p2SnoLenke)
@@ -409,6 +409,11 @@ function plan2Trip(o, D, i0){
   }
   if (!wps.some(w => w.act || w.fish > 0 || w.port || w.anchor || w.sok)) return null;
   if (need.length) return {need};
+  // (the weather is read where the trip works and ends, pts: not where she lies when she is already out, Jonas 17.11.2026: «det er viktig
+  // at vi lager et system som sørger for at brukerne får fisket så mye som mulig ved hjelp av driftsplanen uten å bli stoppet av dumme
+  // feil». Lying out in a sea over the limit, a ring in shelter let her go in to it rather than wait out there; in port the harbour counts
+  // as before. A trip with no place in it reads where she is)
+  if (!pts.length) pts.push(here.p);
   if (sokIds) return {wps, h, pts, to, kind:'fish', noJig:true, sok:sokAt, sokIds, sokEnd};
   // a trip with no port call after the fishing (the day ends at sea): home, or the plant round the clock
   const last = wps[wps.length - 1];

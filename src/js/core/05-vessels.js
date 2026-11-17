@@ -750,7 +750,7 @@ function vesselStep(H){
     const W0 = windAt(H);
     if (portBusy(b)){ S.plan.depAt = portBusy(b) + 1; log('Avgangen venter til arbeidet på kaia er ferdig.', 'Departure waits until the work at the quay is done.'); }
     else if (S.jobs && S.jobs.length && b.status === 'port'){ S.plan.depAt = (jobsDone() || S.t) + 1; log(jobsFreight() ? 'Avgangen venter til lasta er på plass.' : jobsCrewOnly() ? 'Avgangen venter til mannskapet er ferdig.' : 'Avgangen venter til verkstedet er ferdig.', jobsFreight() ? 'Departure waits until the freight is in place.' : jobsCrewOnly() ? 'Departure waits until the crew is done.' : 'Departure waits until the yard is done.'); }
-    else if (S.settings.autoOn && W0 > windLim() && (S.plan.delays || 0) < 12){ S.plan.depAt += 60; S.plan.delays = (S.plan.delays || 0) + 1; log('Avgangen er utsatt en time. Vinden er ' + W0.toFixed(0) + ' m/s.', 'Departure postponed an hour. The wind is ' + W0.toFixed(0) + ' m/s.'); }
+    else if ((W0 > windLim() || hsAt(b.pos, H) > seaLim()) && (S.plan.delays || 0) < 12){ S.plan.depAt += 60; S.plan.delays = (S.plan.delays || 0) + 1; log(W0 > windLim() ? 'Avgangen er utsatt en time. Vinden er ' + W0.toFixed(0) + ' m/s.' : 'Avgangen er utsatt en time. Sjøen er ' + hsAt(b.pos, H).toFixed(1).replace('.', ',') + ' m.', W0 > windLim() ? 'Departure postponed an hour. The wind is ' + W0.toFixed(0) + ' m/s.' : 'Departure postponed an hour. The sea is ' + hsAt(b.pos, H).toFixed(1) + ' m.'); }
     else depart();
   }
   if (b.status === 'unmooring'){ if (S.t >= b.castUntil){ const pid = b.port, q = quayPos(b), kind = berthKind(b); b.pos = {x:q.x, y:q.y}; b.status = 'sailing'; b.port = null;
@@ -788,7 +788,7 @@ function vesselStep(H){
   if (W <= limW && !seaOver) b.windArm = true;
   // (an ocean vessel on the operations plan, on a trip or waiting at sea, lies to over her own limits too, whatever the coast setting:
   // the plan's limits are for the gear, 06h-plan2-engine.js plan2Wx, H2c)
-  if ((wl ? wl.shelter || wl.hav : S.settings.autoOn) && (W > limW || seaOver) && b.windArm && ['sailing','fishing','idle'].includes(b.status) && !(S.plan && S.plan.returning) && !S.tut && !helmOn() && !b.hove){
+  if ((wl ? wl.shelter || wl.hav : true) && (W > limW || seaOver) && b.windArm && ['sailing','fishing','idle'].includes(b.status) && !(S.plan && S.plan.returning) && !S.tut && !helmOn() && !b.hove){
     b.windArm = false;
     if (wl ? wl.hav : (oceanBoat() || quayFar(b))){ lieTo(W, hs); if (hooks.onLieTo) hooks.onLieTo(W, hs, limW); return; }
     startReturn(true, W, false, seaOver && W <= limW ? hs : 0);
@@ -1325,8 +1325,13 @@ function deckMinute(){
 // for RIDE.calm minutes. A trip on the operations plan keeps the plan's own limits and shelter (06h-plan2-engine.js).
 const RIDE = {h:8, kn:4, calm:60, ease:2};
 const oceanBoat = () => BOAT.cls === 'hav';
-const windLim = () => oceanBoat() ? Math.max(S.settings.autoW, BOAT.risk[2]) : S.settings.autoW;
-const seaLim = () => oceanBoat() ? (BOAT.risk[0] + BOAT.risk[1]) / 2 : Infinity;
+// The coast's boats (17.11.2026; Jonas: «Fjern også denne funksjonen. Vinden er ikke så farlig. Vi må bare sørge for at vi har et
+// sikkerhetssystem som prøver å berge spillerne, men det kan ikke være for konservativt heller»): no wind limit and no setting; she
+// turns for shelter by herself, always, when the sea where she is comes to her danger limit (BOAT.risk[1], the red of the route's sea,
+// a little under it as the plan's limit: SEA_SAFE). The old setting (autoOn, autoW) is no longer read on the coast
+const SEA_SAFE = 0.95;
+const windLim = () => oceanBoat() ? BOAT.risk[2] : Infinity;
+const seaLim = () => oceanBoat() ? (BOAT.risk[0] + BOAT.risk[1]) / 2 : BOAT.risk[1] * SEA_SAFE;
 function quayFar(b){
   let d = Infinity; for (const q of PORTS){ if (q.rorbu) continue; const k = dist(q.p, b.pos); if (k < d) d = k; }
   return d / NM / Math.max(4, (S.plan && S.plan.speed) || BOAT.vcruise || 6) > RIDE.h;

@@ -150,21 +150,22 @@ async def main():
           R.st = b.status; R.port = b.port; R.d = Math.round(dist(b.pos, pt.p) * 1000); R.land = isLand(b.pos); R.depth = +depthF(b.pos).toFixed(1); R.cd = +coastDist(b.pos).toFixed(2);
           PHONE.open('redning'); const b2 = document.querySelector('[data-pa=unstuck]'); R.again = !!(b2 && b2.disabled); PHONE.show(false); return R; })()""")
         check(r['btn'] and r['st'] == 'idle' and r['port'] is None and not r['land'] and r['depth'] >= 4 and r['cd'] >= 0.2 and r['d'] < 2000 and r['again'], '7. «Flytt båten ut på trygt vann» legger båten utenfor Vannareid på dypt vann, og knappen hviler etterpå', r)
-        # 8. a steady gale (Vannareid 08.10.2026): after «Sitter båten fast?», and setting off in a wind already over the turn-back
-        # limit, the boat is not turned straight back to the plant; a wind that rises over it while she is out still turns her
-        r = await J("""(async () => { const b = S.boat, on = S.settings.autoOn, w = S.settings.autoW; S.settings.autoOn = true; S.settings.autoW = 0; S.plan = null;
+        # 8. a steady gale (Vannareid 08.10.2026): after «Sitter båten fast?», and setting off in a sea already over the turn-back
+        # limit, the boat is not turned straight back to the plant; a sea that rises over it while she is out still turns her (from
+        # 17.11.2026 the sea, not the wind, and always on: 05-vessels.js seaLim; the sea is set here with hsAt)
+        r = await J("""(async () => { const b = S.boat, hs0 = window.hsAt, high = () => 99, low = () => 0.1; window.hsAt = high; S.plan = null;
           const R = {}; for (let i = 0; i < 30; i++) step(); R.after = b.status; R.ret = !!(S.plan && S.plan.returning);
           const pt = portById('mT155'), q = {x:b.pos.x + (b.pos.x - pt.p.x) * 0.5, y:b.pos.y + (b.pos.y - pt.p.y) * 0.5};
           S.plan = {wps:[{x:q.x, y:q.y, port:null, fish:0}], idx:0, speed:6, returning:false, unsafe:[false]}; depart(); for (let i = 0; i < 10; i++) step(); R.out = !!(S.plan && !S.plan.returning) || b.status === 'idle';
           const rise = async to => { S.settings.autoTo = to; S.plan = {wps:[{x:q.x, y:q.y, port:null, fish:0}], idx:0, speed:6, returning:false, unsafe:[false]}; b.status = 'sailing';
-            S.settings.autoW = 99; step(); S.settings.autoW = 0; step();
+            window.hsAt = low; step(); window.hsAt = high; step();
             for (let i = 0; i < 300 && !(S.plan && S.plan.returning); i++) await new Promise(r => setTimeout(r, 100));
             const pl = S.plan, e = pl && pl.wps[pl.wps.length - 1]; return {ret:!!(pl && pl.returning), port:e ? e.port : null, leia:!!(pl && pl.wps.some(w => w.leia)), st:b.status}; };
           const np = PORTS.filter(p => !p.rorbu).sort((x, y) => dist(x.p, b.pos) - dist(y.p, b.pos))[0].id;
           R.near = await rise('near'); R.np = np; R.home = await rise('home');
-          S.settings.autoOn = on; S.settings.autoW = w; delete S.settings.autoTo; S.plan = null; b.status = 'idle'; return R; })()""")
+          window.hsAt = hs0; delete S.settings.autoTo; S.plan = null; b.status = 'idle'; return R; })()""")
         check(r['after'] == 'idle' and not r['ret'] and r['out'], '8a. i vedvarende kuling snur båten ikke rett inn igjen etter «Sitter båten fast?» eller når du kaster loss', r)
-        check(r['near']['ret'] and r['near']['st'] == 'sailing' and r['near']['port'] == r['np'] and r['near']['leia'], '8b. vind som øker mens du er ute: Autonav tar båten til nærmeste kai (valget «Nærmeste kai»)', r['near'])
+        check(r['near']['ret'] and r['near']['st'] == 'sailing' and r['near']['port'] == r['np'] and r['near']['leia'], '8b. sjø som øker mens du er ute: Autonav tar båten til nærmeste kai (valget «Nærmeste kai»)', r['near'])
         check(r['home']['ret'] and r['home']['port'] is not None and not r['home']['leia'], '8c. med valget «Hjem samme vei» går båten hjem samme vei som den kom', r['home'])
         # 9. Autonav 2 (12.10.2026): the lowest water of the trip counts as depth, narrow sounds on the 50 m grid, the net's legs pulled
         r = await J("""(async () => { const R = {}, A = PORTS.find(p => p.name === 'Havøysund'); await mapNeed(A.p, 9); const Rb = rorbuSites(A.p, 8)[0]; if (!Rb) return {err:'no rorbu'};
