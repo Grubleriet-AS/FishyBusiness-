@@ -2,6 +2,11 @@
   const PATCH = [
     ['havnland-171126', '17.11.2026', 'Land i havna', 'Land in the harbour', [
        ['Båten seiler ikke lenger over land eller gjennom moloen nær en havn. Kommer hun ut av kurs der, stopper hun før land og finner vei rundt, slik hun gjør ellers langs kysten.', 'The boat no longer sails over land or through the breakwater near a harbour. If she gets off course there, she stops short of the land and finds a way round, as she does elsewhere along the coast.']]],
+    ['navn-171126', '17.11.2026', 'Navn på rederiet og båten', 'The company\'s and the boat\'s name', [
+       ['Du kan bytte navn på rederiet i Rederi-appen.', 'You can rename your company in the Company app.'],
+       ['Har båten ikke fått navn ennå, kan du døpe henne rett fra kortet hennes i Rederi-appen.', 'If your boat has no name yet, you can name her right from her card in the Company app.']]],
+    ['autonavgrunn-171126', '17.11.2026', 'Autonav går rundt skjær', 'Autonav goes round skerries', [
+       ['På en rute Autonav har lagt, går båten ikke lenger på grunn når hun kommer for nær et skjær. Hun stopper og finner vei rundt, også der etappen er gul fordi ruta regner med tidevannet.', 'On a route Autonav has laid, the boat no longer runs aground when she comes too close to a skerry. She stops and finds a way round, also where the leg is yellow because the route counts on the tide.']]],
     ['merkegave-171126', '17.11.2026', 'Gavene for merkene', 'The badge gifts', [
        ['Gavene for de lange merkene vokser nå med trinnet: små på første trinn, som før fra det fjerde.', 'The gifts for the long badges now grow with the step: small on the first, as before from the fourth.']]],
     ['vaerhjem-171126', '17.11.2026', 'Driftsplanen og været', 'The plan and the weather', [
