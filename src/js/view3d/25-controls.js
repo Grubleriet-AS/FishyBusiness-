@@ -256,6 +256,7 @@
     film(o){ FILM = o || null; return !!FILM; }, isHelm:() => cam.helm, setHelm(on){ const G = GEO(vtype()); cam.helm = !!on; cam.zoom = 1; cam.hy = 0; cam.hp = G.hp !== undefined ? G.hp : -0.07; cam.fov = G.fov || 55; },
     // (Ø3c: a terrain mesh's heights, forest and land cover worked out round the eye as buildTerrain does, timed, with a hash of what
     // came out, so a change in meshRows can be shown to give the same mesh)
+    glMB:() => Math.round((GLMEM.b + GLMEM.t) / 1048576),
     _debug:{get bv(){ return bv; },
       // the ground drawn round a unit's back and sides (tests/enhetshot.py, 13.11.2026): points on the block's back and sides (where its
       // fine patch has a row of points) and 0.5 to 6 m out from them

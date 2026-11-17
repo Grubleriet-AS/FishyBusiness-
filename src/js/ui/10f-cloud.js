@@ -49,7 +49,7 @@ function cloudDev(){
   const g = typeof G3 !== 'undefined' ? G3 : null, s = window.screen || {}; let q = {}; try { q = (g && g.quality ? g.quality() : {}) || {}; } catch (e){}
   return {gpu:cloudGpu(), cores:navigator.hardwareConcurrency || null, mem:navigator.deviceMemory || null,
     scr:Math.round(s.width || innerWidth) + 'x' + Math.round(s.height || innerHeight) + '@' + Math.round((devicePixelRatio || 1) * 10) / 10,
-    lvl:q.lvl == null ? null : q.lvl, view:g && g.isActive && g.isActive() ? '3d' : 'kart', js:g && g._debug && g._debug.jsms ? Math.round(g._debug.jsms * 10) / 10 : null};
+    lvl:q.lvl == null ? null : q.lvl, view:g && g.isActive && g.isActive() ? '3d' : 'kart', gl:g && g.glMB ? g.glMB() : null, js:g && g._debug && g._debug.jsms ? Math.round(g._debug.jsms * 10) / 10 : null};
 }
 function cloudMeta(){
   // at the gate the game is not loaded yet (S comes in bootGame)
@@ -383,7 +383,7 @@ function aliveBeat(gone){
     if (gone) delete a[ALIVE.id];
     else { let d = {}; try { d = cloudDev(); } catch (e){}
       const mem = performance && performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null;
-      a[ALIVE.id] = {t:Date.now(), vis:!document.hidden, up:Math.round((Date.now() - ALIVE.t0) / 1000), view:d.view, lvl:d.lvl, mem, ready:typeof SIMREADY !== 'undefined' && !!SIMREADY,
+      a[ALIVE.id] = {t:Date.now(), vis:!document.hidden, up:Math.round((Date.now() - ALIVE.t0) / 1000), view:d.view, lvl:d.lvl, mem, gl:d.gl, ready:typeof SIMREADY !== 'undefined' && !!SIMREADY,
         v:(document.querySelector('meta[name=dsb-version]') || {}).content || 'dev'}; }
     localStorage.setItem(ALIVE_KEY, JSON.stringify(a));
   } catch (e){}
@@ -398,7 +398,7 @@ function aliveCheck(){
     if (!b.vis) continue;
     const where = !b.ready ? 'under lasting' : b.view === '3d' ? '3d' : 'kart', mins = Math.round((now - b.t) / 60000);
     cloudErr('Krasj: siden stoppet mens den var på skjermen · ' + where, 'crash',
-      JSON.stringify({version:b.v, up_s:b.up, view:b.view, lvl:b.lvl, js_mb:b.mem, min_ago:mins}), 'crash');
+      JSON.stringify({version:b.v, up_s:b.up, view:b.view, lvl:b.lvl, js_mb:b.mem, gl_mb:b.gl == null ? null : b.gl, min_ago:mins}), 'crash');
   }
   if (changed) try { localStorage.setItem(ALIVE_KEY, JSON.stringify(a)); } catch (e){}
 }

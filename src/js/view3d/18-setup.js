@@ -102,6 +102,16 @@
       let want2 = !/gl1/.test(location.hash) && typeof WebGL2RenderingContext !== 'undefined'; try { if (!/gl2/.test(location.hash) && localStorage.getItem(GL1_KEY) === GL1_VER) want2 = false; } catch (e){}
       gl = ctxTry({antialias:true, alpha:false, powerPreference:'high-performance'}) || ctxTry({antialias:false, alpha:false}) || ctxTry({alpha:false, failIfMajorPerformanceCaveat:false}) || ctxTry(undefined);
       GL2 = !!gl && typeof WebGL2RenderingContext !== 'undefined' && gl instanceof WebGL2RenderingContext;
+      // (what the GPU holds of ours, roughly: the buffers' and textures' bytes as they are uploaded and deleted, for the crash report;
+      // Safari gives the page no memory figure, and the iPhones that end the page are the ones we know least about, 17.11.2026)
+      if (gl && !gl.__mem){ gl.__mem = true; const sz = new WeakMap(), M = GLMEM; let cur = null;
+        const bb = gl.bindBuffer.bind(gl), bd = gl.bufferData.bind(gl), db = gl.deleteBuffer.bind(gl), ti = gl.texImage2D.bind(gl), dt = gl.deleteTexture.bind(gl), bt = gl.bindTexture.bind(gl); let tcur = null;
+        gl.bindBuffer = (t, x) => { cur = x; return bb(t, x); };
+        gl.bufferData = function(t, d, u){ const n = typeof d === 'number' ? d : d && d.byteLength || 0; if (cur){ M.b += n - (sz.get(cur) || 0); sz.set(cur, n); } return bd.apply(null, arguments); };
+        gl.deleteBuffer = x => { if (x && sz.has(x)){ M.b -= sz.get(x); sz.delete(x); } return db(x); };
+        gl.bindTexture = (t, x) => { tcur = x; return bt(t, x); };
+        gl.texImage2D = function(){ const a = arguments, n = a.length >= 9 ? (a[3] || 0) * (a[4] || 0) * 4 : a[5] && a[5].width ? a[5].width * a[5].height * 4 : 0; if (tcur && a[1] === 0){ M.t += n - (sz.get(tcur) || 0); sz.set(tcur, n); } return ti.apply(null, a); };
+        gl.deleteTexture = x => { if (x && sz.has(x)){ M.t -= sz.get(x); sz.delete(x); } return dt(x); }; }
       // WebGL 1's extensions that WebGL 2 has in its core: asked for by name as before (the trees, the near field, the turbines, the
       // 32-bit indices, the derivatives), they answer with the core functions
       if (GL2 && !gl.__x2){ gl.__x2 = true; const ge = gl.getExtension.bind(gl);

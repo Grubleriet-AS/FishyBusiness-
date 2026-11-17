@@ -36,6 +36,7 @@ const G3 = (() => {
   const PMK = k => { if (PROF.on) profMark(k); };
   // Low also draws at most px0 pixels (about 1920 x 1080) and lets the browser stretch them, so a big desktop screen on a weak GPU
   // gets the frames back (Iris Xe on 3440 x 1440 held 17 a second at low, 5 million pixels a frame); smaller screens are untouched.
+  const GLMEM = {b:0, t:0};   // (the GPU's bytes of ours, 18-setup.js initGL: buffers and textures, for the crash report)
   const QUAL = {lvl:2, bad:0, good:0, cap:2, capT:0, fix:/qfix/.test(location.hash), dpr:[1, 1.25, 1.5, 3], px0:2.1e6, near:[[3000, 6000], [6000, 12000], [6000, 12000], [9000, 18000]],
     nearN:[256, 256, 256, 384], midN:[256, 256, 256, 384], farN:[255, 255, 255, 511], chunkR:[1300, 1300, 1300, 2200], lodK:[1, 1, 1, 1.8],
     // your boat's versions by her length in the drawing's pixels (F1, 30.10.2026, 19-wildlife-npc.js ownTier): near over the first, middle over
