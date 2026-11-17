@@ -5609,3 +5609,9 @@
 2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	driftsplan2ui	OK	60	lite	samtidig	
 2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	rundshot	OK	24	lite	samtidig	
 2026-11-17 11:52	claude/hopeful-mayer-48bgvv	ba84b9a7	driftsplan2test	OK	95	lite	alene	
+2026-11-17 14:00	ccr-1bf3e190-ptkcq3	8c7f4ad5+	synctest	FEIL	68	lite	samtidig	FEIL with the phone silent (screen off), the tablet takes the game back by itself, without a card {"s": {"held": false, "wait": false, "gate": false, "ready": t
+2026-11-17 14:00	ccr-1bf3e190-ptkcq3	8c7f4ad5+	cloudtest	OK	50	lite	samtidig	
+2026-11-17 14:01	ccr-1bf3e190-ptkcq3	8ed85661	guesttest	OK	84	lite	samtidig	
+2026-11-17 14:01	ccr-1bf3e190-ptkcq3	8ed85661	rttest	OK	50	lite	samtidig	
+2026-11-17 14:01	ccr-1bf3e190-ptkcq3	8ed85661	peergear	OK	5	lite	samtidig	
+2026-11-17 14:01	ccr-1bf3e190-ptkcq3	8ed85661	nedetest	OK	23	lite	samtidig	
