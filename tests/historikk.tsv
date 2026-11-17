@@ -5590,3 +5590,9 @@
 2026-11-17 02:39	claude/charming-mayer-4qcjdd	cde9b25+	admintest	FEIL	13	lite	alene	FEIL the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days  {"k3": {"login": tru
 2026-11-17 02:40	claude/charming-mayer-4qcjdd	cde9b25+	admintest	OK	13	lite	alene	
 2026-11-17 02:40	claude/charming-mayer-4qcjdd	cde9b25+	admintest	FEIL	13	lite	alene	FEIL the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days  {"k3": {"login": tru
+2026-11-17 10:09	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	trip2	OK	37	lite	samtidig	
+2026-11-17 10:09	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	turtest	OK	26	lite	samtidig	
+2026-11-17 10:10	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	worldtest	OK	21	lite	samtidig	
+2026-11-17 10:10	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	docktest	OK	62	lite	samtidig	
+2026-11-17 10:10	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	r4test	OK	18	lite	samtidig	
+2026-11-17 10:37	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	trackfollow	FEIL	1583	3d	alene	FEIL at the end of the route she stops exactly on the last waypoint, without running past and coming back  {"stop": 0.0, "d3d": 0.0, "d": 0.72, "rise": 0.51, "d
