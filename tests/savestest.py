@@ -12,6 +12,12 @@ and still hold its boat. The save gate of a release (L1c, 11.11.2026; docs/syste
                                                   start with what it wrote. A roll-back must not break the game of one who has played
                                                   the new version
   python3 tests/savestest.py --jobs N             N saves at a time, each in a browser context of its own (4)
+  python3 tests/savestest.py --max N              at most N saves, a random draw each run (150; 75 with --old, which starts each twice)
+
+The draw (17.11.2026, Jonas chose «Tilfeldig utvalg»): the gate's server stops each run after 840 s (tools/server/gate/gate.py LIMIT), and
+the day the game opened there were 210 saves: the run one way held them all in time, the other way (each save started twice) did not,
+and the release stopped with every save tried holding. So a run tries at most --max saves, a new random draw each time, and says how
+many it drew of how many; a broken save format shows in any sample, and over a few releases all are drawn.
 
 The log never shows a save: a line names it by its fingerprint (the first 8 characters of the sha256 of the save), and what is quoted in
 an error is cut out. The script ends with code 1 when a save did not hold, so a job stops on it; tests/run.py reads the lines as before."""
@@ -92,6 +98,11 @@ async def main():
     if not d:
         d = REAL if glob.glob(os.path.join(REAL, '*.json')) else FIX; fixture = d == FIX
     files = sorted(glob.glob(os.path.join(d, '*.json')))
+    # (a random draw when there are more than --max, see above; the fixture is small and always whole)
+    cap = int(arg('--max', '75' if old else '150')); total = len(files)
+    if not fixture and total > cap:
+        import random; random.Random(time.time_ns()).shuffle(files); files = sorted(files[:cap])
+        print('%d of %d saves drawn at random (--max %d)' % (len(files), total, cap), flush=True)
     if not files:
         print(('FEIL ' if '--must' in sys.argv else '') + 'no saves in', 'the folder asked for' if DIR else 'tests/saves', '(python3 tools/saves/fetch.py, with SUPABASE_SERVICE_ROLE_KEY)'); print('errors: []')
         sys.exit(1 if '--must' in sys.argv else 0)
