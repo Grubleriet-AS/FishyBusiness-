@@ -17,7 +17,8 @@ function worldSig(){ const b = S && S.boat; if (!b) return ''; const pl = S.plan
 // V2 A, 17.11.2026: pos_put and pos_world were a third of all calls). A change she makes (worldSig) and the page coming back go at once.
 const WORLD_RT_MS = 60000;
 async function worldTick(timed){
-  if (timed === true && RT.st === 'open' && Date.now() - WORLDP.last < WORLD_RT_MS - 2000) return;
+  // (the tick comes every 15 s, so a minute since the last can be up to 75 s: it goes when 44 s have passed, every 45 or 60 s)
+  if (timed === true && RT.st === 'open' && Date.now() - WORLDP.last < WORLD_RT_MS - 16000) return;
   if (!CLOUD.on || !CLOUD.user || WORLDP.busy || WORLDP.off || TAB.held || TAB.lost || TAB.wait || (typeof document !== 'undefined' && document.hidden)) return;   // (only the page that has the game shows the boat)
   WORLDP.busy = true;
   try {
@@ -421,7 +422,7 @@ function worldStart(){
   setTimeout(lopSync, 25000); setInterval(lopSync, 30000);   // the race's attempts to the cloud (KL3)
   if (typeof pressStart === 'function') pressStart();   // Kystposten's stories to and from the cloud (ui/05g-press.js)
   document.addEventListener('visibilitychange', () => { if (!document.hidden) worldTick(); });
-  setInterval(() => { if (PEERS.length && Date.now() - WORLDP.last > 60000) PEERS.length = 0; }, 10000);   // gone quiet (offline)
+  setInterval(() => { if (PEERS.length && Date.now() - WORLDP.last > WORLD_RT_MS + 30000) PEERS.length = 0; }, 10000);   // gone quiet (offline; a minute and a half: the reports come once a minute with the relay)
   // the relay (S2): opened, fed and closed from here, five times a second; a hidden page lets go at once
   setInterval(() => { try { rtTick(); } catch (e){ console.warn('rt', e); } }, RT_MOVE);
   document.addEventListener('visibilitychange', () => { if (document.hidden && RT.ws) rtClose(1000, 1000); });

@@ -59,6 +59,9 @@ async def main():
         mode['save_put4'] = 503; await rpc('save_put4'); c0 = n('save_put4')
         a = await rpc('save_put4', '{keep:true}')
         check(a == 'save_put4 503' and n('save_put4') - c0 == 1, 'the last save as the page closes goes although the saves wait', a)
+        mode['save_put4'] = 200; await pg.evaluate("__rb('save_put4').until = Date.now() + 60000")
+        a = [await rpc('save_put4'), await rpc('save_put4', '{now:true}')]
+        check(a == ['save_put4 wait', 'ok'], 'the player\'s own save, the handover and the question after sleep (opt.now) go although the saves wait', a)
         # 4. a 401: a fresh token and one more go, then it waits like a 5xx (no loop)
         mode['hails_get'] = 401; c0 = n('hails_get'); f0 = await pg.evaluate("window.__force")
         a = [await rpc('hails_get'), await rpc('hails_get')]
@@ -81,11 +84,11 @@ async def main():
         a = await pg.evaluate("""(async () => { const out = [], cnt = () => out.length;
           const tick = async (open, ago, timed) => { RT.st = open ? 'open' : 'off'; WORLDP.busy = false; TAB.wait = false; WORLDP.last = Date.now() - ago; const p0 = WORLDP.put || 0;
             await Promise.race([worldTick(timed), new Promise(r => setTimeout(r, 20000))]); return (WORLDP.put || 0) !== p0 ? 1 : 0; };
-          const r = {s20:await tick(true, 20000, true), s61:await tick(true, 61000, true), change:await tick(true, 1000, undefined), norelay:await tick(false, 16000, true)};
+          const r = {s20:await tick(true, 20000, true), s40:await tick(true, 40000, true), s46:await tick(true, 46000, true), change:await tick(true, 1000, undefined), norelay:await tick(false, 16000, true)};
           r.why = {on:CLOUD.on, user:!!CLOUD.user, off:WORLDP.off, err:WORLDP.err, held:TAB.held, lost:TAB.lost, wait:TAB.wait, hidden:document.hidden};
           RT.st = 'off'; return r; })()""")
-        check({k: a[k] for k in ('s20', 's61', 'change', 'norelay')} == {'s20': 0, 's61': 1, 'change': 1, 'norelay': 1} and n('pos_put') - c0 == 3,
-              'relay open: the 15 s tick sends after a minute, not before; a change goes at once; without the relay every 15 s', {**a, 'sendt': n('pos_put') - c0})
+        check({k: a[k] for k in ('s20', 's40', 's46', 'change', 'norelay')} == {'s20': 0, 's40': 0, 's46': 1, 'change': 1, 'norelay': 1} and n('pos_put') - c0 == 3,
+              'relay open: the 15 s tick sends after 45–60 s, not before; a change goes at once; without the relay every 15 s', {**a, 'sendt': n('pos_put') - c0})
         print('errors:', errs[:3]); await br.close()
 
 asyncio.run(main())

@@ -5615,3 +5615,7 @@
 2026-11-17 14:01	ccr-1bf3e190-ptkcq3	8ed85661	rttest	OK	50	lite	samtidig	
 2026-11-17 14:01	ccr-1bf3e190-ptkcq3	8ed85661	peergear	OK	5	lite	samtidig	
 2026-11-17 14:01	ccr-1bf3e190-ptkcq3	8ed85661	nedetest	OK	23	lite	samtidig	
+2026-11-17 14:04	ccr-1bf3e190-ptkcq3	c422c12f+	nedetest	OK	23	lite	samtidig	
+2026-11-17 14:05	ccr-1bf3e190-ptkcq3	c422c12f+	synctest	OK	70	lite	samtidig	
+2026-11-17 14:05	ccr-1bf3e190-ptkcq3	c422c12f+	cloudtest	OK	49	lite	samtidig	
+2026-11-17 14:06	ccr-1bf3e190-ptkcq3	c422c12f+	rttest	OK	51	lite	samtidig	

@@ -114,7 +114,8 @@ const RPC_B0 = 5000, RPC_BMAX = 120000;
 const BEAT_MS = 15000;
 function rpcFail(fn){ const b = RPCB.get(fn) || {n:0, until:0}; b.n++; b.until = Date.now() + Math.min(RPC_BMAX, RPC_B0 * Math.pow(2, b.n - 1)); RPCB.set(fn, b); }
 async function cloudRpc(fn, args, opt){
-  const keep = !!(opt && opt.keep), bg = RPC_BG.has(fn) && !keep, b = RPCB.get(fn);
+  // (opt.now: a timed call that must be asked now all the same: the player's own save, the handover, the question after the page slept)
+  const keep = !!(opt && opt.keep), bg = RPC_BG.has(fn) && !keep && !(opt && opt.now), b = RPCB.get(fn);
   if (bg && b && Date.now() < b.until) throw new Error(fn + ' wait');
   const c = CLOUD_CFG, tok = opt && opt.anon ? null : await cloudToken(opt && opt.fresh);
   // a publishable key (sb_publishable_…) is not a JWT and goes only as apikey; the old anon key (a JWT) also as the bearer
@@ -532,7 +533,7 @@ async function cloudSaveSoon(closing, manual){
   if (S.lastReal === CLOUD.lastSave){ if (manual) cloudStatus('ok'); return; }
   CLOUD.saving = true; if (!closing) cloudStatus('saving');
   try {
-    const fp = cloudFp(), at = S.lastReal, data = await saveCode(); if (!data) return; const iso = new Date(at).toISOString(), keep = {keep:closing && data.length < 60000};
+    const fp = cloudFp(), at = S.lastReal, data = await saveCode(); if (!data) return; const iso = new Date(at).toISOString(), keep = {keep:closing && data.length < 60000, now:!!(closing || manual)};
     let r;
     // the server counts the saves (save_put3): the game says which revision it comes from, and the cloud having moved on is refused.
     // A device from before the revisions (or a new one) asks first which revision its game is from. (A database without it: the older puts.)
@@ -586,15 +587,16 @@ async function cloudClaim(wait){
   const nm = cl.prev_name || cloudL('den andre enheten', 'the other device');
   cloudGateShow('<p class="cg-lead">' + cloudL('Henter spillet fra ' + gEsc(nm) + ' …', 'Fetching the game from ' + gEsc(nm) + ' …') + '</p><p class="cg-small">' +
     cloudL('Spillet settes på pause der og fortsetter her, akkurat der du slapp.', 'The game is paused there and goes on here, exactly where you left it.') + '</p>');
-  for (let i = 0; i < 30; i++){ await cloudSleep(500); try { const h = await cloudRpc('save_head', {}); if (h && h.rev > cl.rev){ cl.handed = true; break; } } catch (e){} }
+  // (as long as the other device may take to hear it has lost the game, one beat, and to send its last state)
+  for (let i = 0, n = Math.round((BEAT_MS + 15000) / 500); i < n; i++){ await cloudSleep(500); try { const h = await cloudRpc('save_head', {}, {now:true}); if (h && h.rev > cl.rev){ cl.handed = true; break; } } catch (e){} }
   cloudEv('claim_wait', {handed:!!cl.handed});
   return cl;
 }
-async function cloudBeat(){
+async function cloudBeat(now){
   if (!CLOUD.on || !CLOUD.user || CLOUD.guest || CLOUD.noBeat || TAB.lost || TAB.held || CLOUD.beating || navigator.onLine === false || !S || !S.lastReal){ TAB.wait = false; return; }
   CLOUD.beating = true;
   try {
-    const h = await cloudRpc('save_beat', {device:deviceId()});
+    const h = await cloudRpc('save_beat', {device:deviceId()}, now ? {now:true} : undefined);
     if (!h) return;   // nothing on the account yet: the first save takes it
     if (h.active_dev && h.active_dev !== deviceId()){ TAB.wait = false; return void cloudPassed(h); }
     CLOUD.beatAt = Date.parse(h.now) || Date.now();
@@ -609,7 +611,7 @@ async function cloudBeat(){
 function cloudWake(){
   if (!CLOUD.on || !CLOUD.user || CLOUD.guest || CLOUD.noBeat || TAB.lost || TAB.held || navigator.onLine === false) return;
   TAB.wait = true; clearTimeout(CLOUD.waitT); CLOUD.waitT = setTimeout(() => { TAB.wait = false; }, 8000);
-  if (!CLOUD.beating) cloudBeat();
+  if (!CLOUD.beating) cloudBeat(true);
 }
 // another device has the game: this one stops, hands over its last state if it was playing until then, and says so
 async function cloudPassed(h){
@@ -622,7 +624,7 @@ async function cloudPassed(h){
   if (fresh && TAB.rv != null && h.rev === TAB.rv && !SAVE_OFF && !CLOUD.noPut4){
     try { const at = S.lastReal, data = await saveCode();
       const r = data && await cloudRpc('save_put4', {data, saved_at:new Date(at).toISOString(), game_t:Math.round(S.t || 0), base_rev:TAB.rv, force:false, summary:saveSum(S),
-        device:deviceId(), device_name:deviceName(), handoff:true});
+        device:deviceId(), device_name:deviceName(), handoff:true}, {now:true});
       if (r && r.ok){ TAB.rv = r.rev; CLOUD.lastSave = at; syncSet(r.saved_at, at, r.rev, S.seq); cloudEv('handoff', {}); } } catch (e){ console.error(e); }
   }
   cloudHeldShow(h);
