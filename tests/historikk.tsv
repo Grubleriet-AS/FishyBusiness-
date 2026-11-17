@@ -5639,3 +5639,6 @@
 2026-11-17 17:07	fb/auto-2026-11-17-smola-fylke	05fd5bff	starttest	OK	137	lite	samtidig	
 2026-11-17 17:07	fb/auto-2026-11-17-smola-fylke	05fd5bff	docktest	OK	71	lite	samtidig	
 2026-11-17 17:22	fb/auto-2026-11-17-smola-fylke	8d8cea9b	tut	OK	927	lite	alene	
+2026-11-17 17:06	claude/hopeful-mayer-48bgvv	57bfe35c+	kjoptest	OK	160	lite	samtidig	
+2026-11-17 17:06	claude/hopeful-mayer-48bgvv	57bfe35c+	guesttest	OK	83	lite	samtidig	
+2026-11-17 17:06	claude/hopeful-mayer-48bgvv	57bfe35c+	cloudtest	OK	51	lite	samtidig	

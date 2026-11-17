@@ -9,7 +9,8 @@
        ['Båten snur ikke lenger for vind. Hun går i ly av seg selv når sjøen blir nær det hun tåler. Innstillingen «Snu ved» er tatt bort.', 'The boat no longer turns back for wind. She runs for shelter by herself when the sea gets near what she can take. The «Turn back at» setting is gone.'],
        ['Båtene krenger mindre i vinden, og ligger nesten rett ved kai.', 'The boats heel less in the wind, and lie almost upright at the quay.'],
        ['Garn og line settes ut også når det er meldt kuling.', 'Nets and line are set also when a gale is forecast.'],
-       ['Trykk på et rutepunkt i kartet for å endre fisketiden eller slette punktet. Hold og dra for å flytte det.', 'Tap a waypoint in the chart to change its fishing time or delete it. Hold and drag to move it.']]],
+       ['Trykk på et rutepunkt i kartet for å endre fisketiden eller slette punktet. Hold og dra for å flytte det.', 'Tap a waypoint in the chart to change its fishing time or delete it. Hold and drag to move it.'],
+       ['Inviter en venn: under Innstillinger › Konto finner du din egen lenke å dele.', 'Invite a friend: under Settings › Account you find a link of your own to share.']]],
     ['ingenko-171126', '17.11.2026', 'Ingen kø ved mottakene', 'No queue at the plants', [
        ['Det er ikke lenger kø ved fiskemottakene. Du losser med en gang du ligger ved mottakskaia, også når andre losser der samtidig.', 'There is no longer a queue at the fish plants. You land as soon as you lie at the plant\'s quay, also when others land there at the same time.']]],
     ['drivanker-171126', '17.11.2026', 'Juksing alene og drivanker', 'Jigging alone and the drift anchor', [
