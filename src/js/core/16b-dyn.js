@@ -448,18 +448,26 @@ function dynDrift(type, p, H){
 // windage sits forward (P.xw, the big boats with the wheelhouse forward); slowly, at a pace set by the wind's push on her and her yaw
 // inertia: a time constant tau minutes at 8 m/s, longer in a light wind and for a big boat (the push goes as U², the moment of inertia
 // as L⁴ against the arm and area as L²), and none under calm (min m/s). The 3D view and the chart turn her over the minute, lieTurn.)
-const LIE = {up:0.4, land:0.06, sw:{tau:4, min:1, maxTau:40}};
+// drogue: the share of the wind's drift left with the drift anchor out (EQUIP.drivanker; a start value: a drogue takes most of it off,
+// manufacturers' tables give a half to three quarters), while she lies jigging
+const LIE = {up:0.4, land:0.06, sw:{tau:4, min:1, maxTau:40}, drogue:0.35};
+// the drift anchor is out: jigging, with one aboard (the boat's own equipment)
+const lieDrogue = b => b.status === 'fishing' && !!(S.equip && S.equip.drivanker);
 // someone to take the helm while the engine runs her lying still: why 'up' (back up over the jigging ground: a hand of the crew, since
 // you or they stand at the rail jigging, and alone you are there yourself), else (to the gear, off the land) anyone awake aboard
 // (an ocean vessel's watch on deck counts as hands, 04-crew.js lagOnDeck)
+// Alone (Jonas 17.11.2026, on the plan with the wooden boat: «så drifter jeg avgårde mens jeg bruker juksa siden ingen kjører båten»;
+// his choice, A: «Begge»): you reel in, take the helm and run her back up yourself, as one jigging alone does; the jig stands while you
+// steer (workAssign puts you at the helm, so nobody is at the rail). Not while you jig by hand yourself («Jukse selv», window.jigActive):
+// then you are at the rail and she drifts on (the 15.11 rule: she never runs off by herself while you stand there jigging)
 function lieHelmCan(why){
   let lag = 0; try { lag = typeof lagOnDeck === 'function' ? lagOnDeck(S.t / 60, false).length : 0; } catch (e){}
-  if (why === 'up') return crewAboard(S.t / 60).length + lag > 0;
+  if (why === 'up') return crewAboard(S.t / 60).length + lag > 0 || (meAboard() && !asleep() && !(typeof window !== 'undefined' && window.jigActive));
   return gearLieCrew() || lag > 0;
 }
 // the heading she turns to lying still (radians, grid), and how much of the way she goes in a minute
-function lieTurn(type, hd, D, U){
-  const cal = dynCal(type), P = cal.P, off = clamp(Math.PI / 2 - (P.xw || 0) / Math.max(1, P.L) * 10, 0.6, Math.PI / 2);   // (0.04 L forward: 68 degrees off downwind)
+function lieTurn(type, hd, D, U, drogue){
+  const cal = dynCal(type), P = cal.P, off = drogue ? Math.PI : clamp(Math.PI / 2 - (P.xw || 0) / Math.max(1, P.L) * 10, 0.6, Math.PI / 2);   // (0.04 L forward: 68 degrees off downwind; on the drogue, bow to the wind)
   const to = [D.a + off, D.a - off].reduce((m, c) => Math.abs(dynAng(hd, c)) < Math.abs(dynAng(hd, m)) ? c : m);
   if (!(U > LIE.sw.min)) return {to:hd, k:0};
   const tau = clamp(LIE.sw.tau * (8 / U) ** 2 * Math.sqrt(Math.max(1, P.L) / 10), 0.5, LIE.sw.maxTau);
@@ -488,9 +496,10 @@ function lieDrift(H){
   if (dv && dv.t === S.t - 1 && dv.st === b.status) b.pos = {x:b.pos.x + dv.x, y:b.pos.y + dv.y};
   if (!b.driftHome || b.driftHome.st !== b.status) b.driftHome = {x:b.pos.x, y:b.pos.y, st:b.status, said:false};
   let D; try { D = dynDrift(b.type, b.pos, H); } catch (e){ return; }
+  const drg = lieDrogue(b); if (drg) D = {e:D.e * LIE.drogue, n:D.n * LIE.drogue, v:D.v * LIE.drogue, a:D.a};
   // she falls off across the wind (the nearer side), slowly, as the wind turns her (lieTurn); the 3D view and the chart turn her over the
   // minute from where she lay (b.lieHd, ui/04-panels-instruments.js livePose)
-  { const h0 = b.heading || 0; let U = 0; try { U = windAt(H, b.pos); } catch (e){} const T = lieTurn(b.type, h0, D, U);
+  { const h0 = b.heading || 0; let U = 0; try { U = windAt(H, b.pos); } catch (e){} const T = lieTurn(b.type, h0, D, U, drg);
     b.heading = ((h0 + dynAng(h0, T.to) * T.k) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI); b.lieHd = {t:S.t, h0, h1:b.heading}; }
   const home = b.driftHome;
   // lying by her gear: beyond half a mile, the engine runs her back up to within a quarter (V2 B); asleep and alone, or with no diesel,
@@ -514,7 +523,9 @@ function lieDrift(H){
   if (b.status === 'fishing' && dist(b.pos, home) > LIE.up){
     if (lieHelmCan('up') && b.fuel > 0){
       const d = dist(b.pos, home), st = Math.min(d, 5 * NM / 60);
-      if (!home.said){ home.said = true; log('Dere har drevet av feltet. Kjører opp igjen og driver over det på nytt.', 'You have drifted off the ground. Running back up to drift over it again.', 'nav'); }
+      if (!home.said){ home.said = true; const solo = !crewAboard(S.t / 60).length;
+        log(solo ? 'Du har drevet av feltet. Sveiver inn juksa, kjører opp igjen og driver over det på nytt.' : 'Dere har drevet av feltet. Kjører opp igjen og driver over det på nytt.',
+          solo ? 'You have drifted off the ground. Reeling in, running back up and drifting over it again.' : 'You have drifted off the ground. Running back up to drift over it again.', 'nav'); }
       b.heading = Math.atan2(home.x - b.pos.x, -(home.y - b.pos.y)); b.lieHd = null; b.lieHelm = S.t; b.drv = {x:(home.x - b.pos.x) / d * st, y:(home.y - b.pos.y) / d * st, t:S.t, st:b.status, up:true}; return;
     }
     if (!home.off){ home.off = true; log('Båten har drevet av feltet. Ingen står ved roret, så hun driver videre.', 'The boat has drifted off the ground. Nobody is at the helm, so she drifts on.', 'nav'); }

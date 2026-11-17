@@ -1,5 +1,10 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['drivanker-171126', '17.11.2026', 'Juksing alene og drivanker', 'Jigging alone and the drift anchor', [
+       ['Jukser du alene og båten driver av feltet, sveiver du inn juksa, kjører opp igjen og driver over feltet på nytt. Juksingen står mens du kjører. Står du og jukser selv, driver båten videre som før.', 'Jigging alone, when the boat drifts off the ground you reel in, run back up and drift over it again. The jigging stops while you steer. When you jig by hand yourself, the boat drifts on as before.'],
+       ['Nytt utstyr: drivanker. Med det ute ligger båten med baugen mot vinden og driver mye saktere mens du jukser.', 'New equipment: the drift anchor. With it out the boat lies bow to the wind and drifts much slower while you jig.']]],
+    ['founder-171126', '17.11.2026', 'Founder-merket forklart', 'The Founder badge explained', [
+       ['Hva Founder-merket betyr, står nå under topplista og på profilen: en av de 100 første som leverte fisk.', 'What the Founder badge means now stands under the leaderboard and on the profile: one of the first 100 who landed fish.']]],
     ['kalender-171126', '17.11.2026', 'Året er 2026', 'The year is 2026', [
        ['Kalenderen i spillet er stilt til 1. januar 2026. Alle starter året med nye kvoter og årets regler.', 'The game\'s calendar has been set to 1 January 2026. Everyone starts the year with new quotas and the year\'s rules.'],
        ['Alt du eier, er som før: penger, båter, redskap, mannskap og lån. Det du har fisket og tjent til nå, står som 2025 i regnskapet, og regnskapsåret 2025 avsluttes som ved et vanlig nyttår.', 'Everything you own is as before: money, boats, gear, crew and loans. What you have fished and earned so far stands as 2025 in the books, and the financial year 2025 is closed as at any new year.']]],

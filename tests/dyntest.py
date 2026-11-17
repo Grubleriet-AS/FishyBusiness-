@@ -181,9 +181,15 @@ async def main():
           b.status = 'fishing'; b.fishUntil = S.t + 600; b.driftHome = null; const home = {...b.pos}; let far = 0, ups = 0;
           for (let i = 0; i < 60; i++){ step(); far = Math.max(far, dist(home, b.pos)); if (b.drv && b.drv.up) ups++; }
           out.jig = {far:Math.round(far * 1000), ups, said:S.log.slice(-12).some(l => /Kjører opp igjen/.test(l.no || ''))};
-          S.crew = []; b.driftHome = null; const home2 = {...b.pos}; let far2 = 0, ups2 = 0;
+          // alone at the rail jigging by hand yourself («Jukse selv»): nobody at the helm, she drifts on (15.11)
+          S.crew = []; b.driftHome = null; window.jigActive = true; const home2 = {...b.pos}; let far2 = 0, ups2 = 0;
           for (let i = 0; i < 60; i++){ step(); far2 = Math.max(far2, dist(home2, b.pos)); if (b.drv && b.drv.up) ups2++; }
-          out.jigAlone = {far:Math.round(far2 * 1000), ups:ups2, said:S.log.slice(-12).some(l => /Ingen står ved roret/.test(l.no || ''))}; S.crew = crew0;
+          out.jigAlone = {far:Math.round(far2 * 1000), ups:ups2, said:S.log.slice(-12).some(l => /Ingen står ved roret/.test(l.no || ''))}; window.jigActive = false;
+          // alone, not jigging by hand (the plan, the reels): you reel in and run her back up yourself (Jonas 17.11.2026, «Begge»)
+          // (from the open spot again, with diesel: the drift above took her to the land)
+          b.pos = {x:c.x, y:c.y}; b.fuel = BOAT.fuelCap; b.status = 'fishing'; b.fishUntil = S.t + 600; b.driftHome = null; b.drv = null; const home3 = {...b.pos}; let far3 = 0, ups3 = 0;
+          for (let i = 0; i < 60; i++){ step(); far3 = Math.max(far3, dist(home3, b.pos)); if (b.drv && b.drv.up) ups3++; }
+          out.jigSolo = {far:Math.round(far3 * 1000), ups:ups3, st:b.status, me:meAboard(), said:S.log.slice(-12).some(l => /Sveiver inn juksa/.test(l.no || '')), log:S.log.slice(-4).map(l => l.no)}; S.crew = crew0;
           // toward land: from the open spot east until the land is 0.2 km off, the wind blowing her onto it
           b.status = 'idle'; b.fishUntil = null; let q = {x:c.x, y:c.y}; for (let i = 0; i < 200 && coastDist(q) > 0.2; i++) q = {x:q.x + 0.05, y:q.y};
           b.pos = {...q}; b.drv = null; b.driftHome = null; let land = false, minC = 9;
@@ -202,7 +208,9 @@ async def main():
         check(1.5 <= lie['pct'] <= 7 and lie['off'] < 30 and lie['across'] > 0.8, 'lying still (the sjark, 12 m/s) she falls off across the wind and drifts downwind at 1.5-7 % of it', lie)
         check(jig['far'] < 400 + 60 and jig['ups'] > 0 and jig['said'], 'jigging with a hand aboard she is run back up over the ground when she has drifted 400 m off it, and it is said', jig)
         ja = e['jigAlone']
-        check(ja['ups'] == 0 and ja['far'] > 400 and ja['said'], 'jigging alone nobody is at the helm: she never runs back by herself, drifts on, and it is said', ja)
+        check(ja['ups'] == 0 and ja['far'] > 400 and ja['said'], 'jigging alone by hand yourself nobody is at the helm: she never runs back by herself, drifts on, and it is said', ja)
+        js = e['jigSolo']
+        check(js['ups'] > 0 and js['far'] < 400 + 60 and js['said'], 'jigging alone, not by hand: you reel in and run her back up yourself when she has drifted 400 m off, and it is said', js)
         check(not land['land'] and land['min'] >= 0.05 and land['said'], 'drifting onto the land the engine holds her off it (60 m), and it is said', land)
         hq = quay['hits']
         check(len(hq) > 0 and hq[0]['kn'] > 3 and quay['minZ'] > quay['half'] - 1.5 and quay['said'], 'by hand into the quay at about 6 knots: the blow is kept with its energy, she does not go into the quay, and it is said', quay)
