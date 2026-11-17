@@ -361,6 +361,9 @@ for _f in ('src/js/view3d/08-plants.js', 'src/js/view3d/12-skiff.js', 'src/js/vi
 for _f in ('src/js/deckcrew.js', 'src/js/view3d/09-landing-deck.js', 'src/js/view3d/10-gear.js'): COVER.setdefault(_f, []).append('stamper3d')
 for _f in ('src/js/view3d/08-plants.js', 'src/js/view3d/20-trawl-seine.js', 'src/js/view3d/09-landing-deck.js', 'src/js/figpose.js', 'src/js/deckcrew.js'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['folk2maal']))
 for _f in ('src/js/ui/10g-wardrobe.js', 'src/js/vessel3d.js'): COVER[_f] = COVER.get(_f, []) + ['folk2shot']
+# (wpchiptest, 17.11.2026: «Slett punkt» by the point in the chart, tilbakemelding #128)
+LITE += ['wpchiptest']; COVER['tests/wpchiptest.py'] = ['wpchiptest']
+COVER['src/js/ui/03b-route.js'] = list(dict.fromkeys(COVER.get('src/js/ui/03b-route.js', []) + ['wpchiptest']))
 # (utryggtest, 17.11.2026: the yellow legs at the start)
 for _f in ('src/js/ui/08-actions.js', 'src/js/ui/03b-route.js', 'tests/utryggtest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['utryggtest']))
 

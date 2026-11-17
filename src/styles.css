@@ -2188,3 +2188,17 @@ body.vplot #hud{background:rgba(11,23,32,.78)!important}
 /* D4 (14.11.2026): Om bord's tabs stand over the long Mannskap og drift (the crew and the whole plan), so it is clear where the plan is */
 #drawerBody .ob-tabs{position:sticky;top:0;z-index:3;background:#0B1720}
 #drawerBody:has(.ob-tabs){scroll-padding-top:64px}   /* (a row brought up by the plan, scrollIntoView, stands under the tabs, not behind them) */
+
+/* the card by a tapped point of the route in the chart (ui/03b-route.js wpChip, 17.11.2026) */
+.wpchip{position:fixed;z-index:60;transform:translateX(-50%);min-width:220px;max-width:280px;padding:10px 12px 12px;border-radius:12px;background:rgba(14,28,38,.97);color:#e8f1f5;box-shadow:0 6px 24px rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.12);font-size:15px}
+.wpchip-h{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.wpchip-h b{color:#ff7ac8;font-size:16px}
+.wpchip-h small{flex:1;opacity:.75;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wpchip-x{width:44px;height:44px;margin:-10px -8px -10px 0;border:0;background:none;color:#e8f1f5;font-size:24px;line-height:1;cursor:pointer}
+.wpchip-f{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.wpchip-f span{flex:1;opacity:.85}
+.wpchip-f button{width:44px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#e8f1f5;font-size:20px;cursor:pointer}
+.wpchip-f output{min-width:64px;text-align:center;font-weight:600}
+.wpchip-del{width:100%;min-height:44px;border-radius:10px;border:1px solid rgba(255,107,107,.5);background:rgba(255,107,107,.1);color:#ff8a8a;font-size:15px;font-weight:600;cursor:pointer}
+.wpchip-arrow{position:absolute;bottom:-7px;width:14px;height:14px;margin-left:-7px;background:rgba(14,28,38,.97);border-right:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12);transform:rotate(45deg)}
+.wpchip.below .wpchip-arrow{bottom:auto;top:-7px;transform:rotate(225deg)}
