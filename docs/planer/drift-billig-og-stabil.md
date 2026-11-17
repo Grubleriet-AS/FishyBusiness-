@@ -1,6 +1,6 @@
 # Driften billig og stabil (plan, 17.11.2026)
 
-**Status:** D1 og D2 er bygd (steg 137, 17.11.2026). D3 og D4 står i køen som steg 138.
+**Status:** D1–D4 er bygd (steg 137 og 138, 17.11.2026). D3 og D4 tas i bruk når Jonas har kjørt oppsettet på serveren (`docs/spill-dette/138.md`).
 
 ## Hva Jonas ba om
 
@@ -76,3 +76,4 @@ Jonas 17.11.2026: «Jeg vil at driften og kostnadene av spillet skal være så b
   - `tests/nedetest.py` (LITE, COVER for `10f-cloud.js` og `10h-world.js`): 12 sjekker. Den var rød mot koden før (503 og 401 sendt hver gang, ingen ventetid) og er grønn etter.
   - Den uavhengige kontrollen fant tre ting, og alle er rettet: overleveringen ventet bare 15 s (nå beatet + 15 s); ventetida holdt tilbake spillerens egen lagring, overleveringen og spørsmålet etter søvn (nå `opt.now`); og `PEERS` ble tømt etter 60 s, så båtene langt unna kunne blinke (nå 90 s, og runden sender etter 44 s). `nedetest` har fått sjekker for de to siste.
   - **Ikke målt ennå:** hvor mange kall det sparer. Det leses i edge-loggen dagen etter slippet, mot 48 000 `save_beat`, 37 000 `pos_put` og 36 000 `pos_world` i døgnet 16.–17.11.
+- 17.11.2026, steg 138 (D3–D4): vakta med ntfy.sh, telleren i Caddy og `status.sh`. Se «Vakta på databasen og serverens tall» i `docs/systemer/publisering.md`. `tests/vakttest.py` har 16 OK. Venter på at Jonas kjører oppsettet på serveren.

@@ -57,6 +57,22 @@ Jonas 11.11.2026: spillet og reléet til den store serveren, porten til den lill
 - **Prøvd 11.11.2026:** «Appen på Hetzner» #504 på `main` (samme versjon, `dfefe560adec`): porten på den lille holdt, og bygget ble lastet opp til den store (`version.json` fra 21:12 UTC). Før det ga GitHub «startup_failure» to ganger på kjøringer startet for hånd på `main`; den tredje startet uten endring.
 - **Står igjen:** Jonas sletter `SUPABASE_SERVICE_ROLE_KEY` fra GitHub; reléet er ikke lasttestet på den nye serveren (steg 47).
 
+## Vakta på databasen og serverens tall (steg 138, 17.11.2026)
+
+Jonas 17.11.2026 (V3 A i `docs/planer/drift-billig-og-stabil.md`): «Push via ntfy.sh». Supabase hang samme dag fra 11:45 til 12:15 UTC, og varslene inne i databasen (`uptime_tick`, `err_alert`) sa ikke fra, fordi pg_cron ikke startet jobbene.
+
+- **Vakta** (`tools/server/vakt/vakt.sh`, `dsb-vakt.timer` hvert minutt, `DynamicUser`, tilstanden i `/var/lib/dsb-vakt`):
+  - Den spør `sp_now` med spillets publiserbare nøkkel, med 20 s tidsavbrudd.
+  - Etter to bom på rad sender den én push til ntfy.sh (prioritet 5), og én til når databasen svarer igjen.
+  - En push ntfy.sh ikke tok imot, prøves igjen neste minutt.
+  - Varselet har bare emnet, hva som feilet og hvor lenge. Ingen nøkkel og ingen spillerdata.
+  - Emnet er tilfeldig og står i `/etc/dsb-vakt.env` (root, 600), aldri i repoet.
+- **Oppsettet:** `tools/server/vakt/setup.sh`, også kalt fra `tools/server/setup.sh`. Det tåler å kjøres på nytt, beholder emnet og sender én testmelding.
+- **Telleren:** `servers { metrics }` i Caddyfile gir Caddys tall på admin-porten 127.0.0.1:2019, uten adresser og stier. Vakta skriver totalen og 5xx én gang i timen til `/var/lib/dsb-vakt/req.tsv`, høyst 200 linjer.
+- **`tools/server/status.sh`** bare leser. Den viser CPU (i bruk, venter på disken, steal), trykket på disken og CPU-en (PSI), minne, disk, de tyngste prosessene, tjenestene, reléets `/stats`, vaktas siste døgn, forespørsler per time og feilene i Caddy og reléet. IP-adressene i Caddys feillinjer tas ut.
+- **Testen** er `tests/vakttest.py`. Stand-ins for Supabase, ntfy.sh og Caddy, og ingen nettleser.
+- **Ikke prøvd på serveren:** oppsettet og Caddyfile med `metrics`. Økta har ikke root der, og fikk ikke laste ned Caddy for å sjekke fila. `setup.sh` sjekker Caddyfile med `caddy validate` før den tas i bruk, og beholder den gamle hvis den nye ikke holder. Jonas kjører det: `docs/spill-dette/138.md`.
+
 ## Lagringsporten på vår egen server (steg 102, 11.11.2026)
 
 > Serveren porten står på, er byttet etter at dette ble skrevet: se «Serverne» over. `ubuntu-8gb-hel1-1` under er der porten først ble prøvd.

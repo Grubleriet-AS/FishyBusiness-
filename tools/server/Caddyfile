@@ -3,6 +3,13 @@
 # year; the page, the service worker and the manifests are always checked; the admin page is never cached or indexed.
 # What the production and the test edition share (L1a, 10.11.2026): the pages without .html, the compressed data files, the headers
 # and the cache rules.
+# Caddy's own counts of requests by status (steg 138, 17.11.2026): on its admin port on 127.0.0.1:2019 only, with no addresses and no
+# paths; the watch (tools/server/vakt/vakt.sh) keeps the total once an hour for tools/server/status.sh
+{
+	servers {
+		metrics
+	}
+}
 (dsb) {
 	# /personvern and /vilkar (the links on Google's sign-in screen) are personvern.html and vilkar.html
 	try_files {path} {path}.html
