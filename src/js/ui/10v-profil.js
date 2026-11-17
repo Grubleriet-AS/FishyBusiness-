@@ -71,6 +71,8 @@ const PROF = (() => {
   function avAsk(){ const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.onchange = () => avPick(i.files && i.files[0]); i.click(); }
   // the founders' badge: the number of the first hundred who landed fish
   const badge = no => no ? '<span class="pf-fb" title="' + L2('En av de 100 første som leverte fisk', 'One of the first 100 who landed fish') + '">Founder #' + no + '</span>' : '';
+  // what the badge means, in the text as well (tilbakemelding #121: a title is never shown on a touch screen, so the badge stood unexplained)
+  const why = no => no ? L2('Founder #' + no + ': en av de 100 første som leverte fisk.', 'Founder #' + no + ': one of the first 100 who landed fish.') : L2('Founder-merket: en av de 100 første som leverte fisk.', 'The Founder badge: one of the first 100 who landed fish.');
   const krN = n => fmt(Math.round(n || 0), 0) + ' kr';
   function page(){
     if (!on()) return '<div class="ph-c"><div class="ph-card"><p class="ph-note">' + L2('Profilen vises når du er logget inn.', 'The profile shows when you are signed in.') + '</p></div></div>';
@@ -81,7 +83,7 @@ const PROF = (() => {
     // the head: the picture, the name, the badge and the sea time
     const mine = me ? avMine() : null, img = d.img || (me && mine && mine.img) || '';
     const pic = /^data:image\/(jpeg|png|webp);base64,/.test(img) ? '<img class="pf-img" alt="" src="' + img + '">' : '<span class="pf-img pf-none">' + esc((d.user || '?').slice(0, 1).toUpperCase()) + '</span>';
-    h.push('<div class="ph-card pf-head">' + pic + '<div><h4 style="margin:0">' + esc(d.user || L2('Uten navn', 'No name')) + '</h4>' + badge(d.f) +
+    h.push('<div class="ph-card pf-head">' + pic + '<div><h4 style="margin:0">' + esc(d.user || L2('Uten navn', 'No name')) + '</h4>' + badge(d.f) + (d.f ? '<p class="ph-note" style="margin:2px 0 0">' + esc(why(d.f)) + '</p>' : '') +
       '<p class="ph-note" style="margin:4px 0 0">' + (typeof fsText === 'function' ? esc((typeof fsLvlText === 'function' ? fsLvlText(d.fs || 0) + ' · ' : '') + fsText(d.fs || 0, true)) : '') + (d.since ? ' · ' + L2('med siden ', 'since ') + new Date(d.since).toLocaleDateString(S.lang === 'en' ? 'en-GB' : 'nb-NO') : '') + '</p></div></div>');
     if (me){ const st = mine && mine.state;
       h.push('<div class="ph-card"><h4>' + L2('Profilbilde', 'Profile picture') + '</h4><p class="ph-note">' + (st === 'wait' ? L2('Bildet ditt venter på godkjenning. Til da ser de andre forbokstaven din.', 'Your picture is waiting for approval. Until then the others see your initial.')
@@ -112,5 +114,5 @@ const PROF = (() => {
     const b = e.target.closest && e.target.closest('[data-pfo]'); if (!b) return;
     e.preventDefault(); e.stopPropagation(); open(b.dataset.pfo);
   }, true);
-  return {get, open, put, page, badge, avAsk, get want(){ return want; }, set want(v){ want = v || null; }};
+  return {get, open, put, page, badge, why, avAsk, get want(){ return want; }, set want(v){ want = v || null; }};
 })();

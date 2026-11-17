@@ -61,6 +61,8 @@ async def main():
                 got[k] = await pg.evaluate("""() => { const t = document.querySelector('#phone table.pf-top'); return t ? {rows:t.querySelectorAll('tr.pf-tap').length, kr:/<th class="n">kr<\\/th>/.test(t.outerHTML), badge:t.querySelectorAll('.pf-fb').length,
                   first:(t.querySelector('tr.pf-tap td:nth-child(2)') || {}).textContent || '', txt:t.innerText, kg:/<th class="n">kg<\\/th>/.test(t.outerHTML),
                   worth:/Selskapsverdi/.test(t.innerText), head:(document.querySelector('#phone .ph-card h4') || {}).textContent || ''} : null; }""")
+                # (tilbakemelding #121) what Founder #N means, in the text of the list's card, not only in a title a touch screen never shows
+                if got[k]: got[k]['why'] = await pg.evaluate("() => /de 100 første som leverte fisk|first 100 who landed fish/.test(document.querySelector('#phone table.pf-top').closest('.ph-card').innerText)")
                 await pg.screenshot(path=os.path.join(OUT, 'profil-topp-%s-%s.png' % (k, tag)))
             # a tap on the first row of the total list opens that player's profile
             await pg.evaluate("() => { const r = document.querySelector('#phone tr.pf-tap'); if (r) r.click(); }")
@@ -115,6 +117,7 @@ async def main():
             res[tag] = {'hid0': hid0, 'tab': tab, 'got': got, 'other': {'app': other['app'], 'ola': 'Ola' in other['txt'], 'founder': 'Founder #1' in other['txt'], 'worth': '910' in other['txt'], 'skills': 'Milepæler' in other['txt'] or 'Milestones' in other['txt'], 'bars': other['bars'], 'juksa': 'Juksa' in other['txt'] and '3,2' in other['txt']},
                         'mine': {'app': mine['app'], 'want': mine['want'], 'wait': 'venter på godkjenning' in mine['txt'] or 'waiting for approval' in mine['txt'], 'pick': mine['pick'], 'open': 'åpen for alle' in mine['txt'] or 'open to all' in mine['txt'], 'bars': mine['bars']},
                         'old': old['soon'], 'fsKg': fsKg, 'fs404': fs404, 'fsBack': fsBack, 'fsOut': fsOut, 'big': big, 'mo': await pg.evaluate("() => !!window.__mo && window.__mo[1] - window.__mo[0] === 31 * 24"), 'errs': errs}
+            res[tag]['other']['why'] = bool(re.search(r'de 100 første som leverte fisk|first 100 who landed fish', other['txt']))
             print(tag, json.dumps(res[tag], ensure_ascii=False))
             await pg.close()
         await br.close()
@@ -130,6 +133,9 @@ async def main():
               tag + ': måneden (spillmåneden som h0..h1) og hele tiden etter kilo (tkg) i filteret', json.dumps({k: g.get(k) for k in ('mnd', 'tkg')}, ensure_ascii=False)[:400], r['mo'])
         o = r['other']; print('OK  ' if o['app'] == 'profil' and o['ola'] and o['founder'] and o['worth'] and o['skills'] and o['bars'] == 7 and o['juksa'] else 'FEIL', tag + ': et trykk på raden åpner spillerens profil med navnet, Founder #1, selskapsverdien og ferdighetene (sju søyler, Juksa 3,2)', json.dumps(o))
         m = r['mine']; print('OK  ' if m['app'] == 'profil' and m['want'] is None and m['wait'] and m['pick'] and m['open'] and m['bars'] == 7 else 'FEIL', tag + ': egen profil fra hjemskjermen, bildet venter på godkjenning, knappen for å velge bilde, «åpen for alle», egne ferdigheter (sju søyler)', json.dumps(m))
+        # (tilbakemelding #121) what Founder #N means stands in the text under the list and on the profile, not only in a title that a touch screen never shows
+        print('OK  ' if (g.get('kg') or {}).get('why') and (g.get('fs') or {}).get('why') and r['other']['why'] else 'FEIL', tag + ': forklaringen av Founder-merket står synlig under topplista og på profilen',
+              (g.get('kg') or {}).get('why'), (g.get('fs') or {}).get('why'), r['other']['why'])
         print('OK  ' if r['old'] else 'FEIL', tag + ': en database uten top_list: kroner sier «kommer snart»')
         f = g.get('fs') or {}
         print('OK  ' if f.get('rows') == 2 and 'Nivå 40 ★3' in f.get('txt', '') and 'Nivå 12' in f.get('txt', '') and 'Kari' in f.get('first', '') and 'Nivå 2' in f.get('txt', '') and not f.get('kr') and not f.get('kg') and f.get('badge') == 1 else 'FEIL',
