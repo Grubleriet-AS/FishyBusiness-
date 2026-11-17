@@ -124,9 +124,12 @@ function plan3Rhythm(o){
   return 'day';
 }
 // the weather: «Vanlig» as this boat takes it (the page's presets before, clamped to her own limits; GUI review F5)
+const P3_NOWIND = 99;
 function plan3Wx(){
   if (BOAT.cls === 'hav'){ const W = DRP2.hav.wx.normal; return {wind:Math.min(W.wind, Math.round(windLim())), hs:Math.min(W.hs, Math.round(seaLim() * 10) / 10)}; }
-  return {wind:Math.min(13, Math.round(BOAT.risk[2] || 20)), hs:Math.min(2.5, Math.round(BOAT.risk[1] * 0.95 * 10) / 10)};
+  // (the coast's boats: the sea is the limit, not the wind; Jonas 17.11.2026: «Jeg tenker at vinden ikke skal være en hindring, bare
+  // bølger». P3_NOWIND is a wind no forecast reaches, so every wind check of the engine lets her go and only the sea holds her)
+  return {wind:P3_NOWIND, hs:Math.min(2.5, Math.round(BOAT.risk[1] * 0.95 * 10) / 10)};
 }
 // the skipper and the mate when you are not aboard: the two with the most experience and seamanship aboard, when none are named. The
 // plan names them; the player can change them on the Crew page as before

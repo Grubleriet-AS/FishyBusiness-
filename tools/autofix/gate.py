@@ -21,8 +21,11 @@ import argparse, json, os, re, subprocess, sys, tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 ALLOW = re.compile(r'^(src/js/|src/styles\.css$|tests/|docs/)')
-DENY = re.compile(r'^(src/js/errtrap\.js|src/js/ui/10f-cloud\.js|src/js/ui/10i-shop\.js|src/js/ui/10q-buymoment\.js|src/js/ui/10g-push\.js|'
-                  r'src/js/ui/10u-hopp\.js|src/js/core/06j-hopp\.js|src/js/ui/10j-paint\.js|'   # (16.11.2026: the hop and the paint shop are real money too)
+# (the files of real money, ui/10i-shop.js, 10q-buymoment.js, 10u-hopp.js, core/06j-hopp.js and 10j-paint.js, were here until 17.11.2026:
+# Jonas, «Du kan fjerne regelen om at du får kjøre ut rettinger som gjelder penger, så lenge det er snakk om feilrettinger. Du har min
+# tillatelse». An automatic fix is a fix of an error by its rules (tools/feedback/RUTINE.md punkt 7), so it may touch them now; a
+# release of the working branch that touches them still waits for Jonas, since it can hold new features too: slipp.yml)
+DENY = re.compile(r'^(src/js/errtrap\.js|src/js/ui/10f-cloud\.js|src/js/ui/10g-push\.js|'
                   r'src/js/ui/06e-feedback\.js|src/js/lib/|tests/_env\.py|tests/run\.py|tests/unit/run\.mjs|docs/systemer/tilbakemelding-og-admin\.md)')
 MAX_LINES, MAX_FILES = 400, 15
 # the fix's own screenshots (tools/feedback/RUTINE.md, D4 26.10.2026: docs/pr/<branch>/staaende.jpg and liggende.jpg) are not lines of code:

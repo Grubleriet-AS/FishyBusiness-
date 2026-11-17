@@ -5596,3 +5596,22 @@
 2026-11-17 10:10	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	docktest	OK	62	lite	samtidig	
 2026-11-17 10:10	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	r4test	OK	18	lite	samtidig	
 2026-11-17 10:37	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	trackfollow	FEIL	1583	3d	alene	FEIL at the end of the route she stops exactly on the last waypoint, without running past and coming back  {"stop": 0.0, "d3d": 0.0, "d": 0.72, "rise": 0.51, "d
+2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	vesseltest	OK	20	lite	samtidig	
+2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	walktest	FEIL	13	lite	samtidig	FEIL snekke       135 cells   5.4 m2 of  21.3, places sloy,haling,ror,door,spot0,spot1,spot2,filler MISSING is, rail 10 (0 behind a wall), 153 ways (longest 9),
+2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	crewclip	FEIL	21	lite	samtidig	FEIL no foot walking put down in a wall, a tub or the kit, nor on his other foot or anyone else's (FB3; 5293 feet put down on every boat) {'pelagisk': ['me:i ti
+2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	lanterntest	OK	13	lite	samtidig	
+2026-11-17 09:10	claude/hopeful-mayer-48bgvv	217da5f5	maletest	OK	17	lite	samtidig	
+2026-11-17 09:10	claude/hopeful-mayer-48bgvv	217da5f5	regmarktest	OK	6	lite	samtidig	
+2026-11-17 09:10	claude/hopeful-mayer-48bgvv	217da5f5	folk2shot	OK	33	lite	samtidig	
+2026-11-17 09:51	claude/hopeful-mayer-48bgvv	82e8b618+	vessel3d	FEIL	2433	3d	alene	avsluttet med kode 1
+2026-11-17 09:51	claude/hopeful-mayer-48bgvv	18ebbbe1	dbg23o	OK	49	3d	alene	
+2026-11-17 10:30	claude/hopeful-mayer-48bgvv	aec45003	flaggshot	OK	2308	3d	alene	
+2026-11-17 10:48	claude/hopeful-mayer-48bgvv	c4bb3553	navnshot	OK	1082	3d	alene	
+2026-11-17 11:33	claude/hopeful-mayer-48bgvv	ba84b9a7	skipdrift	OK	43	lite	samtidig	
+2026-11-17 11:33	claude/hopeful-mayer-48bgvv	ba84b9a7	driftsplan3test	OK	68	lite	samtidig	
+2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	havplantest	FEIL	1074	lite	samtidig	FEIL spot check Egersund: the plan made, out from Egersund, the lenker set and hauled, fish aboard [[{'lat': 58.249999999999986, 'lon': 4.9}, {'lat': 58.3826273
+2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	driftsplan2kyst	OK	0	lite	samtidig	
+2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	fleet2test	OK	32	lite	samtidig	
+2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	driftsplan2ui	OK	60	lite	samtidig	
+2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	rundshot	OK	24	lite	samtidig	
+2026-11-17 11:52	claude/hopeful-mayer-48bgvv	ba84b9a7	driftsplan2test	OK	95	lite	alene	

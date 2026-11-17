@@ -93,6 +93,8 @@ function plan2Ops(){
   // its gear and landed when it runs, 06k-plan3.js plan3Retire)
   if (o.v === DRV2 && DRIFT3) return plan3Retire(o);
   if (o.v === DRV2 || o.v === DRV3){ if (o.rig === 'line' && o.places.some(q => q.k === 'felt' && !q.lk)){ for (const q of o.places) if (q.k === 'felt' && !q.lk){ q.lk = p2LineKind(o); q.n = Math.max(1, Math.min(q.n, p2Left(o, q))); } }   // (fields from before 27.10.2026: the line's kind and the tubs the boat owns)
+    // (Driftsplan 3 on the coast, 17.11.2026: the wind is no limit, only the sea; a plan made before keeps its sea limit, plan3Wx)
+    if (o.v === DRV3 && BOAT.cls !== 'hav' && o.wx && o.wx.wind < P3_NOWIND) o.wx.wind = P3_NOWIND;
     // (an ocean vessel, H2c: her teams' watches round the clock, no jig, and the fields of her autoline in lenker)
     if (p2Lag() || p2Hav()){ if (o.rhythm !== 'watch') o.rhythm = 'watch';   // (an ocean vessel round the clock only, Jonas 07.11.2026)
       if (o.jig && !p2Jig(o)) o.jig = false; if (o.land && o.land.when === 'trip') o.land.when = 'full';

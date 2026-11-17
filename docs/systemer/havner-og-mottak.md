@@ -234,6 +234,8 @@ Mottakene ligger der Jonas har funnet dem i Råfisklagets leveranseoversikt: Hus
 
 ## Køen ved mottakene (K1–K4, K6 i `docs/planer/etter-tonys-test.md`; Jonas 07.11.2026, V2 A og V3 A)
 
+**Køen er slått av (17.11.2026; Jonas, dagen spillet åpnet: «Fjern kø-funksjonen på fiskemottak. Det kommer til å være mange brukere som ønsker å bruke mottakene samtidig»):** `LANDQ.on = false` i `core/07-harbours.js`, så `landQueueOn()` er usann og hver båt losser med en gang, som uten skyen; en båt som står i kø, losser ved neste spørsmål. Koden og serverens funksjoner står, så `LANDQ.on = true` tar køen tilbake (`kotest` gjør det for sine sjekker, og har en sjekk for at den er av: sett rød mot koden før). Det som står under, er hvordan køen virker når den er på.
+
 Jonas: «La det være mulig at det blir kø ved mottakene … Det insentiverer at brukerne sprer seg i landet.»
 
 - **Losseplassene** (`landSlots(pt)` i `core/07-harbours.js`): én per 25 m kaifront fra kjøperregisteret (`pt.mk.q[0]`), 1–4. Husøy (59 m) 2, Botnhamn (25 m) 1, Senjahopen (144 m) 4, et mottak uten registrert kai 1. Tallene er anslag (K1) og justeres i spilltesting.

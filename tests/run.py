@@ -35,6 +35,8 @@ LITE = ['kalendertest', 'planhjem', 'havnstengt', 'd4dorer', 'jobbstripe', 'tele
 # the session hooks and the deny list in .claude/ (Ø17, 06.11.2026): no browser, about a second. On a line of its own, so the sessions
 # that add tests to LITE above do not meet it in a merge
 LITE += ['hooktest']
+# yellow legs at the start (17.11.2026): the dialog, «La Autonav legge ruta» (draftToLeia) and «Kast loss likevel»
+LITE += ['utryggtest']
 LITE += ['profiltest']   # topplista og profilen ved lanseringen (16.11.2026)
 LITE += ['hopptest']   # hopp over resten av ruta, kjernen (HO1, steg 104)
 LITE += ['brottaar']   # brottsjøen gjennom et år på tre steder (Ø9 F7; trenger hele kysten)
@@ -359,6 +361,8 @@ for _f in ('src/js/view3d/08-plants.js', 'src/js/view3d/12-skiff.js', 'src/js/vi
 for _f in ('src/js/deckcrew.js', 'src/js/view3d/09-landing-deck.js', 'src/js/view3d/10-gear.js'): COVER.setdefault(_f, []).append('stamper3d')
 for _f in ('src/js/view3d/08-plants.js', 'src/js/view3d/20-trawl-seine.js', 'src/js/view3d/09-landing-deck.js', 'src/js/figpose.js', 'src/js/deckcrew.js'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['folk2maal']))
 for _f in ('src/js/ui/10g-wardrobe.js', 'src/js/vessel3d.js'): COVER[_f] = COVER.get(_f, []) + ['folk2shot']
+# (utryggtest, 17.11.2026: the yellow legs at the start)
+for _f in ('src/js/ui/08-actions.js', 'src/js/ui/03b-route.js', 'tests/utryggtest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['utryggtest']))
 
 # (15.11.2026) allesteder walks every harbour, rorbu and naust along the coast: 45-70 minutes, so 900 s stopped it every night
 LONG['allesteder'] = 5400

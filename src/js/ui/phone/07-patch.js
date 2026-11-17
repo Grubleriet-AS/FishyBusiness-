@@ -2,6 +2,11 @@
   const PATCH = [
     ['autonavgrunn-171126', '17.11.2026', 'Autonav går rundt skjær', 'Autonav goes round skerries', [
        ['På en rute Autonav har lagt, går båten ikke lenger på grunn når hun kommer for nær et skjær. Hun stopper og finner vei rundt, også der etappen er gul fordi ruta regner med tidevannet.', 'On a route Autonav has laid, the boat no longer runs aground when she comes too close to a skerry. She stops and finds a way round, also where the leg is yellow because the route counts on the tide.']]],
+    ['vaerhjem-171126', '17.11.2026', 'Driftsplanen og været', 'The plan and the weather', [
+       ['Driftsplanen stopper ikke lenger for vind, bare for sjøen båten ikke tåler.', 'The plan no longer stops for wind, only for a sea the boat cannot take.'],
+       ['Holder været båten inne mens hun er ute, går hun hjem og venter der, og går ut igjen av seg selv når været tillater det.', 'When the weather keeps the boat in while she is out, she goes home to wait there, and goes out again by herself when the weather allows.']]],
+    ['ingenko-171126', '17.11.2026', 'Ingen kø ved mottakene', 'No queue at the plants', [
+       ['Det er ikke lenger kø ved fiskemottakene. Du losser med en gang du ligger ved mottakskaia, også når andre losser der samtidig.', 'There is no longer a queue at the fish plants. You land as soon as you lie at the plant\'s quay, also when others land there at the same time.']]],
     ['drivanker-171126', '17.11.2026', 'Juksing alene og drivanker', 'Jigging alone and the drift anchor', [
        ['Jukser du alene og båten driver av feltet, sveiver du inn juksa, kjører opp igjen og driver over feltet på nytt. Juksingen står mens du kjører. Står du og jukser selv, driver båten videre som før.', 'Jigging alone, when the boat drifts off the ground you reel in, run back up and drift over it again. The jigging stops while you steer. When you jig by hand yourself, the boat drifts on as before.'],
        ['Nytt utstyr: drivanker. Med det ute ligger båten med baugen mot vinden og driver mye saktere mens du jukser.', 'New equipment: the drift anchor. With it out the boat lies bow to the wind and drifts much slower while you jig.']]],
