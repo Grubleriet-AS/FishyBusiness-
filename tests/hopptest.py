@@ -112,6 +112,13 @@ async def main():
         tu, tv = u1['t'] - u0['t'], q4.get('min') or 0
         check(not q4.get('why') and q4['trimMin'] == 40 and near(tv, tu, 0.10) and v0['fuel'] == v1['fuel'],
               '3c. trimmen går ut underveis: hoppet regnet ' + str(tv) + ' min, seilingen tok ' + str(tu) + ', og dieselen er urørt', q4)
+        # 3c2. the fleet's trim running out on the way: the dry run puts the route speed of the other boats in the fleet back too (trimEnd goes
+        # through trimFleet, which scales every boat's route speed down)
+        await J(START, {})
+        fl = await J("""() => { if (!S.fleet || !S.fleet.length) return {why:'ingen flåte'}; const v2 = newVesselObj('sjark', S.boat.port || PORTS[0].id); v2.plan = {speed:6, full:false}; S.fleet.push(v2);
+          S.trim = {k:'turbo', t0:S.t, until:S.t + 40}; applyVessel(); const p0 = v2.plan.speed, q = hopQuote(), p1 = v2.plan.speed, on = !!trimOn(S.boat);
+          S.fleet = S.fleet.filter(v => v !== v2); delete S.trim; applyVessel(); return {why:q.why, trimMin:q.trimMin, p0, p1, on}; }""")
+        check(not fl.get('why') and fl['trimMin'] == 40 and fl['p0'] == fl['p1'] and fl['on'], '3c2. flåtetrimmen går ut underveis: den andre båtens rutefart er ' + str(fl['p1']) + ' etter tørrkjøringen (før ' + str(fl['p0']) + '), og trimmen er på igjen', fl)
         # 3d. one hand aboard: the crew's fatigue and the gutting as the sailing (crewTick counts whole hours, so within one hour's fatigue)
         await J(START, {'crew': True}); c0 = await J(STATE); await J(SAIL); c1 = await J(STATE)
         await J(START, {'crew': True}); d0 = await J(STATE); await J("async () => { await hopGo(); }"); d1 = await J(STATE)

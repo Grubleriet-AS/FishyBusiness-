@@ -21,6 +21,12 @@ export default function (t){
   S.boat.trim = {k:'ic', t0:S.t, until:S.t + 30 * 60}; S.trim = {k:'t2', t0:S.t - 100 * 60, until:S.t - 1};
   t.eq(K.trimRec(S.boat).k, 'ic', 'trimRec tar den som går (den gamle på båten), ikke en flåtetrim som har gått ut');
   K.trimEnd(); t.eq([!!S.trim, S.boat.trim && S.boat.trim.k, !!K.trimOn(S.boat)], [false, 'ic', true], 'trimEnd tar flåtetrimmen, og lar den gamle med betalt tid igjen stå');
+  // the hop's dry run ends the trim at a minute ahead of the clock (core/06j-hopp.js): the old trim on the boat goes when that minute is
+  // past its end, though S.t is not
+  S.boat.trim = {k:'turbo', t0:S.t, until:S.t + 40}; K.applyVessel();
+  K.trimEnd(S.t + 41); t.eq([!!S.boat.trim, !!K.trimOn(S.boat)], [false, false], 'trimEnd(at) etter slutten tar den gamle trimmen på båten, selv om klokka står');
+  S.boat.trim = {k:'turbo', t0:S.t, until:S.t + 40}; K.applyVessel();
+  K.trimEnd(S.t + 39); t.ok(!!S.boat.trim, 'trimEnd(at) før slutten lar den gamle trimmen stå');
   delete S.boat.trim; K.applyVessel();
   // the route speed of another boat in the fleet follows the fleet trim (a route set in knots, not «full»)
   if (!S.fleet.includes(v2)) S.fleet.push(v2);
