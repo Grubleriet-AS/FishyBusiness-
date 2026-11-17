@@ -186,9 +186,9 @@ async def main():
           for (let i = 0; i < 60; i++){ step(); far2 = Math.max(far2, dist(home2, b.pos)); if (b.drv && b.drv.up) ups2++; }
           out.jigAlone = {far:Math.round(far2 * 1000), ups:ups2, said:S.log.slice(-12).some(l => /Ingen står ved roret/.test(l.no || ''))}; window.jigActive = false;
           // alone, not jigging by hand (the plan, the reels): you reel in and run her back up yourself (Jonas 17.11.2026, «Begge»)
-          b.driftHome = null; const home3 = {...b.pos}; let far3 = 0, ups3 = 0;
+          b.status = 'fishing'; b.fishUntil = S.t + 600; b.driftHome = null; b.drv = null; const st3 = []; const home3 = {...b.pos}; let far3 = 0, ups3 = 0;
           for (let i = 0; i < 60; i++){ step(); far3 = Math.max(far3, dist(home3, b.pos)); if (b.drv && b.drv.up) ups3++; }
-          out.jigSolo = {far:Math.round(far3 * 1000), ups:ups3, said:S.log.slice(-12).some(l => /Sveiver inn juksa/.test(l.no || ''))}; S.crew = crew0;
+          out.jigSolo = {far:Math.round(far3 * 1000), ups:ups3, st:b.status, me:meAboard(), said:S.log.slice(-12).some(l => /Sveiver inn juksa/.test(l.no || '')), log:S.log.slice(-4).map(l => l.no)}; S.crew = crew0;
           // toward land: from the open spot east until the land is 0.2 km off, the wind blowing her onto it
           b.status = 'idle'; b.fishUntil = null; let q = {x:c.x, y:c.y}; for (let i = 0; i < 200 && coastDist(q) > 0.2; i++) q = {x:q.x + 0.05, y:q.y};
           b.pos = {...q}; b.drv = null; b.driftHome = null; let land = false, minC = 9;
