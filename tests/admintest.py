@@ -115,6 +115,36 @@ async def main():
         await pg2.route(BASE + 'admin/x', lambda route: route.fulfill(status=200, content_type='text/html', body=html))
         await pg2.goto(BASE + 'admin/x'); await pg2.wait_for_selector('#login #go', timeout=10000)
         check(not reqs, 'with keys the dashboard asks for the sign-in before it fetches anything', reqs)
+        # the sign-in kept for 14 days (17.11.2026): a session from the second factor in localStorage outlives the tab; an access token about
+        # to run out is renewed with the refresh token before the first call (the 14 days run from the code, t0 is kept); a 401 renews once
+        # and calls again; after 14 days it asks for the sign-in without fetching anything
+        async def keyed(sess, deny=None):
+            pg3 = await br.new_page(); seen = []
+            async def sb(route):
+                rq = route.request; u = rq.url; auth = rq.headers.get('authorization', ''); seen.append((u.split('sb.test')[1].split('?')[0], auth[-2:], (rq.post_data or '')[:60]))
+                if 'grant_type=refresh_token' in u:
+                    return await route.fulfill(status=200, content_type='application/json', body=json.dumps({'access_token': 'A2', 'refresh_token': 'R2', 'expires_in': 3600}))
+                if '/rest/v1/rpc/' in u:
+                    if deny and auth.endswith(deny): return await route.fulfill(status=401, content_type='application/json', body='{"message":"JWT expired"}')
+                    fn = u.split('/rpc/')[1]
+                    body = {'admin_dashboard': {'generated': '2026-11-17T02:00:00Z', 'overview': {'players': 5}, 'daily': []}, 'admin_trend': {'rows': [], 'base': {'players': 0, 'reg': 0}}, 'admin_funnel': {'weeks': []}}.get(fn, {})
+                    return await route.fulfill(status=200, content_type='application/json', body=json.dumps(body))
+                await route.fulfill(status=404, body='{}')
+            await pg3.route('https://sb.test/**', sb)
+            await pg3.route(BASE + 'admin/x', lambda route: route.fulfill(status=200, content_type='text/html', body=html))
+            await pg3.add_init_script('localStorage.setItem("dsbAdmin", %s)' % json.dumps(json.dumps(sess)))
+            await pg3.goto(BASE + 'admin/x'); await pg3.wait_for_selector('#login, header .ht', timeout=10000); await pg3.wait_for_timeout(400)
+            r = await pg3.evaluate("({login:!!document.getElementById('login'), ses:JSON.parse(localStorage.getItem('dsbAdmin') || 'null')})"); await pg3.close(); return r, seen
+        import time as _t
+        now = int(_t.time())
+        k1, s1 = await keyed({'access_token': 'A1', 'refresh_token': 'R1', 'expires_at': now + 60, 't0': (now - 13 * 86400) * 1000})
+        k2, s2 = await keyed({'access_token': 'A1', 'refresh_token': 'R1', 'expires_at': now + 3000, 't0': (now - 86400) * 1000}, deny='A1')
+        k3, s3 = await keyed({'access_token': 'A1', 'refresh_token': 'R1', 'expires_at': now + 3000, 't0': (now - 15 * 86400) * 1000})
+        rpc1 = [x for x in s1 if '/rpc/' in x[0]]
+        check(not k1['login'] and s1 and 'refresh_token' in s1[0][2] and rpc1 and all(x[1] == 'A2' for x in rpc1) and k1['ses'] and k1['ses']['refresh_token'] == 'R2' and k1['ses']['t0'] == (now - 13 * 86400) * 1000
+              and not k2['login'] and any(x[1] == 'A1' for x in s2) and any('refresh_token' in x[2] for x in s2) and k2['ses']['refresh_token'] == 'R2'
+              and k3['login'] and not s3 and k3['ses'] is None,
+              'the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days', {'k3': k3, 's3': s3, 'k1': k1['login'], 'k2': k2['login']})
         print('errors:', errs[:3]); await br.close()
 
 

@@ -145,19 +145,40 @@ const DEMO = !CFG || !CFG.supabaseUrl || /[?&]demo/.test(location.search);
 const $ = s => document.querySelector(s), esc = v => String(v == null ? '–' : v).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'})[c]);
 const nf = (v, d) => v == null || isNaN(v) ? '–' : Number(v).toLocaleString('nb-NO', {maximumFractionDigits:d == null ? 1 : d});
 const pct = v => v == null ? '–' : nf(v * 100, 1) + ' %';
-let SES = JSON.parse(sessionStorage.getItem('dsbAdmin') || 'null'), DATA = null, TAB = 'status', DAYS = 30;
+// the sign-in is kept for 14 days (Jonas 17.11.2026: «jeg tenker den kan være åpen i sånn 14 dager»): the session in localStorage, so it
+// outlives the tab, and the access token renewed with the refresh token before it runs out (Supabase gives an hour; the renewed token keeps
+// the second factor, aal2). After 14 days from the code it asks for the password and the code again. Only a session that has passed the
+// second factor (t0) is kept; one that stopped after the password is dropped on the next load.
+const SES_KEY = 'dsbAdmin', SES_DAYS = 14;
+function sesRead(){ try { const s = JSON.parse(localStorage.getItem(SES_KEY) || 'null'); if (s && s.t0 && s.refresh_token && Date.now() - s.t0 < SES_DAYS * 864e5) return s;
+  if (s) localStorage.removeItem(SES_KEY); return null; } catch (e){ return null; } }
+function sesClear(){ SES = null; try { localStorage.removeItem(SES_KEY); sessionStorage.removeItem(SES_KEY); } catch (e){} }
+let SES = sesRead(), DATA = null, TAB = 'status', DAYS = 30;
 
 async function auth(path, body, tok){
   const r = await fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/auth/v1/' + path, {method:body ? 'POST' : 'GET', headers:{'Content-Type':'application/json', apikey:CFG.supabaseAnon, ...(tok ? {Authorization:'Bearer ' + tok} : {})}, body:body ? JSON.stringify(body) : undefined});
   const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.msg || j.error_description || j.message || ('HTTP ' + r.status)); return j;
 }
 async function rpc(fn, args){
-  const r = await fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/' + fn, {method:'POST', headers:{'Content-Type':'application/json', apikey:CFG.supabaseAnon, Authorization:'Bearer ' + SES.access_token}, body:JSON.stringify(args)});
-  if (r.status === 401){ SES = null; sessionStorage.removeItem('dsbAdmin'); render(); throw new Error('utlogget'); }
+  await fresh(); const {__retry, ...body} = args || {};
+  const r = await fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/rest/v1/rpc/' + fn, {method:'POST', headers:{'Content-Type':'application/json', apikey:CFG.supabaseAnon, Authorization:'Bearer ' + SES.access_token}, body:JSON.stringify(body)});
+  if (r.status === 401){ if (!args || !args.__retry){ try { await refresh(true); return rpc(fn, {...args, __retry:1}); } catch (e){} } sesClear(); render(); throw new Error('utlogget'); }
   // a function that returns nothing (admin_feedback_set) answers 204 with an empty body: that is a success, not bad JSON
   const tx = await r.text(); if (!r.ok) throw new Error(tx.slice(0, 200)); return tx ? JSON.parse(tx) : null;
 }
-function keep(s){ SES = s; sessionStorage.setItem('dsbAdmin', JSON.stringify(s)); }
+// t0: when the second factor was passed (set by mfa); a renewal keeps it, so the 14 days run from the code, not from the last renewal
+function keep(s, t0){ s.t0 = t0 || (SES && SES.t0) || 0; if (s.expires_in && !s.expires_at) s.expires_at = Math.floor(Date.now() / 1000) + s.expires_in; SES = s;
+  try { if (s.t0) localStorage.setItem(SES_KEY, JSON.stringify(s)); } catch (e){} }
+// the token renewed when less than five minutes are left (or when the server said 401); one renewal at a time, and a newer session that
+// another tab has saved is taken instead (the refresh token is used once, so two tabs must not both spend it)
+let REN = null;
+async function refresh(force){ if (REN) return REN;
+  REN = (async () => { const o = sesRead(); if (o && SES && o.refresh_token !== SES.refresh_token && o.expires_at > SES.expires_at){ SES = o; if (!force) return; }
+    if (!SES || !SES.refresh_token || !SES.t0 || Date.now() - SES.t0 >= SES_DAYS * 864e5) throw new Error('utlogget');
+    keep(await auth('token?grant_type=refresh_token', {refresh_token:SES.refresh_token})); })();
+  try { await REN; } finally { REN = null; } }
+async function fresh(){ if (SES && SES.t0 && (!SES.expires_at || SES.expires_at - Date.now() / 1000 < 300)){ try { await refresh(); } catch (e){ sesClear(); render(); throw e; } } }
+addEventListener('storage', e => { if (e.key === SES_KEY){ const o = sesRead(); if (o) SES = o; else if (SES && SES.t0){ SES = null; render(); } } });
 
 // ---------- sign-in: password, then the second factor (enrolled the first time) ----------
 function loginView(msg){
@@ -165,7 +186,7 @@ function loginView(msg){
     (msg ? '<p class="warn">' + esc(msg) + '</p>' : '') +
     '<label>E-post</label><input id="em" type="email" autocomplete="username"><label>Passord</label><input id="pw" type="password" autocomplete="current-password">' +
     '<p><button class="p" id="go">Logg inn</button></p></div></div>';
-  $('#go').onclick = async () => { try { const s = await auth('token?grant_type=password', {email:$('#em').value, password:$('#pw').value}); keep(s); await mfa(); } catch (e){ loginView(e.message); } };
+  $('#go').onclick = async () => { try { const s = await auth('token?grant_type=password', {email:$('#em').value, password:$('#pw').value}); keep(s, 0); SES = s; await mfa(); } catch (e){ loginView(e.message); } };
 }
 async function mfa(){
   const u = await auth('user', null, SES.access_token), f = (u.factors || []).find(x => x.factor_type === 'totp' && x.status === 'verified');
@@ -175,14 +196,14 @@ async function mfa(){
   $('#app').innerHTML = '<div id="login"><div class="card"><h1 style="font:600 22px Georgia,serif;margin:0 0 8px">Totrinnskode</h1>' + qr +
     '<label>Kode fra appen</label><input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6"><p><button class="p" id="ok">Bekreft</button></p><p class="warn" id="err"></p></div></div>';
   $('#ok').onclick = async () => { try { const ch = await auth('factors/' + id + '/challenge', {}, SES.access_token);
-    const s = await auth('factors/' + id + '/verify', {challenge_id:ch.id, code:$('#code').value.trim()}, SES.access_token); keep(s); load(); } catch (e){ $('#err').textContent = e.message; } };
+    const s = await auth('factors/' + id + '/verify', {challenge_id:ch.id, code:$('#code').value.trim()}, SES.access_token); keep(s, Date.now()); load(); } catch (e){ $('#err').textContent = e.message; } };
 }
 
 // ---------- the numbers ----------
 async function load(){
   try { DATA = DEMO ? demo() : await rpc('admin_dashboard', {days:DAYS}); render(); }
   catch (e){ if (SES){ $('#app').innerHTML = '<main><div class="card warn">' + esc(e.message) + '</div><button id="reLogin">Logg inn på nytt</button></main>';
-    $('#reLogin').onclick = () => { SES = null; sessionStorage.clear(); TR = null; FN = null; render(); }; } }   // (no onclick in the HTML: the page's CSP allows only its own script)
+    $('#reLogin').onclick = () => { sesClear(); TR = null; FN = null; render(); }; } }   // (no onclick in the HTML: the page's CSP allows only its own script)
 }
 const TABS = [['status', 'Status'], ['oversikt', 'Nøkkeltall'], ['trakt', 'Trakt'], ['tid', 'Spilletid'], ['frafall', 'Frafall'], ['bruk', 'Spillbruk'], ['okonomi', 'Økonomi i spillet'], ['penger', 'Penger'], ['teknikk', 'Teknikk'], ['geo', 'Geografi'], ['tilbake', 'Tilbakemeldinger'], ['agent', 'Agent'], ['lansering', 'Lansering'], ['logoer', 'Logoer'], ['navn', 'Brukernavn'], ['avis', 'Kystposten'], ['merker', 'Merker'], ['juks', 'Juks'], ['kapplop', 'Kappløp'], ['kommer', 'Kommer'], ['sponsorer', 'Sponsorer'], ['mediekort', 'Mediekort']];
 function render(){
@@ -199,7 +220,7 @@ function render(){
   helpWire(); chWire();
   $('#days').onchange = e => { DAYS = +e.target.value; DATA = null; TR = null; render(); };
   document.querySelectorAll('nav button').forEach(b => b.onclick = () => { TAB = b.dataset.t; render(); scrollTo(0, 0); });
-  if ($('#out')) $('#out').onclick = () => { auth('logout', {}, SES.access_token).catch(() => {}); SES = null; sessionStorage.clear(); TR = null; FN = null; render(); };
+  if ($('#out')) $('#out').onclick = () => { auth('logout', {}, SES.access_token).catch(() => {}); sesClear(); TR = null; FN = null; render(); };
   if (TAB === 'tilbake') fbWire();
   if (TAB === 'agent') agWire();
   if (TAB === 'logoer') lgWire();
@@ -588,7 +609,7 @@ const FBT = {bug:'Feil', ui:'Knapper og skjerm', perf:'Grafikk og fart', fish:'F
 const FBS = {new:'Ny', seen:'Lest', planned:'Kommer', fixed:'Fikset', no:'Ikke nå'};
 let FB = null; const FBF = {topic:'', status:''}, FBIMG = {}, FBVID = {};
 // a video in the private bucket: a signed link for an hour, to play here; deleting goes through Storage, then the row
-const store = (path, opt) => fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/storage/v1/object/' + path, {...opt, headers:{'Content-Type':'application/json', apikey:CFG.supabaseAnon, Authorization:'Bearer ' + SES.access_token}});
+const store = async (path, opt) => { await fresh(); return fetch(CFG.supabaseUrl.replace(/\/$/, '') + '/storage/v1/object/' + path, {...opt, headers:{'Content-Type':'application/json', apikey:CFG.supabaseAnon, Authorization:'Bearer ' + SES.access_token}}); };
 const encPath = p => p.split('/').map(encodeURIComponent).join('/');
 async function vidSign(p){ const r = await store('sign/feedback-media/' + encPath(p), {method:'POST', body:JSON.stringify({expiresIn:3600})}); const j = await r.json().catch(() => ({}));
   if (!r.ok || !j.signedURL) throw new Error(j.message || j.error || ('HTTP ' + r.status)); return CFG.supabaseUrl.replace(/\/$/, '') + '/storage/v1' + j.signedURL; }

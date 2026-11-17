@@ -5349,3 +5349,8 @@
 2026-11-17 00:09	claude/production-release-prep-cn15pt	9f78f5af	kalendertest	OK	21	lite	samtidig	
 2026-11-17 00:09	claude/production-release-prep-cn15pt	9f78f5af	boottest	OK	31	lite	samtidig	
 2026-11-17 01:55	claude/charming-mayer-4qcjdd	88157c6+	admintest	OK	12	lite	alene	
+2026-11-17 02:39	claude/charming-mayer-4qcjdd	cde9b25+	admintest	FEIL	13	lite	alene	FEIL the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days  {"s1": [["/auth/v1/t
+2026-11-17 02:39	claude/charming-mayer-4qcjdd	cde9b25+	admintest	FEIL	13	lite	alene	FEIL the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days  {"k1": {"login": fal
+2026-11-17 02:39	claude/charming-mayer-4qcjdd	cde9b25+	admintest	FEIL	13	lite	alene	FEIL the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days  {"k3": {"login": tru
+2026-11-17 02:40	claude/charming-mayer-4qcjdd	cde9b25+	admintest	OK	13	lite	alene	
+2026-11-17 02:40	claude/charming-mayer-4qcjdd	cde9b25+	admintest	FEIL	13	lite	alene	FEIL the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days  {"k3": {"login": tru
