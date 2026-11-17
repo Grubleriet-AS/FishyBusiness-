@@ -5590,3 +5590,12 @@
 2026-11-17 02:39	claude/charming-mayer-4qcjdd	cde9b25+	admintest	FEIL	13	lite	alene	FEIL the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days  {"k3": {"login": tru
 2026-11-17 02:40	claude/charming-mayer-4qcjdd	cde9b25+	admintest	OK	13	lite	alene	
 2026-11-17 02:40	claude/charming-mayer-4qcjdd	cde9b25+	admintest	FEIL	13	lite	alene	FEIL the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days  {"k3": {"login": tru
+2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	vesseltest	OK	20	lite	samtidig	
+2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	walktest	FEIL	13	lite	samtidig	FEIL snekke       135 cells   5.4 m2 of  21.3, places sloy,haling,ror,door,spot0,spot1,spot2,filler MISSING is, rail 10 (0 behind a wall), 153 ways (longest 9),
+2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	crewclip	FEIL	21	lite	samtidig	FEIL no foot walking put down in a wall, a tub or the kit, nor on his other foot or anyone else's (FB3; 5293 feet put down on every boat) {'pelagisk': ['me:i ti
+2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	lanterntest	OK	13	lite	samtidig	
+2026-11-17 09:10	claude/hopeful-mayer-48bgvv	217da5f5	maletest	OK	17	lite	samtidig	
+2026-11-17 09:10	claude/hopeful-mayer-48bgvv	217da5f5	regmarktest	OK	6	lite	samtidig	
+2026-11-17 09:10	claude/hopeful-mayer-48bgvv	217da5f5	folk2shot	OK	33	lite	samtidig	
+2026-11-17 09:51	claude/hopeful-mayer-48bgvv	82e8b618+	vessel3d	FEIL	2433	3d	alene	avsluttet med kode 1
+2026-11-17 09:51	claude/hopeful-mayer-48bgvv	18ebbbe1	dbg23o	OK	49	3d	alene	
