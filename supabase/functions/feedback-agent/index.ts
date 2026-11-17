@@ -44,6 +44,8 @@ serveReported('feedback-agent', async (req) => {
     case 'imgs': return call('agent_feedback_imgs', {fid: num(b.fid)});
     case 'note': return call('agent_note', {fid: num(b.fid), note: str(b.note), score: num(b.score), st: str(b.st), reply: str(b.reply)});
     case 'tech': return call('agent_tech', {days: Math.max(1, Math.min(90, num(b.days) || 7))});
+    // the groundings, the blows and the collisions (20261117160000_agent_incidents.sql)
+    case 'incidents': return call('agent_incidents', {days: Math.max(1, Math.min(90, num(b.days) || 30))});
     case 'run': return call('agent_run', {report: str(b.report) || '(tom)', prs: Array.isArray(b.prs) ? b.prs : [], n: num(b.n) || 0});
     default: return json({ok: false, why: 'unknown op'}, 400);
   }

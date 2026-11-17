@@ -76,7 +76,12 @@ async def main():
         r = await pg.evaluate("""async () => { PHONE.open('redskap'); PHONE.show(false);
           setTimeout(() => { throw new Error('cloudtest boom'); }, 0); await new Promise(res => setTimeout(res, 300));
           await cloudFlush(false);
-          runAground({...S.boat.pos}); await cloudFlush(true);
+          runAground({...S.boat.pos});
+          // the blows and the collisions (17.11.2026): a quay at 2.2 knots and another vessel at 3.3 go up; a vessel's own blow by hullHit
+          // ('båt', counted by sjvBlow) and a touch under a knot do not
+          hullHit(2.2, 500, 'kai'); hullHit(2, 500, 'båt'); hullHit(0.5, 50, 'molo');
+          try { sjvBlow({id:'cloudtest', name:'Test', p:{x:S.boat.pos.x + 0.005, y:S.boat.pos.y}, hd:0, v:1, L:10}, 3.3, 5000, S.t / 60, {p:{...S.boat.pos}, hd:0, v:2}); } catch (e){ console.log('sjvBlow', e); }
+          await cloudFlush(true);
           S.lastReal = Date.now(); save(); CLOUD.lastSave = 0; await cloudSaveSoon();
           (PHONE.open('innst'), PHONE.dact('innst', 'sub', {s:'konto'}), PHONE.render()); const card = document.body.innerText.includes('jonas@test.no'); PHONE.show(false);
           PHONE.open('home'); const admIcon = !!document.querySelector('#phView [data-a=admin]'); PHONE.open('admin'); const admApp = PHONE.app === 'admin'; PHONE.show(false);
@@ -88,6 +93,9 @@ async def main():
         check(first == ['tm_hello', 'save_get'] and all(c[2] == 'Bearer tok_test' for c in calls if c[0] != 'tm_perf' and not anon_sp(c) and not c[0].startswith('push-send') and not (c[0].startswith('shop-checkout') and not c[1])), 'signed in, the game starts after hello and the save check, with the WorkOS token', first)
         check(cons == [{'yes': True, 'birth_year': 1990}] and r['consent'] and closed, 'the consent is asked once with the year of birth, the yes is sent and «Ja, del» closes the dialog', {'calls': cons, 'closed': closed})
         check('start' in ev and 'redskap' in apps and 'aground' in ev and len(batches) >= 2 and last.get('active_s', -1) >= 0 and last.get('meta', {}).get('boat'), 'the events go up in batches with the session and the game state', {'ev': ev[:12], 'meta': last.get('meta')})
+        hits = [(e['k'], e['d'].get('k'), e['d'].get('kn'), e['d'].get('how')) for bt in batches for e in bt.get('evs', []) if e['k'] in ('hit', 'clash')]
+        check(hits == [('hit', 'kai', 2.2, 'drift'), ('clash', 'npc', 3.3, 'drift')] and all('x' in e['d'] and 'boat' in e['d'] for bt in batches for e in bt.get('evs', []) if e['k'] in ('hit', 'clash')),
+              'a blow against a quay and a collision with another vessel go up as events with where, the boat, the speed and who steered; a vessel\'s own hullHit and a touch under a knot do not', hits)
         check(last.get('ended') is True and last.get('reason') == 'rage' and 'rage' in ev, 'a session that ends within a minute of grounding counts as a rage quit', {'ended': last.get('ended'), 'reason': last.get('reason')})
         check(any('cloudtest boom' in e['msg'] for e in errc), 'an error in the page is reported', [e['msg'] for e in errc])
         sm = (puts[0].get('summary') or {}) if puts else {}

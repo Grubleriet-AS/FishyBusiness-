@@ -720,6 +720,14 @@ function cloudHooks(){
     cloudEv('sale', {kr:Math.round(s.total || 0), kg:Math.round(kg), port:s.port, field:s.field || null, tripMin:CLOUD.trip != null ? Math.round(S.t - CLOUD.trip) : null, acc:s.acc});
     if ((s.confKg || 0) > 0.5 || (s.crabDead || 0) > 0.05) CLOUD.neg = {t:Date.now(), k:'sale', x:(S.boat.pos || {}).x, y:(S.boat.pos || {}).y}; CLOUD.trip = null; });
   wrap('runAground', (r, a) => { const p = a[0] || S.boat.pos || {}, inc = (S.incidents || [])[(S.incidents || []).length - 1] || {}; cloudEv('aground', {x:+(p.x || 0).toFixed(3), y:+(p.y || 0).toFixed(3), boat:S.boat.type, v:+(inc.v != null ? inc.v : S.boat.v || 0).toFixed(1), how:inc.how || ''}); CLOUD.neg = {t:Date.now(), k:'aground', x:p.x, y:p.y}; });
+  // the blows, as the groundings (17.11.2026, Jonas: how many have run aground or collided, and where): a blow against a quay, a pier, a
+  // breakwater or a fixed thing (hullHit, 16c-hull.js; the vessels' own go by sjvBlow) and a collision with another vessel, a player's
+  // or an NPC's (sjvBlow, 05e-sjovei.js; harmless in the first weeks, so hullHit is not called for it). Where, how hard, the boat, and
+  // who steered: Autonav (leia), a drawn route, by hand (helm) or drifting; nothing about the other vessel's owner
+  const hitHow = () => { const w = S.plan && S.plan.wps[S.plan.idx]; return S.plan ? (w && (w.leia || w.obs || w.auto) ? 'leia' : S.plan.returning ? 'return' : S.plan.ops ? 'ops' : 'route') : (typeof helmOn === 'function' && helmOn()) ? 'helm' : 'drift'; };
+  const hitAt = (b = S.boat) => { const p = b.pos || {}; return {x:+(p.x || 0).toFixed(3), y:+(p.y || 0).toFixed(3), boat:b.type, how:b === S.boat ? hitHow() : 'flåte'}; };
+  wrap('hullHit', (r, a) => { if (a[2] === 'båt' || !(a[0] >= 1)) return; cloudEv('hit', {k:String(a[2] || ''), kn:+(+a[0]).toFixed(1), ...hitAt(a[3] || S.boat)}); });
+  wrap('sjvBlow', (r, a) => { if (!r || r.t !== S.t || r.kn !== +(+a[1]).toFixed(1)) return; cloudEv('clash', {k:r.peer ? 'spiller' : 'npc', kn:r.kn, ...hitAt()}); });
   wrap('startSet', (r, a) => { if (!r) cloudEv('gear', {gear:a[0], op:'set'}); });
   wrap('startHaul', (r) => { const g = S.boat.gop; if (!r && g) cloudEv('gear', {gear:g.kind, op:'haul'}); });
   if (typeof PHONE !== 'undefined' && PHONE.open){ const o = PHONE.open; PHONE.open = function(app){ cloudEv('app', {app:String(app || '')}); return o.apply(this, arguments); }; }
