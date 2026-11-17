@@ -5345,3 +5345,6 @@
 2026-11-17 00:08	claude/production-release-prep-cn15pt	53d46c9d	simday	LES	15	lite	samtidig	
 2026-11-17 00:08	claude/production-release-prep-cn15pt	53d46c9d	selltest	LES	26	lite	samtidig	
 2026-11-17 00:08	claude/production-release-prep-cn15pt	53d46c9d	gatetest	OK	16	lite	samtidig	
+2026-11-17 00:09	claude/production-release-prep-cn15pt	9f78f5af	cloudtest	OK	50	lite	samtidig	
+2026-11-17 00:09	claude/production-release-prep-cn15pt	9f78f5af	kalendertest	OK	21	lite	samtidig	
+2026-11-17 00:09	claude/production-release-prep-cn15pt	9f78f5af	boottest	OK	31	lite	samtidig	
