@@ -189,7 +189,7 @@
     // lift, give heave and pitch as before: the sea averaged over the waterplane (3 x 3 points), followed as damped oscillators.
     // (and the load's own list and trim, OB15: the core reckons them from where the load, the pull in the hauler and the people stand,
     // stabOf; a positive list is to starboard, which is a negative roll here. The trim goes to the sections' rest, hullMove)
-    if (!bv.st || t - (bv.stT || 0) > 1 || t < (bv.stT || 0)){ bv.st = stabOf(b.type || 'skiff'); bv.stT = t; bv.heel = -windHeel(bv.st, env.wind || 0) * Math.sign(Math.sin((windDir(S.t / 60) * DEG + Math.PI) - bv.head) || 1); bv.list = -(bv.st.list || 0); }   // to leeward
+    if (!bv.st || t - (bv.stT || 0) > 1 || t < (bv.stT || 0)){ bv.st = stabOf(b.type || 'skiff'); bv.stT = t; bv.heel = -windHeel(bv.st, env.wind || 0, b.status === 'port') * Math.sign(Math.sin((windDir(S.t / 60) * DEG + Math.PI) - bv.head) || 1); bv.list = -(bv.st.list || 0); }   // to leeward
     const pl = G.pl, rl = G.rl, Ls = Math.max(pl * 2, (G.stern - G.bow) * 0.8 || 0), Bs = Math.max(rl * 2, (G.beam || 2.4) * 0.8);
     // on the yard's lift she is raised with the platform and lies still: no sea to rock her (liftStep)
     const lf = liftStep(dt, b), lifted = lf.off > 0 || !!lf.d, force = HSEA.on && !lifted;
