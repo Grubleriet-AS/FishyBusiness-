@@ -182,10 +182,11 @@ async function mfa(){
 async function load(){
   try { DATA = DEMO ? demo() : await rpc('admin_dashboard', {days:DAYS}); render(); }
   catch (e){ if (SES){ $('#app').innerHTML = '<main><div class="card warn">' + esc(e.message) + '</div><button id="reLogin">Logg inn på nytt</button></main>';
-    $('#reLogin').onclick = () => { SES = null; sessionStorage.clear(); render(); }; } }   // (no onclick in the HTML: the page's CSP allows only its own script)
+    $('#reLogin').onclick = () => { SES = null; sessionStorage.clear(); TR = null; FN = null; render(); }; } }   // (no onclick in the HTML: the page's CSP allows only its own script)
 }
 const TABS = [['status', 'Status'], ['oversikt', 'Nøkkeltall'], ['trakt', 'Trakt'], ['tid', 'Spilletid'], ['frafall', 'Frafall'], ['bruk', 'Spillbruk'], ['okonomi', 'Økonomi i spillet'], ['penger', 'Penger'], ['teknikk', 'Teknikk'], ['geo', 'Geografi'], ['tilbake', 'Tilbakemeldinger'], ['agent', 'Agent'], ['lansering', 'Lansering'], ['logoer', 'Logoer'], ['navn', 'Brukernavn'], ['avis', 'Kystposten'], ['merker', 'Merker'], ['juks', 'Juks'], ['kapplop', 'Kappløp'], ['kommer', 'Kommer'], ['sponsorer', 'Sponsorer'], ['mediekort', 'Mediekort']];
 function render(){
+  for (const k in CH) delete CH[k];
   if (!DEMO && !SES) return loginView();
   if (!DATA) { $('#app').innerHTML = '<main class="note">Henter …</main>'; return load(); }
   const live = DATA.overview && DATA.overview.active_now != null ? '<span class="live" title="Spillere med en åpen økt nå"><i></i>' + nf(DATA.overview.active_now, 0) + ' spiller nå</span>' : '';
@@ -198,7 +199,7 @@ function render(){
   helpWire(); chWire();
   $('#days').onchange = e => { DAYS = +e.target.value; DATA = null; TR = null; render(); };
   document.querySelectorAll('nav button').forEach(b => b.onclick = () => { TAB = b.dataset.t; render(); scrollTo(0, 0); });
-  if ($('#out')) $('#out').onclick = () => { auth('logout', {}, SES.access_token).catch(() => {}); SES = null; sessionStorage.clear(); render(); };
+  if ($('#out')) $('#out').onclick = () => { auth('logout', {}, SES.access_token).catch(() => {}); SES = null; sessionStorage.clear(); TR = null; FN = null; render(); };
   if (TAB === 'tilbake') fbWire();
   if (TAB === 'agent') agWire();
   if (TAB === 'logoer') lgWire();
@@ -301,6 +302,24 @@ const HELP = {
   'Har levert fisk':'Nye spillere som har solgt fangst minst én gang.', 'Har levert tre ganger':'Nye spillere som har levert tre ganger. Da er spillet ofte blitt en vane.',
   'Åpnet spillet':'Nye spillere i ukene som er med (bare de som deler bruksstatistikk).', 'Tilbake etter 1 døgn':'Av dem som har hatt minst ett døgn: andelen som spilte igjen dagen etter eller senere.',
   'Tilbake etter 7 dager':'Av dem som har hatt minst en uke: andelen som spilte igjen etter sju dager. Over 15–20 % er bra for et mobilspill.', 'Tilbake etter 30 dager':'Av dem som har hatt en måned: andelen som fortsatt spiller etter 30 dager.',
+  'Aktive siste 30 dager':'Ulike spillere som har spilt minst én gang de siste 30 dagene (MAU).', 'Aktive per dag (snitt)':'Ulike spillere siste døgn (DAU).',
+  'Økter per dag':'Økter i snitt per dag i perioden.', 'Snitt økt':'Hvor lenge en økt varer i snitt.', 'Spilletimer per dag':'Aktive timer i snitt per dag i perioden.', 'Turer i perioden':'Leveringer på et mottak i perioden.',
+  'Begynte på Første tur':'Nye spillere som startet opplæringsturen de siste åtte ukene.', 'Fullførte':'De som kom gjennom hele Første tur.', 'Median tid, hele turen':'Midtverdien for hvor lang tid Første tur tok, i ekte tid.',
+  'Fra «Start her» til naustet':'Ekte tid fra knappen «Start her» til spilleren står i naustet. Kort er bra.',
+  'Startet spillet':'Spillere med statistikk som har tatt over båten.', 'Kapittel 1':'Spillere som har fullført første kapittel av merkene.', 'Kapittel 2':'Spillere som har fullført andre kapittel.', 'Kapittel 3':'Spillere som har fullført tredje kapittel.',
+  'Påmeldt':'Spillere som meldte seg på kappløpet (bare de som deler statistikk).', 'Kastet loss':'Forsøk som faktisk startet fra Lindesnes.', 'I mål':'Forsøk som krysset mållinja ved Nordkapp.',
+  'Brutt':'Forsøk som ble avbrutt: slep, båten solgt eller byttet, nytt forsøk eller avbrutt av spilleren.', 'Underveis':'Forsøk som er i gang nå.',
+  'Med trim i en etappe':'Andelen forsøk der båten hadde fartstrim (fra butikken) i minst én etappe.', 'Hoppet til startstreken':'Andelen som brukte et hopp til Lindesnes de seks timene før avgang. Lov, men sier hvor mange som ikke seiler dit selv.',
+  'Med merke':'Forsøk som serverens sjekk mener ikke kan være ekte. De står ikke på tavla; se Juks.',
+  'Kontoer med merke':'Kontoer der serveren har funnet tall som ikke kan være ekte.', 'Ute av topplistene':'Om kontoer med merke holdes ute av topplistene (bryteren under).',
+  'Tilbakemeldinger':'Alle tilbakemeldinger spillerne har sendt.', 'Snittkarakter siste 30 dager':'Snittet av stjernene spillerne ga (1–5) de siste 30 dagene.',
+  'Bilder':'Plassen bildene i tilbakemeldingene tar.', 'Video i lagringen':'Plassen videoene tar i Supabase-lagringen, mot grensa på gratisplanen.',
+  'Siste kjøring':'Når tilbakemeldingsagenten sist gikk gjennom nye tilbakemeldinger.', 'Kjøringer med noe nytt':'Hvor mange av agentens siste 30 kjøringer som fant noe nytt.', 'PR-er åpnet':'Rettinger agenten har foreslått som pull requests.',
+  'Founders':'Hvor mange av de 100 founders-plassene som er tatt.', 'Bilder som venter':'Profilbilder som ikke vises for andre før du godkjenner dem.',
+  'Brukernavn':'Navn i bruk nå. Under: hvor mange du har tatt bort.', 'Opplastede logoer':'Båtlogoer i bruk nå. Under: hvor mange du har tatt bort.', 'Saker':'Saker i Kystposten nå, og under dem per slag.',
+  'Aktive sponsorer':'Sponsorer med avtale som vises i spillet nå.', 'Aktive plasseringer':'Steder i spillet der en sponsor vises nå.',
+  'Gjengitte visninger':'Gangene en sponsorplakat ble tegnet nær nok til å kunne ses.', 'Synlige visninger':'Visninger der minst halve plakaten var synlig i minst ett sekund.',
+  'Sekunder sett':'Summen av sekundene plakatene var synlige.', 'Snitt synlig tid':'Sekunder en plakat var synlig, i snitt per synlig visning.', 'Klikk ut':'Trykk fra spillet videre til sponsoren.',
   'Synlig andel':'Andelen visninger der minst halve plakaten var synlig i minst ett sekund (IAB).', 'Målt andel':'Andelen visninger der synligheten kunne måles.'
 };
 const kpi = (label, v, sub) => { const h = HELP[label];
@@ -314,7 +333,7 @@ function themeFlip(){ const dark = document.documentElement.dataset.theme ? docu
   const t = dark ? 'light' : 'dark'; document.documentElement.dataset.theme = t; try { localStorage.setItem('dsbAdminTheme', t); } catch (e){} }
 theme();
 function helpWire(){ document.querySelectorAll('[data-help]').forEach(k => { const f = () => { k.classList.toggle('open'); k.setAttribute('aria-expanded', k.classList.contains('open')); };
-  k.onclick = f; k.onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); f(); } }; }); }
+  k.onclick = e => { if (!e.target.closest('button, a')) f(); }; k.onkeydown = e => { if (e.target === k && (e.key === 'Enter' || e.key === ' ')){ e.preventDefault(); f(); } }; }); }
 
 // ---------- the charts: lines with a crosshair and one tooltip for every series, the period before as a grey line, the numbers behind
 // as a table. Drawn as SVG strings (the page's policy runs only its own script); the hover reads CH by the chart's id ----------
@@ -324,7 +343,7 @@ const cmp = v => { v = +v || 0; const a = Math.abs(v); return a >= 1e6 ? nf(v / 
 function ticks(max){ if (!(max > 0)) return [0, 1]; const raw = max / 4, p = Math.pow(10, Math.floor(Math.log10(raw))), st = [1, 2, 2.5, 5, 10].map(x => x * p).find(x => x >= raw) || p * 10;
   const t = []; for (let v = 0; v <= max + st * 0.001; v += st) t.push(+v.toFixed(6)); if (t[t.length - 1] < max) t.push(+(t[t.length - 1] + st).toFixed(6)); return t; }
 // S: [{name, cls ('s1'|'s2'|'s3'), v:[number|null]}], X: labels (dates or weeks), ghost: the period before (same length) or null, fmt for values
-function lineChart(S, X, o){ o = o || {}; const id = 'ch' + (++CHN), W = 640, H = 214, PL = 52, PR = 40, PT = 10, PB = 34, pw = W - PL - PR, ph = H - PT - PB, n = X.length, fmt = o.fmt || cmp;
+function lineChart(S, X, o){ o = o || {}; if (!X.length) return '<p class="note">Ingen data ennå.</p>'; const id = 'ch' + (++CHN), W = 640, H = 214, PL = 52, PR = 40, PT = 10, PB = 34, pw = W - PL - PR, ph = H - PT - PB, n = X.length, fmt = o.fmt || cmp;
   const all = S.flatMap(s => s.v).concat(o.ghost || []).filter(v => v != null && isFinite(v)), tk = ticks(Math.max(o.min || 0, ...all, 0)), top = tk[tk.length - 1] || 1;
   const xp = i => PL + (n <= 1 ? pw / 2 : pw * i / (n - 1)), yp = v => PT + ph - ph * v / top;
   const path = v => { let d = '', pen = false; v.forEach((y, i) => { if (y == null || !isFinite(y)){ pen = false; return; } d += (pen ? 'L' : 'M') + xp(i).toFixed(1) + ' ' + yp(y).toFixed(1); pen = true; }); return d; };
@@ -353,7 +372,7 @@ addEventListener('resize', () => chFont());
 function chWire(){ chFont(); document.querySelectorAll('.ch[data-ch]').forEach(el => { const c = CH[el.dataset.ch]; if (!c) return; const svg = el.querySelector('svg'), tip = el.querySelector('.tip'), xh = el.querySelector('.xh'), hd = el.querySelectorAll('.hd');
   const at = e => { const r = svg.getBoundingClientRect(); if (!r.width) return; const fx = (e.clientX - r.left) / r.width * c.W, i = Math.max(0, Math.min(c.n - 1, Math.round((fx - c.PL) / c.pw * (c.n - 1))));
     el.classList.add('hov'); const x = c.xp(i); xh.setAttribute('x1', x); xh.setAttribute('x2', x);
-    hd.forEach(h => { const v = c.S[+h.dataset.k].v[i]; if (v == null){ h.setAttribute('cy', -9); return; } h.setAttribute('cx', x); h.setAttribute('cy', c.yp(v)); });
+    hd.forEach(h => { const v = c.S[+h.dataset.k].v[i]; if (v == null){ h.setAttribute('cx', -9); h.setAttribute('cy', -9); return; } h.setAttribute('cx', x); h.setAttribute('cy', c.yp(v)); });
     tip.textContent = ''; const t = document.createElement('div'); t.className = 'td'; t.textContent = c.xl ? c.xl(c.X[i]) : new Date(c.X[i] + 'T12:00:00').toLocaleDateString('nb-NO', {weekday:'short', day:'numeric', month:'short'}); tip.appendChild(t);
     const row = (cls, v, name) => { const r2 = document.createElement('div'); r2.className = 'tr'; const k = document.createElement('i'); k.style.background = 'var(--' + cls + ')'; const b = document.createElement('b'); b.textContent = v == null ? '–' : c.fmt(v); const sp = document.createElement('span'); sp.textContent = name; r2.append(k, b, sp); tip.appendChild(r2); };
     c.S.forEach(s => row(s.cls, s.v[i], s.name)); if (c.ghost) row('ghost', c.ghost[i], c.gname + (c.gx ? ' (' + dm(c.gx[i]) + ')' : ''));
@@ -366,10 +385,13 @@ function spark(v, cls){ const f = v.filter(x => x != null); if (f.length < 2) re
 
 // ---------- the status page: the direction of the game (supabase/migrations/20261117120000_admin_trend.sql), with the funnel's cohorts for
 // coming back. Without the migration it falls back on the dashboard's own days (active, sessions, hours) and says so ----------
-let TR = null, TRD = 0;
-async function trLoad(){ await null; const n = Math.max(7, DAYS); TRD = DAYS;
-  try { TR = DEMO ? trDemo(n) : await rpc('admin_trend', {days:n}); } catch (e){ TR = {err:e.message}; }
-  if (!FN) fnLoad(); if (TAB === 'status') render(); }
+let TR = null, TRD = 0, TRQ = 0;
+// one request per period at a time; the old numbers stay on the screen until the new ones come (the refresh every minute),
+// and a reply for a period that is no longer chosen is dropped
+async function trLoad(){ await null; const want = DAYS, n = Math.max(7, want); if (TRQ === want) return; TRQ = want;
+  let r; try { r = DEMO ? trDemo(n) : await rpc('admin_trend', {days:n}); } catch (e){ r = {err:e.message, missing:/admin_trend|PGRST202|404/.test(e.message)}; }
+  if (TRQ === want) TRQ = 0; if (want !== DAYS || !SES && !DEMO) return; TR = r; TRD = want;
+  if ((!FN || FN.err) && (DEMO || SES)) fnLoad(); if (TAB === 'status') render(); }
 function trDemo(n){ const rows = [], now = Date.now(); let base = 300;
   for (let i = 2 * n - 1; i >= 0; i--){ const day = new Date(now - i * 864e5).toISOString().slice(0, 10), g = (2 * n - i) / (2 * n), wk = [0.8, 0.9, 1, 1, 1.05, 1.35, 1.3][new Date(now - i * 864e5).getDay()], w = (0.6 + g) * wk;
     const nw = Math.round((6 + Math.random() * 6) * w), rg = Math.round(nw * (0.35 + Math.random() * 0.2)), act = Math.round((30 + 40 * g + Math.random() * 10) * wk);
@@ -380,12 +402,13 @@ function delta(cur, prev){ if (!(prev > 0)) return cur > 0 ? {t:'ny', c:'up', d:
   return {d, t:(d > 0 ? '+' : d < 0 ? '−' : '±') + nf(Math.abs(d) * 100, 0) + ' %', c:Math.abs(d) < 0.03 ? 'flat' : d > 0 ? 'up' : 'down'}; }
 const arrow = c => c === 'up' ? '▲' : c === 'down' ? '▼' : '●';
 VIEW.status = D => {
-  if (!TR || TRD !== DAYS){ trLoad(); return '<p class="note">Henter …</p>'; }
+  if (!TR || TRD !== DAYS) trLoad();
+  if (!TR) return '<p class="note">Henter …</p>';
   const o = D.overview || {}, n = Math.max(7, DAYS);
   let rows = TR.rows, prevRows = null, fb = '';
   if (TR.err){ // fallback: the dashboard's daily rows, the period only
     rows = (D.daily || []).map(x => ({day:x.day, active:x.players, sessions:x.sessions, hours:x.hours, new:null, reg:null, sales:null, rev:null}));
-    fb = card('Grafene for nye spillere og registreringer mangler', '<p class="warn">' + esc(TR.err).slice(0, 160) + '</p>', 'Kjør migreringen supabase/migrations/20261117120000_admin_trend.sql. Til da vises bare aktive, økter og spilletid.');
+    fb = card('Grafene for nye spillere og registreringer mangler', '<p class="warn">' + esc(String(TR.err).slice(0, 160)) + '</p>', TR.missing ? 'Kjør migreringen supabase/migrations/20261117120000_admin_trend.sql. ' : 'Prøver igjen ved neste oppdatering (hvert minutt). Til da vises bare aktive, økter og spilletid.');
   } else { prevRows = rows.slice(0, rows.length - n); rows = rows.slice(-n); }
   const X = rows.map(r => r.day), col = k => rows.map(r => r[k] == null ? null : +r[k]), pcol = k => prevRows ? prevRows.map(r => +r[k] || 0) : null;
   const M = [['new', 'Nye spillere', 'sum', 's1'], ['reg', 'Registreringer', 'sum', 's2'], ['active', 'Aktive per dag', 'avg', 's1'], ['hours', 'Spilletid', 'sum', 's1'], ['sales', 'Leveringer', 'sum', 's1'], ['rev', 'Inntekt', 'sum', 's3']];
@@ -1054,7 +1077,7 @@ function demo(){
     tech:{errors:[{msg:'TypeError: Cannot read properties of null', n:12, last:new Date().toISOString(), versions:['p15']}], fps:[{platform:'android', quality:'auto', fps:41.2, low:18, drops:3.1, n:220}, {platform:'windows', quality:'high', fps:58.9, low:44, drops:0.2, n:140}], browsers:{chrome:1100, samsung:450, safari:250, firefox:40}, platforms:{android:1200, windows:380, ios:220, mac:40}},
     geo:{countries:{NO:380, SE:14, DE:9}, timezones:{'Europe/Oslo':388, 'Europe/Stockholm':14}, homes:{husoy:160, senjahopen:120, finnsnes:80, mN69:42, mF201:21, mM317:18, mSF98:9, mR40:6}}};
 }
-render(); setInterval(() => { if (DATA && (DEMO || SES) && TAB !== 'tilbake' && TAB !== 'agent') { DATA = null; if (TAB === 'status') TR = null; load(); } }, 60000);
+render(); setInterval(() => { if (DATA && (DEMO || SES) && TAB !== 'tilbake' && TAB !== 'agent') { DATA = null; if (TAB === 'status'){ TRD = -1; } load(); } }, 60000);
 </script>
 </body>
 </html>
