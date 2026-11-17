@@ -5632,3 +5632,7 @@
 2026-11-17 13:21	claude/hopeful-mayer-48bgvv	0c25df84+	kapplop	FEIL	18	lite	samtidig	FEIL ruta Lindesnes–Bergen {"err": "Fant ingen rute dit."}
 2026-11-17 13:24	claude/hopeful-mayer-48bgvv	0c25df84+	kjoptest	OK	151	lite	samtidig	
 2026-11-17 13:25	claude/hopeful-mayer-48bgvv	0c25df84+	driftsplan2test	OK	93	lite	alene	
+2026-11-17 14:00	fb/auto-2026-11-17-autonav-gul-etappe	eafc2791	utryggtest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-17 14:00	fb/auto-2026-11-17-autonav-gul-etappe	eafc2791	trip2	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-17 14:01	fb/auto-2026-11-17-autonav-gul-etappe	eafc2791	utryggtest	OK	10	lite	samtidig	
+2026-11-17 14:01	fb/auto-2026-11-17-autonav-gul-etappe	eafc2791	trip2	OK	28	lite	samtidig	
