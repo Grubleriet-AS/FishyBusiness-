@@ -1,5 +1,8 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['navn-171126', '17.11.2026', 'Navn på rederiet og båten', 'The company\'s and the boat\'s name', [
+       ['Du kan bytte navn på rederiet i Rederi-appen.', 'You can rename your company in the Company app.'],
+       ['Har båten ikke fått navn ennå, kan du døpe henne rett fra kortet hennes i Rederi-appen.', 'If your boat has no name yet, you can name her right from her card in the Company app.']]],
     ['autonavgrunn-171126', '17.11.2026', 'Autonav går rundt skjær', 'Autonav goes round skerries', [
        ['På en rute Autonav har lagt, går båten ikke lenger på grunn når hun kommer for nær et skjær. Hun stopper og finner vei rundt, også der etappen er gul fordi ruta regner med tidevannet.', 'On a route Autonav has laid, the boat no longer runs aground when she comes too close to a skerry. She stops and finds a way round, also where the leg is yellow because the route counts on the tide.']]],
     ['merkegave-171126', '17.11.2026', 'Gavene for merkene', 'The badge gifts', [
