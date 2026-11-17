@@ -622,6 +622,10 @@ function sjvAuto(d, h, ds, T){
   const rate = Math.max(0.5, Math.abs(d.u)) * Math.tan(SJV_TH) * h;
   SJV.ownOff += clamp(tgt - SJV.ownOff, -rate, rate);
   const v = O && (O.slow || O.ease) && O.t1 == null && !near ? Math.max(1, 0.4 * ((S.plan && S.plan.speed) || BOAT.vcruise || 6) * KN_MS) : 1e9;
+  // (said once a manoeuvre: she slows to 40 % of the route's speed to give way, and nothing told why, tilbakemelding #156, 17.11.2026:
+  // «kjører i 3 knop, ofte»)
+  if (v < 1e9 && !O.told){ O.told = true; const nm = SJV.warn && SJV.warn.id === O.id && SJV.warn.name ? String(SJV.warn.name) : '';
+    log('Autonav slakker av for å vike' + (nm ? ' for «' + nm + '»' : '') + '. Hun tar opp farten igjen når det er klart.', 'Autonav slows down to give way' + (nm ? ' to «' + nm + '»' : '') + '. She picks up speed again when it is clear.'); }
   return {off:SJV.ownOff, v:Math.min(v, cap)};
 }
 // the minute step (05-vessels.js sail), when the model is not running: she turns 35 degrees off the leg until she stands the offset off it,
