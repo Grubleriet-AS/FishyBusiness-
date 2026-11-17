@@ -202,8 +202,9 @@ function trimWords(k, how){
     : {no:B.no + ' er på ' + on[0] + ' i ' + B.h + ' timer. Toppfart nå ' + v + ' knop.', en:B.en + ' is on ' + on[1] + ' for ' + B.h + ' hours. Top speed now ' + v + ' knots.'};
 }
 
-// the fleet's trim ends; an old one on the boat goes too, unless it still has paid time left (a save from before 16.11.2026)
-function trimEnd(){ const o = S.boat.trim; trimFleet(() => { delete S.trim; if (!(o && BOOSTS[o.k] && S.t < trimRecUntil(o))) delete S.boat.trim; }); }
+// the fleet's trim ends; an old one on the boat goes too, unless it still has paid time left (a save from before 16.11.2026). at: the
+// game minute it ends at, when that is not S.t (the hop's dry run, core/06j-hopp.js, runs the minutes with the clock standing still)
+function trimEnd(at){ const o = S.boat.trim, t = at != null ? at : S.t; trimFleet(() => { delete S.trim; if (!(o && BOOSTS[o.k] && t < trimRecUntil(o))) delete S.boat.trim; }); }
 const trimStop = trimEnd;
 function powerX(b){ const V = VESSELS[b.type || 'skiff']; return 1 + (b.engLv && !V.outboard ? ENGUP[b.engLv - 1].p : 0); }
 const speedOfPower = (P, planing) => planing ? Math.sqrt(P) : Math.min(1.12, Math.cbrt(P));
