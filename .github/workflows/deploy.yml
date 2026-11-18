@@ -30,9 +30,13 @@ on:
         default: ''
 permissions:
   contents: read
+# A run is never stopped halfway (18.11.2026): a newer push waits until the one running is done. GitHub then keeps only the newest
+# waiting run, so pushes still fold together, but a roll-out in the middle of the save gate, the upload or the relay's swap is not
+# killed. Before, a push could cancel the run in progress and the newer run might never start (seen 31.10.2026), so the roll-out
+# was simply gone without an error.
 concurrency:
   group: hetzner-${{ github.ref_name == 'main' && 'prod' || 'test' }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -123,6 +127,8 @@ jobs:
           fi
           install -d -m 700 ~/.ssh
           printf '%s\n' "$GATE_KEY" > ~/.ssh/gate && chmod 600 ~/.ssh/gate
+          # a key that cannot be read says so here, not as «error in libcrypto» from ssh further down
+          ssh-keygen -y -f ~/.ssh/gate >/dev/null 2>&1 || { echo "::error::GATE_KEY is not a private key ssh can read. It has usually lost its line breaks when it was pasted as a secret: paste it again with the BEGIN and END lines on lines of their own."; exit 1; }
           printf '%s\n' "$GATE_KNOWN_HOSTS" > ~/.ssh/known_hosts
           G="$RUNNER_TEMP/gate"; R="ssh -i $HOME/.ssh/gate"; H="deploy@$GATE_HOST"
           # the build the players have now, for the other way (the public files of the site, no one's data): from the game's server
@@ -130,6 +136,7 @@ jobs:
           mkdir -p "$RUNNER_TEMP/prev"
           if [ "$OTHER" = true ] && [ -n "$DEPLOY_HOST" ]; then
             printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+            ssh-keygen -y -f ~/.ssh/deploy >/dev/null 2>&1 || { echo "::error::DEPLOY_KEY is not a private key ssh can read. It has usually lost its line breaks when it was pasted as a secret: paste it again with the BEGIN and END lines on lines of their own."; exit 1; }
             printf '%s\n' "$DEPLOY_KNOWN_HOSTS" >> ~/.ssh/known_hosts
             if rsync -rlc --copy-dest="$PWD/dist-pwa" -e "ssh -i $HOME/.ssh/deploy" "deploy@$DEPLOY_HOST:current/" "$RUNNER_TEMP/prev/" && [ -s "$RUNNER_TEMP/prev/index.html" ]; then
               echo "The build before: $(cut -c1-80 "$RUNNER_TEMP/prev/version.json")"
@@ -172,6 +179,7 @@ jobs:
           if [ -z "$DEPLOY_HOST" ]; then echo "No DEPLOY_HOST secret yet: built, not uploaded."; exit 0; fi
           install -d -m 700 ~/.ssh
           printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy
+          ssh-keygen -y -f ~/.ssh/deploy >/dev/null 2>&1 || { echo "::error::DEPLOY_KEY is not a private key ssh can read. It has usually lost its line breaks when it was pasted as a secret: paste it again with the BEGIN and END lines on lines of their own."; exit 1; }
           printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
           case "$DEPLOY_DIR" in current|test) ;; *) echo "Unknown edition: $DEPLOY_DIR"; exit 1;; esac
           grep -q '"ch":"test"' dist-pwa/version.json && CH=test || CH=
@@ -179,10 +187,28 @@ jobs:
           if [ "$DEPLOY_DIR" = test ] && [ -z "$CH" ]; then echo "The test edition must be built with KYST_CHANNEL=test."; exit 1; fi
           echo "Uploading the ${CH:-production} build to $DEPLOY_DIR/"
           rsync -az --delete-after --delay-updates -e "ssh -i ~/.ssh/deploy" dist-pwa/ "deploy@$DEPLOY_HOST:$DEPLOY_DIR/"
+      # what the players get (18.11.2026): version.json through Caddy at the public address must be the build just uploaded. A red
+      # step here means the files did not reach what is served (the wrong folder, Caddy serving another root, an old Caddyfile);
+      # rolling back the same way will not help then: look at the server (tools/server/status.sh, /etc/caddy/Caddyfile)
+      - name: Check that the site serves the new build
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          SITE_URL: ${{ github.ref_name == 'main' && 'https://detstorebla.no' || 'https://test.detstorebla.no' }}
+        run: |
+          if [ -z "$DEPLOY_HOST" ]; then echo "Nothing was uploaded."; exit 0; fi
+          want=$(cat dist-pwa/version.json); got=''
+          for i in $(seq 1 10); do
+            got=$(curl -fsS --max-time 10 -H 'Cache-Control: no-cache' "$SITE_URL/version.json?r=$GITHUB_RUN_ID-$i" 2>/dev/null || true)
+            if [ "$got" = "$want" ]; then echo "$SITE_URL serves the new build: $got"; exit 0; fi
+            sleep 3
+          done
+          echo "::error::$SITE_URL/version.json is ${got:-no answer}, not the build just uploaded ($want)."; exit 1
       # the real-time relay (tools/server/rt, docs/planer/sanntid-posisjoner.md S2, 05.11.2026): ws from the lock file, then the files
       # beside the site (rrsync keeps the key in /srv/detstorebla), compared by content and without times, so an unchanged relay is not
-      # touched; VERSION (the hash of the files) goes last, and setup.sh's dsb-rt-reload.path restarts the service when it changes.
-      # Before setup.sh has made the service on the server, the files just lie there.
+      # touched; VERSION (the hash of the files) goes last, and setup.sh's dsb-rt-reload.path runs dsb-rt-roll when it changes: that
+      # swaps the new files in, asks the relay's /stats, and puts the version before back if the new one does not hold (18.11.2026,
+      # tools/server/rt-roll.sh). Its answer, rt/STATUS, is read here: rolled back or failed makes the step red. A server whose
+      # setup.sh is from before that writes no STATUS, and the step only warns. Before setup.sh has made the service, the files just lie there.
       # (not at a roll-back: the relay stays as the newest release left it; a bad relay is rolled back with a release of its own)
       - name: Upload the real-time relay
         if: ${{ github.ref_name == 'main' && !inputs.commit }}
@@ -192,5 +218,18 @@ jobs:
           if [ -z "$DEPLOY_HOST" ]; then echo "No DEPLOY_HOST secret yet: not uploaded."; exit 0; fi
           (cd tools/server/rt && npm ci --omit=dev --no-audit --no-fund && node --check server.mjs)
           (cd tools/server/rt && find . -type f -not -name VERSION -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -c1-16) > "$RUNNER_TEMP/rt-version"
-          rsync -rlc --delete-after --delay-updates --exclude VERSION -e "ssh -i ~/.ssh/deploy" tools/server/rt/ "deploy@$DEPLOY_HOST:rt/"
+          rsync -rlc --delete-after --delay-updates --exclude VERSION --exclude STATUS -e "ssh -i ~/.ssh/deploy" tools/server/rt/ "deploy@$DEPLOY_HOST:rt/"
           rsync -rlc -e "ssh -i ~/.ssh/deploy" "$RUNNER_TEMP/rt-version" "deploy@$DEPLOY_HOST:rt/VERSION"
+          # the swap's answer for this version (dsb-rt-roll needs up to a minute for a version that has to be rolled back)
+          V=$(cat "$RUNNER_TEMP/rt-version"); S="$RUNNER_TEMP/rt-status"; seen=''
+          for i in $(seq 1 40); do
+            sleep 3
+            rsync -q -e "ssh -i ~/.ssh/deploy" "deploy@$DEPLOY_HOST:rt/STATUS" "$S" 2>/dev/null || continue
+            seen=1; grep -q "\"v\":\"$V\"" "$S" && break
+          done
+          if [ -z "$seen" ]; then echo "::warning::The server wrote no rt/STATUS: its setup.sh is from before the swap with a health check, so the relay was restarted unchecked. Run tools/server/setup.sh again as root on the server."; exit 0; fi
+          cat "$S"
+          grep -q "\"v\":\"$V\"" "$S" || { echo "::error::The server gave no answer for relay version $V in two minutes (journalctl -u dsb-rt-reload -u dsb-rt)."; exit 1; }
+          grep -q '"result":"ok"' "$S" && { echo "The relay $V is up."; exit 0; }
+          grep -q '"result":"rolled-back"' "$S" && { echo "::error::The relay $V did not come up, and the server put the version before back (live in the line above). journalctl -u dsb-rt-reload -u dsb-rt shows why."; exit 1; }
+          echo "::error::The relay $V did not come up, and nothing could be put back: the relay is down. On the server: journalctl -u dsb-rt-reload -u dsb-rt"; exit 1
