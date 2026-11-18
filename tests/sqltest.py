@@ -228,6 +228,21 @@ def main():
         R['fxNone'] = sql("select public.agent_fixed(999999, 'x', 'y')", None, 'service_role', expect_err=True)
         fxp = [g for g in json.loads(sql("select public.shop_pending()", A, 'authenticated')) if g['product'] == 'fb_haill']
         if fxp: sql("select public.shop_done(array[%s]::bigint[])" % ','.join(str(g['id']) for g in fxp), A, 'authenticated')
+        # the brake's numbers (20261118210000_brems_tall.sql, live-drift fase 4): counts only, through the publishable key; the new edition
+        # since it went out, the one before over the day before; a crash and a black 3D picture are severe, a plain error is not
+        sql("insert into public.sessions (id, player_id, started_at, version) select gen_random_uuid(), 'user_01AAA', now() - interval '30 minutes', 'bn1' from generate_series(1, 4)")
+        sql("insert into public.sessions (id, player_id, started_at, version) select gen_random_uuid(), 'user_01AAA', now() - interval '5 hours', 'bg1' from generate_series(1, 10)")
+        sql("insert into public.sessions (id, player_id, started_at, version) select gen_random_uuid(), 'user_01AAA', now() - interval '60 hours', 'bg1' from generate_series(1, 7)")
+        sid = lambda v, ago: "(select id from public.sessions where version = '%s' and started_at < now() - interval '%s' order by started_at desc limit 1)" % (v, ago)
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '20 minutes', %s, 'Krasj: siden stoppet mens den var på skjermen · 3d', 'crash', 'bn1')" % sid('bn1', '1 minute'))
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '19 minutes', null, '3D svart skjerm på dagtid 42', 'view3d gfx', 'bn1')")
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '18 minutes', null, 'TypeError: x is undefined', 'ui/08-actions.js:3:1', 'bn1')")
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '4 hours', %s, 'Krasj: siden stoppet mens den var på skjermen · kart', 'crash', 'bg1')" % sid('bg1', '4 hours'))
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '59 hours', null, 'Krasj: gammel', 'crash', 'bg1')")
+        R['bremsAnon'] = json.loads(sql("select public.brems_tall('bn1', 'bg1', now() - interval '1 hour', now() - interval '25 hours')", {}, 'anon'))
+        R['bremsVidt'] = json.loads(sql("select public.brems_tall('bn1', 'bg1', now() - interval '30 days', now() - interval '90 days')", {}, 'anon'))
+        R['bremsHemmelig'] = sql("select count(*) from public.errors", {}, 'anon', expect_err=True)
+        sql("delete from public.errors where version in ('bn1', 'bg1')"); sql("delete from public.sessions where version in ('bn1', 'bg1')")   # (the checks below count errors)
         for i in range(20): sql("select public.fb_send('other', 'nr %d', null, null, '{}')" % i, B, 'authenticated')
         R['fbLimit'] = sql("select public.fb_send('other', 'nr 21', null, null, '{}')", B, 'authenticated', expect_err=True)
         # the cloud save by revision (20261005200000_save_sync.sql): a device that has not met the cloud's newest save cannot write over
@@ -769,6 +784,13 @@ def main():
                  and R['fxPl'][0] and R['fxAdm'][0] and R['fxNone'][0]),
               'the thank-you when a fix is out: only a planned feedback gets «Fikset», a confirmation and the takk-haill once; one Jonas already rewarded gets the confirmation only; no player or admin login calls it',
               {k: R[k] for k in ('fxNotPlanned', 'fxFirst', 'fxAgain', 'fxRow', 'fxDoneBefore', 'fxPlannedByJonas', 'fxGrantsC', 'fxReplyC')})
+        bn, bg, bv = R['bremsAnon'].get('ny') or {}, R['bremsAnon'].get('gml') or {}, R['bremsVidt'].get('gml') or {}
+        print(ok(bn.get('okter') == 4 and bn.get('alvorlige') == 2 and bg.get('okter') == 10 and bg.get('alvorlige') == 1
+                 and any(x['melding'] == '3D svart skjerm på dagtid #' for x in bn.get('signaturer', []))
+                 and not any('TypeError' in x['melding'] for x in bn.get('signaturer', [])) and bv.get('okter') == 10 and bv.get('alvorlige') == 1
+                 and 'user_01' not in json.dumps(R['bremsAnon']) and R['bremsHemmelig'][0]),
+              "the brake's numbers: the publishable key gets counts only (sessions, severe faults, their messages without numbers), the new edition since it went out and the one before the day before, never older than 48 hours, and the error table itself stays closed",
+              {'ny': bn, 'gml': bg, 'vidt': bv})
         a2 = R['admRow2'][0] if R['admRow2'] else {}; m2 = R['mine2'][0] if R['mine2'] else {}
         print(ok(R['fb2'].isdigit() and R['fb2Bad'][0] and R['fb2Five'][0] and R['fb2None'].isdigit() and R['admImgs'] == [IMG, I2, I3] and R['admImgsPl'][0] and m2.get('nimg') == 3 and a2.get('nimg') == 3),
               'feedback: up to four pictures, each checked; the admin gets them all in order, a player not', {'mine': m2, 'bad': R['fb2Bad'][1][:30], 'five': R['fb2Five'][1][:30]})
@@ -1575,8 +1597,8 @@ def main():
         RY['anonTab'] = [sql("select count(*) from public.%s" % tb, {}, 'anon', expect_err=True)[0] for tb in ('berths', 'cash_flags', 'sponsors', 'sponsor_placements')]
         RY['anonYes'] = sql("select jsonb_typeof(public.sp_now())", {}, 'anon')
         print(ok(RY['err'][0] == RY['err'][1] and RY['err'][0] < 400 and RY['perf'][0] == RY['perf'][1] and RY['perf'][0] < NP and RY['ev'] == 'big={} small={"x": 1}'
-                 and RY['bSeen'] == [1, 0] and RY['bTake'] == 'ok' and RY['bBack'] == 'taken' and all(RY['anonNo']) and all(RY['authYes']) and RY['anonList'] == 'sp_now,sp_paint,tm_error,tm_perf' and all(RY['anonTab']) and RY['anonYes'] == 'array'),
-              "without a sign-in the errors and the frame rate stop at a ceiling that grows with the active players; an event's data has a size; a guest's berth gives way to an account and is not shown to it; anon runs only tm_error, tm_perf, sp_now and sp_paint (a paint design's colours, steg 44) (Ø6 funn 9, 10, 12)", RY)
+                 and RY['bSeen'] == [1, 0] and RY['bTake'] == 'ok' and RY['bBack'] == 'taken' and all(RY['anonNo']) and all(RY['authYes']) and RY['anonList'] == 'brems_tall,sp_now,sp_paint,tm_error,tm_perf' and all(RY['anonTab']) and RY['anonYes'] == 'array'),
+              "without a sign-in the errors and the frame rate stop at a ceiling that grows with the active players; an event's data has a size; a guest's berth gives way to an account and is not shown to it; anon runs only tm_error, tm_perf, sp_now, sp_paint (a paint design's colours, steg 44) and brems_tall (the emergency brake's counts, live-drift fase 4) (Ø6 funn 9, 10, 12)", RY)
         # Ø16 (20261105160000_rt_ticket.sql): the real-time relay's ticket. Without the secret in Vault it refuses; with it, a ticket of
         # «1.<id>.<guest>.<expiry>.<nonce>.<hmac>» signed with the secret (checked here as the relay checks it), the public id pos_world
         # gives, the guest flag for a guest, 60 s, a new nonce each time; anon cannot ask, nor a player who is not there
