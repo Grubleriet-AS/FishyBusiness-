@@ -793,7 +793,16 @@ function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
   // at harbour speed (Jonas 18.11.2026: the small boats crawled over long stretches at under three knots), and a bigger one, which swings
   // wide in a turn, is taken its last 200 m in and first 200 m out (on her own the 38 m purse seiner swung onto a breakwater at Oldervik
   // at 3.9 knots, the hunt the same day))
-  const R = {in:null, out:null}, along = (k, dir, len, lim) => { let s = 0; while ((dir > 0 ? k < lim : k > lim) && s < len){ const k2 = k + dir; s += Math.hypot(P[k2][0] - P[k][0], P[k2][1] - P[k][1]); k = k2; } return k; };
+  // (along: the line's point len metres on from k (dir +1) or back (-1), not past lim; with cut, where that falls inside a leg, a point is
+  // put in there, so the hands stop at it (not for the stretch looked at, which goes to the leg's end: cut there, the way among the piers
+  // at Ålesund started in the middle of Brosundet): on a route of one 5.6 km leg from Lebesby verft the hands took kyst21 the whole of it and held her at
+  // its end for good, the hunt 18.11.2026)
+  const R = {in:null, out:null}, put = (k, f) => { const a = P[k], b = P[k + 1]; P.splice(k + 1, 0, [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]);
+      for (let i = pl.idx; i <= iEnd; i++) if (wpAt[i] != null && wpAt[i] > k) wpAt[i]++;
+      if (bz && bz.size){ const nb = [...bz].map(q => q > k ? q + 1 : q); bz.clear(); for (const q of nb) bz.add(q); } },
+    along = (k, dir, len, lim, cut) => { let s = 0; while (dir > 0 ? k < lim : k > lim){ const k2 = k + dir, l = Math.hypot(P[k2][0] - P[k][0], P[k2][1] - P[k][1]);
+      if (cut && s + l > len + 20){ const f = (len - s) / l; if (dir > 0){ put(k, f); return k + 1; } put(k2, 1 - f); return k2 + 1; }
+      s += l; k = k2; if (s >= len) break; } return k; };
   try {
     // out: on along the line from where the way from the quay ends
     // (not into the way in to Father's naust, bz: that is its own, berthPath, and the hands take her along it)
@@ -801,14 +810,14 @@ function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
       // (a way found here: the hands take her the whole of it; a line clear as it was: its first 200 m on from the way out from the quay)
       if (k > iOut && !stopIn(f, k)){ let sw = false, ok = !bad(f, k) ? k : (sw = true, swap(f, k));
         if (ok < 0 && f < iOut){ sw = false; ok = !bad(iOut, k) ? k : (sw = true, swap(iOut, k)); }
-        if (ok >= 0) R.out = sw ? ok : big ? along(iOut, 1, pilot, ok) : null; } }
+        if (ok >= 0) R.out = sw ? ok : big ? along(iOut, 1, pilot, ok, true) : null; } }
     // in: back along the line from the harbour point (not into the way out from the quay)
     const w = pl.wps[iEnd], e = wpAt[iEnd], i0 = R.out != null ? R.out : iOut;
     // (only where the harbour is within 1.5 km along the line: further off, the line is laid again 600 m from it, dynAuto, with the
     // vessels lying there then, and the search is not done twice)
     let toE = 0; if (e != null) for (let i = 1; i <= e && toE <= 1500; i++) toE += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
     if (w && w.port && w.berth !== 'naust' && e != null && e > i0 && toE <= 1500){ const k = along(e, -1, look, i0);
-      if (k < e && !stopIn(k, e)){ const sw = bad(k, e); if (sw ? swap(k, e) >= 0 : big) R.in = sw ? k : along(wpAt[iEnd], -1, pilot, k); } }
+      if (k < e && !stopIn(k, e)){ const sw = bad(k, e); if (sw ? swap(k, e) >= 0 : big) R.in = sw ? k : along(wpAt[iEnd], -1, pilot, k, true); } }
   } catch (e){ console.error('dynLineHarb', e); }
   return R;
 }
@@ -987,8 +996,9 @@ function dynAuto(d, dtG){
     // (the hands let her go two lengths from a harbour point she stops at, where the quay's lines take her, as the model does (arrive
     // below): to the point itself the 38 m purse seiner's hull reached the quay it lies 10-20 m off, at Hammerfest, Bokn, Samuelsberg and
     // Tana, the hunt 18.11.2026)
-    if (T.assist > T.s && stopW && stopW.port && stopW.berth !== 'naust' && ds < Math.max(2 * L, 10)) T.assist = T.s;
-    if ((T.back > 0 && T.s < sScr) || T.assist > T.s){
+    const atPort = !!(stopW && stopW.port && stopW.berth !== 'naust' && ds < Math.max(2 * L, 10));
+    if (T.assist > T.s && atPort) T.assist = T.s;
+    if (((T.back > 0 && T.s < sScr) || T.assist > T.s) && !atPort){
       // (the speed: astern off the quay and in the turn 0.8 m/s; then up to five knots, the harbours' speed limit, where the line runs
       // straight, a knot and a half to three a length before a corner of it and over the last lengths of the stretch: under three knots the
       // whole way, the small boats crawled over long stretches, Jonas 18.11.2026)

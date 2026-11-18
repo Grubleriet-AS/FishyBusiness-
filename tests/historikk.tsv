@@ -5984,3 +5984,5 @@
 2026-11-18 13:21	claude/magical-pasteur-z98gc5	9276351	obstest	OK	7	lite	samtidig	
 2026-11-18 13:21	claude/magical-pasteur-z98gc5	9276351	helmtest	OK	26	lite	samtidig	
 2026-11-18 13:25	claude/magical-pasteur-z98gc5	9276351	dyntest	FEIL	254	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-18 13:36	claude/magical-pasteur-z98gc5	d64d127	trackfollow	OK	625	3d	alene	
+2026-11-18 13:36	claude/magical-pasteur-z98gc5	d64d127+	moortest	FEIL	33	3d	alene	avsluttet med kode 1

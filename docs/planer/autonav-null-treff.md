@@ -17,6 +17,7 @@ Treff er hendelser: samme slags berøring på samme tur mindre enn 60 m fra den 
 | 18.11.2026 kl. 03–04 (første, uten skrivetilgang) | ikke målt (fangsten finnes ikke ennå) | 709 (scenario 0–470) | 431 | 608 | 237 (33 %) | arbeidsgrenen `dd04c425`, `dist-vec` `acbf75df4ef4` |
 | 18.11.2026, Jonas' økt: grunnlinja på nytt med rettet observatør (bare det 3D tegner) | ikke målt | 705 (scenario 0–470) | 411 | 583 | 211 (30 %) | `cc96df1` |
 | 18.11.2026, Jonas' økt: etter mønster 1 og 3 (bygget `54de5eb`-nivå, før dyttingen fra land) | ikke målt | 326 (scenario 0–173) | 68 (grunnlinja samme bit: 164) | 209 (grunnlinja: 503) | 47 (grunnlinja: 86) | `dist-fix2` |
+| 18.11.2026, Jonas' økt: full jakt på det som ble rullet ut (`831f8bd`: mønster 1–3, hendene i 5 knop, uten propeller og havfiskeregelen) | ikke målt | 709 (scenario 0–470) | 148 hendelser på de 701 turene grunnlinja også har (grunnlinja: 405) | 211 (grunnlinja: 578) | 94 (13,3 %; grunnlinja 29,8 %; uten ringnota 11,2 %) | `831f8bd` |
 | 18.11.2026, Jonas' økt: de 24 verste scenariene fra grunnlinja, siste bygg | ikke målt | 48 | 27 linjer (16 av 24 scenarier uten treff; før: 1 av 24) | – | 8 scenarier | `19e0a27` |
 
 ## Slik det måles
