@@ -429,8 +429,13 @@ function berthPath(from, bp, mm){
 function berthPath0(from, bp, mm){
   const L = (bp.Lb || 10) / 1000, B = (bp.Bb || 3) / 1000, m = Math.max((bp.Bb || 3) / 2, mm || 0), F = bp.face, P1 = {x:bp.x, y:bp.y}, fw = bp.fwd;
   // the point to come in from: astern of the berth and out from the quay; if that is blocked, straight out from the quay
-  let PL = {x:P1.x - fw.x * 1.5 * L + F.nx * B, y:P1.y - fw.z * 1.5 * L + F.nz * B};
-  const m0 = (bp.Bb || 3) / 2; if (berthBlocked(PL, m0) || !berthClear(PL, P1, 0.5)) PL = {x:P1.x + F.nx * 3 * B, y:P1.y + F.nz * 3 * B};
+  // (out from the quay by half her length and a metre first, where she turns on her middle with her ends clear of the quay and what lies
+  // along it, else by her beam as before: at Reine and Lindesnes the 11 and 21 m boats backed to a beam off the quay and swung a quarter
+  // round there into its corner, the autonav routine 18.11.2026)
+  const m0 = (bp.Bb || 3) / 2, Lm = bp.Lb || 10, Bm = bp.Bb || 3; let PL = null;
+  for (const [o, r] of [[Math.max(B, (Lm / 2 + 1) / 1000), Bm / 2 + 0.5 + Lm / 2], [B, m0]]){ const q = {x:P1.x - fw.x * 1.5 * L + F.nx * o, y:P1.y - fw.z * 1.5 * L + F.nz * o};
+    if (!berthBlocked(q, m0) && berthClear(q, P1, 0.5) && (r <= m0 || !berthBlocked(q, r))){ PL = q; break; } }
+  if (!PL) PL = {x:P1.x + F.nx * 3 * B, y:P1.y + F.nz * 3 * B};
   // (with mm, the way in from the sea: her draught under her too, outside the harbour as groundCheck has it; at Vannareid the way round the
   // plant's quay ran into the shallows at the lowest tide, and the way round those passed 5 m from the quay's corner)
   const bk = mm ? m : 0, gnd = (a, b) => { if (!mm) return false; try { return !!groundCheck(a, b); } catch (e){ return false; } }, clr = (a, b) => berthClear(a, b, m, bk) && !gnd(a, b);

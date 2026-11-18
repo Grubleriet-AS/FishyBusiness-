@@ -371,11 +371,12 @@ const DYN_HULL = [[0.5, 0], [0.3, 0.5], [0.3, -0.5], [0, 0.5], [0, -0.5], [-0.45
 // (everything fixed in the sea, 11b-obstacles.js fixNear: the coast's piers, quay decks, breakwaters and floating docks too, not Senja's
 // PIERBOX alone, and the vessels lying still near her; the autonav routine 18.11.2026: the boat went through what the model did not
 // know, without a knock and without the safety net seeing it. free: [x, z, r] where the things within r of the point are left out,
-// her own berth's quay at the end of the route)
+// her own berth's quay at the end of the route. Not the vessels lying still: the way to and from the berth goes round them (fixBoats), but
+// she does not strike them, as she does not the vessels under way (SJV.ghost, Jonas 16.11.2026: no damage, no tow); a blow from a boat that
+// swung on her lines after the line was laid gave the hull damage at Meløy verft)
 function dynObsNear(X, Y, R, free){
   const boxes = [], units = [], own = o => free && free.some(f => fixDist(o, f[0], f[1]).d < f[2]);
   for (const o of fixNear(X, Y, R)){ if (o.t === 3 ? o.x1 < X - R || o.x0 > X + R || o.z1 < Y - R || o.z0 > Y + R : Math.abs(o.x - X) > o.l + o.w + R || Math.abs(o.z - Y) > o.l + o.w + R) continue; if (!own(o)) boxes.push(o); }
-  for (const o of fixBoats(X, Y)) if (o.t === 1 && Math.hypot(o.x - X, o.z - Y) < o.l + R && !own(o)) boxes.push(o);   // (the hulls; not the circle a moored boat swings on)
   for (const U of UNITA){ const g = ugeo(U); if (Math.hypot(U.o[0] - X, U.o[1] - Y) < g.E + g.B + R) units.push(U); }
   return {boxes, units};
 }
