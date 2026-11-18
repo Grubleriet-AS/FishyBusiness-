@@ -384,6 +384,9 @@ for _f in ('src/js/core/01-world.js', 'src/js/ui/02-format-state.js', 'src/js/ui
 COVER['supabase/migrations/20261116200000_rank_fs.sql'] = ['sqltest']; COVER['supabase/migrations/20261116220000_toplist_lang.sql'] = ['sqltest']   # RANK1-c (steg 134): top_list 'fs'
 COVER['src/js/ui/phone/09-vaer-post-salg-redning.js'] = COVER.get('src/js/ui/phone/09-vaer-post-salg-redning.js', []) + ['profiltest']
 COVER['src/data/siteout.json'] = ['rorbutest', 'placetest']; COVER['tools/rorbu/siteout.py'] = []
+# tilbakemelding #185 (18.11.2026): shop-checkout verify, its rule (sessionVerdict, unit test kjop.test.mjs) and its limit (shop_verify_slot)
+COVER['supabase/functions/_shared/kjop.ts'] = ['unit']; COVER['tests/unit/kjop.test.mjs'] = ['unit']; COVER['supabase/migrations/20261118180000_kjop_verify.sql'] = ['sqltest']
+COVER['supabase/functions/shop-checkout/index.ts'] = COVER.get('supabase/functions/shop-checkout/index.ts', []) + ['unit']
 D3 += ['fotgli']; LONG['fotgli'] = 2400; COVER['tests/fotgli.py'] = ['fotgli']; COVER['tests/unit/fotgli.test.mjs'] = []
 for _f in ('src/js/deckcrew.js', 'src/js/view3d/08-plants.js', 'src/js/view3d/20-trawl-seine.js'):
     COVER[_f] = COVER.get(_f, []) + ['fotgli']

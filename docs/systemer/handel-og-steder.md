@@ -23,7 +23,22 @@ Jonas: «hele spillet skal være free-to-play, men med betalte boostere i form a
   - Betalt: `shop_paid` bokfører kjøpet og lager én `grants`-rad per kjøp, uansett hvor mange ganger Stripe sier fra.
   - Utløpt eller feilet: `shop_ended`.
   - Refundert i sin helhet: `shop_refund` tar tilbake en vare spillet ikke har gitt ennå.
-- **Leveringen:** spillet spør `shop_pending` ved start, når det kommer tilbake fra Stripe (flere ganger de første 45 sekundene) og når det blir synlig igjen. Det gir varen (`shopGive`: haill i beholdningen, trim på båten kjøpet gjaldt, eller verftet ferdig på den båten), husker id-ene i `S.shopGiven`, så ingenting gis to ganger, og sier fra med `shop_done`.
+  - **Spillet spør selv** (18.11.2026, tilbakemelding #185): kommer spilleren tilbake med `?kjop=cs_…`, eller åpnes spillet på nytt, spør spillet `shop-checkout` med `{verify: <økt>}` før hver henting (`shopVerify`). Funksjonen spør Stripe direkte (økta med `payment_intent.latest_charge`) og bokfører en økt som er betalt der, men ikke hos oss, med `shop_paid`. Leveringen henger da ikke bare på webhooken. Svaret er `{st, ids}`: status (`paid`, `open`, `expired`, `refunded`, `old`) og, når kjøpet er betalt, id-ene til varene.
+    - **Kan ikke utnyttes:**
+      - Bare spillerens eget kjøp (404 ellers).
+      - Ingenting bokføres uten at Stripe sier betalt.
+      - En økt som er refundert helt eller delvis, eller bestridt, bokføres aldri (`sessionVerdict` i `_shared/kjop.ts`, `tests/unit/kjop.test.mjs`). Ellers ville en refusjon gjort mens webhooken manglet, gitt både varen og pengene.
+      - Stripe spørres høyst hvert 5. sekund per kjøp, bare om åpne kjøp fra det siste døgnet, og bare blant spillerens fem nyeste (`shop_verify_slot`, migreringen `20261118180000_kjop_verify.sql`, `sqltest`).
+      - Uten migreringen spør funksjonen ikke Stripe og svarer `open`.
+      - `shop_paid` bokfører et kjøp bare én gang, også når webhooken og `verify` kommer samtidig. `booked` er `true` bare når `verify` bokførte selv, og det telles med hendelsen `shop_verify`.
+    - **I spillet:**
+      - Økta huskes på enheten (`kystfiske_v2_kjop`) fra trykket på «Kjøp» (`shopGo`) og i et døgn. Spillet spør etter den hvert 30. sekund i 15 minutter fra hver start, og ellers når vinduet får fokus eller siden blir synlig.
+      - Spørringen slutter når varene fra akkurat dette kjøpet er i spillet (`S.shopGiven`), ikke når en annen vare kommer. Den slutter også når serveren sier at økta er utløpt, refundert, for gammel eller ikke spillerens. «Avbrutt» glemmer økta.
+      - Hendelsen `shop_got` måler sekundene fra trykket til leveringen, og veien (`url` eller `store`).
+      - Et vindu på en PC blir ikke skjult når et annet legger seg over det. Spillet henter derfor også når vinduet får fokus, høyst hvert 10. sekund.
+    - **Gjenstår** (krever et valg om drift): et kjøp der webhooken aldri kom og spilleren ikke åpner spillet innen et døgn, får bare webhooken som vei. En jobb på serveren som går gjennom åpne kjøp mot Stripe, ville dekket det. Delvis refusjon og tvister i webhooken tar ikke tilbake noe; det var slik også før.
+  - **Hva #185 viste** (18.11.2026, adminsiden og Stripe): spilleren betalte «Ferdig nå» med Klarna (Stripe: betalt 15.01). Kjøpet sto som `paid` i `purchases`, så webhooken virket. 15.03 åpnet samme spiller en ny betaling for «Ferdig nå» (`open`), så monteringen gikk fortsatt to minutter etter betalingen: spillet hadde ikke hentet kjøpet. Klarna kan fullføres i et annet vindu, og da kommer spillet ikke tilbake med `?kjop`. Før denne rettingen hentet spillet da først når siden ble synlig igjen eller etter opptil 10 minutter. Et vindu på en PC som bare blir dekket av et annet, blir ikke skjult. Testene `kjoptest` 3c og 3d viser begge veiene mot serveren slik produksjonen har den (HS4). Spillet spør hvert 30. sekund mens siden vises, i 15 minutter (`SHOP_ASK_MS`), til varen er levert eller serveren sier at økta endte ubetalt (utløpt, feilet, refundert eller ikke spillerens). En `shop-checkout` fra før endringen svarer 400, og da går spillet videre som før.
+- **Leveringen:** spillet spør `shop_pending` ved start, når det kommer tilbake fra Stripe (fem ganger de første 45 sekundene, så hvert 30. sekund i 15 minutter mens betalingen er åpen) og når det blir synlig igjen. Det gir varen (`shopGive`: haill i beholdningen, trim på båten kjøpet gjaldt, eller verftet ferdig på den båten), husker id-ene i `S.shopGiven`, så ingenting gis to ganger, og sier fra med `shop_done`.
 - **Hvem som får kjøpe** (`shopMode`):
   - `live`: innlogget, og Stripe er satt opp (`GET shop-checkout` gir `ready`).
   - `test`: uten skyen (artifacten og testene), og for admin før Stripe er satt opp. Varen gis med én gang, uten betaling.

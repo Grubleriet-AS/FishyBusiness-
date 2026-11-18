@@ -1,0 +1,8 @@
+# Kjøp som er betalt, men ikke levert (tilbakemelding #185)
+
+1. **Kjøpet i #185** (avklart 18.11.2026 med adminsiden og Stripe): «Verftet ferdig nå», 19 kr, betalt med Klarna 15.01. Det står som `paid`, så webhooken virket. Spilleren åpnet en ny betaling 15.03 som ikke ble fullført (`open`, ingenting trukket), så spillet hadde ikke hentet kjøpet. **Refunder betalingen i Stripe** («Refund»). Serveren tar da selv tilbake et tilgode som ikke er brukt (`shop_refund`), og spilleren får ikke både pengene og varen. Send svaret i `/admin`.
+2. **Hvis noen andre melder det samme:** står kjøpet som `open` i Penger, men som betalt i Stripe, har webhooken sviktet. Send `checkout.session.completed` på nytt under Developers › Webhooks › Event deliveries, og se på statuskoden.
+3. **Hendelsene `shop_got` og `shop_verify`** viser etter utrullingen hvor lang tid leveringen tar, og hvor ofte serveren bokfører et kjøp webhooken ikke hadde bokført.
+4. **Migreringen `supabase/migrations/20261118180000_kjop_verify.sql`** (taket på spørringene til Stripe) kjøres først på testprosjektet (`xlrjbqdhdymcdjkqkulx`, SQL Editor), deretter i produksjonen.
+5. **Deploy `shop-checkout`** (endret 18.11.2026: `{verify}` og `_shared/kjop.ts`) til testprosjektet og produksjonen, etter migreringen: `supabase functions deploy shop-checkout --no-verify-jwt` for hvert prosjekt. Uten migreringen spør funksjonen ikke Stripe. Uten den nye funksjonen henter spillet kjøpet som før, bare oftere.
+6. **Prøv på test.detstorebla.no** med Stripes testkort når funksjonen er ute: kjøp et utstyr i butikken, trykk «Ferdig nå» og betal. Monteringen skal være ferdig innen et halvt minutt etter at du er tilbake.

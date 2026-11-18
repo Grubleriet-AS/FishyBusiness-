@@ -264,7 +264,16 @@ async def main():
             req = route.request; u = req.url
             if '/functions/v1/shop-checkout' in u:
                 if req.method == 'GET': await route.fulfill(status=200, content_type='application/json', body=json.dumps({'ready': st['ready']})); return
-                body = json.loads(req.post_data or '{}'); calls.append(('checkout', body, req.headers.get('authorization')))
+                body = json.loads(req.post_data or '{}')
+                # (tilbakemelding #185: back from Stripe the game asks whether its session is paid; one paid there and not booked by the
+                # webhook, st['late'], is booked now and its grants made)
+                # (st['sids']: the sessions paid and booked, with their grants; one it does not know has run out unpaid)
+                if 'verify' in body:
+                    calls.append(('verify', body, req.headers.get('authorization'))); sid = body['verify']; gs = st.setdefault('late', {}).pop(sid, None)
+                    if gs: st['grants'] += gs; st.setdefault('sids', {})[sid] = [g['id'] for g in gs]
+                    ids = st.setdefault('sids', {}).get(sid)
+                    await route.fulfill(status=200, content_type='application/json', body=json.dumps({'st': 'paid', 'booked': bool(gs), 'ids': ids} if ids is not None else {'st': 'expired'})); return
+                calls.append(('checkout', body, req.headers.get('authorization')))
                 await route.fulfill(status=200, content_type='application/json', body=json.dumps({'url': 'https://checkout.stripe.test/c/pay/cs_test_1'})); return
             fn = u.rsplit('/', 1)[-1]
             try: body = json.loads(req.post_data or '{}')
@@ -379,6 +388,7 @@ async def main():
             st['grants'] = [{'id': 7, 'product': 'haill', 'data': {'give': 'haill', 'type': 'haill'}},
                              {'id': 8, 'product': 'trim_turbo', 'data': {'give': 'trim', 'k': 'turbo', 'boat': cur}},
                              {'id': 9, 'product': 'verft_na', 'data': {'give': 'yard', 'boat': cur}}]
+            st['sids'] = {'cs_test_1': [7, 8, 9]}   # (one session for the three in the test; the webhook has booked them)
             pg2 = await ctx.new_page(); pg2.on('pageerror', lambda e: errs.append(str(e)))
             await pg.close()
             n0 = len(calls)
@@ -422,6 +432,59 @@ async def main():
             await pg2.wait_for_function("!(S.haillQ || []).length", timeout=90000); await pg2.wait_for_timeout(400)
             u21 = [u for u in st['used'] if u[0] == 21]; g21 = next(g for g in st['grants'] if g['id'] == 21)
             check(u21 == [(21, True)] and g21.get('used'), 'HS2: switching on a haill from the server calls haill_use once, and it is used on the server', {'calls': st['used'], 'grant': g21})
+            # 3c and 3d. (tilbakemelding #185, 18.11.2026: «Ferdig nå» paid with Klarna, and still offered two minutes after the payment)
+            # «Ferdig nå» paid at Stripe while a fitting runs, and the webhook not come: the game asks the server about its session
+            # (shop-checkout verify), the server books it, and the fitting is done at once by this purchase (not a credit from before), the
+            # server told it is used, no credit left. 3c comes back from Stripe with ?kjop; 3d is opened anew without it (the payment finished
+            # in another window): the session kept on the device when «Kjøp» was tapped (shopGo) is asked for, and forgotten after. Before,
+            # the game asked the server's grants five times in 45 s after ?kjop, and then only every 10 minutes; without ?kjop it never
+            # asked about the session at all. Against the server as the production has it (HS4, shop_state); the steps around are a server
+            # from before it
+            st['hs4'] = True
+            async def late(sid, gid, back):
+                # (the yard grants of step 3 used on the server, and the page's copy of them the same: no credit to finish the fitting)
+                for g in st['grants']:
+                    if g['data'].get('give') == 'yard': g['used'] = g['done'] = True
+                k = await pg2.evaluate("""(() => { const k = Object.keys(EQUIP).find(k => !EQUIP[k].tiers && !EQUIP[k].of && equipFits(k, S.boat.type) && !S.equip[k]); S.boat.status = 'port'; S.jobs = []; S.yardCredit = 0; S.yardSrv = [];
+                  queueJob({kind:'fit', k, kr:0, h:fitHours(k), no:'Montering', en:'Fitting'}); save(); return k; })()""")
+                st['late'] = {sid: [{'id': gid, 'product': 'verft_na', 'data': {'give': 'yard', 'boat': cur}}]}; n0 = len(calls); m0 = await pg2.evaluate("S.msgs.length"); y0 = len(st['yard'])
+                kept = True
+                if back: await pg2.goto(url('kjop=' + sid))
+                else:
+                    try:
+                        async with pg2.expect_navigation(url='**/checkout.stripe.test/**', timeout=45000):
+                            await pg2.evaluate("payBuy('yard', () => {})")
+                    except Exception: pass
+                    kept = 'checkout.stripe.test' in pg2.url
+                    await pg2.goto(url())
+                try:
+                    await pg2.wait_for_function("typeof S !== 'undefined' && (S.shopGiven || []).includes(%d)" % gid, timeout=90000)
+                    await pg2.evaluate("document.getElementById('modal').hidden = true")
+                    await pg2.wait_for_function("!(S.jobs || []).some(j => j.kind === 'fit')", timeout=60000)
+                    await pg2.wait_for_function("!(S.yardQ || []).length", timeout=30000)
+                except Exception: pass
+                r = await pg2.evaluate("({k:%r, fitted:!!S.equip[%r], jobs:(S.jobs || []).map(j => [j.kind, j.until != null ? j.until - S.t : null]), given:(S.shopGiven || []).includes(%d), credit:S.yardCredit || 0, left:localStorage.getItem('kystfiske_v2_kjop'), now:S.msgs.slice(%d).some(m => /Takk for kjøpet/.test(m.no) && /Verftet gjorde jobben/.test(m.no))})" % (k, k, gid, m0))
+                r['verify'] = [c[1].get('verify') for c in calls[n0:] if c[0] == 'verify']; r['told'] = st['yard'][y0:]; r['stripe'] = kept
+                return r
+            r = await late('cs_test_late', 31, True)
+            check(r['k'] and r['verify'][:1] == ['cs_test_late'] and r['given'] and r['now'] and r['fitted'] and not r['jobs'] and r['credit'] == 0 and r['told'] == [31] and r['left'] is None,
+                  '#185: «Ferdig nå» paid while a fitting runs, the webhook not come: back from Stripe the game asks about its session, the server books it, and this purchase finishes the fitting at once (told used, no credit left)', r)
+            r = await late('cs_test_1', 32, False)
+            check(r['k'] and r['stripe'] and r['verify'][:1] == ['cs_test_1'] and r['given'] and r['now'] and r['fitted'] and not r['jobs'] and r['credit'] == 0 and r['told'] == [32] and r['left'] is None,
+                  '#185: paid in another window and the game opened anew without ?kjop: the session kept at the tap is asked for, booked, and finishes the fitting at once; then forgotten', r)
+            # 3e. a session kept on the device that ran out unpaid at Stripe (or was refunded: the server answers the same way, never
+            # 'paid'): asked about at the start, then forgotten, and nothing given
+            await pg2.evaluate("localStorage.setItem('kystfiske_v2_kjop', JSON.stringify({sid:'cs_test_gone', at:Date.now()}))"); n0 = len(calls); g0 = await pg2.evaluate("(S.shopGiven || []).slice()")
+            await pg2.reload()   # (the page is at url() already: goto to the same address would not start it anew)
+            try: await pg2.wait_for_function("typeof SHOP !== 'undefined' && localStorage.getItem('kystfiske_v2_kjop') === null", timeout=90000)
+            except Exception: pass
+            r = await pg2.evaluate("({left:localStorage.getItem('kystfiske_v2_kjop'), given:(S.shopGiven || []).slice()})")
+            vf = [c[1].get('verify') for c in calls[n0:] if c[0] == 'verify']
+            check(vf[:1] == ['cs_test_gone'] and r['left'] is None and r['given'] == g0, '#185: a session kept on the device that ran out unpaid at Stripe is asked about at the start, then forgotten, and gives nothing', {'r': r, 'verify': vf})
+            # (the steps after these count the yard grants of step 3 alone, against a server from before HS4: as they were)
+            st['hs4'] = False; st['grants'] = [g for g in st['grants'] if g['id'] not in (31, 32)]
+            for g in st['grants']:
+                if g['data'].get('give') == 'yard': g['used'] = False
             # 4. a cancelled payment says so
             pg3 = await ctx.new_page(); pg3.on('pageerror', lambda e: errs.append(str(e))); await pg2.close()
             # every text the toast shows, from the start: the cancelled line comes at shopStart, and a later toast (the start, the weather)
