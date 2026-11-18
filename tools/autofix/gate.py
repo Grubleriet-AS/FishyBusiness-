@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The gate for a fix that goes out by itself (02.11.2026; Jonas: «jeg vil ha prosessen så helautomatisert som overhodet mulig»).
 
-The feedback routine (tools/feedback/RUTINE.md) opens a PR against the working branch with the label `autofix` when a fix is small and
+The fix routine (tools/feilretting/RUTINE.md; before 18.11.2026 tools/feedback/RUTINE.md) opens a PR against the working branch with the label `autofix` when a fix is small and
 plain; .github/workflows/autofix.yml runs this on it, and merges and deploys when it passes. It passes only when:
 
 1. Its risk is `lav` (tools/ci/risiko.py, 18.11.2026): only the UI, the stylesheet, tests that are only added to, and docs. Real

@@ -55,6 +55,7 @@ Spillet er live med betalende spillere. Målet er lav churn, rask oppstart, jevn
 ## Køen og rutinen
 
 - Det som skal bygges, står i rekkefølge i `docs/planer/koen.md` (bare det åpne; resten i `koen-arkiv.md`), startmeldingene hele i `docs/planer/start/<steg>.md`. En økt Jonas starter, merker steget `pågår` før den begynner, og skriver hel startmelding for neste steg når den slutter.
+- **Feilrettingen** (`tools/feilretting/RUTINE.md`, hver time på en lett modell): `tools/triage/klynge.py` gjør triagen uten modell, ønsker og balanse går bare til rapporten i /admin, og en Opus-agent startes bare når en ny teknisk feil skal rettes. Én felles lås for alt som skriver kode: `auto/kjorer` (`tools/triage/laas.py`). PR-låsen (`tools/triage/prlaas.py`): en middels/høy PR som har ventet under 24 timer på Jonas, stenger bare for nye middels/høy; lav går alltid.
 - **Arbeidsrutinen** (`tools/plan/RUTINE.md`; står av til Jonas slår den på) tar første klare steg, bygger det og ruller ut til testutgaven selv når porten der holder. Skjermbildene fra hver økt går til Jonas til slutt.
 - **Ingen tak på steg som venter på at Jonas ser på dem** (fjernet 12.11.2026). Rutinen og koordinatoren bygger videre uansett hvor mange filer som står i `docs/spill-dette/`; `python3 tools/plan/venter.py --liste` samler dem i `SAMLET.md`.
 - **Køen ordnes etter prioriteringen i «Live-drift»** (18.11.2026; porten for de første brukerne er arkivert). Rutinen tar det første klare steget i køens rekkefølge; Jonas flytter rader. Et steg som blir for stort, kuttes til det som trengs.
@@ -106,7 +107,7 @@ Spillet er live med betalende spillere. Målet er lav churn, rask oppstart, jevn
 
 Spillet skal tjene penger. Grunnlaget og arbeidslista står i `docs/engasjement.md`. I hver avgjørelse gjelder:
 
-- **Haill for ekte penger beholdes.** Luksushaill bare som gave ved registrering og som takk for tilbakemelding. En feil fra en spillers rapport som er rettet og sluppet til produksjon, gir spilleren automatisk en bekreftelse og takk-haillen i spillet.
+- **Haill for ekte penger beholdes.** Luksushaill bare som gave ved registrering og som takk for tilbakemelding. En feil fra en spillers rapport som er rettet og sluppet til produksjon, gir spilleren automatisk en bekreftelse og takk-haillen i spillet (`agent_fixed`, sendt av `klynge.py --belonn`).
 - **Krokene er ekte.** Hver ny funksjon svarer på: hva gir den spilleren å gjøre nå, i dag og denne uka?
 - **Betaling korter ned ekte avstander, aldri oppdiktede.** Aldri ventetid, energi eller trøtthet lagt inn for å selge, og aldri en ventetid forlenget for å selge mer.
 - **Alt kan nås uten å betale**, med tid og dyktighet. Innholdet legges der betalingen blir fristende av seg selv, og belønningen står i forhold til turen uten trim.
