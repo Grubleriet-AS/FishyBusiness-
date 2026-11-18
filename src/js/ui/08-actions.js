@@ -456,7 +456,8 @@ function catchUp(realMs){
   if (WCLOCK.on){ const w = worldT(); mins = Math.max(0, w - S.t); if (mins > WORLD_SIM_MAX){ S.t = w - WORLD_SIM_MAX; mins = WORLD_SIM_MAX; } realMs = mins / GAME_RATE * 60000; }
   if (mins < 1) return;
   if (mins >= 10) awayStart(mins, realMs);
-  playMinutes(mins, true);
+  const c0 = performance.now(); playMinutes(mins, true);
+  try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('catchup', performance.now() - c0, mins); } catch (e){}   // (steg 139: how long it took on the main thread, ms, and the game minutes)
   panelDirty = true;
   if (!CATCH_LEFT && AWAYR) awayEnd();
   if (realMs >= 5 * 60000) WAKE_BACK = true;

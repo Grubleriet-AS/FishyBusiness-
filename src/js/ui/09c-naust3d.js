@@ -83,7 +83,7 @@ const NAUST3D = (() => {
       if (!gl) throw new Error('no webgl');
       const pr = prog(VS, FS), pf = prog(VF, 'precision mediump float;varying vec3 vC;void main(){gl_FragColor=vec4(vC,1.0);}'), M = load(); if (!M) throw new Error('no model');
       P = Object.assign(M, {pr, pf, fish:loadFish()}); P.board = boardBuf(1.18, 0.4, 0.035);
-      cv.addEventListener('webglcontextlost', e => { e.preventDefault(); gl = null; P = null; failed = false; console.error('naust 3d: konteksten mistet'); });   // (the error trap sends it)
+      cv.addEventListener('webglcontextlost', e => { e.preventDefault(); gl = null; P = null; failed = false; try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('naust-gl-mistet'); } catch (e){} console.error('naust 3d: konteksten mistet'); });   // (the error trap sends it)
       return true;
     } catch (e){ failed = true; gl = null; console.error('naust 3d', e); return false; }   // (the error trap sends it: the page falls back to the flat picture)
   }
@@ -279,7 +279,7 @@ const NAUST3D = (() => {
     if (!NOTEBOOK.atNaust()) return false;
     if (!el) build();
     if (!init()){ PHONE.show(true); PHONE.open('naustp'); return false; }          // no WebGL or no model: the page as before
-    on = true; el.hidden = false; document.body.classList.add('in-pub'); panel(null);
+    on = true; el.hidden = false; document.body.classList.add('in-pub'); panel(null); try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('naust'); } catch (e){}   // (steg 139)
     const E = P.A.eye, Lk = P.A.look; if (Lk && E){ cam.yaw = Math.atan2(-(Lk[0] - E[0]), -(Lk[2] - E[2])); cam.pitch = Math.atan2(Lk[1] - E[1], Math.hypot(Lk[0] - E[0], Lk[2] - E[2])); }
     cam.fov = 1;
     if (typeof G3 !== 'undefined' && G3.hold) G3.hold(true);
@@ -287,7 +287,7 @@ const NAUST3D = (() => {
     sound(); return true;
   }
   function close(){
-    if (!on) return; on = false; sound(); if (el) el.hidden = true; document.body.classList.remove('in-pub'); panel(null);
+    if (!on) return; on = false; sound(); if (el) el.hidden = true; document.body.classList.remove('in-pub'); panel(null); try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('naust-lukk'); } catch (e){}
     if (typeof G3 !== 'undefined' && G3.hold) G3.hold(false);
     if (typeof renderActs === 'function') renderActs();
   }
