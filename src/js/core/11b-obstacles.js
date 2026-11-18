@@ -205,17 +205,24 @@ function fixNear(x, z, R = 0){
   return out;
 }
 // the vessels lying still near x, z (metres) now (05e-sjovei.js sjvNear: at a quay, at anchor, a ferry waiting at hers), as boxes of their
-// hulls; kept for the game minute and the 500 m round where they were asked (the way to a berth asks thousands of points)
+// hulls, and the circles the boats on mooring buoys swing on; kept for the game minute, per 1 km cell (those within 1.5 km of its middle:
+// the way to a berth asks thousands of points, and a cache by the last point asked was looked up afresh across the search)
 function fixBoats(x, z){
-  const F = FIX.boats; if (F && F.t === S.t && Math.hypot(F.x - x, F.z - z) < 500) return F.list;
-  const list = [];
-  try { if (typeof sjvNear === 'function'){ const H = sjvClock(), T = sjvNear(H, x, z);
-    for (const q of (T.s || []).concat((T.v || []).filter(v => Math.hypot(v.ve || 0, v.vz || 0) < 0.3))){ if (!(q.L > 0) || Math.hypot(q.x - x, q.z - z) > 900) continue;
-      list.push({t:1, x:q.x, z:q.z, l:q.L / 2, w:(q.B || q.L / 3) / 2, ux:Math.sin(q.hd), uz:-Math.cos(q.hd), k:'båt', boat:true}); } } } catch (e){}
+  const ci = Math.floor(x / 1000), cj = Math.floor(z / 1000), key = ci * 65536 + cj;
+  // (the vessels within AIS range of her, npcStates, once a game minute: those at a quay or at anchor, as sjvNear sorts them, and any
+  // not under way; not sjvNear itself, which keeps the 300 m round her for her own look-out)
+  if (!FIX.boats || FIX.boats.t !== S.t){ const all = [];
+    try { if (typeof npcStates === 'function') for (const n of npcStates(S.t / 60)){ if (!n.p || n.hidden || n.rs || n.kv) continue;
+      const cls = n.cls || (typeof colregCls === 'function' ? colregCls(n) : ''); if (!(cls === 'moor' || cls === 'anch' || !(n.v > 0.3))) continue;
+      const L = n.L || 10; all.push({t:1, x:n.p.x * 1000, z:n.p.y * 1000, l:L / 2, w:(n.B || L / 3) / 2, ux:Math.sin(n.hd || 0), uz:-Math.cos(n.hd || 0), k:'båt', boat:true}); } } catch (e){}
+    FIX.boats = {t:S.t, m:new Map(), all}; }
+  let list = FIX.boats.m.get(key); if (list) return list;
+  const X = (ci + 0.5) * 1000, Z = (cj + 0.5) * 1000, R = 1500;
+  list = FIX.boats.all.filter(o => Math.hypot(o.x - X, o.z - Z) < R);
   // (and a boat on a mooring buoy (05-vessels.js moorHarbour): the circle she swings on, as obsIndex has it; she lies where the wind puts her)
-  try { for (const t of vecTilesIn(x - 900, z - 900, x + 900, z + 900)) for (const h of t.npc || []) if (h.moorVer === MOOR.ver) for (const q of h.boats) if (q.moored && q.moored.buoy){ const bx = q.moored.buoy.x * 1000, bz = q.moored.buoy.y * 1000;
-    if (Math.hypot(bx - x, bz - z) < 900) list.push({t:0, x:bx, z:bz, r:q.L + MOOR.PEN, k:'båt', boat:true}); } } catch (e){}
-  FIX.boats = {t:S.t, x, z, list}; return list;
+  try { for (const t of vecTilesIn(X - R, Z - R, X + R, Z + R)) for (const h of t.npc || []) if (h.moorVer === MOOR.ver) for (const q of h.boats) if (q.moored && q.moored.buoy){ const bx = q.moored.buoy.x * 1000, bz = q.moored.buoy.y * 1000;
+    if (Math.hypot(bx - X, bz - Z) < R) list.push({t:0, x:bx, z:bz, r:q.L + MOOR.PEN, k:'båt', boat:true}); } } catch (e){}
+  FIX.boats.m.set(key, list); return list;
 }
 // how far x, z (metres) is outside a thing (negative inside it: how deep), and the way out (unit vector east, south) from the nearest edge
 function fixDist(o, x, z){
@@ -243,7 +250,7 @@ function fixBlocked(x, z, m, boats){
 // metres, every 3 m; fixWay: a way from a to b over a 4 m grid round them (at most FIXW.R m beyond either), pulled tight, or null. The
 // ends themselves may lie within the margin of their own quay: the cells within the margin and a cell of them are open if they are
 // water and not inside anything. The depth is asked outside the harbours only (in them it is dredged, as groundCheck has it).
-const FIXW = {cell:4, R:160, max:90000};
+const FIXW = {cell:4, R:100, max:60000};
 function fixLegOk(a, b, m){
   const was = FIX.useBoats; FIX.useBoats = true;
   try { const n = Math.max(1, Math.ceil(dist(a, b) / 0.003)), r = m / 1000;
@@ -253,9 +260,63 @@ function fixLegOk(a, b, m){
     return !coastSegHit(a, b); }
   finally { FIX.useBoats = was; }
 }
-function fixWay(a, b, m){
+// fixWay(a, b, ms, ok): the margins ms tried in turn, widest first, over one grid: the first way found that ok(way) accepts (the corners
+// clear, fixCornersOk), else the first found at all; {W, m} or null. The grid is worked out once for all of them (the autonav routine
+// 18.11.2026: a search per margin, each asking the land, the things and the units at every cell, held the game for 0.6-7 s as she left the
+// quay): the land at each cell's middle and the distance to it over the grid (a chamfer transform; less half a cell's diagonal), the
+// distance to the nearest thing fixed in the sea, vessel lying still or harbour unit (looked up as a cell is first reached), and the depth
+function fixWay(a, b, ms, ok){
   const was = FIX.useBoats; FIX.useBoats = true;
-  try { return fixWay0(a, b, m); } finally { FIX.useBoats = was; }
+  try { return fixWay0(a, b, Array.isArray(ms) ? ms : [ms], ok); } finally { FIX.useBoats = was; }
+}
+function fixWay0(a, b, ms, ok){
+  const C = FIXW.cell, c = C / 1000, R = FIXW.R / 1000, x0 = Math.min(a.x, b.x) - R, y0 = Math.min(a.y, b.y) - R, nx = Math.ceil((Math.max(a.x, b.x) + R - x0) / c), ny = Math.ceil((Math.max(a.y, b.y) + R - y0) / c), N = nx * ny;
+  if (N > 4 * FIXW.max) return null;
+  const ctr = (i, j) => ({x:x0 + (i + 0.5) * c, y:y0 + (j + 0.5) * c}), ci = p => [clamp(Math.floor((p.x - x0) / c), 0, nx - 1), clamp(Math.floor((p.y - y0) / c), 0, ny - 1)];
+  const tl = tideCD(S.t / 60), dr = (BOAT.draft || 1) + 0.3, Mx = Math.max(...ms) + 1;
+  // the land and the distance to it (m, between cells' middles; 1e9 none)
+  const landD = new Float32Array(N);
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){ let L = true; try { L = isLand(ctr(i, j)); } catch (e){} landD[j * nx + i] = L ? 0 : 1e9; }
+  const d1 = C, d2 = C * Math.SQRT2;
+  for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){ const k = j * nx + i; let v = landD[k]; if (!v) continue;
+    if (i > 0) v = Math.min(v, landD[k - 1] + d1); if (j > 0){ v = Math.min(v, landD[k - nx] + d1); if (i > 0) v = Math.min(v, landD[k - nx - 1] + d2); if (i < nx - 1) v = Math.min(v, landD[k - nx + 1] + d2); } landD[k] = v; }
+  for (let j = ny - 1; j >= 0; j--) for (let i = nx - 1; i >= 0; i--){ const k = j * nx + i; let v = landD[k]; if (!v) continue;
+    if (i < nx - 1) v = Math.min(v, landD[k + 1] + d1); if (j < ny - 1){ v = Math.min(v, landD[k + nx] + d1); if (i < nx - 1) v = Math.min(v, landD[k + nx + 1] + d2); if (i > 0) v = Math.min(v, landD[k + nx - 1] + d2); } landD[k] = v; }
+  // the distance to the nearest thing (capped at Mx), and the depth, as a cell is first reached
+  const thD = new Float32Array(N).fill(-1), dp = new Int8Array(N);
+  const things = k => { if (thD[k] >= 0) return thD[k]; const i = k % nx, j = (k - i) / nx, q = ctr(i, j), x = q.x * 1000, z = q.y * 1000; let d = Mx;
+    try { for (const o of fixNear(x, z, Mx)){ const f = fixDist(o, x, z).d; if (f < d) d = f; }
+      for (const o of fixBoats(x, z)){ const e = o.t === 0 ? o.r : o.l + o.w; if (Math.abs(o.x - x) < e + Mx && Math.abs(o.z - z) < e + Mx){ const f = fixDist(o, x, z).d; if (f < d) d = f; } }
+      for (const U of unitsAt(x, z)){ const [lx, lz] = unitL(U, x, z), g = ugeo(U), f = Math.hypot(Math.max(0, Math.abs(lx) - g.E), Math.max(0, lz, -g.B - lz)); if (f < d) d = f; } } catch (e){ d = -1e9; }
+    return thD[k] = Math.max(-1e9, d); };
+  const deep = k => { if (dp[k]) return dp[k] === 1; const i = k % nx, q = ctr(i, (k - i) / nx); let v; try { v = inHarbour(q) || depthF(q) + tl >= dr; } catch (e){ v = false; } dp[k] = v ? 1 : 2; return v; };
+  const [ia, ja] = ci(a), [ib, jb] = ci(b), ka = ja * nx + ia, kb = jb * nx + ib;
+  const RING = [0, 1, 2, 3, 4, 5, 6, 7].map(k => [Math.cos(k * Math.PI / 4), Math.sin(k * Math.PI / 4)]), hw = C * 0.71;
+  const run = m => {
+    const near = (m + C) / 1000, ring = new Map();
+    // (the land within m: by the grid where it is sure, else by eight points round the cell's middle at m, so a gap a cell wider than she
+    // needs is not shut by the grid's coarseness)
+    const landOk = k => { if (landD[k] - hw >= m) return true; if (landD[k] + hw < m) return false; let v = ring.get(k); if (v === undefined){ const i = k % nx, q = ctr(i, (k - i) / nx); v = true;
+      for (const [cx, cz] of RING){ let L = true; try { L = isLand({x:q.x + cx * m / 1000, y:q.y + cz * m / 1000}); } catch (e){} if (L){ v = false; break; } } ring.set(k, v); } return v; };
+    // (the ends may lie within the margin of their own quay: there water and outside everything is enough)
+    const open = k => { const i = k % nx, q = ctr(i, (k - i) / nx), e = dist(q, a) < near || dist(q, b) < near; return e ? landD[k] > 0 && things(k) >= 0.5 && deep(k) : things(k) >= m && landOk(k) && deep(k); };
+    const prev = new Int32Array(N).fill(-2), Q = [ka]; prev[ka] = -1; let found = -1;
+    for (let h = 0; h < Q.length && h < FIXW.max; h++){
+      const k = Q[h], i = k % nx, j = (k - i) / nx; if (Math.abs(i - ib) <= 1 && Math.abs(j - jb) <= 1){ found = k; break; }
+      for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++){ if (!di && !dj) continue; const I = i + di, J = j + dj; if (I < 0 || J < 0 || I >= nx || J >= ny) continue; const K = J * nx + I;
+        if (prev[K] !== -2) continue; if (!open(K) || (di && dj && !(open(j * nx + I) && open(J * nx + i)))) continue; prev[K] = k; Q.push(K); }
+    }
+    if (found < 0) return null;
+    const cells = []; for (let k = found; k >= 0; k = prev[k]){ const i = k % nx; cells.push(ctr(i, (k - i) / nx)); }
+    cells.reverse(); cells[0] = a; cells.push(b);
+    // pulled tight: from each point the furthest one a clear leg reaches, every 2 m over the cells it crosses
+    const clr = (p, q) => { const n = Math.max(1, Math.ceil(dist(p, q) / 0.002)); for (let i = 1; i < n; i++){ const [I, J] = ci({x:p.x + (q.x - p.x) * i / n, y:p.y + (q.y - p.y) * i / n}); if (!open(J * nx + I)) return false; } return !coastSegHit(p, q); };
+    const out = [cells[0]];
+    for (let i = 0; i < cells.length - 1;){ let j = cells.length - 1; while (j > i + 1 && !clr(cells[i], cells[j])) j--; out.push(cells[j]); i = j; }
+    return out; };
+  let first = null;
+  for (const m of ms){ const W = run(m); if (!W) continue; if (!first) first = {W, m}; if (!ok || ok(W)) return {W, m}; }
+  return first;
 }
 // the corners of a way (km points): where it turns by th, her ends swing out off the legs by up to half her length times sin th as the
 // hands turn her on it (they turn her on her middle); nothing fixed, no vessel lying still and no land within that and half her beam and
@@ -269,35 +330,6 @@ function fixCornersOk(W, L, B){
       if (berthBlocked(v, r)) return false;
       for (let k = 0; k < 8; k++) if (isLand({x:v.x + Math.cos(k * Math.PI / 4) * r / 1000, y:v.y + Math.sin(k * Math.PI / 4) * r / 1000})) return false; }
     return true; } finally { FIX.useBoats = was; }
-}
-function fixWay0(a, b, m){
-  const c = FIXW.cell / 1000, R = FIXW.R / 1000, x0 = Math.min(a.x, b.x) - R, y0 = Math.min(a.y, b.y) - R, nx = Math.ceil((Math.max(a.x, b.x) + R - x0) / c), ny = Math.ceil((Math.max(a.y, b.y) + R - y0) / c);
-  if (nx * ny > 4 * FIXW.max) return null;
-  const ctr = (i, j) => ({x:x0 + (i + 0.5) * c, y:y0 + (j + 0.5) * c}), ci = p => [Math.floor((p.x - x0) / c), Math.floor((p.y - y0) / c)];
-  const tl = tideCD(S.t / 60), dr = (BOAT.draft || 1) + 0.3, near = (m + FIXW.cell) / 1000;
-  const deep = p => { if (inHarbour(p)) return true; try { return depthF(p) + tl >= dr; } catch (e){ return false; } };
-  // (land within the margin too, not only under her middle: eight points round her at it; the hands took her along a way 2 m off the shore)
-  const RING = [0, 1, 2, 3, 4, 5, 6, 7].map(k => [Math.cos(k * Math.PI / 4), Math.sin(k * Math.PI / 4)]);
-  const landBy = (p, r) => { if (isLand(p)) return true; for (const [cx, cz] of RING) if (isLand({x:p.x + cx * r / 1000, y:p.y + cz * r / 1000})) return true; return false; };
-  const st = new Int8Array(nx * ny);   // 0 not looked at, 1 open, 2 shut
-  const open = (i, j) => { if (i < 0 || j < 0 || i >= nx || j >= ny) return false; const k = j * nx + i; if (st[k]) return st[k] === 1; const q = ctr(i, j); let ok;
-    try { const e = dist(q, a) < near || dist(q, b) < near; ok = !landBy(q, e ? 0.5 : m) && (e ? !berthBlocked(q, 0.5) : !berthBlocked(q, m)) && deep(q); } catch (e){ ok = false; }
-    st[k] = ok ? 1 : 2; return ok; };
-  const [ia, ja] = ci(a), [ib, jb] = ci(b), prev = new Int32Array(nx * ny).fill(-2), Q = [ja * nx + ia]; prev[ja * nx + ia] = -1; let found = -1;
-  for (let h = 0; h < Q.length && h < FIXW.max; h++){
-    const k = Q[h], i = k % nx, j = (k - i) / nx; if (Math.abs(i - ib) <= 1 && Math.abs(j - jb) <= 1){ found = k; break; }
-    for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]){ const I = i + di, J = j + dj, K = J * nx + I;
-      if (I < 0 || J < 0 || I >= nx || J >= ny || prev[K] !== -2) continue; if (!open(I, J) || (di && dj && !(open(i + di, j) && open(i, j + dj)))){ continue; } prev[K] = k; Q.push(K); }
-  }
-  if (found < 0) return null;
-  const cells = []; for (let k = found; k >= 0; k = prev[k]){ const i = k % nx; cells.push(ctr(i, (k - i) / nx)); }
-  cells.reverse(); cells[0] = a; cells.push(b);
-  // pulled tight: from each point the furthest one a clear leg reaches (the depth along it as the cells had it)
-  const clr = (p, q) => { const n = Math.max(1, Math.ceil(dist(p, q) / 0.002)); for (let i = 1; i < n; i++){ const r = {x:p.x + (q.x - p.x) * i / n, y:p.y + (q.y - p.y) * i / n}; const e = dist(r, a) < near || dist(r, b) < near;
-      try { if (landBy(r, e ? 0.5 : m) || (e ? berthBlocked(r, 0.5) : berthBlocked(r, m)) || !deep(r)) return false; } catch (e2){ return false; } } return !coastSegHit(p, q); };
-  const out = [cells[0]];
-  for (let i = 0; i < cells.length - 1;){ let j = cells.length - 1; while (j > i + 1 && !clr(cells[i], cells[j])) j--; out.push(cells[j]); i = j; }
-  return out;
 }
 // the distance (m) from the leg a-b (metres) to a thing, 0 inside it
 function obsDist(o, ax, az, bx, bz){

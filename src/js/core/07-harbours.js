@@ -416,7 +416,7 @@ function berthBlocked(p, m = 2, bk = 0){
   if (isLand(p)) return true;
   const x = p.x * 1000, z = p.y * 1000;
   if (fixBlocked(x, z, m, FIX.useBoats)) return true;
-  for (const U of UNITA){ const [lx, lz] = unitL(U, x, z); const g = ugeo(U); if (Math.abs(lx) <= g.E + m && lz <= m && lz >= -g.B - bk) return true; }
+  for (const U of unitsAt(x, z)){ const [lx, lz] = unitL(U, x, z); const g = ugeo(U); if (Math.abs(lx) <= g.E + m && lz <= m && lz >= -g.B - bk) return true; }   // (the units round the point, unitsAt: all of UNITA was a third of the time)
   return false;
 }
 function berthClear(a, b, m, bk = 0){ const n = Math.max(1, Math.ceil(dist(a, b) / 0.004)); for (let i = 1; i < n; i++) if (berthBlocked({x:a.x + (b.x - a.x) * i / n, y:a.y + (b.y - a.y) * i / n}, m, bk)) return false; return !coastSegHit(a, b); }
@@ -437,7 +437,7 @@ function berthPath0(from, bp, mm){
   if (clr(from, PL)) return [from, PL, P1];
   // (a way among the piers, floating docks and boats over a 4 m grid first, 11b-obstacles.js fixWay: the mask's 25 m cells are wider than
   // the gaps between the piers, and where none was found the way went straight through them; the autonav routine 18.11.2026)
-  if (!mm){ const W = fixWay(from, PL, m); if (W) return W.concat([P1]); }
+  if (!mm){ const F = fixWay(from, PL, [m + 1.5, m]); if (F) return F.W.concat([P1]); }
   // a search over the mask's cells round the way, then the line pulled tight
   const M = MAPD.L.mask, c = M.c, key = (i, j) => i + ',' + j, ci = q => [Math.floor(q.x / c), Math.floor(q.y / c)], ctr = (i, j) => ({x:(i + 0.5) * c, y:(j + 0.5) * c});
   const [i0, j0] = ci(from), [i1, j1] = ci(PL), R = Math.ceil(1.5 / c), prev = new Map([[key(i0, j0), null]]), Q = [[i0, j0]]; let found = false;

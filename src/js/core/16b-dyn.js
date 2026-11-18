@@ -685,7 +685,11 @@ function dynLineBuild(pl, dep){
   let sOut = L[HZ.out != null ? HZ.out : iOut]; const Lb = (dep && dep.bp.Lb) || 8;
   if (dep) for (const c of corners){ if (c.s <= sOut) continue; if (c.s - sOut > 3 * Lb || c.th < Math.PI / 3) break; sOut = c.s; }
   const bzS = bz.size ? L[Math.min(...bz)] : null;
-  return {plan:pl, n:pl.wps.length, sig:dynSig(pl), chk:0, P, L, end:L[L.length - 1], wpAt, stops, corners, bzS, iEnd, back, turnL:Math.max(10, Lb * 1.5), hd0, sOut, s:0, gchk:0, ghit:null, hzS:HZ.in != null ? L[HZ.in] : null};
+  // (the coast's piers and quays round her ends not decoded yet, vecTile: the line is laid again when they are, dynAuto, while she is
+  // still backing off the berth; at Ålesund utstyrsbutikk the way out was laid before the breakwater by it was in, and ran onto its head)
+  let vecWait = false; try { const T0 = MAPD.man ? MAPD.man.tile * 1000 : 0, chk = q => { if (!T0) return; for (const dx of [-500, 500]) for (const dz of [-500, 500]){ const tx = Math.floor((q[0] + dx) / T0), ty = Math.floor((q[1] + dz) / T0); if (vecHas(tx, ty) && !vecTile(tx, ty)) vecWait = true; } };
+    chk(P[0]); if (wpAt[iEnd] != null) chk(P[wpAt[iEnd]]); } catch (e){}
+  return {plan:pl, n:pl.wps.length, sig:dynSig(pl), chk:0, P, L, end:L[L.length - 1], wpAt, stops, corners, bzS, iEnd, back, turnL:Math.max(10, Lb * 1.5), hd0, sOut, s:0, gchk:0, ghit:null, hzS:HZ.in != null ? L[HZ.in] : null, dep, vecWait, vecVer:VEC.ver};
 }
 // The line's last 400 m in to a harbour and its first 400 m out from the quay, where they pass within half her beam and a metre of a
 // pier, a quay, a floating dock or a boat lying there (11b-obstacles.js fixLegOk): the way among them over a 4 m grid instead, fixWay
@@ -704,7 +708,9 @@ function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom){
   // through a gap of six metres between two floating docks and touched one in the turn)
   // (the margins tried, widest first: half her length beside her for a long boat, whose corners then swing clear; the first way whose
   // corners are clear, fixCornersOk, else the widest found)
-  const swap = (k0, k1) => { let W = null; for (const mm of [Math.max(B / 2 + 3, Lb / 2 + 1), B / 2 + 3, m]){ const w = fixWay(km(P[k0]), km(P[k1]), mm); if (w){ if (!W) W = w; if (fixCornersOk(w, Lb, B)){ W = w; break; } } } if (!W) return -1;
+  // (and last half her beam and half a metre: a sound as narrow as Brosundet in Ålesund, by the breakwater's head, the hands take her
+  // through at a knot and a half, clear of it)
+  const swap = (k0, k1) => { const F = fixWay(km(P[k0]), km(P[k1]), [Math.max(B / 2 + 3, Lb / 2 + 1), B / 2 + 3, m, B / 2 + 0.5], w => fixCornersOk(w, Lb, B)); if (!F) return -1; const W = F.W;
     const ins = W.slice(1, -1).map(q => [q.x * 1000, q.y * 1000]), d = ins.length - (k1 - k0 - 1); P.splice(k0 + 1, k1 - k0 - 1, ...ins);
     for (let i = pl.idx; i <= iEnd; i++) if (wpAt[i] != null){ if (wpAt[i] > k0 && wpAt[i] < k1) wpAt[i] = k0; else if (wpAt[i] >= k1) wpAt[i] += d; }
     return k1 + d; };
@@ -723,9 +729,12 @@ function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom){
         if (ok >= 0) R.out = sw ? ok : along(iOut, 1, pilot, ok); } }
     // in: back along the line from the harbour point (not into the way out from the quay)
     const w = pl.wps[iEnd], e = wpAt[iEnd], i0 = R.out != null ? R.out : iOut;
-    if (w && w.port && w.berth !== 'naust' && e != null && e > i0){ const k = along(e, -1, look, i0);
+    // (only where the harbour is within 1.5 km along the line: further off, the line is laid again 600 m from it, dynAuto, with the
+    // vessels lying there then, and the search is not done twice)
+    let toE = 0; if (e != null) for (let i = 1; i <= e && toE <= 1500; i++) toE += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
+    if (w && w.port && w.berth !== 'naust' && e != null && e > i0 && toE <= 1500){ const k = along(e, -1, look, i0);
       if (k < e && !stopIn(k, e) && (!bad(k, e) || swap(k, e) >= 0)){ const e1 = wpAt[iEnd]; R.in = along(e1, -1, pilot, k); } }
-  } catch (e){}
+  } catch (e){ console.error('dynLineHarb', e); }
   return R;
 }
 // the hands take her on along the line past the shallows it runs into (500 m at most) and three of her lengths: south of Egersund the line
@@ -839,6 +848,8 @@ function dynAuto(d, dtG){
     const dep = !T && DYN.dep && Math.hypot(DYN.dep.bp.x * 1000 - d.X, DYN.dep.bp.y * 1000 - d.Y) < 60 ? DYN.dep : null; DYN.dep = null;
     T = DYN.line = dynLineBuild(pl, dep); T.s = dep ? 0 : dynLineProj(T, d.X, d.Y, 0, 1e9);
   }
+  // (the piers and quays round her ends came after the line was laid: laid again, from the berth while she backs off it)
+  if (T.vecWait && T.vecVer !== VEC.ver && (!T.dep || T.s < T.back) && !(T.assist > T.s)){ const s0 = T.s; T = DYN.line = dynLineBuild(pl, T.dep && T.s < T.back ? T.dep : null); T.s = T.dep ? Math.min(s0, T.back) : dynLineProj(T, d.X, d.Y, 0, 1e9); }
   // (600 m from a harbour she stops at, the line in to it again, dynLineHarb with the vessels lying there now: the line was laid when she
   // left, and a ferry that has come in to her quay since lay across it at Strønstad, the autonav routine 18.11.2026; once a stop)
   { const st0 = T.stops.find(q => q.i >= pl.idx);
