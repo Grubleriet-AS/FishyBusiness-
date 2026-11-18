@@ -92,7 +92,11 @@ def check_text(sql, name='?'):
         if answer == STOPP and contract and why.startswith('destruktiv'): answer, why = JONAS, why + ' (kontrakt)'
         found.append((answer, why, s[:160]))
     for s in sts:
-        if re.match(r'(begin|commit|set |select |grant |revoke |comment |notify |analyze|vacuum|do \$body\$|insert )', s):
+        # (live-drift fase 3, Jonas 18.11.2026: the runner wraps each migration in a transaction, where these cannot run)
+        if ' concurrently' in s and re.match(r'(create|drop|reindex)\b', s):
+            f(JONAS, 'concurrently kan ikke kjøres i en transaksjon: bruk «create index if not exists» i det automatiske sporet', s); continue
+        if s.startswith('vacuum'): f(JONAS, 'vacuum kan ikke kjøres i en transaksjon', s); continue
+        if re.match(r'(begin|commit|set |select |grant |revoke |comment |notify |analyze|do \$body\$|insert )', s):
             if s.startswith('insert ') and ' on conflict ' not in s: f(JONAS, 'data: insert uten «on conflict» (legger til rader hver gang den kjøres)', s)
             continue
         if s.startswith('truncate'): f(STOPP, 'destruktiv: truncate', s); continue
@@ -179,6 +183,11 @@ def selftest():
     eq('drop policy uten ny', 'drop policy if exists p on public.x;', JONAS)
     eq('insert uten on conflict', "insert into public.x (id) values (1);", JONAS)
     eq('cascade', 'drop view if exists public.v cascade; create or replace view public.v as select 1;', JONAS)
+    eq('indeks concurrently', 'create index concurrently if not exists x_i on public.x (n);', JONAS)
+    eq('unik indeks concurrently', 'create unique index concurrently x_u on public.x (n);', JONAS)
+    eq('drop index concurrently', 'drop index concurrently if exists public.x_i;', JONAS)
+    eq('vacuum', 'vacuum analyze public.x;', JONAS)
+    eq('refresh concurrently er ok', 'refresh materialized view concurrently public.mv;', OK)
     eq('streng med semikolon', "comment on column public.x.y is 'a; truncate b';", OK)
     for b in bad: print('FEIL ' + b)
     print('OK migsjekk selftest' if not bad else 'FEIL migsjekk selftest: %d' % len(bad))
