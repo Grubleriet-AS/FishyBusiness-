@@ -76,6 +76,15 @@ async def main():
           if (asked) document.getElementById('modal').hidden = true;
           return {yellow:hz.map(h => !!h.unsafe), asked, plan:!!S.plan, unsafe:S.plan ? S.plan.unsafe : null, from:!!(S.plan && S.plan.from)}; }""", dict(end0, o=f['o']))
         check(al2['yellow'][1] and not al2['asked'] and al2['plan'] and al2['unsafe'] == [False, False] and al2['from'], 'the last leg from an Autonav point into the player\'s own stop counts as Autonav\'s: not asked, not unsafe; the plan keeps its start', al2)
+        # but a stop the player put shallower than the safe depth after Autonav's points is the player's risk: asked, marked unsafe
+        al3 = await pg.evaluate("""async (w) => { S.plan = null; S.boat.status = 'idle'; S.boat.port = null; S.boat.v = 0; S.boat.pos = {x:w.o.x, y:w.o.y}; const sd = safeDepth();
+          let sh = null; for (let r = 0.02; r <= 1.2 && !sh; r += 0.02) for (let k = 0; k < 36 && !sh; k++){ const p = {x:w.x + Math.sin(k / 18 * Math.PI) * r, y:w.y - Math.cos(k / 18 * Math.PI) * r}; try { if (!isLandUI(p) && depthF(p) > 0.8 && depthF(p) < sd) sh = p; } catch (e){} }
+          if (!sh) return {none:true};
+          S.draft = [{x:(w.o.x + sh.x) / 2, y:(w.o.y + sh.y) / 2, port:null, fish:0, leia:true}, {x:sh.x, y:sh.y, port:null, fish:0}]; hzCache.k = ''; panelDirty = true; setTab('route'); routeChanged(); renderPanel(); await new Promise(r => setTimeout(r, 400));
+          let hz = draftHazards(); for (let i = 0; i < 20 && /^wait/.test(hzCache.k); i++){ await new Promise(r => setTimeout(r, 300)); hzCache.k = ''; hz = draftHazards(); }
+          const yellow = hz.map(h => !!h.unsafe); document.querySelector('[data-act=start]').click(); await new Promise(r => setTimeout(r, 200)); const asked = !document.getElementById('modal').hidden && !!document.getElementById('hzGo');
+          if (asked) document.getElementById('modal').hidden = true; S.plan = null; return {yellow, asked, d:+depthF(sh).toFixed(1), sd}; }""", dict(end0, o=f['o']))
+        check(al3.get('none') or (al3['yellow'][1] and al3['asked']), 'a stop the player put shallower than the safe depth after Autonav\'s points is the player\'s: asked about', al3)
         print('sidefeil', errs)
         await br.close()
 asyncio.run(main())

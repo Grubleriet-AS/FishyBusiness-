@@ -323,14 +323,20 @@ function groundCheck(a, c, sq = 0){
   // (nor within NAUST_FREE of Father's naust: its berth lies at the shore by the plant, and the way in to it, the route's last leg and
   // berthPath along the shore, was laid on the harbour's leave and crossed the shore's points before it; allesteder 17.11.2026: the way
   // in to the naust at Averøy, Hidrasund and Flatanger stopped 80 m short of the berth)
-  let sealed = null, nf; const qEnd = Math.max(0.012, (BOAT.len || 10) * 1.5 / 1000);
+  // (the quays of a harbour unit, onUnitGround: the part she starts on is her berth; and on a leg longer than 2 qEnd, the first and last
+  // qEnd of it, where the berth's face is (a port's point lies in the water before it). A short check, the step or the hands' scan, sees the quay as any land; the independent
+  // check 18.11.2026)
+  let sealed = null, nf; const qEnd = Math.max(0.012, (BOAT.len || 10) * 1.5 / 1000); let uA = onUnitGround(a), iA = n;
   const nearNaust = q => { if (nf === undefined){ nf = null; try { const f = typeof quayFace === 'function' && quayFace(S.home || HOME0, 'naust'); if (f) nf = {x:f.x / 1000, y:f.z / 1000}; } catch (e){} }
     return !!nf && dist(q, nf) < NAUST_FREE; };
   for (let i = 1; i <= n; i++){ const p = {x:a.x + (c.x - a.x) * i / n, y:a.y + (c.y - a.y) * i / n};
     // (and a harbour unit's quay and fill, onUnitGround, but not within a length and a half of the leg's ends, where her berth is: she
     // left the plant's quay at Myre straight into the quay ahead, unseen, tilbakemelding #138 and #103, 17.11.2026)
     if (inHarbour(p)){ if (isLandHarbour(p) && !nearNaust(p) && !(sealed === null ? (sealed = typeof quayLandLeg === 'function' && !!quayLandLeg(a, c)) : sealed)) return p;
-      if (dist(p, a) > qEnd && dist(p, c) > qEnd && onUnitGround(p)) return p; continue; }
+      if (onUnitGround(p)){ if (uA && i <= iA) continue; uA = false;   // (still on the quay she starts on: her berth)
+        if (!(L > 2 * qEnd && (dist(p, a) <= qEnd || dist(p, c) <= qEnd))) return p; }
+      else if (uA && i > iA) uA = false;
+      continue; }
     if (isLand(p) || ((i & 3) === 0 || i === n) && depthF(p) + tl < BOAT.draft + sq) return p;
     if (iceOn && (i % 10 === 0 || i === n)){ const ic = seaIceAt(p); if (ic >= iceL && ic > ic0 + 0.01) return {x:p.x, y:p.y, ice:true}; ic0 = ic; } }
   if (!inHarbour(c) && coastSegHit(a, c)) return c;   // a breakwater or a skerry thinner than the 20 m steps (01d-coast.js)

@@ -9,7 +9,10 @@ function autonavLeg(w){ return !!(w && (w.leia || w.obs || w.auto)); }
 // the leg into stop i is Autonav's when it ends at a point it put there, or begins at one: the last leg into the player's own stop
 // after Autonav's way (draftToLeia keeps the stop as it is). It was counted as the player's, yellow, and she was put aground 4 m after
 // Autonav's last point into Rørvik, tilbakemelding #155, 17.11.2026
-function autonavLegAt(D, i){ return autonavLeg(D[i]) || (i > 0 && autonavLeg(D[i - 1])); }
+// (not when the stop itself lies shallower than the safe depth: a stop the player put there on purpose, a ground of 2 m, is the player's
+// risk to take, asked about and marked as before; the independent check 18.11.2026)
+function autonavLegAt(D, i){ if (autonavLeg(D[i])) return true; if (!(i > 0 && autonavLeg(D[i - 1]))) return false;
+  let d = Infinity; try { d = depthF(D[i]); } catch (e){} return !(d < safeDepth()); }
 function doAct(el){
   const act = el.dataset.act, i = +el.dataset.i, b = S.boat, L = (no, en) => S.lang === 'no' ? no : en;
   if (act === 'gset' || act === 'ghaul' || act === 'gstop') gearDoAct(act, el);

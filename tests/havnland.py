@@ -43,9 +43,14 @@ async def main():
           for (let r = 0.08; r <= 0.2 && !sea; r += 0.02) for (let k = 0; k < 24 && !sea; k++){ const p = {x:blk.x + Math.sin(k / 12 * Math.PI) * r, y:blk.y - Math.cos(k / 12 * Math.PI) * r}; if (!isLand(p) && !onUnitGround(p) && inHarbour(p)){ let clear = true; for (let j = 1; j < 20; j++){ const m = {x:p.x + (blk.x - p.x) * j / 20, y:p.y + (blk.y - p.y) * j / 20}; if (onUnitGround(m) || isLandHarbour(m)){ clear = j > 12; break; } } if (clear) sea = p; } }
           if (!sea) return null; const far = {x:blk.x + (blk.x - sea.x) * 0.5, y:blk.y + (blk.y - sea.y) * 0.5};
           const g = groundCheck(sea, far), g2 = groundCheck(sea, blk);
-          return {through:g ? Math.round(dist(sea, g) * 1000) : null, toBlk:Math.round(dist(sea, blk) * 1000), berth:g2 ? Math.round(dist(sea, g2) * 1000) : null}; })()""")
+          // a short check (a step, the hands' scan: 15 m) into the quay sees it too; one from the quay out to the water (her berth) is free
+          const u = {x:(blk.x - sea.x) / dist(sea, blk), y:(blk.y - sea.y) / dist(sea, blk)}, s0 = {x:blk.x - u.x * 0.012, y:blk.y - u.y * 0.012}, s1 = {x:blk.x + u.x * 0.003, y:blk.y + u.y * 0.003};
+          const short = !onUnitGround(s0) ? groundCheck(s0, s1) : 'skip', out = groundCheck(blk, sea);
+          return {through:g ? Math.round(dist(sea, g) * 1000) : null, toBlk:Math.round(dist(sea, blk) * 1000), berth:g2 ? Math.round(dist(sea, g2) * 1000) : null, short:short === 'skip' ? 'skip' : !!short, out:out ? Math.round(dist(blk, out) * 1000) : null}; })()""")
         if q == 'none': print('(Myre not in this build: the whole coast is needed)')
-        else: print(ok(q and q['through'] is not None and q['through'] <= q['toBlk'] + 5), 'Myre (#138): a leg from the water into the plant\'s quay where it stands out over the sea stops at the quay', q)
+        else:
+            print(ok(q and q['through'] is not None and q['through'] <= q['toBlk'] + 5), 'Myre (#138): a leg from the water into the plant\'s quay where it stands out over the sea stops at the quay', q)
+            print(ok(q and q['short'] is True and q['out'] is None), 'Myre: a 15 m check into the quay sees it, and the way from the quay out to the water is free', q)
         print('sidefeil', errs)
         await br.close()
 
