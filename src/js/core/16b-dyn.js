@@ -599,7 +599,7 @@ function dynMinute(H, W){
   const b = S.boat, pl = S.plan;
   if (b.fuel <= 0){ b.fuel = 0; b.status = 'adrift'; b.v = 0; log('Tom for drivstoff. Båten driver.', 'Out of fuel. The boat is adrift.'); return; }
   if (!DYN.hold) fuelUse(b, fuelLph(b.v || 0, W) / 60);   // (held for the map, or a minute caught up without moving her: no fuel)
-  if (pl) obsSail(pl, b);
+  if (pl){ obsSail(pl, b); landSail(pl, b); }
   if (meAboard() && DYN.nm){ tatAdd('nm', DYN.nm); DYN.nm = 0; }
 }
 // ---- by hand (16-helm.js): the throttle and the rudder into the model ----
@@ -700,32 +700,52 @@ function dynLineBuild(pl, dep){
 // land on both sides (a sound narrower than that: as the route has it), nor where the moved point would be nearer land. The route's points
 // keep their places on the line (wpAt)
 function dynLineNudge(P, wpAt, pl, iEnd, iOut, bz){
-  const need = (BOAT.beam || 3) / 2 + 3, km = (x, z) => ({x:x / 1000, y:z / 1000});
   // (not within 400 m of her ends, where dynLineHarb looks at the way among the piers (a rorbu and the naust are no harbour to inHarbour),
-  // nor on the way in to Father's naust (bz); and the two new legs as clear of land, of the things a route keeps clear of and of the ground
-  // as a route's legs are, else the point stays where it was)
+  // nor on the way in to Father's naust (bz))
   const E0 = P[0], eI = wpAt[iEnd], E1 = eI != null ? P[eI] : P[P.length - 1], bzMin = bz && bz.size ? Math.min(...bz) : Infinity;
-  const nearEnd = (x, z) => Math.hypot(x - E0[0], z - E0[1]) < 400 || Math.hypot(x - E1[0], z - E1[1]) < 400;
-  const legOk = (u, v) => { try { const a = km(u[0], u[1]), b = km(v[0], v[1]); return legClear(a, b) && obsClear(a, b) && !groundCheck(a, b) && !coastSegHit(a, b); } catch (e){ return false; } };
-  const cd = (x, z) => { try { const d = coastDistM(km(x, z), need + 2); return d < 0 ? 1e9 : d; } catch (e){ return 1e9; } };
-  const land = (x, z) => { try { return isLand(km(x, z)); } catch (e){ return true; } };
+  const far = (x, z) => Math.hypot(x - E0[0], z - E0[1]) >= 400 && Math.hypot(x - E1[0], z - E1[1]) >= 400;
   const out = [P[0]], map = [0];
   for (let i = 1; i < P.length; i++){
-    const a = P[i - 1], b = P[i];
-    if (i > iOut && i <= bzMin){ const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz), n = Math.floor(L / 8);
-      if (n >= 2){ const ux = dx / L, uz = dz / L, nx = -uz, nz = ux; let run = null; const flush = () => { if (!run) return; const [x, z, d] = run; run = null;
-          const lf = land(x + nx * need, z + nz * need), rt = land(x - nx * need, z - nz * need); if (lf === rt) return;
-          const sg = lf ? -1 : 1, q = [x + sg * nx * (need - d + 1), z + sg * nz * (need - d + 1)];
-          if (land(q[0], q[1]) || cd(q[0], q[1]) < d + 0.5 || inHarbour(km(q[0], q[1])) || !legOk(out[out.length - 1], q) || !legOk(q, b)) return; out.push(q); };
-        for (let k = 1; k < n; k++){ const x = a[0] + dx * k / n, z = a[1] + dz * k / n; if (k * L / n < 10 || (n - k) * L / n < 10){ flush(); continue; }
-          const d = inHarbour(km(x, z)) || nearEnd(x, z) ? 1e9 : cd(x, z); if (d < need){ if (!run || d < run[2]) run = [x, z, d]; } else flush(); }
-        flush(); } }
-    out.push(b); map.push(out.length - 1);
+    if (i > iOut && i <= bzMin) for (const q of landPush(out[out.length - 1], P[i], far)) out.push(q);
+    out.push(P[i]); map.push(out.length - 1);
   }
   if (out.length === P.length) return;
   for (let i = pl.idx; i <= iEnd; i++) if (wpAt[i] != null) wpAt[i] = map[wpAt[i]];
   if (bz && bz.size){ const nb = [...bz].map(k => map[k]); bz.clear(); for (const k of nb) bz.add(k); }
   P.length = 0; P.push(...out);
+}
+// the points (metres) to put between a and b (metres) so the leg keeps half her beam and 3 m off the coast, as dynLineNudge has it: the
+// nearest point of each run nearer the coast than that, moved away from it, when there is land on that side only, and the two new legs are
+// as clear of land, of the things a route keeps clear of and of the ground as a route's legs are. ok(x, z): where the leg may be looked at
+// (coastDistM knows only the tiles whose chart is in: there nothing is moved)
+function landPush(a, b, ok){
+  const need = (BOAT.beam || 3) / 2 + 3, km = (x, z) => ({x:x / 1000, y:z / 1000}), out = [];
+  const legOk = (u, v) => { try { const p = km(u[0], u[1]), q = km(v[0], v[1]); return legClear(p, q) && obsClear(p, q) && !groundCheck(p, q) && !coastSegHit(p, q); } catch (e){ return false; } };
+  const cd = (x, z) => { try { const d = coastDistM(km(x, z), need + 2); return d < 0 ? 1e9 : d; } catch (e){ return 1e9; } };
+  const land = (x, z) => { try { return isLand(km(x, z)); } catch (e){ return true; } };
+  const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz), n = Math.floor(L / 8); if (n < 2) return out;
+  const ux = dx / L, uz = dz / L, nx = -uz, nz = ux; let run = null;
+  const flush = () => { if (!run) return; const [x, z, d] = run; run = null;
+    const lf = land(x + nx * need, z + nz * need), rt = land(x - nx * need, z - nz * need); if (lf === rt) return;
+    const sg = lf ? -1 : 1, q = [x + sg * nx * (need - d + 1), z + sg * nz * (need - d + 1)];
+    if (land(q[0], q[1]) || cd(q[0], q[1]) < d + 0.5 || inHarbour(km(q[0], q[1])) || !legOk(out.length ? out[out.length - 1] : a, q) || !legOk(q, b)) return; out.push(q); };
+  for (let k = 1; k < n; k++){ const x = a[0] + dx * k / n, z = a[1] + dz * k / n; if (k * L / n < 10 || (n - k) * L / n < 10){ flush(); continue; }
+    const d = inHarbour(km(x, z)) || (ok && !ok(x, z)) ? 1e9 : cd(x, z); if (d < need){ if (!run || d < run[2]) run = [x, z, d]; } else flush(); }
+  flush(); return out;
+}
+// and in the minute step, the leg she is on and the next (5 km at most), once a leg and every 5 km she sails: the coast of a tile is in only
+// as she comes near it, and the line was laid before (the kontroll 18.11.2026; laying the whole line again in a new tile put the 3D boat
+// back along it, trackfollow). The points go into the route as a way round does (obsSail), so the line takes them
+function landSail(pl, b){
+  if (pl.idx >= pl.wps.length || pl.replan) return;
+  const key = pl.idx + '|' + pl.wps.length + '|' + Math.round(b.pos.x / 5) + ',' + Math.round(b.pos.y / 5); if (pl.landK === key) return; pl.landK = key;
+  let end = null; for (let i = pl.idx; i < pl.wps.length; i++) if (pl.wps[i].port){ end = pl.wps[i]; break; }
+  const ok = (x, z) => Math.hypot(x / 1000 - b.pos.x, z / 1000 - b.pos.y) >= 0.1 && !(end && Math.hypot(x / 1000 - end.x, z / 1000 - end.y) < 0.4);
+  let from = b.pos, left = 5;
+  for (let i = pl.idx; i < pl.wps.length && left > 0; i++){ const w = pl.wps[i], L = dist(from, w);
+    if (L <= left){ const add = landPush([from.x * 1000, from.y * 1000], [w.x * 1000, w.y * 1000], ok);
+      if (add.length){ pl.wps.splice(i, 0, ...add.map(q => ({x:q[0] / 1000, y:q[1] / 1000, port:null, fish:0, obs:true}))); if (pl.unsafe) pl.unsafe.splice(i, 0, ...add.map(() => false)); pl.landK = pl.idx + '|' + pl.wps.length + '|' + Math.round(b.pos.x / 5) + ',' + Math.round(b.pos.y / 5); return; } }
+    left -= L; if (wpStop(w)) break; from = w; }
 }
 // The line's last 400 m in to a harbour and its first 400 m out from the quay, where they pass within half her beam and a metre of a
 // pier, a quay, a floating dock or a boat lying there (11b-obstacles.js fixLegOk): the way among them over a 4 m grid instead, fixWay
@@ -890,11 +910,6 @@ function dynAuto(d, dtG){
   // (none of the lines below laid again until her place on the line is where she is: after time caught up with the model off (catchUp),
   // T.s is the place before it, and a line laid then put her back to where she had been, trackfollow 18.11.2026)
   const onT = (() => { const q = dynLineAt(T, T.s); return Math.hypot(q[0] - d.X, q[1] - d.Y) < 60; })();
-  // (in a new 50 km tile of the map since the line was laid: laid again, dynLineNudge with the coast there in by now, which it was not
-  // when she left: coastDistM knows only the tiles whose chart is in; not by a stop, nor while the hands have her or she backs off a quay)
-  { const Tm = MAPD.man ? MAPD.man.tile * 1000 : 0, tk = Tm ? Math.floor(d.X / Tm) + ':' + Math.floor(d.Y / Tm) : '';
-    if (T.tk == null) T.tk = tk; else if (tk !== T.tk && onT && !(T.assist > T.s) && !(T.back > 0 && T.s < T.sOut + T.turnL + 50)){ const st1 = T.stops.find(q => q.i >= pl.idx);
-      if (!st1 || st1.s - T.s > 1000){ T = DYN.line = dynLineBuild(pl, null); T.s = dynLineProj(T, d.X, d.Y, 0, 1e9); T.tk = tk; } else T.tk = tk; } }
   // (the piers and quays round her ends came after the line was laid: laid again, from the berth while she backs off it)
   if (T.vecWait && T.dep && T.vecVer !== VEC.ver && T.s < T.back){ const s0 = T.s; T = DYN.line = dynLineBuild(pl, T.dep); T.s = Math.min(s0, T.back); }
   // (600 m from a harbour she stops at, the line in to it again, dynLineHarb with the vessels lying there now: the line was laid when she

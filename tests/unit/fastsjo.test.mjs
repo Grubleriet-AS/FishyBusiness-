@@ -39,6 +39,18 @@ export default function (t){
   const G = {fd:new Set(['5:5'])};
   t.eq(K.vecGoneSlab(G, [[4, 4], [6, 4], [6, 6], [4, 6]]), true, 'vecGoneSlab: et omriss med midten i en flytebrygge som er tatt bort');
   t.eq(K.vecGoneSlab(G, [[40, 40], [60, 40], [60, 60], [40, 60]]), false, 'vecGoneSlab: et annet omriss står');
+  // off the shore (landPush): a leg east along z = 0 with land north of z = -3 (z grows southward); she has 4 m beam, so wants 5 m
+  const names = ['coastDistM', 'isLand', 'legClear', 'groundCheck', 'coastSegHit', 'inHarbour', 'mapReadyAt'], keepF = names.map(n => K.get(n)), bm = BOAT.beam;
+  try {
+    BOAT.beam = 4;
+    K.set('coastDistM', p => { const z = p.y * 1000; return Math.abs(z + 3); }); K.set('isLand', p => p.y * 1000 < -3);
+    K.set('legClear', () => true); K.set('mapReadyAt', () => false); K.set('groundCheck', () => null); K.set('coastSegHit', () => false); K.set('inHarbour', () => false);
+    const add = K.landPush([0, 0], [200, 0]);
+    t.eq(add.length, 1, 'landPush: ett punkt flyttes ut der beinet går 3 m fra land');
+    t.ok(add.length && add[0][1] >= 2.9, 'landPush: punktet flyttes sørover, bort fra land (z ' + (add.length ? add[0][1].toFixed(1) : '-') + ')');
+    K.set('isLand', p => Math.abs(p.y * 1000) > 3);
+    t.eq(K.landPush([0, 0], [200, 0]).length, 0, 'landPush: land på begge sider (et sund): ingenting flyttes');
+  } finally { names.forEach((n, i) => K.set(n, keepF[i])); BOAT.beam = bm; }
   // the harbours dredged: the deepest draught of the boats up to 40 m and half a metre
   const VESSELS = K.get('VESSELS'), want = Math.max(...Object.values(VESSELS).filter(V => (V.len || 0) <= 40).map(V => V.draft || 0)) + 0.5;
   t.near(K.get('HARB_DRAFT'), want, 1e-9, 'HARB_DRAFT: dypeste dypgang for båtene opp til 40 m og en halv meter (' + want + ' m)');
