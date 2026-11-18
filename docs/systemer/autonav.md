@@ -446,3 +446,24 @@ Rettingen av mønster 1 og 3 fra jakten (`docs/planer/autonav-null-treff.md`). J
 - **Linja legges ikke på nytt** (600 m før havna) før båtens plass på linja er der hun er (etter at tiden er tatt igjen med modellen av).
 - **Tid:** `dynLineBuild` 60–330 ms ved avgang målt i jakten (første oppslag av trafikken på et nytt sted kommer i tillegg, og det betaler spillet uansett); ellers 0–20 ms.
 - **Testene:** `tests/unit/fastsjo.test.mjs`; jakten med `--only` for scenariene der det skjedde.
+
+## 4.12s Baug- og hekkpropell (18.11.2026, Jonas' økt)
+
+Jonas: «Vil det hjelpe å gi de største båtene baugthruster-funksjonalitet? Jeg vil anta at de har dette på ekte», valgte at de følger båttypen, og «De kan ha hekkthruster også, så kan de gå rett sidelengs ved behov». Planen: `docs/planer/thrustere.md`.
+
+- `VESSELS` `thrusters:2` på kyst15, kyst21, ringnot38 og havbåtene (de 3D-modellene har allerede tunnelene).
+- `dynInt`: en sidekraft ved baugen og ved hekken (0,45 L fra midten), virkningen borte ved 4 knop. Hver er dimensjonert slik VETUS gjør (vindens kraft på siden × halve lengden / tunnelens arm, 1,1 × vindkraften) for Beaufort 7 (17 m/s): ringnota 1,9 t, kyst21 0,7 t (startverdier).
+- `dynAuto`: under 4 knop, ikke mens hun rygger og fyller fra land (`T.bow`), dreier propellene mot hverandre henne mot kursen linja vil ha og skyver henne sammen sidelengs inn mot linja.
+- Kyst15 (under 18 m) med propeller seiler selv de siste og første 200 m av en fri linje i havnefart (`dynLineHarb` `big`), som båtene under 14 m. Kyst21 og ringnota tas fortsatt av hendene der (nå opptil 5 knop): med propellene alene svingte ringnota ut på moloen ved Oldervik i 3,9 knop i én kjøring av jakten og ikke i neste, og kyst21 fikk flere treff ved Averøy. Hendene tar fortsatt en vei som er funnet mellom bryggene, og rygginga fra kai.
+- Hendene slipper båten to lengder før et havnepunkt (fortøyningen tar resten, som for modellen): til selve punktet nådde ringnotas skrog kaia 10–20 m unna (Hammerfest, Bokn, Samuelsberg, Tana; nå 0 treff ved tre av dem). Veien gjennom havna kjenner bruene (`fixBridgeD`).
+- Jakten på de 24 verste scenariene: 16 uten treff som før, 32 treff mot 34; ringnota ved Oldervik og kyst15 ved Ålesund og Dyrvik uten treff og uten hender, ringnota ved Bokn 3 treff mot 9.
+- Testene: `tests/unit/thruster.test.mjs`.
+
+## 4.12t Havfiskefartøyene bare der kaia og plassen tar dem (18.11.2026, Jonas' økt)
+
+Jonas: «er det ikke sånn at havfiskebåtene kun kan levere ved noen spesifike mottak? det er jo sykt å skulle kjøre en stor ringnotbåt inn i en kjempetrang bukt», og valgte A, «Samme kairegel som mottak», for verft og butikker.
+
+- Mottakene hadde regelen fra før (`portWhy`, havsteget H0): 39 av 161 tar ringnota (pluss de 13 rene havfiskemottakene). Jakten brøt den og satte ringnota ved mottak med 17–25 m kai (Bokn, Tana, Samuelsberg, Oldervik); de turene er tatt ut (`jakt.py`: et havfiskefartøy starter og ender bare der `placeWhy` slipper det til).
+- `placeWhy` (`core/06b-coastports.js`): et verft eller en butikk tar et havfiskefartøy bare når kaifronten hun ville ligge ved (`quayFace`), er lang og dyp nok (`quayFit`-regelen; en havneenhets basseng er mudret til `dredge`), og det er svingrom: åpent vann innen hennes lengde rundt et punkt én lengde ut fra havnepunktet (`placeRoom`). En vanlig havneenhet har 24 m kaiplass, så butikkene tar ikke havfiskefartøyene (1 av 66 gjør); alle 130 verft har den store enheten (90 m, 13 m) og tar dem.
+- Kartplotteren sier hvorfor når du trykker på et sted som ikke tar båten (`ui/03b-route.js`).
+- Testene: `tests/unit/havplass.test.mjs`.

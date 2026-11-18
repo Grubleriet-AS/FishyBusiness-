@@ -5958,3 +5958,36 @@
 2026-11-18 07:00	claude/magical-pasteur-z98gc5	a327096	autonavtest	OK	20	lite	samtidig	
 2026-11-18 07:00	claude/magical-pasteur-z98gc5	a327096	trip2	OK	11	lite	samtidig	
 2026-11-18 07:00	claude/magical-pasteur-z98gc5	a327096	obstest	OK	6	lite	samtidig	
+2026-11-18 12:50	claude/magical-pasteur-z98gc5	831f8bd	autonavtest	OK	33	lite	samtidig	
+2026-11-18 12:50	claude/magical-pasteur-z98gc5	831f8bd	trip2	OK	15	lite	samtidig	
+2026-11-18 12:51	claude/magical-pasteur-z98gc5	831f8bd+	utfrakai	OK	98	lite	samtidig	
+2026-11-18 12:52	claude/magical-pasteur-z98gc5	831f8bd+	kaiover	OK	130	lite	samtidig	
+2026-11-18 12:52	claude/magical-pasteur-z98gc5	831f8bd+	havntest	OK	15	lite	samtidig	
+2026-11-18 12:52	claude/magical-pasteur-z98gc5	831f8bd+	obstest	OK	9	lite	samtidig	
+2026-11-18 12:52	claude/magical-pasteur-z98gc5	831f8bd+	naustleia	OK	9	lite	samtidig	
+2026-11-18 12:52	claude/magical-pasteur-z98gc5	831f8bd+	rorbutest	OK	17	lite	samtidig	
+2026-11-18 12:52	claude/magical-pasteur-z98gc5	831f8bd+	helmtest	OK	26	lite	samtidig	
+2026-11-18 13:00	claude/magical-pasteur-z98gc5	f685c5e+	autonavtest	OK	38	lite	samtidig	
+2026-11-18 13:00	claude/magical-pasteur-z98gc5	f685c5e+	trip2	OK	16	lite	samtidig	
+2026-11-18 13:01	claude/magical-pasteur-z98gc5	f696d5e	utfrakai	OK	105	lite	samtidig	
+2026-11-18 13:02	claude/magical-pasteur-z98gc5	f696d5e	kaiover	OK	144	lite	samtidig	
+2026-11-18 13:03	claude/magical-pasteur-z98gc5	f696d5e	harbourtest	OK	11	lite	samtidig	
+2026-11-18 13:03	claude/magical-pasteur-z98gc5	f696d5e	helmtest	OK	27	lite	samtidig	
+2026-11-18 13:06	claude/magical-pasteur-z98gc5	0d3df74	dyntest	FEIL	259	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-18 13:15	claude/magical-pasteur-z98gc5	ec8d3e3	colregtest	OK	737	lite	samtidig	
+2026-11-18 13:19	claude/magical-pasteur-z98gc5	9276351	autonavtest	OK	27	lite	samtidig	
+2026-11-18 13:19	claude/magical-pasteur-z98gc5	9276351	trip2	OK	14	lite	samtidig	
+2026-11-18 13:20	claude/magical-pasteur-z98gc5	9276351	utfrakai	OK	95	lite	samtidig	
+2026-11-18 13:21	claude/magical-pasteur-z98gc5	9276351	kaiover	OK	126	lite	samtidig	
+2026-11-18 13:21	claude/magical-pasteur-z98gc5	9276351	harbourtest	OK	6	lite	samtidig	
+2026-11-18 13:21	claude/magical-pasteur-z98gc5	9276351	havntest	OK	12	lite	samtidig	
+2026-11-18 13:21	claude/magical-pasteur-z98gc5	9276351	obstest	OK	7	lite	samtidig	
+2026-11-18 13:21	claude/magical-pasteur-z98gc5	9276351	helmtest	OK	26	lite	samtidig	
+2026-11-18 13:25	claude/magical-pasteur-z98gc5	9276351	dyntest	FEIL	254	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-18 13:36	claude/magical-pasteur-z98gc5	d64d127	trackfollow	OK	625	3d	alene	
+2026-11-18 13:36	claude/magical-pasteur-z98gc5	d64d127+	moortest	FEIL	33	3d	alene	avsluttet med kode 1
+2026-11-18 13:40	claude/magical-pasteur-z98gc5	0361420	autonavtest	OK	24	lite	samtidig	
+2026-11-18 13:40	claude/magical-pasteur-z98gc5	0361420	trip2	OK	12	lite	samtidig	
+2026-11-18 13:41	claude/magical-pasteur-z98gc5	0361420	utfrakai	OK	93	lite	samtidig	
+2026-11-18 13:42	claude/magical-pasteur-z98gc5	0361420	kaiover	OK	123	lite	samtidig	
+2026-11-18 13:42	claude/magical-pasteur-z98gc5	0361420	havntest	OK	11	lite	samtidig	

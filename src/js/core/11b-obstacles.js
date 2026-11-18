@@ -236,9 +236,18 @@ function fixDist(o, x, z){
   const cp = Math.max(0, ep) * Math.sign(p), cq = Math.max(0, eq) * Math.sign(q), d = Math.hypot(cp, cq) || 1;
   return {d:Math.hypot(Math.max(0, ep), Math.max(0, eq)), ox:(cp * o.ux - cq * o.uz) / d, oz:(cp * o.uz + cq * o.ux) / d};
 }
-// whether x, z (metres) is within m of anything fixed in the sea (boats: and of a vessel lying still)
+// the distance (m, up to cap) from x, z (metres) to a bridge's pier or a piece of its deck lower than the boat (obsIndex, obsAir): the
+// way among the piers did not know them, and the hands took kyst15 under a deck 1-2 m lower than her by Namsos verft, the hunt 18.11.2026
+function fixBridgeD(x, z, cap){
+  let d = cap; const idx = obsIndex(), C = HIND.C, air = obsAir();
+  for (let i = Math.floor((x - cap) / C); i <= Math.floor((x + cap) / C); i++) for (let j = Math.floor((z - cap) / C); j <= Math.floor((z + cap) / C); j++){ const L = idx.get(i * 1048576 + j); if (L) for (const o of L){
+    if (!(o.t === 2 ? o.under < air : o.t === 0 && o.B)) continue; const e = obsDist(o, x, z, x, z); if (e < d) d = e; } }
+  return d;
+}
+// whether x, z (metres) is within m of anything fixed in the sea (boats: and of a vessel lying still; and of a bridge too low for her)
 function fixBlocked(x, z, m, boats){
   for (const o of fixNear(x, z, m)) if (fixDist(o, x, z).d < m) return true;
+  if (fixBridgeD(x, z, m) < m) return true;
   if (boats) for (const o of fixBoats(x, z)){ const e = o.t === 0 ? o.r : o.l + o.w; if (Math.abs(o.x - x) < e + m && Math.abs(o.z - z) < e + m && fixDist(o, x, z).d < m) return true; }
   return false;
 }
@@ -287,7 +296,8 @@ function fixWay0(a, b, ms, ok){
   const things = k => { if (thD[k] >= 0) return thD[k]; const i = k % nx, j = (k - i) / nx, q = ctr(i, j), x = q.x * 1000, z = q.y * 1000; let d = Mx;
     try { for (const o of fixNear(x, z, Mx)){ const f = fixDist(o, x, z).d; if (f < d) d = f; }
       for (const o of fixBoats(x, z)){ const e = o.t === 0 ? o.r : o.l + o.w; if (Math.abs(o.x - x) < e + Mx && Math.abs(o.z - z) < e + Mx){ const f = fixDist(o, x, z).d; if (f < d) d = f; } }
-      for (const U of unitsAt(x, z)){ const [lx, lz] = unitL(U, x, z), g = ugeo(U), f = Math.hypot(Math.max(0, Math.abs(lx) - g.E), Math.max(0, lz, -g.B - lz)); if (f < d) d = f; } } catch (e){ d = -1e9; }
+      for (const U of unitsAt(x, z)){ const [lx, lz] = unitL(U, x, z), g = ugeo(U), f = Math.hypot(Math.max(0, Math.abs(lx) - g.E), Math.max(0, lz, -g.B - lz)); if (f < d) d = f; }
+      d = Math.min(d, fixBridgeD(x, z, Mx)); } catch (e){ d = -1e9; }
     return thD[k] = Math.max(-1e9, d); };
   const deep = k => { if (dp[k]) return dp[k] === 1; const i = k % nx, q = ctr(i, (k - i) / nx); let v; try { v = inHarbour(q) || depthF(q) + tl >= dr; } catch (e){ v = false; } dp[k] = v ? 1 : 2; return v; };
   const [ia, ja] = ci(a), [ib, jb] = ci(b), ka = ja * nx + ia, kb = jb * nx + ib;

@@ -62,7 +62,10 @@ function dynPar(V){
 // one step of h game seconds of the hull's own motion (u, v, r, the rudder dl), with the commands thr (-1..1) and rud (-1..1);
 // capF scales the resistance up when the sea caps the speed; E is the wind and the sea on her (dynEnv; none in the calibration, which
 // is calm water). The damping terms are implicit, so the step is stable at any size.
-function dynInt(P, s, thr, rud, h, capF, E){
+// (tb, ts: the bow and the stern thruster, -1 to 1, + pushing that end to starboard; P.thr, its thrust in newtons, on the types that
+// have them, VESSELS thrusters: the same way she goes sideways, opposite ways she turns on the spot. A tunnel thruster's thrust is
+// gone at about four knots, as the water runs past the tunnel; Jonas 18.11.2026, docs/planer/thrustere.md)
+function dynInt(P, s, thr, rud, h, capF, E, tb, ts){
   s.dl += clamp(clamp(rud, -1, 1) * DYN_RUD - s.dl, -P.drate * h, P.drate * h);
   thr = clamp(thr, -1, 1);
   const u = s.u, U = Math.max(Math.abs(u), 0.12 * P.umax), kT = E ? E.kT : 1, kR = E ? E.kR : 1;
@@ -94,10 +97,13 @@ function dynInt(P, s, thr, rud, h, capF, E){
     Ne -= sd * 0.5 * DYN_AIR * (wrU * wrU + wrV * wrV) * P.AL * P.L * 0.08 * Math.sin(2 * gam) * Math.exp(-Math.abs(u) / (0.15 * P.umax));
     Nvu = Math.abs(u); Uv = Math.max(Math.abs(u), 0.04 * P.umax);   // (at low speed the cross-flow drag holds her against the side, not the linear hull's floor)
   }
+  let Yt = 0, Nt = 0;
+  if (P.thr && (tb || ts)){ const ef = clamp(1 - Math.abs(u) / (4 * KN_MS), 0, 1), xb = 0.45 * P.L, Fb = P.thr * clamp(tb || 0, -1, 1) * ef, Fs = P.thrN > 1 ? P.thr * clamp(ts || 0, -1, 1) * ef : 0;
+    Yt = Fb + Fs; Nt = xb * (Fb - Fs); }
   s.u += h * (Tx - R + P.my * s.v * s.r) / P.mx;
-  const vd = (P.Yr * U * s.r + Yd + Ye - P.mx * s.u * s.r) / P.my, va = -P.Yv * Uv / P.my;
+  const vd = (P.Yr * U * s.r + Yd + Ye + Yt - P.mx * s.u * s.r) / P.my, va = -P.Yv * Uv / P.my;
   s.v = (s.v + h * vd) / (1 + h * va);
-  const rd = (P.Nv * Nvu * s.v + Nd + Ne) / P.Iz, ra = (-P.Nr * U + Math.abs(P.Nrr * s.r)) / P.Iz;
+  const rd = (P.Nv * Nvu * s.v + Nd + Ne + Nt) / P.Iz, ra = (-P.Nr * U + Math.abs(P.Nrr * s.r)) / P.Iz;
   s.r = (s.r + h * rd) / (1 + h * ra);
   const rcap = P.alat / Math.max(0.5, Math.abs(s.u)); s.r = clamp(s.r, -rcap, rcap);
 }
@@ -205,7 +211,12 @@ function dynCal(key, sx = 1){
   // little forward on the big ones with the wheelhouse forward (her bow falls off); the propeller tips about 0.45 of the draught down
   // (the draught is to the keel's foot)
   { const h = hullOf(V === VESSELS[key] ? key : 'skiff'), hs = {hus:[0.35, 2.0], hardtop:[0.3, 1.5]}[(V.fac || {}).house] || [0.15, 1.0];
-    P.AL = V.len * h.f + hs[0] * V.len * hs[1] * (V.len >= 30 ? 1.6 : 1); P.AF = V.beam * (h.f + 0.8 * hs[1] * (V.len >= 30 ? 1.6 : 1)); P.xw = V.len >= 14 ? 0.04 * V.len : 0; P.hp = 0.45 * V.draft; P.Tm = h.T; }
+    P.AL = V.len * h.f + hs[0] * V.len * hs[1] * (V.len >= 30 ? 1.6 : 1); P.AF = V.beam * (h.f + 0.8 * hs[1] * (V.len >= 30 ? 1.6 : 1)); P.xw = V.len >= 14 ? 0.04 * V.len : 0;
+    // the thrusters (VESSELS thrusters: 1 the bow's, 2 the bow's and the stern's), each sized as VETUS sizes one: the wind's push on her
+    // side times half her length, over the tunnel's arm to the pivot (0.45 L): 1.1 times that push; for the wind a working boat lies to at
+    // the quay, Beaufort 7 (17 m/s; VETUS takes 5 for a pleasure boat, which gave the 38 m purse seiner 0.8 t, a fortieth of what the
+    // 300 kW bow thruster of a research trawler of her size gives): 1.9 t for her, 0.7 t for the 21 m boat (a start value, Jonas tunes it)
+    P.thrN = V.thrusters || 0; P.thr = P.thrN ? 1.1 * 0.5 * DYN_AIR * 0.9 * P.AL * 17 * 17 : 0; P.hp = 0.45 * V.draft; P.Tm = h.T; }
   let lo = 0.02, hi = 20; for (let i = 0; i < 16; i++){ P.rs = Math.sqrt(lo * hi); if (dynTurn(P, V).R > want) lo = P.rs; else hi = P.rs; } P.rs = Math.sqrt(lo * hi);
   return DYN.cal[key] = dynCalRun(key, V, P, 1);
 }
@@ -757,7 +768,10 @@ function landSail(pl, b){
 function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
   const B = BOAT.beam || 3, m = B / 2 + 1.5, look = 400, pilot = 200, km = q => ({x:q[0] / 1000, y:q[1] / 1000});
   // (and the ground as the route's legs ask it, outside the harbours: the hands do not stop for it)
-  const Lb = BOAT.len || 10, corners = (i0, i1) => fixCornersOk(P.slice(i0, i1 + 1).map(km), Lb, B);
+  // (big: a boat of 14 m or more, which the hands take the last and first 200 m of a clear line; not one under 18 m with thrusters,
+  // which holds the line herself at harbour speed, docs/planer/thrustere.md. The 21 m boat and the 38 m purse seiner swung out on their
+  // own even with them: onto the breakwater at Oldervik at 3.9 knots in one run of the hunt and not in the next, 18.11.2026)
+  const Lb = BOAT.len || 10, big = Lb >= 14 && !((VESSELS[S.boat.type] || {}).thrusters && Lb < 18), corners = (i0, i1) => fixCornersOk(P.slice(i0, i1 + 1).map(km), Lb, B);
   const bad = (i0, i1) => { for (let i = i0 + 1; i <= i1; i++){ if (!fixLegOk(km(P[i - 1]), km(P[i]), m - 0.5)) return true; let g = null; try { g = groundCheck(km(P[i - 1]), km(P[i])); } catch (e){ return true; } if (g) return true; } return !corners(i0, i1); };
   const stopIn = (k0, k1) => { for (let i = pl.idx; i <= iEnd; i++) if (wpAt[i] != null && wpAt[i] > k0 && wpAt[i] < k1 && wpStop(pl.wps[i])) return true; return false; };
   // (with room first, her beam and three metres either side, else half her beam and a metre and a half: the snekke at Dønna was led
@@ -779,7 +793,16 @@ function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
   // at harbour speed (Jonas 18.11.2026: the small boats crawled over long stretches at under three knots), and a bigger one, which swings
   // wide in a turn, is taken its last 200 m in and first 200 m out (on her own the 38 m purse seiner swung onto a breakwater at Oldervik
   // at 3.9 knots, the hunt the same day))
-  const R = {in:null, out:null}, along = (k, dir, len, lim) => { let s = 0; while ((dir > 0 ? k < lim : k > lim) && s < len){ const k2 = k + dir; s += Math.hypot(P[k2][0] - P[k][0], P[k2][1] - P[k][1]); k = k2; } return k; };
+  // (along: the line's point len metres on from k (dir +1) or back (-1), not past lim; with cut, where that falls inside a leg, a point is
+  // put in there, so the hands stop at it (not for the stretch looked at, which goes to the leg's end: cut there, the way among the piers
+  // at Ålesund started in the middle of Brosundet): on a route of one 5.6 km leg from Lebesby verft the hands took kyst21 the whole of it and held her at
+  // its end for good, the hunt 18.11.2026)
+  const R = {in:null, out:null}, put = (k, f) => { const a = P[k], b = P[k + 1]; P.splice(k + 1, 0, [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f]);
+      for (let i = pl.idx; i <= iEnd; i++) if (wpAt[i] != null && wpAt[i] > k) wpAt[i]++;
+      if (bz && bz.size){ const nb = [...bz].map(q => q > k ? q + 1 : q); bz.clear(); for (const q of nb) bz.add(q); } },
+    along = (k, dir, len, lim, cut) => { let s = 0; while (dir > 0 ? k < lim : k > lim){ const k2 = k + dir, l = Math.hypot(P[k2][0] - P[k][0], P[k2][1] - P[k][1]);
+      if (cut && s + l > len + 20){ const f = (len - s) / l; if (dir > 0){ put(k, f); return k + 1; } put(k2, 1 - f); return k2 + 1; }
+      s += l; k = k2; if (s >= len) break; } return k; };
   try {
     // out: on along the line from where the way from the quay ends
     // (not into the way in to Father's naust, bz: that is its own, berthPath, and the hands take her along it)
@@ -787,14 +810,14 @@ function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
       // (a way found here: the hands take her the whole of it; a line clear as it was: its first 200 m on from the way out from the quay)
       if (k > iOut && !stopIn(f, k)){ let sw = false, ok = !bad(f, k) ? k : (sw = true, swap(f, k));
         if (ok < 0 && f < iOut){ sw = false; ok = !bad(iOut, k) ? k : (sw = true, swap(iOut, k)); }
-        if (ok >= 0) R.out = sw ? ok : Lb >= 14 ? along(iOut, 1, pilot, ok) : null; } }
+        if (ok >= 0) R.out = sw ? ok : big ? along(iOut, 1, pilot, ok, true) : null; } }
     // in: back along the line from the harbour point (not into the way out from the quay)
     const w = pl.wps[iEnd], e = wpAt[iEnd], i0 = R.out != null ? R.out : iOut;
     // (only where the harbour is within 1.5 km along the line: further off, the line is laid again 600 m from it, dynAuto, with the
     // vessels lying there then, and the search is not done twice)
     let toE = 0; if (e != null) for (let i = 1; i <= e && toE <= 1500; i++) toE += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
     if (w && w.port && w.berth !== 'naust' && e != null && e > i0 && toE <= 1500){ const k = along(e, -1, look, i0);
-      if (k < e && !stopIn(k, e)){ const sw = bad(k, e); if (sw ? swap(k, e) >= 0 : Lb >= 14) R.in = sw ? k : along(wpAt[iEnd], -1, pilot, k); } }
+      if (k < e && !stopIn(k, e)){ const sw = bad(k, e); if (sw ? swap(k, e) >= 0 : big) R.in = sw ? k : along(wpAt[iEnd], -1, pilot, k, true); } }
   } catch (e){ console.error('dynLineHarb', e); }
   return R;
 }
@@ -970,7 +993,12 @@ function dynAuto(d, dtG){
     if (T.hzS != null && !T.hzDone && !(T.assist > T.s) && !unsafe && T.s >= T.hzS - 1 && sStop > T.s + 1 && stopW && stopW.port){ T.assist = sStop - 0.5; T.hzDone = true; T.prog = {s:T.s, t:S.t}; dynHands(T, 'harb'); }
     const sN = T.bzS != null && !T.bzDone ? T.stops.find(q => q.i >= pl.idx && pl.wps[q.i].berth === 'naust') : null;
     if (sN && !(T.assist > T.s) && !unsafe && !T.ghit && T.s >= sN.s - 200 && sStop > T.s + 1){ T.assist = Math.min(sN.s, sStop) - 0.5; T.bzDone = T.assist >= sN.s - 0.6; T.prog = {s:T.s, t:S.t}; dynHands(T, 'naust'); }
-    if ((T.back > 0 && T.s < sScr) || T.assist > T.s){
+    // (the hands let her go two lengths from a harbour point she stops at, where the quay's lines take her, as the model does (arrive
+    // below): to the point itself the 38 m purse seiner's hull reached the quay it lies 10-20 m off, at Hammerfest, Bokn, Samuelsberg and
+    // Tana, the hunt 18.11.2026)
+    const atPort = !!(stopW && stopW.port && stopW.berth !== 'naust' && ds < Math.max(2 * L, 10));
+    if (T.assist > T.s && atPort) T.assist = T.s;
+    if (((T.back > 0 && T.s < sScr) || T.assist > T.s) && !atPort){
       // (the speed: astern off the quay and in the turn 0.8 m/s; then up to five knots, the harbours' speed limit, where the line runs
       // straight, a knot and a half to three a length before a corner of it and over the last lengths of the stretch: under three knots the
       // whole way, the small boats crawled over long stretches, Jonas 18.11.2026)
@@ -1084,7 +1112,13 @@ function dynAuto(d, dtG){
     // vessel north of Karmsundbrua undid on each stroke astern the few degrees she had turned ahead, and lay there for good: 14.11.2026,
     // tests/allesteder.py, steg 126)
     const rud = T.bow ? (T.bow.astern ? -T.bow.side : T.bow.side) : clamp((Kp * dynAng(chi, chiD) - Kd * d.r) / DYN_RUD, -1, 1);
-    dynBank(E, d, P); dynInt(P, d, thr, rud, h, capF, E); dynMove(d, h, E);
+    // (the thrusters under four knots, where they bite: turned against each other they bring her bow to the course the line wants, and
+    // together they push her sideways back onto the line (ye, + when she is off it to starboard; d.v her way sideways, + to starboard);
+    // not while she backs and fills off the shore, T.bow, which has its own way)
+    let tb = 0, ts = 0;
+    if (P.thr && !T.bow && Math.abs(d.u) < 4 * KN_MS){ const tq = clamp(2 * dynAng(d.psi, chiD) - 6 * d.r, -1, 1), sd = clamp(-ye / 4 - 2 * d.v, -1, 1);
+      tb = clamp(tq + sd, -1, 1); ts = P.thrN > 1 ? clamp(-tq + sd, -1, 1) : 0; }
+    dynBank(E, d, P); dynInt(P, d, thr, rud, h, capF, E, tb, ts); dynMove(d, h, E);
     // (a line drawn through a pier: she touches it on her fenders and is put off it; also in the last lengths into a harbour, where
     // before 18.11.2026 nothing was felt and the hunt found her through the piers by the harbour point (Dønna, Sleneset), but not her
     // own quay there: what lies within half her beam and two metres of the harbour point she stops at)

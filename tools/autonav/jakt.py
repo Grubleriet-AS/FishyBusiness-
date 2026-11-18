@@ -144,6 +144,9 @@ JK = r"""() => {
 
 # the conditions of one scenario, set before it: the wind, the tide (chart datum the whole trip, or the tide as it runs) and the hour
 COND = r"""([w, d, low, hh, speed, info]) => { WX_FORCE = {w, d}; JK.speed = speed; JK.info = info;
+  // (an ocean vessel only to the places the game lets her go: a plant that takes her, a yard or a shop whose quay fits her and with room
+  // to turn, placeWhy; Jonas 18.11.2026, the purse seiner had been sent to a plant with a 23 m quay)
+  const V = VESSELS[info.type] || {}; ALS.dests = PORTS.filter(q => (!q.havOnly || V.cls === 'hav') && !(typeof placeWhy === 'function' && placeWhy(q, info.type)));
   if (low){ tideH = (H, p) => -tideZC(p); window.ALS_LOW = true; } else { tideH = JK.tide0; window.ALS_LOW = false; }
   S.t = Math.round((Date.UTC(2027, 5, 15, 11) - EPOCH) / 6e4) + Math.round(hh * 60); return true; }"""
 
@@ -216,6 +219,8 @@ async def main():
                 elif s['kind'] == 'havn':
                     h = s['place']; info['place'] = 'havn %d:%d:%d' % (h[0], h[1], h[2]); await pg.evaluate("i => { JK.info = i; }", info)
                     r = await pg.evaluate(ONE_HAVN, [h[3], h[4], s['type'], True])
+                elif s['kind'] == 'port' and await pg.evaluate("([id, t]) => typeof placeWhy === 'function' && (VESSELS[t] || {}).cls === 'hav' && !!placeWhy(portById(id), t)", [s['place'], s['type']]):
+                    r = {'skip': 'the place does not take this vessel (placeWhy)'}
                 else:
                     info['place'] = s['place']; await pg.evaluate("i => { JK.info = i; }", info)
                     r = await pg.evaluate(ONE, [s['kind'], s['place'], s['type'], None, s['kind'] != 'havn', False])
