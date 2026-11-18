@@ -6012,3 +6012,9 @@
 2026-11-18 16:39	claude/admiring-cray-ve9h87	3e237467+	guesttest	OK	65	lite	samtidig	
 2026-11-18 16:44	claude/admiring-cray-ve9h87	eb3a1bcf	boostklokke	OK	50	lite	samtidig	
 2026-11-18 16:47	claude/admiring-cray-ve9h87	dacb7ab9	vervtest	OK	7	lite	alene	
+2026-11-18 14:41	claude/magical-pasteur-z98gc5	331f45c+	anvtreff	FEIL	5	lite	alene	FEIL a route to sail  {'err': 'no open water'}
+2026-11-18 14:41	claude/magical-pasteur-z98gc5	331f45c+	anvtreff	OK	6	lite	alene	
+2026-11-18 14:41	claude/magical-pasteur-z98gc5	331f45c+	anvtreff	FEIL	11	lite	alene	FEIL anv_trip: én start og én slutt for turen, med samme id
+2026-11-18 14:45	claude/magical-pasteur-z98gc5	331f45c+	trip2	OK	12	lite	samtidig	
+2026-11-18 14:45	claude/magical-pasteur-z98gc5	331f45c+	autonavtest	OK	25	lite	samtidig	
+2026-11-18 14:46	claude/magical-pasteur-z98gc5	331f45c+	cloudtest	OK	31	lite	samtidig	
