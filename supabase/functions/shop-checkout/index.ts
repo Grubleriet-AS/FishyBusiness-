@@ -104,8 +104,9 @@ async function verify(sid: string, auth: string): Promise<Response> {
   catch (e){ console.error('stripe', (e as Error).message); return json({error: 'unavailable'}, 502); }
   if (s.payment_status !== 'paid' && s.payment_status !== 'no_payment_required') return json({st: 'open'});
   const pi = typeof s.payment_intent === 'string' ? s.payment_intent : s.payment_intent ? s.payment_intent.id : null;
-  const {error: e2} = await admin.rpc('shop_paid', {sid, pi});
+  // (shop_paid says true only when it booked it now: the webhook may have come in between, and then this booked nothing)
+  const {data: did, error: e2} = await admin.rpc('shop_paid', {sid, pi});
   if (e2){ console.error('shop_paid', e2.message); return json({error: 'unavailable'}, 500); }
-  console.log('verify: booked a paid session the webhook had not', sid);
-  return json({st: 'paid', booked: true});
+  if (did === true) console.log('verify: booked a paid session the webhook had not', sid);
+  return json({st: 'paid', booked: did === true});
 }
