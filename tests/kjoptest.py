@@ -264,7 +264,14 @@ async def main():
             req = route.request; u = req.url
             if '/functions/v1/shop-checkout' in u:
                 if req.method == 'GET': await route.fulfill(status=200, content_type='application/json', body=json.dumps({'ready': st['ready']})); return
-                body = json.loads(req.post_data or '{}'); calls.append(('checkout', body, req.headers.get('authorization')))
+                body = json.loads(req.post_data or '{}')
+                # (tilbakemelding #185: back from Stripe the game asks whether its session is paid; one paid there and not booked by the
+                # webhook, st['late'], is booked now and its grants made)
+                if 'verify' in body:
+                    calls.append(('verify', body, req.headers.get('authorization'))); gs = st.setdefault('late', {}).pop(body['verify'], None)
+                    if gs: st['grants'] += gs
+                    await route.fulfill(status=200, content_type='application/json', body=json.dumps({'st': 'paid', 'booked': bool(gs)})); return
+                calls.append(('checkout', body, req.headers.get('authorization')))
                 await route.fulfill(status=200, content_type='application/json', body=json.dumps({'url': 'https://checkout.stripe.test/c/pay/cs_test_1'})); return
             fn = u.rsplit('/', 1)[-1]
             try: body = json.loads(req.post_data or '{}')
@@ -422,6 +429,31 @@ async def main():
             await pg2.wait_for_function("!(S.haillQ || []).length", timeout=90000); await pg2.wait_for_timeout(400)
             u21 = [u for u in st['used'] if u[0] == 21]; g21 = next(g for g in st['grants'] if g['id'] == 21)
             check(u21 == [(21, True)] and g21.get('used'), 'HS2: switching on a haill from the server calls haill_use once, and it is used on the server', {'calls': st['used'], 'grant': g21})
+            # 3c. (tilbakemelding #185, 18.11.2026) «Ferdig nå» paid at Stripe while a fitting runs, and the webhook not come: back from
+            # Stripe the game asks the server about its session (shop-checkout verify), the server books it, and the fitting is done at
+            # once. Before, the game asked the server's grants five times in 45 s and then only every 10 minutes, and a webhook that
+            # never came left the player with nothing
+            fk = await pg2.evaluate("""(() => { const k = Object.keys(EQUIP).find(k => !EQUIP[k].tiers && !EQUIP[k].of && equipFits(k, S.boat.type) && !S.equip[k]); S.boat.status = 'port'; S.jobs = [];
+              queueJob({kind:'fit', k, kr:0, h:fitHours(k), no:'Montering', en:'Fitting'}); save(); return k; })()""")
+            # (the credit from step 3's yard grant used up first on the server, so it is not what finishes the fitting here)
+            for g in st['grants']:
+                if g['data'].get('give') == 'yard': g['used'] = g['done'] = True
+            await pg2.evaluate("shopClaim()"); await pg2.wait_for_function("!(S.yardCredit || 0)", timeout=30000)
+            st['late'] = {'cs_test_late': [{'id': 31, 'product': 'verft_na', 'data': {'give': 'yard', 'boat': cur}}]}; n0 = len(calls)
+            await pg2.goto(url('kjop=cs_test_late'))
+            try:
+                await pg2.wait_for_function("typeof S !== 'undefined' && (S.shopGiven || []).includes(31)", timeout=90000)
+                await pg2.evaluate("document.getElementById('modal').hidden = true")
+                await pg2.wait_for_function("!(S.jobs || []).some(j => j.kind === 'fit')", timeout=60000)
+            except Exception: pass
+            r = await pg2.evaluate("({k:%r, fitted:!!S.equip[%r], jobs:(S.jobs || []).map(j => [j.kind, j.until != null ? j.until - S.t : null]), given:(S.shopGiven || []).includes(31), q:(S.yardQ || []).slice(), once:/ferdig med én gang/.test((S.msgs.filter(m => /Takk for kjøpet/.test(m.no)).pop() || {}).no || '')})" % (fk, fk))
+            vf = [c[1].get('verify') for c in calls[n0:] if c[0] == 'verify']
+            check(fk and vf and vf[0] == 'cs_test_late' and r['given'] and r['once'] and r['fitted'] and not r['jobs'],
+                  '#185: «Ferdig nå» paid while a fitting runs, the webhook not come: back from Stripe the game asks about its session, the server books it, and the fitting is done at once', {'r': r, 'verify': vf})
+            # (the steps after this one count the yard grants of step 3 alone: this one and the credit's use above are taken out again)
+            st['grants'] = [g for g in st['grants'] if g['id'] != 31]
+            for g in st['grants']:
+                if g['data'].get('give') == 'yard': g['used'] = False
             # 4. a cancelled payment says so
             pg3 = await ctx.new_page(); pg3.on('pageerror', lambda e: errs.append(str(e))); await pg2.close()
             # every text the toast shows, from the start: the cancelled line comes at shopStart, and a later toast (the start, the weather)

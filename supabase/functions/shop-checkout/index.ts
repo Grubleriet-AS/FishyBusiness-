@@ -3,6 +3,9 @@
 //   GET          -> {ready}: whether the shop is set up (the Stripe key is there), so the game knows to sell
 //   POST {product, boat, lang, back}
 //                -> {url}: a Stripe Checkout page for one product, for the signed-in player whose token comes with the call
+//   POST {verify: sid}
+//                -> {st}: the player's own purchase, back from Stripe: paid there and not booked here (the webhook late or lost), it is
+//                   booked now (shop_paid), so what was bought is delivered (verify, below; tilbakemelding #185)
 //
 // The price and the name come from the database (shop_quote, asked with the player's own token, so only a signed-in player gets a
 // page), never from the game. The company sells, and Stripe takes the payment (Jonas 05.10.2026: «Nei til managed payments. Vi kan
@@ -32,8 +35,9 @@ serveReported('shop-checkout', async (req) => {
   if (!SK) return json({error: 'the shop is not set up yet'}, 503);
   const auth = req.headers.get('Authorization') || '';
   if (!/^Bearer \S+$/.test(auth)) return json({error: 'not signed in'}, 401);
-  let body: {product?: string, boat?: string, lang?: string, back?: string, min?: number, to?: {x?: number, y?: number, port?: string}} = {};
+  let body: {product?: string, boat?: string, lang?: string, back?: string, min?: number, to?: {x?: number, y?: number, port?: string}, verify?: string} = {};
   try { body = await req.json(); } catch (_e){ return json({error: 'bad request'}, 400); }
+  if (body.verify != null) return verify(String(body.verify), auth);
   const product = String(body.product || '').slice(0, 40), boat = String(body.boat || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40), en = body.lang === 'en';
   // back to the page the player came from, if it is one of the game's (the app at detstorebla.no, or the PWA on GitHub Pages)
   let back = SITES[0] + '/';
@@ -79,3 +83,29 @@ serveReported('shop-checkout', async (req) => {
   if (e2){ console.error('purchases', e2.message); return json({error: 'unavailable'}, 500); }
   return json({url: s.url});
 });
+
+// POST {verify: sid} -> {st}: back from Stripe with ?kjop=<sid>, the game asks whether its purchase is paid. Stripe is asked directly, and
+// a session paid there is booked here (shop_paid, as the webhook books it; booking it twice changes nothing), so a webhook that is late
+// or never comes does not leave a player who has paid without what was bought (tilbakemelding #185, 18.11.2026: paid for «Ferdig nå»
+// and the fitting went on). Only the player's own purchase; st is the purchase's status here after the call ('paid', 'open', ...).
+async function verify(sid: string, auth: string): Promise<Response> {
+  if (!/^cs_(live|test)_[A-Za-z0-9]{10,200}$/.test(sid)) return json({error: 'bad request'}, 400);
+  const URL_ = Deno.env.get('SUPABASE_URL')!;
+  const user = createClient(URL_, Deno.env.get('SUPABASE_ANON_KEY')!, {global: {headers: {Authorization: auth}}, auth: {persistSession: false}});
+  const {data: p, error: e0} = await user.rpc('pid');
+  if (e0 || !p) return json({error: 'not signed in'}, 401);
+  const admin = createClient(URL_, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {auth: {persistSession: false}});
+  const {data: u, error: e1} = await admin.from('purchases').select('id, player_id, status').eq('id', sid).maybeSingle();
+  if (e1){ console.error('purchases', e1.message); return json({error: 'unavailable'}, 500); }
+  if (!u || u.player_id !== p) return json({error: 'not found'}, 404);
+  if (u.status !== 'open') return json({st: u.status});
+  let s: Stripe.Checkout.Session;
+  try { s = await new Stripe(SK, {httpClient: Stripe.createFetchHttpClient()}).checkout.sessions.retrieve(sid); }
+  catch (e){ console.error('stripe', (e as Error).message); return json({error: 'unavailable'}, 502); }
+  if (s.payment_status !== 'paid' && s.payment_status !== 'no_payment_required') return json({st: 'open'});
+  const pi = typeof s.payment_intent === 'string' ? s.payment_intent : s.payment_intent ? s.payment_intent.id : null;
+  const {error: e2} = await admin.rpc('shop_paid', {sid, pi});
+  if (e2){ console.error('shop_paid', e2.message); return json({error: 'unavailable'}, 500); }
+  console.log('verify: booked a paid session the webhook had not', sid);
+  return json({st: 'paid', booked: true});
+}

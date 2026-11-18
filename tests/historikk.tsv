@@ -5995,3 +5995,6 @@
 2026-11-18 13:54	claude/magical-pasteur-z98gc5	7180593	trip2	OK	12	lite	samtidig	
 2026-11-18 13:55	claude/magical-pasteur-z98gc5	7180593	utfrakai	OK	93	lite	samtidig	
 2026-11-18 13:56	claude/magical-pasteur-z98gc5	7180593	kaiover	OK	123	lite	samtidig	
+2026-11-18 15:26	fb-run	b559ba10+	kjoptest	FEIL	252	lite	alene	FEIL #185: «Ferdig nå» paid while a fitting runs, the webhook not come: back from Stripe the game asks about its session, the server books it, and the fitting i
+2026-11-18 15:29	fb-run	b559ba10+	kjoptest	FEIL	165	lite	alene	FEIL HS3: a new game on the same account gets the trim and the yard done now of the first game again at the start: the trim with the time that is left, the yard
+2026-11-18 15:32	fb-run	b559ba10+	kjoptest	OK	162	lite	alene	

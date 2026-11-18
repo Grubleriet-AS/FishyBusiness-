@@ -421,6 +421,21 @@ async function shopClaim(){
   if (typeof PHONE !== 'undefined' && PHONE.isOpen()) PHONE.render(); if (typeof refreshAll === 'function') refreshAll();
   return names.length;
 }
+// the purchase's session asked about through the server (shop-checkout {verify}): Stripe's answer, booked there when it is paid and the
+// webhook has not. Returns the purchase's status ('paid', 'open', ...), 'gone' when it is not this player's, or null when it cannot be
+// known now (no network, or a server from before the call: it answers 400 and the claims go on as before)
+const SHOP_ASK_MS = 15 * 60000;
+async function shopVerify(sid){
+  try {
+    const tok = await cloudToken(); if (!tok) return null;
+    const r = await fetch(shopFn(), {method:'POST', headers:{'Content-Type':'application/json', apikey:CLOUD_CFG.supabaseAnon, Authorization:'Bearer ' + tok}, body:JSON.stringify({verify:sid})});
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 404) return 'gone';
+    if (!r.ok || typeof j.st !== 'string') return null;
+    if (j.booked && typeof cloudEv === 'function') cloudEv('shop_verify', {booked:true});   // (paid at Stripe and not booked by the webhook: counted)
+    return j.st;
+  } catch (e){ return null; }
+}
 // at the start, signed in: is the shop set up, and anything bought (also back from Stripe with ?kjop=…, asked again for a while)
 function shopStart(){
   const q = new URLSearchParams(location.search), k = q.get('kjop');
@@ -434,7 +449,17 @@ function shopStart(){
   else if (!SHOP.ret && hh && hh.pay) toast(shopL('Båten ligger stille og venter på betalingen for hoppet. Vil du seile videre, trykk ⏩ og «Avbryt».', 'The boat lies still, waiting for the payment for the hop. To sail on, tap ⏩ and «Cancel».'));
   const tries = SHOP.ret ? [0, 3000, 8000, 20000, 45000] : [0];
   if (SHOP.ret) toast(shopL('Takk! Henter det du kjøpte …', 'Thank you! Fetching what you bought …'));
-  for (const ms of tries) setTimeout(() => { if (ms && !SHOP.ret) return; shopClaim().then(n => { if (n) SHOP.ret = null; }); }, ms);
+  // (back with the purchase's session, ?kjop=cs_…: Stripe is asked through the server before each claim, and a session paid there that the
+  // webhook has not booked is booked then, shop-checkout verify. After the tries below it is asked every 30 s while the page is shown, for
+  // SHOP_ASK_MS, until what was bought is here or the server says the session ended unpaid (expired, failed, refunded, not this player's).
+  // Before, a webhook later than 45 s left
+  // the player waiting till the next claim, up to 10 minutes, and one that never came, with nothing: tilbakemelding #185, 18.11.2026)
+  SHOP.sid = SHOP.ret && /^cs_(live|test)_/.test(SHOP.ret) ? SHOP.ret : null; SHOP.sidAt = Date.now();
+  const ask = async () => { const st = SHOP.sid ? await shopVerify(SHOP.sid) : null, n = await shopClaim();
+    if (n || (st && st !== 'open' && st !== 'paid')) SHOP.sid = null; if (n) SHOP.ret = null; };   // (paid, and not here yet: asked on)
+  for (const ms of tries) setTimeout(() => { if (ms && !SHOP.ret && !SHOP.sid) return; ask(); }, ms);
+  if (SHOP.sid){ const iv = setInterval(() => { if (!SHOP.sid || Date.now() - SHOP.sidAt > SHOP_ASK_MS){ SHOP.sid = null; clearInterval(iv); return; }
+    if (document.visibilityState === 'visible') ask(); }, 30000); }
   // still nothing after the last try: say so, rather than nothing (it is given at the next start, or when the game is opened again)
   if (SHOP.ret) setTimeout(() => { if (!SHOP.ret) return; SHOP.ret = null; toast(shopL('Betalingen er ikke bekreftet ennå. Det du kjøpte, kommer så snart den er det, også neste gang du åpner spillet.', 'The payment is not confirmed yet. What you bought comes as soon as it is, also the next time you open the game.')); }, 52000);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') shopClaim(); });

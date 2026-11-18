@@ -1,0 +1,7 @@
+# Kjøp som er betalt, men ikke levert (tilbakemelding #185)
+
+1. **Spilleren i #185:** i `/admin` › Tilbakemeldinger står de siste åtte tegnene i spiller-ID-en ved #185 (sendt 18.11.2026 kl. 15.10 norsk tid). Finn samme ID i Penger. Tidene der er norsk tid. Se særlig på `verft_na`-kjøp mellom kl. 14.40 og 15.10.
+2. **Står kjøpet som `open`:** søk opp `cs_live_…`-økta i Stripe (Payments eller Checkout Sessions). Er den betalt i Stripe, har webhooken ikke bokført kjøpet. Gå til Developers › Webhooks › endepunktet › Event deliveries, og send `checkout.session.completed` for økta på nytt («Resend»). Da får spilleren tilgodet «Ferdig nå» i spillet neste gang det åpnes. Se samtidig hvorfor leveringen feilet (statuskoden), og om andre økter har feilet på samme måte.
+3. **Står kjøpet som `paid`:** da kom webhooken, og spillet skal ha gitt varen. Hvis ingen andre kjøp ble gjort, er det et tilgode som gjør neste verftsjobb ferdig med én gang. Si fra, så graver en økt videre.
+4. **Deploy `shop-checkout`** (endret 18.11.2026: `{verify}`) til testprosjektet og produksjonen: `supabase functions deploy shop-checkout --no-verify-jwt` for hvert prosjekt. Spillet virker uten den, men da hjelper bare den lengre spørringen, ikke bokføringen via Stripe.
+5. **Prøv på test.detstorebla.no** med Stripes testkort når funksjonen er ute: kjøp et utstyr i butikken, trykk «Ferdig nå» og betal. Monteringen skal være ferdig innen et halvt minutt etter at du er tilbake.
