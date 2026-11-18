@@ -153,4 +153,22 @@ Samme kveld, om rettingene fra spillernes tilbakemeldinger: «feilrettinger fra 
 
 ## Feilrettinger som rører ekte penger (17.11.2026)
 
+**Opphevet 18.11.2026** (se «Live-drift» under): en feilretting i ekte penger går ikke lenger ut uten Jonas' klikk. Teksten under står for historikkens skyld.
+
 Lanseringsdagen, med `S.boat`-feilen i hoppet hos 8 spillere og PR #100 som ventet på merkelappen: «Du kan fjerne regelen om at du får kjøre ut rettinger som gjelder penger, så lenge det er snakk om feilrettinger. Du har min tillatelse. Rull ut». En feilretting i filene for ekte penger (butikken, kjøpsøyeblikket, hoppet, malingen, Stripe, `shop_*`) rulles ut og slippes som andre feilrettinger: porten for automatiske rettinger (`tools/autofix/gate.py`) sperrer dem ikke lenger, og et slipp av én automatisk retting (`slipp/auto-*`) trenger ikke merkelappen `jonas-har-sett`. Et slipp av hele arbeidsgrenen som rører ekte penger, venter fortsatt på merkelappen, fordi det kan ha ny funksjon i seg; `src/legal/` venter alltid. PR #100 og #101 ble flettet samme dag etter denne tillatelsen.
+
+## Live-drift (18.11.2026)
+
+Jonas 18.11.2026, etter lanseringen: «Spillet er nå live med aktive brukere, ekte inntekter og høy betalingsvilje. Målet fremover er lavest mulig churn, raskest mulig oppstart og stabil flyt i mobilnettleser, sterk organisk bransjekonkurranse på topplista, og en helautomatisk, trygg feilrettingsflyt som gir meg arbeidsro som soloutvikler.» Planen og fasene: `docs/planer/live-drift.md`. Reglene i `CLAUDE.md` som kom av det:
+
+- **Porten for de første brukerne er fjernet:** «Fjern den frosne pre-launch-porten og prioriter oppgaver etter reell spillerfriksjon, frafall (churn) og konvertering.» Porttabellen står i `docs/planer/koen-arkiv.md`.
+- **To arbeidsmåter:** «et skarpt skille mellom interaktive utviklingsøkter (full planlegging og dokumentasjon) og autonome bakgrunnsrutiner (lettvekts flyt uten dokumentasjonsbyråkrati i koen.md og docs/systemer/, og strengt forbud mot å rette tilfeldige sidefeil utenfor oppgaven i det globale JS-skopet)». Lukkerunden gjelder derfor bare interaktive økter.
+- **Betaling, kontoer og lagringer:** «Fjern unntaket som lar automatiske rettinger i ekte penger, Stripe og butikk slippes uten godkjenning. Alt som rører betaling, brukerkontoer og lagret spillerdata (kystfiske_v2 / save_put4) skal ferdigstilles og testkjøres automatisk, men alltid kreve ett godkjenningsklikk på PR fra meg.» Klassene står i `tools/ci/risiko.py`; porten kjører testene også når risikoen stopper en retting, så PR-en kommer ferdig testet.
+- **Risiko:** «Lavrisiko UI- og feilrettinger går automatisk til produksjon; mellomrisiko kjernemekanikk og høyrisiko betaling/DB stoppes som klare 1-klikks PR-er til meg.»
+- **Migreringer:** «Gjør databasemigreringer bakoverkompatible («expand-and-contract», aldri destruktiv SQL som DROP eller TRUNCATE i auto-spor) slik at påloggede PWA-brukere aldri mister fremdrift under oppdatering. La CI/staging kjøre trygge migreringer automatisk, mens produksjon kun oppdateres i selve slippet.» Og valget samme dag: produksjonsmigreringene kjøres fra Hetzner-serveren i slippet.
+- **Mobil foran tung grafikk:** «Prioriter lynrask oppstart og stabil bildefrekvens på mobil foran tung grafikk.» Regelen «Grafikken er nesten det viktigste» (fra før lanseringen) er byttet ut.
+- **Tidspress og rivalisering:** «åpne for reelt spilldrevet tidspress (som tidsbegrensede pristopper på mottak og værvinduer) samt synlig status og lag-/rederirivalisering på kart og toppliste». Grensen mot ekte penger og fravær står som før.
+- **Synlig status:** «Det er kun kjøpte spillfordeler (haill) som aldri skal synes for andre. Kosmetikk (båtfarger, flagg) og abonnementsstatus skal være synlig på kart og toppliste.»
+- **Gemini:** «la Gemini-sjekker vurdere mobil-UX og ergonomisk lesbarhet (ikke bare ja/nei)».
+- **Rød test først:** «gjelder all logikk, data og interaksjon, men rene CSS- og tekstjusteringer skal kunne verifiseres med bygg og visuell sjekk uten å strande på syntetisk testskriving.»
+- **Takk-haill for en rettet feil:** «når en rettet feil stammer fra en innsendt spillerrapport og slippes til produksjon, skal spilleren automatisk få en bekreftelse og en luksushaill i spillet.» Bygges i fase 2 (i dag gis takk-haillen når Jonas lagrer `planned`/`fixed` i `/admin`).
