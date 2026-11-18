@@ -5,7 +5,8 @@
        ['Båten går ikke lenger på grunn i svingen ut fra kaia på en gul etappe.', 'The boat no longer runs aground in the turn away from the quay on a yellow leg.'],
        ['For anker med baugen mot vinden ligger båten nesten rett, og hun vipper ikke lenger fra side til side.', 'At anchor head to wind the boat lies almost upright, and no longer flips from side to side.'],
        ['Lanternene lyser ikke lenger som en stor prikk på små skjermer.', 'The lanterns no longer show as a big dot on small screens.'],
-       ['Loggen sier fra når Autonav slakker av for å vike for en annen båt.', 'The log says when Autonav slows down to give way to another boat.']]],
+       ['Loggen sier fra når Autonav slakker av for å vike for en annen båt.', 'The log says when Autonav slows down to give way to another boat.'],
+       ['På iPhone kommer lyden tilbake ved neste trykk etter en samtale eller et varsel.', 'On the iPhone the sound comes back at the next tap after a call or a notification.']]],
     ['smolafylke-171126', '17.11.2026', 'Fylkene i startlista', 'The counties in the start list', [
        ['Smøla står under Møre og Romsdal når du velger hvor du starter, Gutvik under Trøndelag og Selje under Vestland.', 'Smøla is under Møre og Romsdal when you choose where to start, Gutvik under Trøndelag and Selje under Western Norway.']]],
     ['havnland-171126', '17.11.2026', 'Land i havna', 'Land in the harbour', [

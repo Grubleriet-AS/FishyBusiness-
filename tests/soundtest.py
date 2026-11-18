@@ -105,6 +105,10 @@ async def main():
           for (let i = 0; i < 3; i++){ try { SND.tick(); } catch (e){ out.push(String(e.message || e).slice(0, 120)); } }
           SND.testEar = null; SND.testSrc = null; return out; })()""")
         check(not nn, 'et øre som ikke er et tall (kameraet NaN) gir ingen feil i lyden (ui/10e-sound.js set og place)', nn[:2])
+        # iOS took the audio (a notification, a call): the context is suspended, and a touchend (the tap Safari counts) brings it back
+        # (tilbakemelding #162, 18.11.2026: «Lyd kommer og går»)
+        rs = await pg.evaluate("""async () => { await SND.suspendT(); const was = SND.state; document.body.dispatchEvent(new Event('touchend', {bubbles:true})); await new Promise(r => setTimeout(r, 300)); return {was, now:SND.state}; }""")
+        check(rs['was'] == 'suspended' and rs['now'] == 'running', 'after the audio is taken away, a touchend (the tap iOS counts) brings the sound back', rs)
         print('errors:', errs[:5])
         await b.close()
 

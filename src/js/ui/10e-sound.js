@@ -386,6 +386,10 @@ const SND = (() => {
   const quiet = p => { if (p && p.catch) p.catch(() => {}); };
   document.addEventListener('pointerdown', () => { if (!started){ if (S && S.settings) start(); } else if (ac && ac.state !== 'running' && ac.state !== 'closed' && !document.hidden) quiet(ac.resume()); }, true);
   document.addEventListener('visibilitychange', () => { if (!ac || ac.state === 'closed') return; quiet(document.hidden ? ac.suspend() : ac.resume()); });
+  // (Safari on the iPhone counts a touchend or a click as the tap that may start the audio, not always a pointerdown: after iOS took
+  // the audio (a notification, a call, the silent switch) the sound stayed away until a tap it would take, tilbakemelding #162,
+  // 18.11.2026: «Lyd kommer og går». The same resume on those too, quiet as above)
+  for (const k of ['touchend', 'click']) document.addEventListener(k, () => { if (started && ac && ac.state !== 'running' && ac.state !== 'closed' && !document.hidden) quiet(ac.resume()); }, true);
   // testEar / testSrc (for the tests): an ear and the places, as G3.ear and G3.sndSrc give them in 3D
-  return {start, cash, coin, nudge, horn, blasts, hornHz, room, anchorAlarm, mobAlarm, slam, FIRES, MUS, get started(){ return started; }, get state(){ return ac ? ac.state : 'none'; }, LV, tick, at:(q, ref, e) => { const k = EAR; EAR = e; const r = at(q, ref); EAR = k; return r; }, testEar:null, testSrc:null};
+  return {start, cash, coin, nudge, horn, blasts, hornHz, room, anchorAlarm, mobAlarm, slam, FIRES, MUS, get started(){ return started; }, get state(){ return ac ? ac.state : 'none'; }, suspendT(){ return ac ? ac.suspend() : null; }, LV, tick, at:(q, ref, e) => { const k = EAR; EAR = e; const r = at(q, ref); EAR = k; return r; }, testEar:null, testSrc:null};
 })();
