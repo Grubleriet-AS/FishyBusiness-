@@ -5,6 +5,8 @@
 //   POST {op:'note', fid, note, score, st, reply}  -> the agent's note, weight and suggested status and reply (Jonas sends the reply)
 //   POST {op:'run', report, prs, n}                -> the run's report (Markdown) and the pull requests it opened
 //   POST {op:'tech', days}                         -> agent_tech(days): the errors put together and the frame rate by device (20261006160000_device_data.sql)
+//   POST {op:'fixed', fid, pr, ver}                -> agent_fixed: a fix of this feedback is out with the players; status «Fikset», a
+//                                                     confirmation and the takk-haill once (20261118200000_agent_fixed.sql, live-drift fase 2)
 //   POST {op:'autonav', days}                      -> agent_autonav(days): the players' Autonav trips, what their hulls touched and the groundings
 //                                                     (20261118160000_autonav_treff.sql; tools/autonav/treff.py)
 //
@@ -46,6 +48,7 @@ serveReported('feedback-agent', async (req) => {
     case 'imgs': return call('agent_feedback_imgs', {fid: num(b.fid)});
     case 'note': return call('agent_note', {fid: num(b.fid), note: str(b.note), score: num(b.score), st: str(b.st), reply: str(b.reply)});
     case 'tech': return call('agent_tech', {days: Math.max(1, Math.min(90, num(b.days) || 7))});
+    case 'fixed': return call('agent_fixed', {fid: num(b.fid), pr: str(b.pr), ver: str(b.ver)});
     case 'autonav': return call('agent_autonav', {days: Math.max(1, Math.min(90, num(b.days) || 7))});
     case 'run': return call('agent_run', {report: str(b.report) || '(tom)', prs: Array.isArray(b.prs) ? b.prs : [], n: num(b.n) || 0});
     default: return json({ok: false, why: 'unknown op'}, 400);

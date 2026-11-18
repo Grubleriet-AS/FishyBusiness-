@@ -210,6 +210,24 @@ def main():
         R['rwAdm'] = [r.get('rewarded') for r in json.loads(sql("select public.admin_feedback(50, null, null)", AD2, 'authenticated'))['rows'] if r['id'] == fA]
         R['rwPl'] = sql("select public.admin_feedback_set(%d, 'fixed', null)" % fA, A, 'authenticated', expect_err=True)
         if R['rwPend']: sql("select public.shop_done(array[%s]::bigint[])" % ','.join(str(g['id']) for g in R['rwPend']), A, 'authenticated')
+        # the thank-you when a fix is out (20261118200000_agent_fixed.sql, live-drift fase 2): only for a planned feedback, once, and
+        # only through service_role (feedback-agent op 'fixed', called by tools/triage/klynge.py --belonn)
+        fx = lambda f: json.loads(sql("select public.agent_fixed(%d, 'https://github.com/x/y/pull/9', 'v9')" % f, None, 'service_role'))
+        fB = int(sql("select public.fb_send('bug', 'Spillet krasjet ved lossing', null, null, '{\"version\":\"t2\"}')", A, 'authenticated'))
+        R['fxNotPlanned'] = fx(fB); R['fxGrants0'] = cnt(fB)
+        sql("select public.agent_note(%d, 'Krasj ved lossing, PR /pull/9', 15, 'planned', 'En retting er på vei.')" % fB, None, 'service_role')
+        R['fxFirst'] = fx(fB); R['fxGrants1'] = cnt(fB); R['fxAgain'] = fx(fB); R['fxGrants2'] = cnt(fB)
+        R['fxRow'] = sql("select status || '|' || coalesce(ai_status, '-') || '|' || (rewarded_at is not null) || '|' || left(reply, 40) || '|' || (ai_note like '%%Rettet og sluppet: https://github.com/x/y/pull/9, versjon v9%%') from public.feedback where id = %d" % fB)
+        R['fxDoneBefore'] = fx(fA)
+        fC = int(sql("select public.fb_send('bug', 'Knappen henger', null, null, '{}')", A, 'authenticated'))
+        sql("select public.admin_feedback_set(%d, 'planned', 'Kommer')" % fC, AD2, 'authenticated')
+        R['fxPlannedByJonas'] = fx(fC); R['fxGrantsC'] = cnt(fC)
+        R['fxReplyC'] = sql("select reply from public.feedback where id = %d" % fC)
+        R['fxPl'] = sql("select public.agent_fixed(%d, 'x', 'y')" % fB, A, 'authenticated', expect_err=True)
+        R['fxAdm'] = sql("select public.agent_fixed(%d, 'x', 'y')" % fB, AD2, 'authenticated', expect_err=True)
+        R['fxNone'] = sql("select public.agent_fixed(999999, 'x', 'y')", None, 'service_role', expect_err=True)
+        fxp = [g for g in json.loads(sql("select public.shop_pending()", A, 'authenticated')) if g['product'] == 'fb_haill']
+        if fxp: sql("select public.shop_done(array[%s]::bigint[])" % ','.join(str(g['id']) for g in fxp), A, 'authenticated')
         for i in range(20): sql("select public.fb_send('other', 'nr %d', null, null, '{}')" % i, B, 'authenticated')
         R['fbLimit'] = sql("select public.fb_send('other', 'nr 21', null, null, '{}')", B, 'authenticated', expect_err=True)
         # the cloud save by revision (20261005200000_save_sync.sql): a device that has not met the cloud's newest save cannot write over
@@ -741,6 +759,16 @@ def main():
                  and R['rwMine'].get(fA) is True and R['rwMine'].get(fid) is True and R['rwBuy'][0] and R['rwAdm'] == [True] and R['rwPl'][0]),
               'the thank-you: «Kommer» or «Fikset» gives the player one takk-haill grant per feedback («Lest» none, both statuses one), the player and the admin see it was given, it cannot be bought, and no player sets it',
               {'seen': R['rwSeen'], 'once': R['rwOnce'], 'pend': len(rp), 'mine': R['rwMine'], 'buy': R['rwBuy'][1][:40]})
+        print(ok(R['fxNotPlanned'] == {'ok': False, 'why': 'not planned'} and R['fxGrants0'] == '0'
+                 and R['fxFirst'].get('ok') is True and R['fxFirst'].get('rewarded') is True and R['fxGrants1'] == '1'
+                 and R['fxAgain'] == {'ok': False, 'why': 'status fixed'} and R['fxGrants2'] == '1'
+                 and R['fxRow'].startswith('fixed|fixed|true|Takk! Feilen du meldte, er rettet i spil|') and R['fxRow'].endswith('|true')
+                 and R['fxDoneBefore'] == {'ok': False, 'why': 'status fixed'}
+                 and R['fxPlannedByJonas'].get('ok') is True and R['fxPlannedByJonas'].get('rewarded') is False and R['fxGrantsC'] == '1'
+                 and R['fxReplyC'] == 'Takk! Feilen du meldte, er rettet i spillet nå.'
+                 and R['fxPl'][0] and R['fxAdm'][0] and R['fxNone'][0]),
+              'the thank-you when a fix is out: only a planned feedback gets «Fikset», a confirmation and the takk-haill once; one Jonas already rewarded gets the confirmation only; no player or admin login calls it',
+              {k: R[k] for k in ('fxNotPlanned', 'fxFirst', 'fxAgain', 'fxRow', 'fxDoneBefore', 'fxPlannedByJonas', 'fxGrantsC', 'fxReplyC')})
         a2 = R['admRow2'][0] if R['admRow2'] else {}; m2 = R['mine2'][0] if R['mine2'] else {}
         print(ok(R['fb2'].isdigit() and R['fb2Bad'][0] and R['fb2Five'][0] and R['fb2None'].isdigit() and R['admImgs'] == [IMG, I2, I3] and R['admImgsPl'][0] and m2.get('nimg') == 3 and a2.get('nimg') == 3),
               'feedback: up to four pictures, each checked; the admin gets them all in order, a player not', {'mine': m2, 'bad': R['fb2Bad'][1][:30], 'five': R['fb2Five'][1][:30]})
