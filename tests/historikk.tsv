@@ -5654,6 +5654,22 @@
 2026-11-17 17:07	fb/auto-2026-11-17-smola-fylke	05fd5bff	starttest	OK	137	lite	samtidig	
 2026-11-17 17:07	fb/auto-2026-11-17-smola-fylke	05fd5bff	docktest	OK	71	lite	samtidig	
 2026-11-17 17:22	fb/auto-2026-11-17-smola-fylke	8d8cea9b	tut	OK	927	lite	alene	
+2026-11-17 16:21	fb/2026-11-17-havn-land	e94d5b3f+	havnland	OK	11	lite	samtidig	
+2026-11-17 16:22	fb/2026-11-17-havn-land	e94d5b3f+	trip2	OK	51	lite	samtidig	
+2026-11-17 16:22	fb/2026-11-17-havn-land	e94d5b3f+	harbourtest	OK	25	lite	samtidig	
+2026-11-17 16:22	fb/2026-11-17-havn-land	e94d5b3f+	worldtest	OK	27	lite	samtidig	
+2026-11-17 16:22	fb/2026-11-17-havn-land	e94d5b3f+	draftlooptest	OK	25	lite	samtidig	
+2026-11-17 16:22	fb/2026-11-17-havn-land	e94d5b3f+	legmemotest	OK	20	lite	samtidig	
+2026-11-17 16:24	fb/2026-11-17-havn-land	72ab3fb0	utfrakai	OK	95	lite	samtidig	
+2026-11-17 16:24	fb/2026-11-17-havn-land	72ab3fb0	kalendertest	OK	17	lite	samtidig	
+2026-11-17 16:24	fb/2026-11-17-havn-land	72ab3fb0	naustleia	OK	8	lite	samtidig	
+2026-11-17 16:24	fb/2026-11-17-havn-land	72ab3fb0	docktest	OK	66	lite	samtidig	
+2026-11-17 16:28	fb/2026-11-17-havn-land	72ab3fb0	unittest	FEIL	271	3d	alene	avsluttet med kode 1
+2026-11-17 18:08	fb/2026-11-17-havn-land	23dcadad	allesteder	FEIL	5400	lite	alene	gikk ut på tid
+2026-11-17 18:53	fb/2026-11-17-havn-land	1c87054c	havnland	OK	9	lite	samtidig	
+2026-11-17 18:55	fb/2026-11-17-havn-land	1c87054c	utfrakai	OK	103	lite	samtidig	
+2026-11-17 18:55	fb/2026-11-17-havn-land	1c87054c	naustleia	OK	12	lite	samtidig	
+2026-11-17 18:55	fb/2026-11-17-havn-land	1c87054c	trip2	OK	43	lite	samtidig	
 2026-11-17 17:06	claude/hopeful-mayer-48bgvv	57bfe35c+	kjoptest	OK	160	lite	samtidig	
 2026-11-17 17:06	claude/hopeful-mayer-48bgvv	57bfe35c+	guesttest	OK	83	lite	samtidig	
 2026-11-17 17:06	claude/hopeful-mayer-48bgvv	57bfe35c+	cloudtest	OK	51	lite	samtidig	
@@ -5672,3 +5688,7 @@
 2026-11-17 23:50	claude/hopeful-mayer-48bgvv	d625e9ab+	colregtest	OK	734	lite	samtidig	
 2026-11-17 23:50	claude/hopeful-mayer-48bgvv	d625e9ab+	autonavtest	OK	21	lite	samtidig	
 2026-11-17 23:56	claude/hopeful-mayer-48bgvv	d625e9ab+	anchorlight3d	OK	176	3d	alene	
+2026-11-18 00:27	claude/hopeful-mayer-48bgvv	43728dc6+	trip2	OK	28	lite	samtidig	
+2026-11-18 00:28	claude/hopeful-mayer-48bgvv	43728dc6+	docktest	OK	62	lite	samtidig	
+2026-11-18 00:28	claude/hopeful-mayer-48bgvv	43728dc6+	autonavtest	OK	24	lite	samtidig	
+2026-11-18 00:28	claude/hopeful-mayer-48bgvv	43728dc6+	havnland	OK	6	lite	samtidig	

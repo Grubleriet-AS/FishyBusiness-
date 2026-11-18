@@ -9,6 +9,8 @@
        ['Loggen sier fra når Autonav slakker av for å vike for en annen båt.', 'The log says when Autonav slows down to give way to another boat.']]],
     ['smolafylke-171126', '17.11.2026', 'Fylkene i startlista', 'The counties in the start list', [
        ['Smøla står under Møre og Romsdal når du velger hvor du starter, Gutvik under Trøndelag og Selje under Vestland.', 'Smøla is under Møre og Romsdal when you choose where to start, Gutvik under Trøndelag and Selje under Western Norway.']]],
+    ['havnland-171126', '17.11.2026', 'Land i havna', 'Land in the harbour', [
+       ['Båten seiler ikke lenger over land, gjennom moloen eller inn i kaia nær en havn. Kommer hun ut av kurs der, stopper hun før land og finner vei rundt, slik hun gjør ellers langs kysten.', 'The boat no longer sails over land, through the breakwater or into the quay near a harbour. If she gets off course there, she stops short of the land and finds a way round, as she does elsewhere along the coast.']]],
     ['navn-171126', '17.11.2026', 'Navn på rederiet og båten', 'The company\'s and the boat\'s name', [
        ['Du kan bytte navn på rederiet i Rederi-appen.', 'You can rename your company in the Company app.'],
        ['Har båten ikke fått navn ennå, kan du døpe henne rett fra kortet hennes i Rederi-appen.', 'If your boat has no name yet, you can name her right from her card in the Company app.']]],
