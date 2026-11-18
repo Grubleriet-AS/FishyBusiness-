@@ -63,4 +63,5 @@ jobs:
           if [ -z "$SUPABASE_DB_URL" ]; then echo "::warning::Hemmeligheten SUPABASE_TEST_DB_URL mangler: migreringene ble ikke kjørt på testprosjektet. Jonas kjører dem for hånd som før."; exit 0; fi
           case "$SUPABASE_DB_URL" in *xcqbqzrsgycpeoyclakm*) echo "::error::SUPABASE_TEST_DB_URL peker på produksjonen. Den skal være testprosjektet (xlrjbqdhdymcdjkqkulx)."; exit 1;; esac
           command -v psql >/dev/null || { sudo apt-get update -q && sudo apt-get install -yq postgresql-client; }
+          set -o pipefail   # (without it the tee below hid a failed migration: the run of 18.11.2026 was green though the password was wrong)
           python3 tools/server/gate/migrer.py --lokal $FILES | tee -a "$GITHUB_STEP_SUMMARY"
