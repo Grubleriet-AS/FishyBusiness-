@@ -27,7 +27,7 @@ Jonas: «hele spillet skal være free-to-play, men med betalte boostere i form a
     - **Kan ikke utnyttes:**
       - Bare spillerens eget kjøp (404 ellers).
       - Ingenting bokføres uten at Stripe sier betalt.
-      - En økt som er refundert helt eller delvis, eller bestridt, bokføres aldri (`sessionVerdict` i `_shared/kjop.ts`, `tests/unit/kjop.test.mjs`). Ellers ville en refusjon gjort mens webhooken manglet, gitt både varen og pengene.
+      - En økt som er refundert helt eller delvis, eller bestridt, bokføres aldri (`sessionVerdict` i `_shared/kjop.mjs`, `tests/unit/kjop.test.mjs`). Ellers ville en refusjon gjort mens webhooken manglet, gitt både varen og pengene.
       - Stripe spørres høyst hvert 5. sekund per kjøp, bare om åpne kjøp fra det siste døgnet, og bare blant spillerens fem nyeste (`shop_verify_slot`, migreringen `20261118180000_kjop_verify.sql`, `sqltest`).
       - Uten migreringen spør funksjonen ikke Stripe og svarer `open`.
       - `shop_paid` bokfører et kjøp bare én gang, også når webhooken og `verify` kommer samtidig. `booked` er `true` bare når `verify` bokførte selv, og det telles med hendelsen `shop_verify`.
