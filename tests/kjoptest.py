@@ -267,10 +267,12 @@ async def main():
                 body = json.loads(req.post_data or '{}')
                 # (tilbakemelding #185: back from Stripe the game asks whether its session is paid; one paid there and not booked by the
                 # webhook, st['late'], is booked now and its grants made)
+                # (st['sids']: the sessions paid and booked, with their grants; one it does not know has run out unpaid)
                 if 'verify' in body:
-                    calls.append(('verify', body, req.headers.get('authorization'))); gs = st.setdefault('late', {}).pop(body['verify'], None)
-                    if gs: st['grants'] += gs
-                    await route.fulfill(status=200, content_type='application/json', body=json.dumps({'st': 'paid', 'booked': bool(gs)})); return
+                    calls.append(('verify', body, req.headers.get('authorization'))); sid = body['verify']; gs = st.setdefault('late', {}).pop(sid, None)
+                    if gs: st['grants'] += gs; st.setdefault('sids', {})[sid] = [g['id'] for g in gs]
+                    ids = st.setdefault('sids', {}).get(sid)
+                    await route.fulfill(status=200, content_type='application/json', body=json.dumps({'st': 'paid', 'booked': bool(gs), 'ids': ids} if ids is not None else {'st': 'expired'})); return
                 calls.append(('checkout', body, req.headers.get('authorization')))
                 await route.fulfill(status=200, content_type='application/json', body=json.dumps({'url': 'https://checkout.stripe.test/c/pay/cs_test_1'})); return
             fn = u.rsplit('/', 1)[-1]
@@ -386,6 +388,7 @@ async def main():
             st['grants'] = [{'id': 7, 'product': 'haill', 'data': {'give': 'haill', 'type': 'haill'}},
                              {'id': 8, 'product': 'trim_turbo', 'data': {'give': 'trim', 'k': 'turbo', 'boat': cur}},
                              {'id': 9, 'product': 'verft_na', 'data': {'give': 'yard', 'boat': cur}}]
+            st['sids'] = {'cs_test_1': [7, 8, 9]}   # (one session for the three in the test; the webhook has booked them)
             pg2 = await ctx.new_page(); pg2.on('pageerror', lambda e: errs.append(str(e)))
             await pg.close()
             n0 = len(calls)
@@ -469,6 +472,15 @@ async def main():
             r = await late('cs_test_1', 32, False)
             check(r['k'] and r['stripe'] and r['verify'][:1] == ['cs_test_1'] and r['given'] and r['now'] and r['fitted'] and not r['jobs'] and r['credit'] == 0 and r['told'] == [32] and r['left'] is None,
                   '#185: paid in another window and the game opened anew without ?kjop: the session kept at the tap is asked for, booked, and finishes the fitting at once; then forgotten', r)
+            # 3e. a session kept on the device that ran out unpaid at Stripe (or was refunded: the server answers the same way, never
+            # 'paid'): asked about at the start, then forgotten, and nothing given
+            await pg2.evaluate("localStorage.setItem('kystfiske_v2_kjop', JSON.stringify({sid:'cs_test_gone', at:Date.now()}))"); n0 = len(calls); g0 = await pg2.evaluate("(S.shopGiven || []).slice()")
+            await pg2.reload()   # (the page is at url() already: goto to the same address would not start it anew)
+            try: await pg2.wait_for_function("typeof SHOP !== 'undefined' && localStorage.getItem('kystfiske_v2_kjop') === null", timeout=90000)
+            except Exception: pass
+            r = await pg2.evaluate("({left:localStorage.getItem('kystfiske_v2_kjop'), given:(S.shopGiven || []).slice()})")
+            vf = [c[1].get('verify') for c in calls[n0:] if c[0] == 'verify']
+            check(vf[:1] == ['cs_test_gone'] and r['left'] is None and r['given'] == g0, '#185: a session kept on the device that ran out unpaid at Stripe is asked about at the start, then forgotten, and gives nothing', {'r': r, 'verify': vf})
             # (the steps after these count the yard grants of step 3 alone, against a server from before HS4: as they were)
             st['hs4'] = False; st['grants'] = [g for g in st['grants'] if g['id'] not in (31, 32)]
             for g in st['grants']:

@@ -396,6 +396,20 @@ def main():
         sql("select public.shop_paid('cs_s2', 'pi_2')"); sql("select public.shop_refund('pi_2')"); sql("select public.shop_ended('cs_s9', 'expired')")
         R['sAfter'] = sql("select (select count(*) from public.grants where player_id = 'user_01AAA' and done_at is null and revoked_at is null) || '/' || (select status from public.purchases where id = 'cs_s2') || '/' || (select count(*) from public.grants where revoked_at is not null and product_id not in ('fb_haill', 'reg_luksus')) || '/' || (select count(*) from public.grants where done_at is not null and product_id not in ('fb_haill', 'reg_luksus'))")
         R['sEnd'] = [g for g in json.loads(sql("select public.shop_pending()", A, 'authenticated')) if not g.get('held')]
+        # shop-checkout verify (tilbakemelding #185, 20261118180000_kjop_verify.sql): Stripe is asked at most once every 5 s per purchase,
+        # only about an open one of the last 24 hours among the player's five newest; another player's is 'gone', a paid one says so;
+        # no player calls it. The rows are taken out again after, so the checks below see the purchases they had
+        SV = lambda sid, p='user_01AAA': sql("select public.shop_verify_slot('%s', '%s')" % (sid, p), None, 'service_role')
+        sql("insert into public.purchases (id, player_id, product_id, amount_nok, status, data) values ('cs_v1', 'user_01AAA', 'verft_na', 19, 'open', '{}'), ('cs_vold', 'user_01AAA', 'verft_na', 19, 'open', '{}')")
+        sql("update public.purchases set created_at = now() - interval '25 hours' where id = 'cs_vold'")
+        V = {'ask': SV('cs_v1'), 'wait': SV('cs_v1')}
+        sql("update public.purchases set verify_at = now() - interval '6 seconds' where id = 'cs_v1'")
+        V.update({'again': SV('cs_v1'), 'other': SV('cs_v1', 'user_01BBB'), 'none': SV('cs_nix'), 'old': SV('cs_vold'), 'paid': SV('cs_s1')})
+        V['player'] = sql("select public.shop_verify_slot('cs_v1', 'user_01AAA')", A, 'authenticated', expect_err=True)[0]
+        sql("insert into public.purchases (id, player_id, product_id, amount_nok, status, created_at) select 'cs_vn' || g, 'user_01AAA', 'verft_na', 19, 'open', now() + g * interval '1 second' from generate_series(1, 5) g")
+        sql("update public.purchases set verify_at = null where id = 'cs_v1'"); V['many'] = SV('cs_v1'); V['newest'] = SV('cs_vn5')
+        sql("delete from public.purchases where id in ('cs_v1', 'cs_vold', 'cs_vn1', 'cs_vn2', 'cs_vn3', 'cs_vn4', 'cs_vn5')")
+        R['sVerify'] = V
         # haill kept on the server until it is switched on (HS2, 20261110180000_haill_use.sql): shop_pending gives the open grants and
         # the haill that is delivered and not used (held), haill_use takes the player's own haill once and nothing else, a refund takes
         # back a haill that is not used also after delivery, and the haill delivered before the migration counts as used
@@ -787,6 +801,9 @@ def main():
                  and R['pWeekMe'].startswith('Du leverte ') and ' i åpen gruppe. Ukas beste fisker i åpen gruppe er «Havbris»' in R['pWeekMe'] and R['pWeekTitle'] == 'Ukas fangst'),
               "push from the server: no leaderboard message; once a week (Sunday from 19:00) «Ukas fangst»: her own kilos and place in her group over the last seven days, and the best fisher, to each who has it on (not with it turned off); players cannot call it", {'pass': R['pPass'], 'off': [R['pWeekOff'], R['pWeekOffQ']], 'week': R['pWeek'], 'me': R['pWeekMe'], 'tue': R['pWeekTue'], 'sun18': R['pWeekSun18'], 'mon': R['pWeekMon'], 'title': R['pWeekTitle']})
         q, pd = R['sQuote'], R['sPend']
+        V = R['sVerify']
+        print(ok(V == {'ask': 'ask', 'wait': 'wait', 'again': 'ask', 'other': 'gone', 'none': 'gone', 'old': 'old', 'paid': 'paid', 'player': True, 'many': 'old', 'newest': 'ask'}),
+              '#185 verify: Stripe asked at most once every 5 s per purchase, only an open one of the last day among the player\'s five newest; another player\'s is gone, a paid one says paid; no player may call it', V)
         print(ok(q.get('price_nok') == 149 and q.get('data', {}).get('k') == 't24' and R['sNoProd'][0] and R['sAnon'][0] and R['sPaid1'] == 't' and R['sPaid2'] == 'f'
                  and len(pd) == 1 and pd[0]['product'] == 'trim_turbo' and pd[0]['data'].get('give') == 'trim' and pd[0]['data'].get('boat') == 'v1' and R['sPendB'] == []
                  and R['sPlPaid'][0] and R['sPlRead'][0] and R['sAfter'] == '0/refunded/1/1' and R['sEnd'] == []),

@@ -6006,3 +6006,7 @@
 2026-11-18 16:15	claude/admiring-cray-ve9h87	53cbaccc+	kjoptest	OK	185	lite	alene	
 2026-11-18 16:21	claude/admiring-cray-ve9h87	53cbaccc+	kjoptest	FEIL	340	lite	alene	FEIL #185: «Ferdig nå» paid while a fitting runs, the webhook not come: back from Stripe the game asks about its session, the server books it, and this purchase
 2026-11-18 16:25	claude/admiring-cray-ve9h87	53cbaccc+	kjoptest	OK	177	lite	alene	
+2026-11-18 16:34	claude/admiring-cray-ve9h87	3e237467+	kjoptest	FEIL	268	lite	alene	FEIL #185: a session kept on the device that ran out unpaid at Stripe is asked about at the start, then forgotten, and gives nothing  {"r": {"left": "{\"sid\":\
+2026-11-18 16:38	claude/admiring-cray-ve9h87	3e237467+	kjoptest	OK	188	lite	alene	
+2026-11-18 16:39	claude/admiring-cray-ve9h87	3e237467+	fasittest	OK	38	lite	samtidig	
+2026-11-18 16:39	claude/admiring-cray-ve9h87	3e237467+	guesttest	OK	65	lite	samtidig	

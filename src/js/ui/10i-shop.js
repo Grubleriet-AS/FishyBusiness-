@@ -425,18 +425,21 @@ async function shopClaim(){
   return names.length;
 }
 // the purchase's session asked about through the server (shop-checkout {verify}): Stripe's answer, booked there when it is paid and the
-// webhook has not. Returns the purchase's status ('paid', 'open', ...), 'gone' when it is not this player's, or null when it cannot be
-// known now (no network, or a server from before the call: it answers 400 and the claims go on as before)
-const SHOP_ASK_MS = 15 * 60000, KEY_KJOP = 'kystfiske_v2_kjop';
+// webhook has not. Returns {st, ids}: the purchase's status ('paid', 'open', 'expired', 'refunded', 'old', ...; 'gone' when it is not this
+// player's) and, paid, the ids of its grants; or null when it cannot be known now (no network, or a server from before the call: it
+// answers 400 and the claims go on as before)
+// (asked for 15 minutes from the start of the page that has it, SHOP_ASK_MS; kept on the device a day, SHOP_KEEP_MS, as long as the
+// server will ask Stripe about it, so a payment that took long, or a page opened later, still asks)
+const SHOP_ASK_MS = 15 * 60000, SHOP_KEEP_MS = 24 * 3600e3, KEY_KJOP = 'kystfiske_v2_kjop';
 async function shopVerify(sid){
   try {
     const tok = await cloudToken(); if (!tok) return null;
     const r = await fetch(shopFn(), {method:'POST', headers:{'Content-Type':'application/json', apikey:CLOUD_CFG.supabaseAnon, Authorization:'Bearer ' + tok}, body:JSON.stringify({verify:sid})});
     const j = await r.json().catch(() => ({}));
-    if (r.status === 404) return 'gone';
+    if (r.status === 404) return {st:'gone', ids:null};
     if (!r.ok || typeof j.st !== 'string') return null;
     if (j.booked && typeof cloudEv === 'function') cloudEv('shop_verify', {booked:true});   // (paid at Stripe and not booked by the webhook: counted)
-    return j.st;
+    return {st:j.st, ids:Array.isArray(j.ids) ? j.ids : null};
   } catch (e){ return null; }
 }
 // at the start, signed in: is the shop set up, and anything bought (also back from Stripe with ?kjop=…, asked again for a while)
@@ -460,18 +463,22 @@ function shopStart(){
   // (the session is kept on the device, KEY_KJOP, from the tap on «Kjøp» (shopGo), so a start without ?kjop asks for it too within the time:
   // a page closed before the answer came, a payment finished in another window, the game opened anew. One ask at a time, the tries and
   // the interval may meet. shop_got measures how long from the tap to the delivery, and by which way: url or store)
-  SHOP.sid = SHOP.ret && /^cs_(live|test)_/.test(SHOP.ret) ? SHOP.ret : null; SHOP.sidAt = Date.now(); SHOP.via = 'url';
-  try { const o = JSON.parse(localStorage.getItem(KEY_KJOP) || 'null'), kept = o && /^cs_(live|test)_/.test(o.sid) && Date.now() - o.at < SHOP_ASK_MS;
+  SHOP.sid = SHOP.ret && /^cs_(live|test)_/.test(SHOP.ret) ? SHOP.ret : null; SHOP.sidAt = Date.now(); SHOP.via = 'url'; SHOP.askFrom = Date.now();
+  try { const o = JSON.parse(localStorage.getItem(KEY_KJOP) || 'null'), kept = o && /^cs_(live|test)_/.test(o.sid) && Date.now() - o.at < SHOP_KEEP_MS;
     if (SHOP.sid){ if (kept && o.sid === SHOP.sid) SHOP.sidAt = o.at; localStorage.setItem(KEY_KJOP, JSON.stringify({sid:SHOP.sid, at:SHOP.sidAt})); }
     else if (!SHOP.ret && kept){ SHOP.sid = o.sid; SHOP.sidAt = o.at; SHOP.via = 'store'; } else if (!SHOP.ret) localStorage.removeItem(KEY_KJOP); } catch (e){}
   const done = () => { SHOP.sid = null; try { localStorage.removeItem(KEY_KJOP); } catch (e){} };
+  // (it ends when this purchase's own grants are in the game, S.shopGiven, not when anything else is delivered; or when the server says the
+  // session ended unpaid, was refunded or is not this player's. A server from before the ids: anything delivered ends it, as before)
   const ask = async () => { if (SHOP.asking) return; SHOP.asking = true;
-    try { const sid = SHOP.sid, st = sid ? await shopVerify(sid) : null, n = await shopClaim();
-      if (n && sid && typeof cloudEv === 'function') cloudEv('shop_got', {via:SHOP.via, s:Math.round((Date.now() - SHOP.sidAt) / 1000)});
-      if (n || (st && st !== 'open' && st !== 'paid')) done(); if (n) SHOP.ret = null; }   // (paid, and not here yet: asked on)
+    try { const sid = SHOP.sid, v = sid ? await shopVerify(sid) : null, n = await shopClaim(), st = v && v.st, ids = v && v.ids;
+      const got = !!sid && st === 'paid' && !!ids && ids.length > 0 && ids.every(id => (S.shopGiven || []).includes(id)), was = !!sid && !ids && n > 0;
+      if ((got || was) && typeof cloudEv === 'function') cloudEv('shop_got', {via:SHOP.via, s:Math.round((Date.now() - SHOP.sidAt) / 1000)});
+      if (got || was || (st && st !== 'open' && st !== 'paid')) done(); if (n || got) SHOP.ret = null; }   // (paid, and not here yet: asked on)
     finally { SHOP.asking = false; } };
   for (const ms of tries) setTimeout(() => { if (ms && !SHOP.ret && !SHOP.sid) return; ask(); }, ms);
-  if (SHOP.sid){ const iv = setInterval(() => { if (!SHOP.sid || Date.now() - SHOP.sidAt > SHOP_ASK_MS){ done(); clearInterval(iv); return; }
+  // (after the window the purchase stays on the device, and the next start, a focus or the page shown again asks for it)
+  if (SHOP.sid){ const iv = setInterval(() => { if (!SHOP.sid || Date.now() - SHOP.askFrom > SHOP_ASK_MS){ clearInterval(iv); return; }
     if (document.visibilityState === 'visible') ask(); }, 30000); }
   // still nothing after the last try: say so, rather than nothing (it is given at the next start, or when the game is opened again)
   if (SHOP.ret) setTimeout(() => { if (!SHOP.ret) return; SHOP.ret = null; toast(shopL('Betalingen er ikke bekreftet ennå. Det du kjøpte, kommer så snart den er det, også neste gang du åpner spillet.', 'The payment is not confirmed yet. What you bought comes as soon as it is, also the next time you open the game.')); }, 52000);
