@@ -11,6 +11,8 @@
 //                                                     crashes and hangs counted from the error list (20261118220000_agent_uke.sql)
 //   POST {op:'autonav', days}                      -> agent_autonav(days): the players' Autonav trips, what their hulls touched and the groundings
 //                                                     (20261118160000_autonav_treff.sql; tools/autonav/treff.py)
+//   POST {op:'incidents', days}                    -> agent_incidents(days): every grounding, blow against a quay, pier, mole or mark, and
+//                                                     collision, with place, boat, speed and who steered, never who (20261117160000_agent_incidents.sql)
 //
 // Only with «Authorization: Bearer <FEEDBACK_AGENT_TOKEN>». Jonas makes the token (a long random password) and sets it here as a secret
 // and in the Claude Code environment; it never goes through a chat. Deployed with verify_jwt off, since the token is our own. It calls
@@ -50,6 +52,8 @@ serveReported('feedback-agent', async (req) => {
     case 'imgs': return call('agent_feedback_imgs', {fid: num(b.fid)});
     case 'note': return call('agent_note', {fid: num(b.fid), note: str(b.note), score: num(b.score), st: str(b.st), reply: str(b.reply)});
     case 'tech': return call('agent_tech', {days: Math.max(1, Math.min(90, num(b.days) || 7))});
+    // the groundings, the blows and the collisions (20261117160000_agent_incidents.sql)
+    case 'incidents': return call('agent_incidents', {days: Math.max(1, Math.min(90, num(b.days) || 30))});
     case 'fixed': return call('agent_fixed', {fid: num(b.fid), pr: str(b.pr), ver: str(b.ver)});
     case 'uke': return call('agent_uke', {});
     case 'autonav': return call('agent_autonav', {days: Math.max(1, Math.min(90, num(b.days) || 7))});
