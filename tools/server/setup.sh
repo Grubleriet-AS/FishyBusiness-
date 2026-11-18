@@ -63,7 +63,10 @@ fi
 say "The deploy user"
 id deploy >/dev/null 2>&1 || adduser --disabled-password --gecos '' deploy
 # current is the production (main), test the test edition on test.$DOMAIN (the working branch, L1a 10.11.2026); rrsync holds the key in $SITE
-install -d -m 755 -o deploy -g deploy "$SITE" "$SITE/current" "$SITE/test"
+# From live-drift fase 4 (18.11.2026) current is a pointer to releases/<v>, the release job uploads into neste/, auto/ is the build that
+# is about to go out, tried at test.$DOMAIN/auto/, and in/, out/ and status/ carry the questions, the answers and the brake's state
+install -d -m 755 -o deploy -g deploy "$SITE" "$SITE/test" "$SITE/releases" "$SITE/auto" "$SITE/in" "$SITE/out" "$SITE/status"
+[ -e "$SITE/current" ] || install -d -m 755 -o deploy -g deploy "$SITE/current"
 install -d -m 700 -o deploy -g deploy /home/deploy/.ssh
 NEWKEY=0
 if [ -z "$KEY" ]; then
@@ -218,6 +221,80 @@ say "The watch on the database"
 if [ -n "$HERE" ] && [ -f "$(dirname "$HERE")/vakt/setup.sh" ]; then bash "$(dirname "$HERE")/vakt/setup.sh"; else curl -fsSL "$RAW/vakt/setup.sh" | DSB_REF=$REF bash; fi
 
 # ---------- what goes into GitHub ----------
+# ---------- the editions and the emergency brake (live-drift fase 4, 18.11.2026): tools/server/utgave.py and tools/server/vakt/brems.py ----------
+say "The editions and the emergency brake"
+UDIR=/opt/dsb-utgave; install -d -m 755 -o root -g root "$UDIR"
+for f in utgave.py vakt/brems.py; do
+  if [ -n "$HERE" ] && [ -f "$(dirname "$HERE")/$f" ]; then cp "$(dirname "$HERE")/$f" "$UDIR/$(basename "$f").new"; else curl -fsSL "$RAW/$f" -o "$UDIR/$(basename "$f").new"; fi
+  python3 -m py_compile "$UDIR/$(basename "$f").new" && mv "$UDIR/$(basename "$f").new" "$UDIR/$(basename "$f")"
+done
+chown root:root "$UDIR"/*.py; chmod 644 "$UDIR"/*.py; rm -rf "$UDIR/__pycache__"
+# current/ as a folder (before fase 4) becomes releases/<v> and the pointer, once; the site is served from the same files all the while
+runuser -u deploy -- python3 "$UDIR/utgave.py" omgjor
+cat > /etc/systemd/system/dsb-utgave.service <<EOF
+[Unit]
+Description=Det Store Blå: a new edition of the production (the pointer swapped in one step)
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+ExecStart=/usr/bin/python3 $UDIR/utgave.py bytt
+TimeoutStartSec=600
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=$SITE
+EOF
+cat > /etc/systemd/system/dsb-utgave.path <<EOF
+[Unit]
+Description=Det Store Blå: swap the production's edition when the release job has asked
+
+[Path]
+PathChanged=$SITE/in/utgave
+Unit=dsb-utgave.service
+
+[Install]
+WantedBy=multi-user.target
+EOF
+cat > /etc/systemd/system/dsb-brems.service <<EOF
+[Unit]
+Description=Det Store Blå: the emergency brake, two hours after each release (tools/server/vakt/brems.py)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+EnvironmentFile=-/etc/dsb-vakt.env
+ExecStart=/usr/bin/python3 $UDIR/brems.py
+TimeoutStartSec=50
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=$SITE
+EOF
+cat > /etc/systemd/system/dsb-brems.timer <<EOF
+[Unit]
+Description=Det Store Blå: the emergency brake, once a minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=10s
+
+[Install]
+WantedBy=timers.target
+EOF
+systemctl daemon-reload
+systemctl enable dsb-utgave.path dsb-brems.timer >/dev/null 2>&1
+systemctl restart dsb-utgave.path dsb-brems.timer
+echo "The production: $(runuser -u deploy -- python3 "$UDIR/utgave.py" status | head -1)"
+echo "The brake: $(systemctl is-active dsb-brems.timer), the editions: $(systemctl is-active dsb-utgave.path)"
+
 say "Done"
 echo "Caddy serves $SITE/current at https://$DOMAIN and $SITE/test at https://test.$DOMAIN (a placeholder page until the first upload)."
 echo "If the server has a firewall in Hetzner's console (Firewalls), it must let in TCP 80 and 443 too."

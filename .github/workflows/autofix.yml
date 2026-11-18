@@ -83,6 +83,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
           BASE: ${{ github.base_ref }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           sha=$(gh pr view "$PR" --json state,mergeCommit -q 'select(.state == "MERGED") | .mergeCommit.oid')
           [ -n "$sha" ] || { echo "PR-en ble ikke flettet i denne kjøringen; ingenting å slippe."; exit 0; }
@@ -109,9 +112,32 @@ jobs:
           \`\`\`"
             exit 0
           fi
+          # the emergency brake's lock (live-drift fase 4, tools/server/vakt/brems.py): while https://detstorebla.no/nodbrems.json answers,
+          # nothing goes out by itself; Jonas lifts it with a release he starts
+          if curl -fsS -o /dev/null "https://detstorebla.no/nodbrems.json?t=$(date +%s)" 2>/dev/null; then
+            say "Rettingen ligger på testutgaven, men nødbremsen har stoppet automatiske slipp (https://detstorebla.no/nodbrems.json). Den kommer til detstorebla.no med neste slipp Jonas starter."
+            exit 0
+          fi
+          # the build that goes out, tried where it is served first (live-drift fase 4; Jonas: «Verifisering av nøyaktig det bygget som skal ut
+          # (main + rettingen) på test.detstorebla.no/auto/ inkludert oppstartstest og den nye testen før produksjon endres»): built from this
+          # branch exactly as deploy.yml builds the production, uploaded to auto/, opened there (tools/release/autoprove.py), and the boot
+          # test and the fix's own red-first tests run on the same bytes. Anything that does not hold, and nothing goes out
+          stop_auto(){ say "Rettingen ligger på testutgaven, men prøven av bygget på test.detstorebla.no/auto/ holdt ikke ($1), så den slippes ikke alene. Den kommer med neste slipp.
+
+          \`\`\`
+          $(tail -n 15 auto.txt 2>/dev/null | head -c 2500)
+          \`\`\`"; exit 0; }
+          [ -n "$DEPLOY_HOST" ] || stop_auto "DEPLOY_HOST mangler"
+          install -d -m 700 ~/.ssh; printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy; printf '%s\n' "$DEPLOY_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+          { pip install -q requests && KYST_CHANNEL=prod python3 tools/map/game.py && KYST_CHANNEL=prod KYST_PWA=1 node build.mjs; } > auto.txt 2>&1 || stop_auto "bygget"
+          rsync -az --delete-after --delay-updates -e "ssh -i $HOME/.ssh/deploy" dist-pwa/ "deploy@$DEPLOY_HOST:auto/" >> auto.txt 2>&1 || stop_auto "opplastingen"
+          python3 tools/release/autoprove.py https://test.detstorebla.no/auto/ dist-pwa/version.json >> auto.txt 2>&1 || stop_auto "oppstarten på /auto/"
+          names=$(python3 -c "import json; t=json.load(open('gate-main.json')).get('tests', {}); print(' '.join(dict.fromkeys(['boottest'] + (t.get('bevis') or []))))" 2>/dev/null || echo boottest)
+          KYST_DIST=dist-pwa python3 tests/run.py smoke $names >> auto.txt 2>&1 || stop_auto "testene på det samme bygget: $names"
+          grep -q ' 0 FEIL' auto.txt || stop_auto "testene på det samme bygget: $names"
           git push -f origin "$br"
           gh workflow run slipp.yml --ref "$BASE" -f gren="$br" -f migreringer=ingen
-          say "Rettingen holder også mot spillernes versjon, og slippes nå alene til detstorebla.no (grenen \`$br\`, workflowen «Slipp»; lagringsporten kjører før opplastingen). main flettes tilbake i arbeidsgrenen etterpå."
+          say "Rettingen holder også mot spillernes versjon, og bygget holdt på test.detstorebla.no/auto/ (oppstarten der, og $names på de samme filene). Den slippes nå alene til detstorebla.no (grenen \`$br\`, workflowen «Slipp»; lagringsporten kjører før opplastingen). main flettes tilbake i arbeidsgrenen etterpå."
       - name: Stoppet eller klar for Jonas
         if: steps.gate.outputs.code != '0'
         env:

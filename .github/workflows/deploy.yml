@@ -186,8 +186,33 @@ jobs:
           grep -q '"ch":"test"' dist-pwa/version.json && CH=test || CH=
           if [ "$DEPLOY_DIR" = current ] && [ -n "$CH" ]; then echo "A test build must not go to the production."; exit 1; fi
           if [ "$DEPLOY_DIR" = test ] && [ -z "$CH" ]; then echo "The test edition must be built with KYST_CHANNEL=test."; exit 1; fi
-          echo "Uploading the ${CH:-production} build to $DEPLOY_DIR/"
-          rsync -az --delete-after --delay-updates -e "ssh -i ~/.ssh/deploy" dist-pwa/ "deploy@$DEPLOY_HOST:$DEPLOY_DIR/"
+          R="ssh -i $HOME/.ssh/deploy"; H="deploy@$DEPLOY_HOST"
+          # the production's editions (live-drift fase 4, 18.11.2026; tools/server/utgave.py): on a server set up for them, the build goes
+          # into neste/, and the server makes it releases/<v> and swaps the pointer current -> releases/<v> in one step, so the edition
+          # before stays whole beside it for the emergency brake (tools/server/vakt/brems.py) and a roll-back is one rename. A server not
+          # set up yet (no releases/HISTORY.jsonl) gets the build into current/ as before
+          if [ "$DEPLOY_DIR" = current ] && rsync -q --list-only -e "$R" "$H:releases/HISTORY.jsonl" >/dev/null 2>&1; then
+            V=$(python3 -c "import json; print(json.load(open('dist-pwa/version.json'))['v'])")
+            echo "Uploading the production build $V to neste/, then the edition swap"
+            rsync -az --delete-after --delay-updates -e "$R" dist-pwa/ "$H:neste/"
+            ASK="${{ github.run_id }}-${{ github.run_attempt }}"
+            printf '{"id":"%s","versjon":"%s","commit":"%s"}\n' "$ASK" "$V" "$(git rev-parse HEAD)" > "$RUNNER_TEMP/utgave"
+            rsync --inplace --chmod=F644 -e "$R" "$RUNNER_TEMP/utgave" "$H:in/utgave"
+            ok=
+            for i in $(seq 1 60); do
+              sleep 5
+              rm -f "$RUNNER_TEMP/utgave.json"
+              rsync -q -e "$R" "$H:out/utgave.json" "$RUNNER_TEMP/utgave.json" 2>/dev/null || continue
+              got=$(python3 -c "import json,sys; r=json.load(open(sys.argv[1])); print(r.get('id',''), 'go' if r.get('ok') is True else 'stop')" "$RUNNER_TEMP/utgave.json" 2>/dev/null || true)
+              case "$got" in "$ASK go") ok=go; break;; "$ASK stop") ok=stop; break;; esac
+            done
+            [ -s "$RUNNER_TEMP/utgave.json" ] && cat "$RUNNER_TEMP/utgave.json" | tee -a "$GITHUB_STEP_SUMMARY"
+            [ "$ok" = go ] || { echo "::error::The server did not swap to the new edition ($ok): detstorebla.no stands on the edition before. On the server: journalctl -u dsb-utgave"; exit 1; }
+            echo "detstorebla.no is now the edition $V; the one before stands beside it (python3 /opt/dsb-utgave/utgave.py status)." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Uploading the ${CH:-production} build to $DEPLOY_DIR/"
+            rsync -az --delete-after --delay-updates -e "$R" dist-pwa/ "$H:$DEPLOY_DIR/"
+          fi
       # what the players get (18.11.2026): version.json through Caddy at the public address must be the build just uploaded. A red
       # step here means the files did not reach what is served (the wrong folder, Caddy serving another root, an old Caddyfile);
       # rolling back the same way will not help then: look at the server (tools/server/status.sh, /etc/caddy/Caddyfile)
