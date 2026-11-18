@@ -675,6 +675,7 @@ function dynLineBuild(pl, dep){
         const shoal = W.slice(1).some((r, k) => groundCheck(W[k], r)), long = shoal || (lw > 1.25 * lp + 0.03 && pin);
         if (W.length > 2 && !long){ bz.add(P.length - 1); for (const r of W.slice(1, -1)){ add(r.x * 1000, r.y * 1000); bz.add(P.length - 1); } wpAt[i] = P.length - 1; continue; } } }
     add(w.x * 1000, w.y * 1000); wpAt[i] = P.length - 1; }
+  dynLineNudge(P, wpAt, pl, iEnd, dep ? iOut : 0, bz);
   const HZ = dynLineHarb(P, wpAt, pl, iEnd, dep ? iOut : 0, dep && iOut >= 1 ? 1 : 0);
   const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
   const stops = []; for (let i = pl.idx; i <= iEnd; i++) if (wpStop(pl.wps[i]) && wpAt[i] != null) stops.push({i, s:L[wpAt[i]]});
@@ -691,6 +692,34 @@ function dynLineBuild(pl, dep){
   let vecWait = false; try { const T0 = MAPD.man ? MAPD.man.tile * 1000 : 0, chk = q => { if (!T0) return; for (const dx of [-500, 500]) for (const dz of [-500, 500]){ const tx = Math.floor((q[0] + dx) / T0), ty = Math.floor((q[1] + dz) / T0); if (vecHas(tx, ty) && !vecTile(tx, ty)) vecWait = true; } };
     chk(P[0]); if (wpAt[iEnd] != null) chk(P[wpAt[iEnd]]); } catch (e){}
   return {plan:pl, n:pl.wps.length, sig:dynSig(pl), chk:0, P, L, end:L[L.length - 1], wpAt, stops, corners, bzS, iEnd, back, turnL:Math.max(10, Lb * 1.5), hd0, sOut, s:0, gchk:0, ghit:null, hzS:HZ.in != null ? L[HZ.in] : null, dep, vecWait, vecVer:VEC.ver};
+}
+// Off the shore by half her beam and 3 m where the line passes nearer (pattern 2 of the autonav routine, 18.11.2026: the route's legs are
+// checked along their middle, groundCheck and legClear, and passed 1-5 m off an islet at Vallersund and the shore at Forsøl, where her
+// side struck it at 10-21 knots): on each leg outside the harbours (dynLineHarb has those), the point of each run of the leg nearer the
+// coast than that (coastDistM, every 8 m) is moved away from it, to the side with no land, as a new point of the line; not where there is
+// land on both sides (a sound narrower than that: as the route has it), nor where the moved point would be nearer land. The route's points
+// keep their places on the line (wpAt)
+function dynLineNudge(P, wpAt, pl, iEnd, iOut, bz){
+  const need = (BOAT.beam || 3) / 2 + 3, km = (x, z) => ({x:x / 1000, y:z / 1000});
+  const cd = (x, z) => { try { const d = coastDistM(km(x, z), need + 2); return d < 0 ? 1e9 : d; } catch (e){ return 1e9; } };
+  const land = (x, z) => { try { return isLand(km(x, z)); } catch (e){ return true; } };
+  const out = [P[0]], map = [0];
+  for (let i = 1; i < P.length; i++){
+    const a = P[i - 1], b = P[i];
+    if (i > iOut){ const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz), n = Math.floor(L / 8);
+      if (n >= 2){ const ux = dx / L, uz = dz / L, nx = -uz, nz = ux; let run = null; const flush = () => { if (!run) return; const [x, z, d] = run; run = null;
+          const lf = land(x + nx * need, z + nz * need), rt = land(x - nx * need, z - nz * need); if (lf === rt) return;
+          const sg = lf ? -1 : 1, q = [x + sg * nx * (need - d + 1), z + sg * nz * (need - d + 1)];
+          if (land(q[0], q[1]) || cd(q[0], q[1]) < d + 0.5 || inHarbour(km(q[0], q[1]))) return; out.push(q); };
+        for (let k = 1; k < n; k++){ const x = a[0] + dx * k / n, z = a[1] + dz * k / n; if (k * L / n < 10 || (n - k) * L / n < 10){ flush(); continue; }
+          const d = inHarbour(km(x, z)) ? 1e9 : cd(x, z); if (d < need){ if (!run || d < run[2]) run = [x, z, d]; } else flush(); }
+        flush(); } }
+    out.push(b); map.push(out.length - 1);
+  }
+  if (out.length === P.length) return;
+  for (let i = pl.idx; i <= iEnd; i++) if (wpAt[i] != null) wpAt[i] = map[wpAt[i]];
+  if (bz && bz.size){ const nb = [...bz].map(k => map[k]); bz.clear(); for (const k of nb) bz.add(k); }
+  P.length = 0; P.push(...out);
 }
 // The line's last 400 m in to a harbour and its first 400 m out from the quay, where they pass within half her beam and a metre of a
 // pier, a quay, a floating dock or a boat lying there (11b-obstacles.js fixLegOk): the way among them over a 4 m grid instead, fixWay

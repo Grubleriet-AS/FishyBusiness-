@@ -7,7 +7,9 @@
        ['Lanternene lyser ikke lenger som en stor prikk på små skjermer.', 'The lanterns no longer show as a big dot on small screens.'],
        ['Loggen sier fra når Autonav slakker av for å vike for en annen båt.', 'The log says when Autonav slows down to give way to another boat.'],
        ['På iPhone kommer lyden tilbake ved neste trykk etter en samtale eller et varsel.', 'On the iPhone the sound comes back at the next tap after a call or a notification.'],
-       ['Driftsplanen finner veien når du starter den ute på sjøen, og leter ikke lenger i det uendelige.', 'The plan finds its way when you start it out at sea, and no longer searches for ever.']]],
+       ['Driftsplanen finner veien når du starter den ute på sjøen, og leter ikke lenger i det uendelige.', 'The plan finds its way when you start it out at sea, and no longer searches for ever.'],
+       ['Autonav går utenom brygger, flytebrygger, moloer og båter som ligger ved kaia, inn til havna og ut fra den. Det siste stykket inn og det første ut tar folkene båten rolig langs en vei som er fri.', 'Autonav keeps clear of piers, floating docks, breakwaters and boats lying at the quay, into the harbour and out of it. The last stretch in and the first out, the crew take her slowly along a clear way.'],
+       ['Noen flytebrygger som lå der båtene legger til ved butikken, mottaket og verftet, er tatt bort.', 'Some floating docks that lay where the boats come alongside at the shop, the plant and the yard have been taken away.']]],
     ['smolafylke-171126', '17.11.2026', 'Fylkene i startlista', 'The counties in the start list', [
        ['Smøla står under Møre og Romsdal når du velger hvor du starter, Gutvik under Trøndelag og Selje under Vestland.', 'Smøla is under Møre og Romsdal when you choose where to start, Gutvik under Trøndelag and Selje under Western Norway.']]],
     ['havnland-171126', '17.11.2026', 'Land i havna', 'Land in the harbour', [
