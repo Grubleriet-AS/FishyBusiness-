@@ -205,6 +205,14 @@ def classify_feedback(row, cls):
 
 # ---------- what is handled, and the thank-you ----------
 GIVEN_UP = 'trenger-jonas'
+REG_LABEL = 'regresjon'   # the regression's red tests, one issue each (tools/regresjon/saker.py, live-drift fase 5)
+
+
+def reg_cover(test):
+    """The files tests/run.py's COVER says the test covers (not the test files themselves)."""
+    sys.path.insert(0, os.path.join(ROOT, 'tests'))
+    import run as R
+    return sorted(f for f, ts_ in R.COVER.items() if test in ts_ and not f.startswith('tests/'))
 KLYNGE_REF = re.compile(r'klynge:([0-9a-f]{8})')
 FB_REF = re.compile(r'tilbakemelding #(\d+)')
 PR_REF = re.compile(r'/pull/(\d+)')
@@ -244,21 +252,52 @@ def given_up(issues):
     return cl, fb
 
 
-def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=()):
-    """Everything above, without fetching anything: the clusters, the feedback sorted, and whether Opus is needed."""
+REG_MARK = re.compile(r'<!-- regresjon (\{.*?\}) -->')
+REG_ALVOR, REG_KRONISK = 3, 4   # a test red twice with the same seed weighs as a thrown error; three nights in a row a little more
+
+
+def reg_clusters(reg_issues, cover):
+    """The open `regresjon` issues (tools/regresjon/saker.py, live-drift fase 5) as technical clusters: one per red test, its id the
+    issue's (`klynge:<id>`), the files the test covers (cover(test)) as what a fix may touch, and the risk the highest of theirs. They
+    are «new» while the issue is open (the test is red each night), so a PR naming the id or a `trenger-jonas` issue is what handles one.
+    One session each: a test is not the players', so the players' clusters (sessions × severity) come first."""
+    out = []
+    for i in reg_issues or []:
+        if i.get('state', 'open') != 'open': continue
+        m = REG_MARK.search(i.get('body') or '')
+        if not m: continue
+        try: d = json.loads(m.group(1))
+        except ValueError: continue
+        t = d.get('test'); cid = d.get('id')
+        if not t or not cid or not re.fullmatch(r'[0-9a-f]{8}', cid): continue
+        labels = [l['name'] if isinstance(l, dict) else l for l in i.get('labels') or []]
+        files = cover(t) if cover else []
+        alvor = REG_KRONISK if 'kronisk' in labels else REG_ALVOR
+        out.append({'id': cid, 'sig': 'regresjon ' + t, 'msg': 'Regresjon: %s er rød: %s' % (t, (d.get('sjekk') or '')[:120]), 'file': files[0] if files else '',
+                    'files': files, 'fn': '', 'src': 'regresjon', 'n': int(d.get('netter') or 1), 'sessions': 1, 'players': 0, 'first': d.get('forst'),
+                    'last': d.get('sist'), 'versions': [], 'platforms': {}, 'gpus': [], 'examples': [], 'stack': '', 'alvor': alvor, 'feedback': [],
+                    'vekt': 1.0, 'score': float(alvor), 'risiko': risiko.max_class(*[risiko.file_class(f)[0] for f in files]) if files else risiko.MIDDELS,
+                    'regresjon': {'test': t, 'sak': i.get('number'), 'netter': int(d.get('netter') or 1), 'kronisk': 'kronisk' in labels}})
+    return out
+
+
+def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=(), reg=(), cover=None):
+    """Everything above, without fetching anything: the clusters, the feedback sorted, and whether Opus is needed. reg: the open
+    `regresjon` issues; cover(test) -> the files the test covers."""
     cls = clusters(errors)
     fb = [classify_feedback(r, cls) for r in rows or []]
     for f in fb:
         if f['klynge']:
             c = next(c for c in cls if c['id'] == f['klynge']); c['feedback'].append(f['id']); c['score'] = round(c['score'] + f['alvor'], 1)
+    cls = sorted(cls + reg_clusters(reg, cover), key=lambda c: -c['score'])   # (after the feedback: a player's report is never linked to a test)
     hcl, hfb = handled(prs, now)
     gcl, gfb = given_up(issues)
     since = ts(last_run_ts)
     for c in cls:
-        c['ny'] = bool(since is None or (ts(c['last']) and ts(c['last']) > since))
+        c['ny'] = bool(c.get('regresjon')) or bool(since is None or (ts(c['last']) and ts(c['last']) > since))
         c['oppgitt'] = c['id'] in gcl
         c['behandlet'] = c['id'] in hcl or c['oppgitt']
-    allowed = lambda c: prlaas.allows(lock, c['risiko'], [c['file']] if c.get('file') else [])   # (one hoy, three middels, never the same file)
+    allowed = lambda c: prlaas.allows(lock, c['risiko'], c.get('files') or ([c['file']] if c.get('file') else []))   # (one hoy, three middels, never the same file)
     fix_cl = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and allowed(c)]
     fix_fb = [f for f in fb if f['type'] == 'teknisk' and not f['klynge'] and f['id'] not in hfb and f['id'] not in gfb and f['score'] >= MIN_FIX]
     blocked = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and not allowed(c)]
@@ -347,12 +386,14 @@ def real_run(a):
     try: issues = gh('repos/%s/issues?state=open&labels=%s&per_page=100' % (REPO, GIVEN_UP))
     except Exception as e: issues = None; why.append(str(e))
     if issues is None: prs = None   # without the issues it is not known what was given up: never wake Opus blind
+    try: reg = gh('repos/%s/issues?state=open&labels=%s&per_page=100' % (REPO, REG_LABEL))
+    except Exception as e: reg = []; why.append(str(e))   # (without them the regression's red waits; the players' errors go on)
     for p in prs or []:   # the files of the PRs that wait for Jonas: a middels fix on one of them waits (prlaas.allows)
         if prlaas.ours(p) and prlaas.klasse(p) in ('middels', 'hoy'):
             try: p['files'] = [f['filename'] for f in gh('repos/%s/pulls/%d/files?per_page=100' % (REPO, p['number'])) or []]
             except Exception as e: why.append(str(e)); prs = None; break
     lock = prlaas.decide(prs or [], now) if prs is not None else {'lav': False, 'hoy': False, 'middels': False, 'middels_hoy': False, 'filer': [], 'blokkert_av': [], 'lukk': []}
-    d = decide(fbd.get('rows'), fbd.get('noted'), tech.get('errors'), prs or [], (fbd.get('last_run') or {}).get('ts'), now, lock, issues or [])
+    d = decide(fbd.get('rows'), fbd.get('noted'), tech.get('errors'), prs or [], (fbd.get('last_run') or {}).get('ts'), now, lock, issues or [], reg, reg_cover)
     rewards = []
     if a.belonn and prs is not None and not a.test:
         git('fetch', '-q', '--depth=200', 'origin', '+main:refs/remotes/origin/main')
@@ -456,6 +497,29 @@ def selftest():
     eq('behandlet av PR', s['trenger_opus'], False)
     prs_old = [dict(prs[0], state='closed', closed_at=iso(24 * 5))]
     eq('gammel lukket PR teller ikke', summary(decide([], [], E, prs_old, iso(6), now, open_lock), [], 0)['trenger_opus'], True)
+    # the regression's red tests (live-drift fase 5): an open `regresjon` issue is a technical cluster, handled by a PR or `trenger-jonas`
+    ri = lambda n, t, cid, labels=('regresjon',), netter=1: {'number': n, 'state': 'open', 'labels': [{'name': l} for l in labels],
+        'body': '<!-- regresjon %s -->\ntekst' % json.dumps({'test': t, 'id': cid, 'netter': netter, 'forst': '2026-11-17', 'sist': '2026-11-19', 'sjekk': 'FEIL noe'})}
+    cov = {'errtest': ['src/js/errtrap.js', 'src/js/ui/10f-cloud.js'], 'docktest': ['src/js/ui/10c-dock.js']}.get
+    REG = [ri(40, 'errtest', 'aaaa1111'), ri(41, 'docktest', 'bbbb2222', ('regresjon', 'kronisk'), 3), {'number': 42, 'state': 'open', 'labels': [], 'body': 'ingen markør'}]
+    d = decide([], [], [], [], iso(0.5), now, open_lock, (), REG, cov); s = summary(d, [], 0)
+    rc = {c['id']: c for c in d['klynger']}
+    eq('regresjon: to klynger, saken uten markør hoppes over', sorted(rc), ['aaaa1111', 'bbbb2222'])
+    eq('regresjon: risiko av filene testen dekker', (rc['aaaa1111']['risiko'], rc['bbbb2222']['risiko']), ('hoy', 'lav'))
+    eq('regresjon: kronisk veier mer', (rc['aaaa1111']['score'], rc['bbbb2222']['score']), (3.0, 4.0))
+    eq('regresjon: Opus for den som er lov', (s['trenger_opus'], s['kan_rettes'][:1]), (True, ['bbbb2222']))
+    prs_r = [{'number': 9, 'state': 'open', 'title': 't', 'body': 'klynge:bbbb2222'}]
+    s = summary(decide([], [], [], prs_r, iso(0.5), now, open_lock, (), REG, cov), [], 0)
+    eq('regresjon: PR som nevner klyngen', 'bbbb2222' in s['kan_rettes'], False)
+    gu = [{'state': 'open', 'title': 'x', 'body': 'klynge:aaaa1111 klynge:bbbb2222'}]
+    s = summary(decide([], [], [], [], iso(0.5), now, open_lock, gu, REG, cov), [], 0)
+    eq('regresjon: gitt opp venter på Jonas', (s['trenger_opus'], sorted(s['venter_paa_jonas'])), (False, ['aaaa1111', 'bbbb2222']))
+    d = decide([], [], E, [], iso(6), now, open_lock, (), REG, cov)
+    eq('regresjon: spillernes krasj først', d['rett'][0]['id'], krasj['id'])
+    eq('regresjon: en tilbakemelding kobles aldri til en test', all(not c.get('regresjon') or not c['feedback'] for c in decide(R, [], E, [], iso(6), now, open_lock, (), REG, cov)['klynger']), True)
+    shut_h = {'lav': True, 'middels_hoy': True, 'hoy': False, 'middels': True}
+    s = summary(decide([], [], [], [], iso(0.5), now, shut_h, (), [REG[0]], cov), [], 0)
+    eq('regresjon: høy venter når høy-plassen er tatt', (s['kan_rettes'], s['sperret_av_pr_laasen']), ([], ['aaaa1111']))
     # the PR lock: a middels cluster waits, a lav one goes
     shut = {'lav': True, 'middels_hoy': False}
     E2 = [E[3] | {'first': iso(2), 'last': iso(1)}]
