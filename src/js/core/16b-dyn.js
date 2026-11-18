@@ -755,7 +755,7 @@ function landSail(pl, b){
 // (iFrom: where the check out begins, the point she backs to from the berth (berthPath's PL): the way from there to the harbour point
 // is the berth's way, and it ran by piers and floating docks the hands then took her through, Uthaug, Ålesund, Dønna)
 function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
-  const B = BOAT.beam || 3, m = B / 2 + 1.5, look = 400, pilot = 200, km = q => ({x:q[0] / 1000, y:q[1] / 1000});
+  const B = BOAT.beam || 3, m = B / 2 + 1.5, look = 400, km = q => ({x:q[0] / 1000, y:q[1] / 1000});
   // (and the ground as the route's legs ask it, outside the harbours: the hands do not stop for it)
   const Lb = BOAT.len || 10, corners = (i0, i1) => fixCornersOk(P.slice(i0, i1 + 1).map(km), Lb, B);
   const bad = (i0, i1) => { for (let i = i0 + 1; i <= i1; i++){ if (!fixLegOk(km(P[i - 1]), km(P[i]), m - 0.5)) return true; let g = null; try { g = groundCheck(km(P[i - 1]), km(P[i])); } catch (e){ return true; } if (g) return true; } return !corners(i0, i1); };
@@ -774,9 +774,10 @@ function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
   const bzMin = bz && bz.size ? Math.min(...bz) : Infinity;
   // (among the piers the model does not hold a line closely enough: a 15 m boat swung her bow 4-5 m out in the turn off the quay at
   // Ålesund onto a breakwater's head the line passed clear of, a snekke touched a floating dock in the gap she was led through at Dønna.
-  // The hands take her along the line, as out from the quay and in to the naust, at a knot and a half to three: the last 200 m in to the
-  // harbour point and the first 200 m on from the way out from the quay, where the line there is clear of everything by half her beam and
-  // a metre (found so here, or so already); R.in, R.out: the line's points where they begin and end, null where the line is not clear)
+  // The hands take her along a way found here, as out from the quay and in to the naust, the whole of it (R.in, R.out: the line's points
+  // where it begins and ends); a line that is clear as it is (its legs, the ground and its corners, bad), she sails herself at harbour
+  // speed: before 18.11.2026 the hands also took her the last 200 m in and the first 200 m out of a clear line, at under three knots,
+  // and Jonas found the small boats crawling over long stretches)
   const R = {in:null, out:null}, along = (k, dir, len, lim) => { let s = 0; while ((dir > 0 ? k < lim : k > lim) && s < len){ const k2 = k + dir; s += Math.hypot(P[k2][0] - P[k][0], P[k2][1] - P[k][1]); k = k2; } return k; };
   try {
     // out: on along the line from where the way from the quay ends
@@ -785,14 +786,14 @@ function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
       // (a way found here: the hands take her the whole of it; a line clear as it was: its first 200 m on from the way out from the quay)
       if (k > iOut && !stopIn(f, k)){ let sw = false, ok = !bad(f, k) ? k : (sw = true, swap(f, k));
         if (ok < 0 && f < iOut){ sw = false; ok = !bad(iOut, k) ? k : (sw = true, swap(iOut, k)); }
-        if (ok >= 0) R.out = sw ? ok : along(iOut, 1, pilot, ok); } }
+        if (ok >= 0 && sw) R.out = ok; } }
     // in: back along the line from the harbour point (not into the way out from the quay)
     const w = pl.wps[iEnd], e = wpAt[iEnd], i0 = R.out != null ? R.out : iOut;
     // (only where the harbour is within 1.5 km along the line: further off, the line is laid again 600 m from it, dynAuto, with the
     // vessels lying there then, and the search is not done twice)
     let toE = 0; if (e != null) for (let i = 1; i <= e && toE <= 1500; i++) toE += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
     if (w && w.port && w.berth !== 'naust' && e != null && e > i0 && toE <= 1500){ const k = along(e, -1, look, i0);
-      if (k < e && !stopIn(k, e) && (!bad(k, e) || swap(k, e) >= 0)){ const e1 = wpAt[iEnd]; R.in = along(e1, -1, pilot, k); } }
+      if (k < e && !stopIn(k, e) && bad(k, e) && swap(k, e) >= 0) R.in = k; }
   } catch (e){ console.error('dynLineHarb', e); }
   return R;
 }
@@ -969,7 +970,14 @@ function dynAuto(d, dtG){
     const sN = T.bzS != null && !T.bzDone ? T.stops.find(q => q.i >= pl.idx && pl.wps[q.i].berth === 'naust') : null;
     if (sN && !(T.assist > T.s) && !unsafe && !T.ghit && T.s >= sN.s - 200 && sStop > T.s + 1){ T.assist = Math.min(sN.s, sStop) - 0.5; T.bzDone = T.assist >= sN.s - 0.6; T.prog = {s:T.s, t:S.t}; dynHands(T, 'naust'); }
     if ((T.back > 0 && T.s < sScr) || T.assist > T.s){
-      const sTo = Math.max(T.back > 0 ? sScr : 0, T.assist || 0), vS = T.back > 0 && T.s < T.back + T.turnL ? 0.8 : Math.min(1.5, 0.8 + Math.max(0, T.s - T.back - T.turnL) * 0.05), psi0 = d.psi; T.s = Math.min(T.s + vS * h, sTo + 0.01); const q = dynLineAt(T, T.s), hd = dynLineHd(T, T.s, 3);
+      // (the speed: astern off the quay and in the turn 0.8 m/s; then up to five knots, the harbours' speed limit, where the line runs
+      // straight, a knot and a half to three a length before a corner of it and over the last lengths of the stretch: under three knots the
+      // whole way, the small boats crawled over long stretches, Jonas 18.11.2026)
+      const sTo = Math.max(T.back > 0 ? sScr : 0, T.assist || 0), vHi = 5 * KN_MS, vLo = 1.5, Lh = Math.max(L, 8);
+      let vS = T.back > 0 && T.s < T.back + T.turnL ? 0.8 : Math.min(vHi, 0.8 + Math.max(0, T.s - T.back - T.turnL) * 0.05);
+      if (vS > vLo){ const c = T.corners.find(q => q.th > 0.35 && q.s > T.s - Lh / 2 && q.s - T.s < 4 * Lh); if (c) vS = Math.min(vS, vLo + (vHi - vLo) * clamp((c.s - T.s - Lh) / (2 * Lh), 0, 1));
+        vS = Math.max(vLo, Math.min(vS, vLo + (vHi - vLo) * clamp((sTo - T.s - 2 * Lh) / (3 * Lh), 0, 1), Math.abs(d.u || 0) + 0.4 * h)); }
+      const psi0 = d.psi; T.s = Math.min(T.s + vS * h, sTo + 0.01); const q = dynLineAt(T, T.s), hd = dynLineHd(T, T.s, 3);
       d.X = q[0]; d.Y = q[1]; if (hd !== null) d.psi = hd; d.u = T.s < T.back ? -vS : vS; d.v = 0; d.r = dynAng(psi0, d.psi) / h; d.dl = 0; continue;
     }
     // arrived at a harbour: within two lengths of its point and slow, the quay's lines take her the rest of the way (3D moorStep)
