@@ -467,3 +467,13 @@ Jonas: «er det ikke sånn at havfiskebåtene kun kan levere ved noen spesifike 
 - `placeWhy` (`core/06b-coastports.js`): et verft eller en butikk tar et havfiskefartøy bare når kaifronten hun ville ligge ved (`quayFace`), er lang og dyp nok (`quayFit`-regelen; en havneenhets basseng er mudret til `dredge`), og det er svingrom: åpent vann innen hennes lengde rundt et punkt én lengde ut fra havnepunktet (`placeRoom`). En vanlig havneenhet har 24 m kaiplass, så butikkene tar ikke havfiskefartøyene (1 av 66 gjør); alle 130 verft har den store enheten (90 m, 13 m) og tar dem.
 - Kartplotteren sier hvorfor når du trykker på et sted som ikke tar båten (`ui/03b-route.js`).
 - Testene: `tests/unit/havplass.test.mjs`.
+
+## 4.12u Fangsten: det spillernes båter kommer borti (18.11.2026, Jonas' økt, PR til Jonas)
+
+Jonas: «hvordan skal vi da fange opp mønstre for hvor ekte spillere grunnstøter, går gjennom kaier, kæsjer i havner og alt sånt?»
+
+- `core/16e-anvtreff.js` (`anvTick` fra `dynTick`): mens en rute styrer båten (Autonav, en tegnet rute, veien hjem, driftsplanen, sikkerhetsnettet; ikke ved roret), hvert fjerde tick: skrogets sju punkter mot land og havneenhetenes kai og fylling, grunnen under kjølen (`keelClear`), alt fast i sjøen (`fixNear`), fartøy som ligger stille (`fixBoats`), merkene, vindturbinene og bruene (`obsIndex`). Hver ting én gang per tur (høyst 40).
+- Hendelsene gjennom skykøen (`cloudEv`): `anv_trip {t, ph, how, boat, nm, end, hits}` og `anv_hit {t, w, x, y, boat, kn, hd, ph, how, leg, dS, dE}`; `t` er en tilfeldig id for turen. Ingenting uten økt (`CLOUD.sid`), og serveren lagrer bare for en spiller som har sagt ja (`players.consent`). Under 1 knop innen 1,5 lengder fra turens start eller rutas slutt telles ikke (fendrene).
+- `agent_autonav(days)` (migreringen `20261118160000_autonav_treff.sql`, bare `service_role`): dag, type, data og versjon, uten spiller, økt og navn; `op:'autonav'` i `feedback-agent`; `python3 tools/autonav/treff.py [--test] [--days N] --out <scratchpad>` skriver radene dit og bare tellinger til skjermen.
+- Personvernteksten (`src/legal/personvern.html`) sier hva som lagres og hvorfor.
+- Testen: `tests/anvtreff.py` (rød på bygget uten fila).

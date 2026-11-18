@@ -45,7 +45,11 @@ Status 18.11.2026 (Jonas' økt, `docs/systemer/autonav.md` 4.12r): mønster 1, 2
 1. **Gi rutinen repoet med skrivetilgang og nøkkelen til feillista.** Den første kjøringen fikk verken repoet som kilde (git-proxyen: «not in this session's authorized repository set»), `add_repo`, en gyldig GitHub-nøkkel eller `FEEDBACK_AGENT_TOKEN`. Oppgaven er laget fra en økt (`create_trigger`), slik Arbeidsrutinen først var, og den fikk heller ikke repoet før den ble laget på nytt fra rutinesiden (`tools/plan/OPPGAVE.md`, «Prøvekjøringen 07.11.2026»). Slik: lag «Autonav-rutinen» på nytt på rutinesiden på claude.ai (claude.ai/code/routines) med repoet `average01101010/FishyBusiness-` som kilde med push (grenen `ccr-5e1ba2f4-pusvyd`), det samme miljøet som «Tilbakemeldinger fra spillerne» (der `FEEDBACK_AGENT_TOKEN` ligger), koblingen Supabase, samme prompt, hver 3. time på minutt 44 Oslo-tid, Opus 5.5 og push-varsel. Slå så av den gamle.
 2. Når fangsten er bygget: migreringen på testprosjektet, deploy av `feedback-agent` og personvernteksten (under).
 
-## Fangsten (første steg med skrivetilgang)
+## Fangsten (bygget 18.11.2026, PR til Jonas)
+
+Jonas 18.11.2026: «hvordan skal vi da fange opp mønstre for hvor ekte spillere grunnstøter, går gjennom kaier, kæsjer i havner og alt sånt?», og «ja» til å bygge den. Bygget som beskrevet under: `core/16e-anvtreff.js` (observatøren, hvert fjerde tick av båtmodellen mens en rute styrer båten), `supabase/migrations/20261118160000_autonav_treff.sql` (`agent_autonav`), `op:'autonav'` i `feedback-agent`, `tools/autonav/treff.py`, testen `tests/anvtreff.py` og personvernteksten. Står som PR mot arbeidsgrenen til Jonas har sett den (personvernteksten er hans). Etter at PR-en er flettet: Jonas kjører migreringen på testprosjektet og i produksjon rett før slippet, og deployer `feedback-agent` (produksjon og test). Da teller tabellen over «Hos spillerne».
+
+## Fangsten (første steg med skrivetilgang, planen)
 
 Det spillet sender i dag (`ui/10f-cloud.js` `cloudHooks`): `depart` (avgang, med havna) og `aground` (bare ekte grunnstøting, `runAground`, med posisjon, båt, fart og `how`). Det mangler alt det andre spillerne klager på: støt mot kai, brygge, molo, merke og brupilar (`b.hits`, bare logget i spillet; `S.incidents` får bare støt over 3 knop), sammenstøt med andre båter (med `SJV.ghost` går båten gjennom kystens fartøy uten at noe telles), og alt båtmodellen ikke ser i det hele tatt (se mønster 1). Og ingen start og slutt på Autonav-turene, så treff per 1000 turer kan ikke regnes.
 

@@ -595,6 +595,7 @@ function dynHaltNeed(){ const b = S.boat; if (!dynLive()) return 0; return (dynE
 // ---- the tick ----
 function dynTick(dt){
   const b = S.boat; DYN.on = true;
+  if (typeof anvTick === 'function') anvTick();   // (what the players' boats touch, 16e-anvtreff.js)
   if (!dynCan()){ DYN.b = null; DYN.hold = false; return; }
   const d = dynState(b); DYN.b = b;
   // the map round her is not in yet: she waits where she is, as the minute step does (the 3D view keeps her, no follower takes over)
