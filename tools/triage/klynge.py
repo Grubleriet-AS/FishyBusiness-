@@ -505,6 +505,8 @@ def selftest():
     d = decide([], [], [], [], iso(0.5), now, open_lock, (), REG, cov); s = summary(d, [], 0)
     rc = {c['id']: c for c in d['klynger']}
     eq('regresjon: to klynger, saken uten markør hoppes over', sorted(rc), ['aaaa1111', 'bbbb2222'])
+    bal = {'number': 43, 'state': 'open', 'labels': [{'name': 'balanse'}], 'body': '<!-- balanse -->\n**Balansesjekken** progweek: 302 kg → 142 kg'}
+    eq('balansesaken blir aldri en klynge (den er Jonas\' og rettes aldri av Opus)', reg_clusters([bal], cov), [])
     eq('regresjon: risiko av filene testen dekker', (rc['aaaa1111']['risiko'], rc['bbbb2222']['risiko']), ('hoy', 'lav'))
     eq('regresjon: kronisk veier mer', (rc['aaaa1111']['score'], rc['bbbb2222']['score']), (3.0, 4.0))
     eq('regresjon: Opus for den som er lov', (s['trenger_opus'], s['kan_rettes'][:1]), (True, ['bbbb2222']))
