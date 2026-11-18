@@ -3611,15 +3611,15 @@ passive gear on screen: the action bar, the fish panel, the chart and the route
   - 224 `wpActCycle(w)`
   - 229 `gearDoAct(act, el)`
 
-## `src/js/ui/10c-dock.js` (616 linjer)
+## `src/js/ui/10c-dock.js` (617 linjer)
 
 ---------- the dock: round buttons along the bottom that follow what the boat is doing, and the drawer at the side ----------
 
 - **1** the dock: round buttons along the bottom that follow what the boat is doing, and the drawer at the side
 - **415** the drawer
-- **522** the calm (UI 2, U2-4, 07.11.2026; docs/planer/ui-2-staaende.md 4.5, Jonas' V8 A 06.11.2026)
-  - 589 `renderActs()`
-  - 602 `showroomTick()`
+- **523** the calm (UI 2, U2-4, 07.11.2026; docs/planer/ui-2-staaende.md 4.5, Jonas' V8 A 06.11.2026)
+  - 590 `renderActs()`
+  - 603 `showroomTick()`
 
 ## `src/js/ui/10d-helm.js` (51 linjer)
 
@@ -3636,7 +3636,7 @@ SOUND (the user's wish 03.10.2026)
 - **144** the music (Jonas 05.10.2026: «rolig ambient instrumentaler som svak stemning i bakgrunnen. Må kunne skrus av i innstillinger»)
 - **312** the whistle and the bell (Ø11.2; sjøveisreglene FOR-1975-12-01-5 rules 32-35 and vedlegg III, read 06.11.2026)
 
-## `src/js/ui/10f-cloud.js` (1100 linjer)
+## `src/js/ui/10f-cloud.js` (1103 linjer)
 
 THE CLOUD (04.10.2026; docs/lansering.md E and F)
 
@@ -3686,63 +3686,63 @@ THE CLOUD (04.10.2026; docs/lansering.md E and F)
   - 399 `errKeep(list)`
   - 403 `errFlush()`
   - 427 `errStart()`
-- **436** a page that stops or stands still while it is on the screen
-  - 443 `aliveRead()`
-  - 444 `aliveBeat(gone)`
-  - 457 `aliveCheck()`
-  - 482 `hangWatch()`
-- **499** the save between devices (05.10.2026; supabase/migrations/20261005200000_save_sync.sql)
-  - 506 `syncGet()`
-  - 507 `syncSet(rev, at, rv, sq)`
-  - 513 `deviceId()`
-  - 517 `deviceName()`
-  - 522 `cloudStatus(s)`
-  - 523 `cloudStatusText()`
-  - 532 `saveSum(o)`
-  - 536 `sumText(m)`
-  - 543 `cloudChoose(here, cloud, when, box)`
-  - 558 `cloudKeptNote(where)`
-  - 563 `cloudTake(cs)`
-  - 569 `cloudSync(cs)`
-  - 600 `cloudSaveSoon(closing, manual)`
-  - 649 `cloudSoon(ms)`
-- **650** one device at a time (13.10.2026, supabase/migrations/20261013120000_active.sql)
-  - 660 `cloudFp()`
-  - 661 `cloudClaim(wait)`
-  - 675 `cloudBeat(now)`
-  - 691 `cloudWake()`
-  - 697 `cloudPassed(h)`
-  - 712 `cloudHeldShow(h)`
-  - 721 `cloudPlayHere()`
-  - 731 `cloudCheckHead()`
-  - 740 `cloudConflict(cl, moved)`
-  - 770 `cloudHist()`
-  - 775 `cloudRestore(id)`
-- **786** what is measured: the game's own functions, wrapped once they are all defined
-  - 787 `cloudHooks()`
-- **810** the account card in Settings
-  - 811 `cloudCard()`
-  - 835 `histRows()`
-  - 847 `cloudAccountDel()`
-  - 858 `cloudMediaDel()`
-  - 864 `cloudAct(a, d)`
-- **900** registering, for a guest: in the game's own words, never a wall before the third landing
-  - 909 `guestHave()`
-  - 915 `guestAsk(why)`
-  - 941 `nameWhy(v)`
-  - 958 `namesKept()`
-  - 959 `namesKeep(o)`
-  - 961 `namesApply()`
-  - 969 `nameTake(n, quiet)`
-  - 979 `nameCheck()`
-  - 1000 `nameSuggest()`
-  - 1009 `nameAsk(why, reason)`
-  - 1034 `guestOpenAsk()`
-  - 1046 `nameNudge(force)`
-  - 1061 `guestNudge(step)`
-  - 1073 `guestLogin(src)`
-  - 1079 `guestRegister(signIn)`
-  - 1094 `guestGift()`
+- **439** a page that stops or stands still while it is on the screen
+  - 446 `aliveRead()`
+  - 447 `aliveBeat(gone)`
+  - 460 `aliveCheck()`
+  - 485 `hangWatch()`
+- **502** the save between devices (05.10.2026; supabase/migrations/20261005200000_save_sync.sql)
+  - 509 `syncGet()`
+  - 510 `syncSet(rev, at, rv, sq)`
+  - 516 `deviceId()`
+  - 520 `deviceName()`
+  - 525 `cloudStatus(s)`
+  - 526 `cloudStatusText()`
+  - 535 `saveSum(o)`
+  - 539 `sumText(m)`
+  - 546 `cloudChoose(here, cloud, when, box)`
+  - 561 `cloudKeptNote(where)`
+  - 566 `cloudTake(cs)`
+  - 572 `cloudSync(cs)`
+  - 603 `cloudSaveSoon(closing, manual)`
+  - 652 `cloudSoon(ms)`
+- **653** one device at a time (13.10.2026, supabase/migrations/20261013120000_active.sql)
+  - 663 `cloudFp()`
+  - 664 `cloudClaim(wait)`
+  - 678 `cloudBeat(now)`
+  - 694 `cloudWake()`
+  - 700 `cloudPassed(h)`
+  - 715 `cloudHeldShow(h)`
+  - 724 `cloudPlayHere()`
+  - 734 `cloudCheckHead()`
+  - 743 `cloudConflict(cl, moved)`
+  - 773 `cloudHist()`
+  - 778 `cloudRestore(id)`
+- **789** what is measured: the game's own functions, wrapped once they are all defined
+  - 790 `cloudHooks()`
+- **813** the account card in Settings
+  - 814 `cloudCard()`
+  - 838 `histRows()`
+  - 850 `cloudAccountDel()`
+  - 861 `cloudMediaDel()`
+  - 867 `cloudAct(a, d)`
+- **903** registering, for a guest: in the game's own words, never a wall before the third landing
+  - 912 `guestHave()`
+  - 918 `guestAsk(why)`
+  - 944 `nameWhy(v)`
+  - 961 `namesKept()`
+  - 962 `namesKeep(o)`
+  - 964 `namesApply()`
+  - 972 `nameTake(n, quiet)`
+  - 982 `nameCheck()`
+  - 1003 `nameSuggest()`
+  - 1012 `nameAsk(why, reason)`
+  - 1037 `guestOpenAsk()`
+  - 1049 `nameNudge(force)`
+  - 1064 `guestNudge(step)`
+  - 1076 `guestLogin(src)`
+  - 1082 `guestRegister(signIn)`
+  - 1097 `guestGift()`
 
 ## `src/js/ui/10g-push.js` (210 linjer)
 
