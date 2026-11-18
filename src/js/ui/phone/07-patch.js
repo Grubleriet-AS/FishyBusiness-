@@ -8,7 +8,8 @@
        ['Loggen sier fra når Autonav slakker av for å vike for en annen båt.', 'The log says when Autonav slows down to give way to another boat.'],
        ['På iPhone kommer lyden tilbake ved neste trykk etter en samtale eller et varsel.', 'On the iPhone the sound comes back at the next tap after a call or a notification.'],
        ['Driftsplanen finner veien når du starter den ute på sjøen, og leter ikke lenger i det uendelige.', 'The plan finds its way when you start it out at sea, and no longer searches for ever.'],
-       ['Med én juksamaskin går mannen som fisker, til maskinen når du går for å sløye, og sløyeren får fisken å sløye.', 'With one jigging machine the hand who fishes goes to the machine when you go to gut, and the gutter gets the fish to gut.']]],
+       ['Med én juksamaskin går mannen som fisker, til maskinen når du går for å sløye, og sløyeren får fisken å sløye.', 'With one jigging machine the hand who fishes goes to the machine when you go to gut, and the gutter gets the fish to gut.'],
+       ['Den som jukser ved ripa uten maskin, har et håndsnøre i sjøen når båten har håndjukse.', 'One jigging at the rail without a machine has a hand line in the sea when the boat has a hand jig.']]],
     ['smolafylke-171126', '17.11.2026', 'Fylkene i startlista', 'The counties in the start list', [
        ['Smøla står under Møre og Romsdal når du velger hvor du starter, Gutvik under Trøndelag og Selje under Vestland.', 'Smøla is under Møre og Romsdal when you choose where to start, Gutvik under Trøndelag and Selje under Western Norway.']]],
     ['havnland-171126', '17.11.2026', 'Land i havna', 'Land in the harbour', [

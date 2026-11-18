@@ -33,4 +33,13 @@ export default function (t){
     if (me && me.st === 'sloy' && f) seen = {before, after:show(), ok:f.slot === 0 && atMachine(f)};
   }
   t.ok(!seen || seen.ok, 'skipperen sløyer: mannen som jukser, går til maskinplassen og står ikke igjen ved plassen uten maskin' + (seen ? '' : ' (tilfellet kom ikke opp)'), seen);
+  // two jigging, one machine: the one at the bare place jigs by hand (a hand line is drawn, view3d/20-trawl-seine.js) only when the
+  // boat has a hand jig, as the catch reckons it; without one he leans on the rail (#167: «fisker i luften uten noe snøre»)
+  const two = gear => { b.gear = gear; S.hold = []; let r = null;
+    for (let k = 0; k < 12 && !r; k++){ S.crew = [Object.assign(genCrew(), {bi:false, off:false, fatigue:10, morale:62})]; CREW3D.reset(); CREW3D.setJig(spots); settle(); tick(400);
+      const A = CREW3D.agents(), f1 = A.find(a => a.st === 'fiske' && a.slot === 1); if (A.filter(a => a.st === 'fiske').length === 2 && f1) r = {task:f1.task, gear:!!gear}; }
+    return r; };
+  const g0 = two(null), g1 = two({k:'hand'});
+  t.ok(g0 && g0.task === 'lean' && g1 && g1.task === 'jig', 'to fisker, én maskin: uten håndjukse lener den andre seg på ripa, med håndjukse jukser han for hånd', {g0, g1});
+  b.gear = null;
 }
