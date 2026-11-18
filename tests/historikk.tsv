@@ -5721,3 +5721,9 @@
 2026-11-18 05:33	claude/magical-pasteur-z98gc5	b80c319	kaishot	FEIL	900	3d	alene	gikk ut på tid
 2026-11-18 05:35	claude/magical-pasteur-z98gc5	b80c319	bunkertest	OK	124	3d	alene	
 2026-11-18 05:35	claude/magical-pasteur-z98gc5	b80c319	routetest	FEIL	45	lite	alene	FEIL Kast loss setter ruta i gang, og kartplotteren står åpen  {'plan': False, 'plot': True, 'g3': False}
+2026-11-18 05:39	claude/magical-pasteur-z98gc5	eee63d5	landtest	OK	203	3d	alene	
+2026-11-18 05:40	claude/magical-pasteur-z98gc5	eee63d5	moortest	OK	52	3d	alene	
+2026-11-18 05:49	claude/magical-pasteur-z98gc5	eee63d5	trackfollow	OK	529	3d	alene	
+2026-11-18 05:49	claude/magical-pasteur-z98gc5	eee63d5	routetest	FEIL	45	lite	alene	FEIL Kast loss setter ruta i gang, og kartplotteren står åpen  {'plan': False, 'plot': True, 'g3': False}
+2026-11-18 05:50	claude/magical-pasteur-z98gc5	eee63d5	moortest	OK	54	3d	alene	
+2026-11-18 06:01	claude/magical-pasteur-z98gc5	eee63d5+	trackfollow	FEIL	600	3d	alene	FEIL a slow frame after time caught up with the minute step (the model off for a tick) does not run her past the simulation for the model to put her back  {"st"

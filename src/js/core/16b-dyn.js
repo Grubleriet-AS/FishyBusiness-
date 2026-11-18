@@ -887,17 +887,20 @@ function dynAuto(d, dtG){
     const dep = !T && DYN.dep && Math.hypot(DYN.dep.bp.x * 1000 - d.X, DYN.dep.bp.y * 1000 - d.Y) < 60 ? DYN.dep : null; DYN.dep = null;
     T = DYN.line = dynLineBuild(pl, dep); T.s = dep ? 0 : dynLineProj(T, d.X, d.Y, 0, 1e9);
   }
+  // (none of the lines below laid again until her place on the line is where she is: after time caught up with the model off (catchUp),
+  // T.s is the place before it, and a line laid then put her back to where she had been, trackfollow 18.11.2026)
+  const onT = (() => { const q = dynLineAt(T, T.s); return Math.hypot(q[0] - d.X, q[1] - d.Y) < 60; })();
   // (in a new 50 km tile of the map since the line was laid: laid again, dynLineNudge with the coast there in by now, which it was not
   // when she left: coastDistM knows only the tiles whose chart is in; not by a stop, nor while the hands have her or she backs off a quay)
   { const Tm = MAPD.man ? MAPD.man.tile * 1000 : 0, tk = Tm ? Math.floor(d.X / Tm) + ':' + Math.floor(d.Y / Tm) : '';
-    if (T.tk == null) T.tk = tk; else if (tk !== T.tk && !(T.assist > T.s) && !(T.back > 0 && T.s < T.sOut + T.turnL + 50)){ const st1 = T.stops.find(q => q.i >= pl.idx);
+    if (T.tk == null) T.tk = tk; else if (tk !== T.tk && onT && !(T.assist > T.s) && !(T.back > 0 && T.s < T.sOut + T.turnL + 50)){ const st1 = T.stops.find(q => q.i >= pl.idx);
       if (!st1 || st1.s - T.s > 1000){ T = DYN.line = dynLineBuild(pl, null); T.s = dynLineProj(T, d.X, d.Y, 0, 1e9); T.tk = tk; } else T.tk = tk; } }
   // (the piers and quays round her ends came after the line was laid: laid again, from the berth while she backs off it)
   if (T.vecWait && T.dep && T.vecVer !== VEC.ver && T.s < T.back){ const s0 = T.s; T = DYN.line = dynLineBuild(pl, T.dep); T.s = Math.min(s0, T.back); }
   // (600 m from a harbour she stops at, the line in to it again, dynLineHarb with the vessels lying there now: the line was laid when she
   // left, and a ferry that has come in to her quay since lay across it at Strønstad, the autonav routine 18.11.2026; once a stop)
   { const st0 = T.stops.find(q => q.i >= pl.idx);
-    if (st0 && pl.wps[st0.i].port && pl.harbRe !== st0.i && st0.s - T.s < 600 && !(T.assist > T.s) && !(T.back > 0 && T.s < T.sOut + T.turnL + 50)){
+    if (st0 && onT && pl.wps[st0.i].port && pl.harbRe !== st0.i && st0.s - T.s < 600 && !(T.assist > T.s) && !(T.back > 0 && T.s < T.sOut + T.turnL + 50)){
       pl.harbRe = st0.i; T = DYN.line = dynLineBuild(pl, null); T.s = dynLineProj(T, d.X, d.Y, 0, 1e9); } }
   const E = dynEnv(b, d, cal, H, dtG), cap = E.cap, capF = E.capF;
   let vc = Math.min((pl.speed || BOAT.vcruise) * KN_MS, cap), near = 1e9; for (const q of PORTS){ const dq = dist(q.p, b.pos); if (dq < near) near = dq; }
