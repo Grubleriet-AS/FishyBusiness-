@@ -8,6 +8,46 @@ Rutinen: på
 
 Jonas 07.11.2026 ba om at arbeidet i planene går av seg selv, økt etter økt: «Er det mulig å helautomatisere at du jobber med det som står planlagt i arbeidsplanen i spillet? … jobber deg gjennom en økt, så automatisk startet en ny for å jobbe med neste steg?» Svarene hans samme dag: utrulling uten å spørre («Jeg er villig til å la deg rulle ut selv så lenge du er trygg på at jobben du har gjort er skikkelig»), valgene («Vent eventuelt med økter som krever et valg fra min side, da kan du eventuelt starte en annen økt der du ikke trenger input fra meg»), migreringene («Du er hjertlig velkommen til å kjøre migreringene selv»), skjermbildene («legg de gjerne med på slutten av hver økt slik at jeg kan dobbelsjekke resultatet av arbeidet du har rullet ut»), rekkefølgen («se hva som er mest hensiktsmessig og som lar seg gjennomføre uten reell konflikt») og arbeidsmåten («Finn ut selv hva som blir den beste arbeidsmåten for deg så lenge du på en effektiv måte klarer å jobbe deg gjennom alt som ligger i prosjektet på relativt selvstendig måte»). Det er lest som «kjør på» for hvert steg som har valgene sine besvart.
 
+## Porten og lanseringslinja før live-drift (arkivert 18.11.2026)
+
+Flyttet hit fra `koen.md` da spillet gikk over til live-drift (`docs/planer/live-drift.md`; Jonas 18.11.2026: «Fjern den frosne pre-launch-porten»). Status da: P1, P2, P4 ferdige; P3 ventet på at Jonas hadde fått ett varsel fra produksjon; P5 rullet ut med bryteren av; P6 hos Jonas.
+
+### Porten for de første brukerne (Jonas 10.11.2026)
+
+Jonas 10.11.2026, med traileren klar til TikTok: «Jeg vil bare ikke at nye brukere kommer inn i spillet og får en dårlig opplevelse», og om køen: «for hvert trinn jeg setter claude til å gjøre så lager den 3 nye trinn, så listen bare øker». Han sa ja til en frossen port: seks punkter som må være grønne før lenken til spillet legges ved traileren. Alt annet over lanseringslinja under gjelder den **offentlige** lanseringen (den Jonas styrer med betalt markedsføring) og kommer etter porten.
+
+| # | Punkt | Steg | Ferdig når |
+|---|---|---|---|
+| P1 | Testutgave og produksjon skilt (**ferdig 11.11.2026**: første slipp `d147bab7`) | 74 L1a (ferdig 10.11.2026), 75 L1b (ferdig 11.11.2026) | en push til arbeidsgrenen går til `test.detstorebla.no`, og detstorebla.no endres bare av et slipp |
+| P2 | Lagringsporten (**ferdig 11.11.2026**: porten slapp gjennom slippet `4b98263a` med 74 lagringer, begge veier) | 76 L1c (ferdig 11.11.2026) | et slipp som ødelegger en ekte lagring, stopper selv |
+| P3 | Feilvarselet | 77 L1d | Jonas får push når spillet er nede eller henger |
+| P4 | Ytelse på vanlige telefoner | 46 Ø3b (**ferdig 12.11.2026**: Jonas målte 12 b/s ved Tromsdalen etterpå, mot 8 før, og satte punktet grønt: «Grønt nå»; åpen sjø er ikke målt) | Galaxy A52s holder bildetakten Ø3b setter som mål, i havn og på sjøen |
+| P5 | Butikken stengt for nye spillere (rullet ut 10.11.2026; bryteren står av til Jonas slår den på) | 101 | en konto laget etter bryteren ser ingen kjøp for ekte penger; åpnes igjen når L2 og HS1–HS5 er ute |
+| P6 | Tre fremmede spiller de første ti minuttene | Jonas | tre personer som ikke har sett spillet, på egen telefon (minst én iPhone), kommer til første levering uten hjelp |
+
+Reglene for porten:
+
+- **Porten er frossen.** Ingen økt og ingen rutine legger et punkt til. Bare Jonas gjør det, og da tar han ett annet ut.
+- **Alt nytt en økt finner, går under lanseringslinja** (i `docs/BACKLOG.md`, eller som et steg etter linja), også når det retter noe i et portsteg eller gjelder arbeidet om bord. Unntaket som sto her før, er strøket. En feil som gjør at et portpunkt ikke er «ferdig når», rettes i steget selv og blir ikke et nytt steg.
+- **Et portsteg deles ikke i nye portsteg.** Blir det for stort, kuttes omfanget til det «ferdig når» krever, og resten går under linja.
+- **Rutinen og koordinatoren tar portstegene først.** Er ingen av dem `klar`, sier meldingen til Jonas øverst hva porten venter på, og så tas et steg over lanseringslinja som før. **Venter porten bare på Jonas, og kan ingen steg over linja tas** (alle venter på ham, på et valg eller er i hans egne økter), tar rutinen det første klare steget under linja, i køens rekkefølge (Jonas 12.11.2026, da rutinen sto stille med seks klare steg under linja: «Endre regelen»). Taket på steg som venter på at Jonas ser på dem, er fjernet (Jonas 12.11.2026: «Fjern taket på 7 steg. Det hindrer oss bare i arbeidet»).
+- **Porten er grønn** når alle seks har `ferdig` her. Da åpner Jonas lenken, og denne seksjonen flyttes til arkivet.
+
+### Lanseringslinja (Jonas 09.11.2026)
+
+Jonas 09.11.2026, om hva som er viktigst: «Grafikken er svært viktig i mine øyne. Jeg ønsker jo at båten skal fungere så ekte som mulig, at arbeidet ombord utføres på en så ekte måte som mulig, at mannskapet oppfører seg som ekte mennesker, at utstyr står plassert på rasjonelle og logiske plasser, at utstyr opereres på en realistisk måte, at ingenting clipper inn i andre ting, rett og slett at vi på en så realistisk måte som mulig klarer å simulere hverdagen til en fisker ombord i båten. Det er det som er viktigst for meg.» Om MVP-en: «kystflåten er MVPen. Havbåtene kan vente. Det vil ta ganske lang tid før spillerene kommer til det punktet at de kan bruke disse båtene uansett, men jeg tenkte det var bra å lage bra modeller av de tidlig for å kunne bruke de i promo-sammenheng, feks en trailer.» Og om båtmodellene: «Jeg opphever "vent med båtene".»
+
+MVP-en er dermed **en fiskers hverdag om bord i kystflåten, så ekte som mulig** (skiffen, trebåten, snekka, sjarkene og kystbåtene på 15 og 21 m), pluss det som må til for å ta imot spillere og penger. Steg over linja tas først; resten av køen går i rekkefølge når ingenting over linja kan tas (Jonas 12.11.2026).
+
+- **Før lansering** (den offentlige; porten over tas først):
+  - **Rett etter porten:** 108 TP1, flagget på de andre spillernes båter og bufferne (Jonas 12.11.2026, tilpasningen V1 A: «TP1 over linja»).
+  - Om bord: 70 OB1 (trebåten) og fasene OB0 la inn (80–93: OB2 fortøyningen, OB3 settingen, OB4 lossingen, OB5–OB13 båt for båt, OB14 rydding, mat og kulde, OB15 båten i sjøen med last), 57 OPP5 (kniv, høtt, linesetter og garnrenne som modeller), 8b M5, 16 R, 13 Ø8b S3, 59 minstemålene (sorteringen om bord).
+  - Båten og sjøen langs kysten: 22 F4, 20 F5 (grunt vann og bankeffekt, før Ø11.8), 58 sjøen på nytt.
+  - Ytelse på vanlige telefoner: 21b Ø3c, 21c Ø3d, 46 Ø3b (ferdig 10.11.2026).
+  - Lanseringen: 71 L1 (planen, ferdig 09.11.2026), 74 L1a testutgaven (ferdig 10.11.2026), 75 L1b slippet (ferdig 11.11.2026), 76 L1c lagringsporten (ferdig 11.11.2026), 77 L1d feilvarselet, 78 L1e sikkerheten (CSP, funn 7; ferdig 11.11.2026), 49 og byggingen av funn 6, så snart som mulig og før flere spillere slippes inn i early access (Jonas 10.11.2026) (95 HS1 velkomstgaven, 96 HS2 kjøpt haill fra `grants`, 97 HS3 trim, Skippertak og «Ferdig nå» tilbake (ferdig 11.11.2026), 98 HS4 serveren som fasit, Jonas: «Spillere skal ikke kunne redigere sin egen lagring og gi seg selv så mye haill eller andre varer de selv vil», 99 HS5 kronene og landingene sjekket og jukserne ut av topplistene), 50 funn 7, 79 L1f det juridiske, 72 L2 (betalingen), 47 lasttesten, 40 U2-9, 73 L3 sluttsjekken. Planen: `docs/planer/lansering-plan.md`.
+- **Etter lansering:** tilpasningen av båtene (109–115 TP2–TP8), kappløpet Lindesnes–Nordkapp (116–119 KL1–KL4), havsteget (26 H3e, 32 H4, 52 H5–H9; havbåtenes modeller kan løftes tidligere for en trailer når Jonas ber om det), kvotemarkedet (62–64), Ø14 F3 og F5 (31c, 31e), Ø15 NPC-flåten (34–38) og Ø13 kartreleasen (33), Ø11.8 og Ø11.9 (19, 27), strømmen og FFT-sjøen (41–43), Ø10b og Ø10c (65, 68), OPP3 (55), Ø5-restene (28, 44), Oppdrag 2 (45a, 45b).
+- **Et steg flyttes over linja bare når Jonas sier det.** Et nytt steg en økt legger til, står etter linja, uten unntak (Jonas 10.11.2026, se «Porten for de første brukerne»; før slapp alt som rettet noe over linja eller gjaldt arbeidet om bord, gjennom, og lista vokste raskere enn den ble kortere).
+
 ## Ferdige steg
 
 | # | Steg | Spor | Status | Venter på | Filer steget eier mens det går | Plan |

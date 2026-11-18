@@ -27,11 +27,14 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 REPO = 'average01101010/FishyBusiness-'
 WORK, PROD = 'ccr-5e1ba2f4-pusvyd', 'main'
 PATCH_FILE = 'src/js/ui/phone/07-patch.js'
-# real money and the legal pages (CLAUDE.md: never rolled out before Jonas has seen the PR)
-MONEY = re.compile(r'^(src/js/ui/10i-shop\.js|src/js/ui/10q-buymoment\.js|supabase/functions/(shop-|stripe-)[^/]*/)')
-LEGAL = re.compile(r'^src/legal/')
-SHOP_SQL = re.compile(r'\bshop_[a-z0-9_]+|\bStripe\b|\bstripe[-_.(]|\bSTRIPE_')   # shop_* or Stripe named on a changed line, in supabase/ or in the game's code (not «striper»)
-SCAN = ['supabase/', 'src/js/']                      # where changed lines are read for it
+# real money, the legal pages, and (from 18.11.2026) accounts and saved player data: never released before Jonas has seen the PR
+# (CLAUDE.md). The lists are tools/ci/risiko.py's, so they are the same as the gate's (before, this knew two of the five money files)
+sys.path.insert(0, os.path.join(ROOT, 'tools', 'ci'))
+import risiko
+MONEY, LEGAL, SAVES = risiko.MONEY, risiko.LEGAL, risiko.SAVES
+SHOP_SQL = risiko.MONEY_TEXT                         # shop_* or Stripe named on a changed line, in supabase/ or in the game's code (not «striper»)
+SAVE_TEXT = risiko.SAVES_TEXT                        # kystfiske_v2, save_put* and the save keys named on a changed line
+SCAN = list(risiko.SCAN)                             # where changed lines are read for them
 # what a push must touch to reach the test edition (the paths of deploy.yml)
 DEPLOYS = ['src', 'build.mjs', 'tools/map/kart.json', 'tools/map/kart-release.json', 'tools/map/game.py', 'tools/server', '.github/workflows/deploy.yml']
 PATCH_ID = re.compile(r"^\s*\['([A-Za-z0-9_.-]+)', '([^']*)', '((?:[^'\\]|\\.)*)', ")
@@ -78,11 +81,22 @@ def commits(rng, last=0):
     return out
 
 
+def save_commits(rng, cs):
+    """Marks the commits whose own diff names the saves (SAVE_TEXT) with 'save_txt'."""
+    by = {c['h']: c for c in cs}
+    for c in cs: c['save_txt'] = False
+    for blk in git('log', '--no-merges', '--format=\x01%h', '-p', '--unified=0', rng, '--', *SCAN, ok=False).split('\x01')[1:]:
+        h, _, diff = blk.partition('\n')
+        if h in by and any(l[:1] in '+-' and not l.startswith(('+++', '---')) and SAVE_TEXT.search(l) for l in diff.splitlines()):
+            by[h]['save_txt'] = True
+
+
 def why(c):
     """'' or why this commit waits for Jonas."""
     w = []
     if any(MONEY.match(f) for f in c['files']) or c['shop_sql']: w.append('ekte penger')
     if any(LEGAL.match(f) for f in c['files']): w.append('src/legal/')
+    if any(SAVES.match(f) for f in c['files']) or c.get('save_txt'): w.append('kontoer eller lagringer')
     return ' og '.join(w)
 
 
@@ -167,7 +181,15 @@ def main():
             elif cur and l[:1] in '+-' and not l.startswith(('+++', '---')) and SHOP_SQL.search(l) and not MONEY.match(cur) and cur not in shop_sql: shop_sql.append(cur)
     else:
         shop_sql = sorted({f for c in cs if c['shop_sql'] for f in c['files'] if f.startswith(tuple(SCAN)) and not MONEY.match(f)})
+    saves_files = [f for f in files if SAVES.match(f)]
+    if base:
+        cur = None
+        for l in git('diff', '--unified=0', '--no-renames', base, head, '--', *SCAN, ok=False).splitlines():
+            if l.startswith('diff --git '): cur = l.split(' b/', 1)[-1]
+            elif cur and l[:1] in '+-' and not l.startswith(('+++', '---')) and SAVE_TEXT.search(l) and not SAVES.match(cur) and cur not in saves_files: saves_files.append(cur)
+    if cs: save_commits((cs[-1]['h'] + '~1..' + head) if has(cs[-1]['h'] + '~1') else (base + '..' + head if base else head), cs)
     marked = [(c, why(c)) for c in cs]
+    saves = bool(saves_files or any('lagringer' in w for _, w in marked))
     money = bool(money_files or shop_sql or any('ekte penger' in w for _, w in marked))
     legal = bool(legal_files)
     funcs = sorted({f.split('/')[2] for f in files if f.startswith('supabase/functions/') and f.count('/') >= 3 and f.split('/')[2] != '_shared'})
@@ -183,11 +205,12 @@ def main():
     date = now.strftime('%d.%m.%Y')
     title = 'Slipp %s' % date
     L = []
-    if money or legal:
-        what = ' og '.join(x for x in ('ekte penger' if money else '', '`src/legal/`' if legal else '') if x)
+    if money or legal or saves:
+        what = ', '.join(x for x in ('ekte penger' if money else '', 'kontoer eller lagret spillerdata' if saves else '', '`src/legal/`' if legal else '') if x)
         L += ['> 🔴 **VENTER PÅ JONAS: slippet rører %s.** Det flettes ikke av en økt eller en rutine før Jonas har sett PR-en (`CLAUDE.md`).' % what]
-        for f in (money_files + shop_sql + legal_files)[:20]: L.append('> - `%s`' % f)
-        if len(money_files + shop_sql + legal_files) > 20: L.append('> - … og %d filer til' % (len(money_files + shop_sql + legal_files) - 20))
+        hotf = list(dict.fromkeys(money_files + shop_sql + saves_files + legal_files))
+        for f in hotf[:20]: L.append('> - `%s`' % f)
+        if len(hotf) > 20: L.append('> - … og %d filer til' % (len(hotf) - 20))
         L.append('')
     L += ['Slippet til produksjonen (`tools/release/slipp.py`, L1b): `%s` flyttes fram til `%s` på arbeidsgrenen `%s`, og detstorebla.no får det som står der.' % (PROD, head[:8], WORK), '',
           '- Fra: %s%s' % (base_desc, ('. `%s` er tom: **dette er det første slippet**' % PROD if a.since else ', som er tom: **dette er det første slippet**') if first else ''),
@@ -220,7 +243,7 @@ def main():
     L += ['', '## Commitene siden forrige slipp (%d, uten flettingene)' % len(cs), '']
     hot = [(c, w) for c, w in marked if w]
     if hot:
-        L.append('Merket 🔴 rører ekte penger eller `src/legal/` (%d):' % len(hot)); L.append('')
+        L.append('Merket 🔴 rører ekte penger, kontoer, lagringer eller `src/legal/` (%d):' % len(hot)); L.append('')
         for c, w in hot[:40]: L.append('- 🔴 `%s` %s (**%s**)' % (c['h'], c['s'][:140], w))
         if len(hot) > 40: L.append('- … og %d til' % (len(hot) - 40))
         L.append('')
@@ -234,6 +257,7 @@ def main():
     stop = []
     if money: stop.append('rører ekte penger: venter på Jonas')
     if legal: stop.append('rører src/legal/: venter på Jonas')
+    if saves: stop.append('rører kontoer eller lagret spillerdata: venter på Jonas')
     if not (NIGHT[0] <= now.hour < NIGHT[1]): stop.append('klokka er %s norsk tid, slippet går %02d–%02d' % (now.strftime('%H:%M'), NIGHT[0], NIGHT[1]))
     if hours is None: stop.append('testutgavens alder er ukjent (%s)' % (tv.get('err') or 'ikke spurt'))
     elif hours < HOURS_ON_TEST: stop.append('testutgaven har stått %.1f timer, kravet er %d' % (hours, HOURS_ON_TEST))
@@ -250,12 +274,12 @@ def main():
     out = a.out or ('' if a.dry or a.last or (a.auto and stop) else 'slipp.md')
     if out:
         with open(out, 'w', encoding='utf-8') as f: f.write(body)
-    if money or legal: print('VENTER PÅ JONAS: slippet rører %s.' % ('ekte penger' if money else 'src/legal/'))
+    if money or legal or saves: print('VENTER PÅ JONAS: slippet rører %s.' % ('ekte penger' if money else 'src/legal/' if legal else 'kontoer eller lagret spillerdata'))
     if a.auto or a.dry:
         print('Automatisk slipp (V2 A): ' + ('porten her holder; resten står i tools/plan/RUTINE.md («Slippet»).' if not stop else 'NEI: ' + '; '.join(stop) + '.'))
     code = 1 if a.auto and stop else 0
     def tell():
-        if a.json: print(json.dumps({'title': title, 'base': base, 'head': head, 'commits': len(cs), 'first': first, 'money': money, 'legal': legal,
+        if a.json: print(json.dumps({'title': title, 'base': base, 'head': head, 'commits': len(cs), 'first': first, 'money': money, 'legal': legal, 'saves': saves,
                           'marked': [c['h'] for c, w in marked if w], 'migrations': [os.path.basename(f) for f in mig_new + mig_chg], 'functions': funcs,
                           'notes': [i for i, _, _ in new_ids], 'test': tv, 'prod': pv, 'hours_on_test': hours, 'stop': stop}, ensure_ascii=False))
     if a.dry or a.last or (a.auto and stop): tell(); return code
