@@ -1,8 +1,8 @@
 // shop-checkout verify (tilbakemelding #185, 18.11.2026): what a Checkout session read from Stripe lets the server do
-// (supabase/functions/_shared/kjop.ts sessionVerdict). Booked only when paid and nothing taken back; never a session refunded in part or in
+// (supabase/functions/_shared/kjop.mjs sessionVerdict). Booked only when paid and nothing taken back; never a session refunded in part or in
 // whole, or disputed, so a purchase refunded while the webhook was missing never gives the ware after the money is back; not when the
 // charge cannot be read; and a payment that confirms later (unpaid at the end of Checkout) is left to the webhook.
-import { sessionVerdict } from '../../supabase/functions/_shared/kjop.ts';
+import { sessionVerdict } from '../../supabase/functions/_shared/kjop.mjs';
 
 export default function (t){
   const pi = ch => ({id:'pi_1', latest_charge:ch});

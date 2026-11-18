@@ -20,7 +20,7 @@
 import Stripe from 'npm:stripe@23.0.0';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { serveReported } from '../_shared/report.ts';   // a throw or a 5xx goes to the game's error list (02.11.2026)
-import { sessionVerdict } from '../_shared/kjop.ts';   // what verify does with Stripe's session (tilbakemelding #185)
+import { sessionVerdict } from '../_shared/kjop.mjs';   // what verify does with Stripe's session (tilbakemelding #185)
 
 const SK = Deno.env.get('STRIPE_SECRET_KEY') || '';
 const MANAGED = Deno.env.get('STRIPE_MANAGED') === '1', TAX = Deno.env.get('STRIPE_TAX') === '1';
@@ -90,7 +90,7 @@ serveReported('shop-checkout', async (req) => {
 // that is late or never comes does not leave a player who has paid without what was bought (tilbakemelding #185, 18.11.2026: paid for
 // «Ferdig nå» with Klarna, and the fitting went on). Only the player's own purchase. Stripe is asked at most once every 5 s per purchase,
 // only about an open one of the last 24 hours among the player's five newest (shop_verify_slot, 20261118180000_kjop_verify.sql), and a
-// session refunded or disputed at Stripe is never booked (sessionVerdict, _shared/kjop.ts). st: 'paid', 'open', 'expired', 'refunded',
+// session refunded or disputed at Stripe is never booked (sessionVerdict, _shared/kjop.mjs). st: 'paid', 'open', 'expired', 'refunded',
 // 'old' (not asked about any more) or the purchase's status here; ids: the purchase's grants when it is paid, so the game knows when
 // what was bought is in the game
 async function verify(sid: string, auth: string): Promise<Response> {
