@@ -44,6 +44,8 @@ import risiko, prlaas
 
 REPO = 'average01101010/FishyBusiness-'
 PROD_URL = 'https://detstorebla.no/version.json'
+OPUS_TAK = 4          # at most this many Opus runs (a fix or a queue step) in 24 hours (Jonas 18.11.2026: «Tak: 4 i døgnet»), counted
+                      # from the lock's history (tools/triage/laas.py teller)
 MIN_FIX = 3            # the least weight a cluster or a feedback needs before Opus is woken for it (one crash in one session is 5)
 HANDLED_DAYS = 3       # a PR closed or merged this many days ago still counts as handling its cluster
 LINK_SLACK_H = 2       # a feedback is linked to an error cluster when it was sent within this many hours of the cluster's first/last
@@ -262,10 +264,12 @@ def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=()):
             'onsker': [f for f in fb if f['type'] in ('ønske', 'balanse')], 'uklare': [f for f in fb if f['type'] == 'uklar']}
 
 
-def summary(d, rewards, noted_n):
+def summary(d, rewards, noted_n, opus_igjen=None):
     nye_tek = [c for c in d['klynger'] if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX] + [f for f in d['tilbakemeldinger'] if f['type'] == 'teknisk']
     ingenting = not d['tilbakemeldinger'] and not nye_tek and not rewards
-    return {'ingenting': ingenting, 'trenger_opus': bool(d['rett'] or d['rett_fb']), 'nye_tilbakemeldinger': len(d['tilbakemeldinger']),
+    want = bool(d['rett'] or d['rett_fb'])
+    return {'ingenting': ingenting, 'trenger_opus': want and (opus_igjen is None or opus_igjen > 0), 'opus_igjen': opus_igjen,
+            'opus_taket_naadd': want and opus_igjen is not None and opus_igjen <= 0, 'nye_tilbakemeldinger': len(d['tilbakemeldinger']),
             'nye_tekniske': len(nye_tek), 'kan_rettes': [c['id'] for c in d['rett']] + ['#%s' % f['id'] for f in d['rett_fb']],
             'sperret_av_pr_laasen': [c['id'] for c in d['sperret']], 'venter_paa_jonas': d.get('oppgitt', []), 'onsker_og_balanse': len(d['onsker']), 'uklare': len(d['uklare']),
             'belonnet': [{'tilbakemelding': f, 'pr': p} for f, p in rewards], 'notert_for': noted_n}
@@ -355,7 +359,10 @@ def real_run(a):
             except SystemExit as e: why.append('fixed #%s: %s' % (fid, e))
     if prs is None:   # without the PRs nothing is known about what is handled: never wake Opus blind
         d['rett'], d['rett_fb'] = [], []
-    s = summary(d, rewards, len(fbd.get('noted') or []))
+    import laas
+    try: igjen = OPUS_TAK - laas.takes(ROOT, 'origin', 24)
+    except Exception as e: igjen = 0; why.append('Opus-telleren: %s' % e)   # without the count, no Opus: never past the cap blind
+    s = summary(d, rewards, len(fbd.get('noted') or []), igjen)
     s['feil'] = why; s['pr_laas'] = {'middels_hoy': lock['middels_hoy'], 'blokkert_av': [p['number'] for p in lock['blokkert_av']], 'lukk': [p['number'] for p in lock['lukk']]}
     dump = dict(d); dump['oppsummering'] = s
     json.dump(dump, open(os.path.join(a.out, 'triage.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1, default=list)
@@ -367,6 +374,7 @@ def real_run(a):
     for c in d['sperret'][:5]: print('  venter på PR-låsen: klynge:%s (%s)' % (c['id'], c['risiko']))
     for b in rewards: print('  takk-haill: tilbakemelding #%s (PR #%s er hos spillerne)' % b)
     for w in why: print('  FEIL: ' + w)
+    if s['opus_taket_naadd']: print('  Opus-taket er nådd: %d kjøringer siste døgn (taket er %d); rettingen venter til en av dem er over et døgn gammel' % (OPUS_TAK - igjen, OPUS_TAK))
     print('INGENTING Å GJØRE' if s['ingenting'] else ('OPUS TRENGS' if s['trenger_opus'] else 'BARE TRIAGE (ingen modell for retting)'))
     print('TRIAGE ' + json.dumps(s, ensure_ascii=False))
     return 0
@@ -459,6 +467,10 @@ def selftest():
     iss_fb = [{'number': 91, 'state': 'open', 'title': 'Trenger Jonas: tilbakemelding #16', 'body': '- tilbakemelding #16'}]
     eq('oppgitt tilbakemelding', summary(decide([R[5]], [], [], [], iso(1), now, open_lock, iss_fb), [], 0)['trenger_opus'], False)
     eq('oppgitt i utkastet', 'Gitt opp etter to forsøk' in draft(decide([], [], E, [], iso(6), now, open_lock, iss), summary(decide([], [], E, [], iso(6), now, open_lock, iss), [], 0)), True)
+    # the Opus cap: a fix waits when the day's runs are used, the triage goes on
+    d = decide([], [], E, [], iso(6), now, open_lock)
+    eq('taket nådd', (summary(d, [], 0, 0)['trenger_opus'], summary(d, [], 0, 0)['opus_taket_naadd'], summary(d, [], 0, 0)['ingenting']), (False, True, False))
+    eq('taket ikke nådd', summary(d, [], 0, 1)['trenger_opus'], True)
     # the thank-you
     noted = [{'id': 21, 'status': 'planned', 'note': 'Rettet i https://github.com/x/y/pull/40'}, {'id': 22, 'status': 'planned', 'note': 'PR /pull/41'},
              {'id': 23, 'status': 'fixed', 'note': '/pull/40'}, {'id': 24, 'status': 'seen', 'note': 'ingen PR'}, {'id': 25, 'status': 'planned', 'note': '/pull/42'}]
