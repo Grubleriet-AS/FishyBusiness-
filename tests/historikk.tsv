@@ -5899,3 +5899,15 @@
 2026-11-18 04:47	regresjon/2026-11-18	dd98e0c	cloudtest	FEIL	26	lite	alene	avsluttet med kode 1
 2026-11-18 04:48	regresjon/2026-11-18	dd98e0c	rttest	FEIL	40	lite	alene	FEIL she glides onto the relay from the 15 s track over 2 s, slowing for a moment, with no jump  [0.0, 1.01]
 2026-11-18 05:01	regresjon/2026-11-18	dd98e0c	markettest	FEIL	795	lite	alene	FEIL 3D, liggende: kjøpsøyeblikket på båten du er om bord i tegner i modellen, kameraet går rundt henne, og kortet har typen, året og kaia  [{"card": true, "in3
+2026-11-18 01:36	claude/hopeful-mayer-48bgvv	bdcef4f5	utfrakai	OK	93	lite	samtidig	
+2026-11-18 01:36	claude/hopeful-mayer-48bgvv	bdcef4f5	trip2	OK	32	lite	samtidig	
+2026-11-18 01:36	claude/hopeful-mayer-48bgvv	bdcef4f5	docktest	OK	63	lite	samtidig	
+2026-11-18 01:37	claude/hopeful-mayer-48bgvv	bdcef4f5	autonavtest	OK	26	lite	samtidig	
+2026-11-18 02:41	claude/hopeful-mayer-48bgvv	746a1acc+	driftsplan3test	OK	44	lite	samtidig	
+2026-11-18 02:42	claude/hopeful-mayer-48bgvv	746a1acc+	driftsplan2kyst	OK	110	lite	samtidig	
+2026-11-18 02:42	claude/hopeful-mayer-48bgvv	746a1acc+	skipdrift	OK	27	lite	samtidig	
+2026-11-18 02:44	claude/hopeful-mayer-48bgvv	746a1acc+	driftsplan2test	OK	112	lite	alene	
+2026-11-18 03:47	claude/hopeful-mayer-48bgvv	76d267e4+	crewwalk	FEIL	10	lite	samtidig	FEIL twenty seconds later everyone has arrived at their place {"walked": {"me": 3.45929058242588, "ckr7kcbni": 0, "cktwdou5o": 0}, "off": [["me", "too fast", 3.
+2026-11-18 03:47	claude/hopeful-mayer-48bgvv	76d267e4+	selfcrew	OK	8	lite	samtidig	
+2026-11-18 03:47	claude/hopeful-mayer-48bgvv	76d267e4+	crewclip	FEIL	24	lite	samtidig	FEIL no foot walking put down in a wall, a tub or the kit, nor on his other foot or anyone else's (FB3; 5284 feet put down on every boat) {'pelagisk': ['me:i ti
+2026-11-18 03:56	claude/hopeful-mayer-48bgvv	6544537d+	selfcrew	OK	7	lite	alene	

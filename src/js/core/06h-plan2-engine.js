@@ -184,8 +184,10 @@ function plan2Shelter(W, hsOver){
 // ocean vessel (she lies to where she is, H2c), nor at the home anchorage
 function plan2WxHome(o, H, wx){
   const b = S.boat, here = plan2Here(o), home = portById(o.home); if (here.port || !home || BOAT.cls === 'hav' || (o.homeA && dist(b.pos, o.homeA) < 0.4)) return false;
-  const L = drLeg(o, here.p, null, home.p, home.id);
-  if (!L){ plan2Wait(o, 'route', 'Finner veien hjem …', 'Finding the way home …', H + 10 / 60); drFetch(o, [{a:here.p, ap:null, b:home.p, bp:home.id}]); return true; }
+  // (from the point the way was asked from while she is within 300 m of it: she drifts while it is fetched, tilbakemelding #166, plan2Trip)
+  const f = o.seaFrom, from = f && dist(here.p, f) < 0.3 ? {x:f.x, y:f.y} : (o.seaFrom = {x:here.p.x, y:here.p.y});
+  const L = drLeg(o, from, null, home.p, home.id);
+  if (!L){ plan2Wait(o, 'route', 'Finner veien hjem …', 'Finding the way home …', H + 10 / 60); drFetch(o, [{a:from, ap:null, b:home.p, bp:home.id}]); return true; }
   const wps = (L.w || []).map(z => ({x:z[0], y:z[1], port:null, fish:0, leia:true})).concat([{x:home.p.x, y:home.p.y, port:home.id, fish:0}]);
   const r = o.run || (o.run = {day:null, i:0, trip:null, wait:null}); r.i = r.day ? r.day.steps.length : 0; r.day = null; r.trip = null;
   if (b.gop) gopAbort('return'); if (b.status === 'fishing') endFishing('move');
@@ -342,6 +344,11 @@ function plan2StatDay(o, d){ let D = o.stats.days.find(x => x.d === d); if (!D){
 // ---- a trip: the steps from i0 to the next port call, as waypoints on the kept legs
 function plan2Trip(o, D, i0){
   const here = plan2Here(o), kind = p2Kind(o), auto = !!D.auto, wps = [], need = [], pts = here.port ? [here.p] : []; let prev = here.p, prevPort = here.port, h = 0, to = i0, kindK = 'fish', noJig = false, ended = false;
+  // (out at sea the first leg begins where she lies, and the legs are kept by their ends to the metre (drLK): she drifts while it is
+  // fetched, and the next try asked for a new leg from a new point, for ever: «Driftsplan sier "leter etter rute" i evigheter når man
+  // prøver å starte den mens man ligger ute på havet», tilbakemelding #166, 18.11.2026. The point it was asked from is kept, o.seaFrom,
+  // and used while she is within 300 m of it)
+  if (!here.port){ const f = o.seaFrom; if (f && dist(here.p, f) < 0.3) prev = {x:f.x, y:f.y}; else o.seaFrom = {x:here.p.x, y:here.p.y}; }
   // (Driftsplan 3, DP3-2: the gear stands at the spot the search found, q.at, a straight hop in clean water from the field's fixed point,
   // whose legs are kept; she goes to the point, hops to the spot, and back to the point before the next leg. atQ: the place she is at the spot of)
   // (the autoline too since DP3-4; the snow crab's strings stand round the spot themselves, p2SnoLenke)

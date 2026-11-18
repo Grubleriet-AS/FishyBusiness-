@@ -1,12 +1,15 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
     ['rettinger-181126', '18.11.2026', 'Rettinger fra spillerne', 'Fixes from the players', [
-       ['Nytt fiskemottak i Austafjord på Ramstadlandet (Vikna).', 'A new fish plant at Austafjord on Ramstadlandet (Vikna).'],
        ['Den siste etappen inn til stoppet ditt etter en Autonav-rute setter ikke lenger båten på grunn; hun stopper og finner vei rundt.', 'The last leg into your stop after an Autonav route no longer runs the boat aground; she stops and finds a way round.'],
        ['Båten går ikke lenger på grunn i svingen ut fra kaia på en gul etappe.', 'The boat no longer runs aground in the turn away from the quay on a yellow leg.'],
        ['For anker med baugen mot vinden ligger båten nesten rett, og hun vipper ikke lenger fra side til side.', 'At anchor head to wind the boat lies almost upright, and no longer flips from side to side.'],
        ['Lanternene lyser ikke lenger som en stor prikk på små skjermer.', 'The lanterns no longer show as a big dot on small screens.'],
-       ['Loggen sier fra når Autonav slakker av for å vike for en annen båt.', 'The log says when Autonav slows down to give way to another boat.']]],
+       ['Loggen sier fra når Autonav slakker av for å vike for en annen båt.', 'The log says when Autonav slows down to give way to another boat.'],
+       ['På iPhone kommer lyden tilbake ved neste trykk etter en samtale eller et varsel.', 'On the iPhone the sound comes back at the next tap after a call or a notification.'],
+       ['Driftsplanen finner veien når du starter den ute på sjøen, og leter ikke lenger i det uendelige.', 'The plan finds its way when you start it out at sea, and no longer searches for ever.'],
+       ['Med én juksamaskin går mannen som fisker, til maskinen når du går for å sløye, og sløyeren får fisken å sløye.', 'With one jigging machine the hand who fishes goes to the machine when you go to gut, and the gutter gets the fish to gut.'],
+       ['Den som jukser ved ripa uten maskin, har et håndsnøre i sjøen når båten har håndjukse.', 'One jigging at the rail without a machine has a hand line in the sea when the boat has a hand jig.']]],
     ['smolafylke-171126', '17.11.2026', 'Fylkene i startlista', 'The counties in the start list', [
        ['Smøla står under Møre og Romsdal når du velger hvor du starter, Gutvik under Trøndelag og Selje under Vestland.', 'Smøla is under Møre og Romsdal when you choose where to start, Gutvik under Trøndelag and Selje under Western Norway.']]],
     ['havnland-171126', '17.11.2026', 'Land i havna', 'Land in the harbour', [
