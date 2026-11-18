@@ -17,6 +17,11 @@ What it does, with no model at all:
    or `uklar` (the light model decides). Weighs it: severity × churn weight (× 2 in the first hour or the tutorial, × 1.5 over 20 h).
 5. Says whether Opus is needed: only when a technical cluster or feedback is new, not handled (no open PR naming it, none closed in the
    last HANDLED_DAYS), weighs at least MIN_FIX, and its likely risk is one the PR lock lets through (tools/triage/prlaas.py).
+5b. A cluster or feedback the fix agent gave up on after two tries gets an open GitHub issue with the label `trenger-jonas`
+   (--gi-opp; no player text in it, only the cluster's message, file and why). While that issue is open the cluster counts as handled,
+   so the next run takes the next one in the list or the queue instead of waking Opus for the same fault every hour. Jonas closes the
+   issue when he has looked at it, and the cluster can be tried again (18.11.2026, after a review: «en gjenstridig feil … blokkerer hele
+   rutinen»).
 6. With --belonn: the thank-you. Each noted feedback whose note names a PR that is merged and whose commit has reached `main` (the
    players' version), gets `agent.py fixed`: status fixed, a confirmation in the player's language and one takk-haill (once per
    feedback; supabase/migrations/20261118200000_agent_fixed.sql). Jonas 18.11.2026: «når en feilretting som stammer fra en innsendt
@@ -27,6 +32,8 @@ the last line `TRIAGE {json}`: {"ingenting": bool, "trenger_opus": bool, "nye_te
 
     python3 tools/triage/klynge.py --out DIR [--belonn] [--test]     fetch, cluster, weigh, decide (and reward)
     python3 tools/triage/klynge.py --out DIR --fra DIR2               the same from feedback.json and tech.json already in DIR2
+    python3 tools/triage/klynge.py --gi-opp ID --grunn "…" [--out DIR]  the fix agent gave up: an issue `trenger-jonas` for the cluster
+                                                                      (ID is its 8 hex, or #N for a feedback with no cluster)
     python3 tools/triage/klynge.py --selftest                         the checks of this file, on made-up data
 """
 import argparse, datetime, hashlib, json, os, re, subprocess, sys, urllib.request
@@ -193,6 +200,7 @@ def classify_feedback(row, cls):
 
 
 # ---------- what is handled, and the thank-you ----------
+GIVEN_UP = 'trenger-jonas'
 KLYNGE_REF = re.compile(r'klynge:([0-9a-f]{8})')
 FB_REF = re.compile(r'tilbakemelding #(\d+)')
 PR_REF = re.compile(r'/pull/(\d+)')
@@ -222,7 +230,17 @@ def reward_candidates(noted, pr_state, released):
     return out
 
 
-def decide(rows, noted, errors, prs, last_run_ts, now, lock):
+def given_up(issues):
+    """The cluster ids and feedback ids of the open `trenger-jonas` issues."""
+    cl, fb = set(), set()
+    for i in issues or []:
+        if i.get('state') != 'open': continue
+        text = (i.get('title') or '') + '\n' + (i.get('body') or '')
+        cl |= set(KLYNGE_REF.findall(text)); fb |= {int(x) for x in FB_REF.findall(text)}
+    return cl, fb
+
+
+def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=()):
     """Everything above, without fetching anything: the clusters, the feedback sorted, and whether Opus is needed."""
     cls = clusters(errors)
     fb = [classify_feedback(r, cls) for r in rows or []]
@@ -230,15 +248,17 @@ def decide(rows, noted, errors, prs, last_run_ts, now, lock):
         if f['klynge']:
             c = next(c for c in cls if c['id'] == f['klynge']); c['feedback'].append(f['id']); c['score'] = round(c['score'] + f['alvor'], 1)
     hcl, hfb = handled(prs, now)
+    gcl, gfb = given_up(issues)
     since = ts(last_run_ts)
     for c in cls:
         c['ny'] = bool(since is None or (ts(c['last']) and ts(c['last']) > since))
-        c['behandlet'] = c['id'] in hcl
+        c['oppgitt'] = c['id'] in gcl
+        c['behandlet'] = c['id'] in hcl or c['oppgitt']
     allowed = lambda k: k == risiko.LAV or lock.get('middels_hoy', False)
     fix_cl = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and allowed(c['risiko'])]
-    fix_fb = [f for f in fb if f['type'] == 'teknisk' and not f['klynge'] and f['id'] not in hfb and f['score'] >= MIN_FIX]
+    fix_fb = [f for f in fb if f['type'] == 'teknisk' and not f['klynge'] and f['id'] not in hfb and f['id'] not in gfb and f['score'] >= MIN_FIX]
     blocked = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and not allowed(c['risiko'])]
-    return {'klynger': cls, 'tilbakemeldinger': fb, 'rett': fix_cl, 'rett_fb': fix_fb, 'sperret': blocked,
+    return {'klynger': cls, 'tilbakemeldinger': fb, 'rett': fix_cl, 'rett_fb': fix_fb, 'sperret': blocked, 'oppgitt': sorted(gcl) + ['#%d' % n for n in sorted(gfb)],
             'onsker': [f for f in fb if f['type'] in ('ønske', 'balanse')], 'uklare': [f for f in fb if f['type'] == 'uklar']}
 
 
@@ -247,7 +267,7 @@ def summary(d, rewards, noted_n):
     ingenting = not d['tilbakemeldinger'] and not nye_tek and not rewards
     return {'ingenting': ingenting, 'trenger_opus': bool(d['rett'] or d['rett_fb']), 'nye_tilbakemeldinger': len(d['tilbakemeldinger']),
             'nye_tekniske': len(nye_tek), 'kan_rettes': [c['id'] for c in d['rett']] + ['#%s' % f['id'] for f in d['rett_fb']],
-            'sperret_av_pr_laasen': [c['id'] for c in d['sperret']], 'onsker_og_balanse': len(d['onsker']), 'uklare': len(d['uklare']),
+            'sperret_av_pr_laasen': [c['id'] for c in d['sperret']], 'venter_paa_jonas': d.get('oppgitt', []), 'onsker_og_balanse': len(d['onsker']), 'uklare': len(d['uklare']),
             'belonnet': [{'tilbakemelding': f, 'pr': p} for f, p in rewards], 'notert_for': noted_n}
 
 
@@ -258,6 +278,8 @@ def draft(d, s):
         L.append('- `klynge:%s` %s × %d økter, alvor %d, score %s%s%s, risiko %s, %s' % (c['id'], c['msg'][:90], c['sessions'], c['alvor'], c['score'],
                  ', ny' if c['ny'] else '', ', har PR' if c['behandlet'] else '', c['risiko'], c['file'] or c['src']))
     if not d['klynger']: L.append('Ingen feil i feillista.')
+    if d.get('oppgitt'):
+        L += ['', 'Gitt opp etter to forsøk, venter på Jonas (en åpen sak `trenger-jonas` på GitHub; lukk den for å prøve igjen): ' + ', '.join('`klynge:%s`' % x if not x.startswith('#') else 'tilbakemelding %s' % x for x in d['oppgitt'])]
     if d['sperret']:
         L += ['', 'Venter på PR-låsen (en middels/høy PR venter på Jonas, under 24 timer): ' + ', '.join('`klynge:%s`' % c['id'] for c in d['sperret'])]
     if s['belonnet']:
@@ -310,8 +332,11 @@ def real_run(a):
     why = []
     try: prs = gh('repos/%s/pulls?state=all&sort=updated&direction=desc&per_page=60' % REPO)
     except Exception as e: prs = None; why.append(str(e))
+    try: issues = gh('repos/%s/issues?state=open&labels=%s&per_page=100' % (REPO, GIVEN_UP))
+    except Exception as e: issues = None; why.append(str(e))
+    if issues is None: prs = None   # without the issues it is not known what was given up: never wake Opus blind
     lock = prlaas.decide(prs or [], now) if prs is not None else {'lav': False, 'middels_hoy': False, 'blokkert_av': [], 'lukk': []}
-    d = decide(fbd.get('rows'), fbd.get('noted'), tech.get('errors'), prs or [], (fbd.get('last_run') or {}).get('ts'), now, lock)
+    d = decide(fbd.get('rows'), fbd.get('noted'), tech.get('errors'), prs or [], (fbd.get('last_run') or {}).get('ts'), now, lock, issues or [])
     rewards = []
     if a.belonn and prs is not None and not a.test:
         git('fetch', '-q', '--depth=200', 'origin', '+main:refs/remotes/origin/main')
@@ -422,6 +447,18 @@ def selftest():
     s = summary(decide([R[1], R[2]], [], [], [], iso(1), now, open_lock), [], 0)
     eq('ønske og balanse: ingen Opus, men triage', (s['ingenting'], s['trenger_opus'], s['onsker_og_balanse']), (False, False, 2))
     eq('ønsker i utkastet', '## Til Jonas: ønsker og balanse' in draft(decide([R[1]], [], [], [], iso(1), now, open_lock), s) and '#12 ønske' in draft(decide([R[1]], [], [], [], iso(1), now, open_lock), s), True)
+    # given up: an open issue trenger-jonas skips the cluster, the next one is taken; a closed one lets it be tried again
+    krasj_id = krasj['id']
+    iss = [{'number': 90, 'state': 'open', 'title': 'Trenger Jonas: klynge:%s' % krasj_id, 'body': '- klynge:%s' % krasj_id, 'labels': [{'name': 'trenger-jonas'}]}]
+    d = decide([], [], E, [], iso(6), now, open_lock, iss); s = summary(d, [], 0)
+    eq('oppgitt hoppes over, neste tas', (krasj_id in s['kan_rettes'], s['trenger_opus'], s['venter_paa_jonas']), (False, True, [krasj_id]))
+    d = decide([], [], [E[2]], [], iso(6), now, open_lock, iss); s = summary(d, [], 0)
+    eq('bare den oppgitte: ingen Opus', (s['trenger_opus'], s['ingenting']), (False, True))
+    d = decide([], [], [E[2]], [], iso(6), now, open_lock, [dict(iss[0], state='closed')]); s = summary(d, [], 0)
+    eq('lukket sak: prøves igjen', s['trenger_opus'], True)
+    iss_fb = [{'number': 91, 'state': 'open', 'title': 'Trenger Jonas: tilbakemelding #16', 'body': '- tilbakemelding #16'}]
+    eq('oppgitt tilbakemelding', summary(decide([R[5]], [], [], [], iso(1), now, open_lock, iss_fb), [], 0)['trenger_opus'], False)
+    eq('oppgitt i utkastet', 'Gitt opp etter to forsøk' in draft(decide([], [], E, [], iso(6), now, open_lock, iss), summary(decide([], [], E, [], iso(6), now, open_lock, iss), [], 0)), True)
     # the thank-you
     noted = [{'id': 21, 'status': 'planned', 'note': 'Rettet i https://github.com/x/y/pull/40'}, {'id': 22, 'status': 'planned', 'note': 'PR /pull/41'},
              {'id': 23, 'status': 'fixed', 'note': '/pull/40'}, {'id': 24, 'status': 'seen', 'note': 'ingen PR'}, {'id': 25, 'status': 'planned', 'note': '/pull/42'}]
@@ -434,12 +471,39 @@ def selftest():
     return 1 if bad else 0
 
 
+def give_up(a):
+    """An open issue `trenger-jonas` for a cluster (8 hex) or a feedback (#N) the fix agent gave up on. No player text goes in it."""
+    key = a.gi_opp.strip()
+    c = None
+    if a.out and os.path.exists(os.path.join(a.out, 'triage.json')):
+        c = next((k for k in json.load(open(os.path.join(a.out, 'triage.json'), encoding='utf-8')).get('klynger', []) if k['id'] == key), None)
+    if re.fullmatch(r'[0-9a-f]{8}', key): ref = 'klynge:' + key
+    elif re.fullmatch(r'#?\d+', key): ref = 'tilbakemelding #' + key.lstrip('#')
+    else: sys.exit('--gi-opp tar en klynge-id (8 hex) eller #N')
+    title = 'Trenger Jonas: %s%s' % (ref, (' ' + c['msg'][:70]) if c else '')
+    body = ['Feilrettingen ga opp etter to forsøk (`tools/feilretting/RUTINE.md` punkt 5), så denne hoppes over til saken lukkes.', '',
+            '- %s' % ref]
+    if c: body += ['- Melding (normalisert): `%s`' % c['msg'][:160], '- Sted: `%s`' % (c['file'] or c['src']),
+                   '- Økter: %d, versjoner: %s, alvor %d, score %s' % (c['sessions'], ', '.join(c['versions'][-4:]), c['alvor'], c['score'])]
+    body += ['', '**Hvorfor den ble gitt opp:** ' + (a.grunn or '(ikke oppgitt)')[:1500], '',
+             'Lukk saken når du har sett på den (eller rettet den selv): da kan Driften prøve igjen.', '', '---', '_Feilrettingen (`tools/triage/klynge.py --gi-opp`)_']
+    try:
+        subprocess.run(['gh', 'api', 'repos/%s/labels' % REPO, '-f', 'name=' + GIVEN_UP, '-f', 'color=D93F0B', '-f', 'description=Feilrettingen ga opp etter to forsøk'], capture_output=True, text=True)
+        r = subprocess.run(['gh', 'api', 'repos/%s/issues' % REPO, '-f', 'title=' + title, '-f', 'body=' + '\n'.join(body), '-f', 'labels[]=' + GIVEN_UP, '-q', '.html_url'],
+                           capture_output=True, text=True)
+        if r.returncode: raise RuntimeError((r.stderr or r.stdout).strip()[:200])
+        print('GITT OPP: ' + r.stdout.strip()); return 0
+    except Exception as e:
+        print('FEIL: kunne ikke åpne saken: %s' % e); return 1
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--out'); ap.add_argument('--fra'); ap.add_argument('--belonn', action='store_true'); ap.add_argument('--test', action='store_true')
-    ap.add_argument('--selftest', action='store_true')
+    ap.add_argument('--selftest', action='store_true'); ap.add_argument('--gi-opp'); ap.add_argument('--grunn')
     a = ap.parse_args()
     if a.selftest: return selftest()
+    if a.gi_opp: return give_up(a)
     if not a.out: ap.error('--out er påkrevd')
     return real_run(a)
 
