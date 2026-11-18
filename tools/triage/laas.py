@@ -12,6 +12,9 @@ means someone else took it in the same moment. A lock that has not been renewed 
     python3 tools/triage/laas.py forny <hvem> <hva>   renews it (on each commit, and at least every other hour)
     python3 tools/triage/laas.py gi                   gives it back (the last thing a run does, also when it fails)
     python3 tools/triage/laas.py status               prints who holds it, or «ledig»
+    python3 tools/triage/laas.py teller [--timer 24]   how many times Driften took the lock for an Opus agent in the last hours: each
+                                                      take for a fix or a queue step (not a renewal, not the release), the count the
+                                                      Opus cap reads (Jonas 18.11.2026: «Tak: 4 i døgnet»)
     python3 tools/triage/laas.py --selftest           the checks of this file, on a repository of its own in a temporary folder
 
 `--remote` names another remote than origin (the self-test uses that).
@@ -77,6 +80,23 @@ def give(cwd, remote):
     return False
 
 
+def takes(cwd, remote, hours=24, now=None, who=('driften', 'feilretting')):
+    """The takes of the lock in the last hours by an Opus run: a «kjører» commit whose parent is not the same holder renewing it, by one
+    of `who`, for something else than the release («slipp»)."""
+    if not head(cwd, remote): return 0
+    now = now or time.time()
+    out = git(cwd, 'log', '--format=%ct\x01%s', '--since=%d' % int(now - hours * 3600), 'refs/laas/' + BRANCH).stdout.strip().split('\n')
+    rows = [l.split('\x01', 1) for l in out if '\x01' in l]            # newest first
+    n = 0
+    for i, (t, msg) in enumerate(rows):
+        p = msg.split()
+        if len(p) < 4 or p[0] != 'kjører' or p[2] not in who or p[3] == 'slipp': continue
+        prev = rows[i + 1][1].split() if i + 1 < len(rows) else []
+        if len(prev) >= 4 and prev[0] == 'kjører' and prev[2:] == p[2:]: continue   # a renewal of the same run
+        n += 1
+    return n
+
+
 def selftest():
     bad = []
     def eq(what, got, want):
@@ -108,6 +128,13 @@ def selftest():
         n = int(git(a, 'rev-list', '--count', 'refs/laas/' + BRANCH).stdout.strip() or 0)
         eq('fem låscommits oppå arbeidsgrenen', n, 6)
         eq('ingen fil endret', git(a, 'diff', '--name-only', 'refs/laas/' + BRANCH, 'refs/laas/base').stdout.strip(), '')
+        # the Opus count: two takes by Driften (one renewed twice), one release, one by another holder
+        take(a, 'o', 'driften', 'klynge:aaaa1111'); take(a, 'o', 'driften', 'klynge:aaaa1111', renew=True); take(a, 'o', 'driften', 'klynge:aaaa1111', renew=True); give(a, 'o')
+        take(a, 'o', 'driften', 'slipp'); give(a, 'o')
+        take(a, 'o', 'jonas-okt', 'steg 9'); give(a, 'o')
+        take(a, 'o', 'driften', 'steg 12'); give(a, 'o')
+        eq('teller tak, ikke fornyelser eller slipp', takes(a, 'o', who=('driften',)), 2)
+        eq('teller ingenting eldre enn vinduet', takes(a, 'o', now=time.time() + 25 * 3600, who=('driften',)), 0)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     for x in bad: print('FEIL ' + x)
@@ -116,7 +143,8 @@ def selftest():
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument('cmd', nargs='?', choices=['ta', 'forny', 'gi', 'status']); ap.add_argument('rest', nargs='*')
+    ap = argparse.ArgumentParser(); ap.add_argument('cmd', nargs='?', choices=['ta', 'forny', 'gi', 'status', 'teller']); ap.add_argument('rest', nargs='*')
+    ap.add_argument('--timer', type=float, default=24)
     ap.add_argument('--remote', default='origin'); ap.add_argument('--selftest', action='store_true')
     a = ap.parse_args()
     if a.selftest: return selftest()
@@ -126,6 +154,8 @@ def main():
         ok, why = take(cwd, a.remote, a.rest[0], ' '.join(a.rest[1:]), renew=a.cmd == 'forny')
         print(('LÅST' + (' (' + why + ')' if why else '')) if ok else 'OPPTATT: ' + why)
         return 0 if ok else 1
+    if a.cmd == 'teller':
+        print(takes(cwd, a.remote, a.timer)); return 0
     if a.cmd == 'gi':
         ok = give(cwd, a.remote); print('LEDIG' if ok else 'FEIL: kunne ikke gi fra seg låsen'); return 0 if ok else 1
     h = head(cwd, a.remote); b = busy(h)
