@@ -159,6 +159,39 @@ function portWhy(pt, type){
   return null;
 }
 const portFits = (pt, type) => !portWhy(pt, type);
+// any trade place for an ocean vessel (Jonas 18.11.2026, A: «Samme kairegel som mottak»: «det er jo sykt å skulle kjøre en stor
+// ringnotbåt inn i en kjempetrang bukt»): a plant by portWhy, and a yard or a shop by the quay face she would lie at (07-harbours.js
+// quayFace; quayFit: 90 % of it her length and 2 m, and her draught and half a metre; a harbour unit's basin is dredged to its dredge,
+// a face whose depth the map does not know counts as QUAY_DEPTH_UNKNOWN). A standard unit's berth is 24 m, so the ocean vessels go to
+// the yards with the big unit (90 m) and the quays long enough. The coast's boats go everywhere as before. Reason in both languages, or null
+function placeWhy(pt, type){
+  const V = VESSELS[type]; if (!pt || !V || V.cls !== 'hav') return null;
+  if (pt.mottak || pt.havOnly) return portWhy(pt, type);
+  if (!pt.sted) return null;
+  let f = null; try { f = quayFace(pt.id, 'main'); } catch (e){}
+  if (!f) return ['Kaia her er ikke for havfiskefartøy.', 'The quay here is not for ocean vessels.'];
+  const U = UNITS[pt.id], len = f.hl * 2, dep = U ? ugeo(U).dredge : f.depth, known = dep != null, d = known ? dep : QUAY_DEPTH_UNKNOWN, nf = v => String(Math.round(v * 10) / 10).replace('.', ',');
+  if (!(len * 0.9 >= V.len + 2)) return ['Kaia her er ' + Math.round(len) + ' m, for kort for en båt på ' + Math.round(V.len) + ' m.', 'The quay here is ' + Math.round(len) + ' m, too short for a ' + Math.round(V.len) + ' m vessel.'];
+  if (!(d >= V.draft + 0.5)) return known ? ['Kaia her har ' + nf(d) + ' m dybde, for grunt for en dypgang på ' + nf(V.draft) + ' m.', 'The quay here has ' + Math.round(d * 10) / 10 + ' m of water, too shallow for a draught of ' + Math.round(V.draft * 10) / 10 + ' m.']
+    : ['Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på ' + nf(V.draft) + ' m.', 'The depth at the quay here is not known, so it is not safe for a draught of ' + Math.round(V.draft * 10) / 10 + ' m.'];
+  // (and room to turn off the quay: open water within her length all round the harbour point, sixteen ways out at half and all of it;
+  // every yard has the big unit's 90 m quay, also those in a narrow bay, as Bokn verft: there the quay passed and the bay did not)
+  if (!placeRoom(pt, V.len)) return ['Det er ikke plass til å snu en båt på ' + Math.round(V.len) + ' m her.', 'There is no room to turn a ' + Math.round(V.len) + ' m vessel here.'];
+  return null;
+}
+// open water within r metres all round a point r metres out from the harbour point, away from the quay (a unit's normal, else from the
+// shore point through the harbour point): a circle of her length that reaches back to the harbour point (sixteen ways, at half r and r);
+// true where the map round it is not in yet (the chart plotter asks it where she is looking, so the map is in there), cached per place and length
+const PLACEROOM = new Map();
+function placeRoom(pt, r){
+  const k = pt.id + '|' + Math.round(r); if (PLACEROOM.has(k)) return PLACEROOM.get(k);
+  if (typeof mapReadyAt === 'function' && !mapReadyAt(pt.p, 0)) return true;
+  const U = UNITS[pt.id]; let nx = 0, ny = 0;
+  if (U){ nx = U.n[0]; ny = U.n[1]; } else if (pt.coast){ const dx = pt.p.x - pt.coast.x, dy = pt.p.y - pt.coast.y, L = Math.hypot(dx, dy) || 1; nx = dx / L; ny = dy / L; }
+  const c = {x:pt.p.x + nx * r / 1000, y:pt.p.y + ny * r / 1000};
+  let ok = true; try { for (let i = 0; i < 16 && ok; i++){ const a = i * Math.PI / 8; for (const f of [0.5, 0.95]) if (isLand({x:c.x + Math.cos(a) * r * f / 1000, y:c.y + Math.sin(a) * r * f / 1000})){ ok = false; break; } } } catch (e){ return true; }
+  PLACEROOM.set(k, ok); return ok;
+}
 // a plant for this vessel: every plant, and an ocean fleet's plant (havOnly) for an ocean vessel. The landing and the landing page asked
 // for pt.mottak alone, so an ocean vessel could not land at an ocean plant such as Avaldsnes (found by tests/havtur.py from Bergen, H2e
 // 06.11.2026); the sale, the services (06c-steder.js portServices) and Driftsplan 2 (p2PlantOk) already took it

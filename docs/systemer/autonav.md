@@ -458,3 +458,12 @@ Jonas: «Vil det hjelpe å gi de største båtene baugthruster-funksjonalitet? J
 - Hendene slipper båten to lengder før et havnepunkt (fortøyningen tar resten, som for modellen): til selve punktet nådde ringnotas skrog kaia 10–20 m unna (Hammerfest, Bokn, Samuelsberg, Tana; nå 0 treff ved tre av dem). Veien gjennom havna kjenner bruene (`fixBridgeD`).
 - Jakten på de 24 verste scenariene: 16 uten treff som før, 32 treff mot 34; ringnota ved Oldervik og kyst15 ved Ålesund og Dyrvik uten treff og uten hender, ringnota ved Bokn 3 treff mot 9.
 - Testene: `tests/unit/thruster.test.mjs`.
+
+## 4.12t Havfiskefartøyene bare der kaia og plassen tar dem (18.11.2026, Jonas' økt)
+
+Jonas: «er det ikke sånn at havfiskebåtene kun kan levere ved noen spesifike mottak? det er jo sykt å skulle kjøre en stor ringnotbåt inn i en kjempetrang bukt», og valgte A, «Samme kairegel som mottak», for verft og butikker.
+
+- Mottakene hadde regelen fra før (`portWhy`, havsteget H0): 39 av 161 tar ringnota (pluss de 13 rene havfiskemottakene). Jakten brøt den og satte ringnota ved mottak med 17–25 m kai (Bokn, Tana, Samuelsberg, Oldervik); de turene er tatt ut (`jakt.py`: et havfiskefartøy starter og ender bare der `placeWhy` slipper det til).
+- `placeWhy` (`core/06b-coastports.js`): et verft eller en butikk tar et havfiskefartøy bare når kaifronten hun ville ligge ved (`quayFace`), er lang og dyp nok (`quayFit`-regelen; en havneenhets basseng er mudret til `dredge`), og det er svingrom: åpent vann innen hennes lengde rundt et punkt én lengde ut fra havnepunktet (`placeRoom`). En vanlig havneenhet har 24 m kaiplass, så butikkene tar ikke havfiskefartøyene (1 av 66 gjør); alle 130 verft har den store enheten (90 m, 13 m) og tar dem.
+- Kartplotteren sier hvorfor når du trykker på et sted som ikke tar båten (`ui/03b-route.js`).
+- Testene: `tests/unit/havplass.test.mjs`.
