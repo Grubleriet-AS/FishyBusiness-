@@ -258,10 +258,10 @@ def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=()):
         c['ny'] = bool(since is None or (ts(c['last']) and ts(c['last']) > since))
         c['oppgitt'] = c['id'] in gcl
         c['behandlet'] = c['id'] in hcl or c['oppgitt']
-    allowed = lambda k: k == risiko.LAV or lock.get('middels_hoy', False)
-    fix_cl = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and allowed(c['risiko'])]
+    allowed = lambda c: prlaas.allows(lock, c['risiko'], [c['file']] if c.get('file') else [])   # (one hoy, three middels, never the same file)
+    fix_cl = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and allowed(c)]
     fix_fb = [f for f in fb if f['type'] == 'teknisk' and not f['klynge'] and f['id'] not in hfb and f['id'] not in gfb and f['score'] >= MIN_FIX]
-    blocked = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and not allowed(c['risiko'])]
+    blocked = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and not allowed(c)]
     return {'klynger': cls, 'tilbakemeldinger': fb, 'rett': fix_cl, 'rett_fb': fix_fb, 'sperret': blocked, 'oppgitt': sorted(gcl) + ['#%d' % n for n in sorted(gfb)],
             'onsker': [f for f in fb if f['type'] in ('ønske', 'balanse')], 'uklare': [f for f in fb if f['type'] == 'uklar']}
 
@@ -347,7 +347,11 @@ def real_run(a):
     try: issues = gh('repos/%s/issues?state=open&labels=%s&per_page=100' % (REPO, GIVEN_UP))
     except Exception as e: issues = None; why.append(str(e))
     if issues is None: prs = None   # without the issues it is not known what was given up: never wake Opus blind
-    lock = prlaas.decide(prs or [], now) if prs is not None else {'lav': False, 'middels_hoy': False, 'blokkert_av': [], 'lukk': []}
+    for p in prs or []:   # the files of the PRs that wait for Jonas: a middels fix on one of them waits (prlaas.allows)
+        if prlaas.ours(p) and prlaas.klasse(p) in ('middels', 'hoy'):
+            try: p['files'] = [f['filename'] for f in gh('repos/%s/pulls/%d/files?per_page=100' % (REPO, p['number'])) or []]
+            except Exception as e: why.append(str(e)); prs = None; break
+    lock = prlaas.decide(prs or [], now) if prs is not None else {'lav': False, 'hoy': False, 'middels': False, 'middels_hoy': False, 'filer': [], 'blokkert_av': [], 'lukk': []}
     d = decide(fbd.get('rows'), fbd.get('noted'), tech.get('errors'), prs or [], (fbd.get('last_run') or {}).get('ts'), now, lock, issues or [])
     rewards = []
     if a.belonn and prs is not None and not a.test:
@@ -372,7 +376,7 @@ def real_run(a):
     except Exception as e: igjen = igjen_steg = 0; why.append('Opus-telleren: %s' % e)   # without the count, no Opus: never past the cap blind
     s = summary(d, rewards, len(fbd.get('noted') or []), igjen)
     s['opus_igjen_steg'] = igjen_steg   # what tools/drift/RUTINE.md point 6 reads before a step from the queue
-    s['feil'] = why; s['pr_laas'] = {'middels_hoy': lock['middels_hoy'], 'blokkert_av': [p['number'] for p in lock['blokkert_av']], 'lukk': [p['number'] for p in lock['lukk']]}
+    s['feil'] = why; s['pr_laas'] = {'hoy': lock['hoy'], 'middels': lock['middels'], 'filer': lock['filer'], 'blokkert_av': [p['number'] for p in lock['blokkert_av']], 'lukk': [p['number'] for p in lock['lukk']]}
     dump = dict(d); dump['oppsummering'] = s
     json.dump(dump, open(os.path.join(a.out, 'triage.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1, default=list)
     open(os.path.join(a.out, 'rapport-utkast.md'), 'w', encoding='utf-8').write(draft(d, s))
