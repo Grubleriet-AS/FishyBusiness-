@@ -446,3 +446,14 @@ Rettingen av mønster 1 og 3 fra jakten (`docs/planer/autonav-null-treff.md`). J
 - **Linja legges ikke på nytt** (600 m før havna) før båtens plass på linja er der hun er (etter at tiden er tatt igjen med modellen av).
 - **Tid:** `dynLineBuild` 60–330 ms ved avgang målt i jakten (første oppslag av trafikken på et nytt sted kommer i tillegg, og det betaler spillet uansett); ellers 0–20 ms.
 - **Testene:** `tests/unit/fastsjo.test.mjs`; jakten med `--only` for scenariene der det skjedde.
+
+## 4.12s Baug- og hekkpropell (18.11.2026, Jonas' økt)
+
+Jonas: «Vil det hjelpe å gi de største båtene baugthruster-funksjonalitet? Jeg vil anta at de har dette på ekte», valgte at de følger båttypen, og «De kan ha hekkthruster også, så kan de gå rett sidelengs ved behov». Planen: `docs/planer/thrustere.md`.
+
+- `VESSELS` `thrusters:2` på kyst15, kyst21, ringnot38 og havbåtene (de 3D-modellene har allerede tunnelene).
+- `dynInt`: en sidekraft ved baugen og ved hekken (0,45 L fra midten), virkningen borte ved 4 knop. Hver er dimensjonert slik VETUS gjør (vindens kraft på siden × halve lengden / tunnelens arm, 1,1 × vindkraften) for Beaufort 7 (17 m/s): ringnota 1,9 t, kyst21 0,7 t (startverdier).
+- `dynAuto`: under 4 knop, ikke mens hun rygger og fyller fra land (`T.bow`), dreier propellene mot hverandre henne mot kursen linja vil ha og skyver henne sammen sidelengs inn mot linja.
+- Båter med propeller seiler selv de siste og første 200 m av en fri linje i havnefart (`dynLineHarb` `big`), som båtene under 14 m. Hendene tar fortsatt en vei som er funnet mellom bryggene, og rygginga fra kai.
+- Jakten på de 24 verste scenariene: 16 uten treff som før, 32 treff mot 34; ringnota ved Oldervik og kyst15 ved Ålesund og Dyrvik uten treff og uten hender, ringnota ved Bokn 3 treff mot 9.
+- Testene: `tests/unit/thruster.test.mjs`.
