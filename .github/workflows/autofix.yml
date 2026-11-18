@@ -7,6 +7,10 @@
 # at once (the step «Slipper rettingen til spillerne» below; Jonas: «der brukerne er, altså på produksjonsutgaven»). One that cannot
 # go alone waits for the next release (tools/release/slipp.py and «Slippet» in tools/plan/RUTINE.md).
 # A PR the gate stops gets the label `autofix-stoppet` and a comment with why; it waits for Jonas as before.
+# From 18.11.2026 only a fix of risk `lav` (tools/ci/risiko.py: the UI, the stylesheet, tests only added to, docs; at most 150 lines and
+# 6 files) passes. Real money, accounts and saved player data, the database and the core mechanics are `hoy` or `middels`: the gate
+# stops them with the label `venter-pa-jonas` as well, and Jonas lets one in with one click (he merges the PR). Jonas 18.11.2026:
+# «Fjern unntaket som lar automatiske rettinger i ekte penger, Stripe og butikk slippes uten godkjenning» (it stood from 17.11.2026).
 # Since 16.11.2026 a fix from a player's feedback goes out the same way as one from the error list (Jonas: «feilrettinger fra brukere
 # skal slippes rett til main ... Rettelser må skje kjapt», then «fiks og kjør ut alt du kan»; before, Ø6 funn 8 held them for him).
 # The gate is the guard against a «fix» steered by a player's text: the files, the size, no code that talks to other hosts or runs
@@ -108,14 +112,21 @@ jobs:
           git push -f origin "$br"
           gh workflow run slipp.yml --ref "$BASE" -f gren="$br" -f migreringer=ingen
           say "Rettingen holder også mot spillernes versjon, og slippes nå alene til detstorebla.no (grenen \`$br\`, workflowen «Slipp»; lagringsporten kjører før opplastingen). main flettes tilbake i arbeidsgrenen etterpå."
-      - name: Stoppet
+      - name: Stoppet eller klar for Jonas
         if: steps.gate.outputs.code != '0'
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
         run: |
-          gh label create autofix-stoppet --color B60205 --description "Porten stoppet den automatiske rettingen" 2>/dev/null || true
-          gh pr edit "$PR" --add-label autofix-stoppet
-          { echo "Porten stoppet den automatiske rettingen. Den venter på Jonas."; echo; echo '```'; head -c 3500 gate.txt; echo '```'; echo; echo "---"; echo "_Automatisk retting (.github/workflows/autofix.yml)_"; } > body.md
+          # code 3: stopped for its risk alone (middels or hoy), tested and without a fault: ready for Jonas' click (18.11.2026)
+          if [ "${{ steps.gate.outputs.code }}" = 3 ]; then
+            gh label create venter-pa-jonas --color FBCA04 --description "Klar: middels eller høy risiko, venter på ett klikk fra Jonas" 2>/dev/null || true
+            gh pr edit "$PR" --add-label venter-pa-jonas
+            { echo "**Venter på deg: rettingen rører noe som bare går ut med ditt klikk** (risiko $(sed -n 's/^risiko: //p' gate.txt | head -1), \`tools/ci/risiko.py\`)."; echo; echo "Ser den riktig ut, trykker du «Merge» på PR-en. Den går da til testutgaven og med neste slipp. Vil du ikke ha den, lukker du PR-en."; echo; echo '```'; head -c 3500 gate.txt; echo '```'; echo; echo "---"; echo "_Automatisk retting (.github/workflows/autofix.yml)_"; } > body.md
+          else
+            gh label create autofix-stoppet --color B60205 --description "Porten stoppet den automatiske rettingen" 2>/dev/null || true
+            gh pr edit "$PR" --add-label autofix-stoppet
+            { echo "Porten stoppet den automatiske rettingen. Den venter på Jonas."; echo; echo '```'; head -c 3500 gate.txt; echo '```'; echo; echo "---"; echo "_Automatisk retting (.github/workflows/autofix.yml)_"; } > body.md
+          fi
           gh pr comment "$PR" --body-file body.md
-          exit 1
+          [ "${{ steps.gate.outputs.code }}" = 3 ] || exit 1
