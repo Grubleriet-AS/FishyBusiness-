@@ -1056,7 +1056,9 @@ function crewSim(src){
       // the same station as before, and not an idle spell that is over: the place is kept (nobody swaps the table for the tub each minute);
       // an idle spell on deck ends as she gets under way on a boat with a house, so the crew go in (Jonas 21.10.2026: they stood leaning
       // over the rail at 23 knots for a minute and a half, as if jigging)
-      const keep = g && a.kind === kind && !(g.idle && g.until < t) && !(g.idle && ctx.underway && !ctx.open) &&!(g.inside === 'in' && g.until && g.until < t && p.st === 'pause' && !ctx.underway) && !(ctx.away && g) && (g.inside || ST.M.ok(g.k));
+      // (one jigging on a higher place chooses again each round, so the machine's place, the lowest free one, is filled first: he stood on
+      // at the rail while the machine stood empty once the skipper went to gut, tilbakemelding #168)
+      const keep = g && a.kind === kind && !(g.idle && g.until < t) && !(g.idle && ctx.underway && !ctx.open) &&!(g.inside === 'in' && g.until && g.until < t && p.st === 'pause' && !ctx.underway) && !(ctx.away && g) && !(p.st === 'fiske' && a.slot > 0) && (g.inside || ST.M.ok(g.k));
       if (keep){ if (a.slot >= 0) (used[kind] || (used[kind] = new Set())).add(a.slot); if (!g.inside) TAKEN.set(g.k, id); } else pend.push([p, a, kind]); }
     // (OB10 runde 4: the one setting chooses first, and the gutter yields where the two places are one: on the snekke the only place
     // for the one setting line, with the tubs' true width, is the gutting station, and he stood looking on while someone gutted there)
