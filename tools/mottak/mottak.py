@@ -8,7 +8,8 @@
 #   p [x, y] in the game's frame (km), q the quay face it lies at from the game's vector packs [x, y, the normal's angle, length m,
 #   depth m, kind, metres from the register's point] or null when none is within 600 m,
 #   small (share of the landings from boats under 15 m), big (share from vessels of 28 m and over), rf (Råfisklaget's type and zone)
-#   python3 tools/mottak/mottak.py kai   seeks the quay at the place's name for the receivers without one (by_name, 17.11.2026)
+#   python3 tools/mottak/mottak.py kai   seeks the quay at the place's name for the receivers without one (by_name, 17.11.2026); by hand
+#                                        only, then tests/allesteder.py on the new harbours: a quay the routes cannot reach must not go out
 #   python3 tools/mottak/mottak.py hav   adds big and herring, mackerel and snow crab to src/data/mottak.json as it is (H0, 03.11.2026)
 # Personal data in Råfisklaget's map (contact, e-mail, phone) is dropped as it is read.
 # No company names (Jonas 07.10.2026: «vi må fjerne alle ekte firma-navn fra fiskemottakene ... Jeg orker ikke å bli saksøkt»): the register's
@@ -235,7 +236,8 @@ def main():
         out.append(dict(id=mt, t=e['t'], k=e['k'], ll=e['ll'], p=[round(x, 4), round(y, 4)], q=snap(Q, x, y) if Q else None, src=e['src'], kg=round(kg), n_land=round(a['docs'] / ny), boats=round(a['boats'] / ny),
                         sp=sp, gear=gear, small=round(a['small'] / a['kg'], 3) if a['kg'] else 0, big=round(a.get('big', 0) / a['kg'], 3) if a['kg'] else 0, rf=[f['type'], f['zone']] if f else None))
     out.sort(key=lambda x: -x['kg']); places(out)
-    if Q: kai(out, Q, frame)
+    # (kai is not run here: a receiver found this way must be checked to be reachable by the game's routes first, e.g. Austafjord's
+    # quay lies up a fjord too narrow for the route net, 18.11.2026; run «mottak.py kai» by hand and sail there with tests/allesteder.py)
     meta = dict(made=time.strftime('%Y-%m-%d'), years=years, src='Fiskeridirektoratet: kjøperregisteret og fangstdata (seddel), NLOD; Norges Råfisklag: mottakskartet',
                 n=len(out), nogeo=nogeo)
     json.dump(dict(meta=meta, m=out), open(os.environ.get('KYST_MOTTAK') or os.path.join(OUT, 'mottak.json'), 'w'), ensure_ascii=False, separators=(',', ':'))

@@ -1,7 +1,6 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
     ['rettinger-181126', '18.11.2026', 'Rettinger fra spillerne', 'Fixes from the players', [
-       ['Nytt fiskemottak i Austafjord på Ramstadlandet (Vikna).', 'A new fish plant at Austafjord on Ramstadlandet (Vikna).'],
        ['Den siste etappen inn til stoppet ditt etter en Autonav-rute setter ikke lenger båten på grunn; hun stopper og finner vei rundt.', 'The last leg into your stop after an Autonav route no longer runs the boat aground; she stops and finds a way round.'],
        ['Båten går ikke lenger på grunn i svingen ut fra kaia på en gul etappe.', 'The boat no longer runs aground in the turn away from the quay on a yellow leg.'],
        ['For anker med baugen mot vinden ligger båten nesten rett, og hun vipper ikke lenger fra side til side.', 'At anchor head to wind the boat lies almost upright, and no longer flips from side to side.'],
