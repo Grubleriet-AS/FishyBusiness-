@@ -1,8 +1,9 @@
 """The save to the account when the cloud fails (klynge:471787f3, 18.11.2026): cloudRpc and cloudSaveSoon (ui/10f-cloud.js) with a
 stand-in for Supabase. A 401 gets a fresh token and one more go also when the token could not be had the first time (the call went
 without one); a save that fails on the server or the network (504, 503, a time-out, a 401 that a fresh token did not mend) is kept on
-the device and goes with the next round, and is not reported to the error log as a fault of the game; a save the server refuses for
-another reason (400) still is. Prints OK or FEIL."""
+the device and goes with the next round, and is not reported to the error log as a fault of the game, until a 401 has come three rounds
+in a row (the sign-in has run out): that is logged once per streak; a save the server refuses for another reason (400) still is.
+Prints OK or FEIL."""
 from _env import GAME3D_MIN, boot
 import asyncio, json, os
 from playwright.async_api import async_playwright
@@ -57,10 +58,16 @@ async def main():
         for m, fast, what in ((504, False, '504'), (503, False, '503'), ('hang', True, 'a time-out'), (401, False, 'a 401 a fresh token did not mend')):
             a = await save_round(m, fast)
             check(a['logged'] == [] and not a['saved'] and a['stat'] == 'error', 'a save that meets %s stays on the device and is not reported as a fault' % what, a)
+        # a 401 that keeps coming (the sign-in has run out): the third in a row is logged, once, so it stays in sight (Jonas 18.11.2026)
+        got = [await save_round(401) for _ in range(3)]
+        check([len(x['logged']) for x in got] == [0, 1, 0] and 'tre ganger på rad' in ''.join(got[1]['logged']) and not any(x['saved'] for x in got),
+              'a 401 three rounds in a row (with the one above) is logged once, as the sign-in that ran out', [x['logged'] for x in got])
         a = await save_round(400)
         check(a['logged'] != [] and not a['saved'], 'a save the server refuses for another reason (400) is still reported', a)
         a = await save_round(200)
         check(a['logged'] == [] and a['saved'] and a['stat'] == 'ok', 'the next round takes the save to the account', a)
+        got = [await save_round(401) for _ in range(2)]
+        check([len(x['logged']) for x in got] == [0, 0], 'after a save that came through, the count starts again: two 401s are not logged', [x['logged'] for x in got])
         print('errors:', errs[:3]); await br.close()
 
 asyncio.run(main())
