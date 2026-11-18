@@ -198,6 +198,20 @@ def main():
         R['agRun'] = sql("select public.agent_run('# Rapport\n1 ny', '[{\"url\":\"https://github.com/x/pull/1\",\"title\":\"t\"}]', 1)", None, 'service_role')
         R['agRunPl'] = sql("select public.agent_run('x', '[]', 0)", A, 'authenticated', expect_err=True)
         R['agRuns'] = json.loads(sql("select public.admin_agent_runs(5)", AD2, 'authenticated')); R['agRunsPl'] = sql("select public.admin_agent_runs(5)", A, 'authenticated', expect_err=True)
+        # the groundings and the blows for the agent (20261117160000_agent_incidents.sql): agent_incidents, service_role only, never who; and
+        # the grounding report's meta.ag in agent_feedback
+        sql("insert into public.events (session_id, player_id, kind, data) values ('%s', 'user_01AAA', 'aground', '{\"x\":1071.94,\"y\":148.71,\"boat\":\"trebat\",\"v\":3.9,\"how\":\"leia\"}'),"
+            " ('%s', 'user_01AAA', 'hit', '{\"k\":\"kai\",\"kn\":2.1,\"how\":\"helm\"}'), ('%s', 'user_01AAA', 'clash', '{\"k\":\"npc\",\"kn\":4,\"how\":\"route\"}'), ('%s', 'user_01AAA', 'app', '{}')" % (sid, sid, sid, sid))
+        INC = json.loads(sql("select public.agent_incidents(30)", None, 'service_role'))
+        R['incKinds'] = sorted(r['kind'] for r in INC['rows']); R['incWho'] = 'user_01' in json.dumps(INC); R['incVer'] = INC['rows'][0].get('version') if INC['rows'] else None
+        R['incTot'] = {t['kind'] + '/' + str(t['how']): t['n'] for t in INC['totals']}
+        R['incPl'] = sql("select public.agent_incidents(30)", A, 'authenticated', expect_err=True); R['incAdm'] = sql("select public.agent_incidents(30)", AD2, 'authenticated', expect_err=True)
+        R['agAg'] = sql("select public.ag_put('[Grunnstøting] test', null, '{\"version\":\"t2\",\"ag\":{\"how\":\"leia\",\"wps\":[[71,23.8,1]],\"hd\":220}}')", A, 'authenticated')
+        AG3 = json.loads(sql("select public.agent_feedback(80)", None, 'service_role')); R['agAgMeta'] = [r['meta'].get('ag') for r in AG3['rows'] if r['id'] == int(R['agAg'])]
+        print(ok(R['incKinds'] == ['aground', 'clash', 'hit'] and not R['incWho'] and R['incTot'].get('aground/leia') == 1 and R['incPl'][0] and R['incAdm'][0]
+                 and R['agAgMeta'] == [{'how': 'leia', 'wps': [[71, 23.8, 1]], 'hd': 220}]),
+              'feedback agent: the groundings, the blows and the collisions (agent_incidents) for service_role only, without who; the grounding report\'s meta.ag in agent_feedback',
+              {k: R[k] for k in ('incKinds', 'incWho', 'incVer', 'incTot', 'agAgMeta')} | {'incPl': R['incPl'][0], 'incAdm': R['incAdm'][0]})
         R['agAdmRow'] = [r for r in json.loads(sql("select public.admin_feedback(50, null, null)", AD2, 'authenticated'))['rows'] if r['id'] == int(R['agMail'])]
         # the thank-you (20261006140000_feedback_reward.sql): «Kommer» or «Fikset» gives the player one takk-haill grant, once per feedback
         fA = int(R['agMail']); cnt = lambda f: sql("select count(*) from public.grants where product_id = 'fb_haill' and (data->>'fid')::bigint = %d" % f)

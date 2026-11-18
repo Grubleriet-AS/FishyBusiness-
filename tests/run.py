@@ -189,6 +189,7 @@ for _f in ('src/js/core/07c-naust.js', 'src/js/ui/03b-route.js', 'src/js/core/07
     COVER[_f] = COVER.get(_f, []) + ['utfrakai']
 # No harbour shut in by its own quay and fill (13.11.2026; tools/steder/lukkflytt.py): every harbour along the coast has a way in over
 # water. Needs the whole coast in the build. On lines of their own, as above
+COVER['supabase/migrations/20261117160000_agent_incidents.sql'] = ['sqltest']
 LITE += ['lukket']
 VECB += ['lukket']
 COVER['tests/lukket.py'] = ['lukket']; COVER['tools/steder/lukkflytt.py'] = ['lukket']
