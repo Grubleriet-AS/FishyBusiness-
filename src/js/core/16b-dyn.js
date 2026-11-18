@@ -983,6 +983,10 @@ function dynAuto(d, dtG){
     if (T.hzS != null && !T.hzDone && !(T.assist > T.s) && !unsafe && T.s >= T.hzS - 1 && sStop > T.s + 1 && stopW && stopW.port){ T.assist = sStop - 0.5; T.hzDone = true; T.prog = {s:T.s, t:S.t}; dynHands(T, 'harb'); }
     const sN = T.bzS != null && !T.bzDone ? T.stops.find(q => q.i >= pl.idx && pl.wps[q.i].berth === 'naust') : null;
     if (sN && !(T.assist > T.s) && !unsafe && !T.ghit && T.s >= sN.s - 200 && sStop > T.s + 1){ T.assist = Math.min(sN.s, sStop) - 0.5; T.bzDone = T.assist >= sN.s - 0.6; T.prog = {s:T.s, t:S.t}; dynHands(T, 'naust'); }
+    // (the hands let her go two lengths from a harbour point she stops at, where the quay's lines take her, as the model does (arrive
+    // below): to the point itself the 38 m purse seiner's hull reached the quay it lies 10-20 m off, at Hammerfest, Bokn, Samuelsberg and
+    // Tana, the hunt 18.11.2026)
+    if (T.assist > T.s && stopW && stopW.port && stopW.berth !== 'naust' && ds < Math.max(2 * L, 10)) T.assist = T.s;
     if ((T.back > 0 && T.s < sScr) || T.assist > T.s){
       // (the speed: astern off the quay and in the turn 0.8 m/s; then up to five knots, the harbours' speed limit, where the line runs
       // straight, a knot and a half to three a length before a corner of it and over the last lengths of the stretch: under three knots the
