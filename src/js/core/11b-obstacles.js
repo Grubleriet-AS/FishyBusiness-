@@ -76,9 +76,11 @@ function obsIndex(){
     for (let j = Math.floor((z0 - pad) / C); j <= Math.floor((z1 + pad) / C); j++) for (let i = Math.floor((x0 - pad) / C); i <= Math.floor((x1 + pad) / C); i++){ const k = i * 1048576 + j; let a = idx.get(k); if (!a) idx.set(k, a = []); a.push(o); } };
   const bridges = BRIDGES.slice(); for (const t of VEC.tiles.values()) for (const q of t.bridges) bridges.push(q);
   for (const br of bridges){ if (bridgeUnderUnit(br)) continue; const o = obsBridge(br); o.piers.forEach(put); o.deck.forEach(put); }
-  const box = (q, why) => { if (q.made) return; put({t:1, x:q.x, z:q.z, l:q.l / 2, w:q.w / 2, ux:Math.sin(q.ang), uz:Math.cos(q.ang), why}); };
+  // (and the quay decks, made: a quay's line drawn as a 6 m deck on its land side, which stands in the water where the mapped quay is
+  // off the coast's mask; the autonav routine 18.11.2026)
+  const box = (q, why) => put({t:1, x:q.x, z:q.z, l:q.l / 2, w:q.w / 2, ux:Math.sin(q.ang), uz:Math.cos(q.ang), why:q.made ? 'quay' : why});
   for (const q of PIERBOX) box(q, 'pier');
-  for (const t of VEC.tiles.values()) for (const q of t.piers) if (!unitCovers(q.x, q.z, 3)) box(q, 'pier');   // not under a harbour unit (it is drawn without them, view3d.js tileStatics)
+  for (const t of VEC.tiles.values()) for (const q of vecDrawn(t).piers) box(q, 'pier');   // as the 3D view builds them (not under a harbour unit, vecDrawn)
   if (S.naust && S.naust.o){ const n = S.naust, f = {x:n.o[0] - n.u[0] * 0.5, z:n.o[1] - n.u[1] * 0.5}, nx = -n.u[1], nz = n.u[0];
     put({t:1, x:f.x - nx * 1.7, z:f.z - nz * 1.7, l:8.1, w:1.7, ux:n.u[0], uz:n.u[1], why:'naust'}); }
   // the quays of the rorbuer found so far (07d-rorbu.js), the deck behind the face
@@ -101,6 +103,202 @@ function obsIndex(){
   if (VIND) for (const q of VIND.t){ const p = {x:q[0] / 1000, y:q[1] / 1000}; if (!mapReadyAt(p, 0)) continue; let land = true; try { land = isLand(p); } catch (e){ continue; } if (!land) put({t:0, x:q[0], z:q[1], r:Math.max(5, q[2] * 0.11), why:'turbine'}); }
   HIND.idx = idx; HIND.list = list; HIND.key = key; return idx;
 }
+// ===== WHAT IS FIXED IN THE SEA AT A POINT (the autonav routine, 18.11.2026, docs/planer/autonav-null-treff.md, pattern 1) =====
+// Everything the 3D view builds in the water by a quay, in one index, so the way out from a berth and in to it (07-harbours.js
+// berthBlocked), the boat model's contact and the safety net (16b-dyn.js dynObsNear) and the route's ends (obsCounts) see the same:
+//  - Senja's piers, breakwaters and quay decks (PIERBOX, the made decks too)
+//  - the coast's piers, breakwaters and quay decks from the vec packs (t.piers, the made decks too; not under a harbour unit, which
+//    is drawn without them), a pier mapped as an area in its own outline (t.slabs) rather than the box round it, and a breakwater
+//    mapped as an area as its outline (t.molos, closed)
+//  - the coast harbours' floating docks and their gangways (h.docks), Father's naust's pile quay and the rorbuer's quays
+// A harbour unit's block and fill are tested where they were (UNITA). Before, the model and the way to the berth saw only PIERBOX and
+// the units, and Autonav's boat went through the rest without a knock: 83 % of the 211 touches by a quay in the hunt's first run.
+// Boxes are as obsIndex's (t 1: middle x, z, half length l along ux, uz, half width w across), outlines t 3 (P, its bounds); in metres,
+// per 100 m cell (each thing in every cell within 30 m of it). k: what it is, for the log (kai, brygge, molo, flytebrygge).
+const FIX = {C:100, idx:null, key:'', pad:30, boats:null};
+// A tile's piers, slabs and breakwaters as the 3D view builds them (view3d/04-vec-packs.js tileStatics, whose rules these are, but for
+// the rorbu and naust sites, onSite, which only the view knows: their quays are in the index): not a pier or a slab under a harbour
+// unit (any of a slab's corners within 3 m of one), not a box that reaches onto a unit's ground or into its basin, not a breakwater that
+// does; and the piers and slabs that are floating docks (flyteTile) as floating docks. {piers, flo (the floating ones), slabs [[P, floating]], molos}
+const VECDRAWN = new WeakMap();
+// The floating docks and open piers where a trade place's boats lie and back out are taken away (Jonas 18.11.2026: «Om noen flytebrygger
+// eller noe sånt ligger i veien så får du lov å fjerne dem»; the hunt: at Ålesund utstyrsbutikk and Dønna the point she backs to from the
+// berth lay among the pontoons beside it, and there was no way out that did not go through them). The zone of a place: 20 m either side of
+// its quay face and 30 m past its ends (she backs a length and a half along it), and of the way from the face to the harbour point. Not the
+// quays, the breakwaters or the piers mapped as areas (often the quay itself); the 3D view leaves them out too (vecGone).
+const PORTZ = {list:null, cells:null, r:20, past:30};
+function portZones(){
+  if (PORTZ.list) return PORTZ;
+  const list = [], cells = new Map(), put = (z, x0, z0, x1, z1) => { for (let i = Math.floor((x0 - 60) / 1000); i <= Math.floor((x1 + 60) / 1000); i++) for (let j = Math.floor((z0 - 60) / 1000); j <= Math.floor((z1 + 60) / 1000); j++){ const k = i * 65536 + j; let a = cells.get(k); if (!a) cells.set(k, a = []); a.push(z); } };
+  for (const pt of PORTS){ if (pt.havOnly) continue; let f = null; try { f = quayFace(pt.id, 'main'); } catch (e){}
+    const px = pt.p.x * 1000, pz = pt.p.y * 1000, segs = [];
+    if (f){ const e = f.hl + PORTZ.past; segs.push([f.x - f.ux * e, f.z - f.uz * e, f.x + f.ux * e, f.z + f.uz * e], [px, pz, f.x, f.z]); }
+    else if (pt.coast) segs.push([px, pz, pt.coast.x * 1000, pt.coast.y * 1000]);
+    else segs.push([px, pz, px, pz]);
+    for (const g of segs){ list.push(g); put(g, Math.min(g[0], g[2]), Math.min(g[1], g[3]), Math.max(g[0], g[2]), Math.max(g[1], g[3])); } }
+  PORTZ.list = list; PORTZ.cells = cells; return PORTZ;
+}
+// whether x, z (m) is within the zone of a trade place
+function inPortZone(x, z){
+  const Z = portZones(), L = Z.cells.get(Math.floor(x / 1000) * 65536 + Math.floor(z / 1000)); if (!L) return false;
+  for (const [ax, az, bx, bz] of L){ const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz, u = L2 ? clamp(((x - ax) * dx + (z - az) * dz) / L2, 0, 1) : 0; if (Math.hypot(x - ax - dx * u, z - az - dz * u) < Z.r) return true; }
+  return false;
+}
+// a tile's floating docks and open piers taken away: {piers: Set of the pack's pier boxes (a pier whole, by its middle fm, where any of its
+// boxes reaches into a zone), fd: Set of the floating docks' keys (flyteTile: Math.round(mx) + ':' + Math.round(mz)) one of whose lines does}
+const VECGONE = new WeakMap();
+function vecGone(t){
+  let o = VECGONE.get(t); if (o) return o;
+  const box = q => { const ax = Math.sin(q.ang), az = Math.cos(q.ang), nx = Math.cos(q.ang), nz = -Math.sin(q.ang); for (const s of [-1, -0.5, 0, 0.5, 1]) for (const k of [-1, 0, 1]) if (inPortZone(q.x + ax * s * q.l / 2 + nx * k * q.w / 2, q.z + az * s * q.l / 2 + nz * k * q.w / 2)) return true; return false; };
+  const fmK = q => q.fm ? Math.round(q.fm[0]) + ':' + Math.round(q.fm[1]) : null, hit = new Set(), piers = new Set(), fd = new Set();
+  for (const q of t.piers || []) if (!q.made && !q.bw && !q.closed && fmK(q) && box(q)) hit.add(fmK(q));
+  for (const q of t.piers || []) if (!q.made && !q.bw && !q.closed && hit.has(fmK(q))) piers.add(q);
+  for (const d of flyteTile(t.tx, t.ty)) if (d.L.some(l => l.p.some(([x, z]) => inPortZone(x, z)))) fd.add(Math.round(d.mx) + ':' + Math.round(d.mz));
+  // (and the piers that are those floating docks, by the pier's middle as the 3D view finds them, isF: they would else be drawn as piers)
+  if (fd.size) for (const q of t.piers || []) if (q.fm){ const rx = Math.round(q.fm[0]), rz = Math.round(q.fm[1]); for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) if (fd.has((rx + a) + ':' + (rz + b))) piers.add(q); }
+  o = {piers, fd}; VECGONE.set(t, o); return o;
+}
+// a slab (an outline) that is one of the floating docks taken away
+function vecGoneSlab(G, P){ if (!G.fd.size) return false; let cx = 0, cz = 0; for (const [x, z] of P){ cx += x; cz += z; } const rx = Math.round(cx / P.length), rz = Math.round(cz / P.length);
+  for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) if (G.fd.has((rx + a) + ':' + (rz + b))) return true; return false; }
+function vecDrawn(t){
+  let o = VECDRAWN.get(t); if (o && o.n === UNITA.length) return o;
+  const T = MAPD.man ? MAPD.man.tile * 1000 : 50000, UN = UNITA.filter(U => U.o[0] > t.x0 - 300 && U.o[0] < t.x0 + T + 300 && U.o[1] > t.z0 - 300 && U.o[1] < t.z0 + T + 300);
+  const under = (x, z) => unitCovers(x, z, 3), slabUnder = P => { let cx = 0, cz = 0; for (const [x, z] of P){ if (under(x, z)) return true; cx += x; cz += z; } return under(cx / P.length, cz / P.length); };
+  const onU = (x, z) => UN.some(U => { const [lx, lz] = unitL(U, x, z), g = ugeo(U); return groundOut(U, lx, lz) <= 2 || (Math.abs(lx) <= g.basinX && lz >= 0 && lz <= g.basinZ); });
+  const lineOnU = P => { for (let k = 0; k < P.length; k++){ const [ax, az] = P[k], [bx, bz] = P[Math.min(k + 1, P.length - 1)], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 3)); for (let s = 0; s <= n; s++) if (onU(ax + (bx - ax) * s / n, az + (bz - az) * s / n)) return true; } return false; };
+  const boxOnU = q => { const ax = Math.sin(q.ang), az = Math.cos(q.ang), nx = Math.cos(q.ang), nz = -Math.sin(q.ang); for (let s = -1; s <= 1; s += 0.25) for (const k of [-1, 0, 1]) if (onU(q.x + ax * s * q.l / 2 + nx * k * q.w / 2, q.z + az * s * q.l / 2 + nz * k * q.w / 2)) return true; return false; };
+  const G = vecGone(t), FD = flyteTile(t.tx, t.ty).filter(d => !under(d.mx, d.mz) && !G.fd.has(Math.round(d.mx) + ':' + Math.round(d.mz))), FK = new Set(FD.map(d => Math.round(d.mx) + ':' + Math.round(d.mz)));
+  const isF = (x, z) => { if (!FK.size) return false; const rx = Math.round(x), rz = Math.round(z); for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) if (FK.has((rx + a) + ':' + (rz + b))) return true; return false; };
+  const slabF = P => { let cx = 0, cz = 0; for (const [x, z] of P){ cx += x; cz += z; } return isF(cx / P.length, cz / P.length); };
+  const flo = new Set(), piers = (t.piers || []).filter(q => { if (G.piers.has(q)) return false; if (q.fm && isF(q.fm[0], q.fm[1])){ flo.add(q); return !under(q.x, q.z); } return !under(q.x, q.z) && !(UN.length && boxOnU(q)); });
+  o = {n:UNITA.length, piers, flo, slabs:(t.slabs || []).filter(P => P && P.length > 3 && !slabUnder(P) && !vecGoneSlab(G, P)).map(P => [P, slabF(P)]), molos:(t.molos || []).filter(P => !UN.length || !lineOnU(P))};
+  VECDRAWN.set(t, o); return o;
+}
+function fixIndex(){
+  const nk = S.naust && S.naust.o ? S.naust.o.join(',') : '', key = VEC.ver + '|' + nk + '|' + (RORBU.ver || 0) + '|' + FDOCK.ver;
+  if (FIX.idx && FIX.key === key) return FIX.idx;
+  const idx = new Map(), C = FIX.C, pad = FIX.pad;
+  const put = (o, x0, z0, x1, z1) => { for (let j = Math.floor((z0 - pad) / C); j <= Math.floor((z1 + pad) / C); j++) for (let i = Math.floor((x0 - pad) / C); i <= Math.floor((x1 + pad) / C); i++){ const k = i * 1048576 + j; let a = idx.get(k); if (!a) idx.set(k, a = []); a.push(o); } };
+  const box = (x, z, l, w, ux, uz, k, made) => { const o = {t:1, x, z, l, w, ux, uz, k, made:!!made}, e = l + w; put(o, x - e, z - e, x + e, z + e); };
+  const poly = (P, k) => { let x0 = 1e18, z0 = 1e18, x1 = -1e18, z1 = -1e18; for (const [x, z] of P){ x0 = Math.min(x0, x); z0 = Math.min(z0, z); x1 = Math.max(x1, x); z1 = Math.max(z1, z); } put({t:3, P, x0, z0, x1, z1, k}, x0, z0, x1, z1); };
+  const pier = q => box(q.x, q.z, q.l / 2, q.w / 2, Math.sin(q.ang), Math.cos(q.ang), q.made ? 'kai' : q.bw ? 'molo' : 'brygge', q.made);
+  for (const q of PIERBOX) pier(q);
+  for (const t of VEC.tiles.values()){ const V = vecDrawn(t);
+    for (const q of V.piers){ if (q.closed && !q.bw && !q.made && t.slabs && t.slabs[q.src]) continue; if (V.flo.has(q)) box(q.x, q.z, q.l / 2, q.w / 2, Math.sin(q.ang), Math.cos(q.ang), 'flytebrygge'); else pier(q); }   // (an area pier: its outline, below)
+    for (const [P, f] of V.slabs) poly(P, f ? 'flytebrygge' : 'brygge');
+    for (const P of V.molos) if (P && P.length > 3 && Math.hypot(P[0][0] - P[P.length - 1][0], P[0][1] - P[P.length - 1][1]) < 1) poly(P, 'molo');
+    for (const h of t.npc || []) for (const d of h.docks || []){ const L = d.np * FDOCK.PL, sm = d.s0 + L / 2;
+      box(d.o[0] + d.n[0] * sm, d.o[1] + d.n[1] * sm, L / 2, FDOCK.PW / 2, d.n[0], d.n[1], 'flytebrygge');
+      box(d.o[0] + d.n[0] * d.s0 / 2, d.o[1] + d.n[1] * d.s0 / 2, d.s0 / 2, 0.8, d.n[0], d.n[1], 'flytebrygge'); }
+  }
+  if (S.naust && S.naust.o){ const n = S.naust, f = {x:n.o[0] - n.u[0] * 0.5, z:n.o[1] - n.u[1] * 0.5}, nx = -n.u[1], nz = n.u[0];
+    box(f.x - nx * 1.7, f.z - nz * 1.7, 8.1, 1.7, n.u[0], n.u[1], 'kai'); }
+  for (const R of RORBUER) if (R.site){ const n = R.site, nx = -n.u[1], nz = n.u[0], w = RORBU.out / 2;
+    box(n.o[0] - nx * w, n.o[1] - nz * w, RORBU.hl, w, n.u[0], n.u[1], 'kai'); }
+  FIX.idx = idx; FIX.key = key; return idx;
+}
+// the things within R m of x, z (metres; R up to FIX.pad, more with a wider look over the cells)
+function fixNear(x, z, R = 0){
+  const idx = fixIndex(), C = FIX.C, out = [], seen = new Set(), e = Math.max(0, R - FIX.pad);
+  for (let i = Math.floor((x - e) / C); i <= Math.floor((x + e) / C); i++) for (let j = Math.floor((z - e) / C); j <= Math.floor((z + e) / C); j++){ const L = idx.get(i * 1048576 + j); if (L) for (const o of L) if (!seen.has(o)){ seen.add(o); out.push(o); } }
+  return out;
+}
+// the vessels lying still near x, z (metres) now (05e-sjovei.js sjvNear: at a quay, at anchor, a ferry waiting at hers), as boxes of their
+// hulls; kept for the game minute and the 500 m round where they were asked (the way to a berth asks thousands of points)
+function fixBoats(x, z){
+  const F = FIX.boats; if (F && F.t === S.t && Math.hypot(F.x - x, F.z - z) < 500) return F.list;
+  const list = [];
+  try { if (typeof sjvNear === 'function'){ const H = sjvClock(), T = sjvNear(H, x, z);
+    for (const q of (T.s || []).concat((T.v || []).filter(v => Math.hypot(v.ve || 0, v.vz || 0) < 0.3))){ if (!(q.L > 0) || Math.hypot(q.x - x, q.z - z) > 900) continue;
+      list.push({t:1, x:q.x, z:q.z, l:q.L / 2, w:(q.B || q.L / 3) / 2, ux:Math.sin(q.hd), uz:-Math.cos(q.hd), k:'båt', boat:true}); } } } catch (e){}
+  // (and a boat on a mooring buoy (05-vessels.js moorHarbour): the circle she swings on, as obsIndex has it; she lies where the wind puts her)
+  try { for (const t of vecTilesIn(x - 900, z - 900, x + 900, z + 900)) for (const h of t.npc || []) if (h.moorVer === MOOR.ver) for (const q of h.boats) if (q.moored && q.moored.buoy){ const bx = q.moored.buoy.x * 1000, bz = q.moored.buoy.y * 1000;
+    if (Math.hypot(bx - x, bz - z) < 900) list.push({t:0, x:bx, z:bz, r:q.L + MOOR.PEN, k:'båt', boat:true}); } } catch (e){}
+  FIX.boats = {t:S.t, x, z, list}; return list;
+}
+// how far x, z (metres) is outside a thing (negative inside it: how deep), and the way out (unit vector east, south) from the nearest edge
+function fixDist(o, x, z){
+  if (o.t === 0){ const dx = x - o.x, dz = z - o.z, d = Math.hypot(dx, dz) || 1e-6; return {d:d - o.r, ox:dx / d, oz:dz / d}; }
+  if (o.t === 3){ if (x < o.x0 - 60 || x > o.x1 + 60 || z < o.z0 - 60 || z > o.z1 + 60) return {d:60, ox:0, oz:0};
+    const P = o.P; let m = 1e18, bx = 0, bz = 0;
+    for (let i = 1; i < P.length; i++){ const ax = P[i - 1][0], az = P[i - 1][1], dx = P[i][0] - ax, dz = P[i][1] - az, L2 = dx * dx + dz * dz, u = L2 ? clamp(((x - ax) * dx + (z - az) * dz) / L2, 0, 1) : 0, qx = ax + dx * u, qz = az + dz * u, d = Math.hypot(x - qx, z - qz); if (d < m){ m = d; bx = qx; bz = qz; } }
+    const ins = inQuad(P, x, z), s = m > 1e-6 ? 1 / m : 0; return ins ? {d:-m, ox:(bx - x) * s, oz:(bz - z) * s} : {d:m, ox:(x - bx) * s, oz:(z - bz) * s}; }
+  const dx = x - o.x, dz = z - o.z, p = dx * o.ux + dz * o.uz, q = -dx * o.uz + dz * o.ux, ep = Math.abs(p) - o.l, eq = Math.abs(q) - o.w;
+  if (ep <= 0 && eq <= 0) return ep > eq ? {d:ep, ox:o.ux * Math.sign(p || 1), oz:o.uz * Math.sign(p || 1)} : {d:eq, ox:-o.uz * Math.sign(q || 1), oz:o.ux * Math.sign(q || 1)};
+  const cp = Math.max(0, ep) * Math.sign(p), cq = Math.max(0, eq) * Math.sign(q), d = Math.hypot(cp, cq) || 1;
+  return {d:Math.hypot(Math.max(0, ep), Math.max(0, eq)), ox:(cp * o.ux - cq * o.uz) / d, oz:(cp * o.uz + cq * o.ux) / d};
+}
+// whether x, z (metres) is within m of anything fixed in the sea (boats: and of a vessel lying still)
+function fixBlocked(x, z, m, boats){
+  for (const o of fixNear(x, z, m)) if (fixDist(o, x, z).d < m) return true;
+  if (boats) for (const o of fixBoats(x, z)){ const e = o.t === 0 ? o.r : o.l + o.w; if (Math.abs(o.x - x) < e + m && Math.abs(o.z - z) < e + m && fixDist(o, x, z).d < m) return true; }
+  return false;
+}
+// ---- the way through a harbour among the piers: the line's last few hundred metres in to a harbour and first out of it ----
+// The route is found over the 25 m mask and keeps its legs clear of what obsIndex has, with a smaller margin near its ends; among the
+// piers, floating docks and boats lying at a quay by a harbour point that left the line through them (the hunt: Dønna, where the point
+// lies in a basin behind a pier the route came straight over, Varangerbotn among the boats on their moorings, Son verft among the
+// fingers of an area pier). fixLegOk: a leg (km) clear of land, of everything fixed in the sea and of the vessels lying still by m
+// metres, every 3 m; fixWay: a way from a to b over a 4 m grid round them (at most FIXW.R m beyond either), pulled tight, or null. The
+// ends themselves may lie within the margin of their own quay: the cells within the margin and a cell of them are open if they are
+// water and not inside anything. The depth is asked outside the harbours only (in them it is dredged, as groundCheck has it).
+const FIXW = {cell:4, R:160, max:90000};
+function fixLegOk(a, b, m){
+  const was = FIX.useBoats; FIX.useBoats = true;
+  try { const n = Math.max(1, Math.ceil(dist(a, b) / 0.003)), r = m / 1000;
+    for (let i = 1; i < n; i++){ const p = {x:a.x + (b.x - a.x) * i / n, y:a.y + (b.y - a.y) * i / n}; if (berthBlocked(p, m)) return false;
+      // (the shore within the margin, across the leg on either side: her side scraped it where the middle passed)
+      const dx = b.y - a.y, dy = a.x - b.x, L = Math.hypot(dx, dy) || 1; if (isLand({x:p.x + dx / L * r, y:p.y + dy / L * r}) || isLand({x:p.x - dx / L * r, y:p.y - dy / L * r})) return false; }
+    return !coastSegHit(a, b); }
+  finally { FIX.useBoats = was; }
+}
+function fixWay(a, b, m){
+  const was = FIX.useBoats; FIX.useBoats = true;
+  try { return fixWay0(a, b, m); } finally { FIX.useBoats = was; }
+}
+// the corners of a way (km points): where it turns by th, her ends swing out off the legs by up to half her length times sin th as the
+// hands turn her on it (they turn her on her middle); nothing fixed, no vessel lying still and no land within that and half her beam and
+// half a metre of the corner (the 15 m boat's bow swung onto the breakwater's head at Ålesund, the line 5 m off it). The ends are left
+// (her berth, the harbour point)
+function fixCornersOk(W, L, B){
+  const was = FIX.useBoats; FIX.useBoats = true;
+  try { for (let i = 1; i < W.length - 1; i++){ const a = W[i - 1], v = W[i], c = W[i + 1], h1 = Math.atan2(v.x - a.x, a.y - v.y), h2 = Math.atan2(c.x - v.x, v.y - c.y);
+      let th = Math.abs(h2 - h1); if (th > Math.PI) th = 2 * Math.PI - th; if (th < 0.2) continue;
+      const r = B / 2 + 0.5 + L / 2 * Math.min(1, Math.sin(Math.min(th, Math.PI / 2)));
+      if (berthBlocked(v, r)) return false;
+      for (let k = 0; k < 8; k++) if (isLand({x:v.x + Math.cos(k * Math.PI / 4) * r / 1000, y:v.y + Math.sin(k * Math.PI / 4) * r / 1000})) return false; }
+    return true; } finally { FIX.useBoats = was; }
+}
+function fixWay0(a, b, m){
+  const c = FIXW.cell / 1000, R = FIXW.R / 1000, x0 = Math.min(a.x, b.x) - R, y0 = Math.min(a.y, b.y) - R, nx = Math.ceil((Math.max(a.x, b.x) + R - x0) / c), ny = Math.ceil((Math.max(a.y, b.y) + R - y0) / c);
+  if (nx * ny > 4 * FIXW.max) return null;
+  const ctr = (i, j) => ({x:x0 + (i + 0.5) * c, y:y0 + (j + 0.5) * c}), ci = p => [Math.floor((p.x - x0) / c), Math.floor((p.y - y0) / c)];
+  const tl = tideCD(S.t / 60), dr = (BOAT.draft || 1) + 0.3, near = (m + FIXW.cell) / 1000;
+  const deep = p => { if (inHarbour(p)) return true; try { return depthF(p) + tl >= dr; } catch (e){ return false; } };
+  // (land within the margin too, not only under her middle: eight points round her at it; the hands took her along a way 2 m off the shore)
+  const RING = [0, 1, 2, 3, 4, 5, 6, 7].map(k => [Math.cos(k * Math.PI / 4), Math.sin(k * Math.PI / 4)]);
+  const landBy = (p, r) => { if (isLand(p)) return true; for (const [cx, cz] of RING) if (isLand({x:p.x + cx * r / 1000, y:p.y + cz * r / 1000})) return true; return false; };
+  const st = new Int8Array(nx * ny);   // 0 not looked at, 1 open, 2 shut
+  const open = (i, j) => { if (i < 0 || j < 0 || i >= nx || j >= ny) return false; const k = j * nx + i; if (st[k]) return st[k] === 1; const q = ctr(i, j); let ok;
+    try { const e = dist(q, a) < near || dist(q, b) < near; ok = !landBy(q, e ? 0.5 : m) && (e ? !berthBlocked(q, 0.5) : !berthBlocked(q, m)) && deep(q); } catch (e){ ok = false; }
+    st[k] = ok ? 1 : 2; return ok; };
+  const [ia, ja] = ci(a), [ib, jb] = ci(b), prev = new Int32Array(nx * ny).fill(-2), Q = [ja * nx + ia]; prev[ja * nx + ia] = -1; let found = -1;
+  for (let h = 0; h < Q.length && h < FIXW.max; h++){
+    const k = Q[h], i = k % nx, j = (k - i) / nx; if (Math.abs(i - ib) <= 1 && Math.abs(j - jb) <= 1){ found = k; break; }
+    for (const [di, dj] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]]){ const I = i + di, J = j + dj, K = J * nx + I;
+      if (I < 0 || J < 0 || I >= nx || J >= ny || prev[K] !== -2) continue; if (!open(I, J) || (di && dj && !(open(i + di, j) && open(i, j + dj)))){ continue; } prev[K] = k; Q.push(K); }
+  }
+  if (found < 0) return null;
+  const cells = []; for (let k = found; k >= 0; k = prev[k]){ const i = k % nx; cells.push(ctr(i, (k - i) / nx)); }
+  cells.reverse(); cells[0] = a; cells.push(b);
+  // pulled tight: from each point the furthest one a clear leg reaches (the depth along it as the cells had it)
+  const clr = (p, q) => { const n = Math.max(1, Math.ceil(dist(p, q) / 0.002)); for (let i = 1; i < n; i++){ const r = {x:p.x + (q.x - p.x) * i / n, y:p.y + (q.y - p.y) * i / n}; const e = dist(r, a) < near || dist(r, b) < near;
+      try { if (landBy(r, e ? 0.5 : m) || (e ? berthBlocked(r, 0.5) : berthBlocked(r, m)) || !deep(r)) return false; } catch (e2){ return false; } } return !coastSegHit(p, q); };
+  const out = [cells[0]];
+  for (let i = 0; i < cells.length - 1;){ let j = cells.length - 1; while (j > i + 1 && !clr(cells[i], cells[j])) j--; out.push(cells[j]); i = j; }
+  return out;
+}
 // the distance (m) from the leg a-b (metres) to a thing, 0 inside it
 function obsDist(o, ax, az, bx, bz){
   const ps = (px, pz, x0, z0, x1, z1) => { const dx = x1 - x0, dz = z1 - z0, L2 = dx * dx + dz * dz, u = L2 ? clamp(((px - x0) * dx + (pz - z0) * dz) / L2, 0, 1) : 0; return Math.hypot(px - x0 - dx * u, pz - z0 - dz * u); };
@@ -116,13 +314,19 @@ function obsDist(o, ax, az, bx, bz){
   const out = (p, q) => Math.hypot(Math.max(0, Math.abs(p) - l), Math.max(0, Math.abs(q) - w));
   return Math.min(out(pa, qa), out(pb, qb), ...K.map(c => ps(c[0], c[1], pa, qa, pb, qb)));
 }
-// the things that count for this leg: a bridge's deck only where it is lower than the boat; none within HIND.ctx.free m of the ends
-// of the route being planned (a boat lying at a pier, a route that ends at the naust's quay)
+// the things that count for this leg: a bridge's deck only where it is lower than the boat; not her own berth at the ends of the
+// route being planned (a boat lying at a pier, a route that ends at the naust's quay): what the end itself lies within obsOwn of
+// (before 18.11.2026 everything whose middle was within 40 m of an end, and the hunt found the route's last leg through the piers by
+// the harbour point: Dønna, Sleneset, the autonav routine)
+const obsOwn = () => (BOAT.beam || 3) / 2 + 2;
 function obsCounts(o, air){
   if (o.t === 2 && o.under >= air) return false;
-  const c = HIND.ctx; if (c && c.free) for (const p of c.free) if (Math.hypot((o.t === 2 ? (o.ax + o.bx) / 2 : o.x) - p[0], (o.t === 2 ? (o.az + o.bz) / 2 : o.z) - p[1]) < c.freeR) return false;
+  const c = HIND.ctx; if (c && c.free){ const r = obsOwn(); for (const p of c.free) if (obsDist(o, p[0], p[1], p[0], p[1]) < r) return false; }
   return true;
 }
+// near the ends (within HIND.ctx.freeR of one), what counts is passed at half her beam and two metres, not the full margin: the way
+// in to a quay among piers is narrower than the way along a lead
+function obsNearEnd(o){ const c = HIND.ctx; if (c && c.free) for (const p of c.free) if (obsDist(o, p[0], p[1], p[0], p[1]) < c.freeR) return true; return false; }
 // the first thing (nearest a) that the leg a-b (km) passes within clr metres of, or null
 function obsSegHit(a, b, clr){
   const idx = obsIndex(); if (!idx.size) return null;
@@ -135,7 +339,7 @@ function obsSegHit(a, b, clr){
   for (let guard = 0; guard < 100000; guard++){
     const L = idx.get(i * 1048576 + j);
     if (L) for (const o of L){ if (o.st === st) continue; o.st = st; if (!obsCounts(o, air)) continue;
-      if (obsDist(o, ax, az, bx, bz) < clr){ const cx = o.t === 2 ? (o.ax + o.bx) / 2 : o.x, cz = o.t === 2 ? (o.az + o.bz) / 2 : o.z, u = (dx * (cx - ax) + dz * (cz - az)) / (dx * dx + dz * dz || 1); if (u < bt){ bt = u; best = o; } } }
+      if (obsDist(o, ax, az, bx, bz) < (obsNearEnd(o) ? Math.min(clr, obsOwn()) : clr)){ const cx = o.t === 2 ? (o.ax + o.bx) / 2 : o.x, cz = o.t === 2 ? (o.az + o.bz) / 2 : o.z, u = (dx * (cx - ax) + dz * (cz - az)) / (dx * dx + dz * dz || 1); if (u < bt){ bt = u; best = o; } } }
     if (best && Math.min(tx, tz) > bt + 0.05) break;
     if ((i === i1 && j === j1) || Math.min(tx, tz) > 1) break;
     if (tx < tz){ i += si; tx += tdx; } else { j += sj; tz += tdz; }

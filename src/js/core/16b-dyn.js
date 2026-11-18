@@ -288,7 +288,7 @@ function dynEnv(b, d, cal, H, dtG = 0){
     d.yph = ((d.yph || 0) + dtG / E.tau) % 1e6; E.dq = Math.sqrt(dq2) * 2.2 * (vn(d.yph, 991) - 0.5);
   }
   // the shallow water under her (F5): the depth with the tide, a narrow sound, and the cap on her speed where it is under two draughts
-  { let h = NaN; try { h = depthF(p) + tideCD(H); } catch (e){}   // (the tide as groundCheck reads it)
+  { let h = NaN; try { h = depthNav(p) + tideCD(H); } catch (e){}   // (the tide as groundCheck reads it)
     E.h = h; E.narrow = false; E.bY = E.bN = 0; E.bk = null;
     if (h > 0) E.cap = Math.max(0.3, E.cap * dynShallowF(P, h, E.cap));
     try { dynBank(E, d, P, true); } catch (e){ E.bY = E.bN = 0; } }
@@ -319,9 +319,7 @@ function dynShallowF(P, h, v){
 // fill (not the open piers on piles, which the water runs under); cap when none is within it
 function dynWall(O, x, z, cap){
   let d = cap; const cm = coastDistM({x:x / 1000, y:z / 1000}, cap); if (cm >= 0) d = Math.min(d, cm);
-  if (O){ for (const q of O.boxes){ if (!(q.made || q.bw)) continue;
-      const ax = Math.sin(q.ang), az = Math.cos(q.ang), nx = Math.cos(q.ang), nz = -Math.sin(q.ang), dx = x - q.x, dz = z - q.z;
-      d = Math.min(d, Math.hypot(Math.max(0, Math.abs(dx * ax + dz * az) - q.l / 2), Math.max(0, Math.abs(dx * nx + dz * nz) - q.w / 2))); }
+  if (O){ for (const q of O.boxes){ if (!(q.made || q.k === 'molo')) continue; d = Math.min(d, Math.max(0, fixDist(q, x, z).d)); }
     for (const U of O.units){ const [lx, lz] = unitL(U, x, z); d = Math.min(d, groundOut(U, lx, lz)); } }
   return d;
 }
@@ -358,7 +356,7 @@ function dynBankAt(E, d, P, k, force){
 }
 // the water under her keel now (m): the depth with the tide, less her draught and her squat at the way she has (the chart plotter)
 function keelClear(b = S.boat, H = S.t / 60){
-  const h = depthF(b.pos) + tideCD(H), cal = dynCalOf(b), E = DYN.env, live = dynLive && dynLive();
+  const h = depthNav(b.pos) + tideCD(H), cal = dynCalOf(b), E = DYN.env, live = dynLive && dynLive();
   return h - BOAT.draft - dynSquat(cal.P, live && b.dyn ? b.dyn.u : (b.v || 0) * KN_MS, !!(live && E && E.narrow));
 }
 // ---- contact: the hull against the piers, the breakwaters and the harbour units' quays (Fysikk 2) ----
@@ -370,9 +368,14 @@ function keelClear(b = S.boat, H = S.t / 60){
 // for the damage of Fysikk 3 (b.hits); under a knot the fenders take it and nothing is said. Land itself is the minute step's and the
 // helm's as before (over 3 knots she runs aground, slower she stops against it).
 const DYN_HULL = [[0.5, 0], [0.3, 0.5], [0.3, -0.5], [0, 0.5], [0, -0.5], [-0.45, 0.5], [-0.45, -0.5]];   // fractions of L and B
-function dynObsNear(X, Y, R){
-  const boxes = [], units = [];
-  for (const q of PIERBOX) if (Math.abs(q.x - X) < q.l + q.w + R && Math.abs(q.z - Y) < q.l + q.w + R) boxes.push(q);
+// (everything fixed in the sea, 11b-obstacles.js fixNear: the coast's piers, quay decks, breakwaters and floating docks too, not Senja's
+// PIERBOX alone, and the vessels lying still near her; the autonav routine 18.11.2026: the boat went through what the model did not
+// know, without a knock and without the safety net seeing it. free: [x, z, r] where the things within r of the point are left out,
+// her own berth's quay at the end of the route)
+function dynObsNear(X, Y, R, free){
+  const boxes = [], units = [], own = o => free && free.some(f => fixDist(o, f[0], f[1]).d < f[2]);
+  for (const o of fixNear(X, Y, R)){ if (o.t === 3 ? o.x1 < X - R || o.x0 > X + R || o.z1 < Y - R || o.z0 > Y + R : Math.abs(o.x - X) > o.l + o.w + R || Math.abs(o.z - Y) > o.l + o.w + R) continue; if (!own(o)) boxes.push(o); }
+  for (const o of fixBoats(X, Y)) if (o.t === 1 && Math.hypot(o.x - X, o.z - Y) < o.l + R && !own(o)) boxes.push(o);   // (the hulls; not the circle a moored boat swings on)
   for (const U of UNITA){ const g = ugeo(U); if (Math.hypot(U.o[0] - X, U.o[1] - Y) < g.E + g.B + R) units.push(U); }
   return {boxes, units};
 }
@@ -380,10 +383,8 @@ function dynObsNear(X, Y, R){
 function dynInside(O, x, z){
   let best = null;
   for (const q of O.boxes){
-    const ax = Math.sin(q.ang), az = Math.cos(q.ang), nx = Math.cos(q.ang), nz = -Math.sin(q.ang), dx = x - q.x, dz = z - q.z, sA = dx * ax + dz * az, sN = dx * nx + dz * nz;
-    const pA = q.l / 2 - Math.abs(sA), pN = q.w / 2 - Math.abs(sN); if (pA <= 0 || pN <= 0) continue;
-    const o = pA < pN ? {d:pA, ox:ax * Math.sign(sA), oz:az * Math.sign(sA)} : {d:pN, ox:nx * Math.sign(sN), oz:nz * Math.sign(sN)};
-    if (!best || o.d < best.d) best = {d:o.d, e:o.ox, n:-o.oz, k:q.bw ? 'molo' : 'brygge'};
+    const f = fixDist(q, x, z); if (f.d >= 0) continue;
+    if (!best || -f.d < best.d) best = {d:-f.d, e:f.ox, n:-f.oz, k:q.k || 'brygge'};
   }
   for (const U of O.units){ const [lx, lz] = unitL(U, x, z), g = ugeo(U); if (Math.abs(lx) <= g.E && lz <= 0 && lz >= -g.B){ const o = {d:-lz, e:U.n[0], n:-U.n[1], k:'kai'}; if (!best || o.d < best.d) best = o; } }
   return best;
@@ -408,7 +409,7 @@ function dynContact(b, d, P, O){
   if (hit){
     const last = b.hits && b.hits[b.hits.length - 1], fresh = !last || S.t - last.t > 1 || hit.kn > last.kn + 0.5;
     if (fresh){ b.hits = (b.hits || []).concat([{t:S.t, E:Math.round(hit.E), kn:+hit.kn.toFixed(1), k:hit.k}]).slice(-20);
-      if (hit.kn >= 1){ const what = {kai:['kaia', 'the quay'], brygge:['brygga', 'the pier'], molo:['moloen', 'the breakwater']}[hit.k], kn = (Math.round(hit.kn * 10) / 10).toFixed(1);
+      if (hit.kn >= 1){ const what = {kai:['kaia', 'the quay'], brygge:['brygga', 'the pier'], molo:['moloen', 'the breakwater'], flytebrygge:['flytebrygga', 'the floating dock'], 'båt':['en båt som ligger stille', 'a boat lying still']}[hit.k] || ['brygga', 'the pier'], kn = (Math.round(hit.kn * 10) / 10).toFixed(1);
         const say = typeof hullHit === 'function' ? hullSay(hullHit(hit.kn, hit.E, hit.k, b)) : null;   // what it did to the hull (Fysikk 3, 16c-hull.js)
         const no = (hit.kn >= 3 ? 'Hardt støt mot ' : 'Smell i ') + what[0] + ', ' + kn.replace('.', ',') + ' knop.' + (say ? say.no : ''), en = (hit.kn >= 3 ? 'A hard blow against ' : 'A knock against ') + what[1] + ', ' + kn + ' knots.' + (say ? say.en : '');
         log(no, en, 'nav'); if (typeof toast === 'function') toast(S.lang === 'en' ? en : no); } }
@@ -673,6 +674,7 @@ function dynLineBuild(pl, dep){
         const shoal = W.slice(1).some((r, k) => groundCheck(W[k], r)), long = shoal || (lw > 1.25 * lp + 0.03 && pin);
         if (W.length > 2 && !long){ bz.add(P.length - 1); for (const r of W.slice(1, -1)){ add(r.x * 1000, r.y * 1000); bz.add(P.length - 1); } wpAt[i] = P.length - 1; continue; } } }
     add(w.x * 1000, w.y * 1000); wpAt[i] = P.length - 1; }
+  const HZ = dynLineHarb(P, wpAt, pl, iEnd, dep ? iOut : 0, dep && iOut >= 1 ? 1 : 0);
   const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
   const stops = []; for (let i = pl.idx; i <= iEnd; i++) if (wpStop(pl.wps[i]) && wpAt[i] != null) stops.push({i, s:L[wpAt[i]]});
   // the corners: where the line turns, by how much
@@ -680,10 +682,51 @@ function dynLineBuild(pl, dep){
   // the hands take her round the sharp turns just past the harbour point too (13.11.2026, tests/allesteder.py, steg 126 AS1: the 21 m
   // coastal vessel at Vannvåg met a hairpin 15 m past it, crept into it at a knot and a half with no bite in her rudder and went round
   // in a circle 100 m wide, onto the marks of the lead; a turn of more than 60 degrees within three of her lengths of the last one)
-  let sOut = L[iOut]; const Lb = (dep && dep.bp.Lb) || 8;
+  let sOut = L[HZ.out != null ? HZ.out : iOut]; const Lb = (dep && dep.bp.Lb) || 8;
   if (dep) for (const c of corners){ if (c.s <= sOut) continue; if (c.s - sOut > 3 * Lb || c.th < Math.PI / 3) break; sOut = c.s; }
   const bzS = bz.size ? L[Math.min(...bz)] : null;
-  return {plan:pl, n:pl.wps.length, sig:dynSig(pl), chk:0, P, L, end:L[L.length - 1], wpAt, stops, corners, bzS, iEnd, back, turnL:Math.max(10, Lb * 1.5), hd0, sOut, s:0, gchk:0, ghit:null};
+  return {plan:pl, n:pl.wps.length, sig:dynSig(pl), chk:0, P, L, end:L[L.length - 1], wpAt, stops, corners, bzS, iEnd, back, turnL:Math.max(10, Lb * 1.5), hd0, sOut, s:0, gchk:0, ghit:null, hzS:HZ.in != null ? L[HZ.in] : null};
+}
+// The line's last 400 m in to a harbour and its first 400 m out from the quay, where they pass within half her beam and a metre of a
+// pier, a quay, a floating dock or a boat lying there (11b-obstacles.js fixLegOk): the way among them over a 4 m grid instead, fixWay
+// (the autonav routine, 18.11.2026: 95 % of the touches by a quay were within 300 m of the route's ends, the route's legs passing
+// through what is by the harbour point). The route's points in the stretch it stands in for are passed where it begins (wpAt); a stop
+// in it, and the way in to Father's naust (its own, berthPath), are left as they were
+// (iFrom: where the check out begins, the point she backs to from the berth (berthPath's PL): the way from there to the harbour point
+// is the berth's way, and it ran by piers and floating docks the hands then took her through, Uthaug, Ålesund, Dønna)
+function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom){
+  const B = BOAT.beam || 3, m = B / 2 + 1.5, look = 400, pilot = 200, km = q => ({x:q[0] / 1000, y:q[1] / 1000});
+  // (and the ground as the route's legs ask it, outside the harbours: the hands do not stop for it)
+  const Lb = BOAT.len || 10, corners = (i0, i1) => fixCornersOk(P.slice(i0, i1 + 1).map(km), Lb, B);
+  const bad = (i0, i1) => { for (let i = i0 + 1; i <= i1; i++){ if (!fixLegOk(km(P[i - 1]), km(P[i]), m - 0.5)) return true; let g = null; try { g = groundCheck(km(P[i - 1]), km(P[i])); } catch (e){ return true; } if (g) return true; } return !corners(i0, i1); };
+  const stopIn = (k0, k1) => { for (let i = pl.idx; i <= iEnd; i++) if (wpAt[i] != null && wpAt[i] > k0 && wpAt[i] < k1 && wpStop(pl.wps[i])) return true; return false; };
+  // (with room first, her beam and three metres either side, else half her beam and a metre and a half: the snekke at Dønna was led
+  // through a gap of six metres between two floating docks and touched one in the turn)
+  // (the margins tried, widest first: half her length beside her for a long boat, whose corners then swing clear; the first way whose
+  // corners are clear, fixCornersOk, else the widest found)
+  const swap = (k0, k1) => { let W = null; for (const mm of [Math.max(B / 2 + 3, Lb / 2 + 1), B / 2 + 3, m]){ const w = fixWay(km(P[k0]), km(P[k1]), mm); if (w){ if (!W) W = w; if (fixCornersOk(w, Lb, B)){ W = w; break; } } } if (!W) return -1;
+    const ins = W.slice(1, -1).map(q => [q.x * 1000, q.y * 1000]), d = ins.length - (k1 - k0 - 1); P.splice(k0 + 1, k1 - k0 - 1, ...ins);
+    for (let i = pl.idx; i <= iEnd; i++) if (wpAt[i] != null){ if (wpAt[i] > k0 && wpAt[i] < k1) wpAt[i] = k0; else if (wpAt[i] >= k1) wpAt[i] += d; }
+    return k1 + d; };
+  // (among the piers the model does not hold a line closely enough: a 15 m boat swung her bow 4-5 m out in the turn off the quay at
+  // Ålesund onto a breakwater's head the line passed clear of, a snekke touched a floating dock in the gap she was led through at Dønna.
+  // The hands take her along the line, as out from the quay and in to the naust, at a knot and a half to three: the last 200 m in to the
+  // harbour point and the first 200 m on from the way out from the quay, where the line there is clear of everything by half her beam and
+  // a metre (found so here, or so already); R.in, R.out: the line's points where they begin and end, null where the line is not clear)
+  const R = {in:null, out:null}, along = (k, dir, len, lim) => { let s = 0; while ((dir > 0 ? k < lim : k > lim) && s < len){ const k2 = k + dir; s += Math.hypot(P[k2][0] - P[k][0], P[k2][1] - P[k][1]); k = k2; } return k; };
+  try {
+    // out: on along the line from where the way from the quay ends
+    if (iOut > 0){ const e2 = wpAt[iEnd] != null ? wpAt[iEnd] : P.length - 1, f = iFrom > 0 && iFrom < iOut ? iFrom : iOut; let k = along(iOut, 1, look, e2);
+      // (a way found here: the hands take her the whole of it; a line clear as it was: its first 200 m on from the way out from the quay)
+      if (k > iOut && !stopIn(iOut, k)){ let sw = false, ok = !bad(f, k) ? k : (sw = true, swap(f, k));
+        if (ok < 0 && f < iOut){ sw = false; ok = !bad(iOut, k) ? k : (sw = true, swap(iOut, k)); }
+        if (ok >= 0) R.out = sw ? ok : along(iOut, 1, pilot, ok); } }
+    // in: back along the line from the harbour point (not into the way out from the quay)
+    const w = pl.wps[iEnd], e = wpAt[iEnd], i0 = R.out != null ? R.out : iOut;
+    if (w && w.port && w.berth !== 'naust' && e != null && e > i0){ const k = along(e, -1, look, i0);
+      if (k < e && !stopIn(k, e) && (!bad(k, e) || swap(k, e) >= 0)){ const e1 = wpAt[iEnd]; R.in = along(e1, -1, pilot, k); } }
+  } catch (e){}
+  return R;
 }
 // the hands take her on along the line past the shallows it runs into (500 m at most) and three of her lengths: south of Egersund the line
 // ran on over water too shallow for her at that tide for 70 m, and the ground ahead stopped her again 3 m past where the hands left her.
@@ -694,7 +737,7 @@ function dynHandsPast(T, pl, L){
   // take her, false; the kontroll of steg 126, 14.11.2026: a leg called safe when the route was made can cross an islet once she has been
   // set off it)
   let sG = T.s; try { const tl = tideCD(S.t / 60); let clr = 0; for (let s = T.s; s < T.s + 500 && clr < 3 && s < T.end - 10; s += 10){ const p0 = dynLineAt(T, s), p1 = dynLineAt(T, s + 10), q1 = {x:p1[0] / 1000, y:p1[1] / 1000}, g = groundCheck({x:p0[0] / 1000, y:p0[1] / 1000}, q1);
-    if (g){ if (g.ice || g === q1 || isLand(g) || !(depthF(g) + tl < BOAT.draft)) return false; sG = s + 10; clr = 0; } else clr++; } } catch (e){ return false; }
+    if (g){ if (g.ice || g === q1 || isLand(g) || !(depthNav(g) + tl < BOAT.draft)) return false; sG = s + 10; clr = 0; } else clr++; } } catch (e){ return false; }
   T.assist = Math.min(T.end - 1, (st ? st.s : T.end) - 0.5, Math.max(T.s + Math.max(60, 3 * L), sG + 20)); T.prog = {s:T.s, t:S.t}; dynHands(T, 'held'); return true;
 }
 // the same from sailReplan (05-vessels.js): the way round found before on this leg was the leg itself, no point put in, so a search again
@@ -796,6 +839,11 @@ function dynAuto(d, dtG){
     const dep = !T && DYN.dep && Math.hypot(DYN.dep.bp.x * 1000 - d.X, DYN.dep.bp.y * 1000 - d.Y) < 60 ? DYN.dep : null; DYN.dep = null;
     T = DYN.line = dynLineBuild(pl, dep); T.s = dep ? 0 : dynLineProj(T, d.X, d.Y, 0, 1e9);
   }
+  // (600 m from a harbour she stops at, the line in to it again, dynLineHarb with the vessels lying there now: the line was laid when she
+  // left, and a ferry that has come in to her quay since lay across it at Strønstad, the autonav routine 18.11.2026; once a stop)
+  { const st0 = T.stops.find(q => q.i >= pl.idx);
+    if (st0 && pl.wps[st0.i].port && pl.harbRe !== st0.i && st0.s - T.s < 600 && !(T.assist > T.s) && !(T.back > 0 && T.s < T.sOut + T.turnL + 50)){
+      pl.harbRe = st0.i; T = DYN.line = dynLineBuild(pl, null); T.s = dynLineProj(T, d.X, d.Y, 0, 1e9); } }
   const E = dynEnv(b, d, cal, H, dtG), cap = E.cap, capF = E.capF;
   let vc = Math.min((pl.speed || BOAT.vcruise) * KN_MS, cap), near = 1e9; for (const q of PORTS){ const dq = dist(q.p, b.pos); if (dq < near) near = dq; }
   if (near < 0.25) vc = Math.min(vc, 5 * KN_MS);
@@ -843,6 +891,8 @@ function dynAuto(d, dtG){
     // and a half to three, as a harbour's lines take her its last two lengths: the 14.99 m boat swung 20-40 m off the line in the turns and
     // struck the plant's quay at Engenes, Vannareid and a dozen more, 15.11.2026, tests/allesteder.py with the way in at the lowest tide;
     // the naust's own stop, not the next one: a way round put in on the way has its own, and the hands go on from it)
+    // (and the way among the piers in to a harbour that dynLineHarb found: from where it begins, to the harbour point)
+    if (T.hzS != null && !T.hzDone && !(T.assist > T.s) && !unsafe && T.s >= T.hzS - 1 && sStop > T.s + 1 && stopW && stopW.port){ T.assist = sStop - 0.5; T.hzDone = true; T.prog = {s:T.s, t:S.t}; dynHands(T, 'harb'); }
     const sN = T.bzS != null && !T.bzDone ? T.stops.find(q => q.i >= pl.idx && pl.wps[q.i].berth === 'naust') : null;
     if (sN && !(T.assist > T.s) && !unsafe && !T.ghit && T.s >= sN.s - 200 && sStop > T.s + 1){ T.assist = Math.min(sN.s, sStop) - 0.5; T.bzDone = T.assist >= sN.s - 0.6; T.prog = {s:T.s, t:S.t}; dynHands(T, 'naust'); }
     if ((T.back > 0 && T.s < sScr) || T.assist > T.s){
@@ -953,9 +1003,11 @@ function dynAuto(d, dtG){
     // tests/allesteder.py, steg 126)
     const rud = T.bow ? (T.bow.astern ? -T.bow.side : T.bow.side) : clamp((Kp * dynAng(chi, chiD) - Kd * d.r) / DYN_RUD, -1, 1);
     dynBank(E, d, P); dynInt(P, d, thr, rud, h, capF, E); dynMove(d, h, E);
-    // (a line drawn through a pier: she touches it on her fenders and is put off it; not in the last lengths into a harbour, which the
-    // quay's lines take, 3D moorStep)
-    if (!(stopW && stopW.port && ds < 4 * L)){ if (!T.obs || T.obsAt !== Math.round(T.s / 50)){ T.obs = dynObsNear(d.X, d.Y, 80 + P.L); T.obsAt = Math.round(T.s / 50); } dynContact(b, d, P, T.obs); }
+    // (a line drawn through a pier: she touches it on her fenders and is put off it; also in the last lengths into a harbour, where
+    // before 18.11.2026 nothing was felt and the hunt found her through the piers by the harbour point (Dønna, Sleneset), but not her
+    // own quay there: what lies within half her beam and two metres of the harbour point she stops at)
+    { const fk = Math.round(T.s / 50) + '|' + (stopW && stopW.port ? stopW.x + ',' + stopW.y : '');
+      if (!T.obs || T.obsAt !== fk){ T.obs = dynObsNear(d.X, d.Y, 80 + P.L, stopW && stopW.port ? [[stopW.x * 1000, stopW.y * 1000, P.B / 2 + 2]] : null); T.obsAt = fk; } dynContact(b, d, P, T.obs); }
     // the last creep on to a stop is the model's, held so she never runs past it
     if (ds < 4 && d.u > vCmd + 0.02 && !cl) d.u = Math.max(vCmd + 0.02, d.u - cal.aC * h);
   }

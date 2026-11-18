@@ -20,16 +20,18 @@
       const boxOnU = q => { const ax = Math.sin(q.ang), az = Math.cos(q.ang), nx = Math.cos(q.ang), nz = -Math.sin(q.ang); for (let s = -1; s <= 1; s += 0.25) for (const k of [-1, 0, 1]) if (onU(q.x + ax * s * q.l / 2 + nx * k * q.w / 2, q.z + az * s * q.l / 2 + nz * k * q.w / 2)) return true; return false; };
       const molos = t.molos.map((pts, i) => [pts, i]).filter(([pts]) => !UN.length || !lineOnU(pts));
       // the floating docks among the piers (01c-vec.js flyteTile, by the pier's middle) are built of pontoons, not as piers (floatJob)
-      const FD = flyteTile(t.tx, t.ty).filter(d => !under(d.mx, d.mz)), FK = new Set(FD.map(d => Math.round(d.mx) + ':' + Math.round(d.mz)));
+      // (and the floating docks and open piers where a trade place's boats lie and back out: taken away, core vecGone, so the boat and the
+      // view have the same; Jonas 18.11.2026)
+      const GN = vecGone(t), FD = flyteTile(t.tx, t.ty).filter(d => !under(d.mx, d.mz) && !GN.fd.has(Math.round(d.mx) + ':' + Math.round(d.mz))), FK = new Set(FD.map(d => Math.round(d.mx) + ':' + Math.round(d.mz)));
       const isF = (x, z) => { if (!FK.size) return false; const rx = Math.round(x), rz = Math.round(z); for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) if (FK.has((rx + a) + ':' + (rz + b))) return true; return false; };
       const slabF = pts => { let cx = 0, cz = 0; for (const [x, z] of pts){ cx += x; cz += z; } return isF(cx / pts.length, cz / pts.length); };
-      const piers = t.piers.filter(q => !(q.fm && isF(q.fm[0], q.fm[1])));
+      const piers = t.piers.filter(q => !GN.piers.has(q) && !(q.fm && isF(q.fm[0], q.fm[1])));
       const inBox = (q, x, z) => { const dx = x - q.x, dz = z - q.z, sa = Math.sin(q.ang), ca = Math.cos(q.ang); return Math.abs(dx * sa + dz * ca) <= q.l / 2 && Math.abs(dx * ca - dz * sa) <= q.w / 2; };
       floatFree(t.k); let FJ = null;
       if (FD.length){ const PG = new Map(), pk = (x, z) => Math.floor(x / 100) + ':' + Math.floor(z / 100);   // the fixed piers in 100 m cells
         for (const q of piers) if (!q.bw){ const r = Math.hypot(q.w, q.l) / 2; for (let gx = Math.floor((q.x - r) / 100); gx <= Math.floor((q.x + r) / 100); gx++) for (let gz = Math.floor((q.z - r) / 100); gz <= Math.floor((q.z + r) / 100); gz++){ const k = gx + ':' + gz; let a = PG.get(k); if (!a) PG.set(k, a = []); a.push(q); } }
         FJ = floatJob(t, FD, (x, z) => (PG.get(pk(x, z)) || []).some(q => inBox(q, x, z)) || terrRaw(x, z) > 0.4); }
-      const items = [...piers.filter(q => !under(q.x, q.z) && !(UN.length && boxOnU(q))).map(q => m => pierInto(m, q, t.k)), ...t.slabs.filter(pts => !slabUnder(pts) && !slabF(pts)).map(pts => m => slabInto(m, pts, t.k, pts.some(([x, z]) => harbourNear(x, z)) ? (x, z) => unitCovers(x, z, 1) || onSite(x, z) : null)), ...molos.map(([pts, i]) => m => stonesOf(TJOB.stones, sm => moundInto(m, pts, (t.tx * 31 + t.ty) * 7919 + i * 104729, false, t.k, sm))), ...t.bridges.filter(br => !bridgeUnderUnit(br, onSite)).map(br => m => bridgeInto(m, br, t.k))];
+      const items = [...piers.filter(q => !under(q.x, q.z) && !(UN.length && boxOnU(q))).map(q => m => pierInto(m, q, t.k)), ...t.slabs.filter(pts => !slabUnder(pts) && !slabF(pts) && !vecGoneSlab(GN, pts)).map(pts => m => slabInto(m, pts, t.k, pts.some(([x, z]) => harbourNear(x, z)) ? (x, z) => unitCovers(x, z, 1) || onSite(x, z) : null)), ...molos.map(([pts, i]) => m => stonesOf(TJOB.stones, sm => moundInto(m, pts, (t.tx * 31 + t.ty) * 7919 + i * 104729, false, t.k, sm))), ...t.bridges.filter(br => !bridgeUnderUnit(br, onSite)).map(br => m => bridgeInto(m, br, t.k))];
       if (FJ) items.push(...FJ.items);
       TJOB = {t, m:MB(), items, i:0, ms:0, stones:[], FJ}; return;
     }

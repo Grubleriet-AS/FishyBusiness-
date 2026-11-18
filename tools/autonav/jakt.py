@@ -26,7 +26,7 @@ true): fenders, not a hit. A grounding (status aground) is logged too.
 The results go to --state: treff.jsonl (one line per touch; simulation only, no player data) and turer.jsonl (one line per trip), and
 tilstand.json (next scenario, the runs). Needs the whole coast and the vec packs in dist-vec/ (tools/map/release.py, tools/map/game.py,
 KYST_VEC=1 KYST_DIST=dist-vec node build.mjs). LITE (no 3D), one browser.
-    python3 tools/autonav/jakt.py [--n 30] [--state DIR] [--seed 18112026] [--from K] [--dry] [--min M]
+    python3 tools/autonav/jakt.py [--n 30] [--state DIR] [--seed 18112026] [--from K] [--only J,J,..] [--dry] [--min M]
 --min stops taking new scenarios after M minutes (the run's time box); --from starts at scenario K instead of the state's next.
 """
 import argparse, asyncio, json, os, random, sys, time
@@ -87,25 +87,24 @@ JK = r"""() => {
       let idx = null; try { idx = obsIndex(); } catch (e){}
       if (idx){ const air = obsAir(), done = new Set();
         for (const [x, z] of pts){ const L0 = idx.get(Math.floor(x / C) * 1048576 + Math.floor(z / C)); if (!L0) continue;
-          for (const o of L0){ if (done.has(o) || o.why === 'buoy') continue; let ins = false;
+          for (const o of L0){ if (done.has(o) || o.why === 'buoy' || o.why === 'quay') continue;   // (the quay decks: its own test below) let ins = false;
             if (o.t === 0) ins = Math.hypot(x - o.x, z - o.z) < o.r;
             else if (o.t === 1){ const dx = x - o.x, dz = z - o.z; ins = Math.abs(dx * o.ux + dz * o.uz) < o.l && Math.abs(dx * o.uz - dz * o.ux) < o.w; }
             else if (o.t === 2 && o.under < air) ins = obsDist(o, x, z, x, z) < o.r;
             if (!ins) continue; done.add(o);
             // (a pack's pier mapped as an area is drawn in its own shape, slabInto, not as the box round it: the slabs below test it)
-            if (o.why === 'pier' && JK.areaPier(o)) continue;
-            const what =o.t === 2 ? 'brudekke' : o.B ? 'brupilar' : ({pier:'brygge', dock:'flytebrygge', rorbu:'rorbukai', naust:'naustkai', mark:'merke', turbine:'vindturbin'})[o.why] || String(o.why);
+            if (o.why === 'pier' && (JK.areaPier(o) || !JK.isDrawn(o))) continue;
+            const what =o.t === 2 ? 'brudekke' : o.B ? 'brupilar' : ({quay:'kai', pier:'brygge', dock:'flytebrygge', rorbu:'rorbukai', naust:'naustkai', mark:'merke', turbine:'vindturbin'})[o.why] || String(o.why);
             JK.hit(c, what, (o.why || 'b') + '#' + o.id + '@' + Math.round(o.x || o.ax) + ',' + Math.round(o.z || o.az), {x:x / 1000, y:z / 1000}, kn, o.t === 2 ? {under:+o.under.toFixed(1), air:+air.toFixed(1)} : null); } } }
       // the piers, quay decks and breakwaters the model itself sees
       try { const O = dynObsNear(X, Y, L + 20); if (O.boxes.length || O.units.length) for (const [x, z] of pts){ const I = dynInside(O, x, z); if (I){ JK.hit(c, I.k === 'kai' ? 'kai' : I.k, 'm@' + Math.round(x / 25) + ',' + Math.round(z / 25), {x:x / 1000, y:z / 1000}, kn, {model:true}); break; } } } catch (e){}
       // the coast's breakwaters (rubble mounds) and the piers mapped as areas, as the 3D view builds them; and the coast's quay decks
       // (a quay's line as a 6 m deck on its land side, made: drawn as concrete by pierInto, and in neither the obstacle index nor PIERBOX)
-      try { for (const t of vecTilesIn(X - L - 30, Y - L - 30, X + L + 30, Y + L + 30)){
-        for (const q of t.piers || []){ if (!q.made || Math.abs(q.x - X) > q.l + q.w + L || Math.abs(q.z - Y) > q.l + q.w + L) continue;
-          if (unitCovers(q.x, q.z, 3)) continue;   // (not under a harbour unit: drawn without them)
+      try { for (const t of vecTilesIn(X - L - 30, Y - L - 30, X + L + 30, Y + L + 30)){ const V = JK.drawn(t);
+        for (const q of V.piers){ if (!q.made || Math.abs(q.x - X) > q.l + q.w + L || Math.abs(q.z - Y) > q.l + q.w + L) continue;
           const ax = Math.sin(q.ang), az = Math.cos(q.ang);
           for (const [x, z] of pts){ const dx = x - q.x, dz = z - q.z; if (Math.abs(dx * ax + dz * az) < q.l / 2 && Math.abs(dx * az - dz * ax) < q.w / 2){ JK.hit(c, 'kai', 'vq' + t.k + '@' + Math.round(q.x) + ',' + Math.round(q.z), {x:x / 1000, y:z / 1000}, kn, {vec:true, deck:true}); break; } } }
-        for (const [arr, what] of [[t.molos || [], 'molo'], [t.slabs || [], 'brygge']]) for (let i = 0; i < arr.length; i++){ const Pg = arr[i]; if (!Pg || Pg.length < 2) continue;
+        for (const [arr, what] of [[V.molos, 'molo'], [V.slabs, 'brygge']]) for (let i = 0; i < arr.length; i++){ const Pg = arr[i]; if (!Pg || Pg.length < 2) continue;
           const cl = Pg.length > 3 && Math.hypot(Pg[0][0] - Pg[Pg.length - 1][0], Pg[0][1] - Pg[Pg.length - 1][1]) < 1;
           for (const [x, z] of pts){ if (cl ? inPoly(Pg, x, z) : segD(x, z, Pg) < 4.5){ JK.hit(c, what, 'v' + t.k + ':' + what[0] + i, {x:x / 1000, y:z / 1000}, kn, {vec:true}); break; } } } } } catch (e){}
       // the other vessels, under way and lying at a quay or at anchor
@@ -118,6 +117,21 @@ JK = r"""() => {
       for (const h of c.hits){ delete h.fl; JK.log.push(h); }
       JK.trips.push(Object.assign({to:c.to, nm:c.nm, min:R && R.min, end:R && R.end, why:R && R.why ? String(R.why).slice(0, 160) : null, hits:c.hits.filter(h => !h.own).length, own:c.own, hands:R && R.hands, frames:JK.f - c.f0}, JK.info)); },
     take(){ const o = {hits:JK.log, trips:JK.trips, err:JK.err}; JK.log = []; JK.trips = []; JK.err = null; return o; },
+    // a tile's piers, slabs and breakwaters as the 3D view builds them (view3d/04-vec-packs.js tileStatics' rules, copied here so the
+    // observer does not lean on the game's own copy, vecDrawn): not under a harbour unit (a slab with any corner within 3 m of one), not a
+    // box or a breakwater that reaches onto a unit's ground or into its basin
+    drawn(t){ if (t.jkD) return t.jkD; const T = MAPD.man.tile * 1000, UN = UNITA.filter(U => U.o[0] > t.x0 - 300 && U.o[0] < t.x0 + T + 300 && U.o[1] > t.z0 - 300 && U.o[1] < t.z0 + T + 300);
+      const under = (x, z) => unitCovers(x, z, 3), slabUnder = P => { let cx = 0, cz = 0; for (const [x, z] of P){ if (under(x, z)) return true; cx += x; cz += z; } return under(cx / P.length, cz / P.length); };
+      const onU = (x, z) => UN.some(U => { const [lx, lz] = unitL(U, x, z), g = ugeo(U); return groundOut(U, lx, lz) <= 2 || (Math.abs(lx) <= g.basinX && lz >= 0 && lz <= g.basinZ); });
+      const lineOnU = P => { for (let k = 0; k < P.length; k++){ const [ax, az] = P[k], [bx, bz] = P[Math.min(k + 1, P.length - 1)], n = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 3)); for (let s = 0; s <= n; s++) if (onU(ax + (bx - ax) * s / n, az + (bz - az) * s / n)) return true; } return false; };
+      const boxOnU = q => { const ax = Math.sin(q.ang), az = Math.cos(q.ang), nx = Math.cos(q.ang), nz = -Math.sin(q.ang); for (let s = -1; s <= 1; s += 0.25) for (const k of [-1, 0, 1]) if (onU(q.x + ax * s * q.l / 2 + nx * k * q.w / 2, q.z + az * s * q.l / 2 + nz * k * q.w / 2)) return true; return false; };
+      // (and what the game has taken away where a trade place's boats lie, vecGone, Jonas 18.11.2026: not drawn, so not there)
+      const GN = typeof vecGone === 'function' ? vecGone(t) : null, gone = q => !!GN && GN.piers.has(q), goneS = P => !!GN && vecGoneSlab(GN, P);
+      return t.jkD = {piers:(t.piers || []).filter(q => !gone(q) && !under(q.x, q.z) && !(UN.length && boxOnU(q))), slabs:(t.slabs || []).filter(P => P && P.length > 3 && !slabUnder(P) && !goneS(P)), molos:(t.molos || []).filter(P => !UN.length || !lineOnU(P))}; },
+    // whether an index box of a pier is one the 3D view builds (Senja's PIERBOX, or a pack's pier JK.drawn keeps)
+    isDrawn(o){ if (o.dr !== undefined) return o.dr; o.dr = PIERBOX.some(q => Math.abs(q.x - o.x) < 0.5 && Math.abs(q.z - o.z) < 0.5);
+      if (!o.dr) for (const t of vecTilesIn(o.x - 5, o.z - 5, o.x + 5, o.z + 5)) if (JK.drawn(t).piers.some(q => Math.abs(q.x - o.x) < 0.5 && Math.abs(q.z - o.z) < 0.5)){ o.dr = true; break; }
+      return o.dr; },
     // whether an index box is a pack's pier mapped as an area (closed, from a pack: the 3D view draws its outline, 05-quays-breakwaters.js pierInto)
     areaPier(o){ if (o.ap !== undefined) return o.ap; o.ap = false;
       for (const t of vecTilesIn(o.x - 5, o.z - 5, o.x + 5, o.z + 5)) for (const q of t.piers || []) if (q.closed && q.src !== undefined && Math.abs(q.x - o.x) < 0.5 && Math.abs(q.z - o.z) < 0.5){ o.ap = true; return true; }
@@ -156,6 +170,7 @@ async def main():
     ap.add_argument('--n', type=int, default=30); ap.add_argument('--state', default=os.path.join(ROOT, 'docs', 'planer', 'autonav-jakt'))
     ap.add_argument('--seed', default='18112026'); ap.add_argument('--from', dest='start', type=int); ap.add_argument('--dry', action='store_true')
     ap.add_argument('--min', type=float, default=0)
+    ap.add_argument('--only', default='', help='these scenarios (comma-separated j), not the next bit: the tests of a fix, red before and green after')
     a = ap.parse_args()
     if not os.path.isdir(os.path.join(ROOT, 'tools', 'map', 'out', 'game')):
         sys.exit('the whole coast is not in the build (tools/map/release.py, tools/map/game.py, KYST_VEC=1 KYST_DIST=dist-vec node build.mjs)')
@@ -184,7 +199,8 @@ async def main():
             t = time.time(); places['havn'] = await pg.evaluate(HAVNS); json.dump(places['havn'], open(hf, 'w'))
             print('the coast\'s harbours found: %d in %d s' % (len(places['havn']), time.time() - t), flush=True)
         print('places:', {k: len(v) for k, v in places.items()}, '| from scenario', j0, '| build', ver, flush=True)
-        todo = [scenario(j, a.seed, places) for j in range(j0, j0 + a.n)]
+        only = [int(x) for x in a.only.split(',') if x.strip()]
+        todo = [scenario(j, a.seed, places) for j in (only or range(j0, j0 + a.n))]
         if a.dry:
             for s in todo: print(json.dumps(s, ensure_ascii=False))
             await br.close(); return
@@ -221,7 +237,7 @@ async def main():
                 for hh in got['hits']: f.write(json.dumps(hh, ensure_ascii=False) + '\n')
             with open(os.path.join(a.state, 'turer.jsonl'), 'a') as f:
                 for tr in got['trips']: f.write(json.dumps(tr, ensure_ascii=False) + '\n')
-            st['next'] = max(st['next'], done) if a.start is None else st['next']; json.dump(st, open(stf, 'w'), ensure_ascii=False, indent=1)
+            st['next'] = max(st['next'], done) if a.start is None and not only else st['next']; json.dump(st, open(stf, 'w'), ensure_ascii=False, indent=1)
         real = [h for h in hits_all if not h['own']]
         st['runs'].append({'at': time.strftime('%Y-%m-%dT%H:%MZ', time.gmtime()), 'from': j0, 'to': done, 'trips': len(trips_all), 'hits': len(real), 'own': len(hits_all) - len(real), 'ver': ver, 'min': round((time.time() - T0) / 60, 1)})
         json.dump(st, open(stf, 'w'), ensure_ascii=False, indent=1)
