@@ -430,6 +430,9 @@ function errStart(){
   const p = ERR.pend.splice(0); for (const e of p) errSend(e);
   errFlush(); addEventListener('online', () => setTimeout(errFlush, 3000));
   setTimeout(errFlush, 60000);
+  // (and again every 2.5 minutes: an error kept while the cloud said no is held back by cloudRpc's pause after a failure (RPCB, at
+  // most RPC_BMAX), and until 18.11.2026 nothing asked again after the pause before the next start; errtest. Cheap when nothing waits)
+  setInterval(errFlush, 150000);
   try { if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({dsbErrPull:1}); } catch (e){}   // what the worker kept
   hangWatch();
 }
