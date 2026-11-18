@@ -654,7 +654,10 @@ function crewSim(src){
   const near = (x, z, r) => ST.M.near(x, z, r || 1.5);
   const at = (q, r) => { if (!q) return null; const c = near(q[0], q[1], r || 1.2); return c >= 0 ? {k:c, h:q[2], task:q[3]} : null; };
   // (more jigging than there are places, OB6 09.11.2026: the one over stands by rather than inside the other, F19)
-  function jigSpot(k){ const J = ST.jig; if (J && J.length){ if (k >= J.length) return null; const P = J[k], sg = P[0] >= 0 ? 1 : -1, c = near(P[0] - sg * 0.45, P[2], 1.2); if (c >= 0) return {k:c, h:sg * Math.PI / 2, task:'jig', jig:k % J.length}; }
+  // (at a rail place with no machine on it, with machines aboard: he jigs by hand if the boat has a hand jig, as the catch reckons it
+  // (core/03-simulation.js, JIG.hand with b.gear), else he leans on the rail; before, he stood jigging with no line, tilbakemelding #167)
+  function jigTask(k){ const nm = S.equip && S.equip.jukse > 0 ? S.equip.jukse : 0; return !nm || k < nm || (S.boat && S.boat.gear) ? 'jig' : 'lean'; }
+  function jigSpot(k){ const J = ST.jig; if (J && J.length){ if (k >= J.length) return null; const P = J[k], sg = P[0] >= 0 ? 1 : -1, c = near(P[0] - sg * 0.45, P[2], 1.2); if (c >= 0) return {k:c, h:sg * Math.PI / 2, task:jigTask(k), jig:k % J.length}; }
     const sp = ST.PT['spot' + k] || ST.PT.spot0; return sp ? {k:sp.k, h:sp.h || 0, task:'jig'} : null; }
   // the n-th at the gutting table or the tub: the place from the anchors, the next along the table's side
   // (the side of the first that is a short walk from it: a place across a bar or a step would be a detour round the deck)
@@ -1056,7 +1059,9 @@ function crewSim(src){
       // the same station as before, and not an idle spell that is over: the place is kept (nobody swaps the table for the tub each minute);
       // an idle spell on deck ends as she gets under way on a boat with a house, so the crew go in (Jonas 21.10.2026: they stood leaning
       // over the rail at 23 knots for a minute and a half, as if jigging)
-      const keep = g && a.kind === kind && !(g.idle && g.until < t) && !(g.idle && ctx.underway && !ctx.open) &&!(g.inside === 'in' && g.until && g.until < t && p.st === 'pause' && !ctx.underway) && !(ctx.away && g) && (g.inside || ST.M.ok(g.k));
+      // (one jigging on a higher place chooses again each round, so the machine's place, the lowest free one, is filled first: he stood on
+      // at the rail while the machine stood empty once the skipper went to gut, tilbakemelding #168)
+      const keep = g && a.kind === kind && !(g.idle && g.until < t) && !(g.idle && ctx.underway && !ctx.open) &&!(g.inside === 'in' && g.until && g.until < t && p.st === 'pause' && !ctx.underway) && !(ctx.away && g) && !(p.st === 'fiske' && a.slot > 0) && (g.inside || ST.M.ok(g.k));
       if (keep){ if (a.slot >= 0) (used[kind] || (used[kind] = new Set())).add(a.slot); if (!g.inside) TAKEN.set(g.k, id); } else pend.push([p, a, kind]); }
     // (OB10 runde 4: the one setting chooses first, and the gutter yields where the two places are one: on the snekke the only place
     // for the one setting line, with the tubs' true width, is the gutting station, and he stood looking on while someone gutted there)

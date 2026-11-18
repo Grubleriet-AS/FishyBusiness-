@@ -1,0 +1,31 @@
+snekke      idle -  work -  jig 2/2  fits back 4/4 chat 4/4 knife 4/4 lunch 4/4 sweep 4/4 hose 3/4 sit 4/4 worry 4/4 lean 2/4 look 4/4 coffee 4/4 phone 4/4 binoc 4/4 seasick 2/4 smoke 4/4 snus 4/4 aurora 4/4
+plastsjark  idle -  work -  jig 4/4  fits back 3/6 chat 4/6 knife 4/6 lunch 4/6 sweep 2/6 hose 2/6 sit 4/6 worry 4/6 lean 3/6 look 4/6 coffee 3/6 phone 4/6 binoc 4/6 seasick 3/6 smoke 4/6 snus 4/6 aurora 4/6
+sjark       idle -  work -  jig 4/4  fits back 6/7 chat 7/7 knife 7/7 lunch 7/7 sweep 2/7 hose 4/7 sit 5/7 worry 7/7 lean 5/7 look 7/7 coffee 4/7 phone 7/7 binoc 7/7 seasick 6/7 smoke 7/7 snus 7/7 aurora 7/7
+hurtigsjark idle -  work -  jig 3/3  fits back 6/7 chat 6/7 knife 6/7 lunch 6/7 sweep 5/7 hose 4/7 sit 6/7 worry 6/7 lean 3/7 look 6/7 coffee 6/7 phone 6/7 binoc 6/7 seasick 3/7 smoke 6/7 snus 6/7 aurora 6/7
+sjarkny     idle -  work -  jig 3/3  fits back 3/3 chat 3/3 knife 3/3 lunch 3/3 sweep 1/3 hose 2/3 sit 2/3 worry 3/3 lean 2/3 look 3/3 coffee 2/3 phone 3/3 binoc 3/3 seasick 2/3 smoke 3/3 snus 3/3 aurora 3/3
+breisjark   idle -  work -  jig 1/1  fits back 5/7 chat 7/7 knife 7/7 lunch 7/7 sweep 6/7 hose 6/7 sit 7/7 worry 7/7 lean 3/7 look 7/7 coffee 6/7 phone 7/7 binoc 6/7 seasick 1/7 smoke 7/7 snus 7/7 aurora 7/7
+kyst15      idle -  work -  jig 4/4  fits back 7/7 chat 7/7 knife 7/7 lunch 7/7 sweep 7/7 hose 6/7 sit 6/7 worry 7/7 lean 6/7 look 7/7 coffee 3/7 phone 7/7 binoc 7/7 seasick 6/7 smoke 7/7 snus 7/7 aurora 7/7
+kyst21      idle -  work -  jig 4/8  fits back 7/9 chat 8/9 knife 8/9 lunch 8/9 sweep 6/9 hose 6/9 sit 6/9 worry 8/9 lean 8/9 look 8/9 coffee 6/9 phone 8/9 binoc 8/9 seasick 8/9 smoke 8/9 snus 8/9 aurora 8/9
+snokrabbe   idle -  work -  jig 3/3  fits back 9/10 chat 9/10 knife 9/10 lunch 9/10 sweep 9/10 hose 9/10 sit 8/10 worry 8/10 lean 5/10 look 9/10 coffee 9/10 phone 9/10 binoc 8/10 seasick 4/10 smoke 9/10 snus 9/10 aurora 8/10
+autoliner   idle -  work -  jig 0/3  fits back 0/0 chat 0/0 knife 0/0 lunch 0/0 sweep 0/0 hose 0/0 sit 0/0 worry 0/0 lean 0/0 look 0/0 coffee 0/0 phone 0/0 binoc 0/0 seasick 0/0 smoke 0/0 snus 0/0 aurora 0/0
+bunntral    idle -  work -  jig 3/3  fits back 7/7 chat 7/7 knife 7/7 lunch 7/7 sweep 7/7 hose 7/7 sit 4/7 worry 7/7 lean 4/7 look 7/7 coffee 7/7 phone 7/7 binoc 4/7 seasick 4/7 smoke 7/7 snus 7/7 aurora 7/7
+pelagisk    idle -  work -  jig 3/3  fits back 4/4 chat 4/4 knife 4/4 lunch 4/4 sweep 1/4 hose 2/4 sit 3/4 worry 4/4 lean 4/4 look 4/4 coffee 4/4 phone 4/4 binoc 4/4 seasick 4/4 smoke 4/4 snus 4/4 aurora 4/4
+ringnot38   idle -  work -  jig 3/3  fits back 6/6 chat 6/6 knife 6/6 lunch 6/6 sweep 6/6 hose 5/6 sit 6/6 worry 6/6 lean 6/6 look 6/6 coffee 6/6 phone 6/6 binoc 6/6 seasick 6/6 smoke 6/6 snus 6/6 aurora 6/6
+OK   every boat with a deck has its crew on it 13
+OK   no break, on any boat, puts a limb through a wall, the rail or anything else {}
+OK   nor does the work at its places (jigging, gutting, icing, hauling, setting, landing, ice and the crane at the quay, and washing down, the cold and the lunch) {}
+OK   setting line and nets, one stands where the gear goes over in the setting pose and nobody in the hauling pose (F4; set/haul per kind) {}
+OK   landing at the plant, one hooks the sling on beside the tub (0.55-1.45 m from its middle, hooking on with the hook down), one gives the signs at the rail to the quay, and one takes the ice at the ice box (F10, F11; 8 boats) {}
+OK   her own crane on the freight: one drives it from beside its foot, one hooks on at the freight (F23) {}
+ob14 {"snekke": {"spyl": "hose", "kost": "sweep", "cold": 9, "mat": "lunch+sitmat+sitmat+sitmat", "kaffe": "coffee+sitkaffe+sitkaffe+sitkaffe"}, "plastsjark": {"spyl": "hose", "kost": "sweep", "cold": 6}, "sjark": {"spyl": "hose", "kost": "sweep", "cold": 12}, "hurtigsjark": {"spyl": "hose", "kost": "sweep", "cold": 5}, "sjarkny": {"spyl": "hose", "kost": "sweep", "cold": 5}, "breisjark": {"spyl": "hose", "kost": "sweep", "cold": 18}, "kyst15": {"spyl": "hose", "kost": "sweep", "cold": 8}, "kyst21": {"spyl": "hose", "kost": "sweep", "cold": 15}, "snokrabbe": {"spyl": "hose", "kost": "sweep", "cold": 35}, "autoliner": {"spyl": "inne", "kost": "inne", "cold": 0}, "bunntral": {"spyl": "hose", "kost": "lunch", "cold": 9}, "pelagisk": {"spyl": "inne", "kost": "inne", "cold": 13}, "ringnot38": {"spyl": "hose", "kost": "sweep", "cold": 28}}
+OK   the deck is washed down as part of the work: one of those free has the hose, turned to where the fish were gutted (out of sight under a shelter deck), a second the brush (F12) {}
+OK   the cold is seen: someone standing still on a break beats his arms and rubs his hands (F14) []
+OK   no galley: the packed lunch on deck, seated or standing, and the coffee after it (F13) {}
+OK   two at the same table or tub stand side by side, 0.55 m or more between their middles (F19; every boat; no pair to measure: ['snekke', 'plastsjark']) {}
+OK   rigged with all of it, everyone has a place on deck or inside (nobody without one; OB10 runde 4) {}
+OK   rigged with all the line or the nets she carries, nobody stands in the gear on deck (the tubs, the nets, the pots), at a break or on the way (kitHits; OB10 runde 4) {}
+OK   nor with the sea legs at their furthest, the deck 15° either way: no leg, spine, shoulder or head through anything at any break's place (FB4; 762 places) {}
+OK   nor a body on the way between them (shoulders, chest and back, every tenth of a second; no break places on deck, so no walking: ['autoliner']) {}
+FEIL no foot walking put down in a wall, a tub or the kit, nor on his other foot or anyone else's (FB3; 5284 feet put down on every boat) {'pelagisk': ['me:i ting:-6.63,26.90:uten dekk:walk:-:1.04', 1]} ved plasser der han står i noe fra før: {'sjark': 1, 'hurtigsjark': 17, 'bunntral': 35, 'pelagisk': 11} stående tett inntil andres føtter ved faste plasser (plassenes, ikke gangens): {'autoliner': 2, 'bunntral': 4, 'pelagisk': 2}
+OK   nearly every break finds a place clear of everything somewhere (the rest stand and look out) 17 []
+errors: []
