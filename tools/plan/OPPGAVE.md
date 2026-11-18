@@ -1,5 +1,7 @@
 # Den planlagte oppgaven «Arbeidsrutinen»
 
+**18.11.2026: erstattet av «Driften»** (`tools/drift/RUTINE.md`). Oppgaven `trig_01HGbAsoN6ravK5BDiAVUkTg` står avslått som «Arbeidsrutinen (erstattet av Driften)». Det under er historikk.
+
 **11.11.2026: oppgaven er laget på nytt og slått på** (`trig_01HGbAsoN6ravK5BDiAVUkTg`; Jonas: «Jeg har masse å jobbe gjennom før lanseringen av spillet, så jeg vil at claude jobber seg så selvstendig som mulig gjennom listen en periode fremover»). Den første (`trig_01Mj9884346G3f7JJ8rvoVFN`) ble slått av ti minutter etter at den ble laget 07.11 og kjørte aldri et steg; den hadde ikke repoet som kilde, og står avslått som «Arbeidsrutinen (gammel, uten repo: ikke bruk)». Den nye hadde Fable 5.2 (middels innsats i `.claude/settings.json`); fra 12.11.2026 skal den ha Opus 5.5 på høy innsats (Jonas), og modellen byttes av Jonas på oppgaven, repoet lagt inn av Jonas på claude.ai samme dag, og en prompt som følger L1a og L1b (testutgaven, slippet, migreringene på testprosjektet av Jonas). Prompten under er den gamle; den som gjelder, står på oppgaven. Repoet kan ikke settes fra en økt (`create_trigger` gir `sources: []`), bare på claude.ai/code/routines.
 
 Slik den første ble satt opp 07.11.2026 (laget fra Jonas' hovedøkt med `create_trigger`). Står her så den kan lages på nytt fra rutinesiden på claude.ai (claude.ai/code/routines) med de samme innstillingene, for eksempel for å gi øktene Supabase-koblingen, som ikke kan settes fra en økt.
