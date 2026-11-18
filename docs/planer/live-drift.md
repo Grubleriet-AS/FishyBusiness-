@@ -68,4 +68,6 @@ Jonas 18.11.2026, etter lanseringen: «Spillet er nå live med aktive brukere, e
 
 ## Status
 
-- Fase 1: bygd 18.11.2026 (PR mot arbeidsgrenen; den rører `.github/` og portene, og er derfor høy risiko etter sine egne regler: Jonas fletter).
+- Fase 1: ferdig 18.11.2026 (PR #118, flettet av Jonas).
+- Fase 2: bygd 18.11.2026 (PR mot arbeidsgrenen, høy risiko: migrering, Edge Function, porten). `tools/triage/klynge.py`, `prlaas.py`, `laas.py`, takk-haillen (`agent_fixed`), rød test først i porten, `tools/feilretting/RUTINE.md`. Den planlagte oppgaven heter «Feilrettingen», kjører på Sonnet 5.5 med Opus som agent for rettingene, og **står av** til kjeden er prøvd (Jonas 18.11.2026: «la den fortsatt stå på pause til hele kjeden er verifisert og testet»). **Prøven på `test.detstorebla.no/auto/` før slippet** er flyttet til fase 4 sammen med utgavemappene på serveren, som den trenger.
+- Før Feilrettingen slås på: (1) PR-en flettet; (2) migreringen `20261118200000_agent_fixed.sql` kjørt på testprosjektet (Jonas, for hånd til fase 3) og Edge Function `feedback-agent` deployet der; (3) én kjøring for hånd mot produksjonen, der `klynge.py` leser og `--belonn` ikke finner noe sluppet ennå; (4) slippet som tar med migreringen og funksjonen.

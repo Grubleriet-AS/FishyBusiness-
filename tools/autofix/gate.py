@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The gate for a fix that goes out by itself (02.11.2026; Jonas: «jeg vil ha prosessen så helautomatisert som overhodet mulig»).
 
-The feedback routine (tools/feedback/RUTINE.md) opens a PR against the working branch with the label `autofix` when a fix is small and
+The fix routine (tools/feilretting/RUTINE.md; before 18.11.2026 tools/feedback/RUTINE.md) opens a PR against the working branch with the label `autofix` when a fix is small and
 plain; .github/workflows/autofix.yml runs this on it, and merges and deploys when it passes. It passes only when:
 
 1. Its risk is `lav` (tools/ci/risiko.py, 18.11.2026): only the UI, the stylesheet, tests that are only added to, and docs. Real
@@ -15,6 +15,9 @@ plain; .github/workflows/autofix.yml runs this on it, and merges and deploys whe
    The error list and the feedback that the routine reads come from anyone; this is the guard against a «fix» written by them.
 4. No test goes red that is green on the working branch, and a new test is green: the tests that cover the changed files (COVER in
    tests/run.py, as `run.py changed` picks them), run on the PR's build and on the working branch's, side by side, plus the unit tests.
+5. Red test first (18.11.2026): some test the fix wrote or that covers it is red on the working branch's build (with the fix's test
+   files copied in) and green with the fix. Without that proof only a pure CSS or text change (risiko.css_tekst) goes out by itself;
+   any other fix waits for Jonas' click like a middels one.
 
 Prints what it found, writes it as JSON (--out) and exits 0 when the fix may go out by itself, 3 when it is tested and ready but its
 risk waits for Jonas' click (18.11.2026), 1 when it is stopped for a fault, 2 on a fault of its own.
@@ -56,6 +59,10 @@ def shot_ok(f):
     head = subprocess.run(['git', 'cat-file', 'blob', 'HEAD:' + f], cwd=ROOT, capture_output=True, check=True).stdout[:8]
     if not (head[:3] == b'\xff\xd8\xff' or head == b'\x89PNG\r\n\x1a\n'): return 'ikke et JPEG- eller PNG-bilde'
     return ''
+
+
+def unit_own_any(files):
+    return any(f.startswith('tests/unit/') and f != 'tests/unit/run.mjs' for f in files)
 
 
 def results(text):
@@ -126,7 +133,8 @@ def main():
         names = []
         for f in files:
             if f in RUN.COVER: names += RUN.COVER[f]
-            elif f.startswith('tests/') and f.endswith('.py') and os.path.basename(f)[:-3] in RUN.D3 + RUN.LITE: names.append(os.path.basename(f)[:-3])
+            elif f.startswith('tests/') and f.count('/') == 1 and f.endswith('.py') and not os.path.basename(f).startswith('_') and f != 'tests/run.py':
+                names.append(os.path.basename(f)[:-3])   # a test the fix wrote or changed, also one not in run.py's lists yet (18.11.2026)
             elif f.startswith('src/'): names.append('trip2')
         names = list(dict.fromkeys(n for n in names if os.path.exists(os.path.join(ROOT, 'tests', n + '.py'))))
         R['tests']['names'] = names
@@ -140,9 +148,20 @@ def main():
             base_dir = tempfile.mkdtemp(prefix='autofix-base-')
             git('worktree', 'add', '--detach', base_dir, a.base)
             try:
+                # «rød test først» (18.11.2026): the tests the fix wrote or changed run on the build without the fix too, so the gate
+                # sees them red there; the fix's own test files are copied into the working branch's tree for that
+                own = [f for f in files if f.startswith('tests/') and (f.endswith('.py') or f.startswith('tests/unit/'))
+                       and not os.path.basename(f).startswith('_') and f not in ('tests/run.py', 'tests/unit/run.mjs') and os.path.isfile(os.path.join(ROOT, f))]
+                for f in own:
+                    os.makedirs(os.path.dirname(os.path.join(base_dir, f)), exist_ok=True)
+                    with open(os.path.join(ROOT, f), 'rb') as src, open(os.path.join(base_dir, f), 'wb') as dst: dst.write(src.read())
                 subprocess.run(['node', 'build.mjs'], cwd=base_dir, capture_output=True, text=True)
                 on_base = [n for n in names if os.path.exists(os.path.join(base_dir, 'tests', n + '.py'))]
                 base, _ = run_tests(base_dir, on_base); R['tests']['base'] = base
+                unit_own = [f for f in own if f.startswith('tests/unit/')]
+                if unit_own:
+                    ub = subprocess.run(['node', os.path.join(base_dir, 'tests', 'unit', 'run.mjs')], cwd=base_dir, capture_output=True, text=True)
+                    R['tests']['unit_base'] = ub.returncode == 0
             finally:
                 subprocess.run(['git', 'worktree', 'remove', '--force', base_dir], cwd=ROOT, capture_output=True)
             # a test red with the fix and green without is run again, alone, up to RETRY times (03.11.2026: tabtest went red at random
@@ -160,6 +179,14 @@ def main():
                     R['why'].append('testen %s er rød med rettingen%s, også %d ganger til alene' % (n, '' if n not in base else ', grønn uten', len(again)))
                 if n not in mine: R['why'].append('testen %s ga ikke noe svar' % n)
             R['tests']['log'] = log
+            # the proof: a test red without the fix and green with it (CLAUDE.md «Se testen feile før den stoles på»). Only a pure CSS or
+            # text change is let through without one (risiko.css_tekst; Jonas 18.11.2026: «rene CSS- og tekstjusteringer skal kunne
+            # verifiseres med bygg og visuell sjekk»). Without it a lav fix does not go out by itself: it waits for Jonas
+            proof = [n for n in names if base.get(n) == 'FEIL' and mine.get(n) in ('OK', 'LES')]
+            if unit_own_any(files) and R['tests'].get('unit') and R['tests'].get('unit_base') is False: proof.append('unit')
+            R['tests']['bevis'] = proof
+            if not proof and not rk['css_tekst']:
+                R['risk'].append('ingen test er rød uten rettingen og grønn med den («rød test først»; bare ren CSS og tekst slipper)')
     R['ok'] = not R['why'] and not R['risk']
     R['klar'] = not R['why'] and bool(R['risk'])        # ready for Jonas' click: no fault, only the risk
     if R['ok']: print('SLIPPES UT: risikoen, filene, størrelsen, koden og testene holder')
