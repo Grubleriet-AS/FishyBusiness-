@@ -920,6 +920,14 @@
 "nr": "11",
 "off": 0
 },
+"mR63": {
+"fylke": "Rogaland",
+"kommune": "Tysvær",
+"lat": 59.42804,
+"lon": 5.62225,
+"nr": "11",
+"off": 0
+},
 "mR88": {
 "fylke": "Rogaland",
 "kommune": "Karmøy",
@@ -1185,6 +1193,14 @@
 "nr": "55",
 "off": 0
 },
+"mT222": {
+"fylke": "Troms",
+"kommune": "Tromsø",
+"lat": 69.65413,
+"lon": 18.96747,
+"nr": "55",
+"off": 0
+},
 "mT247": {
 "fylke": "Troms",
 "kommune": "Tromsø",
@@ -1302,6 +1318,14 @@
 "kommune": "Åfjord",
 "lat": 64.17798,
 "lon": 10.21317,
+"nr": "50",
+"off": 0
+},
+"mTL37": {
+"fylke": "Trøndelag",
+"kommune": "Nærøysund",
+"lat": 64.91545,
+"lon": 10.94074,
 "nr": "50",
 "off": 0
 },
