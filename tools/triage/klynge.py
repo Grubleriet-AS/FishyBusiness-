@@ -207,6 +207,7 @@ def classify_feedback(row, cls):
 GIVEN_UP = 'trenger-jonas'
 KLYNGE_REF = re.compile(r'klynge:([0-9a-f]{8})')
 FB_REF = re.compile(r'tilbakemelding #(\d+)')
+REG_REF = re.compile(r'regresjon:([A-Za-z0-9_-]+)')   # a test red in the night's regression (tools/triage/regrod.py)
 PR_REF = re.compile(r'/pull/(\d+)')
 
 
@@ -234,6 +235,22 @@ def reward_candidates(noted, pr_state, released):
     return out
 
 
+def ref(i):
+    return i if ':' in i else 'klynge:' + i
+
+
+def named_tests(items, now, open_only=False):
+    """The tests (regresjon:<test>) an open PR or issue names, or one closed in the last HANDLED_DAYS (open_only: only open ones)."""
+    out = set()
+    for p in items or []:
+        if p.get('state') != 'open':
+            if open_only: continue
+            t = ts(p.get('closed_at') or p.get('merged_at'))
+            if not t or (now - t).total_seconds() > HANDLED_DAYS * 86400: continue
+        out |= set(REG_REF.findall((p.get('title') or '') + '\n' + (p.get('body') or '')))
+    return out
+
+
 def given_up(issues):
     """The cluster ids and feedback ids of the open `trenger-jonas` issues."""
     cl, fb = set(), set()
@@ -244,8 +261,9 @@ def given_up(issues):
     return cl, fb
 
 
-def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=()):
-    """Everything above, without fetching anything: the clusters, the feedback sorted, and whether Opus is needed."""
+def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=(), reg=None):
+    """Everything above, without fetching anything: the clusters, the feedback sorted, and whether Opus is needed. reg: the night's
+    regression (tools/triage/regrod.py); its red tests come after the players' errors (Jonas 18.11.2026), never before them."""
     cls = clusters(errors)
     fb = [classify_feedback(r, cls) for r in rows or []]
     for f in fb:
@@ -262,7 +280,13 @@ def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=()):
     fix_cl = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and allowed(c)]
     fix_fb = [f for f in fb if f['type'] == 'teknisk' and not f['klynge'] and f['id'] not in hfb and f['id'] not in gfb and f['score'] >= MIN_FIX]
     blocked = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and not allowed(c)]
-    return {'klynger': cls, 'tilbakemeldinger': fb, 'rett': fix_cl, 'rett_fb': fix_fb, 'sperret': blocked, 'oppgitt': sorted(gcl) + ['#%d' % n for n in sorted(gfb)],
+    rh, rg = named_tests(prs, now), named_tests(issues, now, open_only=True)
+    reg_c = [{'id': 'regresjon:' + t, 'test': t, 'risiko': 'middels', 'file': 'tests/%s.py' % t,
+              'kind': next(k for k in ('kronisk', 'ny', 'rodt') if t in (reg or {}).get(k, [])), 'dato': (reg or {}).get('dato')}
+             for t in (reg or {}).get('kandidater', [])]
+    fix_reg = [c for c in reg_c if c['test'] not in rh and c['test'] not in rg and allowed(c)]
+    blocked += [c for c in reg_c if c['test'] not in rh and c['test'] not in rg and not allowed(c)]
+    return {'regresjon': reg or {}, 'rett_reg': fix_reg, 'oppgitt_reg': sorted(rg & set((reg or {}).get('kandidater', []))), 'klynger': cls, 'tilbakemeldinger': fb, 'rett': fix_cl, 'rett_fb': fix_fb, 'sperret': blocked, 'oppgitt': sorted(gcl) + ['#%d' % n for n in sorted(gfb)],
             'onsker': [f for f in fb if f['type'] in ('ønske', 'balanse')], 'uklare': [f for f in fb if f['type'] == 'uklar']}
 
 
@@ -274,12 +298,12 @@ def opus_budget(total, steps):
 
 def summary(d, rewards, noted_n, opus_igjen=None):
     nye_tek = [c for c in d['klynger'] if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX] + [f for f in d['tilbakemeldinger'] if f['type'] == 'teknisk']
-    ingenting = not d['tilbakemeldinger'] and not nye_tek and not rewards
-    want = bool(d['rett'] or d['rett_fb'])
+    ingenting = not d['tilbakemeldinger'] and not nye_tek and not rewards and not d.get('rett_reg')
+    want = bool(d['rett'] or d['rett_fb'] or d.get('rett_reg'))
     return {'ingenting': ingenting, 'trenger_opus': want and (opus_igjen is None or opus_igjen > 0), 'opus_igjen': opus_igjen,
             'opus_taket_naadd': want and opus_igjen is not None and opus_igjen <= 0, 'nye_tilbakemeldinger': len(d['tilbakemeldinger']),
-            'nye_tekniske': len(nye_tek), 'kan_rettes': [c['id'] for c in d['rett']] + ['#%s' % f['id'] for f in d['rett_fb']],
-            'sperret_av_pr_laasen': [c['id'] for c in d['sperret']], 'venter_paa_jonas': d.get('oppgitt', []), 'onsker_og_balanse': len(d['onsker']), 'uklare': len(d['uklare']),
+            'nye_tekniske': len(nye_tek), 'kan_rettes': [c['id'] for c in d['rett']] + ['#%s' % f['id'] for f in d['rett_fb']] + [c['id'] for c in d.get('rett_reg', [])],
+            'sperret_av_pr_laasen': [c['id'] for c in d['sperret']], 'venter_paa_jonas': d.get('oppgitt', []) + ['regresjon:' + t for t in d.get('oppgitt_reg', [])], 'onsker_og_balanse': len(d['onsker']), 'uklare': len(d['uklare']),
             'belonnet': [{'tilbakemelding': f, 'pr': p} for f, p in rewards], 'notert_for': noted_n}
 
 
@@ -293,7 +317,12 @@ def draft(d, s):
     if d.get('oppgitt'):
         L += ['', 'Gitt opp etter to forsøk, venter på Jonas (en åpen sak `trenger-jonas` på GitHub; lukk den for å prøve igjen): ' + ', '.join('`klynge:%s`' % x if not x.startswith('#') else 'tilbakemelding %s' % x for x in d['oppgitt'])]
     if d['sperret']:
-        L += ['', 'Venter på PR-låsen (en middels/høy PR venter på Jonas, under 24 timer): ' + ', '.join('`klynge:%s`' % c['id'] for c in d['sperret'])]
+        L += ['', 'Venter på PR-låsen (en middels/høy PR venter på Jonas, under 24 timer): ' + ', '.join('`%s`' % ref(c['id']) for c in d['sperret'])]
+    if d.get('regresjon', {}).get('dato'):
+        import regrod
+        L += ['', '## Regresjonen', '', regrod.line(d['regresjon'])]
+        if d.get('rett_reg'): L.append('Kan rettes (etter spillernes feil): ' + ', '.join('`%s` (%s)' % (c['id'], c['kind']) for c in d['rett_reg']))
+        if d.get('oppgitt_reg'): L.append('Gitt opp, venter på Jonas: ' + ', '.join('`regresjon:%s`' % t for t in d['oppgitt_reg']))
     if s['belonnet']:
         L += ['', '## Rettet og sluppet: takk-haill sendt', ''] + ['- tilbakemelding #%s (PR #%s)' % (b['tilbakemelding'], b['pr']) for b in s['belonnet']]
     L += ['', '## Til Jonas: ønsker og balanse', '']
@@ -352,7 +381,10 @@ def real_run(a):
             try: p['files'] = [f['filename'] for f in gh('repos/%s/pulls/%d/files?per_page=100' % (REPO, p['number'])) or []]
             except Exception as e: why.append(str(e)); prs = None; break
     lock = prlaas.decide(prs or [], now) if prs is not None else {'lav': False, 'hoy': False, 'middels': False, 'middels_hoy': False, 'filer': [], 'blokkert_av': [], 'lukk': []}
-    d = decide(fbd.get('rows'), fbd.get('noted'), tech.get('errors'), prs or [], (fbd.get('last_run') or {}).get('ts'), now, lock, issues or [])
+    import regrod
+    try: reg = regrod.load()
+    except Exception as e: reg = None; why.append('regresjonen: %s' % e)
+    d = decide(fbd.get('rows'), fbd.get('noted'), tech.get('errors'), prs or [], (fbd.get('last_run') or {}).get('ts'), now, lock, issues or [], reg)
     rewards = []
     if a.belonn and prs is not None and not a.test:
         git('fetch', '-q', '--depth=200', 'origin', '+main:refs/remotes/origin/main')
@@ -370,7 +402,7 @@ def real_run(a):
                 else: why.append('fixed #%s: %s' % (fid, r.get('why')))
             except SystemExit as e: why.append('fixed #%s: %s' % (fid, e))
     if prs is None:   # without the PRs nothing is known about what is handled: never wake Opus blind
-        d['rett'], d['rett_fb'] = [], []
+        d['rett'], d['rett_fb'], d['rett_reg'] = [], [], []
     import laas
     try: igjen, igjen_steg = opus_budget(laas.takes(ROOT, 'origin', 24), laas.takes(ROOT, 'origin', 24, kind='steg'))
     except Exception as e: igjen = igjen_steg = 0; why.append('Opus-telleren: %s' % e)   # without the count, no Opus: never past the cap blind
@@ -384,7 +416,9 @@ def real_run(a):
         len(d['tilbakemeldinger']), sum(f['type'] == 'teknisk' for f in d['tilbakemeldinger']), len(d['onsker']), len(d['uklare']), len(d['klynger']), s['nye_tekniske']))
     for c in d['rett'][:5]: print('  rett: klynge:%s score %s risiko %s  %s  (%s)' % (c['id'], c['score'], c['risiko'], c['msg'][:80], c['file'] or c['src']))
     for f in d['rett_fb'][:5]: print('  rett: tilbakemelding #%s score %s' % (f['id'], f['score']))
-    for c in d['sperret'][:5]: print('  venter på PR-låsen: klynge:%s (%s)' % (c['id'], c['risiko']))
+    for c in d.get('rett_reg', [])[:5]: print('  rett etter spillernes feil: %s (%s, regresjonen %s, loggen docs/regresjon/%s/%s.txt)' % (c['id'], c['kind'], c['dato'], c['dato'], c['test']))
+    if reg and reg.get('dato'): print('  ' + regrod.line(reg))
+    for c in d['sperret'][:5]: print('  venter på PR-låsen: %s (%s)' % (ref(c['id']), c['risiko']))
     for b in rewards: print('  takk-haill: tilbakemelding #%s (PR #%s er hos spillerne)' % b)
     for w in why: print('  FEIL: ' + w)
     if s['opus_taket_naadd']: print('  Opus-taket er nådd: %d kjøringer siste døgn (taket er %d); rettingen venter til en av dem er over et døgn gammel' % (OPUS_TAK - igjen, OPUS_TAK))
@@ -503,6 +537,19 @@ def selftest():
     eq('takk-haill bare når sluppet', reward_candidates(noted, st.get, lambda p: p['number'] == 40), [(21, 40)])
     s = summary(decide([], noted, [], [], iso(1), now, open_lock), [(21, 40)], len(noted))
     eq('belønning alene er noe å gjøre', (s['ingenting'], s['trenger_opus']), (False, False))
+    # the night's regression (tools/triage/regrod.py): after the players' errors, handled by a PR or an issue naming regresjon:<test>
+    reg = {'dato': '2026-11-18', 'fersk': True, 'kronisk': ['kt'], 'ny': ['nt'], 'rodt': [], 'ustabil': ['ut'], 'kandidater': ['kt', 'nt']}
+    s = summary(decide([], [], E, [], iso(6), now, open_lock, [], reg), [], 0)
+    eq('regresjonen etter spillernes feil', (s['trenger_opus'], s['kan_rettes'][-2:], s['kan_rettes'][0] != 'regresjon:kt'), (True, ['regresjon:kt', 'regresjon:nt'], True))
+    eq('ustabil tas ikke', 'regresjon:ut' in s['kan_rettes'], False)
+    s = summary(decide([], [], [], [], iso(1), now, open_lock, [], reg), [], 0)
+    eq('bare regresjonen: Opus, ikke «ingenting»', (s['trenger_opus'], s['ingenting'], s['kan_rettes']), (True, False, ['regresjon:kt', 'regresjon:nt']))
+    prs_reg = [{'state': 'open', 'title': 'Retting', 'body': 'regresjon:kt\nrisiko: lav'}]
+    iss_reg = [{'state': 'open', 'title': 'Trenger Jonas: regresjon:nt', 'body': '- regresjon:nt'}]
+    s = summary(decide([], [], [], prs_reg, iso(1), now, open_lock, iss_reg, reg), [], 0)
+    eq('PR og sak stenger testen', (s['kan_rettes'], s['venter_paa_jonas'], s['trenger_opus']), ([], ['regresjon:nt'], False))
+    s = summary(decide([], [], [], [], iso(1), now, {'lav': True, 'middels': False, 'hoy': True, 'filer': []}, [], reg), [], 0)
+    eq('middels-plassen full: regresjonen venter', (s['kan_rettes'], s['sperret_av_pr_laasen']), ([], ['regresjon:kt', 'regresjon:nt']))
     for b in bad: print('FEIL ' + b)
     print('OK klynge selftest' if not bad else 'FEIL klynge selftest: %d' % len(bad))
     return 1 if bad else 0
@@ -528,7 +575,8 @@ def give_up(a):
         c = next((k for k in json.load(open(os.path.join(a.out, 'triage.json'), encoding='utf-8')).get('klynger', []) if k['id'] == key), None)
     if re.fullmatch(r'[0-9a-f]{8}', key): ref = 'klynge:' + key
     elif re.fullmatch(r'#?\d+', key): ref = 'tilbakemelding #' + key.lstrip('#')
-    else: sys.exit('--gi-opp tar en klynge-id (8 hex) eller #N')
+    elif REG_REF.fullmatch(key): ref = key
+    else: sys.exit('--gi-opp tar en klynge-id (8 hex), #N eller regresjon:<test>')
     title = 'Trenger Jonas: %s%s' % (ref, (' ' + public_text(c['msg'])[:70]) if c else '')
     body = ['Feilrettingen ga opp etter to forsøk (`tools/feilretting/RUTINE.md` punkt 5), så denne hoppes over til saken lukkes.', '',
             '- %s' % ref]

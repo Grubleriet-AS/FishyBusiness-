@@ -31,6 +31,8 @@ PATCH_FILE = 'src/js/ui/phone/07-patch.js'
 # (CLAUDE.md). The lists are tools/ci/risiko.py's, so they are the same as the gate's (before, this knew two of the five money files)
 sys.path.insert(0, os.path.join(ROOT, 'tools', 'ci'))
 import risiko, migsjekk   # the migration check (live-drift fase 3): ok ones run from the gate's server in the release
+sys.path.insert(0, os.path.join(ROOT, 'tools', 'triage'))
+import regrod   # the night's regression (18.11.2026): newly red in a test that covers what is released holds an automatic release
 MONEY, LEGAL, SAVES = risiko.MONEY, risiko.LEGAL, risiko.SAVES
 SHOP_SQL = risiko.MONEY_TEXT                         # shop_* or Stripe named on a changed line, in supabase/ or in the game's code (not «striper»)
 SAVE_TEXT = risiko.SAVES_TEXT                        # kystfiske_v2, save_put* and the save keys named on a changed line
@@ -249,6 +251,14 @@ def main():
         L.append('')
     for c, w in marked[:MAX_COMMITS]: L.append('- %s`%s` %s' % ('🔴 ' if w else '', c['h'], c['s'][:140]))
     if len(cs) > MAX_COMMITS: L.append('- … og %d eldre (`git log --no-merges %s`)' % (len(cs) - MAX_COMMITS, (base[:8] + '..' + head[:8]) if base else a.head))
+    # the night's regression, as it stands in tests/historikk.tsv at the head (tools/triage/regrod.py)
+    try: reg = regrod.load(head); hold = regrod.held(reg, files)
+    except Exception as e: reg, hold = {'dato': None}, []; print('regresjonen kunne ikke leses: %s' % e)
+    # a commit in the release that names regresjon:<test> is the fix of that test (tools/feilretting/RUTINE.md): it does not hold itself
+    fixed_t = set(regrod.REF.findall(git('log', '--format=%B', base + '..' + head, ok=False) if base else ''))
+    hold = [(t, fs) for t, fs in hold if t not in fixed_t]
+    L += ['', '## Regresjonen', '', regrod.line(reg)]
+    for t, fs in hold: L.append('- 🔴 nytt rødt i `%s`, som dekker %s: loggen `docs/regresjon/%s/%s.txt`' % (t, ', '.join('`%s`' % f for f in fs[:4]), reg['dato'], t))
     L += ['', '## Tilbake', '', 'Et slipp som viser seg å være galt: «Appen på Hetzner» startes for hånd på forrige slipps commit%s (`docs/systemer/publisering.md`, «Slippet»).' % (' (`%s`)' % base[:8] if base and (a.since or not first) else ''), '',
           '🤖 Generated with [Claude Code](https://claude.com/claude-code)']
     body = '\n'.join(L) + '\n'
@@ -272,6 +282,8 @@ def main():
     not_ok = [os.path.basename(f) + ' (' + a + ')' for f, a in mig_check.items() if a != migsjekk.OK]
     if not_ok: stop.append('migrering(er) som ikke er «ok» i tools/ci/migsjekk.py, og som Jonas kjører for hånd: ' + ', '.join(not_ok))
     if funcs or shared: stop.append('Edge Functions må deployes i produksjon først (%s): venter på Jonas' % (', '.join(funcs) or '_shared'))
+    if hold: stop.append('regresjonen %s har nytt rødt i en test som dekker det som slippes (%s): Driften retter det først, eller Jonas slipper selv' % (
+        reg['dato'], ', '.join(t for t, _ in hold)))
     if server: stop.append('setup.sh må kjøres på serveren først (%s): venter på Jonas' % ', '.join(server[:3]))
     # the build on the test edition must be younger than the last commit that rolls out: else the head has not stood there at all
     lastsrc = git('log', '-1', '--format=%ct', head, '--', *DEPLOYS, ok=False).strip()
@@ -291,7 +303,7 @@ def main():
         if a.json: print(json.dumps({'title': title, 'base': base, 'head': head, 'commits': len(cs), 'first': first, 'money': money, 'legal': legal, 'saves': saves,
                           'marked': [c['h'] for c, w in marked if w], 'migrations': [os.path.basename(f) for f in mig_new + mig_chg], 'mig_check': {os.path.basename(f): a for f, a in mig_check.items()},
                           'migreringer': ('hetzner' if mig_check else 'ingen') if not not_ok else 'jonas', 'functions': funcs,
-                          'notes': [i for i, _, _ in new_ids], 'test': tv, 'prod': pv, 'hours_on_test': hours, 'stop': stop}, ensure_ascii=False))
+                          'notes': [i for i, _, _ in new_ids], 'test': tv, 'prod': pv, 'hours_on_test': hours, 'regresjon': {k: reg.get(k) for k in ('dato', 'ny', 'kronisk', 'ustabil')}, 'holdt_av_regresjonen': [t for t, _ in hold], 'stop': stop}, ensure_ascii=False))
     if a.dry or a.last or (a.auto and stop): tell(); return code
 
     # the pull request: made or updated with gh where it is there; else the description stands in the file for create_pull_request
