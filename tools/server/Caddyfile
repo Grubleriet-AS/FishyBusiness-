@@ -5,10 +5,9 @@
 # and the cache rules.
 # Caddy's own counts of requests by status (steg 138, 17.11.2026): on its admin port on 127.0.0.1:2019 only, with no addresses and no
 # paths; the watch (tools/server/vakt/vakt.sh) keeps the total once an hour for tools/server/status.sh
+# (the global option since 18.11.2026: Caddy warned that «metrics» inside «servers» goes away in its next major version)
 {
-	servers {
-		metrics
-	}
+	metrics
 }
 (dsb) {
 	# /personvern and /vilkar (the links on Google's sign-in screen) are personvern.html and vilkar.html
