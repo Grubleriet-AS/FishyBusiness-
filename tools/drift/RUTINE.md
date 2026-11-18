@@ -1,0 +1,30 @@
+# Driften: én planlagt rutine for slipp, feilretting og køen (18.11.2026)
+
+Den planlagte oppgaven «Driften» (`trig_01U6Q88HroVFLRYZJiYm9ko5`, før «Feilrettingen» og «Tilbakemeldinger fra spillerne») starter en ny økt hver time på en lett modell (Sonnet 5.5) og gjør dette. Den erstatter de to planlagte oppgavene «Arbeidsrutinen» og «Feilrettingen».
+
+Jonas 18.11.2026: «jeg har jo 2 planlagte rutiner, en som heter arbeidsrutinen og en som heter feilrettingen. Jeg vet ikke om noen av disse er satt opp godt nok eller om vi i det hele tatt trenger to? Du avgjør hva som er best for dette systemet vi prøver å lage her nå.» Valget: **én rutine med fast rekkefølge.** To timeplaner konkurrerte om den samme arbeidsgrenen og den samme låsen, hadde hver sin prompt og av-bryter, og kunne ikke vite om den andre hadde noe viktigere å gjøre. For et spill i drift skal en feil spillerne merker, alltid gå foran et nytt steg i køen (`CLAUDE.md`, «Live-drift»). Én rutine som ser på feilene først, gir det av seg selv.
+
+**Hvordan:** økta selv er en billig koordinator. Den kjører skriptene og tar notatene, og starter en **Opus-agent** (Agent-verktøyet, `model: opus`) bare for arbeid som skriver kode: en feilretting eller ett steg fra køen. Én agent per kjøring, aldri to.
+
+## Hver kjøring, i denne rekkefølgen
+
+1. **Repoet.** Har økta ikke repoet med skrivetilgang: `add_repo` (eier `average01101010`, repo `FishyBusiness-`, `access: push`), klon slik svaret sier. `git fetch origin ccr-5e1ba2f4-pusvyd main` og `git checkout -B drift-run origin/ccr-5e1ba2f4-pusvyd`.
+2. **Låsen.** `python3 tools/triage/laas.py status`. Står den `OPPTATT` (en agent fra en tidligere kjøring jobber fortsatt, eller en økt med Jonas har den), gjør du bare punkt 4 (triagen og notatene, som ikke skriver kode) og avslutter med «Forrige kjøring jobber fortsatt (<hva>)».
+3. **Slippet om natta.** Mellom 03 og 05 norsk tid: `python3 tools/release/slipp.py --auto`. Sier den ja (går ut med 0), gjør du «Slippet» i `tools/plan/RUTINE.md` (punkt 1–6 der) før noe annet, med låsen tatt (`laas.py ta driften slipp`). Sier den nei, står grunnen i meldingen bare når den er noe Jonas må gjøre (en migrering, en Edge Function, `jonas-har-sett`). Ellers ingenting.
+4. **Feilretting, trinn a:** `python3 tools/triage/klynge.py --out <scratchpad>/triage --belonn`, og notatene etter `tools/feilretting/RUTINE.md` punkt 2–3 (takk-haillen sendes av skriptet).
+5. **Feilretting, trinn b:** sier `TRIAGE` `"trenger_opus": true`, og låsen er ledig: `tools/feilretting/RUTINE.md` punkt 4–6 (PR-låsen, låsen tatt som `driften`, én Opus-agent for den øverste i `kan_rettes`). Da tas ikke noe steg fra køen i denne kjøringen.
+6. **Ett steg fra køen:** bare når punkt 5 ikke startet en agent, låsen er ledig, og linje 3 i `docs/planer/koen.md` er `Rutinen: på` (står den `av`, hoppes dette over uten et ord; Jonas 15.11.2026: «Jeg må spare Tokens»). Ta låsen (`laas.py ta driften "steg <N>"`) og start én Opus-agent med oppgaven: «Følg `tools/plan/RUTINE.md` punkt 1 og 3–9 for ett steg (punkt 0 og «Slippet» gjør koordinatoren). Låsen er tatt; forny den med `python3 tools/triage/laas.py forny driften "steg <N>"` etter hver commit og minst hver andre time. Push og stopp etter **tre timer** (punkt 4, «Tiden»), så en feil spillerne merker, ikke venter lenger.» Agenten svarer med meldingen til Jonas (tre linjer, PR-lenka, skjermbildene).
+7. **Rapporten** etter `tools/feilretting/RUTINE.md` punkt 8, når punkt 4 hadde noe å notere (ellers ingen rapport).
+8. **Slutten.** Tok du låsen: `python3 tools/triage/laas.py gi`, også når noe feilet. Skriv to eller tre linjer: slippet (om det var et), hva som ble notert, PR-en og risikoen, takk-haillene, steget fra køen og hva som venter på Jonas. Skjermbildene fra et steg sendes med `SendUserFile` (`status: proactive`).
+
+Er det ingenting i punkt 3–6 (`klynge.py` sier `INGENTING Å GJØRE`, ikke slippetid, og `Rutinen: av` eller ingen klare steg), skriver du bare «Ingenting å gjøre» og avslutter.
+
+## Av-brytere
+
+- **Hele rutinen:** pause den planlagte oppgaven «Driften» i lista over planlagte oppgaver på claude.ai.
+- **Stegene fra køen:** `Rutinen: av` på linje 3 i `docs/planer/koen.md` (feilrettingen og slippet går som før).
+- **Automatiske rettinger til spillerne:** repo-variablene `AUTO_FIX_MERGE=off` og `AUTO_FIX_SLIPP=off` (`.github/workflows/autofix.yml`).
+
+## Reglene
+
+Det som står i `tools/feilretting/RUTINE.md` («Absolutte regler») og `tools/plan/RUTINE.md` («Absolutte regler»), gjelder for den delen av arbeidet. Koordinatoren selv skriver ikke kode, fletter og godkjenner aldri en PR, pusher aldri til `main` eller arbeidsgrenen (utenom dokumentene «Slippet» og køen krever), og leser tilbakemeldingene bare gjennom `tools/feedback/agent.py`.

@@ -134,6 +134,7 @@ Les denne først, så bare dokumentet for systemet du skal endre, og `docs/BACKL
 | `docs/engasjement.md` | Engasjement og inntekt: grunnlaget, arbeidslista og det vi ikke gjør. |
 | `docs/handelssteder.md` | Handelsstedene og plasseringen av steder. Jonas fyller på. |
 | `docs/push-plan.md` | Push-varslene. |
+| `tools/drift/RUTINE.md` | Driften (18.11.2026): den ene planlagte rutinen. Slippet om natta, feilrettingen, og ett steg fra køen når det ikke er en feil å rette og `Rutinen: på`. |
 | `tools/feilretting/RUTINE.md` | Det Feilrettingen gjør hver kjøring (18.11.2026; erstatter `tools/feedback/RUTINE.md`): triagen uten modell (`tools/triage/klynge.py`), låsene (`laas.py`, `prlaas.py`), Opus bare for en retting, takk-haillen. |
 | `tools/triage/` | `klynge.py` (klynger, score, om Opus trengs, takk-haillen), `prlaas.py` (PR-låsen, 24 timer), `laas.py` (den felles låsen `auto/kjorer`). Alle har `--selftest`. |
 | `tools/ci/risiko.py` | Risikoklassene `lav`, `middels`, `hoy` (18.11.2026); porten, slippet og workflowene leser den. |

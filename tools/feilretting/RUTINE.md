@@ -1,5 +1,7 @@
 # Feilrettingen: triage først, Opus bare når en feil skal rettes
 
+> **Fra 18.11.2026 er dette én del av «Driften»** (`tools/drift/RUTINE.md`), den ene planlagte oppgaven som også slipper om natta og tar steg fra køen. Låsen tas med navnet `driften`. Punktene under gjelder som før.
+
 Den planlagte oppgaven «Feilrettingen» (før: «Tilbakemeldinger fra spillerne», `trig_01U6Q88HroVFLRYZJiYm9ko5`) starter en ny økt hver time og gjør dette. Den erstatter `tools/feedback/RUTINE.md` fra 18.11.2026 (live-drift fase 2, `docs/planer/live-drift.md`).
 
 Jonas 18.11.2026: «Deterministisk klustering og billig triage først … Ikke vekk Opus hvis det ikke finnes nye ubehandlede tekniske feil – la kluster-skriptet eller en lettere modell ta triagen, og bruk Opus kun når en teknisk feil faktisk skal rettes.» «Tekniske feil legges i arbeidskøen; ønsker og balanseinnspill legges kun i rapportoversikten i /admin under «Til Jonas: ønsker og balanse», aldri i git.» Og fra før (06.10 og 02.11.2026): «Viktig at vi utbedrer feil kjapt», «jeg vil ha prosessen så helautomatisert som overhodet mulig».
