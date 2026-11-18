@@ -755,7 +755,7 @@ function landSail(pl, b){
 // (iFrom: where the check out begins, the point she backs to from the berth (berthPath's PL): the way from there to the harbour point
 // is the berth's way, and it ran by piers and floating docks the hands then took her through, Uthaug, Ålesund, Dønna)
 function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
-  const B = BOAT.beam || 3, m = B / 2 + 1.5, look = 400, km = q => ({x:q[0] / 1000, y:q[1] / 1000});
+  const B = BOAT.beam || 3, m = B / 2 + 1.5, look = 400, pilot = 200, km = q => ({x:q[0] / 1000, y:q[1] / 1000});
   // (and the ground as the route's legs ask it, outside the harbours: the hands do not stop for it)
   const Lb = BOAT.len || 10, corners = (i0, i1) => fixCornersOk(P.slice(i0, i1 + 1).map(km), Lb, B);
   const bad = (i0, i1) => { for (let i = i0 + 1; i <= i1; i++){ if (!fixLegOk(km(P[i - 1]), km(P[i]), m - 0.5)) return true; let g = null; try { g = groundCheck(km(P[i - 1]), km(P[i])); } catch (e){ return true; } if (g) return true; } return !corners(i0, i1); };
@@ -775,9 +775,10 @@ function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
   // (among the piers the model does not hold a line closely enough: a 15 m boat swung her bow 4-5 m out in the turn off the quay at
   // Ålesund onto a breakwater's head the line passed clear of, a snekke touched a floating dock in the gap she was led through at Dønna.
   // The hands take her along a way found here, as out from the quay and in to the naust, the whole of it (R.in, R.out: the line's points
-  // where it begins and ends); a line that is clear as it is (its legs, the ground and its corners, bad), she sails herself at harbour
-  // speed: before 18.11.2026 the hands also took her the last 200 m in and the first 200 m out of a clear line, at under three knots,
-  // and Jonas found the small boats crawling over long stretches)
+  // where it begins and ends); a line that is clear as it is (its legs, the ground and its corners, bad), a boat under 14 m sails herself
+  // at harbour speed (Jonas 18.11.2026: the small boats crawled over long stretches at under three knots), and a bigger one, which swings
+  // wide in a turn, is taken its last 200 m in and first 200 m out (on her own the 38 m purse seiner swung onto a breakwater at Oldervik
+  // at 3.9 knots, the hunt the same day))
   const R = {in:null, out:null}, along = (k, dir, len, lim) => { let s = 0; while ((dir > 0 ? k < lim : k > lim) && s < len){ const k2 = k + dir; s += Math.hypot(P[k2][0] - P[k][0], P[k2][1] - P[k][1]); k = k2; } return k; };
   try {
     // out: on along the line from where the way from the quay ends
@@ -786,14 +787,14 @@ function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
       // (a way found here: the hands take her the whole of it; a line clear as it was: its first 200 m on from the way out from the quay)
       if (k > iOut && !stopIn(f, k)){ let sw = false, ok = !bad(f, k) ? k : (sw = true, swap(f, k));
         if (ok < 0 && f < iOut){ sw = false; ok = !bad(iOut, k) ? k : (sw = true, swap(iOut, k)); }
-        if (ok >= 0 && sw) R.out = ok; } }
+        if (ok >= 0) R.out = sw ? ok : Lb >= 14 ? along(iOut, 1, pilot, ok) : null; } }
     // in: back along the line from the harbour point (not into the way out from the quay)
     const w = pl.wps[iEnd], e = wpAt[iEnd], i0 = R.out != null ? R.out : iOut;
     // (only where the harbour is within 1.5 km along the line: further off, the line is laid again 600 m from it, dynAuto, with the
     // vessels lying there then, and the search is not done twice)
     let toE = 0; if (e != null) for (let i = 1; i <= e && toE <= 1500; i++) toE += Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]);
     if (w && w.port && w.berth !== 'naust' && e != null && e > i0 && toE <= 1500){ const k = along(e, -1, look, i0);
-      if (k < e && !stopIn(k, e) && bad(k, e) && swap(k, e) >= 0) R.in = k; }
+      if (k < e && !stopIn(k, e)){ const sw = bad(k, e); if (sw ? swap(k, e) >= 0 : Lb >= 14) R.in = sw ? k : along(wpAt[iEnd], -1, pilot, k); } }
   } catch (e){ console.error('dynLineHarb', e); }
   return R;
 }
