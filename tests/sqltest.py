@@ -243,6 +243,24 @@ def main():
         R['bremsVidt'] = json.loads(sql("select public.brems_tall('bn1', 'bg1', now() - interval '30 days', now() - interval '90 days')", {}, 'anon'))
         R['bremsHemmelig'] = sql("select count(*) from public.errors", {}, 'anon', expect_err=True)
         sql("delete from public.errors where version in ('bn1', 'bg1')"); sql("delete from public.sessions where version in ('bn1', 'bg1')")   # (the checks below count errors)
+        # the week's numbers (20261118220000_agent_uke.sql): sessions without a crash, hang or severe 3D fault (with consent), and crashes and
+        # hangs from the error list itself, also those without a session; service_role only
+        U0 = json.loads(sql("select public.agent_uke()", None, 'service_role'))
+        sql("insert into public.sessions (id, player_id, started_at, version) select gen_random_uuid(), 'user_01AAA', now() - interval '2 days', 'uk1' from generate_series(1, 10)")
+        sql("insert into public.sessions (id, player_id, started_at, version) select gen_random_uuid(), 'user_01AAA', now() - interval '9 days', 'uk0' from generate_series(1, 4)")
+        one = lambda v, n: "(select id from public.sessions where version = '%s' order by id limit 1 offset %d)" % (v, n)
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '2 days', %s, 'Krasj: siden stoppet · 3d', 'crash', 'uk1')" % one('uk1', 0))
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '2 days', %s, 'Krasj: siden stoppet · kart', 'crash', 'uk1')" % one('uk1', 0))
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '2 days', %s, 'Heng: spillet sto stille i 6 s · 3d', 'hang', 'uk1')" % one('uk1', 1))
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '2 days', null, 'Krasj: uten samtykke', 'crash', 'uk1')")
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '2 days', %s, 'TypeError: x', 'ui/x.js:1:1', 'uk1')" % one('uk1', 2))
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '9 days', %s, '3D svart skjerm på dagtid', 'view3d gfx', 'uk0')" % one('uk0', 0))
+        U1 = json.loads(sql("select public.agent_uke()", None, 'service_role'))
+        d = lambda w, k: (U1.get(w) or {}).get(k, 0) - (U0.get(w) or {}).get(k, 0)
+        R['ukeDelta'] = {w: {k: d(w, k) for k in ('okter', 'okter_med_feil', 'krasj', 'heng', 'alvorlig3d', 'uten_okt')} for w in ('denne', 'forrige')}
+        R['ukeFeilfri'] = (U1.get('denne') or {}).get('feilfrie')
+        R['ukeAnon'] = sql("select public.agent_uke()", {}, 'anon', expect_err=True); R['ukePl'] = sql("select public.agent_uke()", A, 'authenticated', expect_err=True)
+        sql("delete from public.errors where version in ('uk0', 'uk1')"); sql("delete from public.sessions where version in ('uk0', 'uk1')")
         for i in range(20): sql("select public.fb_send('other', 'nr %d', null, null, '{}')" % i, B, 'authenticated')
         R['fbLimit'] = sql("select public.fb_send('other', 'nr 21', null, null, '{}')", B, 'authenticated', expect_err=True)
         # the cloud save by revision (20261005200000_save_sync.sql): a device that has not met the cloud's newest save cannot write over
@@ -791,6 +809,11 @@ def main():
                  and 'user_01' not in json.dumps(R['bremsAnon']) and R['bremsHemmelig'][0]),
               "the brake's numbers: the publishable key gets counts only (sessions, severe faults, their messages without numbers), the new edition since it went out and the one before the day before, never older than 48 hours, and the error table itself stays closed",
               {'ny': bn, 'gml': bg, 'vidt': bv})
+        print(ok(R['ukeDelta'] == {'denne': {'okter': 10, 'okter_med_feil': 2, 'krasj': 3, 'heng': 1, 'alvorlig3d': 0, 'uten_okt': 1},
+                                   'forrige': {'okter': 4, 'okter_med_feil': 1, 'krasj': 0, 'heng': 0, 'alvorlig3d': 1, 'uten_okt': 0}}
+                 and R['ukeFeilfri'] is not None and 0 < R['ukeFeilfri'] < 1 and R['ukeAnon'][0] and R['ukePl'][0]),
+              "the week's numbers: sessions with a crash, hang or severe 3D fault counted once each (a plain error not), crashes and hangs from the error list also without consent, this week and the one before; service_role only",
+              {'delta': R['ukeDelta'], 'feilfri': R['ukeFeilfri']})
         a2 = R['admRow2'][0] if R['admRow2'] else {}; m2 = R['mine2'][0] if R['mine2'] else {}
         print(ok(R['fb2'].isdigit() and R['fb2Bad'][0] and R['fb2Five'][0] and R['fb2None'].isdigit() and R['admImgs'] == [IMG, I2, I3] and R['admImgsPl'][0] and m2.get('nimg') == 3 and a2.get('nimg') == 3),
               'feedback: up to four pictures, each checked; the admin gets them all in order, a player not', {'mine': m2, 'bad': R['fb2Bad'][1][:30], 'five': R['fb2Five'][1][:30]})
