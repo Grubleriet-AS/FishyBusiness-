@@ -471,6 +471,12 @@ def selftest():
     d = decide([], [], E, [], iso(6), now, open_lock)
     eq('taket nådd', (summary(d, [], 0, 0)['trenger_opus'], summary(d, [], 0, 0)['opus_taket_naadd'], summary(d, [], 0, 0)['ingenting']), (False, True, False))
     eq('taket ikke nådd', summary(d, [], 0, 1)['trenger_opus'], True)
+    # what a public issue may say: names in the code stay, words a player may have typed go
+    eq('egenskap står', public_text("Cannot read properties of undefined (reading 'boat')"), "Cannot read properties of undefined (reading 'boat')")
+    eq('båtnavn fjernes', public_text("Fant ikke båten 'Havørn av Senja' i havna"), 'Fant ikke båten «…» i havna')
+    eq('anførsel fjernes', public_text('Kunne ikke lagre "min første tur!"'), 'Kunne ikke lagre «…»')
+    eq('norske tegn fjernes', public_text("ukjent art 'sei-lyr på Røst'"), 'ukjent art «…»')
+    eq('ett ord med ø fjernes', public_text("båten 'Havørn' finnes ikke"), 'båten «…» finnes ikke')
     # the thank-you
     noted = [{'id': 21, 'status': 'planned', 'note': 'Rettet i https://github.com/x/y/pull/40'}, {'id': 22, 'status': 'planned', 'note': 'PR /pull/41'},
              {'id': 23, 'status': 'fixed', 'note': '/pull/40'}, {'id': 24, 'status': 'seen', 'note': 'ingen PR'}, {'id': 25, 'status': 'planned', 'note': '/pull/42'}]
@@ -483,6 +489,18 @@ def selftest():
     return 1 if bad else 0
 
 
+QUOTED = re.compile(r"'([^']*)'|\"([^\"]*)\"|«([^»]*)»|`([^`]*)`")
+
+
+def public_text(msg):
+    """An error message as it may stand in a public issue: what is quoted stays only when it looks like a name in the code
+    ('boat', "S.cargo"), never words a player may have typed (a boat's name, a message): those become «…» (18.11.2026)."""
+    def keep(m):
+        inner = next(g for g in m.groups() if g is not None)
+        return m.group(0) if re.fullmatch(r'[A-Za-z_$][A-Za-z0-9_$.\[\]#-]{0,40}', inner, re.ASCII) else '«…»'
+    return QUOTED.sub(keep, msg or '')
+
+
 def give_up(a):
     """An open issue `trenger-jonas` for a cluster (8 hex) or a feedback (#N) the fix agent gave up on. No player text goes in it."""
     key = a.gi_opp.strip()
@@ -492,10 +510,10 @@ def give_up(a):
     if re.fullmatch(r'[0-9a-f]{8}', key): ref = 'klynge:' + key
     elif re.fullmatch(r'#?\d+', key): ref = 'tilbakemelding #' + key.lstrip('#')
     else: sys.exit('--gi-opp tar en klynge-id (8 hex) eller #N')
-    title = 'Trenger Jonas: %s%s' % (ref, (' ' + c['msg'][:70]) if c else '')
+    title = 'Trenger Jonas: %s%s' % (ref, (' ' + public_text(c['msg'])[:70]) if c else '')
     body = ['Feilrettingen ga opp etter to forsøk (`tools/feilretting/RUTINE.md` punkt 5), så denne hoppes over til saken lukkes.', '',
             '- %s' % ref]
-    if c: body += ['- Melding (normalisert): `%s`' % c['msg'][:160], '- Sted: `%s`' % (c['file'] or c['src']),
+    if c: body += ['- Melding (normalisert): `%s`' % public_text(c['msg'])[:160].replace('`', "'"), '- Sted: `%s`' % (c['file'] or c['src']),
                    '- Økter: %d, versjoner: %s, alvor %d, score %s' % (c['sessions'], ', '.join(c['versions'][-4:]), c['alvor'], c['score'])]
     body += ['', '**Hvorfor den ble gitt opp:** ' + (a.grunn or '(ikke oppgitt)')[:1500], '',
              'Lukk saken når du har sett på den (eller rettet den selv): da kan Driften prøve igjen.', '', '---', '_Feilrettingen (`tools/triage/klynge.py --gi-opp`)_']

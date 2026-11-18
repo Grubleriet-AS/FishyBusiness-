@@ -1,0 +1,66 @@
+# The migrations (live-drift fase 3, 18.11.2026; Jonas: «Gjør databasemigreringer bakoverkompatible («expand-and-contract», aldri
+# destruktiv SQL som DROP eller TRUNCATE i auto-spor) … La CI/staging kjøre trygge migreringer automatisk, mens produksjon kun
+# oppdateres i selve slippet»).
+#
+# On a pull request that adds or changes a file in supabase/migrations/: the static check (tools/ci/migsjekk.py). «stopp» (destructive,
+# or not safe to run twice) makes the check red; «jonas» (data changes, a function signature dropped) is a warning on the PR.
+# On a push to the working branch: the same check, and the files that are «ok» run on the TEST project (xlrjbqdhdymcdjkqkulx) right
+# away, with the connection string in the secret SUPABASE_TEST_DB_URL (Settings → Secrets and variables → Actions → Secrets). Without
+# the secret nothing runs, and Jonas runs them by hand as before. Production is never touched here: it gets the migrations in the
+# release, from the gate's server (slipp.yml «migreringer: hetzner», tools/server/gate/migrer.py).
+name: Migreringer
+on:
+  pull_request:
+    branches: [ccr-5e1ba2f4-pusvyd, main]
+    paths: ['supabase/migrations/**']
+  push:
+    branches: [ccr-5e1ba2f4-pusvyd]
+    paths: ['supabase/migrations/**']
+permissions:
+  contents: read
+concurrency:
+  group: migreringer-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  migreringer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Den statiske sjekken
+        id: sjekk
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          if [ "$EVENT" = pull_request ]; then git fetch -q origin "$BASE_REF"; base="origin/$BASE_REF"
+          elif [ -z "$BEFORE" ] || [ "$BEFORE" = 0000000000000000000000000000000000000000 ]; then base=HEAD~1
+          else base="$BEFORE"; fi
+          files=$(git diff --name-only --diff-filter=AM "$base...HEAD" -- supabase/migrations/ | grep '\.sql$' | sort | tr '\n' ' ')
+          echo "files=$files" >> "$GITHUB_OUTPUT"
+          set +e
+          python3 tools/ci/migsjekk.py $files > sjekk.txt; code=$?
+          set -e
+          cat sjekk.txt; { echo '### Migreringene'; echo; echo '```'; cat sjekk.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          case "$code" in
+            0) echo "Alle er «ok»: bare tillegg, og trygge å kjøre to ganger." ;;
+            3) echo "::warning::En migrering er «jonas» (dataendring eller en funksjonssignatur som tas bort): Jonas kjører den for hånd, og den går ikke automatisk i slippet." ;;
+            *) echo "::error::En migrering er «stopp» (destruktiv, eller ikke trygg å kjøre to ganger). Skriv den om som et tillegg (expand-and-contract), eller merk et kontraktsteg med «-- kontrakt: <hvorfor>» i en økt med Jonas."; exit 1 ;;
+          esac
+      - name: Testprosjektet
+        if: github.event_name == 'push' && steps.sjekk.outputs.code == '0' && steps.sjekk.outputs.files != ''
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_TEST_DB_URL }}
+          FILES: ${{ steps.sjekk.outputs.files }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then echo "::warning::Hemmeligheten SUPABASE_TEST_DB_URL mangler: migreringene ble ikke kjørt på testprosjektet. Jonas kjører dem for hånd som før."; exit 0; fi
+          case "$SUPABASE_DB_URL" in *xcqbqzrsgycpeoyclakm*) echo "::error::SUPABASE_TEST_DB_URL peker på produksjonen. Den skal være testprosjektet (xlrjbqdhdymcdjkqkulx)."; exit 1;; esac
+          command -v psql >/dev/null || { sudo apt-get update -q && sudo apt-get install -yq postgresql-client; }
+          python3 tools/server/gate/migrer.py --lokal $FILES | tee -a "$GITHUB_STEP_SUMMARY"

@@ -30,7 +30,7 @@ PATCH_FILE = 'src/js/ui/phone/07-patch.js'
 # real money, the legal pages, and (from 18.11.2026) accounts and saved player data: never released before Jonas has seen the PR
 # (CLAUDE.md). The lists are tools/ci/risiko.py's, so they are the same as the gate's (before, this knew two of the five money files)
 sys.path.insert(0, os.path.join(ROOT, 'tools', 'ci'))
-import risiko
+import risiko, migsjekk   # the migration check (live-drift fase 3): ok ones run from the gate's server in the release
 MONEY, LEGAL, SAVES = risiko.MONEY, risiko.LEGAL, risiko.SAVES
 SHOP_SQL = risiko.MONEY_TEXT                         # shop_* or Stripe named on a changed line, in supabase/ or in the game's code (not «striper»)
 SAVE_TEXT = risiko.SAVES_TEXT                        # kystfiske_v2, save_put* and the save keys named on a changed line
@@ -221,11 +221,11 @@ def main():
     L += ['', '## Før slippet (i denne rekkefølgen)', '']
     n = 1
     if mig_new or mig_chg:
-        L.append('%d. **Migreringene kjøres i produksjon (`xcqbqzrsgycpeoyclakm`) før `main` flyttes, aldri etter**, i denne rekkefølgen:' % n); n += 1
+        L.append('%d. **Migreringene kjøres i produksjon (`xcqbqzrsgycpeoyclakm`) før `main` flyttes, aldri etter**, i denne rekkefølgen. De som er «ok» i `tools/ci/migsjekk.py`, kjøres fra serveren når «Slipp» startes med «migreringer: hetzner»; en som er «jonas» eller «stopp», kjører Jonas for hånd (så «kjørt»):' % n); n += 1
         if first and not a.since: L.append('   - `main` er tom, så lista er alle migreringene i repoet. Bare de som ikke alt er kjørt i produksjon, kjøres (`--since <commiten produksjonen står på>` gir lista over de nye).')
         show = mig_new if len(mig_new) <= 30 else mig_new[-30:]
         if len(mig_new) > 30: L.append('   - … %d eldre (fra `%s`), og de 30 nyeste:' % (len(mig_new) - 30, os.path.basename(mig_new[0])))
-        for f in show: L.append('   - `%s`' % os.path.basename(f))
+        for f in show: L.append('   - `%s` (%s)' % (os.path.basename(f), migsjekk.check_text(git('show', '%s:%s' % (head, f), ok=False), f)['svar']))
         for f in mig_chg: L.append('   - `%s` (**endret** etter at den ble skrevet: les diffen før den kjøres på nytt)' % os.path.basename(f))
     else:
         L.append('%d. Ingen nye migreringer.' % n); n += 1
@@ -261,7 +261,13 @@ def main():
     if not (NIGHT[0] <= now.hour < NIGHT[1]): stop.append('klokka er %s norsk tid, slippet går %02d–%02d' % (now.strftime('%H:%M'), NIGHT[0], NIGHT[1]))
     if hours is None: stop.append('testutgavens alder er ukjent (%s)' % (tv.get('err') or 'ikke spurt'))
     elif hours < HOURS_ON_TEST: stop.append('testutgaven har stått %.1f timer, kravet er %d' % (hours, HOURS_ON_TEST))
-    if mig_new or mig_chg: stop.append('%d migrering(er) må kjøres i produksjon først' % len(mig_new + mig_chg))
+    # the migrations (live-drift fase 3, 18.11.2026): ok by migsjekk (only expansion, safe twice) run from the gate's server in the
+    # release (slipp.yml «migreringer: hetzner»); one that is jonas or stopp waits for Jonas to run it by hand
+    mig_check = {}
+    for f in mig_new + mig_chg:
+        mig_check[f] = migsjekk.check_text(git('show', '%s:%s' % (head, f), ok=False), f)['svar']
+    not_ok = [os.path.basename(f) + ' (' + a + ')' for f, a in mig_check.items() if a != migsjekk.OK]
+    if not_ok: stop.append('migrering(er) som ikke er «ok» i tools/ci/migsjekk.py, og som Jonas kjører for hånd: ' + ', '.join(not_ok))
     if funcs or shared: stop.append('Edge Functions må deployes i produksjon først (%s): venter på Jonas' % (', '.join(funcs) or '_shared'))
     if server: stop.append('setup.sh må kjøres på serveren først (%s): venter på Jonas' % ', '.join(server[:3]))
     # the build on the test edition must be younger than the last commit that rolls out: else the head has not stood there at all
@@ -280,7 +286,8 @@ def main():
     code = 1 if a.auto and stop else 0
     def tell():
         if a.json: print(json.dumps({'title': title, 'base': base, 'head': head, 'commits': len(cs), 'first': first, 'money': money, 'legal': legal, 'saves': saves,
-                          'marked': [c['h'] for c, w in marked if w], 'migrations': [os.path.basename(f) for f in mig_new + mig_chg], 'functions': funcs,
+                          'marked': [c['h'] for c, w in marked if w], 'migrations': [os.path.basename(f) for f in mig_new + mig_chg], 'mig_check': {os.path.basename(f): a for f, a in mig_check.items()},
+                          'migreringer': ('hetzner' if mig_check else 'ingen') if not not_ok else 'jonas', 'functions': funcs,
                           'notes': [i for i, _, _ in new_ids], 'test': tv, 'prod': pv, 'hours_on_test': hours, 'stop': stop}, ensure_ascii=False))
     if a.dry or a.last or (a.auto and stop): tell(); return code
 
