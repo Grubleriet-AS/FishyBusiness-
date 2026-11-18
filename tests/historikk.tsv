@@ -5700,3 +5700,21 @@
 2026-11-18 02:42	claude/hopeful-mayer-48bgvv	746a1acc+	driftsplan2kyst	OK	110	lite	samtidig	
 2026-11-18 02:42	claude/hopeful-mayer-48bgvv	746a1acc+	skipdrift	OK	27	lite	samtidig	
 2026-11-18 02:44	claude/hopeful-mayer-48bgvv	746a1acc+	driftsplan2test	OK	112	lite	alene	
+2026-11-18 04:29	claude/magical-pasteur-z98gc5	54de5eb+	obstest	OK	10	lite	samtidig	
+2026-11-18 04:29	claude/magical-pasteur-z98gc5	54de5eb+	havntest	OK	16	lite	samtidig	
+2026-11-18 04:30	claude/magical-pasteur-z98gc5	54de5eb+	autonavtest	OK	32	lite	samtidig	
+2026-11-18 04:30	claude/magical-pasteur-z98gc5	54de5eb+	trip2	OK	14	lite	samtidig	
+2026-11-18 04:34	claude/magical-pasteur-z98gc5	463c44a	dyntest	FEIL	257	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-18 04:34	claude/magical-pasteur-z98gc5	463c44a	harbourtest	OK	9	lite	samtidig	
+2026-11-18 04:34	claude/magical-pasteur-z98gc5	463c44a	kaiover	OK	135	lite	samtidig	
+2026-11-18 04:34	claude/magical-pasteur-z98gc5	463c44a	utfrakai	OK	99	lite	samtidig	
+2026-11-18 04:34	claude/magical-pasteur-z98gc5	463c44a	naustleia	OK	10	lite	samtidig	
+2026-11-18 04:34	claude/magical-pasteur-z98gc5	463c44a	rorbutest	OK	19	lite	samtidig	
+2026-11-18 04:46	claude/magical-pasteur-z98gc5	463c44a	colregtest	OK	730	lite	samtidig	
+2026-11-18 04:46	claude/magical-pasteur-z98gc5	463c44a	helmtest	OK	26	lite	samtidig	
+2026-11-18 04:47	claude/magical-pasteur-z98gc5	463c44a	moortest	FEIL	33	3d	alene	avsluttet med kode 1
+2026-11-18 04:55	claude/magical-pasteur-z98gc5	19e0a27	moortest	FEIL	34	3d	alene	avsluttet med kode 1
+2026-11-18 04:56	claude/magical-pasteur-z98gc5	19e0a27	routetest	FEIL	55	lite	alene	FEIL Kast loss setter ruta i gang, og kartplotteren står åpen  {'plan': False, 'plot': True, 'g3': False}
+2026-11-18 05:02	claude/magical-pasteur-z98gc5	19e0a27	vectest	OK	906	3d	alene	
+2026-11-18 05:12	claude/magical-pasteur-z98gc5	19e0a27	trackfollow	FEIL	616	3d	alene	FEIL a slow frame after time caught up with the minute step (the model off for a tick) does not run her past the simulation for the model to put her back  {"st"
+2026-11-18 05:18	claude/magical-pasteur-z98gc5	19e0a27	unittest	OK	333	3d	alene	
