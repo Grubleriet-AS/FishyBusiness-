@@ -87,7 +87,7 @@ JK = r"""() => {
       let idx = null; try { idx = obsIndex(); } catch (e){}
       if (idx){ const air = obsAir(), done = new Set();
         for (const [x, z] of pts){ const L0 = idx.get(Math.floor(x / C) * 1048576 + Math.floor(z / C)); if (!L0) continue;
-          for (const o of L0){ if (done.has(o) || o.why === 'buoy' || o.why === 'quay') continue;   // (the quay decks: its own test below) let ins = false;
+          for (const o of L0){ if (done.has(o) || o.why === 'buoy' || o.why === 'quay') continue; let ins = false;   // (the quay decks: their own test below)
             if (o.t === 0) ins = Math.hypot(x - o.x, z - o.z) < o.r;
             else if (o.t === 1){ const dx = x - o.x, dz = z - o.z; ins = Math.abs(dx * o.ux + dz * o.uz) < o.l && Math.abs(dx * o.uz - dz * o.ux) < o.w; }
             else if (o.t === 2 && o.under < air) ins = obsDist(o, x, z, x, z) < o.r;

@@ -250,7 +250,7 @@ function fixBlocked(x, z, m, boats){
 // metres, every 3 m; fixWay: a way from a to b over a 4 m grid round them (at most FIXW.R m beyond either), pulled tight, or null. The
 // ends themselves may lie within the margin of their own quay: the cells within the margin and a cell of them are open if they are
 // water and not inside anything. The depth is asked outside the harbours only (in them it is dredged, as groundCheck has it).
-const FIXW = {cell:4, R:100, max:60000};
+const FIXW = {cell:4, R:100, max:40000};
 function fixLegOk(a, b, m){
   const was = FIX.useBoats; FIX.useBoats = true;
   try { const n = Math.max(1, Math.ceil(dist(a, b) / 0.003)), r = m / 1000;
@@ -271,7 +271,7 @@ function fixWay(a, b, ms, ok){
 }
 function fixWay0(a, b, ms, ok){
   const C = FIXW.cell, c = C / 1000, R = FIXW.R / 1000, x0 = Math.min(a.x, b.x) - R, y0 = Math.min(a.y, b.y) - R, nx = Math.ceil((Math.max(a.x, b.x) + R - x0) / c), ny = Math.ceil((Math.max(a.y, b.y) + R - y0) / c), N = nx * ny;
-  if (N > 4 * FIXW.max) return null;
+  if (N > FIXW.max) return null;   // (the land is asked at every cell first: 40 000 cells are a third of a second)
   const ctr = (i, j) => ({x:x0 + (i + 0.5) * c, y:y0 + (j + 0.5) * c}), ci = p => [clamp(Math.floor((p.x - x0) / c), 0, nx - 1), clamp(Math.floor((p.y - y0) / c), 0, ny - 1)];
   const tl = tideCD(S.t / 60), dr = (BOAT.draft || 1) + 0.3, Mx = Math.max(...ms) + 1;
   // the land and the distance to it (m, between cells' middles; 1e9 none)

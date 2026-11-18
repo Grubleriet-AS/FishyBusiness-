@@ -28,6 +28,17 @@ export default function (t){
     t.eq(K.obsNearEnd({t:1, x:0, z:20, l:10, w:2, ux:1, uz:0}), true, 'obsNearEnd: den er nær enden, og passeres med mindre margin');
     t.eq(K.obsNearEnd({t:0, x:0, z:200, r:1}), false, 'obsNearEnd: et merke 200 m unna er ikke nær enden');
   } finally { BOAT.beam = keep; HIND.ctx = ctx; }
+  // the zones of the trade places, where floating docks and open piers are taken away (vecGone): 20 m either side of a segment
+  const PORTZ = K.get('PORTZ'), keepZ = {list:PORTZ.list, cells:PORTZ.cells};
+  try {
+    const g = [1000, 1000, 1100, 1000], cells = new Map([[1 * 65536 + 1, [g]]]); PORTZ.list = [g]; PORTZ.cells = cells;
+    t.eq(K.inPortZone(1050, 1015), true, 'inPortZone: 15 m fra kaifronten er i sonen');
+    t.eq(K.inPortZone(1050, 1025), false, 'inPortZone: 25 m fra kaifronten er utenfor');
+    t.eq(K.inPortZone(1115, 1000), true, 'inPortZone: 15 m forbi enden av fronten er i sonen');
+  } finally { PORTZ.list = keepZ.list; PORTZ.cells = keepZ.cells; }
+  const G = {fd:new Set(['5:5'])};
+  t.eq(K.vecGoneSlab(G, [[4, 4], [6, 4], [6, 6], [4, 6]]), true, 'vecGoneSlab: et omriss med midten i en flytebrygge som er tatt bort');
+  t.eq(K.vecGoneSlab(G, [[40, 40], [60, 40], [60, 60], [40, 60]]), false, 'vecGoneSlab: et annet omriss står');
   // the harbours dredged: the deepest draught of the boats up to 40 m and half a metre
   const VESSELS = K.get('VESSELS'), want = Math.max(...Object.values(VESSELS).filter(V => (V.len || 0) <= 40).map(V => V.draft || 0)) + 0.5;
   t.near(K.get('HARB_DRAFT'), want, 1e-9, 'HARB_DRAFT: dypeste dypgang for båtene opp til 40 m og en halv meter (' + want + ' m)');

@@ -52,7 +52,7 @@
     g.fillStyle = '#021628'; g.fillRect(ex, top, ew, ch);
     if (INSTR.echoOn()){
       if (ec && ec.width) g.drawImage(ec, ex, top, ew, ch);
-      const dep = Math.max(0.8, depthF(p) + tideCD(Hn));
+      const dep = Math.max(0.8, depthNav(p) + tideCD(Hn));   // (the harbours dredged as her keel has it, 07-harbours.js depthNav)
       g.fillStyle = '#fff'; g.font = '700 30px system-ui, sans-serif'; g.fillText(fmt(dep, dep < 100 ? 1 : 0), ex + 8, top + 34); g.font = '600 13px system-ui, sans-serif'; g.fillText('m', ex + 12 + g.measureText(fmt(dep, dep < 100 ? 1 : 0)).width * 2.3, top + 34);
     } else { g.fillStyle = '#5f7d8c'; g.font = '700 16px system-ui, sans-serif'; g.textAlign = 'center'; g.fillText(L('EKKOLODD AV', 'SOUNDER OFF'), ex + ew / 2, top + ch / 2); g.textAlign = 'left'; }
     // data bars

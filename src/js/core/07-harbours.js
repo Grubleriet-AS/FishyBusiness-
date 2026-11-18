@@ -442,7 +442,8 @@ function berthPath0(from, bp, mm){
   if (clr(from, PL)) return [from, PL, P1];
   // (a way among the piers, floating docks and boats over a 4 m grid first, 11b-obstacles.js fixWay: the mask's 25 m cells are wider than
   // the gaps between the piers, and where none was found the way went straight through them; the autonav routine 18.11.2026)
-  if (!mm){ const F = fixWay(from, PL, [m + 1.5, m]); if (F) return F.W.concat([P1]); }
+  // (only over a short way, 400 m: from the naust the way starts at the route's first point, up to 1.2 km off, and the mask's search has that)
+  if (!mm && dist(from, PL) < 0.4){ const F = fixWay(from, PL, [m + 1.5, m]); if (F) return F.W.concat([P1]); }
   // a search over the mask's cells round the way, then the line pulled tight
   const M = MAPD.L.mask, c = M.c, key = (i, j) => i + ',' + j, ci = q => [Math.floor(q.x / c), Math.floor(q.y / c)], ctr = (i, j) => ({x:(i + 0.5) * c, y:(j + 0.5) * c});
   const [i0, j0] = ci(from), [i1, j1] = ci(PL), R = Math.ceil(1.5 / c), prev = new Map([[key(i0, j0), null]]), Q = [[i0, j0]]; let found = false;

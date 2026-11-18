@@ -676,7 +676,7 @@ function dynLineBuild(pl, dep){
         if (W.length > 2 && !long){ bz.add(P.length - 1); for (const r of W.slice(1, -1)){ add(r.x * 1000, r.y * 1000); bz.add(P.length - 1); } wpAt[i] = P.length - 1; continue; } } }
     add(w.x * 1000, w.y * 1000); wpAt[i] = P.length - 1; }
   dynLineNudge(P, wpAt, pl, iEnd, dep ? iOut : 0, bz);
-  const HZ = dynLineHarb(P, wpAt, pl, iEnd, dep ? iOut : 0, dep && iOut >= 1 ? 1 : 0);
+  const HZ = dynLineHarb(P, wpAt, pl, iEnd, dep ? iOut : 0, dep && iOut >= 1 ? 1 : 0, bz);
   const L = [0]; for (let i = 1; i < P.length; i++) L.push(L[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]));
   const stops = []; for (let i = pl.idx; i <= iEnd; i++) if (wpStop(pl.wps[i]) && wpAt[i] != null) stops.push({i, s:L[wpAt[i]]});
   // the corners: where the line turns, by how much
@@ -690,7 +690,7 @@ function dynLineBuild(pl, dep){
   // (the coast's piers and quays round her ends not decoded yet, vecTile: the line is laid again when they are, dynAuto, while she is
   // still backing off the berth; at Ålesund utstyrsbutikk the way out was laid before the breakwater by it was in, and ran onto its head)
   let vecWait = false; try { const T0 = MAPD.man ? MAPD.man.tile * 1000 : 0, chk = q => { if (!T0) return; for (const dx of [-500, 500]) for (const dz of [-500, 500]){ const tx = Math.floor((q[0] + dx) / T0), ty = Math.floor((q[1] + dz) / T0); if (vecHas(tx, ty) && !vecTile(tx, ty)) vecWait = true; } };
-    chk(P[0]); if (wpAt[iEnd] != null) chk(P[wpAt[iEnd]]); } catch (e){}
+    if (dep) chk(P[0]); } catch (e){}   // (the end: the line is laid again 600 m from it, dynAuto)
   return {plan:pl, n:pl.wps.length, sig:dynSig(pl), chk:0, P, L, end:L[L.length - 1], wpAt, stops, corners, bzS, iEnd, back, turnL:Math.max(10, Lb * 1.5), hd0, sOut, s:0, gchk:0, ghit:null, hzS:HZ.in != null ? L[HZ.in] : null, dep, vecWait, vecVer:VEC.ver};
 }
 // Off the shore by half her beam and 3 m where the line passes nearer (pattern 2 of the autonav routine, 18.11.2026: the route's legs are
@@ -701,18 +701,24 @@ function dynLineBuild(pl, dep){
 // keep their places on the line (wpAt)
 function dynLineNudge(P, wpAt, pl, iEnd, iOut, bz){
   const need = (BOAT.beam || 3) / 2 + 3, km = (x, z) => ({x:x / 1000, y:z / 1000});
+  // (not within 400 m of her ends, where dynLineHarb looks at the way among the piers (a rorbu and the naust are no harbour to inHarbour),
+  // nor on the way in to Father's naust (bz); and the two new legs as clear of land, of the things a route keeps clear of and of the ground
+  // as a route's legs are, else the point stays where it was)
+  const E0 = P[0], eI = wpAt[iEnd], E1 = eI != null ? P[eI] : P[P.length - 1], bzMin = bz && bz.size ? Math.min(...bz) : Infinity;
+  const nearEnd = (x, z) => Math.hypot(x - E0[0], z - E0[1]) < 400 || Math.hypot(x - E1[0], z - E1[1]) < 400;
+  const legOk = (u, v) => { try { const a = km(u[0], u[1]), b = km(v[0], v[1]); return legClear(a, b) && obsClear(a, b) && !groundCheck(a, b) && !coastSegHit(a, b); } catch (e){ return false; } };
   const cd = (x, z) => { try { const d = coastDistM(km(x, z), need + 2); return d < 0 ? 1e9 : d; } catch (e){ return 1e9; } };
   const land = (x, z) => { try { return isLand(km(x, z)); } catch (e){ return true; } };
   const out = [P[0]], map = [0];
   for (let i = 1; i < P.length; i++){
     const a = P[i - 1], b = P[i];
-    if (i > iOut){ const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz), n = Math.floor(L / 8);
+    if (i > iOut && i <= bzMin){ const dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz), n = Math.floor(L / 8);
       if (n >= 2){ const ux = dx / L, uz = dz / L, nx = -uz, nz = ux; let run = null; const flush = () => { if (!run) return; const [x, z, d] = run; run = null;
           const lf = land(x + nx * need, z + nz * need), rt = land(x - nx * need, z - nz * need); if (lf === rt) return;
           const sg = lf ? -1 : 1, q = [x + sg * nx * (need - d + 1), z + sg * nz * (need - d + 1)];
-          if (land(q[0], q[1]) || cd(q[0], q[1]) < d + 0.5 || inHarbour(km(q[0], q[1]))) return; out.push(q); };
+          if (land(q[0], q[1]) || cd(q[0], q[1]) < d + 0.5 || inHarbour(km(q[0], q[1])) || !legOk(out[out.length - 1], q) || !legOk(q, b)) return; out.push(q); };
         for (let k = 1; k < n; k++){ const x = a[0] + dx * k / n, z = a[1] + dz * k / n; if (k * L / n < 10 || (n - k) * L / n < 10){ flush(); continue; }
-          const d = inHarbour(km(x, z)) ? 1e9 : cd(x, z); if (d < need){ if (!run || d < run[2]) run = [x, z, d]; } else flush(); }
+          const d = inHarbour(km(x, z)) || nearEnd(x, z) ? 1e9 : cd(x, z); if (d < need){ if (!run || d < run[2]) run = [x, z, d]; } else flush(); }
         flush(); } }
     out.push(b); map.push(out.length - 1);
   }
@@ -728,7 +734,7 @@ function dynLineNudge(P, wpAt, pl, iEnd, iOut, bz){
 // in it, and the way in to Father's naust (its own, berthPath), are left as they were
 // (iFrom: where the check out begins, the point she backs to from the berth (berthPath's PL): the way from there to the harbour point
 // is the berth's way, and it ran by piers and floating docks the hands then took her through, Uthaug, Ålesund, Dønna)
-function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom){
+function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
   const B = BOAT.beam || 3, m = B / 2 + 1.5, look = 400, pilot = 200, km = q => ({x:q[0] / 1000, y:q[1] / 1000});
   // (and the ground as the route's legs ask it, outside the harbours: the hands do not stop for it)
   const Lb = BOAT.len || 10, corners = (i0, i1) => fixCornersOk(P.slice(i0, i1 + 1).map(km), Lb, B);
@@ -743,7 +749,9 @@ function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom){
   const swap = (k0, k1) => { const F = fixWay(km(P[k0]), km(P[k1]), [Math.max(B / 2 + 3, Lb / 2 + 1), B / 2 + 3, m, B / 2 + 0.5], w => fixCornersOk(w, Lb, B)); if (!F) return -1; const W = F.W;
     const ins = W.slice(1, -1).map(q => [q.x * 1000, q.y * 1000]), d = ins.length - (k1 - k0 - 1); P.splice(k0 + 1, k1 - k0 - 1, ...ins);
     for (let i = pl.idx; i <= iEnd; i++) if (wpAt[i] != null){ if (wpAt[i] > k0 && wpAt[i] < k1) wpAt[i] = k0; else if (wpAt[i] >= k1) wpAt[i] += d; }
+    if (bz && bz.size){ const nb = [...bz].map(q => q >= k1 ? q + d : q); bz.clear(); for (const q of nb) bz.add(q); }   // (the way in to the naust after it: moved with it; never in it, bzMin)
     return k1 + d; };
+  const bzMin = bz && bz.size ? Math.min(...bz) : Infinity;
   // (among the piers the model does not hold a line closely enough: a 15 m boat swung her bow 4-5 m out in the turn off the quay at
   // Ålesund onto a breakwater's head the line passed clear of, a snekke touched a floating dock in the gap she was led through at Dønna.
   // The hands take her along the line, as out from the quay and in to the naust, at a knot and a half to three: the last 200 m in to the
@@ -752,9 +760,10 @@ function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom){
   const R = {in:null, out:null}, along = (k, dir, len, lim) => { let s = 0; while ((dir > 0 ? k < lim : k > lim) && s < len){ const k2 = k + dir; s += Math.hypot(P[k2][0] - P[k][0], P[k2][1] - P[k][1]); k = k2; } return k; };
   try {
     // out: on along the line from where the way from the quay ends
-    if (iOut > 0){ const e2 = wpAt[iEnd] != null ? wpAt[iEnd] : P.length - 1, f = iFrom > 0 && iFrom < iOut ? iFrom : iOut; let k = along(iOut, 1, look, e2);
+    // (not into the way in to Father's naust, bz: that is its own, berthPath, and the hands take her along it)
+    if (iOut > 0){ const e2 = Math.min(wpAt[iEnd] != null ? wpAt[iEnd] : P.length - 1, bzMin - 1), f = iFrom > 0 && iFrom < iOut ? iFrom : iOut; let k = along(iOut, 1, look, e2);
       // (a way found here: the hands take her the whole of it; a line clear as it was: its first 200 m on from the way out from the quay)
-      if (k > iOut && !stopIn(iOut, k)){ let sw = false, ok = !bad(f, k) ? k : (sw = true, swap(f, k));
+      if (k > iOut && !stopIn(f, k)){ let sw = false, ok = !bad(f, k) ? k : (sw = true, swap(f, k));
         if (ok < 0 && f < iOut){ sw = false; ok = !bad(iOut, k) ? k : (sw = true, swap(iOut, k)); }
         if (ok >= 0) R.out = sw ? ok : along(iOut, 1, pilot, ok); } }
     // in: back along the line from the harbour point (not into the way out from the quay)
@@ -878,8 +887,13 @@ function dynAuto(d, dtG){
     const dep = !T && DYN.dep && Math.hypot(DYN.dep.bp.x * 1000 - d.X, DYN.dep.bp.y * 1000 - d.Y) < 60 ? DYN.dep : null; DYN.dep = null;
     T = DYN.line = dynLineBuild(pl, dep); T.s = dep ? 0 : dynLineProj(T, d.X, d.Y, 0, 1e9);
   }
+  // (in a new 50 km tile of the map since the line was laid: laid again, dynLineNudge with the coast there in by now, which it was not
+  // when she left: coastDistM knows only the tiles whose chart is in; not by a stop, nor while the hands have her or she backs off a quay)
+  { const Tm = MAPD.man ? MAPD.man.tile * 1000 : 0, tk = Tm ? Math.floor(d.X / Tm) + ':' + Math.floor(d.Y / Tm) : '';
+    if (T.tk == null) T.tk = tk; else if (tk !== T.tk && !(T.assist > T.s) && !(T.back > 0 && T.s < T.sOut + T.turnL + 50)){ const st1 = T.stops.find(q => q.i >= pl.idx);
+      if (!st1 || st1.s - T.s > 1000){ T = DYN.line = dynLineBuild(pl, null); T.s = dynLineProj(T, d.X, d.Y, 0, 1e9); T.tk = tk; } else T.tk = tk; } }
   // (the piers and quays round her ends came after the line was laid: laid again, from the berth while she backs off it)
-  if (T.vecWait && T.vecVer !== VEC.ver && (!T.dep || T.s < T.back) && !(T.assist > T.s)){ const s0 = T.s; T = DYN.line = dynLineBuild(pl, T.dep && T.s < T.back ? T.dep : null); T.s = T.dep ? Math.min(s0, T.back) : dynLineProj(T, d.X, d.Y, 0, 1e9); }
+  if (T.vecWait && T.dep && T.vecVer !== VEC.ver && T.s < T.back){ const s0 = T.s; T = DYN.line = dynLineBuild(pl, T.dep); T.s = Math.min(s0, T.back); }
   // (600 m from a harbour she stops at, the line in to it again, dynLineHarb with the vessels lying there now: the line was laid when she
   // left, and a ferry that has come in to her quay since lay across it at Strønstad, the autonav routine 18.11.2026; once a stop)
   { const st0 = T.stops.find(q => q.i >= pl.idx);
