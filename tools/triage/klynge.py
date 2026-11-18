@@ -44,8 +44,10 @@ import risiko, prlaas
 
 REPO = 'average01101010/FishyBusiness-'
 PROD_URL = 'https://detstorebla.no/version.json'
-OPUS_TAK = 4          # at most this many Opus runs (a fix or a queue step) in 24 hours (Jonas 18.11.2026: «Tak: 4 i døgnet»), counted
-                      # from the lock's history (tools/triage/laas.py teller)
+OPUS_TAK = 2          # at most this many Opus runs (a fix or a queue step) in 24 hours, counted from the lock's history (tools/triage/
+                      # laas.py teller). Jonas 18.11.2026: «Tak: 4 i døgnet», then the same evening «Senk taket … fra 4 til 2 per døgn»
+STEG_TAK = 1          # of them, at most this many on steps from the queue («maksimalt 1 av de 2 daglige kjøringene kunne brukes på nye
+RESERVE = 1           # steg fra køen, slik at 1 plass alltid holdes i reserve for feilretting»): a step only when RESERVE is left after it
 MIN_FIX = 3            # the least weight a cluster or a feedback needs before Opus is woken for it (one crash in one session is 5)
 HANDLED_DAYS = 3       # a PR closed or merged this many days ago still counts as handling its cluster
 LINK_SLACK_H = 2       # a feedback is linked to an error cluster when it was sent within this many hours of the cluster's first/last
@@ -264,6 +266,12 @@ def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=()):
             'onsker': [f for f in fb if f['type'] in ('ønske', 'balanse')], 'uklare': [f for f in fb if f['type'] == 'uklar']}
 
 
+def opus_budget(total, steps):
+    """(left for a fix, left for a queue step) from the Opus runs of the last 24 hours, all of them and the steps among them."""
+    left = OPUS_TAK - total
+    return left, max(0, min(STEG_TAK - steps, left - RESERVE))
+
+
 def summary(d, rewards, noted_n, opus_igjen=None):
     nye_tek = [c for c in d['klynger'] if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX] + [f for f in d['tilbakemeldinger'] if f['type'] == 'teknisk']
     ingenting = not d['tilbakemeldinger'] and not nye_tek and not rewards
@@ -360,9 +368,10 @@ def real_run(a):
     if prs is None:   # without the PRs nothing is known about what is handled: never wake Opus blind
         d['rett'], d['rett_fb'] = [], []
     import laas
-    try: igjen = OPUS_TAK - laas.takes(ROOT, 'origin', 24)
-    except Exception as e: igjen = 0; why.append('Opus-telleren: %s' % e)   # without the count, no Opus: never past the cap blind
+    try: igjen, igjen_steg = opus_budget(laas.takes(ROOT, 'origin', 24), laas.takes(ROOT, 'origin', 24, kind='steg'))
+    except Exception as e: igjen = igjen_steg = 0; why.append('Opus-telleren: %s' % e)   # without the count, no Opus: never past the cap blind
     s = summary(d, rewards, len(fbd.get('noted') or []), igjen)
+    s['opus_igjen_steg'] = igjen_steg   # what tools/drift/RUTINE.md point 6 reads before a step from the queue
     s['feil'] = why; s['pr_laas'] = {'middels_hoy': lock['middels_hoy'], 'blokkert_av': [p['number'] for p in lock['blokkert_av']], 'lukk': [p['number'] for p in lock['lukk']]}
     dump = dict(d); dump['oppsummering'] = s
     json.dump(dump, open(os.path.join(a.out, 'triage.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1, default=list)
@@ -467,6 +476,12 @@ def selftest():
     iss_fb = [{'number': 91, 'state': 'open', 'title': 'Trenger Jonas: tilbakemelding #16', 'body': '- tilbakemelding #16'}]
     eq('oppgitt tilbakemelding', summary(decide([R[5]], [], [], [], iso(1), now, open_lock, iss_fb), [], 0)['trenger_opus'], False)
     eq('oppgitt i utkastet', 'Gitt opp etter to forsøk' in draft(decide([], [], E, [], iso(6), now, open_lock, iss), summary(decide([], [], E, [], iso(6), now, open_lock, iss), [], 0)), True)
+    # the budget: 2 a day, at most 1 of them on a queue step, and a step only when one is left for a fix after it
+    eq('budsjett: ingen brukt', opus_budget(0, 0), (2, 1))
+    eq('budsjett: én retting brukt, ingen steg (reserven)', opus_budget(1, 0), (1, 0))
+    eq('budsjett: ett steg brukt', opus_budget(1, 1), (1, 0))
+    eq('budsjett: to brukt', opus_budget(2, 0), (0, 0))
+    eq('budsjett: aldri under null', opus_budget(3, 1), (-1, 0))
     # the Opus cap: a fix waits when the day's runs are used, the triage goes on
     d = decide([], [], E, [], iso(6), now, open_lock)
     eq('taket nådd', (summary(d, [], 0, 0)['trenger_opus'], summary(d, [], 0, 0)['opus_taket_naadd'], summary(d, [], 0, 0)['ingenting']), (False, True, False))

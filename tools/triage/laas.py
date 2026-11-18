@@ -80,9 +80,10 @@ def give(cwd, remote):
     return False
 
 
-def takes(cwd, remote, hours=24, now=None, who=('driften', 'feilretting')):
+def takes(cwd, remote, hours=24, now=None, who=('driften', 'feilretting'), kind=None):
     """The takes of the lock in the last hours by an Opus run: a «kjører» commit whose parent is not the same holder renewing it, by one
-    of `who`, for something else than the release («slipp»)."""
+    of `who`, for something else than the release («slipp»). kind 'steg' counts only the queue steps («steg <N>»), 'retting' only the
+    rest (the fixes); None both."""
     if not head(cwd, remote): return 0
     now = now or time.time()
     out = git(cwd, 'log', '--format=%ct\x01%s', '--since=%d' % int(now - hours * 3600), 'refs/laas/' + BRANCH).stdout.strip().split('\n')
@@ -91,6 +92,7 @@ def takes(cwd, remote, hours=24, now=None, who=('driften', 'feilretting')):
     for i, (t, msg) in enumerate(rows):
         p = msg.split()
         if len(p) < 4 or p[0] != 'kjører' or p[2] not in who or p[3] == 'slipp': continue
+        if kind == 'steg' and p[3] != 'steg' or kind == 'retting' and p[3] == 'steg': continue
         prev = rows[i + 1][1].split() if i + 1 < len(rows) else []
         if len(prev) >= 4 and prev[0] == 'kjører' and prev[2:] == p[2:]: continue   # a renewal of the same run
         n += 1
@@ -134,6 +136,8 @@ def selftest():
         take(a, 'o', 'jonas-okt', 'steg 9'); give(a, 'o')
         take(a, 'o', 'driften', 'steg 12'); give(a, 'o')
         eq('teller tak, ikke fornyelser eller slipp', takes(a, 'o', who=('driften',)), 2)
+        eq('teller bare steg', takes(a, 'o', who=('driften',), kind='steg'), 1)
+        eq('teller bare rettinger', takes(a, 'o', who=('driften',), kind='retting'), 1)
         eq('teller ingenting eldre enn vinduet', takes(a, 'o', now=time.time() + 25 * 3600, who=('driften',)), 0)
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
