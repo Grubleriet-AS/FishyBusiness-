@@ -768,10 +768,10 @@ function landSail(pl, b){
 function dynLineHarb(P, wpAt, pl, iEnd, iOut, iFrom, bz){
   const B = BOAT.beam || 3, m = B / 2 + 1.5, look = 400, pilot = 200, km = q => ({x:q[0] / 1000, y:q[1] / 1000});
   // (and the ground as the route's legs ask it, outside the harbours: the hands do not stop for it)
-  // (big: a boat of 14 m or more, which the hands take the last and first 200 m of a clear line; not one under 18 m with thrusters,
-  // which holds the line herself at harbour speed, docs/planer/thrustere.md. The 21 m boat and the 38 m purse seiner swung out on their
-  // own even with them: onto the breakwater at Oldervik at 3.9 knots in one run of the hunt and not in the next, 18.11.2026)
-  const Lb = BOAT.len || 10, big = Lb >= 14 && !((VESSELS[S.boat.type] || {}).thrusters && Lb < 18), corners = (i0, i1) => fixCornersOk(P.slice(i0, i1 + 1).map(km), Lb, B);
+  // (big: a boat of 14 m or more, which the hands take the last and first 200 m of a clear line, thrusters or not: on her own with them
+  // the 38 m purse seiner swung onto the breakwater at Oldervik at 3.9 knots in one run of the hunt, and kyst15 touched the piers at
+  // 1-2 knots where the hands had taken her clear, the full hunt 18.11.2026; the thrusters help the model where it has her)
+  const Lb = BOAT.len || 10, big = Lb >= 14, corners = (i0, i1) => fixCornersOk(P.slice(i0, i1 + 1).map(km), Lb, B);
   const bad = (i0, i1) => { for (let i = i0 + 1; i <= i1; i++){ if (!fixLegOk(km(P[i - 1]), km(P[i]), m - 0.5)) return true; let g = null; try { g = groundCheck(km(P[i - 1]), km(P[i])); } catch (e){ return true; } if (g) return true; } return !corners(i0, i1); };
   const stopIn = (k0, k1) => { for (let i = pl.idx; i <= iEnd; i++) if (wpAt[i] != null && wpAt[i] > k0 && wpAt[i] < k1 && wpStop(pl.wps[i])) return true; return false; };
   // (with room first, her beam and three metres either side, else half her beam and a metre and a half: the snekke at Dønna was led
