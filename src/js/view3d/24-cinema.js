@@ -296,8 +296,8 @@
     if (!active){ raf = 0; return; }
     raf = requestAnimationFrame(frame);
     if (document.hidden || NO3D || HOLD) return;
-    HFR.n++;
     if (PGFX.fps){ const t = performance.now(); if (t - PGF.last < 1000 / PGFX.fps - 2) return; PGF.last = t; }   // (the player's cap on the frames, PGFX.fps)
+    HFR.n++;   // (a frame drawn, steg 139)
     resize(); gfxStart(performance.now());
     // the first frame after the view is shown or let go (lastF 0, view3d/25-controls.js) counts as one frame at 60 a second: measured
     // from the call that started it, it read a fraction of a millisecond, and the frame rate's average (FPS.v) started at thousands

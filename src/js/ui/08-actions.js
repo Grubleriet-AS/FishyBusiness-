@@ -457,7 +457,7 @@ function catchUp(realMs){
   if (mins < 1) return;
   if (mins >= 10) awayStart(mins, realMs);
   const c0 = performance.now(); playMinutes(mins, true);
-  try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('catchup', performance.now() - c0, mins); } catch (e){}   // (steg 139: how long it took on the main thread, ms, and the game minutes)
+  try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('catchup', performance.now() - c0, mins - (CATCH_LEFT || 0)); } catch (e){}   // (steg 139: how long it took on the main thread, ms, and the game minutes played now; what waits for its waters, CATCH_LEFT, plays in tick)
   panelDirty = true;
   if (!CATCH_LEFT && AWAYR) awayEnd();
   if (realMs >= 5 * 60000) WAKE_BACK = true;

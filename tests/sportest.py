@@ -95,6 +95,13 @@ async def main():
         await pg.evaluate("PHONE.show(false)"); await pg.wait_for_timeout(400)
         codes = [e[1] for e in await pg.evaluate("DSB_ERRTRAP.spor()")]
         check('telefon:innst' in codes and codes[-1] == 'telefon-lukk', 'the phone\'s page (Innstillinger) and closing the phone go in the trace', codes)
+        # the dock's drawer (the shop, the yard, the plant: DOCK.open) and a dock button (data-dk)
+        await pg.evaluate("""() => { const b = document.createElement('button'); b.type = 'button'; b.setAttribute('data-dk', 'sportestdk'); b.textContent = 'Hemmelig';
+          b.style.cssText = 'position:fixed;left:10px;top:60px;z-index:99999'; document.getElementById('sporBox').appendChild(b); }""")
+        await pg.click('#sporBox [data-dk=sportestdk]')
+        await pg.evaluate("DOCK.open('utstyrb')"); await pg.wait_for_timeout(400); await pg.evaluate("DOCK.close()"); await pg.wait_for_timeout(300)
+        codes = [e[1] for e in await pg.evaluate("DSB_ERRTRAP.spor()")]
+        check(codes[-3:] == ['k:sportestdk', 'dokk:utstyrb', 'dokk-lukk'], 'a dock button (data-dk) and the drawer\'s page (the shop) and closing it go in the trace', codes)
         # (the game starts in 3D: to the map and back is a change of view each way)
         await pg.wait_for_function("G3.isActive()", timeout=120000)
         await pg.evaluate("G3.show(false)"); await pg.wait_for_timeout(500); await pg.evaluate("G3.show(true)")

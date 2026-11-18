@@ -486,12 +486,13 @@ const DOCK = (() => {
     // shop then stood with every button dashed, Jonas 14.11.2026)
     if (was !== pg && PLACE[pg] && typeof portServices === 'function' && atPlace(S.boat, PLACE[pg]) && selAway(PLACE[pg])) PHONE.dact(pg, 'vsel', {id:S.cur});
     if (sb) PHONE.dact(pg, 'sub', {s:sb});
+    if (was !== pg || dr.hidden){ try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('dokk:' + pg); } catch (e){} }   // (steg 139: the drawer's page in the trace, errtrap.js)
     dr.hidden = false; document.body.classList.add('dk-open'); shown = ''; draw(was === pg); render(); if (typeof renderHud === 'function') renderHud();   // (D6: upright the box folds to the strip over the sheet)
     if (to){ const e = to === 'top' ? null : dBody.querySelector(to); const st = dBody.querySelector('.ob-tabs'); dBody.scrollTop = e ? dBody.scrollTop + e.getBoundingClientRect().top - dBody.getBoundingClientRect().top - (st ? st.offsetHeight : 0) : 0; }
     if (was !== pg && SHOP_PAGES.includes(pg) && typeof cloudEv === 'function') cloudEv('shop_view', {pg});
   }
-  function close(){ if (typeof WORK !== 'undefined' && WORK.shut) WORK.shut(); page = null; dr.hidden = true; document.body.classList.remove('dk-open', 'dk-wide', 'dk-low'); shown = ''; html = ''; if (PAINT) PAINT.live(false); if (typeof G3 !== 'undefined' && G3.trying) G3.tryView(null); render(); if (typeof renderHud === 'function') renderHud(); }
-  dTabs.addEventListener('click', e => { const el = e.target.closest('[data-pg]'); if (el){ page = el.dataset.pg; shown = ''; draw(false); if (SHOP_PAGES.includes(page) && typeof cloudEv === 'function') cloudEv('shop_view', {pg:page}); } });
+  function close(){ if (!dr.hidden){ try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('dokk-lukk'); } catch (e){} } if (typeof WORK !== 'undefined' && WORK.shut) WORK.shut(); page = null; dr.hidden = true; document.body.classList.remove('dk-open', 'dk-wide', 'dk-low'); shown = ''; html = ''; if (PAINT) PAINT.live(false); if (typeof G3 !== 'undefined' && G3.trying) G3.tryView(null); render(); if (typeof renderHud === 'function') renderHud(); }
+  dTabs.addEventListener('click', e => { const el = e.target.closest('[data-pg]'); if (el){ page = el.dataset.pg; try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('dokk:' + page); } catch (e){} shown = ''; draw(false); if (SHOP_PAGES.includes(page) && typeof cloudEv === 'function') cloudEv('shop_view', {pg:page}); } });
   $('drawerClose').addEventListener('click', close);
   dBody.addEventListener('click', e => {
     const el = e.target.closest('[data-pa],[data-act]'); if (!el || el.disabled) return;
