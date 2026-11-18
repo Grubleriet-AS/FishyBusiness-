@@ -167,7 +167,8 @@ async function cloudRpc(fn, args, opt){
     headers:{'Content-Type':'application/json', apikey:c.supabaseAnon, ...(bearer ? {Authorization:'Bearer ' + bearer} : {})}, body:JSON.stringify(args || {})}); }
   catch (e){ rpcFail(fn); if (ac && ac.signal.aborted) throw new Error(fn + ' timeout'); throw e; }
   finally { clearTimeout(tm); }
-  if (r.status === 401 && tok && !(opt && opt.fresh)) return cloudRpc(fn, args, {...(opt || {}), fresh:true});
+  // (also when the token could not be had and the call went without one: the refresh that failed a moment ago, as the phone woke)
+  if (r.status === 401 && !(opt && (opt.fresh || opt.anon))) return cloudRpc(fn, args, {...(opt || {}), fresh:true});
   if (!r.ok){ if (r.status >= 500 || r.status === 401 || r.status === 408 || r.status === 429) rpcFail(fn); throw new Error(fn + ' ' + r.status); }
   RPCB.delete(fn);
   const t = await r.text(); return t ? JSON.parse(t) : null;
@@ -600,10 +601,20 @@ async function cloudSaveSoon(closing, manual){
       if (!CLOUD.oldPut){ try { r = await cloudRpc('save_put2', {data, saved_at:iso, game_t:Math.round(S.t || 0), base:sync ? sync.rev : null, force:!!CLOUD.forceNext, summary:saveSum(S)}, keep); } catch (e){ if (!/ 404$/.test(e.message)) throw e; CLOUD.oldPut = true; } }
       if (CLOUD.oldPut) r = await cloudRpc('save_put', {data, saved_at:iso, game_t:Math.round(S.t || 0), force:!!CLOUD.forceNext}, keep);
     }
-    if (r && r.ok){ CLOUD.lastSave = at; CLOUD.forceNext = false; TAB.rv = r.rev; CLOUD.fp0 = fp; syncSet(r.saved_at || iso, at, r.rev, S.seq); cloudStatus('ok'); }
+    if (r && r.ok){ CLOUD.e401 = 0; CLOUD.lastSave = at; CLOUD.forceNext = false; TAB.rv = r.rev; CLOUD.fp0 = fp; syncSet(r.saved_at || iso, at, r.rev, S.seq); cloudStatus('ok'); }
     else if (r && r.taken && r.cloud && r.cloud.active_dev && r.cloud.active_dev !== deviceId()){ CLOUD.saving = false; cloudPassed(r.cloud); }
     else if (r && r.cloud && !closing) cloudConflict(r.cloud, r.moved);
-  } catch (e){ if (!/ wait$/.test(e.message)) console.error(e); cloudStatus(navigator.onLine === false ? 'offline' : 'error'); } finally { CLOUD.saving = false; }
+    // (the server or the network let it down: a time-out, a 5xx, a 408 or 429, a 401 a fresh token did not mend. The game stays on the
+    // device and goes with the next round, the status says so, and it is not a fault of the game for the error log; klynge:471787f3.
+    // A 401 that comes back three rounds in a row is the sign-in that has run out, and the save no longer reaches the account: that one
+    // is logged, once per streak, so it stays in sight; Jonas 18.11.2026)
+  } catch (e){
+    const m = e.message || '';
+    if (/ 401$/.test(m)){ CLOUD.e401 = (CLOUD.e401 || 0) + 1; if (CLOUD.e401 === 3) console.error(new Error('save_put4 401 tre ganger på rad: innloggingen er trolig utløpt')); }
+    else if (!/ wait$/.test(m)) CLOUD.e401 = 0;
+    if (!/ (wait|timeout|401|408|429|5\d\d)$/.test(m)) console.error(e);
+    cloudStatus(navigator.onLine === false ? 'offline' : 'error');
+  } finally { CLOUD.saving = false; }
 }
 // a save soon after what matters (a landing, casting off), not only on the minute: what a player does just before switching device
 function cloudSoon(ms){ if (!CLOUD.on) return; clearTimeout(CLOUD.soonT); CLOUD.soonT = setTimeout(() => { try { save(); } catch (e){} cloudSaveSoon(); }, ms || 8000); }
