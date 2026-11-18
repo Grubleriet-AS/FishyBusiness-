@@ -4,7 +4,7 @@ asked for («Dette må ingen andre enn meg ha tilgang til»): no player reads a 
 factor (aal1) is refused, the admin with aal2 gets every panel. Needs the PostgreSQL server binaries (initdb, pg_ctl); prints OK or
 FEIL, and SKIP without them."""
 import datetime
-import glob, json, os, shutil, subprocess, sys, tempfile, time
+import glob, json, os, re, shutil, subprocess, sys, tempfile, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ok = lambda c: 'OK  ' if c else 'FEIL'
@@ -224,6 +224,57 @@ def main():
         R['rwAdm'] = [r.get('rewarded') for r in json.loads(sql("select public.admin_feedback(50, null, null)", AD2, 'authenticated'))['rows'] if r['id'] == fA]
         R['rwPl'] = sql("select public.admin_feedback_set(%d, 'fixed', null)" % fA, A, 'authenticated', expect_err=True)
         if R['rwPend']: sql("select public.shop_done(array[%s]::bigint[])" % ','.join(str(g['id']) for g in R['rwPend']), A, 'authenticated')
+        # the thank-you when a fix is out (20261118200000_agent_fixed.sql, live-drift fase 2): only for a planned feedback, once, and
+        # only through service_role (feedback-agent op 'fixed', called by tools/triage/klynge.py --belonn)
+        fx = lambda f: json.loads(sql("select public.agent_fixed(%d, 'https://github.com/x/y/pull/9', 'v9')" % f, None, 'service_role'))
+        fB = int(sql("select public.fb_send('bug', 'Spillet krasjet ved lossing', null, null, '{\"version\":\"t2\"}')", A, 'authenticated'))
+        R['fxNotPlanned'] = fx(fB); R['fxGrants0'] = cnt(fB)
+        sql("select public.agent_note(%d, 'Krasj ved lossing, PR /pull/9', 15, 'planned', 'En retting er på vei.')" % fB, None, 'service_role')
+        R['fxFirst'] = fx(fB); R['fxGrants1'] = cnt(fB); R['fxAgain'] = fx(fB); R['fxGrants2'] = cnt(fB)
+        R['fxRow'] = sql("select status || '|' || coalesce(ai_status, '-') || '|' || (rewarded_at is not null) || '|' || left(reply, 40) || '|' || (ai_note like '%%Rettet og sluppet: https://github.com/x/y/pull/9, versjon v9%%') from public.feedback where id = %d" % fB)
+        R['fxDoneBefore'] = fx(fA)
+        fC = int(sql("select public.fb_send('bug', 'Knappen henger', null, null, '{}')", A, 'authenticated'))
+        sql("select public.admin_feedback_set(%d, 'planned', 'Kommer')" % fC, AD2, 'authenticated')
+        R['fxPlannedByJonas'] = fx(fC); R['fxGrantsC'] = cnt(fC)
+        R['fxReplyC'] = sql("select reply from public.feedback where id = %d" % fC)
+        R['fxPl'] = sql("select public.agent_fixed(%d, 'x', 'y')" % fB, A, 'authenticated', expect_err=True)
+        R['fxAdm'] = sql("select public.agent_fixed(%d, 'x', 'y')" % fB, AD2, 'authenticated', expect_err=True)
+        R['fxNone'] = sql("select public.agent_fixed(999999, 'x', 'y')", None, 'service_role', expect_err=True)
+        fxp = [g for g in json.loads(sql("select public.shop_pending()", A, 'authenticated')) if g['product'] == 'fb_haill']
+        if fxp: sql("select public.shop_done(array[%s]::bigint[])" % ','.join(str(g['id']) for g in fxp), A, 'authenticated')
+        # the brake's numbers (20261118210000_brems_tall.sql, live-drift fase 4): counts only, through the publishable key; the new edition
+        # since it went out, the one before over the day before; a crash and a black 3D picture are severe, a plain error is not
+        sql("insert into public.sessions (id, player_id, started_at, version) select gen_random_uuid(), 'user_01AAA', now() - interval '30 minutes', 'bn1' from generate_series(1, 4)")
+        sql("insert into public.sessions (id, player_id, started_at, version) select gen_random_uuid(), 'user_01AAA', now() - interval '5 hours', 'bg1' from generate_series(1, 10)")
+        sql("insert into public.sessions (id, player_id, started_at, version) select gen_random_uuid(), 'user_01AAA', now() - interval '60 hours', 'bg1' from generate_series(1, 7)")
+        sid = lambda v, ago: "(select id from public.sessions where version = '%s' and started_at < now() - interval '%s' order by started_at desc limit 1)" % (v, ago)
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '20 minutes', %s, 'Krasj: siden stoppet mens den var på skjermen · 3d', 'crash', 'bn1')" % sid('bn1', '1 minute'))
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '19 minutes', null, '3D svart skjerm på dagtid 42', 'view3d gfx', 'bn1')")
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '18 minutes', null, 'TypeError: x is undefined', 'ui/08-actions.js:3:1', 'bn1')")
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '4 hours', %s, 'Krasj: siden stoppet mens den var på skjermen · kart', 'crash', 'bg1')" % sid('bg1', '4 hours'))
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '59 hours', null, 'Krasj: gammel', 'crash', 'bg1')")
+        R['bremsAnon'] = json.loads(sql("select public.brems_tall('bn1', 'bg1', now() - interval '1 hour', now() - interval '25 hours')", {}, 'anon'))
+        R['bremsVidt'] = json.loads(sql("select public.brems_tall('bn1', 'bg1', now() - interval '30 days', now() - interval '90 days')", {}, 'anon'))
+        R['bremsHemmelig'] = sql("select count(*) from public.errors", {}, 'anon', expect_err=True)
+        sql("delete from public.errors where version in ('bn1', 'bg1')"); sql("delete from public.sessions where version in ('bn1', 'bg1')")   # (the checks below count errors)
+        # the week's numbers (20261118220000_agent_uke.sql): sessions without a crash, hang or severe 3D fault (with consent), and crashes and
+        # hangs from the error list itself, also those without a session; service_role only
+        U0 = json.loads(sql("select public.agent_uke()", None, 'service_role'))
+        sql("insert into public.sessions (id, player_id, started_at, version) select gen_random_uuid(), 'user_01AAA', now() - interval '2 days', 'uk1' from generate_series(1, 10)")
+        sql("insert into public.sessions (id, player_id, started_at, version) select gen_random_uuid(), 'user_01AAA', now() - interval '9 days', 'uk0' from generate_series(1, 4)")
+        one = lambda v, n: "(select id from public.sessions where version = '%s' order by id limit 1 offset %d)" % (v, n)
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '2 days', %s, 'Krasj: siden stoppet · 3d', 'crash', 'uk1')" % one('uk1', 0))
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '2 days', %s, 'Krasj: siden stoppet · kart', 'crash', 'uk1')" % one('uk1', 0))
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '2 days', %s, 'Heng: spillet sto stille i 6 s · 3d', 'hang', 'uk1')" % one('uk1', 1))
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '2 days', null, 'Krasj: uten samtykke', 'crash', 'uk1')")
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '2 days', %s, 'TypeError: x', 'ui/x.js:1:1', 'uk1')" % one('uk1', 2))
+        sql("insert into public.errors (ts, session_id, msg, src, version) values (now() - interval '9 days', %s, '3D svart skjerm på dagtid', 'view3d gfx', 'uk0')" % one('uk0', 0))
+        U1 = json.loads(sql("select public.agent_uke()", None, 'service_role'))
+        d = lambda w, k: (U1.get(w) or {}).get(k, 0) - (U0.get(w) or {}).get(k, 0)
+        R['ukeDelta'] = {w: {k: d(w, k) for k in ('okter', 'okter_med_feil', 'krasj', 'heng', 'alvorlig3d', 'uten_okt')} for w in ('denne', 'forrige')}
+        R['ukeFeilfri'] = (U1.get('denne') or {}).get('feilfrie')
+        R['ukeAnon'] = sql("select public.agent_uke()", {}, 'anon', expect_err=True); R['ukePl'] = sql("select public.agent_uke()", A, 'authenticated', expect_err=True)
+        sql("delete from public.errors where version in ('uk0', 'uk1')"); sql("delete from public.sessions where version in ('uk0', 'uk1')")
         for i in range(20): sql("select public.fb_send('other', 'nr %d', null, null, '{}')" % i, B, 'authenticated')
         R['fbLimit'] = sql("select public.fb_send('other', 'nr 21', null, null, '{}')", B, 'authenticated', expect_err=True)
         # the cloud save by revision (20261005200000_save_sync.sql): a device that has not met the cloud's newest save cannot write over
@@ -410,6 +461,20 @@ def main():
         sql("select public.shop_paid('cs_s2', 'pi_2')"); sql("select public.shop_refund('pi_2')"); sql("select public.shop_ended('cs_s9', 'expired')")
         R['sAfter'] = sql("select (select count(*) from public.grants where player_id = 'user_01AAA' and done_at is null and revoked_at is null) || '/' || (select status from public.purchases where id = 'cs_s2') || '/' || (select count(*) from public.grants where revoked_at is not null and product_id not in ('fb_haill', 'reg_luksus')) || '/' || (select count(*) from public.grants where done_at is not null and product_id not in ('fb_haill', 'reg_luksus'))")
         R['sEnd'] = [g for g in json.loads(sql("select public.shop_pending()", A, 'authenticated')) if not g.get('held')]
+        # shop-checkout verify (tilbakemelding #185, 20261118180000_kjop_verify.sql): Stripe is asked at most once every 5 s per purchase,
+        # only about an open one of the last 24 hours among the player's five newest; another player's is 'gone', a paid one says so;
+        # no player calls it. The rows are taken out again after, so the checks below see the purchases they had
+        SV = lambda sid, p='user_01AAA': sql("select public.shop_verify_slot('%s', '%s')" % (sid, p), None, 'service_role')
+        sql("insert into public.purchases (id, player_id, product_id, amount_nok, status, data) values ('cs_v1', 'user_01AAA', 'verft_na', 19, 'open', '{}'), ('cs_vold', 'user_01AAA', 'verft_na', 19, 'open', '{}')")
+        sql("update public.purchases set created_at = now() - interval '25 hours' where id = 'cs_vold'")
+        V = {'ask': SV('cs_v1'), 'wait': SV('cs_v1')}
+        sql("update public.purchases set verify_at = now() - interval '6 seconds' where id = 'cs_v1'")
+        V.update({'again': SV('cs_v1'), 'other': SV('cs_v1', 'user_01BBB'), 'none': SV('cs_nix'), 'old': SV('cs_vold'), 'paid': SV('cs_s1')})
+        V['player'] = sql("select public.shop_verify_slot('cs_v1', 'user_01AAA')", A, 'authenticated', expect_err=True)[0]
+        sql("insert into public.purchases (id, player_id, product_id, amount_nok, status, created_at) select 'cs_vn' || g, 'user_01AAA', 'verft_na', 19, 'open', now() + g * interval '1 second' from generate_series(1, 5) g")
+        sql("update public.purchases set verify_at = null where id = 'cs_v1'"); V['many'] = SV('cs_v1'); V['newest'] = SV('cs_vn5')
+        sql("delete from public.purchases where id in ('cs_v1', 'cs_vold', 'cs_vn1', 'cs_vn2', 'cs_vn3', 'cs_vn4', 'cs_vn5')")
+        R['sVerify'] = V
         # haill kept on the server until it is switched on (HS2, 20261110180000_haill_use.sql): shop_pending gives the open grants and
         # the haill that is delivered and not used (held), haill_use takes the player's own haill once and nothing else, a refund takes
         # back a haill that is not used also after delivery, and the haill delivered before the migration counts as used
@@ -741,6 +806,28 @@ def main():
                  and R['rwMine'].get(fA) is True and R['rwMine'].get(fid) is True and R['rwBuy'][0] and R['rwAdm'] == [True] and R['rwPl'][0]),
               'the thank-you: «Kommer» or «Fikset» gives the player one takk-haill grant per feedback («Lest» none, both statuses one), the player and the admin see it was given, it cannot be bought, and no player sets it',
               {'seen': R['rwSeen'], 'once': R['rwOnce'], 'pend': len(rp), 'mine': R['rwMine'], 'buy': R['rwBuy'][1][:40]})
+        print(ok(R['fxNotPlanned'] == {'ok': False, 'why': 'not planned'} and R['fxGrants0'] == '0'
+                 and R['fxFirst'].get('ok') is True and R['fxFirst'].get('rewarded') is True and R['fxGrants1'] == '1'
+                 and R['fxAgain'] == {'ok': False, 'why': 'status fixed'} and R['fxGrants2'] == '1'
+                 and R['fxRow'].startswith('fixed|fixed|true|Takk! Feilen du meldte, er rettet i spil|') and R['fxRow'].endswith('|true')
+                 and R['fxDoneBefore'] == {'ok': False, 'why': 'status fixed'}
+                 and R['fxPlannedByJonas'].get('ok') is True and R['fxPlannedByJonas'].get('rewarded') is False and R['fxGrantsC'] == '1'
+                 and R['fxReplyC'] == 'Takk! Feilen du meldte, er rettet i spillet nå.'
+                 and R['fxPl'][0] and R['fxAdm'][0] and R['fxNone'][0]),
+              'the thank-you when a fix is out: only a planned feedback gets «Fikset», a confirmation and the takk-haill once; one Jonas already rewarded gets the confirmation only; no player or admin login calls it',
+              {k: R[k] for k in ('fxNotPlanned', 'fxFirst', 'fxAgain', 'fxRow', 'fxDoneBefore', 'fxPlannedByJonas', 'fxGrantsC', 'fxReplyC')})
+        bn, bg, bv = R['bremsAnon'].get('ny') or {}, R['bremsAnon'].get('gml') or {}, R['bremsVidt'].get('gml') or {}
+        print(ok(bn.get('okter') == 4 and bn.get('alvorlige') == 2 and bg.get('okter') == 10 and bg.get('alvorlige') == 1
+                 and any(x['melding'] == '3D svart skjerm på dagtid #' for x in bn.get('signaturer', []))
+                 and not any('TypeError' in x['melding'] for x in bn.get('signaturer', [])) and bv.get('okter') == 10 and bv.get('alvorlige') == 1
+                 and 'user_01' not in json.dumps(R['bremsAnon']) and R['bremsHemmelig'][0]),
+              "the brake's numbers: the publishable key gets counts only (sessions, severe faults, their messages without numbers), the new edition since it went out and the one before the day before, never older than 48 hours, and the error table itself stays closed",
+              {'ny': bn, 'gml': bg, 'vidt': bv})
+        print(ok(R['ukeDelta'] == {'denne': {'okter': 10, 'okter_med_feil': 2, 'krasj': 3, 'heng': 1, 'alvorlig3d': 0, 'uten_okt': 1},
+                                   'forrige': {'okter': 4, 'okter_med_feil': 1, 'krasj': 0, 'heng': 0, 'alvorlig3d': 1, 'uten_okt': 0}}
+                 and R['ukeFeilfri'] is not None and 0 < R['ukeFeilfri'] < 1 and R['ukeAnon'][0] and R['ukePl'][0]),
+              "the week's numbers: sessions with a crash, hang or severe 3D fault counted once each (a plain error not), crashes and hangs from the error list also without consent, this week and the one before; service_role only",
+              {'delta': R['ukeDelta'], 'feilfri': R['ukeFeilfri']})
         a2 = R['admRow2'][0] if R['admRow2'] else {}; m2 = R['mine2'][0] if R['mine2'] else {}
         print(ok(R['fb2'].isdigit() and R['fb2Bad'][0] and R['fb2Five'][0] and R['fb2None'].isdigit() and R['admImgs'] == [IMG, I2, I3] and R['admImgsPl'][0] and m2.get('nimg') == 3 and a2.get('nimg') == 3),
               'feedback: up to four pictures, each checked; the admin gets them all in order, a player not', {'mine': m2, 'bad': R['fb2Bad'][1][:30], 'five': R['fb2Five'][1][:30]})
@@ -801,6 +888,9 @@ def main():
                  and R['pWeekMe'].startswith('Du leverte ') and ' i åpen gruppe. Ukas beste fisker i åpen gruppe er «Havbris»' in R['pWeekMe'] and R['pWeekTitle'] == 'Ukas fangst'),
               "push from the server: no leaderboard message; once a week (Sunday from 19:00) «Ukas fangst»: her own kilos and place in her group over the last seven days, and the best fisher, to each who has it on (not with it turned off); players cannot call it", {'pass': R['pPass'], 'off': [R['pWeekOff'], R['pWeekOffQ']], 'week': R['pWeek'], 'me': R['pWeekMe'], 'tue': R['pWeekTue'], 'sun18': R['pWeekSun18'], 'mon': R['pWeekMon'], 'title': R['pWeekTitle']})
         q, pd = R['sQuote'], R['sPend']
+        V = R['sVerify']
+        print(ok(V == {'ask': 'ask', 'wait': 'wait', 'again': 'ask', 'other': 'gone', 'none': 'gone', 'old': 'old', 'paid': 'paid', 'player': True, 'many': 'old', 'newest': 'ask'}),
+              '#185 verify: Stripe asked at most once every 5 s per purchase, only an open one of the last day among the player\'s five newest; another player\'s is gone, a paid one says paid; no player may call it', V)
         print(ok(q.get('price_nok') == 149 and q.get('data', {}).get('k') == 't24' and R['sNoProd'][0] and R['sAnon'][0] and R['sPaid1'] == 't' and R['sPaid2'] == 'f'
                  and len(pd) == 1 and pd[0]['product'] == 'trim_turbo' and pd[0]['data'].get('give') == 'trim' and pd[0]['data'].get('boat') == 'v1' and R['sPendB'] == []
                  and R['sPlPaid'][0] and R['sPlRead'][0] and R['sAfter'] == '0/refunded/1/1' and R['sEnd'] == []),
@@ -1544,8 +1634,8 @@ def main():
         RY['anonTab'] = [sql("select count(*) from public.%s" % tb, {}, 'anon', expect_err=True)[0] for tb in ('berths', 'cash_flags', 'sponsors', 'sponsor_placements')]
         RY['anonYes'] = sql("select jsonb_typeof(public.sp_now())", {}, 'anon')
         print(ok(RY['err'][0] == RY['err'][1] and RY['err'][0] < 400 and RY['perf'][0] == RY['perf'][1] and RY['perf'][0] < NP and RY['ev'] == 'big={} small={"x": 1}'
-                 and RY['bSeen'] == [1, 0] and RY['bTake'] == 'ok' and RY['bBack'] == 'taken' and all(RY['anonNo']) and all(RY['authYes']) and RY['anonList'] == 'sp_now,sp_paint,tm_error,tm_perf' and all(RY['anonTab']) and RY['anonYes'] == 'array'),
-              "without a sign-in the errors and the frame rate stop at a ceiling that grows with the active players; an event's data has a size; a guest's berth gives way to an account and is not shown to it; anon runs only tm_error, tm_perf, sp_now and sp_paint (a paint design's colours, steg 44) (Ø6 funn 9, 10, 12)", RY)
+                 and RY['bSeen'] == [1, 0] and RY['bTake'] == 'ok' and RY['bBack'] == 'taken' and all(RY['anonNo']) and all(RY['authYes']) and RY['anonList'] == 'brems_tall,sp_now,sp_paint,tm_error,tm_perf' and all(RY['anonTab']) and RY['anonYes'] == 'array'),
+              "without a sign-in the errors and the frame rate stop at a ceiling that grows with the active players; an event's data has a size; a guest's berth gives way to an account and is not shown to it; anon runs only tm_error, tm_perf, sp_now, sp_paint (a paint design's colours, steg 44) and brems_tall (the emergency brake's counts, live-drift fase 4) (Ø6 funn 9, 10, 12)", RY)
         # Ø16 (20261105160000_rt_ticket.sql): the real-time relay's ticket. Without the secret in Vault it refuses; with it, a ticket of
         # «1.<id>.<guest>.<expiry>.<nonce>.<hmac>» signed with the secret (checked here as the relay checks it), the public id pos_world
         # gives, the guest flag for a guest, 60 s, a new nonce each time; anon cannot ask, nor a player who is not there
@@ -2002,6 +2092,38 @@ def main():
               'the long list: top_list pages with off and n follow on without a gap or a repeat, n capped at 100, the old call gives 20, the other kinds page too', TL)
         print(ok(not TL.get('err') and TL.get('mkg') == ['tm_a', 'tm_b'] and TL.get('mkr') == ['tm_b', 'tm_a'] and TL.get('badm') and TL.get('tkg') == ['tkg', ['tm_a'], ['tm_b']] and TL.get('worth') == [123456, False]),
               'the periods: a game month by kg and by kr (a landing outside it not counted, more than 32 days refused), all time by kilos (tkg) and by kroner, the company\'s worth on the all time lists only', {k: TL.get(k) for k in ('mkg', 'mkr', 'badm', 'tkg', 'worth', 'err')})
+        # the invite link (#132, 20261117180000_verv.sql): a code per registered player, handed in once by a new account, the takk-haill
+        # to the one who invited when the friend has landed fish (also landings brought over from a guest), at most five a month
+        VR = {}
+        try:
+            U = lambda n: {'sub': 'user_01V' + n, 'role': 'authenticated'}
+            land = lambda who: sql("""select public.land_put(3000, 2025, 'finnsnes', 'open', '[{"sp":"torsk","kg":40,"kgq":40}]')""", who, 'authenticated')
+            refs = lambda who: int(sql("select count(*) from public.grants where product_id = 'ref_haill' and player_id = 'user_01V%s'" % who))
+            for n in ['REF', 'REF2', 'F1', 'F2', 'OLD', 'C3', 'C4', 'C5', 'C6', 'C7']: sql("select public.tm_hello('{}')", U(n), 'authenticated')
+            M = json.loads(sql("select public.ref_mine()", U('REF'), 'authenticated')); code = M['code']
+            VR['mine'] = [bool(re.match(r'^[0-9a-f]{8}$', code)), M['month'], M['max'], json.loads(sql("select public.ref_mine()", U('REF'), 'authenticated'))['code'] == code]
+            VR['guest'] = bool(sql("select public.ref_mine()", {'sub': '9a1c2a3e-0000-4000-8000-0000000000dd', 'role': 'authenticated', 'is_anonymous': True}, 'authenticated', expect_err=True))
+            VR['claim'] = [sql("select public.ref_claim('%s')" % code.upper(), U('F1'), 'authenticated'), refs('REF')]
+            VR['again'] = [sql("select public.ref_claim('%s')" % code, U('F1'), 'authenticated'), sql("select public.ref_claim('%s')" % code, U('REF'), 'authenticated'), sql("select public.ref_claim('ffffffff')", U('F2'), 'authenticated')]
+            sql("update public.players set created_at = now() - interval '20 days' where id = 'user_01VOLD'"); VR['old'] = sql("select public.ref_claim('%s')" % code, U('OLD'), 'authenticated')
+            land(U('F1')); VR['landed'] = refs('REF'); land(U('F1')); VR['twice'] = refs('REF')
+            land(U('F2')); VR['before'] = [sql("select public.ref_claim('%s')" % code, U('F2'), 'authenticated'), refs('REF')]
+            for n in ['C3', 'C4', 'C5', 'C6']: sql("select public.ref_claim('%s')" % code, U(n), 'authenticated'); land(U(n))
+            VR['cap'] = [refs('REF'), sql("select count(*) from public.referrals where referrer_id = 'user_01VREF' and over_at is not null")]
+            M = json.loads(sql("select public.ref_mine()", U('REF'), 'authenticated')); VR['mine5'] = [M['month'], M['total'], M['waiting']]
+            VR['pend'] = [g['product'] for g in json.loads(sql("select public.shop_pending()", U('REF'), 'authenticated')) if g['product'] == 'ref_haill']
+            # a guest who landed, then registered: guest_merge moves the landings to the account, and the reward follows
+            c2 = json.loads(sql("select public.ref_mine()", U('REF2'), 'authenticated'))['code']; sql("select public.ref_claim('%s')" % c2, U('C7'), 'authenticated'); VR['c7'] = refs('REF2')
+            sql("insert into public.landings (player_id, gh, y, port, sp, acc, kg, kgq) values ('9a1c2a3e-0000-4000-8000-0000000000ee', 3000, 2025, 'finnsnes', 'torsk', 'open', 30, 30)")
+            sql("update public.landings set player_id = 'user_01VC7' where player_id = '9a1c2a3e-0000-4000-8000-0000000000ee'"); VR['merged'] = refs('REF2')
+            VR['read'] = bool(sql("select count(*) from public.referrals", U('REF'), 'authenticated', expect_err=True)) and bool(sql("select public.ref_check('user_01VF1')", U('REF'), 'authenticated', expect_err=True))
+            VR['buy'] = bool(sql("select public.shop_quote('ref_haill')", U('REF'), 'authenticated', expect_err=True))
+        except Exception as e:
+            VR['err'] = str(e)[:300]
+        print(ok(not VR.get('err') and VR.get('mine') == [True, 0, 5, True] and VR.get('guest') and VR.get('claim') == ['ok', 0] and VR.get('again') == ['had', 'self', 'unknown'] and VR.get('old') == 'old'),
+              'the invite link: a code of 8 for a registered player and the same each time, none for a guest; a new account hands it in once (upper case too), not its own, not an unknown, not an account older than 14 days; nothing before a landing', VR)
+        print(ok(not VR.get('err') and VR.get('landed') == 1 and VR.get('twice') == 1 and VR.get('before') == ['ok', 2] and VR.get('cap') == [5, '1'] and VR.get('mine5') == [5, 5, 0] and VR.get('pend') == ['ref_haill'] * 5 and VR.get('c7') == 0 and VR.get('merged') == 1 and VR.get('read') and VR.get('buy')),
+              'the invite link: the takk-haill when the friend lands (once), at once for a friend who had landed, five a month and the sixth marked over, a guest\'s landings brought over count, nothing to read or call or buy for a player', VR)
         # the load of 5 000 players (plan 5b; KYST_LAST=5000): landings and catches for that many players, then what world_get costs
         NL = int(os.environ.get('KYST_LAST') or 0)
         if NL:

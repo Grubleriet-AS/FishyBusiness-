@@ -63,7 +63,10 @@ fi
 say "The deploy user"
 id deploy >/dev/null 2>&1 || adduser --disabled-password --gecos '' deploy
 # current is the production (main), test the test edition on test.$DOMAIN (the working branch, L1a 10.11.2026); rrsync holds the key in $SITE
-install -d -m 755 -o deploy -g deploy "$SITE" "$SITE/current" "$SITE/test"
+# From live-drift fase 4 (18.11.2026) current is a pointer to releases/<v>, the release job uploads into neste/, auto/ is the build that
+# is about to go out, tried at test.$DOMAIN/auto/, and in/, out/ and status/ carry the questions, the answers and the brake's state
+install -d -m 755 -o deploy -g deploy "$SITE" "$SITE/test" "$SITE/releases" "$SITE/auto" "$SITE/in" "$SITE/out" "$SITE/status"
+[ -e "$SITE/current" ] || install -d -m 755 -o deploy -g deploy "$SITE/current"
 install -d -m 700 -o deploy -g deploy /home/deploy/.ssh
 NEWKEY=0
 if [ -z "$KEY" ]; then
@@ -106,18 +109,29 @@ install -d -m 755 -o deploy -g deploy "$SITE/rt"
 RTENV=/etc/dsb-rt.env; NEWRT=0
 if ! grep -qE '^RT_SECRET=[0-9a-f]{64}' "$RTENV" 2>/dev/null; then (umask 077; printf 'RT_SECRET=%s\n' "$(openssl rand -hex 32)" > "$RTENV"); NEWRT=1; fi
 chown root:root "$RTENV"; chmod 600 "$RTENV"
+# The swap with a health check (18.11.2026, publisering.md «Utrullingen sjekker seg selv»): $SITE/rt is only the inbox GitHub
+# uploads to; the service runs from /opt/dsb-rt/live, and dsb-rt-roll (tools/server/rt-roll.sh) copies a new version there, restarts,
+# asks /stats, and puts the one before back by itself when the new one does not hold. Its answer is $SITE/rt-status/STATUS (root's folder; the
+# deploy user can only read it), which the roll-out reads. A server set up before this keeps running the same files: they are copied to live below.
+HERE=${BASH_SOURCE[0]:-}
+if [ -n "$HERE" ] && [ -f "$(dirname "$HERE")/rt-roll.sh" ]; then RR_SRC=$(cat "$(dirname "$HERE")/rt-roll.sh"); else RR_SRC=$(curl -fsSL "$RAW/rt-roll.sh" || true); fi
+# fetched before any unit is written: without it the old units stay as they were, and the relay with them
+printf '%s' "$RR_SRC" | grep -q 'dsb-rt-roll' || { echo "tools/server/rt-roll.sh could not be fetched from $RAW, so the relay's units are left as they were. Try again (DSB_REF=<branch> if it is not on $REF yet)." >&2; exit 1; }
+printf '%s\n' "$RR_SRC" > /usr/local/sbin/dsb-rt-roll.new && chmod 755 /usr/local/sbin/dsb-rt-roll.new && mv /usr/local/sbin/dsb-rt-roll.new /usr/local/sbin/dsb-rt-roll
+install -d -m 755 -o root -g root /opt/dsb-rt
+install -d -m 755 -o root -g root "$SITE/rt-status"
 cat > /etc/systemd/system/dsb-rt.service <<EOF
 [Unit]
 Description=Det Store Blå: the real-time relay (tools/server/rt)
 After=network.target
-ConditionPathExists=$SITE/rt/server.mjs
+ConditionPathExists=/opt/dsb-rt/live/server.mjs
 
 [Service]
 User=dsbrt
 Group=dsbrt
 EnvironmentFile=$RTENV
 Environment=RT_HOST=127.0.0.1 RT_PORT=8787 RT_ORIGINS=https://$DOMAIN,https://www.$DOMAIN NODE_ENV=production
-ExecStart=$NODE $SITE/rt/server.mjs
+ExecStart=$NODE /opt/dsb-rt/live/server.mjs
 Restart=always
 RestartSec=2
 RestartPreventExitStatus=78
@@ -145,7 +159,7 @@ LimitNOFILE=65536
 [Install]
 WantedBy=multi-user.target
 EOF
-# GitHub uploads VERSION (the hash of the relay's files) last, and only when the files changed: then the service starts again
+# GitHub uploads VERSION (the hash of the relay's files) last, and only when the files changed: then dsb-rt-roll swaps it in
 cat > /etc/systemd/system/dsb-rt-reload.path <<EOF
 [Unit]
 Description=Det Store Blå: restart the real-time relay when GitHub has uploaded a new version
@@ -159,16 +173,22 @@ WantedBy=multi-user.target
 EOF
 cat > /etc/systemd/system/dsb-rt-reload.service <<EOF
 [Unit]
-Description=Det Store Blå: restart the real-time relay (a new version from GitHub)
+Description=Det Store Blå: swap in a new version of the real-time relay from GitHub, rolled back if it does not come up
 
 [Service]
 Type=oneshot
-ExecStart=$(command -v systemctl) restart dsb-rt.service
+TimeoutStartSec=180
+ExecStart=/usr/local/sbin/dsb-rt-roll
 EOF
 systemctl daemon-reload
 systemctl enable dsb-rt.service dsb-rt-reload.path >/dev/null 2>&1
 systemctl restart dsb-rt-reload.path
-if [ -f "$SITE/rt/server.mjs" ]; then systemctl restart dsb-rt.service; sleep 1; echo "The relay: $(systemctl is-active dsb-rt.service || true)"
+# the files the service ran before this (from the inbox) become the live version; dsb-rt-roll then restarts on them and checks them
+if [ -f "$SITE/rt/server.mjs" ] && [ ! -f /opt/dsb-rt/live/server.mjs ]; then
+  install -d -m 755 /opt/dsb-rt/live; cp -a "$SITE/rt/." /opt/dsb-rt/live/; chown -R root:root /opt/dsb-rt/live
+  systemctl restart dsb-rt.service
+fi
+if [ -f "$SITE/rt/server.mjs" ]; then /usr/local/sbin/dsb-rt-roll; echo "The relay: $(systemctl is-active dsb-rt.service || true); $(cat "$SITE/rt-status/STATUS" 2>/dev/null)"
 else echo "The relay's code comes with the next upload from GitHub; the service starts by itself then."; fi
 
 # ---------- the site ----------
@@ -201,6 +221,80 @@ say "The watch on the database"
 if [ -n "$HERE" ] && [ -f "$(dirname "$HERE")/vakt/setup.sh" ]; then bash "$(dirname "$HERE")/vakt/setup.sh"; else curl -fsSL "$RAW/vakt/setup.sh" | DSB_REF=$REF bash; fi
 
 # ---------- what goes into GitHub ----------
+# ---------- the editions and the emergency brake (live-drift fase 4, 18.11.2026): tools/server/utgave.py and tools/server/vakt/brems.py ----------
+say "The editions and the emergency brake"
+UDIR=/opt/dsb-utgave; install -d -m 755 -o root -g root "$UDIR"
+for f in utgave.py vakt/brems.py; do
+  if [ -n "$HERE" ] && [ -f "$(dirname "$HERE")/$f" ]; then cp "$(dirname "$HERE")/$f" "$UDIR/$(basename "$f").new"; else curl -fsSL "$RAW/$f" -o "$UDIR/$(basename "$f").new"; fi
+  python3 -m py_compile "$UDIR/$(basename "$f").new" && mv "$UDIR/$(basename "$f").new" "$UDIR/$(basename "$f")"
+done
+chown root:root "$UDIR"/*.py; chmod 644 "$UDIR"/*.py; rm -rf "$UDIR/__pycache__"
+# current/ as a folder (before fase 4) becomes releases/<v> and the pointer, once; the site is served from the same files all the while
+runuser -u deploy -- python3 "$UDIR/utgave.py" omgjor
+cat > /etc/systemd/system/dsb-utgave.service <<EOF
+[Unit]
+Description=Det Store Blå: a new edition of the production (the pointer swapped in one step)
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+ExecStart=/usr/bin/python3 $UDIR/utgave.py bytt
+TimeoutStartSec=600
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=$SITE
+EOF
+cat > /etc/systemd/system/dsb-utgave.path <<EOF
+[Unit]
+Description=Det Store Blå: swap the production's edition when the release job has asked
+
+[Path]
+PathChanged=$SITE/in/utgave
+Unit=dsb-utgave.service
+
+[Install]
+WantedBy=multi-user.target
+EOF
+cat > /etc/systemd/system/dsb-brems.service <<EOF
+[Unit]
+Description=Det Store Blå: the emergency brake, two hours after each release (tools/server/vakt/brems.py)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+EnvironmentFile=-/etc/dsb-vakt.env
+ExecStart=/usr/bin/python3 $UDIR/brems.py
+TimeoutStartSec=50
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=$SITE
+EOF
+cat > /etc/systemd/system/dsb-brems.timer <<EOF
+[Unit]
+Description=Det Store Blå: the emergency brake, once a minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=10s
+
+[Install]
+WantedBy=timers.target
+EOF
+systemctl daemon-reload
+systemctl enable dsb-utgave.path dsb-brems.timer >/dev/null 2>&1
+systemctl restart dsb-utgave.path dsb-brems.timer
+echo "The production: $(runuser -u deploy -- python3 "$UDIR/utgave.py" status | head -1)"
+echo "The brake: $(systemctl is-active dsb-brems.timer), the editions: $(systemctl is-active dsb-utgave.path)"
+
 say "Done"
 echo "Caddy serves $SITE/current at https://$DOMAIN and $SITE/test at https://test.$DOMAIN (a placeholder page until the first upload)."
 echo "If the server has a firewall in Hetzner's console (Firewalls), it must let in TCP 80 and 443 too."

@@ -94,7 +94,9 @@ async def main():
         await pg.evaluate("console.error('errtest offline')"); await pg.wait_for_timeout(800)
         kept = await pg.evaluate("JSON.parse(localStorage.getItem('dsb_errq') || '[]').map(e => e.msg)")
         state['down'] = False; n0 = len(calls)
-        await pg.evaluate("errFlush()"); await pg.wait_for_timeout(800)
+        # (a 503 starts cloudRpc's pause for tm_error, RPCB, at most two minutes, and the timer every 2.5 minutes asks again after it:
+        # the pause is taken as gone here, so the test does not wait for it)
+        await pg.evaluate("RPCB.delete('tm_error'); errFlush()"); await pg.wait_for_timeout(800)
         sent = [c[1]['msg'] for c in calls[n0:] if c[0] == 'tm_error']
         check(kept == ['errtest offline'] and sent == ['errtest offline'] and await pg.evaluate("localStorage.getItem('dsb_errq') === null"),
               'an error the cloud did not take waits on the device and goes when it answers again', {'kept': kept, 'sent': sent})

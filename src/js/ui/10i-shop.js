@@ -87,6 +87,9 @@ async function shopGo(k, extra){
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.url) throw new Error(j.error === 'unavailable' || r.status >= 500 ? shopL('betalingen er ikke tilgjengelig akkurat nå. Prøv igjen senere.', 'the payment is not available just now. Try again later.') : j.error || String(r.status));
     save(); if (typeof cloudSaveSoon === 'function') cloudSaveSoon(true);   // the game as it is, before the page goes to Stripe
+    // (the purchase's session kept on the device before the page goes, KEY_KJOP: back without ?kjop, a payment finished in another window
+    // or the game opened anew, the next start asks for it as if it had come back with it; tilbakemelding #185, paid with Klarna, 18.11.2026)
+    { const m = /cs_(live|test)_[A-Za-z0-9]+/.exec(j.url); try { if (m) localStorage.setItem(KEY_KJOP, JSON.stringify({sid:m[0], at:Date.now()})); } catch (e){} }
     location.href = j.url;
   } catch (e){
     SHOP.busy = false;
@@ -276,12 +279,12 @@ function srvApply(st){
   // (new: delivered by this very answer, or within the last minutes and not confirmed here yet, should that answer have been lost)
   const isNew = g => !!g.held && !given.includes(g.id) && (g.new === true || wn - ms(g) < 120000);
   const snap = () => JSON.stringify([S.trim || null, S.haillSrv, S.haillInv, S.haill, S.skip, S.yardSrv, S.yardCredit, S.hopVoid, S.cos, S.pubE, (S.fleet || []).map(v => (v.id === S.cur ? S.boat : v.boat || {}).trim || null)]), was = snap();
-  let thanks = 0, gifts = 0;
+  let thanks = 0, gifts = 0, refs = 0;
   // 1. the haill in store: the server's unused, never one switched on here. The game's own numbers are gone (srvImport)
   const had = S.haillSrv || []; S.haillSrv = haillMirror(list.filter(g => g.held), S.haillUsed); S.haillInv = {haill:0, luksus:0}; S.haillOld = [];
   for (const x of S.haillSrv){ const g = list.find(y => y.id === x.id), d = g.data;
     if (isNew(g)){ given.push(g.id); seen[g.id] = wn;
-      if (d.reward) thanks++; else if (d.gift) gifts++;
+      if (d.ref) refs++; else if (d.reward) thanks++; else if (d.gift) gifts++;
       else if (!d.pub && !d.ach && !d.imp){ say(g, 'Ligger i Haill-appen. Trykk «Aktiver» når du vil bruke den.', 'It is in the Luck app. Tap «Switch on» when you want it.'); names.push(HAILL[d.type][lang]); } }
     else if (!had.some(y => y.id === x.id) && !given.includes(g.id) && !d.pub && !d.ach && !d.imp && typeof cloudEv === 'function') cloudEv('haill_back', {id:x.id, type:x.type}); }
   // 2. the haill aboard: the server's, unless it is not told of the one here yet
@@ -347,21 +350,25 @@ function srvApply(st){
   // 8. tonight's round at the pub, taken on another device or before a save was lost
   if (world && st.pub && st.pub.e === pubEvening(S.t / 60) && S.pubE !== st.pub.e) S.pubE = st.pub.e;
   { const keep = givenKeep(given, seen, wn, 8); if (keep.length !== given.length) given.splice(0, given.length, ...keep); }
-  if (snap() === was && !ids.length && !rc.length && !thanks && !gifts){ if ((S.yardQ || []).length) haillTell(); return 0; }
+  if (snap() === was && !ids.length && !rc.length && !thanks && !gifts && !refs){ if ((S.yardQ || []).length) haillTell(); return 0; }
   save(); if (typeof cloudSaveSoon === 'function') cloudSaveSoon(true);
   if (ids.length) cloudRpc('shop_done', {ids}).catch(e => console.error(e));
   if ((S.yardQ || []).length) haillTell();
   if (rc.length) shopThanks(rc);
-  shopWords(gifts, thanks);
+  shopWords(gifts, thanks, refs);
   if (typeof PHONE !== 'undefined' && PHONE.isOpen()) PHONE.render(); if (typeof refreshAll === 'function') refreshAll();
   return names.length;
 }
-// the directorate's message for the welcome gift, and the thanks for feedback that helped
-function shopWords(gifts, thanks){
+// the directorate's message for the welcome gift, the thanks for feedback that helped, and for a friend invited who has landed fish
+// (ref_haill, supabase/migrations/20261117180000_verv.sql)
+function shopWords(gifts, thanks, refs){
   if (gifts){ msg('Fiskeridirektoratet', 'Du er ført i fiskermanntallet i eget navn. Spillet ditt er lagret på kontoen, og en luksushaill ligger om bord som velkomstgave. God tur!', 'You are in the fishermen’s register in your own name. Your game is saved to the account, and a luxury luck is aboard as a welcome gift. Good fishing!');
     toast(shopL('Registrert! Luksushaill om bord.', 'Registered! A luxury luck aboard.')); }
   if (thanks){ const no = 'Takk for tilbakemeldingen! Den hjalp oss å gjøre spillet bedre. ' + (thanks > 1 ? thanks + ' takk-haill' : 'Takk-haill') + ' med 12 timer fullt haill ligger i Haill-appen. Aktiver det når du vil.',
       en = 'Thank you for your feedback! It helped us make the game better. ' + (thanks > 1 ? thanks + ' thank-you lucks' : 'Thank-you luck') + ' with 12 hours of full luck ' + (thanks > 1 ? 'are' : 'is') + ' in the Luck app. Switch it on when you like.';
+    msg('Det Store Blå', no, en); toast(shopL(no, en)); }
+  if (refs){ const no = (refs > 1 ? refs + ' venner du inviterte, har' : 'En venn du inviterte, har') + ' levert fisk. Takk! ' + (refs > 1 ? refs + ' takk-haill' : 'Takk-haill') + ' med 12 timer fullt haill ligger i Haill-appen.',
+      en = (refs > 1 ? refs + ' friends you invited have' : 'A friend you invited has') + ' landed fish. Thank you! ' + (refs > 1 ? refs + ' thank-you lucks' : 'Thank-you luck') + ' with 12 hours of full luck ' + (refs > 1 ? 'are' : 'is') + ' in the Luck app.';
     msg('Det Store Blå', no, en); toast(shopL(no, en)); }
 }
 async function shopClaim(){
@@ -378,7 +385,7 @@ async function shopClaim(){
   let srv = SHOP.hs; if (srv == null && list.some(g => g.held)) srv = SHOP.hs = true;
   if (srv == null && (S.haillSrv.length || list.some(isH))) srv = await haillProbe();
   haillInit();
-  const given = S.shopGiven || (S.shopGiven = []), seen = S.shopAt || (S.shopAt = {}), tNow = worldNow(), back = [], old = S.haillOld, ids = [], names = [], mir = [], fresh = new Set(), unk = SHOP.unk || (SHOP.unk = new Set()); let thanks = 0, gifts = 0; const rc = SHOP.rc = [];   // (rc is this call's own: another call may start while this one waits for shop_done)
+  const given = S.shopGiven || (S.shopGiven = []), seen = S.shopAt || (S.shopAt = {}), tNow = worldNow(), back = [], old = S.haillOld, ids = [], names = [], mir = [], fresh = new Set(), unk = SHOP.unk || (SHOP.unk = new Set()); let thanks = 0, gifts = 0, refs = 0; const rc = SHOP.rc = [];   // (rc is this call's own: another call may start while this one waits for shop_done)
   for (const g of list){
     // (a haill delivered before and not used, kept on the server: into the copy, with no words. One that went into the game's own
     // numbers, from a page or a server before HS2, is used on the server now, so it is never counted twice)
@@ -394,7 +401,7 @@ async function shopClaim(){
       if (srv){ mir.push(g); fresh.add(g.id); } else { old.push(g.id); if (old.length > 200) old.splice(0, old.length - 200); }
       // (the welcome gift for registering, HS1 10.11.2026: one grant per account, made by the server's tm_hello and never by the game,
       // supabase/migrations/20261110150000_reg_gift.sql; no purchase, so no confirmation and no price: the directorate's message below)
-      if (d.reward){ if (srv) giveHaill(d.type, how, g.id); else giveHaill(d.type, how); thanks++; }
+      if (d.reward){ if (srv) giveHaill(d.type, how, g.id); else giveHaill(d.type, how); if (d.ref) refs++; else thanks++; }
       else if (d.gift){ if (srv) giveHaill(d.type, how, g.id); else giveHaill(d.type, how); gifts++; }
       else names.push(shopGive(g, srv));
     }
@@ -413,9 +420,27 @@ async function shopClaim(){
   save(); if (typeof cloudSaveSoon === 'function') cloudSaveSoon(true);
   if (ids.length) try { await cloudRpc('shop_done', {ids}); } catch (e){ console.error(e); }
   if (rc.length) shopThanks(rc);
-  shopWords(gifts, thanks);
+  shopWords(gifts, thanks, refs);
   if (typeof PHONE !== 'undefined' && PHONE.isOpen()) PHONE.render(); if (typeof refreshAll === 'function') refreshAll();
   return names.length;
+}
+// the purchase's session asked about through the server (shop-checkout {verify}): Stripe's answer, booked there when it is paid and the
+// webhook has not. Returns {st, ids}: the purchase's status ('paid', 'open', 'expired', 'refunded', 'old', ...; 'gone' when it is not this
+// player's) and, paid, the ids of its grants; or null when it cannot be known now (no network, or a server from before the call: it
+// answers 400 and the claims go on as before)
+// (asked for 15 minutes from the start of the page that has it, SHOP_ASK_MS; kept on the device a day, SHOP_KEEP_MS, as long as the
+// server will ask Stripe about it, so a payment that took long, or a page opened later, still asks)
+const SHOP_ASK_MS = 15 * 60000, SHOP_KEEP_MS = 24 * 3600e3, KEY_KJOP = 'kystfiske_v2_kjop';
+async function shopVerify(sid){
+  try {
+    const tok = await cloudToken(); if (!tok) return null;
+    const r = await fetch(shopFn(), {method:'POST', headers:{'Content-Type':'application/json', apikey:CLOUD_CFG.supabaseAnon, Authorization:'Bearer ' + tok}, body:JSON.stringify({verify:sid})});
+    const j = await r.json().catch(() => ({}));
+    if (r.status === 404) return {st:'gone', ids:null};
+    if (!r.ok || typeof j.st !== 'string') return null;
+    if (j.booked && typeof cloudEv === 'function') cloudEv('shop_verify', {booked:true});   // (paid at Stripe and not booked by the webhook: counted)
+    return {st:j.st, ids:Array.isArray(j.ids) ? j.ids : null};
+  } catch (e){ return null; }
 }
 // at the start, signed in: is the shop set up, and anything bought (also back from Stripe with ?kjop=…, asked again for a while)
 function shopStart(){
@@ -426,14 +451,41 @@ function shopStart(){
   // the payment comes or the hold ends: said, with the way out. ui/10u-hopp.js)
   const hh = S.boat && S.boat.hopHold;
   if (hh && !hh.pay && typeof hopHoldOff === 'function') hopHoldOff();   // (the card was open when the page went: no payment on its way)
-  if (SHOP.ret === 'avbrutt'){ toast(shopL('Kjøpet ble avbrutt. Ingenting er trukket.', 'The purchase was cancelled. Nothing was charged.')); SHOP.ret = null; if (hh && typeof hopHoldOff === 'function') hopHoldOff(); }
+  if (SHOP.ret === 'avbrutt'){ toast(shopL('Kjøpet ble avbrutt. Ingenting er trukket.', 'The purchase was cancelled. Nothing was charged.')); SHOP.ret = null; try { localStorage.removeItem(KEY_KJOP); } catch (e){} if (hh && typeof hopHoldOff === 'function') hopHoldOff(); }
   else if (!SHOP.ret && hh && hh.pay) toast(shopL('Båten ligger stille og venter på betalingen for hoppet. Vil du seile videre, trykk ⏩ og «Avbryt».', 'The boat lies still, waiting for the payment for the hop. To sail on, tap ⏩ and «Cancel».'));
   const tries = SHOP.ret ? [0, 3000, 8000, 20000, 45000] : [0];
   if (SHOP.ret) toast(shopL('Takk! Henter det du kjøpte …', 'Thank you! Fetching what you bought …'));
-  for (const ms of tries) setTimeout(() => { if (ms && !SHOP.ret) return; shopClaim().then(n => { if (n) SHOP.ret = null; }); }, ms);
+  // (back with the purchase's session, ?kjop=cs_…: Stripe is asked through the server before each claim, and a session paid there that the
+  // webhook has not booked is booked then, shop-checkout verify. After the tries below it is asked every 30 s while the page is shown, for
+  // SHOP_ASK_MS, until what was bought is here or the server says the session ended unpaid (expired, failed, refunded, not this player's).
+  // Before, a webhook later than 45 s left
+  // the player waiting till the next claim, up to 10 minutes, and one that never came, with nothing: tilbakemelding #185, 18.11.2026)
+  // (the session is kept on the device, KEY_KJOP, from the tap on «Kjøp» (shopGo), so a start without ?kjop asks for it too within the time:
+  // a page closed before the answer came, a payment finished in another window, the game opened anew. One ask at a time, the tries and
+  // the interval may meet. shop_got measures how long from the tap to the delivery, and by which way: url or store)
+  SHOP.sid = SHOP.ret && /^cs_(live|test)_/.test(SHOP.ret) ? SHOP.ret : null; SHOP.sidAt = Date.now(); SHOP.via = 'url'; SHOP.askFrom = Date.now();
+  try { const o = JSON.parse(localStorage.getItem(KEY_KJOP) || 'null'), kept = o && /^cs_(live|test)_/.test(o.sid) && Date.now() - o.at < SHOP_KEEP_MS;
+    if (SHOP.sid){ if (kept && o.sid === SHOP.sid) SHOP.sidAt = o.at; localStorage.setItem(KEY_KJOP, JSON.stringify({sid:SHOP.sid, at:SHOP.sidAt})); }
+    else if (!SHOP.ret && kept){ SHOP.sid = o.sid; SHOP.sidAt = o.at; SHOP.via = 'store'; } else if (!SHOP.ret) localStorage.removeItem(KEY_KJOP); } catch (e){}
+  const done = () => { SHOP.sid = null; try { localStorage.removeItem(KEY_KJOP); } catch (e){} };
+  // (it ends when this purchase's own grants are in the game, S.shopGiven, not when anything else is delivered; or when the server says the
+  // session ended unpaid, was refunded or is not this player's. A server from before the ids: anything delivered ends it, as before)
+  const ask = async () => { if (SHOP.asking) return; SHOP.asking = true;
+    try { const sid = SHOP.sid, v = sid ? await shopVerify(sid) : null, n = await shopClaim(), st = v && v.st, ids = v && v.ids;
+      const got = !!sid && st === 'paid' && !!ids && ids.length > 0 && ids.every(id => (S.shopGiven || []).includes(id)), was = !!sid && !ids && n > 0;
+      if ((got || was) && typeof cloudEv === 'function') cloudEv('shop_got', {via:SHOP.via, s:Math.round((Date.now() - SHOP.sidAt) / 1000)});
+      if (got || was || (st && st !== 'open' && st !== 'paid')) done(); if (n || got) SHOP.ret = null; }   // (paid, and not here yet: asked on)
+    finally { SHOP.asking = false; } };
+  for (const ms of tries) setTimeout(() => { if (ms && !SHOP.ret && !SHOP.sid) return; ask(); }, ms);
+  // (after the window the purchase stays on the device, and the next start, a focus or the page shown again asks for it)
+  if (SHOP.sid){ const iv = setInterval(() => { if (!SHOP.sid || Date.now() - SHOP.askFrom > SHOP_ASK_MS){ clearInterval(iv); return; }
+    if (document.visibilityState === 'visible') ask(); }, 30000); }
   // still nothing after the last try: say so, rather than nothing (it is given at the next start, or when the game is opened again)
   if (SHOP.ret) setTimeout(() => { if (!SHOP.ret) return; SHOP.ret = null; toast(shopL('Betalingen er ikke bekreftet ennå. Det du kjøpte, kommer så snart den er det, også neste gang du åpner spillet.', 'The payment is not confirmed yet. What you bought comes as soon as it is, also the next time you open the game.')); }, 52000);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') shopClaim(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') ask(); });
+  // (a window on a PC, an installed app among others, is not hidden when another window comes over it, so coming back to it is a focus,
+  // not a visibilitychange: the payment's own window on top, then back to the game, #185. At most every 10 s)
+  window.addEventListener('focus', () => { if (Date.now() - (SHOP.focusAt || 0) < 10000) return; SHOP.focusAt = Date.now(); ask(); });
   window.addEventListener('online', () => { haillTell(); });   // a haill switched on with no network: the server told when it is back (HS2)
   setInterval(() => { if (document.visibilityState === 'visible') shopClaim(); }, 10 * 60000);   // a thank-you given while the game is open
 }

@@ -3,6 +3,9 @@
 //   GET          -> {ready}: whether the shop is set up (the Stripe key is there), so the game knows to sell
 //   POST {product, boat, lang, back}
 //                -> {url}: a Stripe Checkout page for one product, for the signed-in player whose token comes with the call
+//   POST {verify: sid}
+//                -> {st, ids}: the player's own purchase: paid at Stripe and not booked here (the webhook late or lost), it is booked now
+//                   (shop_paid), so what was bought is delivered; never one refunded or disputed (verify, below; tilbakemelding #185)
 //
 // The price and the name come from the database (shop_quote, asked with the player's own token, so only a signed-in player gets a
 // page), never from the game. The company sells, and Stripe takes the payment (Jonas 05.10.2026: «Nei til managed payments. Vi kan
@@ -17,6 +20,7 @@
 import Stripe from 'npm:stripe@23.0.0';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { serveReported } from '../_shared/report.ts';   // a throw or a 5xx goes to the game's error list (02.11.2026)
+import { sessionVerdict } from '../_shared/kjop.mjs';   // what verify does with Stripe's session (tilbakemelding #185)
 
 const SK = Deno.env.get('STRIPE_SECRET_KEY') || '';
 const MANAGED = Deno.env.get('STRIPE_MANAGED') === '1', TAX = Deno.env.get('STRIPE_TAX') === '1';
@@ -32,8 +36,9 @@ serveReported('shop-checkout', async (req) => {
   if (!SK) return json({error: 'the shop is not set up yet'}, 503);
   const auth = req.headers.get('Authorization') || '';
   if (!/^Bearer \S+$/.test(auth)) return json({error: 'not signed in'}, 401);
-  let body: {product?: string, boat?: string, lang?: string, back?: string, min?: number, to?: {x?: number, y?: number, port?: string}} = {};
+  let body: {product?: string, boat?: string, lang?: string, back?: string, min?: number, to?: {x?: number, y?: number, port?: string}, verify?: string} = {};
   try { body = await req.json(); } catch (_e){ return json({error: 'bad request'}, 400); }
+  if (body.verify != null) return verify(String(body.verify), auth);
   const product = String(body.product || '').slice(0, 40), boat = String(body.boat || '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40), en = body.lang === 'en';
   // back to the page the player came from, if it is one of the game's (the app at detstorebla.no, or the PWA on GitHub Pages)
   let back = SITES[0] + '/';
@@ -79,3 +84,39 @@ serveReported('shop-checkout', async (req) => {
   if (e2){ console.error('purchases', e2.message); return json({error: 'unavailable'}, 500); }
   return json({url: s.url});
 });
+
+// POST {verify: sid} -> {st, ids}: back from Stripe, or the game opened anew, the game asks whether its purchase is paid. Stripe is asked
+// directly, and a session paid there is booked here (shop_paid, as the webhook books it; booking it twice changes nothing), so a webhook
+// that is late or never comes does not leave a player who has paid without what was bought (tilbakemelding #185, 18.11.2026: paid for
+// «Ferdig nå» with Klarna, and the fitting went on). Only the player's own purchase. Stripe is asked at most once every 5 s per purchase,
+// only about an open one of the last 24 hours among the player's five newest (shop_verify_slot, 20261118180000_kjop_verify.sql), and a
+// session refunded or disputed at Stripe is never booked (sessionVerdict, _shared/kjop.mjs). st: 'paid', 'open', 'expired', 'refunded',
+// 'old' (not asked about any more) or the purchase's status here; ids: the purchase's grants when it is paid, so the game knows when
+// what was bought is in the game
+async function verify(sid: string, auth: string): Promise<Response> {
+  if (!/^cs_(live|test)_[A-Za-z0-9]{10,200}$/.test(sid)) return json({error: 'bad request'}, 400);
+  const URL_ = Deno.env.get('SUPABASE_URL')!;
+  const user = createClient(URL_, Deno.env.get('SUPABASE_ANON_KEY')!, {global: {headers: {Authorization: auth}}, auth: {persistSession: false}});
+  const {data: p, error: e0} = await user.rpc('pid');
+  if (e0 || !p) return json({error: 'not signed in'}, 401);
+  const admin = createClient(URL_, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {auth: {persistSession: false}});
+  const ids = async () => { const {data} = await admin.from('grants').select('id').eq('purchase_id', sid).is('revoked_at', null); return (data || []).map((g: {id: number}) => g.id); };
+  // (the migration not run: Stripe is not asked, and the webhook stays the only way, as before)
+  const {data: slot, error: e1} = await admin.rpc('shop_verify_slot', {sid, p});
+  if (e1){ console.error('shop_verify_slot', e1.message); return json({st: 'open'}); }
+  if (slot === 'gone') return json({error: 'not found'}, 404);
+  if (slot === 'paid') return json({st: 'paid', ids: await ids()});
+  if (slot === 'wait') return json({st: 'open'});
+  if (slot !== 'ask') return json({st: String(slot)});
+  let s: Stripe.Checkout.Session;
+  try { s = await new Stripe(SK, {httpClient: Stripe.createFetchHttpClient()}).checkout.sessions.retrieve(sid, {expand: ['payment_intent.latest_charge']}); }
+  catch (e){ console.error('stripe', (e as Error).message); return json({error: 'unavailable'}, 502); }
+  const v = sessionVerdict(s);
+  if (v !== 'book') return json({st: v});
+  const pi = typeof s.payment_intent === 'string' ? s.payment_intent : s.payment_intent ? s.payment_intent.id : null;
+  // (shop_paid says true only when it booked it now: the webhook may have come in between, and then this booked nothing)
+  const {data: did, error: e2} = await admin.rpc('shop_paid', {sid, pi});
+  if (e2){ console.error('shop_paid', e2.message); return json({error: 'unavailable'}, 500); }
+  if (did === true) console.log('verify: booked a paid session the webhook had not', sid);
+  return json({st: 'paid', booked: did === true, ids: await ids()});
+}

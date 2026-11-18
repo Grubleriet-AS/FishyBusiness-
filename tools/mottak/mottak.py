@@ -8,6 +8,8 @@
 #   p [x, y] in the game's frame (km), q the quay face it lies at from the game's vector packs [x, y, the normal's angle, length m,
 #   depth m, kind, metres from the register's point] or null when none is within 600 m,
 #   small (share of the landings from boats under 15 m), big (share from vessels of 28 m and over), rf (Råfisklaget's type and zone)
+#   python3 tools/mottak/mottak.py kai   seeks the quay at the place's name for the receivers without one (by_name, 17.11.2026); by hand
+#                                        only, then tests/allesteder.py on the new harbours: a quay the routes cannot reach must not go out
 #   python3 tools/mottak/mottak.py hav   adds big and herring, mackerel and snow crab to src/data/mottak.json as it is (H0, 03.11.2026)
 # Personal data in Råfisklaget's map (contact, e-mail, phone) is dropped as it is read.
 # No company names (Jonas 07.10.2026: «vi må fjerne alle ekte firma-navn fra fiskemottakene ... Jeg orker ikke å bli saksøkt»): the register's
@@ -113,7 +115,8 @@ def quay_faces(md):
     import zlib, numpy as np
     man = json.load(open(os.path.join(md, 'manifest.json'))); X, Y, A, Ln, D, K = [], [], [], [], [], []
     for pk in man['packs']:
-        if pk['kind'] != 'vec': continue
+        # (a release leaves out the empty sea tiles' few hundred bytes: no quay there)
+        if pk['kind'] != 'vec' or not os.path.exists(os.path.join(md, pk['file'])): continue
         data = open(os.path.join(md, pk['file']), 'rb').read(); hl = int.from_bytes(data[4:8], 'little'); head = json.loads(data[8:8 + hl]); at = 8 + hl
         for l, bx, by, off, ln, *cnt in head['blocks']:
             if l != 'quay' or not cnt or not cnt[0]: continue
@@ -140,6 +143,34 @@ def geocode(e):
         if a: p = a[0]['representasjonspunkt']; return [round(p['lat'], 5), round(p['lon'], 5)]
     except (requests.RequestException, ValueError, KeyError): pass
     return None
+# a receiver with no quay within 600 m of its point (17.11.2026, tilbakemelding #153 og #154, «Lag fiskemottak på ramstadlandet»: the
+# register puts Austafjord's plant 5 km from Austafjord, at the firm's address, and it never became a harbour): its place (v) is looked up
+# by name in Kartverket's place names (stedsnavn) in its kommune, the point nearest the register's within 25 km is taken, and the quay is
+# sought there as before. src 'sted' marks it; ll and p move to the place. Cached in cache/stedsnavn.json
+STED = 'https://ws.geonorge.no/stedsnavn/v1/sted'
+def by_name(Q, x, frame, C):
+    if not x.get('v') or not x.get('k'): return False
+    key = x['v'] + '|' + x['k']
+    if key not in C:
+        try:
+            r = requests.get(STED, params=dict(sok=x['v'], kommunenavn=x['k'], utkoordsys=4258, treffPerSide=20), timeout=30).json()
+            C[key] = [[n['representasjonspunkt']['nord'], n['representasjonspunkt']['øst']] for n in r.get('navn') or [] if n.get('representasjonspunkt')]
+        except (requests.RequestException, ValueError, KeyError): return False
+    best = None
+    for la, lo in C[key]:
+        px, py = (float(v) for v in frame.to_nat(lo, la)); d = math.hypot(px - x['p'][0], py - x['p'][1])
+        if d <= 25 and (best is None or d < best[0]): best = (d, la, lo, px, py)
+    if not best: return False
+    q = snap(Q, best[3], best[4])
+    if not q: return False
+    x['ll'] = [round(best[1], 5), round(best[2], 5)]; x['p'] = [round(best[3], 4), round(best[4], 4)]; x['q'] = q; x['src'] = 'sted'
+    return True
+def kai(out, Q, frame):
+    f = os.path.join(CACHE, 'stedsnavn.json'); C = json.load(open(f)) if os.path.exists(f) else {}; n = []
+    for x in out:
+        if not x.get('q') and x.get('p') and by_name(Q, x, frame, C): n.append(x['id'] + ' ' + x['v'])
+    os.makedirs(CACHE, exist_ok=True); json.dump(C, open(f, 'w'), ensure_ascii=False, indent=0)
+    return n
 # the receiver's place as people say it (05.10.2026, for the ports along the coast): the postal town of the addresses round its point
 # in Kartverket's address register (Båtsfjord, Senjahopen, Mo i Rana), the most common within 800 m; cached in cache/steder.json
 PUNKT = 'https://ws.geonorge.no/adresser/v1/punktsok'
@@ -162,6 +193,13 @@ def main():
         # only the places, into the receivers already made (src/data/mottak.json)
         f = os.environ.get('KYST_MOTTAK') or os.path.join(ROOT, 'src', 'data', 'mottak.json'); d = json.load(open(f)); places(d['m'])
         json.dump(d, open(f, 'w'), ensure_ascii=False, separators=(',', ':')); print(sum(1 for x in d['m'] if x.get('v')), 'of', len(d['m']), 'with a place'); return
+    if sys.argv[1:] == ['kai']:
+        # only the receivers without a quay, into the receivers already made (src/data/mottak.json): their quay sought at their place (by_name)
+        f = os.environ.get('KYST_MOTTAK') or os.path.join(ROOT, 'src', 'data', 'mottak.json'); d = json.load(open(f))
+        sys.path.insert(0, os.path.join(ROOT, 'tools', 'map')); import frame
+        md = os.environ.get('KYST_MAP') or os.path.join(ROOT, 'tools', 'map', 'out', 'game'); Q = quay_faces(md)
+        n = kai(d['m'], Q, frame); d['meta']['kai'] = time.strftime('%Y-%m-%d') + ': kaia søkt ved stedsnavnet for ' + str(len(n))
+        json.dump(d, open(f, 'w'), ensure_ascii=False, separators=(',', ':')); print(len(n), 'receivers found a quay at their place:', ', '.join(n)); return
     if sys.argv[1:] == ['hav']:
         # only what the ocean step needs (H0, 03.11.2026), into the receivers already made, so the moves made after (bruflytt,
         # landflytt) stay: herring, mackerel and snow crab among the species, and big, the share landed from vessels of 28 m and over
@@ -198,6 +236,8 @@ def main():
         out.append(dict(id=mt, t=e['t'], k=e['k'], ll=e['ll'], p=[round(x, 4), round(y, 4)], q=snap(Q, x, y) if Q else None, src=e['src'], kg=round(kg), n_land=round(a['docs'] / ny), boats=round(a['boats'] / ny),
                         sp=sp, gear=gear, small=round(a['small'] / a['kg'], 3) if a['kg'] else 0, big=round(a.get('big', 0) / a['kg'], 3) if a['kg'] else 0, rf=[f['type'], f['zone']] if f else None))
     out.sort(key=lambda x: -x['kg']); places(out)
+    # (kai is not run here: a receiver found this way must be checked to be reachable by the game's routes first, e.g. Austafjord's
+    # quay lies up a fjord too narrow for the route net, 18.11.2026; run «mottak.py kai» by hand and sail there with tests/allesteder.py)
     meta = dict(made=time.strftime('%Y-%m-%d'), years=years, src='Fiskeridirektoratet: kjøperregisteret og fangstdata (seddel), NLOD; Norges Råfisklag: mottakskartet',
                 n=len(out), nogeo=nogeo)
     json.dump(dict(meta=meta, m=out), open(os.environ.get('KYST_MOTTAK') or os.path.join(OUT, 'mottak.json'), 'w'), ensure_ascii=False, separators=(',', ':'))

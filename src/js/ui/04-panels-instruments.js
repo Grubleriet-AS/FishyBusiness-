@@ -326,7 +326,7 @@ const INSTR = (() => {
     }
     $('ecHdg').textContent = deg3(pose.hd); { const cg = cogUi(pose, sog); setHtml($('ecSog'), fmt(sog, 1) + ' kn' + (cg ? '<br><small>COG ' + cg + '</small>' : '')); } $('ecPos').innerHTML = ll[0] + '<br>' + ll[1]; $('ecDepL').textContent = no ? 'DYBDE' : 'DEPTH';
     // (and the water under her keel in shallow water, with her squat at the way she has: Ø9 F5, 16b-dyn.js keelClear)
-    { const ukc = b.status === 'port' ? null : keelUi(); setHtml($('ecDep'), b.status === 'port' ? '–' : fmt(depthF(pose.p) + tideCD(H), 1) + ' m' + (ukc == null ? '' : '<br><small' + (ukc < 1 ? ' class="warn"' : '') + '>' + fmt(ukc, 1) + (no ? ' m u. kjølen' : ' m under keel') + '</small>')); }
+    { const ukc = b.status === 'port' ? null : keelUi(); setHtml($('ecDep'), b.status === 'port' ? '–' : fmt(depthNav(pose.p) + tideCD(H), 1) + ' m' + (ukc == null ? '' : '<br><small' + (ukc < 1 ? ' class="warn"' : '') + '>' + fmt(ukc, 1) + (no ? ' m u. kjølen' : ' m under keel') + '</small>')); }
     // the next tide and the sun's day change slowly: worked out again every 10 game minutes or km
     const tk = Math.floor(S.t / 10) + ':' + Math.round(pose.p.x) + ':' + Math.round(pose.p.y);
     if (GPSC.k !== tk){ GPSC.k = tk; GPSC.nx = tideEvents(H, 14)[0]; GPSC.st = sunTimes(H); }

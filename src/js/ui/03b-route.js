@@ -111,7 +111,7 @@ function routeDragEnd(g){
     if (g.kind === 'ins'){
       if (isLandUI(g.p)){ toast(t('on_land')); return; }
       draftEdit(() => S.draft.splice(g.i, 0, {x:g.p.x, y:g.p.y, port:null, fish:0}));
-    } else { routeFocus(g.i); return; }
+    } else { routeFocus(g.i); wpChip(g.i); return; }
   } else if (g.land){ S.draft = JSON.parse(g.before); toast(S.lang === 'no' ? 'Punktet havnet på land og er flyttet tilbake.' : 'The point landed on land and has been moved back.'); }
   else { const now = S.draft; S.draft = JSON.parse(g.before); draftEdit(() => { S.draft = now; }); }
   routeChanged(); save();
@@ -121,6 +121,33 @@ function routeFocus(i){
   if (tab !== 'route') setTab('route');
   if (window.innerWidth <= 700) document.body.classList.add('drawer');
   requestAnimationFrame(() => { const li = document.querySelector('#panel .wpc[data-i="' + i + '"]'); if (!li) return; li.scrollIntoView({block:'nearest', behavior:'smooth'}); li.classList.remove('flash'); void li.offsetWidth; li.classList.add('flash'); });
+}
+// A tap on a point of the route opens a small card by it in the chart (tilbakemelding #128, 17.11.2026: «vanskelig å slette rutepunkt som er
+// satt feil»; Jonas: «få opp spørsmålet når man trykker på et WP, mens når man holder og drar så flytter man det … en intuitiv løsning som
+// ser bra ut»): the point's name and place, its fishing time with − and +, «Slett punktet», and × to close; holding and dragging moves the
+// point as before (routeDragMove). Only where the point is seen in the chart: under the route panel (portrait) the panel's own card with
+// its × is the way. It goes at a tap outside it, or after a while without a touch
+function wpChip(i){
+  let el = document.getElementById('wpChip'); if (el) el.remove();
+  const w = S.draft[i]; if (!w || w.port || !canEditDraft()) return;
+  const c = mapToClient(w), L = (no, en) => S.lang === 'no' ? no : en;
+  const at = document.elementFromPoint(c.x, c.y); if (!at || !(at === svg || svg.contains(at))) return;
+  el = document.createElement('div'); el.id = 'wpChip'; el.className = 'wpchip'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', wpName(i + 1));
+  const fishTxt = () => w.fish > 0 ? t('fish_h', w.fish) : t('no_fish');
+  el.innerHTML = '<div class="wpchip-h"><b>' + wpName(i + 1) + '</b><small>' + coordStr(w) + '</small><button type="button" class="wpchip-x" aria-label="' + L('Lukk', 'Close') + '">×</button></div>' +
+    '<div class="wpchip-f"><span>' + L('Fisketid', 'Fishing') + '</span><button type="button" data-d="-1" aria-label="−">−</button><output>' + fishTxt() + '</output><button type="button" data-d="1" aria-label="+">+</button></div>' +
+    '<button type="button" class="wpchip-del">' + L('Slett punktet', 'Delete the point') + '</button><i class="wpchip-arrow"></i>';
+  document.body.appendChild(el);
+  const r = el.getBoundingClientRect(), x = Math.round(Math.min(innerWidth - r.width / 2 - 8, Math.max(r.width / 2 + 8, c.x))), below = c.y - r.height - 22 < 56;
+  el.style.left = x + 'px'; el.style.top = Math.round(below ? c.y + 22 : c.y - r.height - 22) + 'px'; el.classList.toggle('below', below);
+  el.querySelector('.wpchip-arrow').style.left = Math.round(c.x - x + r.width / 2) + 'px';
+  let tm = 0; const arm = () => { clearTimeout(tm); tm = setTimeout(go, 12000); };
+  const go = () => { clearTimeout(tm); el.remove(); document.removeEventListener('pointerdown', away, true); };
+  const away = e => { if (!el.contains(e.target)) go(); };
+  el.querySelector('.wpchip-x').onclick = go;
+  for (const b of el.querySelectorAll('.wpchip-f button')) b.onclick = () => { if (S.draft[i] !== w) return go(); doAct({dataset:{act:+b.dataset.d > 0 ? 'fp' : 'fm', i:String(i)}, disabled:false}); el.querySelector('output').textContent = fishTxt(); arm(); };
+  el.querySelector('.wpchip-del').onclick = () => { go(); if (S.draft[i] === w){ draftEdit(() => S.draft.splice(i, 1)); routeChanged(); save(); toast(L('Punktet er slettet. Angre med pila ved kartet.', 'The point is deleted. Undo with the arrow by the chart.')); } };
+  setTimeout(() => document.addEventListener('pointerdown', away, true), 0); arm();
 }
 // a map point on the screen (for the tests and the first-trip guide)
 function mapToClient(p){ const m = svg.getScreenCTM(); return {x:m.a * p.x + m.c * p.y + m.e, y:m.b * p.x + m.d * p.y + m.f}; }
@@ -197,8 +224,9 @@ async function leiaTo(pt, buoy, act){   // buoy: to a set's buoy, to haul it (th
   // a harbour of the coast's packs: Autonav goes to a free berth there (07e-havn.js), when no place of the game is nearer
   if (view.z >= 2 && !tutOn() && !near && !buoy){ const B = havnTapNear(pt, r); if (B) near = B; }
   if (!near && !buoy) near = portByLabel(pt);
-  // an ocean vessel only to a plant whose quay fits her and that takes her catch (06b-coastports.js portWhy, havsteget H0)
-  if (near && (near.mottak || near.havOnly)){ const why = portWhy(near, b.type); if (why){ toast(S.lang === 'en' ? why[1] : why[0]); return; } }
+  // an ocean vessel only to a plant whose quay fits her and that takes her catch (06b-coastports.js portWhy, havsteget H0), and to a yard
+  // or a shop whose quay fits her (placeWhy, Jonas 18.11.2026)
+  if (near && (near.mottak || near.havOnly || near.sted)){ const why = placeWhy(near, b.type); if (why){ toast(S.lang === 'en' ? why[1] : why[0]); return; } }
   // from Father's naust the way starts at its berth, not by the harbour's way out from the plant (tilbakemelding #20)
   const atN = !S.draft.length && b.status === 'port' && berthKind(b) === 'naust';
   const start = S.draft.length ? S.draft[S.draft.length - 1] : draftOrigin(), aPort = !S.draft.length && !atN ? draftPort() : null;

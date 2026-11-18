@@ -1,33 +1,37 @@
-# Regresjonsrutinen (D5)
+# Regresjonen (D5; i GitHub Actions fra 19.11.2026, live-drift fase 5)
 
-En planlagt Claude Code-økt (`Ukentlig regresjon`, `trig_013Aut9VYSRkSPkQjUh17A36`, første kjøring natt til mandag 02.11.2026) kjører dette natt til mandag kl. 02.17 (Oslo-tid), hver gang i en ny økt. Fra 09.11.2026 kjører `Nattlig regresjon` de andre nettene, uten 3D og med balansesjekken (punkt 4, «Natt»), fordi stegene i køen ruller ut mange ganger om dagen og samspillet mellom dem ellers bare ble sett én gang i uka. Den har ingen koblinger (Supabase og lignende) og trenger ingen; repoet får den med `add_repo`. Den ble satt opp 26.10.2026 etter utviklingsplanen (`docs/utviklingsplan.md`, D5): hele regresjonen går én gang i uka på arbeidsgrenen, og det røde skrives i backloggen med loggene, slik at hovedøkta kan rette samlet. Rutinen retter ingenting selv, og fletter rapporten sin selv (punkt 9, 11.11.2026).
+Jonas 19.11.2026: «flytt nattlig og ukentlig regresjon over til GitHub Actions (regresjon.yml) slik at testkjøringene går uten Claude-tokens og eventuelle nye røde tester plukkes opp automatisk av triagen i «Driften»». Om hvor det røde skal stå: «Saker» (én GitHub-sak per rød test).
+
+Regresjonen er workflowen `.github/workflows/regresjon.yml`, uten modell. De to planlagte Claude-oppgavene «Nattlig regresjon» og «Ukentlig regresjon» (`trig_013Aut9VYSRkSPkQjUh17A36`) står på pause fra den første grønne kjøringen av workflowen; de slettes ikke, så historikken deres står.
+
+## Når og hva
+
+- **Hver natt kl. 01.17 UTC** (02.17 norsk vintertid): enhetstestene og testene uten 3D i fire deler side om side (`tools/regresjon/deler.py --json natt --lite 4`), og balansesjekken (`simday`, `progweek`, `fiskeplay`, uten 3D, frø 1).
+- **Natt til mandag** også 3D-testene (åtte per maskin, etter hverandre, så aldri to 3D-tester samtidig på én maskin) og testene som måler tid (alene på en egen maskin).
+- **For hånd:** «Run workflow» på «Regresjonen» med `natt` eller `uke`.
+- **En PR som endrer workflowen eller `tools/regresjon/`** kjører en prøve: enhetstestene, `boottest` og `errtest`, og `saker.py --dry` (skriver ingen saker).
+- Hver del bygger med hele kysten (`tools/map/game.py`, `node build.mjs`) på arbeidsgrenen. Repoet er offentlig, så GitHubs maskiner er gratis; en jobb har høyst seks timer.
+
+## Det røde: én sak per test (`tools/regresjon/saker.py`)
+
+- **Rød to ganger:** en test som er rød, kjøres én gang til alene (`saker.py igjen`). Testene kjører med frø (`seed=1`), så rød to ganger er en feil i koden eller i testen, ikke et dårlig kast. Da åpnes eller oppdateres saken `regresjon` for testen: sjekklinja, antall netter på rad, filene testen dekker (`COVER` i `tests/run.py`), commitene som rørte dem fra regresjonen før den første røde natta, og lenke til kjøringen og loggene (artefaktene `logg-<del>`, 90 dager).
+- **Kronisk:** tre netter på rad på samme test gir merkelappen `kronisk` (CLAUDE.md, «Kronisk røde tester»).
+- **Ustabil:** rød, så grønn alene. Ingen sak; den står i oppsummeringen av kjøringen.
+- **Grønn:** en test som er grønn, lukker saken sin med en kommentar.
+- **Ikke kjørt i natt** (3D og tidsmålingene mellom mandagene): saken står urørt.
+- **Triagen:** `tools/triage/klynge.py` leser de åpne `regresjon`-sakene som tekniske klynger (`klynge:<id>` fra saken, risiko etter filene testen dekker, vekt 3, `kronisk` 4). Driften retter dem da innenfor Opus-taket, etter spillernes feil (`tools/feilretting/RUTINE.md` punkt 5). En PR som nevner `klynge:<id>`, eller en sak `trenger-jonas`, gjør at klyngen hoppes over, som for feillista.
+- **Ingen retter testen for å få den grønn:** koden rettes. Å endre eller slå av en sjekk krever Jonas (CLAUDE.md).
+
+## Balansen
+
+Utskriften fra `simday`, `progweek` og `fiskeplay` står i den ene saken `balanse` («Balansesjekken natt for natt»). Hver natt sammenlignes linje for linje med natta før: samme ord med tallene tatt ut er samme linje, og et tall som har flyttet seg mer enn 15 %, står øverst i saken (og i en kommentar). Ingen modell tolker tallene, og ingen rutine retter balansen: Driften leser ikke saken. Det er Jonas som avgjør.
 
 ## Absolutte regler
 
-- **Ingen kodeendringer.** Rutinen endrer bare `docs/BACKLOG.md` (kapittel 10.6) og legger logger under `docs/regresjon/<dato>/`. Den retter ingen test og ingen fil i `src/`, og hopper aldri over, slår av eller myker opp en sjekk.
-- **Aldri push til `main`.** Til `ccr-5e1ba2f4-pusvyd` pushes bare rapporten selv, slik punkt 9 sier (Jonas 11.11.2026, etter at to natt-PR-er sto åpne og han måtte spørre hva de var: «gjør det så automatisert som mulig. Jeg er ikke så innarbeidet på github»). Før 11.11.2026 flettet rutinen aldri noe, og PR-en sto til Jonas hver natt. Rutinen fletter og godkjenner aldri andres PR-er.
-- **Ikke endre** `.github/`, `supabase/`, `src/`, `tools/` eller `CLAUDE.md`. Ingen nøkler eller hemmeligheter i loggene som legges inn (loggene inneholder bare testenes utskrift; sjekk at ingen URL med token er med).
+- Workflowen pusher ingenting: ingen git, ingen backlog, ingen `docs/regresjon/`. Den skriver bare saker (`issues: write` i den siste jobben).
+- Den hopper aldri over, slår av eller myker opp en test eller en sjekk.
+- En del som ikke blir ferdig (maskinen, bygget eller tidsgrensen), gjør kjøringen rød, og testene i den delen står urørt i sakene den natta. GitHub sender da e-post til Jonas.
 
-## Hver kjøring
+## Før 19.11.2026
 
-1. **Repoet:** koble til med `add_repo` (eier `average01101010`, repo `FishyBusiness-`, `access: push`) og klon slik svaret sier. Lag grenen `regresjon/ÅÅÅÅ-MM-DD` fra `origin/ccr-5e1ba2f4-pusvyd`. Les `CLAUDE.md`, `docs/INDEKS.md`, `docs/systemer/testing.md` og `docs/BACKLOG.md` 10.6 (det som er kjent rødt).
-   - **Repoet må være en kilde i den planlagte oppgaven** (09.11.2026: økta natt til mandag hadde ikke repoet, `add_repo` virket ikke, og pushen ble avvist med 403, så PR-en ble aldri laget). Jonas setter det på oppgaven på claude.ai (Routines → oppgaven → repoet `FishyBusiness-`), slik «Tilbakemeldinger fra spillerne» har det. Har økta ikke skrivetilgang, skriv det øverst i svaret, med antall OK og FEIL og det nye røde, så Jonas ser det i varselet.
-2. **Verktøy:** `pip install playwright==1.63.0` (den som passer nettleseren i `/opt/pw-browsers`; `launch` sier fra om revisjonen ikke passer) og `pip install requests`.
-3. **Hele kysten og byggene:** `python3 tools/map/release.py && python3 tools/map/game.py`, så `node build.mjs` og `KYST_VEC=1 KYST_DIST=dist-vec node build.mjs`. Feiler et bygg, er det en sak for PR-en, og rutinen stopper der.
-4. **Regresjonen, i deler** (09.11.2026: `run.py full` og oppfølgingen gikk begge ut på verktøyets tidsgrense på 2 timer per kommando, og om lag 50 av de 58 3D-testene ble aldri kjørt). `python3 tools/regresjon/deler.py alle` skriver delene, én linje hver: enhetstestene og testene uten 3D i to halvdeler, 3D-testene åtte og åtte, og de som måler tid, én og én. Kjør hver linje som `python3 tests/run.py smoke <linja> > <scratchpad>/del-N.log 2>&1` i bakgrunnen, én om gangen, og start neste når den forrige melder seg ferdig; tidsgrensen gjelder hver kommando, ikke økta. Kjør aldri to deler eller andre tester samtidig. Går en del ut på tid, deles den i to og kjøres på nytt. Til slutt `cat <scratchpad>/del-*.log > <scratchpad>/full.log`, og punkt 5 leser den.
-   - **Natt** (nattlig regresjon, alle netter utenom natt til mandag): bare de to første linjene (uten 3D) og balansesjekken under; 3D-testene og de som måler tid tas natt til mandag.
-   - **Balansesjekken** (hver natt, også natt til mandag): med hele kysten i bygget `python3 tests/simday.py`, `python3 tests/progweek.py` og `python3 tests/fiskeplay.py` (alle scenarioene uten 3D), hver i bakgrunnen for seg. Tallene (kg per dag og art fra `simday`, uka og turen med blad B og første båt fra `progweek`, fangsten per scenario og sidefeilene fra `fiskeplay`) skrives i `docs/regresjon/<dato>/balanse.md`, med tallene fra forrige natt ved siden av (fila fra forrige `regresjon/`-PR eller arbeidsgrenen). En endring over 15 % fra forrige natt, eller blad B mer enn to turer tidligere eller senere enn 13–16 turer, står øverst i PR-en med commitene siden forrige natt som rører fangsten, prisene eller turene (`git log --since` på `src/js/core/03-simulation.js`, `05-vessels.js`, `10-gear.js`, `03f-fiske.js`, `03j-felt.js`, `02-species-gear.js`). Ingen retting; det er Jonas' økter som retter.
-5. **Les resultatet én gang:** `grep -E "^(OK|FEIL|LES)|OK, " <scratchpad>/full.log`, og `tests/out/logs/<test>.txt` for de røde. Sorter:
-   - **Kjent rødt:** står alt i `BACKLOG.md` 10.6 med samme sjekk. Noteres med «fortsatt rødt».
-   - **Ustabilt:** feiler på tid eller tilfeldighet. Kjør den én gang til, alene. Testene kjører med frø (`seed=1` fra `_env.py`, 29.10.2026), så det samme kastet kommer igjen: rød to ganger med samme frø er en feil i koden eller i testen, ikke uflaks; `KYST_SEED=2` viser om et annet kast går. Grønn andre gang: «ustabil» med grunn. Rød igjen: ekte.
-   - **Nytt rødt:** skriv sjekklinja som feiler, og hvilke commits som har kommet siden forrige regresjon (`git log --oneline <forrige dato>..` på arbeidsgrenen) som rører filene testen dekker (`COVER` i `tests/run.py`). Ikke rett.
-6. **Loggene:** kopier `tests/out/logs/<test>.txt` for hver rød test til `docs/regresjon/<ÅÅÅÅ-MM-DD>/<test>.txt`, og `full.log` som `docs/regresjon/<ÅÅÅÅ-MM-DD>/full.txt`. Ingen skjermbilder i git. Ta med `tests/historikk.tsv` i commiten (A5, Ø2 05.11.2026: `run.py` skriver én linje per test per kjøring dit, og fila er i git med `merge=union`), så neste regresjon og `python3 tests/run.py historikk` ser alle kjøringene, også fra containere som er borte. Fila endrer ingen test; den er det eneste unntaket fra «bare BACKLOG.md og loggene».
-7. **Backloggen:** oppdater `docs/BACKLOG.md` 10.6 med datoen, antall OK og FEIL, lista over det røde (kjent, ustabilt, nytt) med lenke til loggene (`docs/regresjon/<dato>/<test>.txt`), og det som ble grønt siden sist (flyttes til «Strøket» med datoen). **Kronisk** (CLAUDE.md, 15.11.2026): en test som er rød på samme sjekk tre netter på rad, får ordet «Kronisk» foran seg i 10.6 med antall netter, så koordinatoren og arbeidsrutinen gjør den til et steg i køen under lanseringslinja. Rutinen selv retter fortsatt ingenting.
-8. **PR:** én commit, én PR mot `ccr-5e1ba2f4-pusvyd` med tittelen «Regresjon ÅÅÅÅ-MM-DD: N OK, M FEIL» og en beskrivelse på norsk: det nye røde først, så det ustabile, så det kjente, med lenkene. Ta med tabellen fra `python3 tests/run.py historikk` for testene som er røde eller ustabile («x røde av y kjøringer», mønsteret), så «ustabil» er et tall. Ingen kodeendringer.
-9. **Flett rapporten selv** (Jonas 11.11.2026). Rapporten er bare dokumenter og ruller ikke ut noe (`deploy.yml` starter ikke på dem), så den skal ikke vente på Jonas:
-   - Sjekk først at commiten bare rører det den får røre: `git diff --name-only origin/ccr-5e1ba2f4-pusvyd...HEAD` skal bare gi `docs/BACKLOG.md`, `docs/regresjon/<dato>/…` og `tests/historikk.tsv`. Står det noe annet der, flettes ingenting: PR-en står, og det sies øverst i avslutningen.
-   - `git fetch origin ccr-5e1ba2f4-pusvyd && git merge origin/ccr-5e1ba2f4-pusvyd` inn i grenen. En konflikt i `docs/BACKLOG.md` løses med begge sider (arbeidsgrenens tekst står, 10.6 er rutinens); ingen konfliktmerker (`grep -n '^<<<<<<<\|^>>>>>>>' docs/BACKLOG.md` skal være tom). Så `git push origin HEAD:ccr-5e1ba2f4-pusvyd` (aldri `--force`; avvist fordi grenen gikk videre: hent, flett og push igjen, høyst tre ganger). GitHub merker da PR-en som flettet.
-   - Lukk eldre åpne PR-er fra `regresjon/…`-grener (`list_pull_requests`, så `update_pull_request` med `state: closed`): den nye rapporten avløser dem. Ingen andre PR-er røres.
-   - Går flettingen eller pushen ikke, står PR-en åpen som før, og avslutningen sier hvorfor.
-   - **Også når noe er nytt rødt** flettes rapporten: det nye røde står da i backloggen 10.6, der øktene og arbeidsrutinen leser det, og øverst i avslutningen, som er varselet til Jonas. En åpen PR ville ikke gitt ham noe å gjøre.
-10. **Avslutt** med to eller tre linjer i økta: antall OK og FEIL, det nye røde (eller «ingenting nytt rødt»), og om rapporten er flettet. Det vises i varselet på telefonen til Jonas. Han skal ikke måtte åpne GitHub: er noe nytt rødt, sier linja hvilken test og hva den sjekker, med vanlige ord.
+Fra 26.10.2026 var regresjonen to planlagte Claude-økter (natt til mandag med 3D, de andre nettene uten), som skrev backloggen 10.6 og loggene i `docs/regresjon/<dato>/` og flettet rapporten selv. Loggene derfra står i `docs/regresjon/`, og `tests/run.py historikk` leser dem fortsatt.

@@ -1,0 +1,38 @@
+OK   not signed in, the gate stops the game, «Logg inn» goes to WorkOS, and nothing is sent  {"gate": true, "signIn": true, "ready": false}
+OK   the gate links the terms and the privacy page, and both are there  {"vilkar.html": "200 Vilkår", "personvern.html": "200 Personvernerklæring"}
+OK   the sources and the contact page are there, and the type is in the page, not fetched from Google  {"kilder.html": "200 Kilder", "kontakt.html": "200 Kontakt", "google": false, "fonts": [true, true]}
+OK   signed in, the game starts after hello and the save check, with the WorkOS token  ["tm_hello", "save_get"]
+OK   the consent is asked once with the year of birth, the yes is sent and «Ja, del» closes the dialog  {"calls": [{"yes": true, "birth_year": 1990}], "closed": true}
+OK   the events go up in batches with the session and the game state  {"ev": ["start", "boot", "first3d", "app", "aground", "rage"], "meta": {"version": "90eacee38120", "browser": "chrome", "platform": "linux", "pwa": false, "lang": "no", "tz": "UTC", "quality": "auto", "boat": "trebat", "home": "finnsnes", "cash": 2000, "fleet": 1, "fleetValue": 45000, "streak": 1, "gameDays": 0, "sid": "fce75c88-8890-42f7-8f40-bd5936b58c02"}}
+OK   a session that ends within a minute of grounding counts as a rage quit  {"ended": true, "reason": "rage"}
+OK   an error in the page is reported  ["Uncaught Error: cloudtest boom"]
+OK   the save goes up as a save code with its summary, not forced, from no account save yet  {"data": "KYST2:H4sIAA", "saved_at": "2026-11-18T0", "game_t": 0, "base": null, "force": false, "summary": {"t": 0, "day": 1, "cash": 2000, "boat": "T-753-LK", "type": "trebat", "tut": false, "fleet": 1}}
+OK   the account card is in Settings, with the e-mail
+OK   an account without the admin flag has no Admin app on the phone and cannot open it  {"icon": false, "app": false}
+OK   the device keeps which account save its game comes from, and sends it with the next save  {"sync": {"rev": "2026-10-05T10:00:00.123+00:00", "at": 1794967675719, "rv": null, "sq": 5}, "puts": [["2026-10-05T10:00:00.123+00:00", false], ["2026-10-05T10:00:00.123+00:00", true]]}
+OK   the account moved on with a game that has come less far: no choice, the game here goes on and is put up forced (the account keeps the other in its history), and the player is told  {"c2": {"open": false, "told": true}, "puts": [["2026-10-05T10:00:00.123+00:00", false], ["2026-10-05T10:00:00.123+00:00", true]]}
+OK   «Tidligere lagringer» in Settings lists the account's earlier saves, each with «Hent»  {"text": "1. jan., 10:00 · kontoen\nDag 40 · 512 000 kr · «Havørn» (Havsjark 35 fot) · 2 båter\nHent", "fits": true}
+OK   the shared world: my boat's place, name, type and sea time go up, and another player's boat near by shows among the boats, with an AIS card that names the owner and the sea time  {"put": {"x": 867.7466, "y": 366.1926, "hd": 0, "v": 0, "st": "aground", "boat": "T-753-LK", "vtype": "trebat", "liv": "m:T.753.LK;k:finnsnes", "lk": "m.2.short.2.none.skippercap.-.sweater.0.8.boot.9", "ck": "", "fs": 0, "rt": ""}, "peer": {"name": "Fjordbris", "type": "sjark", "L": 5.9, "st": "out", "d": 0.7135805343947557}}
+OK   a server without the looks yet gets the position, the sea time and the paint without them  {"calls": [[true, true, true], [false, true, true]], "flags": {"noLk": true, "noFs": false}}
+OK   the boat's paint goes up with her place and another player's paint comes down to her model; a server without sea time or paint yet gets the place without them, and the shared world stays on  {"up": ["h:kobolt;m:T.753.LK;k:finnsnes"], "peer": {"liv": "h:gul", "parsed": {"hull": [0.95, 0.74, 0.12, 0.6]}}, "nofs": [[true, true], [false, true]], "old": {"off": false, "noLiv": true, "peers": 1}, "calls": [true, false]}
+OK   TP2: a code longer than 160 goes up whole with the home port and the name's lettering last, and another player's lettering and home port (Båtsfjord) come down and are read  {"n": 176, "up": "h:antrasitt;o:kystfisker;d:antrasitt;r:kystfisker;t:antrasitt;v:kystfisker;s:antrasitt;g:1;f:SE.vimpel;m:T.753.LK;l:g.kompass.JHS.antrasitt.kystfisker;k:finnsnes;n:a.kystfisker", "tp2": {"want": "h:antrasitt;o:kystfisker;d:antrasitt;r:kystfisker;t:antrasitt;v:kystfisker;s:antrasitt;g:1;f:SE.vimpel;m:T.753.LK;l:g.kompass.JHS.antrasitt.kystfisker;k:finnsnes;n:a.kystfisker", "home":
+OK   there is no hiding the boat: Settings has no such choice, and the place goes up even with the old setting off  {"hide": {"card": false, "hasOff": false}, "calls": ["pos_put", "pos_world"]}
+OK   a database without pos_world gives the boats near by through pos_near, and the shared world stays on  {"old": {"noAll": true, "off": false, "peers": 1}, "calls": ["pos_world", "pos_near"]}
+Traceback (most recent call last):
+  File "/home/user/FishyBusiness-/tests/cloudtest.py", line 309, in <module>
+    asyncio.run(main())
+  File "/usr/lib/python3.11/asyncio/runners.py", line 190, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/home/user/FishyBusiness-/tests/cloudtest.py", line 187, in main
+    await pg.wait_for_function("(() => { const m = document.getElementById('modal'); if (!document.getElementById('nmUser') && !m.hidden) m.hidden = true; return !!document.getElementById('nmUser'); })()", polling=300, timeout=15000)
+  File "/home/user/FishyBusiness-/tests/_env.py", line 81, in wait_for_function
+    if end and time.monotonic() > end: raise TimeoutError('Page.wait_for_function: Timeout %dms exceeded.' % timeout)
+                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.

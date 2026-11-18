@@ -3,6 +3,16 @@ panel.addEventListener('pointerdown', () => { pressHold = true; });
 // a swipe that scrolls the panel ends in pointercancel, not pointerup, and the panel shall go on showing the clock after it too
 for (const k of ['pointerup', 'pointercancel']) window.addEventListener(k, () => { setTimeout(() => { pressHold = false; }, 250); });
 panel.addEventListener('click', e => { const el = e.target.closest('[data-act]'); if (el && !el.disabled) doAct(el); });
+// a leg is Autonav's when it ends at a point Autonav put there (the fairway, a way round, a harbour's way out or in), as runAground's
+// «how» reads it (core/01-world.js); its legs may count on the tide, which the yellow of the route list does not
+function autonavLeg(w){ return !!(w && (w.leia || w.obs || w.auto)); }
+// the leg into stop i is Autonav's when it ends at a point it put there, or begins at one: the last leg into the player's own stop
+// after Autonav's way (draftToLeia keeps the stop as it is). It was counted as the player's, yellow, and she was put aground 4 m after
+// Autonav's last point into Rørvik, tilbakemelding #155, 17.11.2026
+// (not when the stop itself lies shallower than the safe depth: a stop the player put there on purpose, a ground of 2 m, is the player's
+// risk to take, asked about and marked as before; the independent check 18.11.2026)
+function autonavLegAt(D, i){ if (autonavLeg(D[i])) return true; if (!(i > 0 && autonavLeg(D[i - 1]))) return false;
+  let d = Infinity; try { d = depthF(D[i]); } catch (e){} return !(d < safeDepth()); }
 function doAct(el){
   const act = el.dataset.act, i = +el.dataset.i, b = S.boat, L = (no, en) => S.lang === 'no' ? no : en;
   if (act === 'gset' || act === 'ghaul' || act === 'gstop') gearDoAct(act, el);
@@ -29,7 +39,9 @@ function doAct(el){
     // two new players grounded on such legs on the first day (#122-#124; Jonas: «varsler bedre ved start av utrygge ruter»): now the
     // start asks, with Autonav's safe way through the same stops as the first choice
     // (only from the button itself: code that starts a route, the tests among them, passes a plain object and is not asked)
-    if (!el.dataset.hzok && !tutOn() && typeof Element !== 'undefined' && el instanceof Element){ const sd = safeDepth(), bad = draftHazards().map((q, k) => [q, k]).filter(x => x[0].unsafe);
+    // (Autonav's own yellow legs are not asked about: the dialog would only offer Autonav again, and on them she is held back and taken
+    // round, see autonavLeg; tilbakemelding #126)
+    if (!el.dataset.hzok && !tutOn() && typeof Element !== 'undefined' && el instanceof Element){ const sd = safeDepth(), bad = draftHazards().map((q, k) => [q, k]).filter(x => x[0].unsafe && !autonavLegAt(S.draft, x[1]));
       if (bad.length){ modal('<h3>' + L('Ruta går over grunt vann', 'The route crosses shallow water') + '</h3>' +
         '<p class="warn">' + bad.slice(0, 4).map(([q, k]) => L('Etappe ', 'Leg ') + legName(k) + ' (' + [q.minD < sd ? fmt(q.minD, 1) + ' m' : '', q.rocks ? L('skjær', 'rocks') : ''].filter(Boolean).join(', ') + ')').join(', ') + (bad.length > 4 ? ' …' : '') + '</p>' +
         '<p>' + L('På de gule etappene er det grunnere enn sikker dybde (' + sd + ' m) eller skjær tett ved. Der styrer ikke båten unna grunner selv, og hun kan gå på grunn.', 'On the yellow legs the water is shallower than the safe depth (' + sd + ' m) or there are rocks close by. There the boat does not steer clear of shoals herself, and she can run aground.') + '</p>' +
@@ -40,7 +52,11 @@ function doAct(el){
     if (!meAboard() && !crewAboard().length){ toast(L(...noCrewText())); return; }
     const later = S.draftDep && S.draftDep > S.t ? S.draftDep : null;
     if (!later && b.status === 'port' && S.jobs && S.jobs.length){ toast(jobsFreight() ? L('Lasta er ikke på plass før kl. ' + hm((jobsDone() || S.t) / 60) + '.', 'The freight is not in place until ' + hm((jobsDone() || S.t) / 60) + '.') : t(jobsCrewOnly() ? 'crew_busy' : 'yard_busy', hm((jobsDone() || S.t) / 60))); return; }
-    S.plan = {wps:S.draft.map(w => ({...w})), idx:0, speed:S.draftSpeed, full:!!S.draftFull, returning:false, depAt:later, unsafe:draftHazards().map(h => h.unsafe)};
+    // (unsafe: only the player's own yellow legs, not Autonav's: its legs may count on the tide, which the yellow of the route list does
+    // not, and on such a leg she was put aground on a skerry instead of held back and taken round it, as on any leg Autonav made
+    // (05-vessels.js sailReplan, 16b-dyn.js); a leg is Autonav's when it ends at a point it put there (the fairway, a way round, a
+    // harbour's way out or in), as runAground's «how» reads it (core/01-world.js). Tilbakemelding #126, 17.11.2026, Røst, in the first trip)
+    S.plan = {wps:S.draft.map(w => ({...w})), idx:0, speed:S.draftSpeed, full:!!S.draftFull, returning:false, depAt:later, unsafe:draftHazards().map((h, i) => h.unsafe && !autonavLegAt(S.draft, i)), from:{x:b.pos.x, y:b.pos.y}};
     S.draft = []; S.draftDep = null; draftForget();
     if (later) log('Avgang planlagt ' + dayStr(later / 60) + ' kl. ' + hm(later / 60) + '.', 'Departure planned for ' + dayStr(later / 60) + ' at ' + hm(later / 60) + '.');
     else { if (b.status === 'idle') log('Ny rute satt.', 'New route set.'); depart();
@@ -440,7 +456,8 @@ function catchUp(realMs){
   if (WCLOCK.on){ const w = worldT(); mins = Math.max(0, w - S.t); if (mins > WORLD_SIM_MAX){ S.t = w - WORLD_SIM_MAX; mins = WORLD_SIM_MAX; } realMs = mins / GAME_RATE * 60000; }
   if (mins < 1) return;
   if (mins >= 10) awayStart(mins, realMs);
-  playMinutes(mins, true);
+  const c0 = performance.now(); playMinutes(mins, true);
+  try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('catchup', performance.now() - c0, mins - (CATCH_LEFT || 0)); } catch (e){}   // (steg 139: how long it took on the main thread, ms, and the game minutes played now; what waits for its waters, CATCH_LEFT, plays in tick)
   panelDirty = true;
   if (!CATCH_LEFT && AWAYR) awayEnd();
   if (realMs >= 5 * 60000) WAKE_BACK = true;

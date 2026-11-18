@@ -3,11 +3,15 @@
 # and neither the GitHub tool nor «Merge pull request» can fast-forward, so this does it: started by the work routine at night when
 # its gate holds (tools/plan/RUTINE.md «Slippet»), by a session when Jonas says «slipp nå», or by Jonas from the Actions tab.
 # It refuses: a commit that is not on the branch named, a move that is not a fast-forward, a branch other than the working branch
-# or an urgent one from main (slipp/…), and a release that touches real money or src/legal/ (tools/release/slipp.py finds that)
-# unless the release's pull request carries the label `jonas-har-sett`. The label is
+# or an urgent one from main (slipp/…), and a release that touches real money, accounts and saved player data, or src/legal/
+# (tools/release/slipp.py finds that, with the lists of tools/ci/risiko.py) unless the release's pull request carries the label
+# `jonas-har-sett`; that holds for an automatic fix alone too (slipp/auto-*), which must besides be of risk `lav` (18.11.2026). The label is
 # taken off again after the release, so the next one that touches money waits for Jonas anew.
-# The migrations and the Edge Functions the pull request lists must be out in the production BEFORE this is started; it cannot check
-# the database, so the one who starts it says so with «migreringer».
+# The migrations the pull request lists must be out in the production before main moves: either run by hand before this is started
+# («migreringer: kjørt»), or run here from the gate's server («migreringer: hetzner», live-drift fase 3, 18.11.2026; Jonas: «Kjør
+# produksjonsmigreringene fra Hetzner-serveren i selve slippet»): the server fetches the SQL from GitHub at the commit, checks it with
+# tools/ci/migsjekk.py (only expansion, safe to run twice) and runs it with the database URL only it has (tools/server/gate/migrer.py).
+# A stop or no answer stops the release before main moves. The Edge Functions the pull request lists must still be out before.
 # The push: with the deploy key in the secret SLIPP_KEY (an SSH deploy key with write access; Settings → Deploy keys) when it is set,
 # else with the workflow's own token. The token may not push commits that change .github/workflows/ (GitHub refuses it), so a release
 # with a workflow change needs the key; the step says so when it happens. A push with the token starts no workflow, so «Appen på
@@ -25,8 +29,12 @@ on:
         required: false
         default: 'ccr-5e1ba2f4-pusvyd'
       migreringer:
-        description: 'Skriv «kjørt» når migreringene og Edge Functions slipp-PR-en lister, er ute i produksjon (eller «ingen»)'
+        description: '«hetzner» (serveren kjører migreringene nå), «kjørt» (de er kjørt for hånd) eller «ingen»; Edge Functions må være ute'
         required: true
+        default: ''
+      tross_nodbrems:
+        description: 'Står nødbremsen (https://detstorebla.no/nodbrems.json)? Bare Jonas skriver «ja» her, når han slipper rettingen selv'
+        required: false
         default: ''
 permissions:
   contents: write
@@ -54,9 +62,15 @@ jobs:
           COMMIT: ${{ inputs.commit }}
           GREN: ${{ inputs.gren }}
           MIG: ${{ inputs.migreringer }}
+          TROSS: ${{ inputs.tross_nodbrems }}
         run: |
           case "$GREN" in ccr-5e1ba2f4-pusvyd|slipp/*) ;; *) echo "Bare arbeidsgrenen eller en hastegren (slipp/…) kan slippes: $GREN"; exit 1;; esac
-          case "$MIG" in kjørt|ingen) ;; *) echo "Skriv «kjørt» eller «ingen» i «migreringer»: de må være ute i produksjon før main flyttes."; exit 1;; esac
+          case "$MIG" in kjørt|ingen|hetzner) ;; *) echo "Skriv «hetzner», «kjørt» eller «ingen» i «migreringer»: de må være ute i produksjon før main flyttes."; exit 1;; esac
+          # the emergency brake's lock (live-drift fase 4, tools/server/vakt/brems.py): no release while it answers, unless Jonas starts
+          # this himself with «tross_nodbrems: ja» (the new edition he releases has no lock file, so the lock goes with it)
+          if curl -fsS -o nodbrems.json "https://detstorebla.no/nodbrems.json?t=$(date +%s)" 2>/dev/null && [ "$TROSS" != ja ]; then
+            echo "Nødbremsen står (https://detstorebla.no/nodbrems.json): $(head -c 400 nodbrems.json). Bare Jonas slipper nå, med «tross_nodbrems: ja»."; exit 1
+          fi
           git fetch -q origin main
           if [ -n "$COMMIT" ]; then
             printf '%s' "$COMMIT" | grep -qE '^[0-9a-f]{7,40}$' || { echo "Ikke en commit: $COMMIT"; exit 1; }
@@ -65,29 +79,39 @@ jobs:
           git merge-base --is-ancestor "$sha" HEAD || { echo "$sha ligger ikke på $GREN."; exit 1; }
           if git merge-base --is-ancestor "$sha" origin/main; then echo "Ingenting å slippe: main har alt $sha."; exit 1; fi
           git merge-base --is-ancestor origin/main "$sha" || { echo "main kan ikke flyttes rett fram til $sha: main har commits grenen ikke har. Flett main inn i grenen først."; exit 1; }
-          # an automatic fix alone (slipp/auto-<PR>, .github/workflows/autofix.yml, 16.11.2026): one commit on top of main, and only
-          # files a fix may touch, by the gate as the production has it (main's copy, not the branch's)
+          # an automatic fix alone (slipp/auto-<PR>, .github/workflows/autofix.yml, 16.11.2026): one commit on top of main, and of
+          # risk `lav` by tools/ci/risiko.py (18.11.2026; Jonas: «Lavrisiko UI- og feilrettinger går automatisk til produksjon»). The
+          # rules are read from the working branch, and from main as well once main has them (the stricter wins; a fix that changes
+          # risiko.py is `hoy` itself, so it cannot loosen its own gate). Before 18.11.2026 this read ALLOW and DENY from main's gate.py,
+          # which let real money and the save format through
           case "$GREN" in slipp/auto-*)
             [ "$(git rev-list --count origin/main.."$sha")" = 1 ] || { echo "En automatisk retting er én commit oppå main: $GREN har $(git rev-list --count origin/main.."$sha")."; exit 1; }
-            git show origin/main:tools/autofix/gate.py > /tmp/gate_main.py
-            git diff --name-only origin/main "$sha" > /tmp/auto-files.txt
-            python3 - <<'PY'
+            W=ccr-5e1ba2f4-pusvyd; git fetch -q origin "$W"
+            mkdir -p /tmp/rk && n=0
+            for ref in "origin/$W" origin/main; do
+              if git show "$ref:tools/ci/risiko.py" > "/tmp/rk/risiko_$n.py" 2>/dev/null; then n=$((n+1)); else rm -f "/tmp/rk/risiko_$n.py"; fi
+            done
+            [ "$n" -gt 0 ] || { echo "Fant ikke tools/ci/risiko.py på arbeidsgrenen: en automatisk retting slippes ikke uten risikoklassen."; exit 1; }
+            for f in /tmp/rk/risiko_*.py; do
+              k=$(python3 - "$f" "$sha" <<'PY'
           import importlib.util, sys
-          sp = importlib.util.spec_from_file_location('gate_main', '/tmp/gate_main.py'); g = importlib.util.module_from_spec(sp); sp.loader.exec_module(g)
-          bad = [f for f in open('/tmp/auto-files.txt').read().split('\n') if f and (not g.ALLOW.match(f) or g.DENY.match(f))]
-          if bad: print('En automatisk retting får ikke røre: ' + ', '.join(bad)); sys.exit(1)
+          sp = importlib.util.spec_from_file_location('risiko_x', sys.argv[1]); r = importlib.util.module_from_spec(sp); sp.loader.exec_module(r)
+          res = r.from_git('origin/main', sys.argv[2], '.')
+          print(res['klasse']); [print('  %s: %s' % (w['fil'], w['hvorfor']), file=sys.stderr) for w in res['grunner'][:10]]
           PY
+              )
+              [ "$k" = lav ] || { echo "En automatisk retting slippes bare alene når risikoen er lav (tools/ci/risiko.py): denne er «$k». Den venter på Jonas."; exit 1; }
+            done
             ;; esac
           python3 tools/release/slipp.py --dry --json --no-fetch --offline --base origin/main --head "$sha" > slipp.txt
           tail -n 1 slipp.txt > slipp.json
           python3 - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os
           d = json.load(open('slipp.json'))
-          # (an automatic fix alone, slipp/auto-*, is a fix of an error: one that touches real money goes without the label since
-          # 17.11.2026, Jonas: «Du kan fjerne regelen om at du får kjøre ut rettinger som gjelder penger, så lenge det er snakk om
-          # feilrettinger»; src/legal/ still waits, and so does a release of the working branch, which can hold new features)
-          auto = os.environ.get('GREN', '').startswith('slipp/auto-')
-          print('wait=%d' % (1 if d.get('legal') or (d.get('money') and not auto) else 0))
+          # real money, accounts and saved player data, and src/legal/ wait for Jonas, also in an automatic fix alone (18.11.2026; Jonas:
+          # «Fjern unntaket som lar automatiske rettinger i ekte penger, Stripe og butikk slippes uten godkjenning». From 17.11.2026 to
+          # 18.11.2026 a fix alone in real money went without the label)
+          print('wait=%d' % (1 if d.get('legal') or d.get('money') or d.get('saves') else 0))
           print('marked=%s' % ((d.get('marked') or [''])[0]))
           print('nmig=%d' % len(d.get('migrations') or []))
           PY
@@ -99,27 +123,56 @@ jobs:
           { echo "### Slipp: main $(git rev-parse --short origin/main) → $(git rev-parse --short "$sha") ($GREN)"; echo; sed -n '1,60p' slipp.txt | head -c 6000; } >> "$GITHUB_STEP_SUMMARY"
       # real money and the legal pages: never before Jonas has seen the pull request (CLAUDE.md). The label must be newer than the
       # newest commit that touches them, so one set for an earlier look does not let a later change through
-      - name: Ekte penger og src/legal/ venter på Jonas
+      - name: Ekte penger, kontoer, lagringer og src/legal/ venter på Jonas
         if: steps.what.outputs.wait == '1'
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ steps.what.outputs.pr }}
           MARKED: ${{ steps.what.outputs.marked }}
         run: |
-          [ -n "$PR" ] || { echo "Slippet rører ekte penger eller src/legal/, og det finnes ingen åpen slipp-PR som Jonas kan ha sett (python3 tools/release/slipp.py lager den)."; exit 1; }
+          [ -n "$PR" ] || { echo "Slippet rører ekte penger, kontoer, lagret spillerdata eller src/legal/, og det finnes ingen åpen slipp-PR som Jonas kan ha sett (python3 tools/release/slipp.py lager den)."; exit 1; }
           # the label itself decides: GitHub's event lists for this pull request do not show when it was set (seen 11.11.2026: neither
           # issues/N/events nor the timeline has the event), so the time is not checked. It is taken off after every release
           # («Etterpå»), so each release that touches money needs it set anew
           has=$(gh pr view "$PR" --json labels -q '.labels[] | select(.name == "jonas-har-sett") | .name')
           echo "Merkelappen på PR #$PR: ${has:-ingen}."
-          if [ -z "$has" ]; then echo "Slippet rører ekte penger eller src/legal/: PR #$PR må ha merkelappen jonas-har-sett, satt av Jonas, før main flyttes."; exit 1; fi
+          if [ -z "$has" ]; then echo "Slippet rører ekte penger, kontoer, lagret spillerdata eller src/legal/: PR #$PR må ha merkelappen jonas-har-sett, satt av Jonas, før main flyttes."; exit 1; fi
       - name: Migreringene
         env:
           MIG: ${{ inputs.migreringer }}
           NMIG: ${{ steps.what.outputs.nmig }}
+          SHA: ${{ steps.what.outputs.sha }}
+          GATE_HOST: ${{ secrets.GATE_HOST }}
+          GATE_KEY: ${{ secrets.GATE_KEY }}
+          GATE_KNOWN_HOSTS: ${{ secrets.GATE_KNOWN_HOSTS }}
+          ASK_ID: mig-${{ github.run_id }}-${{ github.run_attempt }}
         run: |
-          if [ "$NMIG" != 0 ] && [ "$MIG" != kjørt ]; then echo "Slippet har $NMIG migrering(er) (se sammendraget): kjør dem i produksjon først, og start med «kjørt»."; exit 1; fi
-          echo "Migreringer i slippet: $NMIG ($MIG)."
+          if [ "$NMIG" = 0 ]; then echo "Ingen migreringer i slippet."; exit 0; fi
+          if [ "$MIG" = kjørt ]; then echo "Migreringer i slippet: $NMIG, kjørt for hånd."; exit 0; fi
+          if [ "$MIG" != hetzner ]; then echo "Slippet har $NMIG migrering(er) (se sammendraget): start med «hetzner», eller kjør dem for hånd og start med «kjørt»."; exit 1; fi
+          if [ -z "$GATE_HOST" ] || [ -z "$GATE_KEY" ] || [ -z "$GATE_KNOWN_HOSTS" ]; then echo "::error::GATE_HOST, GATE_KEY og GATE_KNOWN_HOSTS mangler: migreringene kan ikke kjøres fra serveren."; exit 1; fi
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$GATE_KEY" > ~/.ssh/gate && chmod 600 ~/.ssh/gate
+          ssh-keygen -y -f ~/.ssh/gate >/dev/null 2>&1 || { echo "::error::GATE_KEY er ikke en nøkkel ssh kan lese (linjeskiftene har ofte falt bort da den ble limt inn)."; exit 1; }
+          printf '%s\n' "$GATE_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          R="ssh -i $HOME/.ssh/gate"; H="deploy@$GATE_HOST"
+          # only the commit goes up: the server fetches the SQL from GitHub at it and checks it itself (tools/server/gate/migrer.py)
+          printf '{"id":"%s","commit":"%s"}\n' "$ASK_ID" "$SHA" > "$RUNNER_TEMP/migrer"
+          rsync --inplace --chmod=F644 -e "$R" "$RUNNER_TEMP/migrer" "$H:in/migrer"
+          echo "Spurte serveren om migreringene ($ASK_ID, $NMIG fil(er)). Venter på svaret, høyst 15 minutter."
+          ok=
+          for i in $(seq 1 90); do
+            sleep 10
+            rm -f "$RUNNER_TEMP/migrer.json"
+            rsync -q -e "$R" "$H:out/migrer.json" "$RUNNER_TEMP/migrer.json" 2>/dev/null || continue
+            got=$(python3 -c "import json,sys; r=json.load(open(sys.argv[1])); print(r.get('id',''), 'go' if r.get('ok') is True else 'stop')" "$RUNNER_TEMP/migrer.json" 2>/dev/null || true)
+            case "$got" in "$ASK_ID go") ok=go; break;; "$ASK_ID stop") ok=stop; break;; esac
+          done
+          rsync -q -e "$R" "$H:out/migrer-log.txt" "$RUNNER_TEMP/migrer-log.txt" 2>/dev/null && cat "$RUNNER_TEMP/migrer-log.txt" || echo "(ingen logg fra serveren)"
+          [ -s "$RUNNER_TEMP/migrer.json" ] && cat "$RUNNER_TEMP/migrer.json" | tee -a "$GITHUB_STEP_SUMMARY"
+          if [ "$ok" = go ]; then echo "Migreringene er kjørt i produksjon fra serveren." | tee -a "$GITHUB_STEP_SUMMARY"; exit 0; fi
+          if [ "$ok" = stop ]; then echo "::error::Serveren stoppet migreringene (grunnen står over): main flyttes ikke."; exit 1; fi
+          echo "::error::Serveren svarte ikke på 15 minutter (journalctl -u dsb-migrer på serveren): main flyttes ikke."; exit 1
       - name: main flyttes fram
         id: push
         env:

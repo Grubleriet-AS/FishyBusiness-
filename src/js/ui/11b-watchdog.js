@@ -14,7 +14,7 @@
 const WD = {w:null, quiet:false, metaAt:0, tokAt:0};
 const WD_LIMIT = 15, WD_MAX = 5;
 const WD_SRC = `
-let cfg = null, meta = {}, tok = null, where = '?', on = false, last = Date.now(), tick = Date.now(), hang = null, sent = 0;
+let cfg = null, meta = {}, tok = null, where = '?', spor = null, on = false, last = Date.now(), tick = Date.now(), hang = null, sent = 0;
 function send(msg, extra){
   if (!cfg) return;
   const body = {msg:msg, src:'watchdog', stack:JSON.stringify(extra), meta:meta};
@@ -23,7 +23,7 @@ function send(msg, extra){
   // (a token that has run out while the page stood still: once more without it; what cannot be sent goes back to the page to keep)
   go(tok || cfg.bearer).then(r => r.ok || !tok || (r.status !== 401 && r.status !== 403) ? r : go(cfg.bearer)).then(r => { if (!r.ok) throw 0; }).catch(() => postMessage({keep:body}));
 }
-const info = s => ({s:s, where:hang.where, version:meta.version || '', ch:meta.ch || ''});
+const info = s => ({s:s, where:hang.where, version:meta.version || '', ch:meta.ch || '', spor:hang.spor || undefined});
 onmessage = e => {
   const d = e.data || {}, n = Date.now();
   if (d.cfg) cfg = d.cfg;
@@ -31,13 +31,13 @@ onmessage = e => {
   if ('tok' in d) tok = d.tok;
   if (!('on' in d)) return;
   if (hang){ const s = Math.round((n - hang.t0) / 1000); send('Spillet hang i ' + s + ' s, kom tilbake · ' + hang.where, info(s)); hang = null; }
-  last = n; on = !!d.on; if (d.w) where = d.w;
+  last = n; on = !!d.on; if (d.w) where = d.w; if (Array.isArray(d.spor)) spor = d.spor;
 };
 setInterval(() => {
   const n = Date.now(), gap = n - tick; tick = n;
   if (gap > 5000){ last += gap; if (hang) hang.t0 += gap; }   // the worker stood still too (the device slept, the page was frozen): not the page's hang
   if (!cfg || !on || hang || sent >= cfg.max || n - last < cfg.limit * 1000) return;
-  hang = {t0:last, where:where}; sent++;
+  hang = {t0:last, where:where, spor:spor}; sent++;
   const s = Math.round((n - last) / 1000);
   send('Spillet hang i ' + s + ' s · ' + where, info(s));
 }, 1000);`;
@@ -52,6 +52,8 @@ function wdBeat(off){
   const w = WD.w; if (!w) return;
   try {
     const now = Date.now(), m = {on:!off && !WD.quiet && !document.hidden && !(typeof TAB !== 'undefined' && (TAB.lost || TAB.held)), w:wdWhere()};
+    // (steg 139: the trace as it was at the last sign of life, so the worker's hang message has what came before it)
+    try { if (window.DSB_ERRTRAP && DSB_ERRTRAP.spor) m.spor = DSB_ERRTRAP.spor(); } catch (e){}
     if (now - WD.metaAt > 30000){
       WD.metaAt = now;
       // (the device only when it has been asked for already: asking makes a WebGL context, and the start is not the time for that)

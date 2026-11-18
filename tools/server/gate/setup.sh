@@ -13,6 +13,9 @@
 #   dsb-gate.path           sees in/ask change, starts dsb-gate.service
 #   dsb-gate-fetch.service  the saves in, with the key, running only what is in /opt/dsb-gate
 #   dsb-gate.service        after the fetch: the test, with no key and no network but localhost; the saves deleted when it ends
+#   dsb-migrer.path/.service  the production migrations in a release (live-drift fase 3, 18.11.2026): sees in/migrer change, and runs
+#                    migrer.py with the database URL in /etc/dsb-migrer.env (root only, EMPTY until Jonas puts it in); the SQL is
+#                    fetched from GitHub at the release's commit and checked by migsjekk.py, never taken from the upload
 #
 # For Ubuntu or Debian. Run as root on the gate's server, straight from GitHub:
 #
@@ -48,7 +51,7 @@ fi
 
 say "Installing rsync, Python, the firewall and automatic updates"
 apt-get update -q
-apt-get install -yq curl rsync openssh-client ufw unattended-upgrades python3 python3-venv
+apt-get install -yq curl rsync openssh-client ufw unattended-upgrades python3 python3-venv postgresql-client
 
 # ---------- the upload user: only rsync into /srv/dsb-gate (rrsync), no shell, no forwarding ----------
 say "The upload user"
@@ -86,9 +89,11 @@ get(){   # get <path in the repository> <where>: from the checkout beside this s
   install -m 644 -o root -g root "$tmp" "$2"; rm -f "$tmp"
 }
 get tools/server/gate/gate.py "$OPT/gate.py"
+get tools/server/gate/migrer.py "$OPT/migrer.py"
+get tools/ci/migsjekk.py "$OPT/migsjekk.py"
 get tools/saves/fetch.py "$OPT/tools/saves/fetch.py"
 get src/data/cloud.json "$OPT/src/data/cloud.json"
-python3 -m py_compile "$OPT/gate.py" "$OPT/tools/saves/fetch.py"
+python3 -m py_compile "$OPT/gate.py" "$OPT/tools/saves/fetch.py" "$OPT/migrer.py" "$OPT/migsjekk.py"
 echo "The database the gate reads: $(python3 -c "import json; print(json.load(open('$OPT/src/data/cloud.json'))['supabaseUrl'])")"
 
 say "Playwright $PW and its Chromium (a few minutes the first time)"
@@ -101,6 +106,10 @@ chmod -R a+rX "$OPT/browsers"
 # ---------- the database key: a file only root reads, empty until Jonas fills it ----------
 if [ ! -f "$ENVF" ]; then (umask 077; printf 'SUPABASE_SERVICE_ROLE_KEY=\n' > "$ENVF"); fi
 chown root:root "$ENVF"; chmod 600 "$ENVF"
+# the database URL for the migrations (a Postgres connection string with its password): its own file, root only, empty until Jonas
+MENVF=/etc/dsb-migrer.env
+if [ ! -f "$MENVF" ]; then (umask 077; printf 'SUPABASE_DB_URL=\n' > "$MENVF"); fi
+chown root:root "$MENVF"; chmod 600 "$MENVF"
 
 # ---------- the services ----------
 say "The services"
@@ -163,9 +172,42 @@ Unit=dsb-gate.service
 [Install]
 WantedBy=multi-user.target
 EOF
+# the production migrations in a release (migrer.py): network to GitHub and the database, nothing from the upload but the commit
+cat > /etc/systemd/system/dsb-migrer.service <<EOF
+[Unit]
+Description=Det Store Blå: the release's migrations in production (only the installed code, SQL from GitHub at the commit)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=dsbgate
+Group=dsbgate
+EnvironmentFile=$MENVF
+Environment=HOME=$VAR
+ExecStart=/usr/bin/python3 $OPT/migrer.py run
+TimeoutStartSec=900
+UMask=0022
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=$SITE/out
+EOF
+cat > /etc/systemd/system/dsb-migrer.path <<EOF
+[Unit]
+Description=Det Store Blå: run the release's migrations when the release job has asked
+
+[Path]
+PathChanged=$SITE/in/migrer
+Unit=dsb-migrer.service
+
+[Install]
+WantedBy=multi-user.target
+EOF
 systemctl daemon-reload
-systemctl enable dsb-gate.path >/dev/null 2>&1
-systemctl restart dsb-gate.path
+systemctl enable dsb-gate.path dsb-migrer.path >/dev/null 2>&1
+systemctl restart dsb-gate.path dsb-migrer.path
 # a save left by a run that was cut (a reboot in the middle) does not lie until the next release
 runuser -u dsbgate -- "$OPT/venv/bin/python" "$OPT/gate.py" clean 2>/dev/null || true
 
@@ -194,6 +236,14 @@ rm -rf "$T"
 
 say "Done"
 echo "The gate waits for the release job: systemctl status dsb-gate.path, journalctl -u dsb-gate -u dsb-gate-fetch, cat $SITE/out/log.txt"
+echo "The migrations: systemctl status dsb-migrer.path, journalctl -u dsb-migrer, cat $SITE/out/migrer-log.txt"
+if grep -q '^SUPABASE_DB_URL=.\+' "$MENVF"; then echo "The database URL for the migrations is in $MENVF from before."
+else
+  echo "The migrations in a release need the production database's connection string. Until it is in, a release with migrations"
+  echo "stops, and they are run by hand as before. Supabase -> the production project -> Connect -> «Session pooler» -> the URI, with"
+  echo "the database password filled in. Put it in with this command (it asks without showing it; never in a chat, a file or the repo):"
+  echo "   read -rsp 'Database URL: ' K && printf 'SUPABASE_DB_URL=%s\\n' \"\$K\" > $MENVF && chmod 600 $MENVF && unset K && echo ' saved'"
+fi
 if grep -q '^SUPABASE_SERVICE_ROLE_KEY=.\+' "$ENVF"; then echo "The database key is in $ENVF from before."
 else cat <<EOF
 

@@ -141,6 +141,10 @@ const G3 = (() => {
   // the binoculars in the bridge view (two fingers apart, the user's list 04.10.2026): the zoom, 1 to 8; what is drawn in detail
   // goes by the distance it looks to be at (distance / zoom), and the point lights grow with it
   const ZF = () => cam.helm ? cam.zoom || 1 : 1;
+  // the lanterns' glow at the size it has on a tablet, in the world and not in pixels: a point sprite is sized in the framebuffer's pixels,
+  // so on a small canvas (a phone in landscape, 400-500 px high with the dpr cap) the white light's glow was half a metre round and up to
+  // 48 px, dancing on its staff (tilbakemelding #145, 17.11.2026, «Hvit/grå stor prikk danser rundt på skjermen»). 1 from 1200 px up
+  const LANT_K = () => Math.min(1, (canvas.height || 1200) / 1200);
   const binoc = document.createElement('div'); binoc.id = 'binoc'; binoc.hidden = true; binoc.innerHTML = '<span></span>'; wrap.appendChild(binoc);
   // the bound vessel's type when it has a model (vessel3d.js), else the skiff; GEO(t) is where things sit on it
   const vtype = () => (S.boat.type && VESSELS[S.boat.type] && (VGEO[S.boat.type] || vesselSpec(S.boat.type))) ? S.boat.type : 'skiff';

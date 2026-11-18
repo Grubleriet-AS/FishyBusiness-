@@ -1,5 +1,5 @@
 # Automatisk retting (02.11.2026; Jonas: «jeg vil ha prosessen så helautomatisert som overhodet mulig»). The feedback routine
-# (tools/feedback/RUTINE.md) opens a PR against the working branch with the label `autofix` when it has fixed an error from the error
+# (tools/feilretting/RUTINE.md, before 18.11.2026 tools/feedback/RUTINE.md) opens a PR against the working branch with the label `autofix` when it has fixed an error from the error
 # list or a player's feedback. This runs the gate on it (tools/autofix/gate.py: the files a fix may touch, its size, no code that talks
 # to other hosts or runs text, and no test red that is green on the working branch), and when it passes, merges the PR and starts the
 # deploy (a merge made with this workflow's token does not start the push workflows by itself). Since L1a (10.11.2026) the working
@@ -7,6 +7,10 @@
 # at once (the step «Slipper rettingen til spillerne» below; Jonas: «der brukerne er, altså på produksjonsutgaven»). One that cannot
 # go alone waits for the next release (tools/release/slipp.py and «Slippet» in tools/plan/RUTINE.md).
 # A PR the gate stops gets the label `autofix-stoppet` and a comment with why; it waits for Jonas as before.
+# From 18.11.2026 only a fix of risk `lav` (tools/ci/risiko.py: the UI, the stylesheet, tests only added to, docs; at most 150 lines and
+# 6 files) passes. Real money, accounts and saved player data, the database and the core mechanics are `hoy` or `middels`: the gate
+# stops them with the label `venter-pa-jonas` as well, and Jonas lets one in with one click (he merges the PR). Jonas 18.11.2026:
+# «Fjern unntaket som lar automatiske rettinger i ekte penger, Stripe og butikk slippes uten godkjenning» (it stood from 17.11.2026).
 # Since 16.11.2026 a fix from a player's feedback goes out the same way as one from the error list (Jonas: «feilrettinger fra brukere
 # skal slippes rett til main ... Rettelser må skje kjapt», then «fiks og kjør ut alt du kan»; before, Ø6 funn 8 held them for him).
 # The gate is the guard against a «fix» steered by a player's text: the files, the size, no code that talks to other hosts or runs
@@ -79,6 +83,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
           BASE: ${{ github.base_ref }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
         run: |
           sha=$(gh pr view "$PR" --json state,mergeCommit -q 'select(.state == "MERGED") | .mergeCommit.oid')
           [ -n "$sha" ] || { echo "PR-en ble ikke flettet i denne kjøringen; ingenting å slippe."; exit 0; }
@@ -105,17 +112,47 @@ jobs:
           \`\`\`"
             exit 0
           fi
+          # the emergency brake's lock (live-drift fase 4, tools/server/vakt/brems.py): while https://detstorebla.no/nodbrems.json answers,
+          # nothing goes out by itself; Jonas lifts it with a release he starts
+          if curl -fsS -o /dev/null "https://detstorebla.no/nodbrems.json?t=$(date +%s)" 2>/dev/null; then
+            say "Rettingen ligger på testutgaven, men nødbremsen har stoppet automatiske slipp (https://detstorebla.no/nodbrems.json). Den kommer til detstorebla.no med neste slipp Jonas starter."
+            exit 0
+          fi
+          # the build that goes out, tried where it is served first (live-drift fase 4; Jonas: «Verifisering av nøyaktig det bygget som skal ut
+          # (main + rettingen) på test.detstorebla.no/auto/ inkludert oppstartstest og den nye testen før produksjon endres»): built from this
+          # branch exactly as deploy.yml builds the production, uploaded to auto/, opened there (tools/release/autoprove.py), and the boot
+          # test and the fix's own red-first tests run on the same bytes. Anything that does not hold, and nothing goes out
+          stop_auto(){ say "Rettingen ligger på testutgaven, men prøven av bygget på test.detstorebla.no/auto/ holdt ikke ($1), så den slippes ikke alene. Den kommer med neste slipp.
+
+          \`\`\`
+          $(tail -n 15 auto.txt 2>/dev/null | head -c 2500)
+          \`\`\`"; exit 0; }
+          [ -n "$DEPLOY_HOST" ] || stop_auto "DEPLOY_HOST mangler"
+          install -d -m 700 ~/.ssh; printf '%s\n' "$DEPLOY_KEY" > ~/.ssh/deploy && chmod 600 ~/.ssh/deploy; printf '%s\n' "$DEPLOY_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+          { pip install -q requests && KYST_CHANNEL=prod python3 tools/map/game.py && KYST_CHANNEL=prod KYST_PWA=1 node build.mjs; } > auto.txt 2>&1 || stop_auto "bygget"
+          rsync -az --delete-after --delay-updates -e "ssh -i $HOME/.ssh/deploy" dist-pwa/ "deploy@$DEPLOY_HOST:auto/" >> auto.txt 2>&1 || stop_auto "opplastingen"
+          python3 tools/release/autoprove.py https://test.detstorebla.no/auto/ dist-pwa/version.json >> auto.txt 2>&1 || stop_auto "oppstarten på /auto/"
+          names=$(python3 -c "import json; t=json.load(open('gate-main.json')).get('tests', {}); print(' '.join(dict.fromkeys(['boottest'] + (t.get('bevis') or []))))" 2>/dev/null || echo boottest)
+          KYST_DIST=dist-pwa python3 tests/run.py smoke $names >> auto.txt 2>&1 || stop_auto "testene på det samme bygget: $names"
+          grep -q ' 0 FEIL' auto.txt || stop_auto "testene på det samme bygget: $names"
           git push -f origin "$br"
           gh workflow run slipp.yml --ref "$BASE" -f gren="$br" -f migreringer=ingen
-          say "Rettingen holder også mot spillernes versjon, og slippes nå alene til detstorebla.no (grenen \`$br\`, workflowen «Slipp»; lagringsporten kjører før opplastingen). main flettes tilbake i arbeidsgrenen etterpå."
-      - name: Stoppet
+          say "Rettingen holder også mot spillernes versjon, og bygget holdt på test.detstorebla.no/auto/ (oppstarten der, og $names på de samme filene). Den slippes nå alene til detstorebla.no (grenen \`$br\`, workflowen «Slipp»; lagringsporten kjører før opplastingen). main flettes tilbake i arbeidsgrenen etterpå."
+      - name: Stoppet eller klar for Jonas
         if: steps.gate.outputs.code != '0'
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
         run: |
-          gh label create autofix-stoppet --color B60205 --description "Porten stoppet den automatiske rettingen" 2>/dev/null || true
-          gh pr edit "$PR" --add-label autofix-stoppet
-          { echo "Porten stoppet den automatiske rettingen. Den venter på Jonas."; echo; echo '```'; head -c 3500 gate.txt; echo '```'; echo; echo "---"; echo "_Automatisk retting (.github/workflows/autofix.yml)_"; } > body.md
+          # code 3: stopped for its risk alone (middels or hoy), tested and without a fault: ready for Jonas' click (18.11.2026)
+          if [ "${{ steps.gate.outputs.code }}" = 3 ]; then
+            gh label create venter-pa-jonas --color FBCA04 --description "Klar: middels eller høy risiko, venter på ett klikk fra Jonas" 2>/dev/null || true
+            gh pr edit "$PR" --add-label venter-pa-jonas
+            { echo "**Venter på deg: rettingen rører noe som bare går ut med ditt klikk** (risiko $(sed -n 's/^risiko: //p' gate.txt | head -1), \`tools/ci/risiko.py\`)."; echo; echo "Ser den riktig ut, trykker du «Merge» på PR-en. Den går da til testutgaven og med neste slipp. Vil du ikke ha den, lukker du PR-en."; echo; echo '```'; head -c 3500 gate.txt; echo '```'; echo; echo "---"; echo "_Automatisk retting (.github/workflows/autofix.yml)_"; } > body.md
+          else
+            gh label create autofix-stoppet --color B60205 --description "Porten stoppet den automatiske rettingen" 2>/dev/null || true
+            gh pr edit "$PR" --add-label autofix-stoppet
+            { echo "Porten stoppet den automatiske rettingen. Den venter på Jonas."; echo; echo '```'; head -c 3500 gate.txt; echo '```'; echo; echo "---"; echo "_Automatisk retting (.github/workflows/autofix.yml)_"; } > body.md
+          fi
           gh pr comment "$PR" --body-file body.md
-          exit 1
+          [ "${{ steps.gate.outputs.code }}" = 3 ] || exit 1

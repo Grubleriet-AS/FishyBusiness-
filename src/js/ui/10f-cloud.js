@@ -77,6 +77,45 @@ async function cloudToken(force){ if (force){ if (Date.now() - (CLOUD.forceAt ||
 // (WorkOS) takes it all along: guest_claim() gives a one-time code here, kept on the device over the sign-in, and guest_merge(code) moves
 // everything to the account. A device that has been signed in before (CLOUD_SIGNED) meets the gate as before.
 const GUEST_KEY = 'dsb_guest', GUEST_CODE = 'dsb_guest_code', REG_GIFT = 'dsb_reg_gift', GUEST_LANDS = 2, NAMES_KEY = 'dsb_names';
+// the invite link (tilbakemelding #132, Jonas 17.11.2026; supabase/migrations/20261117180000_verv.sql): ?verv=<code> is kept on the
+// device (REF_KEY) over the guest's play and the sign-in, and handed in once the friend is registered (refClaim); the one who invited
+// gets a takk-haill from the server when the friend has landed fish, at most five a month
+const REF_KEY = 'dsb_ref', REF_RE = /^[0-9a-f]{8}$/;
+(() => { try { if (typeof location === 'undefined' || !location.search) return; const q = new URLSearchParams(location.search), c = String(q.get('verv') || '').trim().toLowerCase(); if (!q.has('verv')) return;
+  if (REF_RE.test(c) && !localStorage.getItem(REF_KEY)) localStorage.setItem(REF_KEY, c);
+  q.delete('verv'); history.replaceState(history.state, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); } catch (e){} })();
+async function refClaim(){
+  let c = null; try { c = localStorage.getItem(REF_KEY); } catch (e){}
+  if (!c || !CLOUD.user || CLOUD.guest) return;
+  try { const r = await cloudRpc('ref_claim', {code:c}); try { localStorage.removeItem(REF_KEY); } catch (e){} cloudEv('ref_claim', {r:String(r)}); }
+  catch (e){ if (!/ 404$/.test(String(e && e.message))) console.warn('ref_claim', e); }   // (kept: tried again at the next start)
+}
+async function refLoad(){
+  // (a server without the migration answers 404: the row stays away until it has it)
+  try { CLOUD.ref = await cloudRpc('ref_mine', {}); } catch (e){ CLOUD.ref = / 404$/.test(String(e && e.message)) ? {none:true} : {err:true}; }
+  if (typeof PHONE !== 'undefined' && PHONE.isOpen()) PHONE.render();
+}
+const refUrl = code => (typeof location !== 'undefined' && /^https:$/.test(location.protocol) && /detstorebla\.no$/.test(location.hostname) ? location.origin : 'https://detstorebla.no') + '/?verv=' + code;
+async function refShare(){
+  const R = CLOUD.ref; if (!R || !R.code) return;
+  const url = refUrl(R.code), text = cloudL('Bli med og fisk langs kysten i Det Store Blå.', 'Come fishing along the coast in Det Store Blå.');
+  cloudEv('ref_share', {});
+  try { if (navigator.share){ await navigator.share({title:'Det Store Blå', text, url}); return; } } catch (e){ if (e && e.name === 'AbortError') return; }
+  try { await navigator.clipboard.writeText(url); toast(cloudL('Lenka er kopiert.', 'The link is copied.')); }
+  catch (e){ const i = document.getElementById('accRef'); if (i){ i.focus(); i.select(); } toast(cloudL('Kopier lenka i feltet.', 'Copy the link in the field.')); }
+}
+// in the account card: the link, and how it has gone this month (fetched the first time the card is shown)
+function refRow(){
+  const L2 = cloudL, R = CLOUD.ref;
+  if (CLOUD.ref === undefined){ CLOUD.ref = null; refLoad(); }
+  if (R && R.none) return '';
+  const head = '<div class="acc-ref"><b>' + L2('Inviter en venn', 'Invite a friend') + '</b><p class="ph-note">' +
+    L2('Når en venn du inviterer, har registrert seg og levert fisk, får du takk-haill: 12 timer med fullt haill. Inntil 5 i måneden.', 'When a friend you invite has registered and landed fish, you get a thank-you luck: 12 hours of full luck. Up to 5 a month.') + '</p>';
+  if (!R) return head + '<p class="ph-note">' + L2('Henter lenka …', 'Getting the link …') + '</p></div>';
+  if (R.err || !R.code) return head + '<p class="ph-note">' + L2('Lenka kan ikke hentes nå.', 'The link cannot be had now.') + '</p><button class="ph-btn alt" data-pa="cloudRefLoad">' + L2('Prøv igjen', 'Try again') + '</button></div>';
+  return head + '<input id="accRef" readonly value="' + gEsc(refUrl(R.code)) + '"><button class="ph-btn p" data-pa="cloudRefShare">' + L2('Del lenka', 'Share the link') + '</button>' +
+    '<p class="ph-note">' + L2('Denne måneden: ' + R.month + ' av ' + R.max + '.', 'This month: ' + R.month + ' of ' + R.max + '.') + (R.waiting ? ' ' + L2('Venter på at ' + R.waiting + (R.waiting > 1 ? ' venner' : ' venn') + ' leverer fisk.', 'Waiting for ' + R.waiting + (R.waiting > 1 ? ' friends' : ' friend') + ' to land fish.') : '') + '</p></div>';
+}
 function guestGet(){ try { return JSON.parse(localStorage.getItem(GUEST_KEY) || 'null'); } catch (e){ return null; } }
 async function guestAuth(path, body){
   const c = CLOUD_CFG, r = await fetch(c.supabaseUrl.replace(/\/$/, '') + '/auth/v1/' + path, {method:'POST', headers:{'Content-Type':'application/json', apikey:c.supabaseAnon}, body:JSON.stringify(body)});
@@ -128,7 +167,8 @@ async function cloudRpc(fn, args, opt){
     headers:{'Content-Type':'application/json', apikey:c.supabaseAnon, ...(bearer ? {Authorization:'Bearer ' + bearer} : {})}, body:JSON.stringify(args || {})}); }
   catch (e){ rpcFail(fn); if (ac && ac.signal.aborted) throw new Error(fn + ' timeout'); throw e; }
   finally { clearTimeout(tm); }
-  if (r.status === 401 && tok && !(opt && opt.fresh)) return cloudRpc(fn, args, {...(opt || {}), fresh:true});
+  // (also when the token could not be had and the call went without one: the refresh that failed a moment ago, as the phone woke)
+  if (r.status === 401 && !(opt && (opt.fresh || opt.anon))) return cloudRpc(fn, args, {...(opt || {}), fresh:true});
   if (!r.ok){ if (r.status >= 500 || r.status === 401 || r.status === 408 || r.status === 429) rpcFail(fn); throw new Error(fn + ' ' + r.status); }
   RPCB.delete(fn);
   const t = await r.text(); return t ? JSON.parse(t) : null;
@@ -214,6 +254,7 @@ async function cloudGate(){
   try {
     const h = await cloudRpc('tm_hello', {meta:cloudMeta()}); CLOUD.consent = h ? h.consent : null; CLOUD.owned = (h && h.owned) || []; CLOUD.admin = !!(h && h.admin === true); CLOUD.shopOff = !!(h && h.shop === false);   // (shopOff: the shop closed for accounts made after the switch, P5 10.11.2026, 20261110170000_shop_gate.sql)
     if (typeof bootgReport === 'function') bootgReport();   // a start before that locked: told now, before this one builds the game (11-boot.js BOOTG)
+    refClaim();   // a friend's invite code, once registered (no wait: the start does not hang on it)
     // the save: which of the game here and the account's goes on (cloudSync)
     if (sessionStorage.getItem('dsb_force')){ sessionStorage.removeItem('dsb_force'); CLOUD.forceNext = true; }   // a game taken back (cloudRestore)
     await cloudClaim(true);   // this device takes the game; the one that had it sends its last state first (cloudClaim)
@@ -316,7 +357,28 @@ function errNoise(msg){
   // (a fetch the network let down says so in the browser's words and nothing more: the save and the cloud try again by themselves)
   return /Failed to start the audio device|The AudioContext was not allowed to start|ResizeObserver loop|^Script error\.?$|AbortError|The user aborted a request|Failed to fetch|NetworkError when attempting|^(TypeError: )?Load failed$|net::ERR_/i.test(msg);
 }
-function cloudErr(msg, src, stack, kind){
+// the trace (steg 139, errtrap.js DSB_ERRTRAP.spor) goes with a crash, a hang and the severe 3D faults (the ones the weekly report
+// counts, supabase/migrations/20261118220000_agent_uke.sql), never with the others: they stay small
+const ERR_SEVERE3D = /^3D (svart skjerm|bildet er én farge|NaN i )/;
+function errSporOf(kind, msg){
+  if (kind !== 'hang' && !(kind === 'gfx' && ERR_SEVERE3D.test(msg))) return null;
+  try { return window.DSB_ERRTRAP && DSB_ERRTRAP.spor ? DSB_ERRTRAP.spor() : null; } catch (e){ return null; }
+}
+// into the stack (tm_error keeps the stack up to 2000 characters and lets only the fields it knows through meta, so the trace goes
+// here): into its JSON when it is that, after it otherwise; the oldest entries go first when it would not fit
+function errWithSpor(stack, spor){
+  stack = String(stack || ''); if (!Array.isArray(spor) || !spor.length) return stack;
+  let o = null; try { o = JSON.parse(stack); } catch (e){}
+  const sp = spor.slice();
+  for (;;){
+    const s = o && typeof o === 'object' && !Array.isArray(o) ? JSON.stringify(Object.assign({}, o, {spor:sp})) : stack + (stack ? '\n' : '') + 'spor ' + JSON.stringify(sp);
+    if (s.length <= 2000 || !sp.length) return s;
+    sp.shift();
+  }
+}
+const ERR_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// opt (steg 139): {sid, spor} of another page, the one that crashed (aliveCheck): its session and its trace go before this page's
+function cloudErr(msg, src, stack, kind, opt){
   if (!msg || !cloudOn()) return;   // no cloud for this page (the tests, the artifact, another host): nothing to send to
   msg = String(msg); if (errNoise(msg)) return;
   const key = msg.slice(0, 160);
@@ -324,7 +386,9 @@ function cloudErr(msg, src, stack, kind){
   CLOUD.errSeen[key] = 1; CLOUD.errs++;
   // (each half alone: while the page loads, one of them may not be able to say its part yet)
   const meta = {}; try { Object.assign(meta, cloudMeta()); } catch (e){} try { Object.assign(meta, cloudDev()); } catch (e){}
-  errSend({msg:srcMapStr(msg).slice(0, 400), src:srcMapStr(src).slice(0, 200), stack:srcMapStr(stack).slice(0, 2000), meta});
+  if (opt && typeof opt.sid === 'string' && ERR_UUID.test(opt.sid)) meta.sid = opt.sid;
+  const spor = opt && Array.isArray(opt.spor) ? opt.spor : errSporOf(kind, msg);
+  errSend({msg:srcMapStr(msg).slice(0, 400), src:srcMapStr(src).slice(0, 200), stack:errWithSpor(srcMapStr(stack), spor).slice(0, 2000), meta});
   if (kind === 'throw' && CLOUD.on && ERR.ready && typeof FEEDBACK !== 'undefined') setTimeout(() => { try { FEEDBACK.nudge('err'); } catch (e){} }, 2000);   // what the player saw helps (06e-feedback.js)
 }
 function errSend(e){
@@ -366,6 +430,9 @@ function errStart(){
   const p = ERR.pend.splice(0); for (const e of p) errSend(e);
   errFlush(); addEventListener('online', () => setTimeout(errFlush, 3000));
   setTimeout(errFlush, 60000);
+  // (and again every 2.5 minutes: an error kept while the cloud said no is held back by cloudRpc's pause after a failure (RPCB, at
+  // most RPC_BMAX), and until 18.11.2026 nothing asked again after the pause before the next start; errtest. Cheap when nothing waits)
+  setInterval(errFlush, 150000);
   try { if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({dsbErrPull:1}); } catch (e){}   // what the worker kept
   hangWatch();
 }
@@ -383,8 +450,10 @@ function aliveBeat(gone){
     if (gone) delete a[ALIVE.id];
     else { let d = {}; try { d = cloudDev(); } catch (e){}
       const mem = performance && performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null;
+      // (steg 139: the session and the trace too, for it is the next page that tells of a crash: CLOUD.sid is gone with this one)
+      let spor = null; try { spor = window.DSB_ERRTRAP && DSB_ERRTRAP.spor ? DSB_ERRTRAP.spor() : null; } catch (e){}
       a[ALIVE.id] = {t:Date.now(), vis:!document.hidden, up:Math.round((Date.now() - ALIVE.t0) / 1000), view:d.view, lvl:d.lvl, mem, gl:d.gl, ready:typeof SIMREADY !== 'undefined' && !!SIMREADY,
-        v:(document.querySelector('meta[name=dsb-version]') || {}).content || 'dev'}; }
+        v:(document.querySelector('meta[name=dsb-version]') || {}).content || 'dev', sid:CLOUD.sid || null, spor}; }
     localStorage.setItem(ALIVE_KEY, JSON.stringify(a));
   } catch (e){}
 }
@@ -398,7 +467,8 @@ function aliveCheck(){
     if (!b.vis) continue;
     const where = !b.ready ? 'under lasting' : b.view === '3d' ? '3d' : 'kart', mins = Math.round((now - b.t) / 60000);
     cloudErr('Krasj: siden stoppet mens den var på skjermen · ' + where, 'crash',
-      JSON.stringify({version:b.v, up_s:b.up, view:b.view, lvl:b.lvl, js_mb:b.mem, gl_mb:b.gl == null ? null : b.gl, min_ago:mins}), 'crash');
+      JSON.stringify({version:b.v, up_s:b.up, view:b.view, lvl:b.lvl, js_mb:b.mem, gl_mb:b.gl == null ? null : b.gl, min_ago:mins}), 'crash',
+      {sid:b.sid, spor:Array.isArray(b.spor) ? b.spor : null});
   }
   if (changed) try { localStorage.setItem(ALIVE_KEY, JSON.stringify(a)); } catch (e){}
 }
@@ -420,8 +490,11 @@ function hangWatch(){
     if (!vis || document.hidden || gap < 5 || gap > 120) return;
     const b = gap < 10 ? '5–10' : gap < 30 ? '10–30' : '30–120';
     let d = {}; try { d = cloudDev(); } catch (e){}
-    cloudErr('Heng: spillet sto stille i ' + b + ' s · ' + (d.view || '?'), 'hang', JSON.stringify({s:Math.round(gap * 10) / 10, view:d.view, lvl:d.lvl, js_ms:d.js,
-      js_mb:performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null}), 'hang');
+    // (steg 139: in 3D, whether it was the first frames, how long the view had been up, the longest frame since the last message and,
+    // when the profile is on, the part of the frame that took the most; view3d/24-cinema.js HFR)
+    let f = null; try { f = typeof G3 !== 'undefined' && G3.hangInfo ? G3.hangInfo() : null; } catch (e){}
+    cloudErr('Heng: spillet sto stille i ' + b + ' s · ' + (d.view || '?'), 'hang', JSON.stringify(Object.assign({s:Math.round(gap * 10) / 10, view:d.view, lvl:d.lvl, js_ms:d.js,
+      js_mb:performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null}, f ? {g3:f} : {})), 'hang');
   }, 1000);
 }
 // the save goes up when it has changed (every three minutes and when the page closes); an older one than the cloud's is refused,
@@ -560,10 +633,20 @@ async function cloudSaveSoon(closing, manual){
       if (!CLOUD.oldPut){ try { r = await cloudRpc('save_put2', {data, saved_at:iso, game_t:Math.round(S.t || 0), base:sync ? sync.rev : null, force:!!CLOUD.forceNext, summary:saveSum(S)}, keep); } catch (e){ if (!/ 404$/.test(e.message)) throw e; CLOUD.oldPut = true; } }
       if (CLOUD.oldPut) r = await cloudRpc('save_put', {data, saved_at:iso, game_t:Math.round(S.t || 0), force:!!CLOUD.forceNext}, keep);
     }
-    if (r && r.ok){ CLOUD.lastSave = at; CLOUD.forceNext = false; TAB.rv = r.rev; CLOUD.fp0 = fp; syncSet(r.saved_at || iso, at, r.rev, S.seq); cloudStatus('ok'); }
+    if (r && r.ok){ CLOUD.e401 = 0; CLOUD.lastSave = at; CLOUD.forceNext = false; TAB.rv = r.rev; CLOUD.fp0 = fp; syncSet(r.saved_at || iso, at, r.rev, S.seq); cloudStatus('ok'); }
     else if (r && r.taken && r.cloud && r.cloud.active_dev && r.cloud.active_dev !== deviceId()){ CLOUD.saving = false; cloudPassed(r.cloud); }
     else if (r && r.cloud && !closing) cloudConflict(r.cloud, r.moved);
-  } catch (e){ if (!/ wait$/.test(e.message)) console.error(e); cloudStatus(navigator.onLine === false ? 'offline' : 'error'); } finally { CLOUD.saving = false; }
+    // (the server or the network let it down: a time-out, a 5xx, a 408 or 429, a 401 a fresh token did not mend. The game stays on the
+    // device and goes with the next round, the status says so, and it is not a fault of the game for the error log; klynge:471787f3.
+    // A 401 that comes back three rounds in a row is the sign-in that has run out, and the save no longer reaches the account: that one
+    // is logged, once per streak, so it stays in sight; Jonas 18.11.2026)
+  } catch (e){
+    const m = e.message || '';
+    if (/ 401$/.test(m)){ CLOUD.e401 = (CLOUD.e401 || 0) + 1; if (CLOUD.e401 === 3) console.error(new Error('save_put4 401 tre ganger på rad: innloggingen er trolig utløpt')); }
+    else if (!/ wait$/.test(m)) CLOUD.e401 = 0;
+    if (!/ (wait|timeout|401|408|429|5\d\d)$/.test(m)) console.error(e);
+    cloudStatus(navigator.onLine === false ? 'offline' : 'error');
+  } finally { CLOUD.saving = false; }
 }
 // a save soon after what matters (a landing, casting off), not only on the minute: what a player does just before switching device
 function cloudSoon(ms){ if (!CLOUD.on) return; clearTimeout(CLOUD.soonT); CLOUD.soonT = setTimeout(() => { try { save(); } catch (e){} cloudSaveSoon(); }, ms || 8000); }
@@ -751,7 +834,7 @@ function cloudCard(){
   return '<div class="ph-card"><h4>' + L2('Konto', 'Account') + '</h4><p class="ph-note">' + L2('Logget inn som ', 'Signed in as ') + (u.email || '').replace(/</g, '&lt;') + '. ' +
     L2('Spillet lagres også på kontoen, så du kan fortsette på en annen enhet.', 'The game is also saved to the account, so you can go on from another device.') + '</p><p class="ph-note" id="syncNote">' + cloudStatusText() + '</p>' +
     '<button class="ph-btn alt" data-pa="cloudSaveNow">' + L2('Lagre nå', 'Save now') + '</button>' + histRows() +
-    '<label><span>' + L2('Del bruksstatistikk', 'Share usage statistics') + '</span><input type="checkbox" data-pa="cloudStat"' + (CLOUD.consent ? ' checked' : '') + '></label>' + pushCardRow() +
+    '<label><span>' + L2('Del bruksstatistikk', 'Share usage statistics') + '</span><input type="checkbox" data-pa="cloudStat"' + (CLOUD.consent ? ' checked' : '') + '></label>' + pushCardRow() + refRow() +
     '<div class="acc-name"><label for="accUser">' + L2('Brukernavn', 'Player name') + (S.user ? ': <b>' + gEsc(S.user) + '</b>' : '') + '</label><input id="accUser" maxlength="20" autocomplete="off" placeholder="' + L2('Vises ved båten din', 'Shown beside your boat') + '"><button class="ph-btn alt" data-pa="cloudName">' + L2('Lagre', 'Save') + '</button></div><p class="ph-note" id="accUserNote">' + L2('Ett ord, 3–20 tegn: bokstaver, tall, punktum, bindestrek eller understrek.', 'One word, 3–20 characters: letters, digits, dots, hyphens or underscores.') + '</p>' +
     (S.unnamed ? '<div class="acc-name"><label for="accBoat">' + L2('Døp båten', 'Name the boat') + '</label><input id="accBoat" maxlength="20" autocomplete="off" placeholder="' + L2('F.eks. Havbris', 'e.g. Havbris') + '"><button class="ph-btn alt" data-pa="cloudBoat">' + L2('Døp', 'Name') + '</button></div>' : '') +
     '<button class="ph-btn alt" data-pa="cloudOut">' + L2('Logg ut', 'Sign out') + '</button><button class="ph-btn alt" data-pa="cloudDel">' + L2('Slett kontoen', 'Delete the account') + '</button>' +
@@ -794,6 +877,8 @@ function cloudAct(a, d){
   if (a === 'cloudSignIn'){ if (isGuest()) guestRegister(true); return true; }
   if (a === 'cloudReg'){ guestAsk(guestDue() ? 'due' : 'soft'); return true; }
   if (a === 'cloudHist'){ cloudHist(); return true; }
+  if (a === 'cloudRefShare'){ refShare(); return true; }
+  if (a === 'cloudRefLoad'){ CLOUD.ref = null; refLoad(); return true; }
   if (a === 'cloudName'){ const v = String(($('accUser') || {}).value || '').trim(); const w = v ? nameWhy(v) : cloudL('Skriv et brukernavn først.', 'Type a player name first.'); if (w){ toast(w, 6000); const n = $('accUserNote'); if (n){ n.textContent = w; n.classList.add('bad'); } return false; } nameTake(v); return true; }
   if (a === 'cloudBoat'){ const v = String(($('accBoat') || {}).value || '').trim(); if (!v) return false; boatChristen(v); return true; }
   if (a === 'cloudRestore'){ cloudRestore(d && d.id); return true; }
@@ -964,13 +1049,19 @@ function guestOpenAsk(){
   setTimeout(go, 6000);
 }
 // without the cloud (the artifact, the tests) there is no registering: the boat is named at the same point, after the second landing or
-// from the second opening (the tests, #notut, land many times and get it only when they ask)
+// from the second opening (the tests, #notut, land many times and get it only when they ask). A registered player whose boat still goes
+// by her mark (the name was optional when the account was made; Jonas 17.11.2026: «mange spillere ikke har døpt båtene sine, så kanskje
+// vi må gi de en liten "heads-up"») is asked the same way after a landing, once a session and at most NUDGE_MAX times in all; a guest
+// names her when registering (guestAsk)
+const NUDGE_MAX = 3;
 function nameNudge(force){
-  if ((typeof CLOUD !== 'undefined' && CLOUD.on) || !S.unnamed || NAME_ASKED || tutOn() || (NOTUT && !force)) return;
+  const cloud = typeof CLOUD !== 'undefined' && CLOUD.on;
+  if (!S.unnamed || NAME_ASKED || tutOn() || (NOTUT && !force)) return;
+  if (cloud && (isGuest() || !CLOUD.user || (S.nameNudgeN || 0) >= NUDGE_MAX)) return;
   if ((S.landN || 0) < GUEST_LANDS && (S.opens || 0) < 2) return;
-  NAME_ASKED = true;
-  const go = () => { const m = document.getElementById('modal'); if (m && !m.hidden){ setTimeout(go, 4000); return; }
-    modal('<div class="ob"><h2>' + cloudL('Døp båten', 'Name the boat') + '</h2><p>' + cloudL('Båten har gått på registreringsmerket lenge nok. Hva skal hun hete?', 'The boat has gone by her registration mark long enough. What will she be called?') + '</p>' +
+  NAME_ASKED = true; if (cloud) S.nameNudgeN = (S.nameNudgeN || 0) + 1;
+  const go = () => { const m = document.getElementById('modal'); if (m && !m.hidden){ setTimeout(go, 4000); return; } if (!S.unnamed) return;
+    modal('<div class="ob"><h2>' + cloudL('Døp båten', 'Name the boat') + '</h2><p>' + cloudL('Båten har gått på registreringsmerket lenge nok. Hva skal hun hete?', 'The boat has gone by her registration mark long enough. What will she be called?') + (cloud ? ' ' + cloudL('Navnet males på skroget, og andre spillere ser det ved båten din.', 'The name is painted on the hull, and other players see it beside your boat.') : '') + '</p>' +
       '<label for="nmBoat">' + cloudL('Båtens navn', 'Boat name') + '</label><input id="nmBoat" maxlength="20" autocomplete="off" placeholder="' + cloudL('F.eks. Havbris', 'e.g. Havbris') + '">' +
       '<div class="btns"><button class="btn" data-close>' + cloudL('Senere', 'Later') + '</button><button class="btn primary" data-close id="nmGo">' + cloudL('Døp båten', 'Name her') + '</button></div></div>');
     document.getElementById('nmGo').addEventListener('click', () => boatChristen(document.getElementById('nmBoat').value)); };

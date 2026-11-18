@@ -135,6 +135,13 @@ function siteOut(s){
   if (q !== q){ if (SITE_OUTN.size > 500) SITE_OUTN.clear(); SITE_OUTN.set(k, Date.now()); return NaN; } SITE_OUTN.delete(k); if (q < 0) q = QOUT.max;
   if (SITE_OUT.size > 500) SITE_OUT.clear(); SITE_OUT.set(k, q); return q;
 }
+// The harbours are dredged for the boats that lie in them (Jonas 18.11.2026, pattern 3 of the autonav routine, «Mudre havnene»: the
+// hunt found the keel 0-0.2 m under the chart's bottom inside the harbours, mostly kyst15, kyst21 and the breisjark at harbour speed,
+// where the route and groundCheck count the harbour as dredged and the 50 m depth did not): within a harbour (inHarbour, 600 m round its
+// point) the water she sails in is at least the deepest draught of the boats up to 40 m and half a metre at chart datum. Only what she
+// sails by (keelClear, the model's shallow water and squat): the chart, the sounder, the fish and the 3D view keep the chart's depth
+const HARB_DRAFT = Math.max(...Object.values(VESSELS).filter(V => (V.len || 0) <= 40).map(V => V.draft || 0)) + 0.5;
+function depthNav(p){ const d = depthF(p); if (!(d > 0) || d >= HARB_DRAFT || !inHarbour(p)) return d; return HARB_DRAFT; }
 function siteDredge(p, d){
   const want = SITE_DRAFT + 0.5; if (!(d > 0) || d >= want) return d;
   const x = p.x * 1000, z = p.y * 1000, one = s => { const e = sitePockE(s, x, z); if (e < Infinity) d = Math.max(d, want - SITE_POCK.slope * e); };
@@ -401,27 +408,42 @@ function berthPose(pid, type, kind = 'main'){
 // quay, then along the quay to the berth; straight where that is clear, else a short search over the mask's cells (1.5 km round),
 // straightened. In km; the 3D view sails it in and, backwards, out (view3d.js moorStep)
 // (bk: the room kept behind a unit too, where its back stands in the water; 0, as before, for the berths at its face)
+// (the piers, quays, breakwaters, floating docks and the naust's and rorbuer's quays: everything fixed in the sea, 11b-obstacles.js
+// fixIndex, not PIERBOX alone, which is Senja's; the autonav routine 18.11.2026: the coast's piers and quay decks were not seen, and the
+// way out from a berth and in to it went through them. And, on a way to or from a berth (FIX.useBoats, berthPath), the vessels lying
+// still there now: a ferry at her quay by the shop at Strønstad lay across the way in)
 function berthBlocked(p, m = 2, bk = 0){
   if (isLand(p)) return true;
   const x = p.x * 1000, z = p.y * 1000;
-  for (const q of PIERBOX){ if (Math.abs(q.x - x) > q.l + q.w + 30 || Math.abs(q.z - z) > q.l + q.w + 30) continue;
-    const ax = Math.sin(q.ang), az = Math.cos(q.ang), nx = Math.cos(q.ang), nz = -Math.sin(q.ang), dx = x - q.x, dz = z - q.z;
-    if (Math.abs(dx * ax + dz * az) <= q.l / 2 + m && Math.abs(dx * nx + dz * nz) <= q.w / 2 + m) return true; }
-  for (const U of UNITA){ const [lx, lz] = unitL(U, x, z); const g = ugeo(U); if (Math.abs(lx) <= g.E + m && lz <= m && lz >= -g.B - bk) return true; }
+  if (fixBlocked(x, z, m, FIX.useBoats)) return true;
+  for (const U of unitsAt(x, z)){ const [lx, lz] = unitL(U, x, z); const g = ugeo(U); if (Math.abs(lx) <= g.E + m && lz <= m && lz >= -g.B - bk) return true; }   // (the units round the point, unitsAt: all of UNITA was a third of the time)
   return false;
 }
 function berthClear(a, b, m, bk = 0){ const n = Math.max(1, Math.ceil(dist(a, b) / 0.004)); for (let i = 1; i < n; i++) if (berthBlocked({x:a.x + (b.x - a.x) * i / n, y:a.y + (b.y - a.y) * i / n}, m, bk)) return false; return !coastSegHit(a, b); }
 // (mm: the room to keep from the piers and the quays on the way, half her beam when not given; the way in to the naust from the sea asks
 // more, 16b-dyn.js dynLineBuild)
 function berthPath(from, bp, mm){
+  const was = FIX.useBoats; FIX.useBoats = true;
+  try { return berthPath0(from, bp, mm); } finally { FIX.useBoats = was; }
+}
+function berthPath0(from, bp, mm){
   const L = (bp.Lb || 10) / 1000, B = (bp.Bb || 3) / 1000, m = Math.max((bp.Bb || 3) / 2, mm || 0), F = bp.face, P1 = {x:bp.x, y:bp.y}, fw = bp.fwd;
   // the point to come in from: astern of the berth and out from the quay; if that is blocked, straight out from the quay
-  let PL = {x:P1.x - fw.x * 1.5 * L + F.nx * B, y:P1.y - fw.z * 1.5 * L + F.nz * B};
-  const m0 = (bp.Bb || 3) / 2; if (berthBlocked(PL, m0) || !berthClear(PL, P1, 0.5)) PL = {x:P1.x + F.nx * 3 * B, y:P1.y + F.nz * 3 * B};
+  // (out from the quay by half her length and a metre first, where she turns on her middle with her ends clear of the quay and what lies
+  // along it, else by her beam as before: at Reine and Lindesnes the 11 and 21 m boats backed to a beam off the quay and swung a quarter
+  // round there into its corner, the autonav routine 18.11.2026)
+  const m0 = (bp.Bb || 3) / 2, Lm = bp.Lb || 10, Bm = bp.Bb || 3; let PL = null;
+  for (const [o, r] of [[Math.max(B, (Lm / 2 + 1) / 1000), Bm / 2 + 0.5 + Lm / 2], [B, m0]]){ const q = {x:P1.x - fw.x * 1.5 * L + F.nx * o, y:P1.y - fw.z * 1.5 * L + F.nz * o};
+    if (!berthBlocked(q, m0) && berthClear(q, P1, 0.5) && (r <= m0 || !berthBlocked(q, r))){ PL = q; break; } }
+  if (!PL) PL = {x:P1.x + F.nx * 3 * B, y:P1.y + F.nz * 3 * B};
   // (with mm, the way in from the sea: her draught under her too, outside the harbour as groundCheck has it; at Vannareid the way round the
   // plant's quay ran into the shallows at the lowest tide, and the way round those passed 5 m from the quay's corner)
   const bk = mm ? m : 0, gnd = (a, b) => { if (!mm) return false; try { return !!groundCheck(a, b); } catch (e){ return false; } }, clr = (a, b) => berthClear(a, b, m, bk) && !gnd(a, b);
   if (clr(from, PL)) return [from, PL, P1];
+  // (a way among the piers, floating docks and boats over a 4 m grid first, 11b-obstacles.js fixWay: the mask's 25 m cells are wider than
+  // the gaps between the piers, and where none was found the way went straight through them; the autonav routine 18.11.2026)
+  // (only over a short way, 400 m: from the naust the way starts at the route's first point, up to 1.2 km off, and the mask's search has that)
+  if (!mm && dist(from, PL) < 0.4){ const F = fixWay(from, PL, [m + 1.5, m]); if (F) return F.W.concat([P1]); }
   // a search over the mask's cells round the way, then the line pulled tight
   const M = MAPD.L.mask, c = M.c, key = (i, j) => i + ',' + j, ci = q => [Math.floor(q.x / c), Math.floor(q.y / c)], ctr = (i, j) => ({x:(i + 0.5) * c, y:(j + 0.5) * c});
   const [i0, j0] = ci(from), [i1, j1] = ci(PL), R = Math.ceil(1.5 / c), prev = new Map([[key(i0, j0), null]]), Q = [[i0, j0]]; let found = false;

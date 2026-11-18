@@ -5,6 +5,14 @@
 //   POST {op:'note', fid, note, score, st, reply}  -> the agent's note, weight and suggested status and reply (Jonas sends the reply)
 //   POST {op:'run', report, prs, n}                -> the run's report (Markdown) and the pull requests it opened
 //   POST {op:'tech', days}                         -> agent_tech(days): the errors put together and the frame rate by device (20261006160000_device_data.sql)
+//   POST {op:'fixed', fid, pr, ver}                -> agent_fixed: a fix of this feedback is out with the players; status «Fikset», a
+//                                                     confirmation and the takk-haill once (20261118200000_agent_fixed.sql, live-drift fase 2)
+//   POST {op:'uke'}                                -> agent_uke: the week's sessions without a crash, hang or severe 3D fault, and the
+//                                                     crashes and hangs counted from the error list (20261118220000_agent_uke.sql)
+//   POST {op:'autonav', days}                      -> agent_autonav(days): the players' Autonav trips, what their hulls touched and the groundings
+//                                                     (20261118160000_autonav_treff.sql; tools/autonav/treff.py)
+//   POST {op:'incidents', days}                    -> agent_incidents(days): every grounding, blow against a quay, pier, mole or mark, and
+//                                                     collision, with place, boat, speed and who steered, never who (20261117160000_agent_incidents.sql)
 //
 // Only with «Authorization: Bearer <FEEDBACK_AGENT_TOKEN>». Jonas makes the token (a long random password) and sets it here as a secret
 // and in the Claude Code environment; it never goes through a chat. Deployed with verify_jwt off, since the token is our own. It calls
@@ -46,6 +54,9 @@ serveReported('feedback-agent', async (req) => {
     case 'tech': return call('agent_tech', {days: Math.max(1, Math.min(90, num(b.days) || 7))});
     // the groundings, the blows and the collisions (20261117160000_agent_incidents.sql)
     case 'incidents': return call('agent_incidents', {days: Math.max(1, Math.min(90, num(b.days) || 30))});
+    case 'fixed': return call('agent_fixed', {fid: num(b.fid), pr: str(b.pr), ver: str(b.ver)});
+    case 'uke': return call('agent_uke', {});
+    case 'autonav': return call('agent_autonav', {days: Math.max(1, Math.min(90, num(b.days) || 7))});
     case 'run': return call('agent_run', {report: str(b.report) || '(tom)', prs: Array.isArray(b.prs) ? b.prs : [], n: num(b.n) || 0});
     default: return json({ok: false, why: 'unknown op'}, 400);
   }

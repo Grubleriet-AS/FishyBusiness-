@@ -1,33 +1,40 @@
 #!/usr/bin/env python3
 """The gate for a fix that goes out by itself (02.11.2026; Jonas: «jeg vil ha prosessen så helautomatisert som overhodet mulig»).
 
-The feedback routine (tools/feedback/RUTINE.md) opens a PR against the working branch with the label `autofix` when a fix is small and
+The fix routine (tools/feilretting/RUTINE.md; before 18.11.2026 tools/feedback/RUTINE.md) opens a PR against the working branch with the label `autofix` when a fix is small and
 plain; .github/workflows/autofix.yml runs this on it, and merges and deploys when it passes. It passes only when:
 
-1. Every file is one a fix may touch (ALLOW) and none that must not be touched without Jonas (DENY): the cloud, the shop and payments,
-   the consent, the error trap, the privacy and terms pages, the data, the app's worker, the server, the workflows, the database, the
-   routines themselves. A fix that needs those goes to Jonas.
-2. It is small: at most MAX_LINES lines added and removed together, MAX_FILES files. The fix's own new screenshots in docs/pr/<branch>/
+1. Its risk is `lav` (tools/ci/risiko.py, 18.11.2026): only the UI, the stylesheet, tests that are only added to, and docs. Real
+   money, accounts and saved player data, the database, the core mechanics, the 3D engine and the rest are `middels` or `hoy`, and
+   wait for Jonas' click (Jonas 18.11.2026; the exception for fixes in real money from 17.11.2026 is gone). The files must also be
+   ones a fix may touch (ALLOW) and none of DENY, kept for the copies of this file that read them (slipp.yml before 18.11.2026).
+2. It is small: at most MAX_LINES lines added and removed together, MAX_FILES files (risiko.MAX_LINES and MAX_FILES). The fix's own new screenshots in docs/pr/<branch>/
    (JPEG or PNG, each under SHOT_MAX, at most SHOT_N) are not counted as lines (04.11.2026).
 3. No added code line does what a fix to the game never needs and an attack would: talk to another host (an address that is not
    detstorebla.no), run text as code (eval, new Function, import()), read cookies, beacons, sockets, new workers, write the document.
    The error list and the feedback that the routine reads come from anyone; this is the guard against a «fix» written by them.
 4. No test goes red that is green on the working branch, and a new test is green: the tests that cover the changed files (COVER in
    tests/run.py, as `run.py changed` picks them), run on the PR's build and on the working branch's, side by side, plus the unit tests.
+5. Red test first (18.11.2026): some test the fix wrote or that covers it is red on the working branch's build (with the fix's test
+   files copied in) and green with the fix. Without that proof only a pure CSS or text change (risiko.css_tekst) goes out by itself;
+   any other fix waits for Jonas' click like a middels one.
 
-Prints what it found, writes it as JSON (--out) and exits 0 when the fix may go out, 1 when not, 2 on a fault of its own.
+Prints what it found, writes it as JSON (--out) and exits 0 when the fix may go out by itself, 3 when it is tested and ready but its
+risk waits for Jonas' click (18.11.2026), 1 when it is stopped for a fault, 2 on a fault of its own.
 """
 import argparse, json, os, re, subprocess, sys, tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.join(ROOT, 'tools', 'ci'))
+import risiko   # the one place the classes are (tools/ci/risiko.py)
 ALLOW = re.compile(r'^(src/js/|src/styles\.css$|tests/|docs/)')
-# (the files of real money, ui/10i-shop.js, 10q-buymoment.js, 10u-hopp.js, core/06j-hopp.js and 10j-paint.js, were here until 17.11.2026:
-# Jonas, «Du kan fjerne regelen om at du får kjøre ut rettinger som gjelder penger, så lenge det er snakk om feilrettinger. Du har min
-# tillatelse». An automatic fix is a fix of an error by its rules (tools/feedback/RUTINE.md punkt 7), so it may touch them now; a
-# release of the working branch that touches them still waits for Jonas, since it can hold new features too: slipp.yml)
-DENY = re.compile(r'^(src/js/errtrap\.js|src/js/ui/10f-cloud\.js|src/js/ui/10g-push\.js|'
+# real money is denied again from 18.11.2026 (Jonas: «Fjern unntaket som lar automatiske rettinger i ekte penger, Stripe og butikk
+# slippes uten godkjenning»; it was let through from 17.11.2026), and so are the save format and the cloud. risiko.py decides; DENY
+# holds the same files so a copy of this file that reads only ALLOW and DENY (slipp.yml before 18.11.2026) stops them too
+DENY = re.compile(r'^(src/js/errtrap\.js|src/js/ui/10f-cloud\.js|src/js/ui/10g-push\.js|src/js/ui/02-format-state\.js|'
+                  r'src/js/ui/10i-shop\.js|src/js/ui/10q-buymoment\.js|src/js/ui/10u-hopp\.js|src/js/core/06j-hopp\.js|src/js/ui/10j-paint\.js|'
                   r'src/js/ui/06e-feedback\.js|src/js/lib/|tests/_env\.py|tests/run\.py|tests/unit/run\.mjs|docs/systemer/tilbakemelding-og-admin\.md)')
-MAX_LINES, MAX_FILES = 400, 15
+MAX_LINES, MAX_FILES = risiko.MAX_LINES, risiko.MAX_FILES   # 150 and 6 from 18.11.2026 (400 and 15 before)
 # the fix's own screenshots (tools/feedback/RUTINE.md, D4 26.10.2026: docs/pr/<branch>/staaende.jpg and liggende.jpg) are not lines of code:
 # Jonas 04.11.2026 «porten for automatiske rettinger skal slippe gjennom skjermbilder». Only new pictures there, each a real JPEG or PNG
 # under SHOT_MAX bytes and at most SHOT_N of them; any other binary file still counts as 1998 lines
@@ -38,6 +45,7 @@ BAD = [(re.compile(r'https?://(?!(www\.)?detstorebla\.no\b)', re.I), 'en adresse
        (re.compile(r'\beval\s*\(|\bnew\s+Function\b|\bFunction\s*\(\s*[\'"`]|\bimport\s*\('), 'tekst som kjøres som kode'),
        (re.compile(r'document\.cookie|sendBeacon|\bWebSocket\b|new\s+(Shared)?Worker\b|document\.write\b|\bsetTimeout\s*\(\s*[\'"`]'), 'noe en retting av spillet ikke trenger'),
        (re.compile(r'DSB_CLOUD|supabase|cloudRpc|localStorage\.clear|FEEDBACK_AGENT|service_role', re.I), 'skyen, lagringen eller nøklene')]
+SKY = BAD[-1][1]   # the cloud, the save and the keys: not an attack by itself in a fix Jonas will look at, so a risk, not a fault (18.11.2026)
 
 
 def git(*a):
@@ -51,6 +59,10 @@ def shot_ok(f):
     head = subprocess.run(['git', 'cat-file', 'blob', 'HEAD:' + f], cwd=ROOT, capture_output=True, check=True).stdout[:8]
     if not (head[:3] == b'\xff\xd8\xff' or head == b'\x89PNG\r\n\x1a\n'): return 'ikke et JPEG- eller PNG-bilde'
     return ''
+
+
+def unit_own_any(files):
+    return any(f.startswith('tests/unit/') and f != 'tests/unit/run.mjs' for f in files)
 
 
 def results(text):
@@ -72,13 +84,19 @@ def run_tests(root, names, env=None):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--base', default='origin/ccr-5e1ba2f4-pusvyd'); ap.add_argument('--out'); ap.add_argument('--no-tests', action='store_true')
     a = ap.parse_args()
-    R = {'ok': False, 'why': [], 'files': [], 'lines': 0, 'bad': [], 'tests': {}}
+    # why: faults (the fix is wrong or not a fix); risk: what only Jonas lets out (18.11.2026). The tests run when there are no faults,
+    # also when the risk stops it, so a `middels` or `hoy` fix comes to Jonas tested, ready for his one click
+    R = {'ok': False, 'why': [], 'risk': [], 'files': [], 'lines': 0, 'bad': [], 'tests': {}}
     mb = git('merge-base', 'HEAD', a.base).strip()
     files = [f for f in git('diff', '--name-only', mb, 'HEAD').split('\n') if f]
     R['files'] = files
+    # 0. the risk (tools/ci/risiko.py): only `lav` goes out by itself; `middels` and `hoy` wait for Jonas' click
+    rk = risiko.from_git(a.base, 'HEAD', ROOT, SHOT); R['risiko'] = rk
+    if rk['klasse'] != risiko.LAV:
+        R['risk'].append('risiko %s (%s)' % (rk['klasse'], '; '.join(sorted({'%s: %s' % (w['fil'], w['hvorfor']) for w in rk['grunner']}))[:400]))
     # 1. the files
     for f in files:
-        if not ALLOW.match(f) or DENY.match(f): R['why'].append('filen %s er ikke en automatisk retting får endre' % f)
+        if not ALLOW.match(f) or DENY.match(f): R['risk'].append('filen %s er ikke en automatisk retting får endre' % f)
     if not files: R['why'].append('ingen endringer')
     # 2. the size (the screenshots apart, shot_ok)
     added = set(f for f in git('diff', '--name-only', '--diff-filter=A', mb, 'HEAD').split('\n') if f)
@@ -97,8 +115,8 @@ def main():
     for l in git('diff', '--numstat', '--diff-filter=M', mb, 'HEAD', '--', 'tests/').split('\n'):
         p = l.split('\t')
         if len(p) == 3 and p[1] != '0': R['why'].append('testen %s har fått linjer fjernet (%s)' % (p[2], p[1]))
-    if R['lines'] > MAX_LINES: R['why'].append('%d linjer endret, grensen er %d' % (R['lines'], MAX_LINES))
-    if len(files) > MAX_FILES: R['why'].append('%d filer endret, grensen er %d' % (len(files), MAX_FILES))
+    if R['lines'] > MAX_LINES: R['risk'].append('%d linjer endret, grensen er %d' % (R['lines'], MAX_LINES))
+    if len(files) > MAX_FILES: R['risk'].append('%d filer endret, grensen er %d' % (len(files), MAX_FILES))
     # 3. what the added code does (comments and docs are left out: a source may be named there)
     for f in files:
         if not f.startswith('src/'): continue
@@ -107,7 +125,7 @@ def main():
             code = re.sub(r'//.*$', '', l[1:]).strip()
             if code.startswith('*') or code.startswith('/*'): continue
             for rx, what in BAD:
-                if rx.search(code): R['bad'].append('%s: %s: %s' % (f, what, code[:140]))
+                if rx.search(code): (R['risk'] if what == SKY else R['bad']).append('%s: %s: %s' % (f, what, code[:140]))
     if R['bad']: R['why'].append('kode som ikke hører hjemme i en automatisk retting (%d linjer)' % len(R['bad']))
     # 4. the tests, only when the rest holds (they take long)
     if not R['why'] and not a.no_tests:
@@ -115,7 +133,8 @@ def main():
         names = []
         for f in files:
             if f in RUN.COVER: names += RUN.COVER[f]
-            elif f.startswith('tests/') and f.endswith('.py') and os.path.basename(f)[:-3] in RUN.D3 + RUN.LITE: names.append(os.path.basename(f)[:-3])
+            elif f.startswith('tests/') and f.count('/') == 1 and f.endswith('.py') and not os.path.basename(f).startswith('_') and f != 'tests/run.py':
+                names.append(os.path.basename(f)[:-3])   # a test the fix wrote or changed, also one not in run.py's lists yet (18.11.2026)
             elif f.startswith('src/'): names.append('trip2')
         names = list(dict.fromkeys(n for n in names if os.path.exists(os.path.join(ROOT, 'tests', n + '.py'))))
         R['tests']['names'] = names
@@ -129,9 +148,20 @@ def main():
             base_dir = tempfile.mkdtemp(prefix='autofix-base-')
             git('worktree', 'add', '--detach', base_dir, a.base)
             try:
+                # «rød test først» (18.11.2026): the tests the fix wrote or changed run on the build without the fix too, so the gate
+                # sees them red there; the fix's own test files are copied into the working branch's tree for that
+                own = [f for f in files if f.startswith('tests/') and (f.endswith('.py') or f.startswith('tests/unit/'))
+                       and not os.path.basename(f).startswith('_') and f not in ('tests/run.py', 'tests/unit/run.mjs') and os.path.isfile(os.path.join(ROOT, f))]
+                for f in own:
+                    os.makedirs(os.path.dirname(os.path.join(base_dir, f)), exist_ok=True)
+                    with open(os.path.join(ROOT, f), 'rb') as src, open(os.path.join(base_dir, f), 'wb') as dst: dst.write(src.read())
                 subprocess.run(['node', 'build.mjs'], cwd=base_dir, capture_output=True, text=True)
                 on_base = [n for n in names if os.path.exists(os.path.join(base_dir, 'tests', n + '.py'))]
                 base, _ = run_tests(base_dir, on_base); R['tests']['base'] = base
+                unit_own = [f for f in own if f.startswith('tests/unit/')]
+                if unit_own:
+                    ub = subprocess.run(['node', os.path.join(base_dir, 'tests', 'unit', 'run.mjs')], cwd=base_dir, capture_output=True, text=True)
+                    R['tests']['unit_base'] = ub.returncode == 0
             finally:
                 subprocess.run(['git', 'worktree', 'remove', '--force', base_dir], cwd=ROOT, capture_output=True)
             # a test red with the fix and green without is run again, alone, up to RETRY times (03.11.2026: tabtest went red at random
@@ -149,13 +179,25 @@ def main():
                     R['why'].append('testen %s er rød med rettingen%s, også %d ganger til alene' % (n, '' if n not in base else ', grønn uten', len(again)))
                 if n not in mine: R['why'].append('testen %s ga ikke noe svar' % n)
             R['tests']['log'] = log
-    R['ok'] = not R['why']
-    print(('SLIPPES UT' if R['ok'] else 'STOPPET') + ': ' + ('; '.join(R['why']) or 'filene, størrelsen, koden og testene holder'))
+            # the proof: a test red without the fix and green with it (CLAUDE.md «Se testen feile før den stoles på»). Only a pure CSS or
+            # text change is let through without one (risiko.css_tekst; Jonas 18.11.2026: «rene CSS- og tekstjusteringer skal kunne
+            # verifiseres med bygg og visuell sjekk»). Without it a lav fix does not go out by itself: it waits for Jonas
+            proof = [n for n in names if base.get(n) == 'FEIL' and mine.get(n) in ('OK', 'LES')]
+            if unit_own_any(files) and R['tests'].get('unit') and R['tests'].get('unit_base') is False: proof.append('unit')
+            R['tests']['bevis'] = proof
+            if not proof and not rk['css_tekst']:
+                R['risk'].append('ingen test er rød uten rettingen og grønn med den («rød test først»; bare ren CSS og tekst slipper)')
+    R['ok'] = not R['why'] and not R['risk']
+    R['klar'] = not R['why'] and bool(R['risk'])        # ready for Jonas' click: no fault, only the risk
+    if R['ok']: print('SLIPPES UT: risikoen, filene, størrelsen, koden og testene holder')
+    elif R['klar']: print('KLAR, VENTER PÅ JONAS: %s (%s)' % ('; '.join(R['risk']), 'testene ikke kjørt' if a.no_tests else 'filene, koden og testene holder'))
+    else: print('STOPPET: ' + '; '.join(R['why'] + R['risk']))
+    print('risiko: %s' % R['risiko']['klasse'])
     for l in R['bad'][:20]: print('  ' + l)
     if R['tests'].get('flaky'): print('ustabile (røde én gang, grønne alene etterpå):', ', '.join(R['tests']['flaky']))
     if 'pr' in R['tests']: print('tester:', json.dumps({n: [R['tests']['pr'].get(n), R['tests'].get('base', {}).get(n)] for n in R['tests']['names']}, ensure_ascii=False))
     if a.out: json.dump(R, open(a.out, 'w'), ensure_ascii=False, indent=1)
-    sys.exit(0 if R['ok'] else 1)
+    sys.exit(0 if R['ok'] else 3 if R['klar'] else 1)
 
 
 if __name__ == '__main__':

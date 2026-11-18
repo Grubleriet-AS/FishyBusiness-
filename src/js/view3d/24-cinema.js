@@ -147,6 +147,10 @@
   // the main thread's time a frame takes (ms, smoothed; the GL commands are queued, so this is the JS side): with the frame rate it tells a
   // phone or a PC held back by the script from one held back by the graphics card (the devices' telemetry, 10f-cloud.js cloudDev)
   let JSMS = 0;
+  // what a hang message tells of the 3D (steg 139, ui/10f-cloud.js hangWatch, G3.hangInfo): when the view was last shown (t0), the
+  // frames drawn since (n), and the longest frame on the main thread since the last message (max ms, which frame it was, and the part
+  // of the frame that had taken the most when the profile is on, #prof)
+  const HFR = {t0:0, n:0, max:0, i:0, part:null};
   // held while the pub's own 3D is shown (ui/09b-pub.js): no frames drawn, the loop keeps ticking
   let HOLD = false;
   // the way out of Father's naust at a new game's start (docs/onboarding.md B5, Jonas 09.10.2026): the eye starts on the naust's
@@ -284,13 +288,16 @@
   function frame(){ const j0 = j0F = performance.now(), EQ0 = S.equip, TE = tryEq(); if (TE) S.equip = TE;
     FRAMEP = /rawclock/.test(location.hash) ? j0 : frameClock(j0); WALLF = /rawclock/.test(location.hash) ? 0 : FRAMEP + FCLK.off;
     try { frame0(); } finally { S.equip = EQ0; WALLF = 0; FRAMEP = 0; }
-    JSMS = JSMS ? JSMS * 0.92 + (performance.now() - j0) * 0.08 : performance.now() - j0; }
+    const jms = performance.now() - j0; JSMS = JSMS ? JSMS * 0.92 + jms * 0.08 : jms;
+    if (jms > HFR.max){ HFR.max = jms; HFR.i = HFR.n; HFR.part = null;
+      if (PROF.on && PROF.acc){ let b = null, v = 0; for (const k in PROF.acc.cpu) if (PROF.acc.cpu[k] > v){ v = PROF.acc.cpu[k]; b = k; } HFR.part = b; } } }
   let FRAMEN = 0;
   function frame0(){ FRAMEN++;
     if (!active){ raf = 0; return; }
     raf = requestAnimationFrame(frame);
     if (document.hidden || NO3D || HOLD) return;
     if (PGFX.fps){ const t = performance.now(); if (t - PGF.last < 1000 / PGFX.fps - 2) return; PGF.last = t; }   // (the player's cap on the frames, PGFX.fps)
+    HFR.n++;   // (a frame drawn, steg 139)
     resize(); gfxStart(performance.now());
     // the first frame after the view is shown or let go (lastF 0, view3d/25-controls.js) counts as one frame at 60 a second: measured
     // from the call that started it, it read a fraction of a millisecond, and the frame rate's average (FPS.v) started at thousands
@@ -503,7 +510,7 @@
       // through the wheelhouse (01.11.2026). The eye is the frame's origin (BMrel is relative to it)
       // (the arcs: 22-docks-air.js lampArc, the same for the other boats since Ø11.2)
       for (const [lp, lc, lk] of L3){ const arc = lampArc(BMrel, lp, lk); if (!arc) continue; const q = xf(BMrel, lp);
-        PB[0] = q[0]; PB[1] = q[1]; PB[2] = q[2]; PA[0] = LA * arc; drawPts(1, gl.POINTS, VPn, lc, anchored ? 420 : 260, true); }
+        PB[0] = q[0]; PB[1] = q[1]; PB[2] = q[2]; PA[0] = LA * arc; drawPts(1, gl.POINTS, VPn, lc, (anchored ? 420 : 260) * LANT_K(), true, null, 48 * LANT_K()); }
       gl.depthMask(true); gl.disable(gl.BLEND);
     } else ANCHAL.drawn = 0;   // (none lit: by day in clear weather)
     ANCHAL.litA = LA;   // (how strongly the lanterns show: the night, or the fog by day; for the tests)

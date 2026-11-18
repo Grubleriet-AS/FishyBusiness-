@@ -56,6 +56,7 @@ Les denne først, så bare dokumentet for systemet du skal endre, og `docs/BACKL
 | Dokument | Hva det er |
 |---|---|
 | `docs/planer/koen.md` | **Køen: det som skal bygges, i rekkefølge** (fra 07.11.2026, slanket 09.11.2026): bare det som er åpent: lanseringslinja, øktene som kjører, valgene som venter på Jonas, og stegene med status, hva de venter på og filene de eier. Kort nok til å leses hel. |
+| `docs/planer/spillmal-arkitektur.md` | Arkitekturen for nye titler (18.11.2026): skallet (presentasjon, `lav`, slippes automatisk) skilt fra kjernen (simulering og lagring, til Jonas). Gjelder Laksebaronen og de neste, ikke Det Store Blå. |
 | `docs/planer/start/` | **Startmeldingene**, én fil per åpent steg (`<steg>.md`), hele; `README.md` har halen og formen. |
 | `docs/planer/koen-arkiv.md` | Køens arkiv: ferdige steg, besvarte valg, utrullingene, startmeldingene for ferdige steg og historikken. |
 | `docs/spill-dette/` | Det Jonas bør prøve på nettbrettet etter hver bølge, én fil per steg; `sett.md` er det han har prøvd. |
@@ -134,7 +135,14 @@ Les denne først, så bare dokumentet for systemet du skal endre, og `docs/BACKL
 | `docs/engasjement.md` | Engasjement og inntekt: grunnlaget, arbeidslista og det vi ikke gjør. |
 | `docs/handelssteder.md` | Handelsstedene og plasseringen av steder. Jonas fyller på. |
 | `docs/push-plan.md` | Push-varslene. |
-| `tools/feedback/RUTINE.md` | Det tilbakemeldingsrutinen gjør hver kjøring. |
-| `tools/plan/RUTINE.md` | Det arbeidsrutinen gjør hver kjøring (07.11.2026): låsen `plan/kjorer`, valget av steg fra køen, porten før utrulling, migreringene, utrullingen til testutgaven, slippet til produksjonen (L1b, 11.11.2026), «Når Jonas svarer», av-bryteren. `tools/plan/tester.py` finner testene for alt en gren endret. |
+| `tools/drift/RUTINE.md` | Driften (18.11.2026): den ene planlagte rutinen. Slippet om natta, feilrettingen, og ett steg fra køen når det ikke er en feil å rette og `Rutinen: på`. |
+| `tools/feilretting/RUTINE.md` | Det Feilrettingen gjør hver kjøring (18.11.2026; erstatter `tools/feedback/RUTINE.md`): triagen uten modell (`tools/triage/klynge.py`), låsene (`laas.py`, `prlaas.py`), Opus bare for en retting, takk-haillen. |
+| `tools/triage/` | `klynge.py` (klynger, score, om Opus trengs, takk-haillen), `prlaas.py` (PR-låsen, 24 timer: én høy og tre middels uten felles filer), `laas.py` (den felles låsen `auto/kjorer`), `ukesrapport.py` (mandag 07: feilfrie økter og krasj totalt øverst). Alle har `--selftest`. |
+| `tools/server/utgave.py` | Produksjonens utgaver på spillserveren (fase 4): `releases/<v>`, pekeren `current` byttet i ett steg, `tilbake`. |
+| `tools/server/vakt/brems.py` | Nødbremsen (fase 4): to timer etter hvert slipp, krasj og alvorlige feil per økt mot utgaven før, tilbake og sperre og push. |
+| `tools/release/autoprove.py` | Prøven av bygget som skal ut, på `test.detstorebla.no/auto/` (fase 4). |
+| `tools/triage/brems.py` | Driftens PR eller sak etter nødbremsen (fase 4). |
+| `tools/ci/risiko.py` | Risikoklassene `lav`, `middels`, `hoy` (18.11.2026); porten, slippet og workflowene leser den. |
+| `tools/plan/RUTINE.md` | Det arbeidsrutinen gjør hver kjøring (07.11.2026): låsen `auto/kjorer`, valget av steg fra køen, porten før utrulling, migreringene, utrullingen til testutgaven, slippet til produksjonen (L1b, 11.11.2026), «Når Jonas svarer», av-bryteren. `tools/plan/tester.py` finner testene for alt en gren endret. |
 | `tools/release/slipp.py` | Slippet til produksjonen (L1b, 11.11.2026): skriver PR-en «Slipp <dato>» fra arbeidsgrenen til `main` med commitene, patchnotatene, migreringene og en rød linje for ekte penger og `src/legal/`; `--dry`, `--auto`, `--since`. Reglene står i «Slippet» i `tools/plan/RUTINE.md` og `docs/systemer/publisering.md`. `tools/release/pages/` er siden Pages får når spillet har flyttet. `main` flyttes av workflowen `.github/workflows/slipp.yml` (valg 33 B). |
 | `tools/plan/KOORDINATOR.md` | Den korte koordinatorøkta (09.11.2026): rydder køen, samler «spill dette» og gir Jonas neste runde med prompter. Jonas skriver bare «Les tools/plan/KOORDINATOR.md og gjør det den sier.» |

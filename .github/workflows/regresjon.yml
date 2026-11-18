@@ -1,0 +1,188 @@
+# The regression on GitHub's machines, with no model (live-drift fase 5, 19.11.2026; docs/planer/live-drift.md, tools/regresjon/RUTINE.md).
+# Jonas 19.11.2026: «flytt nattlig og ukentlig regresjon over til GitHub Actions (regresjon.yml) slik at testkjøringene går uten
+# Claude-tokens og eventuelle nye røde tester plukkes opp automatisk av triagen i «Driften»», and on where the red goes: «Saker».
+#
+# Every night at 01:17 UTC (02:17 Oslo in winter): the unit tests and the tests without 3D in four parts side by side, and the balance
+# check. The night to Monday also the 3D tests (eight to a machine, each machine running its eight one after the other, so never two
+# 3D tests at once on one machine) and the timed ones, alone on a machine of their own. The repo is public, so the machines are free.
+# Each part runs its tests with tests/run.py, then each red test once more alone (tools/regresjon/saker.py igjen). The last job puts
+# it together: one issue `regresjon` per test red twice (opened, updated with the nights in a row, `kronisk` after three, closed when
+# green), which tools/triage/klynge.py reads as a technical cluster, so Driften fixes it within the Opus cap; the balance in the one
+# issue `balanse`. The logs are artifacts (90 days). Nothing is pushed: no git, no backlog.
+#
+# A pull request that changes this file or the scripts runs a small trial (two light tests and the unit tests) and writes no issue.
+# By hand: «Run workflow» with modus natt or uke.
+name: Regresjonen
+on:
+  schedule:
+    - cron: '17 1 * * *'
+  workflow_dispatch:
+    inputs:
+      modus:
+        description: 'natt (uten 3D og balansen) eller uke (alt, med 3D og de som måler tid)'
+        type: choice
+        options: [natt, uke]
+        default: natt
+  pull_request:
+    paths: ['.github/workflows/regresjon.yml', 'tools/regresjon/**']
+permissions:
+  contents: read
+concurrency:
+  group: regresjon-${{ github.event_name == 'pull_request' && github.ref || 'natt' }}
+  cancel-in-progress: false
+env:
+  # the branch the players' next release comes from (scheduled runs check out the default branch, which is this one)
+  ARBEIDSGREN: ccr-5e1ba2f4-pusvyd
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      modus: ${{ steps.m.outputs.modus }}
+      deler: ${{ steps.m.outputs.deler }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - id: m
+        env:
+          EVENT: ${{ github.event_name }}
+          INPUT: ${{ inputs.modus }}
+        run: |
+          # the night to Monday (Monday in UTC at 01:17) is the whole regression; a PR is a trial
+          if [ "$EVENT" = pull_request ]; then modus=prove
+          elif [ "$EVENT" = workflow_dispatch ]; then modus="${INPUT:-natt}"
+          elif [ "$(date -u +%u)" = 1 ]; then modus=uke
+          else modus=natt; fi
+          echo "modus=$modus" >> "$GITHUB_OUTPUT"
+          echo "deler=$(python3 tools/regresjon/deler.py --json "$modus" --lite 4)" >> "$GITHUB_OUTPUT"
+          echo "Modus: $modus"
+
+  del:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        del: ${{ fromJSON(needs.plan.outputs.deler) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Playwright, the whole coast and the builds
+        run: |
+          # (Playwright 1.63.0 as everywhere; the browser first, then its system packages tried three times and let go with a warning,
+          # as deploy.yml does: Ubuntu's mirror has not always answered GitHub's machines)
+          pip install requests pillow numpy playwright==1.63.0
+          python3 -m playwright install chromium
+          for i in 1 2 3; do
+            if timeout 180 python3 -m playwright install-deps chromium; then break; fi
+            if [ "$i" = 3 ]; then echo "::warning::Chromium's system packages could not be installed. Going on: the tests say whether the browser starts."; else sleep 15; fi
+          done
+          python3 tools/map/game.py
+          node build.mjs
+      - name: The tests (${{ matrix.del.navn }})
+        env:
+          TESTER: ${{ matrix.del.tester }}
+        run: |
+          n=$(cat tests/historikk.tsv 2>/dev/null | wc -l)
+          echo "$n" > hist-start.txt
+          # (red tests do not stop the job: they are the result. A job that stops is the machine or the build, and the run turns red)
+          python3 tests/run.py smoke $TESTER 2>&1 | tee del.log || true
+      - name: The red ones once more, alone
+        env:
+          NAVN: ${{ matrix.del.navn }}
+        run: python3 tools/regresjon/saker.py igjen --fra "$(cat hist-start.txt)" --out "resultat-$NAVN.json" --del "$NAVN" --logg del.log
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logg-${{ matrix.del.navn }}
+          path: |
+            resultat-*.json
+            del.log
+            tests/out/logs/*.txt
+          if-no-files-found: warn
+
+  balanse:
+    needs: plan
+    if: needs.plan.outputs.modus != 'prove'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Playwright, the whole coast and the build
+        run: |
+          pip install requests pillow numpy playwright==1.63.0
+          python3 -m playwright install chromium
+          for i in 1 2 3; do
+            if timeout 180 python3 -m playwright install-deps chromium; then break; fi
+            if [ "$i" = 3 ]; then echo "::warning::Chromium's system packages could not be installed."; else sleep 15; fi
+          done
+          python3 tools/map/game.py
+          node build.mjs
+      - name: simday, progweek and fiskeplay (without 3D, seed 1)
+        env:
+          KYST_LITE: '1'
+        run: |
+          mkdir -p balanse
+          for t in simday progweek fiskeplay; do
+            timeout 3000 python3 "tests/$t.py" > "balanse/balanse-$t.txt" 2>&1 || echo "::warning::$t stopped (see the artifact)"
+          done
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: balanse
+          path: balanse/
+
+  saker:
+    needs: [plan, del, balanse]
+    if: always() && needs.plan.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: The branch's history (for the commits that touched a red test's files)
+        run: git fetch -q origin "$ARBEIDSGREN:refs/remotes/origin/$ARBEIDSGREN" || true
+      - uses: actions/download-artifact@v4
+        with:
+          path: art
+      - name: The issues for the red tests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MODUS: ${{ needs.plan.outputs.modus }}
+          KJORING: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ "$MODUS" = prove ]; then
+            python3 tools/regresjon/saker.py saker --dir art --modus natt --kjoring "$KJORING" --dry
+          else
+            python3 tools/regresjon/saker.py saker --dir art --modus "$MODUS" --kjoring "$KJORING"
+          fi
+      - name: The balance
+        if: needs.plan.outputs.modus != 'prove' && needs.balanse.result == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          KJORING: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: python3 tools/regresjon/saker.py balanse --dir art/balanse --kjoring "$KJORING"
+      - name: A part that did not finish turns the run red
+        if: needs.del.result != 'success'
+        run: |
+          echo "::error::A part of the regression did not finish (the machine, the build or the time limit): its tests are not in tonight's issues. See the run's parts."
+          exit 1

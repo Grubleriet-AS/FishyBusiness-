@@ -10,6 +10,10 @@ Code environment, which sessions use without seeing it; it is never written anyw
     python3 tools/feedback/agent.py tech [--days 7] [--out DIR]                 the errors and the frame rate by device to DIR/tech.json
     python3 tools/feedback/agent.py incidents [--days 30] [--out DIR]           the groundings, the blows and the collisions to DIR/incidents.json,
                                                                                 summed up per place (17.11.2026)
+    python3 tools/feedback/agent.py uke                                          the week's numbers (tools/triage/ukesrapport.py uses them)
+    python3 tools/feedback/agent.py fixed ID --pr URL --ver V                    a fix of this feedback is out with the players: status
+                                                                                fixed, a confirmation and the takk-haill once (18.11.2026;
+                                                                                tools/triage/klynge.py --belonn does it by itself)
     python3 tools/feedback/agent.py --test list ...                             the same against the test project (what Jonas sends from
                                                                                 test.detstorebla.no); use another --out than production's
 """
@@ -94,6 +98,8 @@ def main():
     n.add_argument('--note', required=True); n.add_argument('--reply')
     tc = sub.add_parser('tech'); tc.add_argument('--days', type=int, default=7); tc.add_argument('--out', default=os.path.join(tempfile.gettempdir(), 'dsb-feedback'))
     ic = sub.add_parser('incidents'); ic.add_argument('--days', type=int, default=30); ic.add_argument('--out', default=os.path.join(tempfile.gettempdir(), 'dsb-feedback'))
+    fx = sub.add_parser('fixed'); fx.add_argument('id', type=int); fx.add_argument('--pr', required=True); fx.add_argument('--ver', default='?')
+    sub.add_parser('uke')
     r = sub.add_parser('run'); r.add_argument('--report', required=True); r.add_argument('--pr', nargs=2, action='append', metavar=('URL', 'TITLE'), default=[])
     r.add_argument('--n', type=int, default=0)
     o = ap.parse_args()
@@ -131,6 +137,11 @@ def main():
         for f in (d.get('fps_device') or [])[:15]:
             print('  %5s fps (low %s, drops %s, 3D level %s)  %s / %s / %s  n=%s' % (f.get('fps'), f.get('low'), f.get('drops'), f.get('lvl'), f.get('platform'), f.get('browser'), f.get('gpu'), f.get('n')))
         print('by version:', ', '.join('%s %s fps (%s under 20)' % (v['version'], v['fps'], v['slow']) for v in d.get('fps_version') or []))
+    elif o.cmd == 'uke':
+        print(json.dumps(call('uke'), ensure_ascii=False, indent=1))
+    elif o.cmd == 'fixed':
+        d = call('fixed', fid=o.id, pr=o.pr, ver=o.ver) or {}
+        print(('fixed %d%s' % (o.id, ', takk-haill sendt' if d.get('rewarded') else '')) if d.get('ok') else 'not fixed %d: %s' % (o.id, d.get('why')))
     elif o.cmd == 'note':
         call('note', fid=o.id, note=o.note, score=o.score, st=o.status, reply=o.reply); print('noted', o.id)
     else:

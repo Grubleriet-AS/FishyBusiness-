@@ -1,0 +1,23 @@
+OK   Nettet har Kystmegleren som bokmerke, for båter spillerne selger til hverandre  "Kystmegleren\nBåter spillerne selger til hverandre."
+OK   Kystmegleren har ingen NPC-oppføringer: tom side som sier at verftet selger nye til full pris  {"cards": 0, "empty": true, "yard": true, "npc": "undefined/undefined"}
+OK   ingenting stikker ut av telefonen, liggende og stående  [[], []]
+OK   verftets Båthandel: ingen brukte båter ved kaia, og verftet selger nye til full pris  {"cards": 0, "txt": "Båter til salgs herIngen brukte båter ved denne kaia nå. Verftet selger nye til full pris.Alle båter hos Kystmegleren ›"}
+OK   verftet selger nytt til full pris, med den gamle båten i bytte  [true, {"type": "snekke", "paid": 213500, "n": 1, "price": 245000, "ti": 171500}]
+OK   kjøpsøyeblikket: navnet males bokstav for bokstav, flagget, typen, året og kaia, skuffen lukket  {"name": "T-658-LK", "letters": 8, "flag": true, "skip": true, "drawer": true, "in3d": false, "label": "Båten er din", "sub": "Plastsnekke 26 fot, 30 hk diesel · 1994 · ved kaia i Finnsnes"}
+OK   «Hopp over» lukker det med en gang, og ingenting stikker ut stående  []
+OK   kjøpsøyeblikket lukker seg selv etter 15 sekunder
+OK   et kjøp til flåten viser kortet som før: navnet bokstav for bokstav og flagget på kortet  {"in3d": false, "letters": 10, "name": "Kystværing", "flag": true, "b": null}
+OK   Rederi har «Legg ut til salgs» og «Selg nå» for den andre båten, og leverer henne dit du er  {"btn": {"put": true, "quick": true, "del": ["finnsnes"]}, "del": 1, "paid": 13900, "home": "finnsnes"}
+OK   når seilingstida er gått, ligger hun der du er  {"port": "finnsnes", "me": "finnsnes"}
+OK   en gammel kommisjonsoppføring trekkes, og loggen sier det  {"own": 0, "log": "Kystmegleren selger nå bare båter mellom spillere: «Nordlys» er trukket fra salg. Legg henne ut igjen i Rederi-appen."}
+OK   Rederi-appen får plass stående  []
+OK   3D: båten er kjøpt ved verftet med den gamle i bytte, og hun heter fortsatt Havbris  {"type": "snekke", "name": "Havbris"}
+FEIL 3D, liggende: kjøpsøyeblikket på båten du er om bord i tegner i modellen, kameraet går rundt henne, og kortet har typen, året og kaia  [{"card": true, "in3d": true, "painting": true, "b": null}, {"name": null, "letters": 0, "flag": false, "skip": true, "drawer": true, "in3d": true, "label": "Båten er din: Havbris", "sub": "Havbris · Plastsnekke 26 fot, 30 hk diesel · 1994 · ved kaia i Finnsnes"}]
+FEIL 3D, liggende: navnet males på skroget bokstav for bokstav (None av None), flagget nede på stanga  null
+FEIL 3D, liggende: hele navnet står på skroget, og flagget er oppe  null
+OK   3D, liggende: «Hopp over» lukker med en gang og gir kameraet tilbake  {"card": false, "b": null, "painting": false}
+OK   3D, staaende: kjøpsøyeblikket på båten du er om bord i tegner i modellen, kameraet går rundt henne, og kortet har typen, året og kaia  [{"card": true, "in3d": true, "painting": true, "b": {"s": 9.066299999999814, "n": 38.483181818180974, "p": 46.17533333333209, "f": 1, "drawn": 7, "fy": -0.12035357079443115, "len": 7, "frame": 25}}, {"name": null, "letters": 0, "flag": false, "skip": true, "drawer": true, "in3d": true, "label": "Båten er din: Havbris", "sub": "Havbris · Trebåt 23 fot (7,0 m), 8 hk semidiesel · 1956 · ved kaia i F
+FEIL 3D, staaende: navnet males på skroget bokstav for bokstav (None av None), flagget nede på stanga  null
+FEIL 3D, staaende: hele navnet står på skroget, og flagget er oppe  null
+OK   3D, staaende: «Hopp over» lukker med en gang og gir kameraet tilbake  {"card": false, "b": null, "painting": false}
+sidefeil []

@@ -1,0 +1,14 @@
+OK   the rorbuer along the coast: one by each fishing harbour and more between, named, in three colours, known to portById but not harbours  {"n": 517, "h": 148, "named": 514, "looks": "orw", "port": true, "inPorts": false}
+OK   by Gryllefjord and on the shore between the rorbu has its quay on a straight shore: water in front, land behind, clear of the plant  {"0": {"id": "rb139", "name": "Torsken", "d": 164, "water": true, "land": true, "unit": false, "face": true, "bp": true}, "1": {"id": "rb148", "name": "Elleskjæret", "d": 153, "water": true, "land": true, "unit": false, "face": true, "bp": true}}
+OK   Autonav takes the boat from Gryllefjord to the rorbu, and she lies at its quay  {"n": 16, "st": "port", "port": "rb139", "berth": "main", "log": "Innloggingsbonus: 1 % ekstra på fiskeprisen. | Tok over båten etter far. | WP1 passert. Ny kurs 105°. | WP2 passert. Ny kurs 036°. | Fortøyd ved rorbua i Torsken."}
+OK   lying still 150 m off the rorbu, «Fortøy» in the dock takes her in to its quay  {"st0": "sailing", "n": 1, "st": "port", "port": "rb139"}
+FEIL no rorbu stands within 1.4 km of a plant, shop or yard: the choice of quay to moor at does not come up  {"n": 148, "worst": 1.31}
+OK   at the rorbu the dock has «Hvil» and no market, yard or shop  {"t": "Hvil|Gjestebok|Om bord", "shop": ["Det er ingen butikk ved rorbua. Handle i en havn.", "There is no shop at the rorbu. Buy in a harbour."], "mottak": false}
+OK   a night at the rorbu costs 150 kr and rests you from 0 to 100 % in six hours, ashore (the skipper is gone from the boat)  {"why": null, "paid": 150, "full": 361, "rest": true, "crewF": 0, "info": "", "night2": 150, "after": false, "st": "unmooring"}
+OK   the crew rest ashore with the skipper: worn out (100) to rested in the same six hours  0
+OK   the next night is paid when the day has gone, and casting off you go aboard again  {"why": null, "paid": 150, "full": 361, "rest": true, "crewF": 0, "info": "", "night2": 150, "after": false, "st": "unmooring"}
+OK   an open boat at a plant’s quay gives no rest (and no bed is to be had there); a boat with bunks rests you aboard  {"open": 0, "noRest": "Du kan hvile i naustet i hjemhavna eller på en rorbu.", "bunks": 12.5, "type": "trebat", "berths": 0}
+OK   the chart plotter draws the rorbuer as little houses with their names  {"n": 2, "lbl": true, "z": 10.715433890096847}
+OK   a boat moored at a rorbu lies at its berth, not at the plant's quay: also in a game saved before the shore was found, and when docking  {"saved": 0, "moved": 164, "dock": 0, "far": 164}
+OK   a game saved at the rorbu is there again when loaded, still resting  {"port": "rb139", "st": "port", "rorbu": true, "rest": true, "name": "Torsken"}
+errors: []

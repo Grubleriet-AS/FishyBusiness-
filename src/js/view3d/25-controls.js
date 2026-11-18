@@ -67,6 +67,7 @@
       if (!loading){ loading = true; toast(t('loading3d')); (typeof modelsReady === 'function' ? modelsReady() : Promise.resolve()).then(init).then(ok => { loading = false; if (ok) show(true, auto); else { if (hooks.on3dFail) hooks.on3dFail(); if (!auto) no3d(); } }); }
       return false;
     }
+    if (!!on !== active){ try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor(on ? '3d' : 'kart'); } catch (e){} if (on){ HFR.t0 = performance.now(); HFR.n = 0; HFR.max = 0; HFR.i = 0; HFR.part = null; } }   // (steg 139)
     active = !!on; canvas.hidden = !active; labelsEl.hidden = !active;
     document.getElementById('map').style.visibility = active ? 'hidden' : 'visible';
     if (active){ bv.init = false; lastF = 0; if (!raf) raf = requestAnimationFrame(frame); } else qmAlive(false);
@@ -210,7 +211,9 @@
     // the player's graphics settings (PGFX, 00-head.js): with an object, the live ones apply at once and all are kept on the device
     gfx(set){ if (set){ Object.assign(PGFX, set, {off:Object.assign({}, PGFX.off, set.off || {})}); try { localStorage.setItem(PGFX_KEY, JSON.stringify(PGFX)); } catch (e){} if (active) resize(); } return JSON.parse(JSON.stringify(PGFX)); },
     quality(v){ if (v){ S.settings.q3d = v; QUAL.bad = QUAL.good = 0; QUAL.cap = 2; qualSet(); } return {lvl:QUAL.lvl, set:S.settings.q3d || 'auto', fps:FPS.v, ultra:UINT}; },
-    show, toggle(){ return show(!active); }, hold(on){ HOLD = !!on; if (!on) lastF = 0; else qmAlive(false); }, isActive:() => active, say:say3d, crewFx:crewFx3d, sayWorker, sayBoat, anchorAlarm:anchorAlarm3d, haltNeed:() => dynLive() ? dynHaltNeed() : active ? trkHaltNeed() : 0, get failWhy(){ return failWhy; },
+    show, toggle(){ return show(!active); },
+    // (steg 139, ui/10f-cloud.js hangWatch: f1 the longest frame was the first drawn since the view was shown; the longest is reset)
+    hangInfo(){ const o = {on:active, up_s:active && HFR.t0 ? Math.round((performance.now() - HFR.t0) / 1000) : null, n:HFR.n, max_ms:Math.round(HFR.max), f1:HFR.max > 0 && HFR.i <= 1, part:HFR.part}; HFR.max = 0; HFR.i = 0; HFR.part = null; return o; }, hold(on){ HOLD = !!on; if (!on) lastF = 0; else qmAlive(false); }, isActive:() => active, say:say3d, crewFx:crewFx3d, sayWorker, sayBoat, anchorAlarm:anchorAlarm3d, haltNeed:() => dynLive() ? dynHaltNeed() : active ? trkHaltNeed() : 0, get failWhy(){ return failWhy; },
     // the next frame as a JPEG data URL (or null when no frame comes within 2 s)
     // whether a point (km, and metres above the ground) is in the picture the camera shows now: in front within the picture's width,
     // and no ground between (Kystposten's lighthouse pictures, ui/05f-turer.js)

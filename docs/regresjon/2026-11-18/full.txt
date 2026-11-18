@@ -1,0 +1,305 @@
+OK   unit           188 s  Node      5083 OK, 0 FEIL i 148 filer, på 187301 ms (kjernen 5.78 MB, 3179 navn)
+Bygg først: node build.mjs. 101 tester: 100 uten 3D to om gangen, så 1 med 3D alene etter hverandre, og 0 som måler tid, alene til slutt. Logger: tests/out/logs/
+dist-vec/ bygd én gang for havnstengt, driftsplan2kyst, lybtest, havtur, havflaate, etikett: OK
+OK   navntest        22 s  uten 3D  · 6 OK
+OK   vervtest        13 s  uten 3D  · 6 OK
+OK   vakttest         8 s  uten 3D  · 16 OK
+OK   nedetest        21 s  uten 3D  · 13 OK
+OK   kalendertest    15 s  uten 3D  · 5 OK
+OK   planhjem        15 s  uten 3D  · 2 OK
+OK   havnstengt      10 s  uten 3D  · 3 OK
+OK   d4dorer         19 s  uten 3D  · 24 OK
+OK   jobbstripe      86 s  uten 3D  · 64 OK
+OK   telefonflate    84 s  uten 3D  · 117 OK
+OK   stromtest      149 s  uten 3D  · 30 OK
+OK   skagtest        14 s  uten 3D  · 20 OK
+OK   sor62test       24 s  uten 3D  · 41 OK
+OK   gatetest        11 s  uten 3D  · 12 OK
+OK   jukseboot        9 s  uten 3D  · 4 OK
+OK   kotest           6 s  uten 3D  · 13 OK
+OK   driftsplan2kyst    78 s  uten 3D  · 45 OK
+OK   megletest       24 s  uten 3D  · 32 OK
+OK   kvotemarkedtest    27 s  uten 3D  · 31 OK
+OK   boostklokke     50 s  uten 3D  · 5 OK
+OK   draftlooptest    11 s  uten 3D  · 5 OK
+OK   bootgtest       89 s  uten 3D  · 15 OK
+OK   skipdrift       20 s  uten 3D  · 5 OK
+OK   haillplass       5 s  uten 3D  · 13 OK
+OK   colregtest     729 s  uten 3D  · 34 OK
+FEIL rttest          44 s  uten 3D  · 12 OK
+       FEIL she glides onto the relay from the 15 s track over 2 s, slowing for a moment, with no jump  [0.0, 1.03]
+OK   istest          13 s  uten 3D  · 6 OK
+OK   lybtest         15 s  uten 3D  · 13 OK
+FEIL havtur          91 s  uten 3D  · 116 OK
+       FEIL Båtsfjord: sovner du om bord, tar vakta på broa over og lagene arbeider videre (ikke «driver») [['Du sovnet av utmattelse. Båten ligger og driver.', 'Du sovnet av utmattelse. Vakta på broa tar over, og lagene arbeider videre.'], 'Båten ligger og driver med vinden.']
+OK   snokrabbetest    10 s  uten 3D  · 23 OK
+OK   krabbefabrikktest    18 s  uten 3D  · 35 OK
+OK   autolinetest     9 s  uten 3D  · 15 OK
+OK   fabrikktest     13 s  uten 3D  · 26 OK
+OK   havplantest    969 s  uten 3D  · 56 OK
+OK   sonetest         8 s  uten 3D  · 7 OK
+OK   uketest          7 s  uten 3D  · 5 OK
+OK   kystkarttest    13 s  uten 3D  · 5 OK
+OK   havflaate       13 s  uten 3D  · 9 OK
+OK   etikett        169 s  uten 3D  · 80 OK
+OK   sponsor2test    16 s  uten 3D  · 27 OK
+OK   sponsortest     10 s  uten 3D  · 8 OK
+OK   nettest         12 s  uten 3D  · 26 OK
+OK   itemcardtest    15 s  uten 3D  · 22 OK
+OK   kystvakttest     9 s  uten 3D  · 21 OK
+OK   lagtest          8 s  uten 3D  · 12 OK
+OK   eventtest        6 s  uten 3D  · 3 OK
+OK   boktest          8 s  uten 3D  · 9 OK
+OK   lotttest         8 s  uten 3D  · 12 OK
+OK   skattetest       6 s  uten 3D  · 20 OK
+OK   driftsplan2ui    10 s  uten 3D  · 19 OK
+OK   driftsplan2map    18 s  uten 3D  · 9 OK
+OK   driftsplan2gui    28 s  uten 3D  · 6 OK
+OK   slidertest      14 s  uten 3D  · 6 OK
+OK   anchorswing      7 s  uten 3D  · 28 OK
+OK   selfcrew         6 s  uten 3D  · 18 OK
+FEIL crewclip        21 s  uten 3D  · 15 OK
+       FEIL no foot walking put down in a wall, a tub or the kit, nor on his other foot or anyone else's (FB3; 5284 feet put down on every boat) {'pelagisk': ['me:i ting:-6.63,26.90:uten dekk:walk:-:1.04', 1]} ved plasser der han står i noe fra før: {'sjark': 1, 'hurtigsjark': 17, 'bunntral': 35, 'pelagisk
+OK   regmarktest      6 s  uten 3D  · 15 OK
+OK   dockrow         40 s  uten 3D  · 16 OK
+FEIL hulltest        70 s  uten 3D  · 28 OK
+       FEIL 7a. by hand into the ferry: the contact in the manoeuvring model's steps, damage to your hull, and to hers when her blow is a knot or more  [{"id": "ferje", "name": "MF Senjasund", "kn": 12.4, "kA": 12.3, "kB": 1.4, "law": "161", "sit": "15", "fa": 1, "fb": 0, "why": {"a": ["gw:15"], "b": []}, 
+       FEIL 7f. you pay your share of her damage, booked as damages (no hull insurance: all of it); with no damage to her, nothing, and the log says she took none  [1.4, 0, 0, ["Reparasjon av skroget -17000", "Kaskopremie -2990", "Reparasjon av skroget -90000"]]
+FEIL dyntest        252 s  uten 3D  · 31 OK
+       FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide into the turn)  ["ringnot38"]
+       FEIL she stops gently from cruising speed within 12 lengths (15 from 30 m)  ["ringnot38"]
+OK   crewlifetest     8 s  uten 3D  · 19 OK
+FEIL crewwalk         7 s  uten 3D  · 13 OK
+       FEIL twenty seconds later everyone has arrived at their place {"walked": {"me": 3.45929058242588, "ckr7kcbni": 0, "cktwdou5o": 0}, "off": [["me", "too fast", 3.06554058242588]], "A": [{"id": "me", "st": "sloy", "mode": "at", "task": "gut", "at": true, "goal": "gut"}, {"id": "ckr7kcbni", "st": "sloy"
+       FEIL: twenty seconds later everyone has arrived at their place
+FEIL walktest        12 s  uten 3D  · 7 OK
+       FEIL snekke       135 cells   5.4 m2 of  21.3, places sloy,haling,ror,door,spot0,spot1,spot2,filler MISSING is, rail 10 (0 behind a wall), 153 ways (longest 9), 0 through the house between 1 parts, 57 ms {"fail": 0}
+       FEIL plastsjark   303 cells  12.1 m2 of  31.2, places sloy,haling,ror,door,spot0,spot1,spot2,spot3,filler MISSING is, rail 10 (0 behind a wall), 123 ways (longest 15), 48 through the house between 2 parts, 97 ms {"fail": 0}
+       FEIL sjark        585 cells  23.4 m2 of  43.3, places sloy,haling,ror,door,spot0,spot1,spot2,spot3,filler MISSING is, rail 10 (1 behind a wall), 136 ways (longest 10), 17 through the house between 2 parts, 57 ms {"fail": 0}
+       FEIL hurtigsjark  569 cells  22.8 m2 of  42.9, places sloy,haling,ror,door,spot0,spot1,spot2,spot3,filler MISSING is, rail 10 (0 behind a wall), 171 ways (longest 11), 0 through the house between 1 parts, 42 ms {"fail": 0}
+       FEIL sjarkny      696 cells  27.8 m2 of  51.4, places sloy,haling,ror,door,spot0,spot1,spot2,spot3,filler MISSING is, rail 10 (3 behind a wall), 120 ways (longest 20), 0 through the house between 1 parts, 43 ms {"fail": 0}
+       FEIL breisjark    476 cells  19.0 m2 of  46.2, places sloy,haling,ror,door,spot0,spot1,spot2,spot3,filler MISSING is, rail 10 (0 behind a wall), 137 ways (longest 14), 34 through the house between 2 parts, 46 ms {"fail": 0}
+       FEIL kyst15      1732 cells  69.3 m2 of  98.9, places sloy,haling,ror,door,spot0,spot1,spot2,spot3,filler MISSING is, rail 9 (2 behind a wall), 120 ways (longest 17), 0 through the house between 1 parts, 53 ms {"fail": 0}
+       FEIL kyst21      1799 cells  72.0 m2 of 151.2, places sloy,haling,door,spot0,spot1,spot2,spot3,filler MISSING is, rail 10 (0 behind a wall), 153 ways (longest 28), 0 through the house between 1 parts, 53 ms {"fail": 0}
+       FEIL autoliner    152 cells   6.1 m2 of 474.4, places sloy,is,haling,door, rail 0 (0 behind a wall), 6 ways (longest 4), 0 through the house between 1 parts, 84 ms {"fail": 0}
+       FEIL: snekke       135 cells   5.4 m2 of  21.3, places sloy,haling,ror,door,spot0,spot1,spot2,filler MISSING is, rail 10 (0 behind a wall), 153 ways (longest 9), 0 through the house between 1 parts, 57 ms, plastsjark   303 cells  12.1 m2 of  31.2, places sloy,haling,ror,door,spot0,spot1,spot2,spot3,
+OK   tabtest         33 s  uten 3D  · 17 OK
+OK   navbarshot      27 s  uten 3D  · 5 OK
+OK   skiptest        14 s  uten 3D  · 12 OK
+OK   synctest        58 s  uten 3D  · 13 OK
+OK   installtest     12 s  uten 3D  · 6 OK
+OK   looktest        11 s  uten 3D  · 17 OK
+OK   hbtest          14 s  uten 3D  · 16 OK
+OK   naustclear      16 s  uten 3D  · 2 OK
+OK   rectest          4 s  uten 3D  · 6 OK
+FEIL ptowtest         7 s  uten 3D  · 7 OK
+       FEIL moored: the game pays 25 000 kr and the badge counts [5800, 1]
+OK   seaworktest      6 s  uten 3D  · 10 OK
+OK   hailtest         6 s  uten 3D  · 4 OK
+OK   gbtest           6 s  uten 3D  · 6 OK
+OK   sharetest        6 s  uten 3D  · 6 OK
+OK   friendtest       7 s  uten 3D  · 9 OK
+OK   searchtest      15 s  uten 3D  · 5 OK
+OK   savestest        8 s  uten 3D  · 4 OK
+OK   caretest         5 s  uten 3D  · 22 OK
+FEIL yardupgtest      5 s  uten 3D  · 21 OK
+       FEIL the Trim app promises the top speed each trim gives, on the speed sjark with propeller 3 and engine 2 [[], [52.7, 52.7, 52.7, 52.7, 41.7, 47.2, 52.7]]
+OK   jigalongtest     7 s  uten 3D  · 5 OK
+OK   heatgeartest     5 s  uten 3D  · 4 OK
+OK   anchortest       7 s  uten 3D  · 8 OK
+OK   plantsaytest     5 s  uten 3D  · 6 OK
+OK   cashfxtest       8 s  uten 3D  · 4 OK
+OK   autonavtest     22 s  uten 3D  · 25 OK
+FEIL placetest        5 s  uten 3D  · 5 OK
+       FEIL no two places (plants, shops, yards, rorbuer, the naust) nearer than 1.5 km, bar a few villages with no other quay (none nearer than 0.5 km), the plants among themselves aside 12 [['mottak:mT222', 'butikk:sb903610_318095', 0.46], ['mottak:mF260', 'butikk:sb1197292_132829', 0.61], ['mottak:mAA61
+       FEIL the rorbuer by the harbours stand 1.5-4 km from the plant 2 {'mottak': 164, 'butikk': 65, 'verft': 129, 'rorbu': 517, 'rorbu0': 148}
+OK   sidetab         13 s  uten 3D  · 6 OK
+OK   guidetest        8 s  uten 3D  · 13 OK
+OK   stedertest       5 s  uten 3D  · 9 OK
+OK   icestep          7 s  uten 3D  · 6 OK
+OK   heatpick         6 s  uten 3D  · 3 OK
+OK   peergear         5 s  uten 3D  · 6 OK
+OK   turtest          6 s  uten 3D  · 27 OK
+OK   posttest        20 s  uten 3D  · 8 OK
+OK   merketest        5 s  uten 3D  · 12 OK
+OK   fartstidtest     7 s  uten 3D  · 10 OK
+OK   maletest         6 s  uten 3D  · 18 OK
+FEIL markettest     747 s  uten 3D  · 17 OK
+       FEIL 3D, liggende: kjøpsøyeblikket på båten du er om bord i tegner i modellen, kameraet går rundt henne, og kortet har typen, året og kaia  [{"card": true, "in3d": true, "painting": true, "b": null}, {"name": null, "letters": 0, "flag": false, "skip": true, "drawer": true, "in3d": true, "label": "Bå
+       FEIL 3D, liggende: navnet males på skroget bokstav for bokstav (None av None), flagget nede på stanga  null
+       FEIL 3D, liggende: hele navnet står på skroget, og flagget er oppe  null
+       FEIL 3D, staaende: navnet males på skroget bokstav for bokstav (None av None), flagget nede på stanga  null
+       FEIL 3D, staaende: hele navnet står på skroget, og flagget er oppe  null
+
+90 OK, 11 FEIL, 0 å lese, på 2716 s. Feil i: rttest, havtur, crewclip, hulltest, dyntest, crewwalk, walktest, ptowtest, yardupgtest, placetest, markettest.
+Bygg først: node build.mjs. 101 tester: 100 uten 3D to om gangen, så 1 med 3D alene etter hverandre, og 0 som måler tid, alene til slutt. Logger: tests/out/logs/
+dist-vec/ bygd én gang for npctest, havntest, utfrakai, lukket, allesteder, kaiover: OK
+OK   climtest         5 s  uten 3D  · 5 OK
+OK   sqltest         60 s  uten 3D  · 232 OK
+FEIL cloudtest       27 s  uten 3D  · 20 OK
+       avsluttet med kode 1
+       Python-feil: playwright._impl._errors.TimeoutError: Page.wait_for_function: Timeout 15000ms exceeded.
+FEIL errtest         22 s  uten 3D  · 12 OK
+       FEIL an error the cloud did not take waits on the device and goes when it answers again  {"kept": ["errtest offline"], "sent": []}
+OK   guesttest       65 s  uten 3D  · 16 OK
+OK   kjoptest       153 s  uten 3D  · 27 OK
+OK   regnrtest       12 s  uten 3D  · 4 OK
+OK   r4test           7 s  uten 3D  · 7 OK
+OK   tutdrift         7 s  uten 3D  · 5 OK
+OK   tutfull          7 s  uten 3D  · 8 OK
+OK   worldtest       19 s  uten 3D  · 7 OK
+OK   pushtest        24 s  uten 3D  · 18 OK
+OK   feedbacktest    15 s  uten 3D  · 11 OK
+OK   hudtest        119 s  uten 3D  · 76 OK
+OK   obstest          6 s  uten 3D  · 10 OK
+OK   marktest         7 s  uten 3D  · 26 OK
+FEIL rorbutest       13 s  uten 3D  · 12 OK
+       FEIL no rorbu stands within 1.4 km of a plant, shop or yard: the choice of quay to moor at does not come up  {"n": 148, "worst": 1.31}
+OK   admintest       13 s  uten 3D  · 15 OK
+OK   starttest      119 s  uten 3D  · 14 OK
+OK   seasontest       7 s  uten 3D  · 9 OK
+OK   uishots         90 s  uten 3D  · 45 OK
+OK   quotatest        6 s  uten 3D  · 18 OK
+OK   rulestest        5 s  uten 3D  · 21 OK
+OK   npctest          7 s  uten 3D  · 19 OK
+OK   havntest        11 s  uten 3D  · 25 OK
+OK   keeptest         5 s  uten 3D  · 6 OK
+OK   tidetest        21 s  uten 3D  · 23 OK
+OK   trip2           11 s  uten 3D
+OK   docktest        63 s  uten 3D  · 122 OK
+OK   booktest        22 s  uten 3D  · 23 OK
+OK   decktest         6 s  uten 3D  · 10 OK
+OK   geartest        27 s  uten 3D  · 51 OK
+OK   loretest         6 s  uten 3D  · 8 OK
+OK   tattest          6 s  uten 3D  · 8 OK
+OK   towtest          6 s  uten 3D  · 11 OK
+OK   airtest          5 s  uten 3D  · 4 OK
+OK   fleet2test      18 s  uten 3D  · 16 OK
+OK   fleet3test       6 s  uten 3D  · 8 OK
+OK   opsowntest      17 s  uten 3D  · 6 OK
+OK   naustleia        7 s  uten 3D  · 4 OK
+OK   shoptest        14 s  uten 3D  · 21 OK
+LES  selltest        10 s  uten 3D
+       | "torsk 54.84",
+       | "hyse 23.63",
+       | "sei 22.31",
+       | "lyr 20.04",
+       | "lange 13.71",
+       | "brosme 12.23",
+       | "uer 16.50",
+       | "kveite 72.60",
+       | "blakveite 55.35"
+       | ]
+       | }
+       | errors: []
+OK   timetest         5 s  uten 3D  · 9 OK
+OK   worktest         8 s  uten 3D  · 46 OK
+OK   vesseltest       8 s  uten 3D  · 37 OK
+OK   adminbuytest    10 s  uten 3D  · 4 OK
+OK   fuelcal          5 s  uten 3D  · 2 OK
+OK   bunktest         5 s  uten 3D  · 5 OK
+OK   lanterntest      5 s  uten 3D  · 12 OK
+OK   streaktest      20 s  uten 3D  · 13 OK
+OK   fixtest         14 s  uten 3D  · 13 OK
+LES  hailltest       23 s  uten 3D
+       | luck: {"none": {"torsk": 663, "all": 735}, "haill": {"torsk": 1201, "all": 1342}, "luksus": {"torsk": 1620, "all": 1817}, "haillSteps": [1, 1, 0.5, 0.5, 0.25, 0.25, 0], "luksusSteps": [2, 2, 1, 1, 0.5
+       | after buy (in store, not on): {"h":null,"inv":{"haill":0,"luksus":1},"btn":true}
+       | after switch-on: {"h":"luksus","boost":2,"inv":{"haill":0,"luksus":0},"hud":null}
+       | pub button: True
+       | pub: {"cash":49000,"pubE":371,"ev":371,"msg":"Noen plystret en slager. – Ikke gjør det på sjøen, sa bartenderen. Da plystrer du opp storm.","spinDisabled":true,"haill":"luksus"}
+       | pub button after round: True
+       | workshop: minutes left 180 -> 90 paid 1430 ; after rush jobs left: 1
+       | errors: []
+OK   harbourtest      7 s  uten 3D  · 11 OK
+LES  simday           5 s  uten 3D
+       | {"date": "2028-3-10", "ground": "Havet nord for Husøy", "gear": "juksa", "jk": 0, "total": 500, "released": 12, "st": "idle", "by": {"torsk": {"kg": 448, "n": 97, "cls": {"3,7–6 kg": 34, "6–9 kg": 26,
+       | {"date": "2028-3-10", "ground": "Vest av Gryllefjord", "gear": "juksa", "jk": 0, "total": 492, "released": 10, "st": "fishing", "by": {"torsk": {"kg": 395, "n": 76, "cls": {"6–9 kg": 15, "1,5–3,7 kg":
+       | {"date": "2028-7-12", "ground": "Havet nord for Husøy", "gear": "juksa", "jk": 0, "total": 314, "released": 26, "st": "fishing", "by": {"hyse": {"kg": 152, "n": 109, "cls": {"0,8–1,1 kg": 24, "Over 1,
+       | {"date": "2028-5-15", "ground": "Malangsgapet", "gear": "juksa", "jk": 0, "total": 193, "released": 12, "st": "fishing", "by": {"sei": {"kg": 88, "n": 34, "cls": {"1,6–3,1 kg": 18, "0,7–1,6 kg": 6, "O
+       | {"date": "2028-3-10", "ground": "Havet nord for Husøy", "gear": "stang", "jk": 0, "total": 0, "released": 0, "st": "idle", "by": {}}
+       | {"date": "2028-3-10", "ground": "Havet nord for Husøy", "gear": "juksa", "jk": 2, "total": 500, "released": 11, "st": "idle", "by": {"torsk": {"kg": 445, "n": 93.99999999999999, "cls": {"3,7–6 kg": 47
+       | {"effort": [0, 2, 4, 8]}
+       | errors: []
+LES  calib            6 s  uten 3D
+       |         top-10% sea kg/h: [1.5, 0.5, 0.3, 0.9, 0.8, 0.6, 0.3, 0.2, 0.2, 0.2, 0.3, 0.8]
+       | lange   best-ground kg/h: [0.4, 0.3, 0.5, 0.6, 1, 1.7, 1, 1.4, 1, 1.4, 2.1, 0.6]
+       |         top-10% sea kg/h: [0.9, 0.7, 0.9, 2.2, 3, 2.8, 2.3, 2.4, 2, 2.8, 3.2, 1.4]
+       | brosme  best-ground kg/h: [0.7, 0.3, 0.4, 0.6, 1, 0.7, 1, 1, 1.9, 1, 1.1, 0.7]
+       |         top-10% sea kg/h: [1.2, 1.2, 0.9, 1.8, 2.4, 1.7, 1.8, 2.2, 2.4, 2.5, 3.2, 2.8]
+       | uer     best-ground kg/h: [0.1, 0, 0, 0.1, 0.2, 0.5, 0.7, 2.1, 0.1, 0.1, 0.1, 0.1]
+       |         top-10% sea kg/h: [0.1, 0.1, 0.1, 0.1, 0.3, 1.8, 2.2, 2.8, 0.3, 0.2, 0.2, 0.2]
+       | kveite  best-ground kg/h: [0.6, 0.1, 0.1, 0.3, 0.8, 1.2, 1.7, 1.4, 1.3, 0.8, 1.1, 1.1]
+       |         top-10% sea kg/h: [0.6, 0.2, 0.1, 0.3, 0.7, 0.9, 1.3, 1.4, 1.6, 1.4, 1.9, 1.6]
+       | blakveite best-ground kg/h: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+       |         top-10% sea kg/h: [0.3, 0.3, 0.3, 0.5, 0.7, 0.7, 0.5, 0.6, 0.6, 0.4, 0.2, 0.3]
+       | errors: []
+LES  kvtest           7 s  uten 3D
+       | sep_kveite {"kg": {"sei": 83, "hyse": 9, "torsk": 2, "kveite": 20}, "kveiteN": 2, "krPerDay": 492, "released": 3}
+       | sep_kveite_haill {"kg": {"sei": 89, "hyse": 12, "kveite": 14}, "kveiteN": 1, "krPerDay": 437, "released": 12}
+       | oct_kveite_g0 {"kg": {"sei": 69, "hyse": 13, "kveite": 64, "torsk": 10}, "kveiteN": 3, "krPerDay": 1026, "released": 5}
+       | errors: []
+LES  progweek        30 s  uten 3D
+       |   dag  7:  5 turer, kasse     46101, netto    112601, torsk   482 /  5100 kg, blad B [5, 35194], juksamaskiner 0, egenkapital som trengs 567280
+       |   dag 14: 10 turer, kasse     56142, netto    122642, torsk  1631 /  5100 kg, blad B [10, 117576], juksamaskiner 2, egenkapital som trengs 567280
+       |   dag 21: 12 turer, kasse     83230, netto    149730, torsk  2114 /  5100 kg, blad B [12, 152455], juksamaskiner 2, egenkapital som trengs 91945
+       |   dag 28: 17 turer, kasse    155422, netto    221922, torsk  3400 /  3400 kg, blad B [17, 243383], juksamaskiner 2, egenkapital som trengs 91945
+       |   dag 35: 23 turer, kasse    172517, netto    239017, torsk  3400 /  3400 kg, blad B [23, 269934], juksamaskiner 2, egenkapital som trengs 91945
+       |   dag 42: 28 turer, kasse    191284, netto    257784, torsk  3400 /  3400 kg, blad B [28, 298823], juksamaskiner 2, egenkapital som trengs 91945
+       |   dag 49: 33 turer, kasse    207673, netto    274173, torsk  3400 /  3400 kg, blad B [33, 324135], juksamaskiner 2, egenkapital som trengs 91945
+       |   dag 56: 39 turer, kasse    230107, netto    296607, torsk  3400 /  3400 kg, blad B [39, 359226], juksamaskiner 2, egenkapital som trengs 91945
+       |   per tur: 302 kg, 9211 kr; inngangen koster 3168900 kr ved start og 3168900 kr ved slutt (kvoteprisen 260–260 kr/kg)
+       |   blad B: {'day': 18, 'trips': 12} · inngangen innen rekkevidde: {'day': 22, 'trips': 13, 'cash': 104061}
+       |   til kalibreringen, når egenkapitalen ville holdt med 5 / 10 / 15 % av prisen: {'day': 22, 'trips': 13} / None / None
+       | errors: []
+OK   seatest          7 s  uten 3D  · 14 OK
+OK   stabtest         5 s  uten 3D  · 7 OK
+OK   projtest         5 s  uten 3D  · 5 OK
+OK   boottest        11 s  uten 3D  · 4 OK
+OK   maptest         18 s  uten 3D  · 6 OK
+OK   mig2test         9 s  uten 3D  · 4 OK
+OK   helmtest        26 s  uten 3D  · 12 OK
+OK   soundtest        6 s  uten 3D  · 25 OK
+OK   sleeptest       11 s  uten 3D  · 9 OK
+OK   pwatest         30 s  uten 3D  · 6 OK
+OK   bktest           7 s  uten 3D  · 14 OK
+OK   ordtest          5 s  uten 3D  · 7 OK
+OK   kartlegging     52 s  uten 3D  · 57 OK
+OK   roetest        119 s  uten 3D  · 23 OK
+OK   mannskapshot    14 s  uten 3D  · 14 OK
+OK   hooktest         1 s  uten 3D  · 55 OK
+OK   utryggtest      10 s  uten 3D  · 11 OK
+OK   profiltest      43 s  uten 3D  · 30 OK
+OK   hopptest         6 s  uten 3D  · 24 OK
+OK   brottaar        78 s  uten 3D  · 11 OK
+OK   opptest         41 s  uten 3D  · 64 OK
+OK   driftsplan3test    23 s  uten 3D  · 21 OK
+OK   kartkorridortest    11 s  uten 3D  · 6 OK
+OK   legmemotest      5 s  uten 3D  · 4 OK
+OK   mobtest        203 s  uten 3D  · 45 OK
+OK   rundshot        14 s  uten 3D  · 2 OK
+OK   kapplop         26 s  uten 3D  · 34 OK
+OK   utfrakai        88 s  uten 3D  · 44 OK
+OK   lukket          13 s  uten 3D  · 6 OK
+Bygg først: node build.mjs. 13 tester: 13 uten 3D to om gangen, så 0 med 3D alene etter hverandre, og 0 som måler tid, alene til slutt. Logger: tests/out/logs/
+dist-vec/ bygd én gang for kaiover: OK
+OK   turlinjetest    17 s  uten 3D  · 13 OK
+OK   fasittest       55 s  uten 3D  · 29 OK
+OK   kanaltest       44 s  uten 3D  · 50 OK
+OK   hengtest       102 s  uten 3D  · 11 OK
+OK   csptest         91 s  uten 3D  · 16 OK
+OK   ferrytest       25 s  uten 3D  · 62 OK
+OK   kaiover        125 s  uten 3D  · 8 OK
+OK   farttest       386 s  uten 3D  · 21 OK
+OK   aerendshot      15 s  uten 3D  · 6 OK
+OK   laerlingshot    15 s  uten 3D  · 6 OK
+OK   avtaleshot      12 s  uten 3D  · 8 OK
+OK   folk2shot       36 s  uten 3D  · 31 OK
+OK   wpchiptest       8 s  uten 3D  · 5 OK
+
+13 OK, 0 FEIL, 0 å lese, på 564 s.
+Bygg først: node build.mjs. 1 tester: 1 uten 3D to om gangen, så 0 med 3D alene etter hverandre, og 0 som måler tid, alene til slutt. Logger: tests/out/logs/
+dist-vec/ bygd én gang for allesteder: OK
+FEIL allesteder    5400 s  uten 3D
+       gikk ut på tid
+
+0 OK, 1 FEIL, 0 å lese, på 5400 s. Feil i: allesteder.

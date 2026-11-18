@@ -5590,6 +5590,12 @@
 2026-11-17 02:39	claude/charming-mayer-4qcjdd	cde9b25+	admintest	FEIL	13	lite	alene	FEIL the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days  {"k3": {"login": tru
 2026-11-17 02:40	claude/charming-mayer-4qcjdd	cde9b25+	admintest	OK	13	lite	alene	
 2026-11-17 02:40	claude/charming-mayer-4qcjdd	cde9b25+	admintest	FEIL	13	lite	alene	FEIL the sign-in lasts 14 days: kept past the tab, the token renewed before it runs out and after a 401, and asked for again after 14 days  {"k3": {"login": tru
+2026-11-17 10:09	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	trip2	OK	37	lite	samtidig	
+2026-11-17 10:09	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	turtest	OK	26	lite	samtidig	
+2026-11-17 10:10	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	worldtest	OK	21	lite	samtidig	
+2026-11-17 10:10	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	docktest	OK	62	lite	samtidig	
+2026-11-17 10:10	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	r4test	OK	18	lite	samtidig	
+2026-11-17 10:37	fb/auto-2026-11-17-autonav-gul-etappe	faa2e323	trackfollow	FEIL	1583	3d	alene	FEIL at the end of the route she stops exactly on the last waypoint, without running past and coming back  {"stop": 0.0, "d3d": 0.0, "d": 0.72, "rise": 0.51, "d
 2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	vesseltest	OK	20	lite	samtidig	
 2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	walktest	FEIL	13	lite	samtidig	FEIL snekke       135 cells   5.4 m2 of  21.3, places sloy,haling,ror,door,spot0,spot1,spot2,filler MISSING is, rail 10 (0 behind a wall), 153 ways (longest 9),
 2026-11-17 09:09	claude/hopeful-mayer-48bgvv	217da5f5	crewclip	FEIL	21	lite	samtidig	FEIL no foot walking put down in a wall, a tub or the kit, nor on his other foot or anyone else's (FB3; 5293 feet put down on every boat) {'pelagisk': ['me:i ti
@@ -5609,6 +5615,11 @@
 2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	driftsplan2ui	OK	60	lite	samtidig	
 2026-11-17 11:51	claude/hopeful-mayer-48bgvv	ba84b9a7	rundshot	OK	24	lite	samtidig	
 2026-11-17 11:52	claude/hopeful-mayer-48bgvv	ba84b9a7	driftsplan2test	OK	95	lite	alene	
+2026-11-17 12:06	fb/auto-2026-11-17-autonav-gul-etappe	2792658a+	utryggtest	FEIL	0	lite	alene	avsluttet med kode 1
+2026-11-17 12:07	fb/auto-2026-11-17-autonav-gul-etappe	2792658a+	utryggtest	FEIL	12	lite	alene	FEIL a yellow leg Autonav laid starts at once, not asked about and not marked unsafe  {"yellow": 1, "asked": true, "plan": false, "unsafe": null}
+2026-11-17 12:07	fb/auto-2026-11-17-autonav-gul-etappe	2792658a+	utryggtest	OK	11	lite	alene	
+2026-11-17 12:08	fb/auto-2026-11-17-autonav-gul-etappe	2792658a+	trip2	OK	39	lite	samtidig	
+2026-11-17 12:08	fb/auto-2026-11-17-autonav-gul-etappe	2792658a+	turtest	OK	25	lite	samtidig	
 2026-11-17 14:00	ccr-1bf3e190-ptkcq3	8c7f4ad5+	synctest	FEIL	68	lite	samtidig	FEIL with the phone silent (screen off), the tablet takes the game back by itself, without a card {"s": {"held": false, "wait": false, "gate": false, "ready": t
 2026-11-17 14:00	ccr-1bf3e190-ptkcq3	8c7f4ad5+	cloudtest	OK	50	lite	samtidig	
 2026-11-17 14:01	ccr-1bf3e190-ptkcq3	8ed85661	guesttest	OK	84	lite	samtidig	
@@ -5631,9 +5642,380 @@
 2026-11-17 13:21	claude/hopeful-mayer-48bgvv	0c25df84+	kapplop	FEIL	18	lite	samtidig	FEIL ruta Lindesnes–Bergen {"err": "Fant ingen rute dit."}
 2026-11-17 13:24	claude/hopeful-mayer-48bgvv	0c25df84+	kjoptest	OK	151	lite	samtidig	
 2026-11-17 13:25	claude/hopeful-mayer-48bgvv	0c25df84+	driftsplan2test	OK	93	lite	alene	
+2026-11-17 14:00	fb/auto-2026-11-17-autonav-gul-etappe	eafc2791	utryggtest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-17 14:00	fb/auto-2026-11-17-autonav-gul-etappe	eafc2791	trip2	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-17 14:01	fb/auto-2026-11-17-autonav-gul-etappe	eafc2791	utryggtest	OK	10	lite	samtidig	
+2026-11-17 14:01	fb/auto-2026-11-17-autonav-gul-etappe	eafc2791	trip2	OK	28	lite	samtidig	
 2026-11-17 13:37	claude/hopeful-mayer-48bgvv	0e2baaf3+	stabtest	OK	14	lite	samtidig	
 2026-11-17 13:38	claude/hopeful-mayer-48bgvv	0e2baaf3+	worktest	OK	23	lite	samtidig	
 2026-11-17 13:38	claude/hopeful-mayer-48bgvv	0e2baaf3+	trip2	OK	27	lite	samtidig	
 2026-11-17 14:15	claude/hopeful-mayer-48bgvv	115fb4e8	hull3d	OK	2236	3d	alene	
 2026-11-17 14:41	ccr-1bf3e190-ptkcq3	83e926da+	vakttest	OK	8	lite	alene	
 2026-11-17 16:45	fb/2026-11-17-kollisjon-data	33aa3f85	cloudtest	OK	61	lite	alene	
+2026-11-17 17:07	fb/auto-2026-11-17-smola-fylke	05fd5bff	starttest	OK	137	lite	samtidig	
+2026-11-17 17:07	fb/auto-2026-11-17-smola-fylke	05fd5bff	docktest	OK	71	lite	samtidig	
+2026-11-17 17:22	fb/auto-2026-11-17-smola-fylke	8d8cea9b	tut	OK	927	lite	alene	
+2026-11-17 16:21	fb/2026-11-17-havn-land	e94d5b3f+	havnland	OK	11	lite	samtidig	
+2026-11-17 16:22	fb/2026-11-17-havn-land	e94d5b3f+	trip2	OK	51	lite	samtidig	
+2026-11-17 16:22	fb/2026-11-17-havn-land	e94d5b3f+	harbourtest	OK	25	lite	samtidig	
+2026-11-17 16:22	fb/2026-11-17-havn-land	e94d5b3f+	worldtest	OK	27	lite	samtidig	
+2026-11-17 16:22	fb/2026-11-17-havn-land	e94d5b3f+	draftlooptest	OK	25	lite	samtidig	
+2026-11-17 16:22	fb/2026-11-17-havn-land	e94d5b3f+	legmemotest	OK	20	lite	samtidig	
+2026-11-17 16:24	fb/2026-11-17-havn-land	72ab3fb0	utfrakai	OK	95	lite	samtidig	
+2026-11-17 16:24	fb/2026-11-17-havn-land	72ab3fb0	kalendertest	OK	17	lite	samtidig	
+2026-11-17 16:24	fb/2026-11-17-havn-land	72ab3fb0	naustleia	OK	8	lite	samtidig	
+2026-11-17 16:24	fb/2026-11-17-havn-land	72ab3fb0	docktest	OK	66	lite	samtidig	
+2026-11-17 16:28	fb/2026-11-17-havn-land	72ab3fb0	unittest	FEIL	271	3d	alene	avsluttet med kode 1
+2026-11-17 18:08	fb/2026-11-17-havn-land	23dcadad	allesteder	FEIL	5400	lite	alene	gikk ut på tid
+2026-11-17 18:53	fb/2026-11-17-havn-land	1c87054c	havnland	OK	9	lite	samtidig	
+2026-11-17 18:55	fb/2026-11-17-havn-land	1c87054c	utfrakai	OK	103	lite	samtidig	
+2026-11-17 18:55	fb/2026-11-17-havn-land	1c87054c	naustleia	OK	12	lite	samtidig	
+2026-11-17 18:55	fb/2026-11-17-havn-land	1c87054c	trip2	OK	43	lite	samtidig	
+2026-11-17 17:06	claude/hopeful-mayer-48bgvv	57bfe35c+	kjoptest	OK	160	lite	samtidig	
+2026-11-17 17:06	claude/hopeful-mayer-48bgvv	57bfe35c+	guesttest	OK	83	lite	samtidig	
+2026-11-17 17:06	claude/hopeful-mayer-48bgvv	57bfe35c+	cloudtest	OK	51	lite	samtidig	
+2026-11-17 19:14	claude/hopeful-mayer-48bgvv	e9c42145	utryggtest	OK	15	lite	samtidig	
+2026-11-17 19:14	claude/hopeful-mayer-48bgvv	e9c42145	trip2	OK	35	lite	samtidig	
+2026-11-17 19:29	claude/hopeful-mayer-48bgvv	dea88154+	fleet3test	OK	13	lite	samtidig	
+2026-11-17 19:29	claude/hopeful-mayer-48bgvv	dea88154+	fleet2test	OK	44	lite	samtidig	
+2026-11-17 19:30	claude/hopeful-mayer-48bgvv	dea88154+	guesttest	OK	84	lite	samtidig	
+2026-11-17 19:30	claude/hopeful-mayer-48bgvv	dea88154+	cloudtest	OK	44	lite	samtidig	
+2026-11-17 19:30	claude/hopeful-mayer-48bgvv	dea88154+	megletest	OK	23	lite	samtidig	
+2026-11-17 22:59	claude/hopeful-mayer-48bgvv	bd184cb1+	starttest	OK	93	lite	alene	
+2026-11-17 23:14	claude/hopeful-mayer-48bgvv	4fa9d0dc+	trip2	OK	29	lite	samtidig	
+2026-11-17 23:18	claude/hopeful-mayer-48bgvv	4fa9d0dc+	dyntest	FEIL	255	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-17 23:18	claude/hopeful-mayer-48bgvv	4fa9d0dc+	autonavtest	OK	20	lite	samtidig	
+2026-11-17 23:29	claude/hopeful-mayer-48bgvv	4fa9d0dc+	dyntest	FEIL	259	lite	alene	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-17 23:50	claude/hopeful-mayer-48bgvv	d625e9ab+	colregtest	OK	734	lite	samtidig	
+2026-11-17 23:50	claude/hopeful-mayer-48bgvv	d625e9ab+	autonavtest	OK	21	lite	samtidig	
+2026-11-17 23:56	claude/hopeful-mayer-48bgvv	d625e9ab+	anchorlight3d	OK	176	3d	alene	
+2026-11-18 00:27	claude/hopeful-mayer-48bgvv	43728dc6+	trip2	OK	28	lite	samtidig	
+2026-11-18 00:28	claude/hopeful-mayer-48bgvv	43728dc6+	docktest	OK	62	lite	samtidig	
+2026-11-18 00:28	claude/hopeful-mayer-48bgvv	43728dc6+	autonavtest	OK	24	lite	samtidig	
+2026-11-18 00:28	claude/hopeful-mayer-48bgvv	43728dc6+	havnland	OK	6	lite	samtidig	
+2026-11-18 01:22	regresjon/2026-11-18	dd98e0c	navntest	OK	22	lite	samtidig	
+2026-11-18 01:22	regresjon/2026-11-18	dd98e0c	vervtest	OK	13	lite	samtidig	
+2026-11-18 01:22	regresjon/2026-11-18	dd98e0c	vakttest	OK	8	lite	samtidig	
+2026-11-18 01:22	regresjon/2026-11-18	dd98e0c	nedetest	OK	21	lite	samtidig	
+2026-11-18 01:22	regresjon/2026-11-18	dd98e0c	kalendertest	OK	15	lite	samtidig	
+2026-11-18 01:22	regresjon/2026-11-18	dd98e0c	planhjem	OK	15	lite	samtidig	
+2026-11-18 01:22	regresjon/2026-11-18	dd98e0c	havnstengt	OK	10	lite	samtidig	
+2026-11-18 01:23	regresjon/2026-11-18	dd98e0c	d4dorer	OK	19	lite	samtidig	
+2026-11-18 01:24	regresjon/2026-11-18	dd98e0c	jobbstripe	OK	86	lite	samtidig	
+2026-11-18 01:24	regresjon/2026-11-18	dd98e0c	telefonflate	OK	84	lite	samtidig	
+2026-11-18 01:26	regresjon/2026-11-18	dd98e0c	stromtest	OK	149	lite	samtidig	
+2026-11-18 01:26	regresjon/2026-11-18	dd98e0c	skagtest	OK	14	lite	samtidig	
+2026-11-18 01:26	regresjon/2026-11-18	dd98e0c	sor62test	OK	24	lite	samtidig	
+2026-11-18 01:26	regresjon/2026-11-18	dd98e0c	gatetest	OK	11	lite	samtidig	
+2026-11-18 01:26	regresjon/2026-11-18	dd98e0c	jukseboot	OK	9	lite	samtidig	
+2026-11-18 01:26	regresjon/2026-11-18	dd98e0c	kotest	OK	6	lite	samtidig	
+2026-11-18 01:27	regresjon/2026-11-18	dd98e0c	driftsplan2kyst	OK	78	lite	samtidig	
+2026-11-18 01:27	regresjon/2026-11-18	dd98e0c	megletest	OK	24	lite	samtidig	
+2026-11-18 01:27	regresjon/2026-11-18	dd98e0c	kvotemarkedtest	OK	27	lite	samtidig	
+2026-11-18 01:28	regresjon/2026-11-18	dd98e0c	boostklokke	OK	50	lite	samtidig	
+2026-11-18 01:28	regresjon/2026-11-18	dd98e0c	draftlooptest	OK	11	lite	samtidig	
+2026-11-18 01:29	regresjon/2026-11-18	dd98e0c	bootgtest	OK	89	lite	samtidig	
+2026-11-18 01:29	regresjon/2026-11-18	dd98e0c	skipdrift	OK	20	lite	samtidig	
+2026-11-18 01:29	regresjon/2026-11-18	dd98e0c	haillplass	OK	5	lite	samtidig	
+2026-11-18 01:40	regresjon/2026-11-18	dd98e0c	colregtest	OK	729	lite	samtidig	
+2026-11-18 01:40	regresjon/2026-11-18	dd98e0c	rttest	FEIL	44	lite	samtidig	FEIL she glides onto the relay from the 15 s track over 2 s, slowing for a moment, with no jump  [0.0, 1.03]
+2026-11-18 01:40	regresjon/2026-11-18	dd98e0c	istest	OK	13	lite	samtidig	
+2026-11-18 01:40	regresjon/2026-11-18	dd98e0c	lybtest	OK	15	lite	samtidig	
+2026-11-18 01:40	regresjon/2026-11-18	dd98e0c	havtur	FEIL	91	lite	samtidig	FEIL Båtsfjord: sovner du om bord, tar vakta på broa over og lagene arbeider videre (ikke «driver») [['Du sovnet av utmattelse. Båten ligger og driver.', 'Du so
+2026-11-18 01:40	regresjon/2026-11-18	dd98e0c	snokrabbetest	OK	10	lite	samtidig	
+2026-11-18 01:40	regresjon/2026-11-18	dd98e0c	krabbefabrikktest	OK	18	lite	samtidig	
+2026-11-18 01:40	regresjon/2026-11-18	dd98e0c	autolinetest	OK	9	lite	samtidig	
+2026-11-18 01:40	regresjon/2026-11-18	dd98e0c	fabrikktest	OK	13	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	havplantest	OK	969	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	sonetest	OK	8	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	uketest	OK	7	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	kystkarttest	OK	13	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	havflaate	OK	13	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	etikett	OK	169	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	sponsor2test	OK	16	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	sponsortest	OK	10	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	nettest	OK	12	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	itemcardtest	OK	15	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	kystvakttest	OK	9	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	lagtest	OK	8	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	eventtest	OK	6	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	boktest	OK	8	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	lotttest	OK	8	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	skattetest	OK	6	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	driftsplan2ui	OK	10	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	driftsplan2map	OK	18	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	driftsplan2gui	OK	28	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	slidertest	OK	14	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	anchorswing	OK	7	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	selfcrew	OK	6	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	crewclip	FEIL	21	lite	samtidig	FEIL no foot walking put down in a wall, a tub or the kit, nor on his other foot or anyone else's (FB3; 5284 feet put down on every boat) {'pelagisk': ['me:i ti
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	regmarktest	OK	6	lite	samtidig	
+2026-11-18 01:48	regresjon/2026-11-18	dd98e0c	dockrow	OK	40	lite	samtidig	
+2026-11-18 01:49	regresjon/2026-11-18	dd98e0c	hulltest	FEIL	70	lite	samtidig	FEIL 7a. by hand into the ferry: the contact in the manoeuvring model's steps, damage to your hull, and to hers when her blow is a knot or more  [{"id": "ferje"
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	dyntest	FEIL	252	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	crewlifetest	OK	8	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	crewwalk	FEIL	7	lite	samtidig	FEIL twenty seconds later everyone has arrived at their place {"walked": {"me": 3.45929058242588, "ckr7kcbni": 0, "cktwdou5o": 0}, "off": [["me", "too fast", 3.
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	walktest	FEIL	12	lite	samtidig	FEIL snekke       135 cells   5.4 m2 of  21.3, places sloy,haling,ror,door,spot0,spot1,spot2,filler MISSING is, rail 10 (0 behind a wall), 153 ways (longest 9),
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	tabtest	OK	33	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	navbarshot	OK	27	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	skiptest	OK	14	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	synctest	OK	58	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	installtest	OK	12	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	looktest	OK	11	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	hbtest	OK	14	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	naustclear	OK	16	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	rectest	OK	4	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	ptowtest	FEIL	7	lite	samtidig	FEIL moored: the game pays 25 000 kr and the badge counts [5800, 1]
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	seaworktest	OK	6	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	hailtest	OK	6	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	gbtest	OK	6	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	sharetest	OK	6	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	friendtest	OK	7	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	searchtest	OK	15	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	savestest	OK	8	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	caretest	OK	5	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	yardupgtest	FEIL	5	lite	samtidig	FEIL the Trim app promises the top speed each trim gives, on the speed sjark with propeller 3 and engine 2 [[], [52.7, 52.7, 52.7, 52.7, 41.7, 47.2, 52.7]]
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	jigalongtest	OK	7	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	heatgeartest	OK	5	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	anchortest	OK	7	lite	samtidig	
+2026-11-18 01:53	regresjon/2026-11-18	dd98e0c	plantsaytest	OK	5	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	cashfxtest	OK	8	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	autonavtest	OK	22	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	placetest	FEIL	5	lite	samtidig	FEIL no two places (plants, shops, yards, rorbuer, the naust) nearer than 1.5 km, bar a few villages with no other quay (none nearer than 0.5 km), the plants am
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	sidetab	OK	13	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	guidetest	OK	8	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	stedertest	OK	5	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	icestep	OK	7	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	heatpick	OK	6	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	peergear	OK	5	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	turtest	OK	6	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	posttest	OK	20	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	merketest	OK	5	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	fartstidtest	OK	7	lite	samtidig	
+2026-11-18 01:54	regresjon/2026-11-18	dd98e0c	maletest	OK	6	lite	samtidig	
+2026-11-18 02:07	regresjon/2026-11-18	dd98e0c	markettest	FEIL	747	lite	alene	FEIL 3D, liggende: kjøpsøyeblikket på båten du er om bord i tegner i modellen, kameraet går rundt henne, og kortet har typen, året og kaia  [{"card": true, "in3
+2026-11-18 02:07	regresjon/2026-11-18	dd98e0c	climtest	OK	5	lite	samtidig	
+2026-11-18 02:08	regresjon/2026-11-18	dd98e0c	sqltest	OK	60	lite	samtidig	
+2026-11-18 02:08	regresjon/2026-11-18	dd98e0c	cloudtest	FEIL	27	lite	samtidig	avsluttet med kode 1
+2026-11-18 02:08	regresjon/2026-11-18	dd98e0c	errtest	FEIL	22	lite	samtidig	FEIL an error the cloud did not take waits on the device and goes when it answers again  {"kept": ["errtest offline"], "sent": []}
+2026-11-18 02:09	regresjon/2026-11-18	dd98e0c	guesttest	OK	65	lite	samtidig	
+2026-11-18 02:11	regresjon/2026-11-18	dd98e0c	kjoptest	OK	153	lite	samtidig	
+2026-11-18 02:11	regresjon/2026-11-18	dd98e0c	regnrtest	OK	12	lite	samtidig	
+2026-11-18 02:11	regresjon/2026-11-18	dd98e0c	r4test	OK	7	lite	samtidig	
+2026-11-18 02:11	regresjon/2026-11-18	dd98e0c	tutdrift	OK	7	lite	samtidig	
+2026-11-18 02:11	regresjon/2026-11-18	dd98e0c	tutfull	OK	7	lite	samtidig	
+2026-11-18 02:11	regresjon/2026-11-18	dd98e0c	worldtest	OK	19	lite	samtidig	
+2026-11-18 02:11	regresjon/2026-11-18	dd98e0c	pushtest	OK	24	lite	samtidig	
+2026-11-18 02:11	regresjon/2026-11-18	dd98e0c	feedbacktest	OK	15	lite	samtidig	
+2026-11-18 02:13	regresjon/2026-11-18	dd98e0c	hudtest	OK	119	lite	samtidig	
+2026-11-18 02:13	regresjon/2026-11-18	dd98e0c	obstest	OK	6	lite	samtidig	
+2026-11-18 02:13	regresjon/2026-11-18	dd98e0c	marktest	OK	7	lite	samtidig	
+2026-11-18 02:13	regresjon/2026-11-18	dd98e0c	rorbutest	FEIL	13	lite	samtidig	FEIL no rorbu stands within 1.4 km of a plant, shop or yard: the choice of quay to moor at does not come up  {"n": 148, "worst": 1.31}
+2026-11-18 02:13	regresjon/2026-11-18	dd98e0c	admintest	OK	13	lite	samtidig	
+2026-11-18 02:13	regresjon/2026-11-18	dd98e0c	starttest	OK	119	lite	samtidig	
+2026-11-18 02:13	regresjon/2026-11-18	dd98e0c	seasontest	OK	7	lite	samtidig	
+2026-11-18 02:14	regresjon/2026-11-18	dd98e0c	uishots	OK	90	lite	samtidig	
+2026-11-18 02:14	regresjon/2026-11-18	dd98e0c	quotatest	OK	6	lite	samtidig	
+2026-11-18 02:14	regresjon/2026-11-18	dd98e0c	rulestest	OK	5	lite	samtidig	
+2026-11-18 02:14	regresjon/2026-11-18	dd98e0c	npctest	OK	7	lite	samtidig	
+2026-11-18 02:14	regresjon/2026-11-18	dd98e0c	havntest	OK	11	lite	samtidig	
+2026-11-18 02:14	regresjon/2026-11-18	dd98e0c	keeptest	OK	5	lite	samtidig	
+2026-11-18 02:14	regresjon/2026-11-18	dd98e0c	tidetest	OK	21	lite	samtidig	
+2026-11-18 02:14	regresjon/2026-11-18	dd98e0c	trip2	OK	11	lite	samtidig	
+2026-11-18 02:15	regresjon/2026-11-18	dd98e0c	docktest	OK	63	lite	samtidig	
+2026-11-18 02:15	regresjon/2026-11-18	dd98e0c	booktest	OK	22	lite	samtidig	
+2026-11-18 02:15	regresjon/2026-11-18	dd98e0c	decktest	OK	6	lite	samtidig	
+2026-11-18 02:15	regresjon/2026-11-18	dd98e0c	geartest	OK	27	lite	samtidig	
+2026-11-18 02:15	regresjon/2026-11-18	dd98e0c	loretest	OK	6	lite	samtidig	
+2026-11-18 02:15	regresjon/2026-11-18	dd98e0c	tattest	OK	6	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	towtest	OK	6	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	airtest	OK	5	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	fleet2test	OK	18	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	fleet3test	OK	6	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	opsowntest	OK	17	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	naustleia	OK	7	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	shoptest	OK	14	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	selltest	LES	10	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	timetest	OK	5	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	worktest	OK	8	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	vesseltest	OK	8	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	adminbuytest	OK	10	lite	samtidig	
+2026-11-18 02:16	regresjon/2026-11-18	dd98e0c	fuelcal	OK	5	lite	samtidig	
+2026-11-18 02:17	regresjon/2026-11-18	dd98e0c	bunktest	OK	5	lite	samtidig	
+2026-11-18 02:17	regresjon/2026-11-18	dd98e0c	lanterntest	OK	5	lite	samtidig	
+2026-11-18 02:17	regresjon/2026-11-18	dd98e0c	streaktest	OK	20	lite	samtidig	
+2026-11-18 02:17	regresjon/2026-11-18	dd98e0c	fixtest	OK	14	lite	samtidig	
+2026-11-18 02:17	regresjon/2026-11-18	dd98e0c	hailltest	LES	23	lite	samtidig	
+2026-11-18 02:17	regresjon/2026-11-18	dd98e0c	harbourtest	OK	7	lite	samtidig	
+2026-11-18 02:17	regresjon/2026-11-18	dd98e0c	simday	LES	5	lite	samtidig	
+2026-11-18 02:17	regresjon/2026-11-18	dd98e0c	calib	LES	6	lite	samtidig	
+2026-11-18 02:17	regresjon/2026-11-18	dd98e0c	kvtest	LES	7	lite	samtidig	
+2026-11-18 02:18	regresjon/2026-11-18	dd98e0c	progweek	LES	30	lite	samtidig	
+2026-11-18 02:18	regresjon/2026-11-18	dd98e0c	seatest	OK	7	lite	samtidig	
+2026-11-18 02:18	regresjon/2026-11-18	dd98e0c	stabtest	OK	5	lite	samtidig	
+2026-11-18 02:18	regresjon/2026-11-18	dd98e0c	projtest	OK	5	lite	samtidig	
+2026-11-18 02:18	regresjon/2026-11-18	dd98e0c	boottest	OK	11	lite	samtidig	
+2026-11-18 02:18	regresjon/2026-11-18	dd98e0c	maptest	OK	18	lite	samtidig	
+2026-11-18 02:18	regresjon/2026-11-18	dd98e0c	mig2test	OK	9	lite	samtidig	
+2026-11-18 02:18	regresjon/2026-11-18	dd98e0c	helmtest	OK	26	lite	samtidig	
+2026-11-18 02:18	regresjon/2026-11-18	dd98e0c	soundtest	OK	6	lite	samtidig	
+2026-11-18 02:18	regresjon/2026-11-18	dd98e0c	sleeptest	OK	11	lite	samtidig	
+2026-11-18 02:19	regresjon/2026-11-18	dd98e0c	pwatest	OK	30	lite	samtidig	
+2026-11-18 02:19	regresjon/2026-11-18	dd98e0c	bktest	OK	7	lite	samtidig	
+2026-11-18 02:19	regresjon/2026-11-18	dd98e0c	ordtest	OK	5	lite	samtidig	
+2026-11-18 02:19	regresjon/2026-11-18	dd98e0c	kartlegging	OK	52	lite	samtidig	
+2026-11-18 02:21	regresjon/2026-11-18	dd98e0c	roetest	OK	119	lite	samtidig	
+2026-11-18 02:21	regresjon/2026-11-18	dd98e0c	mannskapshot	OK	14	lite	samtidig	
+2026-11-18 02:21	regresjon/2026-11-18	dd98e0c	hooktest	OK	1	lite	samtidig	
+2026-11-18 02:21	regresjon/2026-11-18	dd98e0c	utryggtest	OK	10	lite	samtidig	
+2026-11-18 02:21	regresjon/2026-11-18	dd98e0c	profiltest	OK	43	lite	samtidig	
+2026-11-18 02:21	regresjon/2026-11-18	dd98e0c	hopptest	OK	6	lite	samtidig	
+2026-11-18 02:22	regresjon/2026-11-18	dd98e0c	brottaar	OK	78	lite	samtidig	
+2026-11-18 02:22	regresjon/2026-11-18	dd98e0c	opptest	OK	41	lite	samtidig	
+2026-11-18 02:22	regresjon/2026-11-18	dd98e0c	driftsplan3test	OK	23	lite	samtidig	
+2026-11-18 02:22	regresjon/2026-11-18	dd98e0c	kartkorridortest	OK	11	lite	samtidig	
+2026-11-18 02:22	regresjon/2026-11-18	dd98e0c	legmemotest	OK	5	lite	samtidig	
+2026-11-18 02:25	regresjon/2026-11-18	dd98e0c	mobtest	OK	203	lite	samtidig	
+2026-11-18 02:25	regresjon/2026-11-18	dd98e0c	rundshot	OK	14	lite	samtidig	
+2026-11-18 02:25	regresjon/2026-11-18	dd98e0c	kapplop	OK	26	lite	samtidig	
+2026-11-18 02:25	regresjon/2026-11-18	dd98e0c	utfrakai	OK	88	lite	samtidig	
+2026-11-18 02:25	regresjon/2026-11-18	dd98e0c	lukket	OK	13	lite	samtidig	
+2026-11-18 03:06	regresjon/2026-11-18	dd98e0c	turlinjetest	OK	17	lite	samtidig	
+2026-11-18 03:07	regresjon/2026-11-18	dd98e0c	fasittest	OK	55	lite	samtidig	
+2026-11-18 03:07	regresjon/2026-11-18	dd98e0c	kanaltest	OK	44	lite	samtidig	
+2026-11-18 03:09	regresjon/2026-11-18	dd98e0c	hengtest	OK	102	lite	samtidig	
+2026-11-18 03:09	regresjon/2026-11-18	dd98e0c	csptest	OK	91	lite	samtidig	
+2026-11-18 03:09	regresjon/2026-11-18	dd98e0c	ferrytest	OK	25	lite	samtidig	
+2026-11-18 03:11	regresjon/2026-11-18	dd98e0c	kaiover	OK	125	lite	samtidig	
+2026-11-18 03:16	regresjon/2026-11-18	dd98e0c	farttest	OK	386	lite	samtidig	
+2026-11-18 03:16	regresjon/2026-11-18	dd98e0c	aerendshot	OK	15	lite	samtidig	
+2026-11-18 03:16	regresjon/2026-11-18	dd98e0c	laerlingshot	OK	15	lite	samtidig	
+2026-11-18 03:16	regresjon/2026-11-18	dd98e0c	avtaleshot	OK	12	lite	samtidig	
+2026-11-18 03:16	regresjon/2026-11-18	dd98e0c	folk2shot	OK	36	lite	samtidig	
+2026-11-18 03:16	regresjon/2026-11-18	dd98e0c	wpchiptest	OK	8	lite	samtidig	
+2026-11-18 04:46	regresjon/2026-11-18	dd98e0c	allesteder	FEIL	5400	lite	alene	gikk ut på tid
+2026-11-18 04:46	regresjon/2026-11-18	dd98e0c	placetest	FEIL	4	lite	alene	FEIL no two places (plants, shops, yards, rorbuer, the naust) nearer than 1.5 km, bar a few villages with no other quay (none nearer than 0.5 km), the plants am
+2026-11-18 04:46	regresjon/2026-11-18	dd98e0c	rorbutest	FEIL	13	lite	alene	FEIL no rorbu stands within 1.4 km of a plant, shop or yard: the choice of quay to moor at does not come up  {"n": 148, "worst": 1.31}
+2026-11-18 04:47	regresjon/2026-11-18	dd98e0c	errtest	FEIL	22	lite	alene	FEIL a page that stopped on the screen is sent once as a crash, with its version, view, memory and time up; the one in the background is not, and both notes are
+2026-11-18 04:47	regresjon/2026-11-18	dd98e0c	cloudtest	FEIL	26	lite	alene	avsluttet med kode 1
+2026-11-18 04:48	regresjon/2026-11-18	dd98e0c	rttest	FEIL	40	lite	alene	FEIL she glides onto the relay from the 15 s track over 2 s, slowing for a moment, with no jump  [0.0, 1.01]
+2026-11-18 05:01	regresjon/2026-11-18	dd98e0c	markettest	FEIL	795	lite	alene	FEIL 3D, liggende: kjøpsøyeblikket på båten du er om bord i tegner i modellen, kameraet går rundt henne, og kortet har typen, året og kaia  [{"card": true, "in3
+2026-11-18 01:36	claude/hopeful-mayer-48bgvv	bdcef4f5	utfrakai	OK	93	lite	samtidig	
+2026-11-18 01:36	claude/hopeful-mayer-48bgvv	bdcef4f5	trip2	OK	32	lite	samtidig	
+2026-11-18 01:36	claude/hopeful-mayer-48bgvv	bdcef4f5	docktest	OK	63	lite	samtidig	
+2026-11-18 01:37	claude/hopeful-mayer-48bgvv	bdcef4f5	autonavtest	OK	26	lite	samtidig	
+2026-11-18 02:41	claude/hopeful-mayer-48bgvv	746a1acc+	driftsplan3test	OK	44	lite	samtidig	
+2026-11-18 02:42	claude/hopeful-mayer-48bgvv	746a1acc+	driftsplan2kyst	OK	110	lite	samtidig	
+2026-11-18 02:42	claude/hopeful-mayer-48bgvv	746a1acc+	skipdrift	OK	27	lite	samtidig	
+2026-11-18 02:44	claude/hopeful-mayer-48bgvv	746a1acc+	driftsplan2test	OK	112	lite	alene	
+2026-11-18 04:29	claude/magical-pasteur-z98gc5	54de5eb+	obstest	OK	10	lite	samtidig	
+2026-11-18 04:29	claude/magical-pasteur-z98gc5	54de5eb+	havntest	OK	16	lite	samtidig	
+2026-11-18 04:30	claude/magical-pasteur-z98gc5	54de5eb+	autonavtest	OK	32	lite	samtidig	
+2026-11-18 04:30	claude/magical-pasteur-z98gc5	54de5eb+	trip2	OK	14	lite	samtidig	
+2026-11-18 04:34	claude/magical-pasteur-z98gc5	463c44a	dyntest	FEIL	257	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-18 04:34	claude/magical-pasteur-z98gc5	463c44a	harbourtest	OK	9	lite	samtidig	
+2026-11-18 04:34	claude/magical-pasteur-z98gc5	463c44a	kaiover	OK	135	lite	samtidig	
+2026-11-18 04:34	claude/magical-pasteur-z98gc5	463c44a	utfrakai	OK	99	lite	samtidig	
+2026-11-18 04:34	claude/magical-pasteur-z98gc5	463c44a	naustleia	OK	10	lite	samtidig	
+2026-11-18 04:34	claude/magical-pasteur-z98gc5	463c44a	rorbutest	OK	19	lite	samtidig	
+2026-11-18 04:46	claude/magical-pasteur-z98gc5	463c44a	colregtest	OK	730	lite	samtidig	
+2026-11-18 04:46	claude/magical-pasteur-z98gc5	463c44a	helmtest	OK	26	lite	samtidig	
+2026-11-18 04:47	claude/magical-pasteur-z98gc5	463c44a	moortest	FEIL	33	3d	alene	avsluttet med kode 1
+2026-11-18 04:55	claude/magical-pasteur-z98gc5	19e0a27	moortest	FEIL	34	3d	alene	avsluttet med kode 1
+2026-11-18 04:56	claude/magical-pasteur-z98gc5	19e0a27	routetest	FEIL	55	lite	alene	FEIL Kast loss setter ruta i gang, og kartplotteren står åpen  {'plan': False, 'plot': True, 'g3': False}
+2026-11-18 05:02	claude/magical-pasteur-z98gc5	19e0a27	vectest	OK	906	3d	alene	
+2026-11-18 05:12	claude/magical-pasteur-z98gc5	19e0a27	trackfollow	FEIL	616	3d	alene	FEIL a slow frame after time caught up with the minute step (the model off for a tick) does not run her past the simulation for the model to put her back  {"st"
+2026-11-18 05:18	claude/magical-pasteur-z98gc5	19e0a27	unittest	OK	333	3d	alene	
+2026-11-18 05:33	claude/magical-pasteur-z98gc5	b80c319	kaishot	FEIL	900	3d	alene	gikk ut på tid
+2026-11-18 05:35	claude/magical-pasteur-z98gc5	b80c319	bunkertest	OK	124	3d	alene	
+2026-11-18 05:35	claude/magical-pasteur-z98gc5	b80c319	routetest	FEIL	45	lite	alene	FEIL Kast loss setter ruta i gang, og kartplotteren står åpen  {'plan': False, 'plot': True, 'g3': False}
+2026-11-18 05:39	claude/magical-pasteur-z98gc5	eee63d5	landtest	OK	203	3d	alene	
+2026-11-18 05:40	claude/magical-pasteur-z98gc5	eee63d5	moortest	OK	52	3d	alene	
+2026-11-18 05:49	claude/magical-pasteur-z98gc5	eee63d5	trackfollow	OK	529	3d	alene	
+2026-11-18 05:49	claude/magical-pasteur-z98gc5	eee63d5	routetest	FEIL	45	lite	alene	FEIL Kast loss setter ruta i gang, og kartplotteren står åpen  {'plan': False, 'plot': True, 'g3': False}
+2026-11-18 05:50	claude/magical-pasteur-z98gc5	eee63d5	moortest	OK	54	3d	alene	
+2026-11-18 06:01	claude/magical-pasteur-z98gc5	eee63d5+	trackfollow	FEIL	600	3d	alene	FEIL a slow frame after time caught up with the minute step (the model off for a tick) does not run her past the simulation for the model to put her back  {"st"
+2026-11-18 06:20	claude/magical-pasteur-z98gc5	a39e8cb	trackfollow	OK	650	3d	alene	
+2026-11-18 06:30	claude/magical-pasteur-z98gc5	08afdbe	trackfollow	OK	599	3d	alene	
+2026-11-18 06:49	claude/magical-pasteur-z98gc5	3154c2c	trackfollow	OK	579	3d	alene	
+2026-11-18 06:50	claude/magical-pasteur-z98gc5	94cd054	autonavtest	OK	21	lite	samtidig	
+2026-11-18 06:50	claude/magical-pasteur-z98gc5	94cd054	trip2	OK	12	lite	samtidig	
+2026-11-18 06:50	claude/magical-pasteur-z98gc5	94cd054	helmtest	OK	26	lite	samtidig	
+2026-11-18 06:50	claude/magical-pasteur-z98gc5	94cd054	havntest	OK	10	lite	samtidig	
+2026-11-18 06:50	claude/magical-pasteur-z98gc5	94cd054	obstest	OK	6	lite	samtidig	
+2026-11-18 06:50	claude/magical-pasteur-z98gc5	94cd054	harbourtest	OK	6	lite	samtidig	
+2026-11-18 06:50	claude/magical-pasteur-z98gc5	94cd054	naustleia	OK	7	lite	samtidig	
+2026-11-18 06:50	claude/magical-pasteur-z98gc5	94cd054	rorbutest	OK	13	lite	samtidig	
+2026-11-18 06:51	claude/magical-pasteur-z98gc5	94cd054	utfrakai	OK	90	lite	samtidig	
+2026-11-18 06:52	claude/magical-pasteur-z98gc5	94cd054	kaiover	OK	120	lite	samtidig	
+2026-11-18 06:53	claude/magical-pasteur-z98gc5	94cd054	moortest	FEIL	33	3d	alene	avsluttet med kode 1
+2026-11-18 06:53	claude/magical-pasteur-z98gc5	94cd054	moortest	FEIL	33	3d	alene	avsluttet med kode 1
+2026-11-18 06:55	claude/magical-pasteur-z98gc5	94cd054	moortest	OK	52	3d	alene	
+2026-11-18 06:56	claude/magical-pasteur-z98gc5	94cd054	moortest	OK	55	3d	alene	
+2026-11-18 03:47	claude/hopeful-mayer-48bgvv	76d267e4+	crewwalk	FEIL	10	lite	samtidig	FEIL twenty seconds later everyone has arrived at their place {"walked": {"me": 3.45929058242588, "ckr7kcbni": 0, "cktwdou5o": 0}, "off": [["me", "too fast", 3.
+2026-11-18 03:47	claude/hopeful-mayer-48bgvv	76d267e4+	selfcrew	OK	8	lite	samtidig	
+2026-11-18 03:47	claude/hopeful-mayer-48bgvv	76d267e4+	crewclip	FEIL	24	lite	samtidig	FEIL no foot walking put down in a wall, a tub or the kit, nor on his other foot or anyone else's (FB3; 5284 feet put down on every boat) {'pelagisk': ['me:i ti
+2026-11-18 03:56	claude/hopeful-mayer-48bgvv	6544537d+	selfcrew	OK	7	lite	alene	
+2026-11-18 07:00	claude/magical-pasteur-z98gc5	a327096	autonavtest	OK	20	lite	samtidig	
+2026-11-18 07:00	claude/magical-pasteur-z98gc5	a327096	trip2	OK	11	lite	samtidig	
+2026-11-18 07:00	claude/magical-pasteur-z98gc5	a327096	obstest	OK	6	lite	samtidig	
+2026-11-18 12:50	claude/magical-pasteur-z98gc5	831f8bd	autonavtest	OK	33	lite	samtidig	
+2026-11-18 12:50	claude/magical-pasteur-z98gc5	831f8bd	trip2	OK	15	lite	samtidig	
+2026-11-18 12:51	claude/magical-pasteur-z98gc5	831f8bd+	utfrakai	OK	98	lite	samtidig	
+2026-11-18 12:52	claude/magical-pasteur-z98gc5	831f8bd+	kaiover	OK	130	lite	samtidig	
+2026-11-18 12:52	claude/magical-pasteur-z98gc5	831f8bd+	havntest	OK	15	lite	samtidig	
+2026-11-18 12:52	claude/magical-pasteur-z98gc5	831f8bd+	obstest	OK	9	lite	samtidig	
+2026-11-18 12:52	claude/magical-pasteur-z98gc5	831f8bd+	naustleia	OK	9	lite	samtidig	
+2026-11-18 12:52	claude/magical-pasteur-z98gc5	831f8bd+	rorbutest	OK	17	lite	samtidig	
+2026-11-18 12:52	claude/magical-pasteur-z98gc5	831f8bd+	helmtest	OK	26	lite	samtidig	
+2026-11-18 13:00	claude/magical-pasteur-z98gc5	f685c5e+	autonavtest	OK	38	lite	samtidig	
+2026-11-18 13:00	claude/magical-pasteur-z98gc5	f685c5e+	trip2	OK	16	lite	samtidig	
+2026-11-18 13:01	claude/magical-pasteur-z98gc5	f696d5e	utfrakai	OK	105	lite	samtidig	
+2026-11-18 13:02	claude/magical-pasteur-z98gc5	f696d5e	kaiover	OK	144	lite	samtidig	
+2026-11-18 13:03	claude/magical-pasteur-z98gc5	f696d5e	harbourtest	OK	11	lite	samtidig	
+2026-11-18 13:03	claude/magical-pasteur-z98gc5	f696d5e	helmtest	OK	27	lite	samtidig	
+2026-11-18 13:06	claude/magical-pasteur-z98gc5	0d3df74	dyntest	FEIL	259	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-18 13:15	claude/magical-pasteur-z98gc5	ec8d3e3	colregtest	OK	737	lite	samtidig	
+2026-11-18 13:19	claude/magical-pasteur-z98gc5	9276351	autonavtest	OK	27	lite	samtidig	
+2026-11-18 13:19	claude/magical-pasteur-z98gc5	9276351	trip2	OK	14	lite	samtidig	
+2026-11-18 13:20	claude/magical-pasteur-z98gc5	9276351	utfrakai	OK	95	lite	samtidig	
+2026-11-18 13:21	claude/magical-pasteur-z98gc5	9276351	kaiover	OK	126	lite	samtidig	
+2026-11-18 13:21	claude/magical-pasteur-z98gc5	9276351	harbourtest	OK	6	lite	samtidig	
+2026-11-18 13:21	claude/magical-pasteur-z98gc5	9276351	havntest	OK	12	lite	samtidig	
+2026-11-18 13:21	claude/magical-pasteur-z98gc5	9276351	obstest	OK	7	lite	samtidig	
+2026-11-18 13:21	claude/magical-pasteur-z98gc5	9276351	helmtest	OK	26	lite	samtidig	
+2026-11-18 13:25	claude/magical-pasteur-z98gc5	9276351	dyntest	FEIL	254	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-18 13:36	claude/magical-pasteur-z98gc5	d64d127	trackfollow	OK	625	3d	alene	
+2026-11-18 13:36	claude/magical-pasteur-z98gc5	d64d127+	moortest	FEIL	33	3d	alene	avsluttet med kode 1
+2026-11-18 13:40	claude/magical-pasteur-z98gc5	0361420	autonavtest	OK	24	lite	samtidig	
+2026-11-18 13:40	claude/magical-pasteur-z98gc5	0361420	trip2	OK	12	lite	samtidig	
+2026-11-18 13:41	claude/magical-pasteur-z98gc5	0361420	utfrakai	OK	93	lite	samtidig	
+2026-11-18 13:42	claude/magical-pasteur-z98gc5	0361420	kaiover	OK	123	lite	samtidig	
+2026-11-18 13:42	claude/magical-pasteur-z98gc5	0361420	havntest	OK	11	lite	samtidig	
+2026-11-18 13:54	claude/magical-pasteur-z98gc5	7180593	autonavtest	OK	25	lite	samtidig	
+2026-11-18 13:54	claude/magical-pasteur-z98gc5	7180593	trip2	OK	12	lite	samtidig	
+2026-11-18 13:55	claude/magical-pasteur-z98gc5	7180593	utfrakai	OK	93	lite	samtidig	
+2026-11-18 13:56	claude/magical-pasteur-z98gc5	7180593	kaiover	OK	123	lite	samtidig	
+2026-11-18 15:26	fb-run	b559ba10+	kjoptest	FEIL	252	lite	alene	FEIL #185: «Ferdig nå» paid while a fitting runs, the webhook not come: back from Stripe the game asks about its session, the server books it, and the fitting i
+2026-11-18 15:29	fb-run	b559ba10+	kjoptest	FEIL	165	lite	alene	FEIL HS3: a new game on the same account gets the trim and the yard done now of the first game again at the start: the trim with the time that is left, the yard
+2026-11-18 15:32	fb-run	b559ba10+	kjoptest	OK	162	lite	alene	
+2026-11-18 15:40	claude/admiring-cray-ve9h87	5b31fe6d+	kjoptest	OK	155	lite	alene	
+2026-11-18 16:00	claude/admiring-cray-ve9h87	53cbaccc+	kjoptest	FEIL	275	lite	alene	FEIL #185: paid in another window and the game opened anew without ?kjop: the session kept at the tap is asked for at the start, booked, and the fitting is done
+2026-11-18 16:03	claude/admiring-cray-ve9h87	53cbaccc+	kjoptest	OK	179	lite	alene	
+2026-11-18 16:07	claude/admiring-cray-ve9h87	53cbaccc+	kjoptest	FEIL	137	lite	alene	avsluttet med kode 1
+2026-11-18 16:12	claude/admiring-cray-ve9h87	53cbaccc+	kjoptest	OK	297	lite	alene	
+2026-11-18 16:15	claude/admiring-cray-ve9h87	53cbaccc+	kjoptest	OK	185	lite	alene	
+2026-11-18 16:21	claude/admiring-cray-ve9h87	53cbaccc+	kjoptest	FEIL	340	lite	alene	FEIL #185: «Ferdig nå» paid while a fitting runs, the webhook not come: back from Stripe the game asks about its session, the server books it, and this purchase
+2026-11-18 16:25	claude/admiring-cray-ve9h87	53cbaccc+	kjoptest	OK	177	lite	alene	
+2026-11-18 16:34	claude/admiring-cray-ve9h87	3e237467+	kjoptest	FEIL	268	lite	alene	FEIL #185: a session kept on the device that ran out unpaid at Stripe is asked about at the start, then forgotten, and gives nothing  {"r": {"left": "{\"sid\":\
+2026-11-18 16:38	claude/admiring-cray-ve9h87	3e237467+	kjoptest	OK	188	lite	alene	
+2026-11-18 16:39	claude/admiring-cray-ve9h87	3e237467+	fasittest	OK	38	lite	samtidig	
+2026-11-18 16:39	claude/admiring-cray-ve9h87	3e237467+	guesttest	OK	65	lite	samtidig	
+2026-11-18 16:44	claude/admiring-cray-ve9h87	eb3a1bcf	boostklokke	OK	50	lite	samtidig	
+2026-11-18 16:47	claude/admiring-cray-ve9h87	dacb7ab9	vervtest	OK	7	lite	alene	
+2026-11-18 14:41	claude/magical-pasteur-z98gc5	331f45c+	anvtreff	FEIL	5	lite	alene	FEIL a route to sail  {'err': 'no open water'}
+2026-11-18 14:41	claude/magical-pasteur-z98gc5	331f45c+	anvtreff	OK	6	lite	alene	
+2026-11-18 14:41	claude/magical-pasteur-z98gc5	331f45c+	anvtreff	FEIL	11	lite	alene	FEIL anv_trip: én start og én slutt for turen, med samme id
+2026-11-18 14:45	claude/magical-pasteur-z98gc5	331f45c+	trip2	OK	12	lite	samtidig	
+2026-11-18 14:45	claude/magical-pasteur-z98gc5	331f45c+	autonavtest	OK	25	lite	samtidig	
+2026-11-18 14:46	claude/magical-pasteur-z98gc5	331f45c+	cloudtest	OK	31	lite	samtidig	

@@ -133,7 +133,7 @@
         // a lost context: the view stops; lost before it was ready (a phone short of memory, or a GPU process that restarted), it
         // starts again when the browser gives the context back
         glWatch = true; let wasReady = false;
-        canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); wasReady = ready; ready = false; failed = true; GLOK = false; show(false);
+        canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('gl-mistet', ready ? 1 : 0); } catch (e2){} wasReady = ready; ready = false; failed = true; GLOK = false; show(false);
           // (on the middle sea the level stays: the next start leaves the middle sea out)
           if (!wasReady && stage === 'shadere' && seaMidTry){ seaMidFailed('konteksten mistet');
             failWhy = S.lang === 'en' ? 'the graphics driver gave up while starting. Reload the page and the game tries a simpler sea' : 'grafikkdriveren ga opp under oppstarten. Last siden på nytt, så prøver spillet en enklere sjø'; }
@@ -143,7 +143,7 @@
           else { failWhy = 'WebGL-konteksten ble mistet'; if (wasReady) qmDown('kontekst'); qmAlive(false); if (wasReady && typeof cloudErr === 'function') cloudErr('3D konteksten mistet under spill · ' + GPU + ' · ' + glDiag(), 'view3d', ''); } });
         // lost in play, every buffer, texture and program is gone with it: the game saves and loads the page again, which builds them
         // anew, at most once in ten minutes (sessionStorage), so a driver that keeps failing does not reload the page over and over
-        canvas.addEventListener('webglcontextrestored', () => { if (!wasReady){ failed = false; failWhy = ''; glErr = null; if (ASK3D) show(true); return; }   // (lost in the letter's prep: init makes it all again when asked)
+        canvas.addEventListener('webglcontextrestored', () => { try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('gl-tilbake'); } catch (e2){} if (!wasReady){ failed = false; failWhy = ''; glErr = null; if (ASK3D) show(true); return; }   // (lost in the letter's prep: init makes it all again when asked)
           let last = 0; try { last = +sessionStorage.getItem('dsb_gl_reload') || 0; } catch (e){}
           if (Date.now() - last > 600000){ try { sessionStorage.setItem('dsb_gl_reload', String(Date.now())); } catch (e){}
             toast(S.lang === 'en' ? 'The 3D view was lost. The game is saved and loads again …' : '3D-visningen ble borte. Spillet lagres og lastes på nytt …');

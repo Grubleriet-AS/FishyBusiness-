@@ -1,12 +1,40 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['rettinger-181126', '18.11.2026', 'Rettinger fra spillerne', 'Fixes from the players', [
+       ['Den siste etappen inn til stoppet ditt etter en Autonav-rute setter ikke lenger båten på grunn; hun stopper og finner vei rundt.', 'The last leg into your stop after an Autonav route no longer runs the boat aground; she stops and finds a way round.'],
+       ['Båten går ikke lenger på grunn i svingen ut fra kaia på en gul etappe.', 'The boat no longer runs aground in the turn away from the quay on a yellow leg.'],
+       ['For anker med baugen mot vinden ligger båten nesten rett, og hun vipper ikke lenger fra side til side.', 'At anchor head to wind the boat lies almost upright, and no longer flips from side to side.'],
+       ['Lanternene lyser ikke lenger som en stor prikk på små skjermer.', 'The lanterns no longer show as a big dot on small screens.'],
+       ['Loggen sier fra når Autonav slakker av for å vike for en annen båt.', 'The log says when Autonav slows down to give way to another boat.'],
+       ['På iPhone kommer lyden tilbake ved neste trykk etter en samtale eller et varsel.', 'On the iPhone the sound comes back at the next tap after a call or a notification.'],
+       ['Driftsplanen finner veien når du starter den ute på sjøen, og leter ikke lenger i det uendelige.', 'The plan finds its way when you start it out at sea, and no longer searches for ever.'],
+       ['Med én juksamaskin går mannen som fisker, til maskinen når du går for å sløye, og sløyeren får fisken å sløye.', 'With one jigging machine the hand who fishes goes to the machine when you go to gut, and the gutter gets the fish to gut.'],
+       ['Den som jukser ved ripa uten maskin, har et håndsnøre i sjøen når båten har håndjukse.', 'One jigging at the rail without a machine has a hand line in the sea when the boat has a hand jig.'],
+       ['Autonav går utenom brygger, flytebrygger, moloer og båter som ligger ved kaia, inn til havna og ut fra den. Der det er trangt mellom bryggene, tar folkene båten langs en vei som er fri, i opptil 5 knop.', 'Autonav keeps clear of piers, floating docks, breakwaters and boats lying at the quay, into the harbour and out of it. Where it is tight between the piers, the crew take her along a clear way, at up to 5 knots.'],
+       ['Noen flytebrygger og små brygger som lå der båtene legger til ved butikken, mottaket og verftet, er tatt bort.', 'Some floating docks and small piers that lay where the boats come alongside at the shop, the plant and the yard have been taken away.'],
+       ['Kystbåtene på 15 og 21 m, ringnotbåten og havbåtene har baug- og hekkpropell. Autonav bruker dem i havna til å snu og flytte båten sidelengs.', 'The 15 and 21 m coastal boats, the purse seiner and the ocean boats have bow and stern thrusters. Autonav uses them in the harbour to turn the boat and move her sideways.'],
+       ['Havfiskefartøyene går bare til utstyrsbutikker og verft der kaia er lang og dyp nok og det er plass til å snu, slik det alt var for mottakene.', 'The ocean vessels only go to equipment shops and yards where the quay is long and deep enough and there is room to turn, as was already so for the plants.']]],
+    ['smolafylke-171126', '17.11.2026', 'Fylkene i startlista', 'The counties in the start list', [
+       ['Smøla står under Møre og Romsdal når du velger hvor du starter, Gutvik under Trøndelag og Selje under Vestland.', 'Smøla is under Møre og Romsdal when you choose where to start, Gutvik under Trøndelag and Selje under Western Norway.']]],
+    ['havnland-171126', '17.11.2026', 'Land i havna', 'Land in the harbour', [
+       ['Båten seiler ikke lenger over land, gjennom moloen eller inn i kaia nær en havn. Kommer hun ut av kurs der, stopper hun før land og finner vei rundt, slik hun gjør ellers langs kysten.', 'The boat no longer sails over land, through the breakwater or into the quay near a harbour. If she gets off course there, she stops short of the land and finds a way round, as she does elsewhere along the coast.']]],
+    ['navn-171126', '17.11.2026', 'Navn på rederiet og båten', 'The company\'s and the boat\'s name', [
+       ['Du kan bytte navn på rederiet i Rederi-appen.', 'You can rename your company in the Company app.'],
+       ['Har båten ikke fått navn ennå, kan du døpe henne rett fra kortet hennes i Rederi-appen.', 'If your boat has no name yet, you can name her right from her card in the Company app.']]],
+    ['autonavgrunn-171126', '17.11.2026', 'Autonav går rundt skjær', 'Autonav goes round skerries', [
+       ['På en rute Autonav har lagt, går båten ikke lenger på grunn når hun kommer for nær et skjær. Hun stopper og finner vei rundt, også der etappen er gul fordi ruta regner med tidevannet.', 'On a route Autonav has laid, the boat no longer runs aground when she comes too close to a skerry. She stops and finds a way round, also where the leg is yellow because the route counts on the tide.']]],
+    ['merkegave-171126', '17.11.2026', 'Gavene for merkene', 'The badge gifts', [
+       ['Gavene for de lange merkene vokser nå med trinnet: små på første trinn, som før fra det fjerde.', 'The gifts for the long badges now grow with the step: small on the first, as before from the fourth.']]],
     ['vaerhjem-171126', '17.11.2026', 'Driftsplanen og været', 'The plan and the weather', [
        ['Driftsplanen stopper ikke lenger for vind, bare for sjøen båten ikke tåler.', 'The plan no longer stops for wind, only for a sea the boat cannot take.'],
        ['Holder været båten inne mens hun er ute, går hun hjem og venter der, og går ut igjen av seg selv når været tillater det.', 'When the weather keeps the boat in while she is out, she goes home to wait there, and goes out again by herself when the weather allows.'],
        ['Driftsplanen ser på været der den skal fiske, ikke der båten ligger. En plan i ly kan gå selv om det blåser der du er.', 'The plan looks at the weather where it will fish, not where the boat lies. A plan in shelter can go even when it blows where you are.'],
        ['Båten snur ikke lenger for vind. Hun går i ly av seg selv når sjøen blir nær det hun tåler. Innstillingen «Snu ved» er tatt bort.', 'The boat no longer turns back for wind. She runs for shelter by herself when the sea gets near what she can take. The «Turn back at» setting is gone.'],
        ['Båtene krenger mindre i vinden, og ligger nesten rett ved kai.', 'The boats heel less in the wind, and lie almost upright at the quay.'],
-       ['Garn og line settes ut også når det er meldt kuling.', 'Nets and line are set also when a gale is forecast.']]],
+       ['Garn og line settes ut også når det er meldt kuling.', 'Nets and line are set also when a gale is forecast.'],
+       ['Trykk på et rutepunkt i kartet for å endre fisketiden eller slette punktet. Hold og dra for å flytte det.', 'Tap a waypoint in the chart to change its fishing time or delete it. Hold and drag to move it.'],
+       ['Inviter en venn: under Innstillinger › Konto finner du din egen lenke å dele.', 'Invite a friend: under Settings › Account you find a link of your own to share.'],
+       ['Fiskekarene på plastsnekka stikker ikke lenger ut gjennom skroget. De står side om side på langs akter i cockpiten.', 'The fish tubs on the fibreglass snekke no longer poke out through the hull. They stand side by side, lengthwise, aft in the cockpit.']]],
     ['ingenko-171126', '17.11.2026', 'Ingen kø ved mottakene', 'No queue at the plants', [
        ['Det er ikke lenger kø ved fiskemottakene. Du losser med en gang du ligger ved mottakskaia, også når andre losser der samtidig.', 'There is no longer a queue at the fish plants. You land as soon as you lie at the plant\'s quay, also when others land there at the same time.']]],
     ['drivanker-171126', '17.11.2026', 'Juksing alene og drivanker', 'Jigging alone and the drift anchor', [
