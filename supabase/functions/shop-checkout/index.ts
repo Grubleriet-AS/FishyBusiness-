@@ -95,10 +95,13 @@ async function verify(sid: string, auth: string): Promise<Response> {
   const {data: p, error: e0} = await user.rpc('pid');
   if (e0 || !p) return json({error: 'not signed in'}, 401);
   const admin = createClient(URL_, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!, {auth: {persistSession: false}});
-  const {data: u, error: e1} = await admin.from('purchases').select('id, player_id, status').eq('id', sid).maybeSingle();
+  const {data: u, error: e1} = await admin.from('purchases').select('id, player_id, status, created_at').eq('id', sid).maybeSingle();
   if (e1){ console.error('purchases', e1.message); return json({error: 'unavailable'}, 500); }
   if (!u || u.player_id !== p) return json({error: 'not found'}, 404);
   if (u.status !== 'open') return json({st: u.status});
+  // (Stripe is asked only about a purchase made the last day: a Checkout session runs out after 24 hours, and an old one is the webhook's
+  // to settle, so a player cannot keep the function asking Stripe about the same session for ever)
+  if (!(Date.now() - Date.parse(u.created_at) < 24 * 3600e3)) return json({st: 'open'});
   let s: Stripe.Checkout.Session;
   try { s = await new Stripe(SK, {httpClient: Stripe.createFetchHttpClient()}).checkout.sessions.retrieve(sid); }
   catch (e){ console.error('stripe', (e as Error).message); return json({error: 'unavailable'}, 502); }

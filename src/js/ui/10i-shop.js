@@ -87,6 +87,9 @@ async function shopGo(k, extra){
     const j = await r.json().catch(() => ({}));
     if (!r.ok || !j.url) throw new Error(j.error === 'unavailable' || r.status >= 500 ? shopL('betalingen er ikke tilgjengelig akkurat nå. Prøv igjen senere.', 'the payment is not available just now. Try again later.') : j.error || String(r.status));
     save(); if (typeof cloudSaveSoon === 'function') cloudSaveSoon(true);   // the game as it is, before the page goes to Stripe
+    // (the purchase's session kept on the device before the page goes, KEY_KJOP: back without ?kjop, a payment finished in another window
+    // or the game opened anew, the next start asks for it as if it had come back with it; tilbakemelding #185, paid with Klarna, 18.11.2026)
+    { const m = /cs_(live|test)_[A-Za-z0-9]+/.exec(j.url); try { if (m) localStorage.setItem(KEY_KJOP, JSON.stringify({sid:m[0], at:Date.now()})); } catch (e){} }
     location.href = j.url;
   } catch (e){
     SHOP.busy = false;
@@ -445,7 +448,7 @@ function shopStart(){
   // the payment comes or the hold ends: said, with the way out. ui/10u-hopp.js)
   const hh = S.boat && S.boat.hopHold;
   if (hh && !hh.pay && typeof hopHoldOff === 'function') hopHoldOff();   // (the card was open when the page went: no payment on its way)
-  if (SHOP.ret === 'avbrutt'){ toast(shopL('Kjøpet ble avbrutt. Ingenting er trukket.', 'The purchase was cancelled. Nothing was charged.')); SHOP.ret = null; if (hh && typeof hopHoldOff === 'function') hopHoldOff(); }
+  if (SHOP.ret === 'avbrutt'){ toast(shopL('Kjøpet ble avbrutt. Ingenting er trukket.', 'The purchase was cancelled. Nothing was charged.')); SHOP.ret = null; try { localStorage.removeItem(KEY_KJOP); } catch (e){} if (hh && typeof hopHoldOff === 'function') hopHoldOff(); }
   else if (!SHOP.ret && hh && hh.pay) toast(shopL('Båten ligger stille og venter på betalingen for hoppet. Vil du seile videre, trykk ⏩ og «Avbryt».', 'The boat lies still, waiting for the payment for the hop. To sail on, tap ⏩ and «Cancel».'));
   const tries = SHOP.ret ? [0, 3000, 8000, 20000, 45000] : [0];
   if (SHOP.ret) toast(shopL('Takk! Henter det du kjøpte …', 'Thank you! Fetching what you bought …'));
@@ -454,15 +457,17 @@ function shopStart(){
   // SHOP_ASK_MS, until what was bought is here or the server says the session ended unpaid (expired, failed, refunded, not this player's).
   // Before, a webhook later than 45 s left
   // the player waiting till the next claim, up to 10 minutes, and one that never came, with nothing: tilbakemelding #185, 18.11.2026)
-  // (the session is kept on the device, KEY_KJOP, so a page closed before the answer came asks again at the next start within the time;
-  // one ask at a time, the tries and the interval may meet)
-  SHOP.sid = SHOP.ret && /^cs_(live|test)_/.test(SHOP.ret) ? SHOP.ret : null; SHOP.sidAt = Date.now();
-  try { if (SHOP.sid) localStorage.setItem(KEY_KJOP, JSON.stringify({sid:SHOP.sid, at:SHOP.sidAt}));
-    else if (!SHOP.ret){ const o = JSON.parse(localStorage.getItem(KEY_KJOP) || 'null');
-      if (o && /^cs_(live|test)_/.test(o.sid) && Date.now() - o.at < SHOP_ASK_MS){ SHOP.sid = o.sid; SHOP.sidAt = o.at; } else localStorage.removeItem(KEY_KJOP); } } catch (e){}
+  // (the session is kept on the device, KEY_KJOP, from the tap on «Kjøp» (shopGo), so a start without ?kjop asks for it too within the time:
+  // a page closed before the answer came, a payment finished in another window, the game opened anew. One ask at a time, the tries and
+  // the interval may meet. shop_got measures how long from the tap to the delivery, and by which way: url or store)
+  SHOP.sid = SHOP.ret && /^cs_(live|test)_/.test(SHOP.ret) ? SHOP.ret : null; SHOP.sidAt = Date.now(); SHOP.via = 'url';
+  try { const o = JSON.parse(localStorage.getItem(KEY_KJOP) || 'null'), kept = o && /^cs_(live|test)_/.test(o.sid) && Date.now() - o.at < SHOP_ASK_MS;
+    if (SHOP.sid){ if (kept && o.sid === SHOP.sid) SHOP.sidAt = o.at; localStorage.setItem(KEY_KJOP, JSON.stringify({sid:SHOP.sid, at:SHOP.sidAt})); }
+    else if (!SHOP.ret && kept){ SHOP.sid = o.sid; SHOP.sidAt = o.at; SHOP.via = 'store'; } else if (!SHOP.ret) localStorage.removeItem(KEY_KJOP); } catch (e){}
   const done = () => { SHOP.sid = null; try { localStorage.removeItem(KEY_KJOP); } catch (e){} };
   const ask = async () => { if (SHOP.asking) return; SHOP.asking = true;
-    try { const st = SHOP.sid ? await shopVerify(SHOP.sid) : null, n = await shopClaim();
+    try { const sid = SHOP.sid, st = sid ? await shopVerify(sid) : null, n = await shopClaim();
+      if (n && sid && typeof cloudEv === 'function') cloudEv('shop_got', {via:SHOP.via, s:Math.round((Date.now() - SHOP.sidAt) / 1000)});
       if (n || (st && st !== 'open' && st !== 'paid')) done(); if (n) SHOP.ret = null; }   // (paid, and not here yet: asked on)
     finally { SHOP.asking = false; } };
   for (const ms of tries) setTimeout(() => { if (ms && !SHOP.ret && !SHOP.sid) return; ask(); }, ms);
@@ -470,7 +475,10 @@ function shopStart(){
     if (document.visibilityState === 'visible') ask(); }, 30000); }
   // still nothing after the last try: say so, rather than nothing (it is given at the next start, or when the game is opened again)
   if (SHOP.ret) setTimeout(() => { if (!SHOP.ret) return; SHOP.ret = null; toast(shopL('Betalingen er ikke bekreftet ennå. Det du kjøpte, kommer så snart den er det, også neste gang du åpner spillet.', 'The payment is not confirmed yet. What you bought comes as soon as it is, also the next time you open the game.')); }, 52000);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') shopClaim(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') ask(); });
+  // (a window on a PC, an installed app among others, is not hidden when another window comes over it, so coming back to it is a focus,
+  // not a visibilitychange: the payment's own window on top, then back to the game, #185. At most every 10 s)
+  window.addEventListener('focus', () => { if (Date.now() - (SHOP.focusAt || 0) < 10000) return; SHOP.focusAt = Date.now(); ask(); });
   window.addEventListener('online', () => { haillTell(); });   // a haill switched on with no network: the server told when it is back (HS2)
   setInterval(() => { if (document.visibilityState === 'visible') shopClaim(); }, 10 * 60000);   // a thank-you given while the game is open
 }
