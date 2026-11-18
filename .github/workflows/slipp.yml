@@ -32,6 +32,10 @@ on:
         description: '«hetzner» (serveren kjører migreringene nå), «kjørt» (de er kjørt for hånd) eller «ingen»; Edge Functions må være ute'
         required: true
         default: ''
+      tross_nodbrems:
+        description: 'Står nødbremsen (https://detstorebla.no/nodbrems.json)? Bare Jonas skriver «ja» her, når han slipper rettingen selv'
+        required: false
+        default: ''
 permissions:
   contents: write
   pull-requests: write
@@ -58,9 +62,15 @@ jobs:
           COMMIT: ${{ inputs.commit }}
           GREN: ${{ inputs.gren }}
           MIG: ${{ inputs.migreringer }}
+          TROSS: ${{ inputs.tross_nodbrems }}
         run: |
           case "$GREN" in ccr-5e1ba2f4-pusvyd|slipp/*) ;; *) echo "Bare arbeidsgrenen eller en hastegren (slipp/…) kan slippes: $GREN"; exit 1;; esac
           case "$MIG" in kjørt|ingen|hetzner) ;; *) echo "Skriv «hetzner», «kjørt» eller «ingen» i «migreringer»: de må være ute i produksjon før main flyttes."; exit 1;; esac
+          # the emergency brake's lock (live-drift fase 4, tools/server/vakt/brems.py): no release while it answers, unless Jonas starts
+          # this himself with «tross_nodbrems: ja» (the new edition he releases has no lock file, so the lock goes with it)
+          if curl -fsS -o nodbrems.json "https://detstorebla.no/nodbrems.json?t=$(date +%s)" 2>/dev/null && [ "$TROSS" != ja ]; then
+            echo "Nødbremsen står (https://detstorebla.no/nodbrems.json): $(head -c 400 nodbrems.json). Bare Jonas slipper nå, med «tross_nodbrems: ja»."; exit 1
+          fi
           git fetch -q origin main
           if [ -n "$COMMIT" ]; then
             printf '%s' "$COMMIT" | grep -qE '^[0-9a-f]{7,40}$' || { echo "Ikke en commit: $COMMIT"; exit 1; }

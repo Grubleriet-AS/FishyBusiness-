@@ -90,7 +90,7 @@ def takes(cwd, remote, hours=24, now=None, who=('driften', 'feilretting')):
     n = 0
     for i, (t, msg) in enumerate(rows):
         p = msg.split()
-        if len(p) < 4 or p[0] != 'kjører' or p[2] not in who or p[3] == 'slipp': continue
+        if len(p) < 4 or p[0] != 'kjører' or p[2] not in who or p[3] in ('slipp', 'nodbrems'): continue   # (no Opus in those)
         prev = rows[i + 1][1].split() if i + 1 < len(rows) else []
         if len(prev) >= 4 and prev[0] == 'kjører' and prev[2:] == p[2:]: continue   # a renewal of the same run
         n += 1

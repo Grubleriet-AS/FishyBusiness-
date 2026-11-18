@@ -258,6 +258,9 @@ def main():
     if money: stop.append('rører ekte penger: venter på Jonas')
     if legal: stop.append('rører src/legal/: venter på Jonas')
     if saves: stop.append('rører kontoer eller lagret spillerdata: venter på Jonas')
+    # the emergency brake's lock (live-drift fase 4, tools/server/vakt/brems.py): no automatic release while it answers
+    nb = {} if a.offline else version(PROD_URL.rsplit('/', 1)[0] + '/nodbrems.json?t=%d' % int(datetime.datetime.now().timestamp()))
+    if nb.get('aktiv'): stop.append('nødbremsen står (rullet %s tilbake til %s: %s): bare Jonas slipper nå' % (nb.get('fra'), nb.get('til'), str(nb.get('grunn', ''))[:80]))
     if not (NIGHT[0] <= now.hour < NIGHT[1]): stop.append('klokka er %s norsk tid, slippet går %02d–%02d' % (now.strftime('%H:%M'), NIGHT[0], NIGHT[1]))
     if hours is None: stop.append('testutgavens alder er ukjent (%s)' % (tv.get('err') or 'ikke spurt'))
     elif hours < HOURS_ON_TEST: stop.append('testutgaven har stått %.1f timer, kravet er %d' % (hours, HOURS_ON_TEST))
