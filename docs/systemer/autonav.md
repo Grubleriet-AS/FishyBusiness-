@@ -414,3 +414,17 @@ Jonas 12.11.2026: «Under seiling så dukker det opp en liten knapp i hjørnet s
   - Prøvd med `groundCheck` på hvert bein og terningen låst til «treff»: de fire parene uten treff.
 - **Prøvd etter rettingene (16.11.2026):** `allpairs` 301 av 301 par grønne (før: 4 røde), `obstest`, `routetest`, `autonavtest`, `sitetest` og `trip2` grønne, enhetstestene grønne. `allesteder` med bare rutene (`KYST_ALLE_ROUTE=1`, 1027 steder): de samme fem røde som på arbeidsgrenen uten rettingene (veien inn til Vallersund havn og naust, Urangsvåg utstyrsbutikk, rorbuene Valen og Evja: «Fant ingen rute dit»), så rettingene stenger ingen steder.
 - **`sitetest`** var rød på alle grener siden 08.11.2026 fordi bildene av hele scenen tar 95–160 s under SwiftShader mot Playwrights 120 s; testen venter nå 400 s (alle sjekkene var grønne før den stoppet).
+
+## 4.12q Jakten på treff: det Autonav ikke ser i havna (autonav-rutinen, 18.11.2026)
+
+Jonas 18.11.2026 satte opp autonav-rutinen (planen og loggen: `docs/planer/autonav-null-treff.md`): hver gang en båt på Autonav kommer borti noe som ikke er rent vann, skal det fanges opp, og målet er null.
+
+- **Jakten** (`tools/autonav/jakt.py`, `rapport.py`, `bilde.py`; resultatene i `docs/planer/autonav-jakt/`) seiler en fast, stokket liste med scenarier langs hele kysten (sted, båttype, fart, vind, tidevann; ut fra kai, mellom steder og inn til kai) med båtmodellen, slik `tests/allesteder.py` gjør, og en egen observatør prøver vannlinja mot alt 3D-visningen tegner i sjøen, uavhengig av spillets egne sjekker.
+- **Det spillets egne sjekker ser, og ikke ser** (lest i koden 18.11.2026):
+  - Båtmodellens kontakt (`dynContact` gjennom `dynObsNear`, `core/16b-dyn.js`) ser bare `PIERBOX` (Senjas brygger fra OpenStreetMap, kaidekkene bak `QUAYS` og havnepunktenes egne kaier) og havneenhetene (`UNITA`). Kystens brygger og kaidekk fra vec-pakkene (`t.piers`, også `made`), bryggeflatene (`t.slabs`), moloene (`t.molos`), flytebryggene (`h.docks`), rorbuenes og naustets kai og fartøyene som ligger til kai eller ankers, ser den ikke: båten går gjennom dem uten støt og uten skade, og ingenting logges.
+  - Veien fra og til kaiplassen (`berthBlocked`, `berthClear`, `berthPath` i `core/07-harbours.js`, som `dynLineBuild` bygger linja ut fra kaia med) ser også bare `PIERBOX` og havneenhetene.
+  - Rutas hindringer (`obsIndex`) har kystens brygger (ikke `made`), flytebryggene, rorbu- og naustkaia, merkene og bruene, men ingenting teller innen 40 m fra rutas start og mål (`HIND.ctx.free`, `obsCounts`), målt til tingens midtpunkt.
+  - Merkene, vindturbinene og brupilarene ser modellen (`sjvTouch`); kystens fartøy i fart ser den ikke med `SJV.ghost` (Jonas 16.11.2026, med vilje: ingen skade og ingen slep), men de ses fortsatt i 3D.
+  - Grunn inne i havnene spør verken grunnsjekken eller ruta om (havna regnes som mudret), men dybden i `depthF` er der kartets, og bare havneenhetenes basseng er mudret.
+- **Observatøren** teller derfor også det spillet ikke teller, og en brygge kartlagt som flate prøves i sin egen form (slik `slabInto` tegner den), ikke som boksen rundt den i hinderindeksen.
+- **Den første kjøringen** (18.11.2026, scenario 0–470, 709 turer): 431 treff, 608 per 1000 turer, 33 % av turene; ingen grunnstøting. Havneanlegget ved kaia 211 (brygge 101, kai 45, båt som ligger stille 39 av 42, molo 17, flytebrygge 5), 95 % under 300 m fra rutas ender og 83 % noe båtmodellen ikke kjenner; land 116; grunn inne i havna 90. Mønstrene og rettingen som står for tur: `docs/planer/autonav-null-treff.md`.
