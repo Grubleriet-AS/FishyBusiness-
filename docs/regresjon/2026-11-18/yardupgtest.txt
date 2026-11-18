@@ -1,0 +1,25 @@
+{"skiff": [], "trebat": ["tank"], "sjark": ["cabin", "galley", "dry", "insul", "tank", "stab"], "sjarkny": ["cabin", "galley", "insul", "tank", "stab"], "types": ["skiff", "trebat", "snekke", "plastsjark", "sjark", "hurtigsjark", "sjarkny", "breisjark", "kyst15", "kyst21", "snokrabbe", "autoliner", "bunntral", "pelagisk", "ringnot38"], "hav": [["snokrabbe", ["cabin", "stab"]], ["autoliner", ["cabin", "stab"]], ["bunntral", ["cabin", "stab"]], ["pelagisk", ["cabin", "stab"]], ["ringnot38", ["cabin", "stab"]]], "price": [245000, 7000], "pricehav": [60000000, 1800000], "fx": {"pc": 0.025, "h": 12, "no": "Slingrekjøl", "en": "Bilge keels", "fat": 0.78, "cook": 12, "mood": 6, "cold": 0.7, "ice": 0.7, "x": 1.5, "sea": 0.9}, "fuel": [900, 1350], "sea": [0.14, 0.12600000000000003], "svc": [14000, 21000], "queued": true, "lv": 1}
+OK   a boat without bunks gets no cabin, galley or drying room []
+OK   the ocean vessels get no insulated hold or extra tank [['snokrabbe', ['cabin', 'stab']], ['autoliner', ['cabin', 'stab']], ['bunntral', ['cabin', 'stab']], ['pelagisk', ['cabin', 'stab']], ['ringnot38', ['cabin', 'stab']]]
+OK   the price follows the boat: a snekke pays a few thousand, an ocean vessel millions [[245000, 7000], [60000000, 1800000]]
+OK   cabins, galley, drying room and insulation set their effects {'pc': 0.025, 'h': 12, 'no': 'Slingrekjøl', 'en': 'Bilge keels', 'fat': 0.78, 'cook': 12, 'mood': 6, 'cold': 0.7, 'ice': 0.7, 'x': 1.5, 'sea': 0.9}
+OK   the large tank holds half again and the stabiliser lowers the loss at sea [[900, 1350], [0.14, 0.12600000000000003]]
+OK   the biggest engine makes the engine service dearer [14000, 21000]
+OK   a yard job for a rebuild finishes and sets the step [True, 1]
+{"k15": ["cabin", "insul", "tank", "stab"], "k21": ["cabin", "insul", "tank", "stab", "gut", "ice"], "al": ["cabin", "stab"], "mach": [600, 1500], "price": [540000, 450000], "gutMach": 15, "gutHand": 5, "iceH": 62.5, "room0": 1300, "cap1": 1000, "cap2": 800, "room2": 800, "min": [9, 25]}
+OK   the gutting and ice machines are offered only over 14.99 m, and not where the factory has them [['cabin', 'insul', 'tank', 'stab'], ['cabin', 'insul', 'tank', 'stab', 'gut', 'ice'], ['cabin', 'stab']]
+OK   fitted, they give 600 kg an hour and 1,500 kg of ice a day, from 350 000 and 300 000 kr [[600, 1500], [540000, 450000]]
+OK   the machine guts 10 kg a minute more than the hands alone, and the ice machine makes 62.5 kg an hour [15, 5, 62.5]
+OK   freight goes on deck first and takes hold room only beyond it; loading by hand takes a minute per 60 kg, with the crane per 200 kg a tonne [1300, 1000, 800, 800, [9, 25]]
+{"fits": ["trebat", "snekke", "plastsjark", "sjark", "hurtigsjark", "sjarkny", "breisjark", "kyst15", "kyst21"], "nofit": ["skiff", "snokrabbe", "autoliner", "bunntral", "pelagisk", "ringnot38"], "trebat": [2500, 4000, 6500], "snekke": [5000, 10000, 17000], "hurtig": [98000, 196000, 343000], "job": {"lv": 1, "kr": 23000, "ty": "sjark", "h": 3, "min": 180}, "paid": 23000, "yardH": 3, "ev": [{"k": "prop", "lv": 1}], "lv": 1, "v": [10, 10.5], "wait": true, "paid2": 46000, "back": [9977000, 9977000], "trade": {"paid": 9931000, "cash": 9977000, "c2": 9977000, "lv": 0}, "engTrade": {"paid": 69000, "kr": 69000, "back": 69000, "lv": 0}, "swap": {"paid": 23000, "back": 58000, "holdKr": 35000, "jobs": 0, "type": "snekke", "lv": 0}, "trim": [22, 21.999999999999993], "promise": [], "gives": [52.7, 52.7, 52.7, 52.7, 41.7, 47.2, 52.7]}
+OK   the propeller fits every boat without an outboard outside the ocean fleet ['skiff', 'snokrabbe', 'autoliner', 'bunntral', 'pelagisk', 'ringnot38']
+OK   the price: 2, 4 and 7 % of the boat's price with the floors 2 500, 4 000 and 6 500 kr [[2500, 4000, 6500], [5000, 10000, 17000], [98000, 196000, 343000]]
+OK   the havsjark orders step 1 at the yard: 23 000 kr paid, 30 real minutes, and upg {k:prop, lv:1} for the funnel [{'lv': 1, 'kr': 23000, 'ty': 'sjark', 'h': 3, 'min': 180}, 23000, [{'k': 'prop', 'lv': 1}]]
+OK   the job finishes and sets step 1: the havsjark goes 5 % faster [1, [10, 10.5]]
+OK   step 2 (46 000 kr) cancelled before it starts: the price comes back [True, [9977000, 9977000]]
+OK   a boat traded in while the job waited: the yard pays it back and fits nothing {'paid': 9931000, 'cash': 9977000, 'c2': 9977000, 'lv': 0}
+OK   a bigger engine ordered and the boat traded in while it waited: the yard pays it back, the new boat keeps her own engine {'paid': 69000, 'kr': 69000, 'back': 69000, 'lv': 0}
+OK   the trade-in pays back the old hull's propeller job (23 000 kr) and an old hold job without a price (priced on the old boat), and takes them off the queue {'paid': 23000, 'back': 58000, 'holdKr': 35000, 'jobs': 0, 'type': 'snekke', 'lv': 0}
+FEIL the Trim app promises the top speed each trim gives, on the speed sjark with propeller 3 and engine 2 [[], [52.7, 52.7, 52.7, 52.7, 41.7, 47.2, 52.7]]
+OK   turbo trim gives as many knots with propeller 3 as without (22 kn, the boat's own) [22, 21.999999999999993]
+OK   no page errors []

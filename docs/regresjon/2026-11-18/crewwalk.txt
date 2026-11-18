@@ -1,0 +1,19 @@
+OK   a sjark with two hands has three agents (the skipper and two) 
+OK   the first tick puts everyone straight at their place, on the deck 
+OK   with the tub full someone goes to the table or the tub (walked there in the first three seconds) 
+OK   nobody leaves the deck or goes faster than walking 
+FEIL twenty seconds later everyone has arrived at their place {"walked": {"me": 3.45929058242588, "ckr7kcbni": 0, "cktwdou5o": 0}, "off": [["me", "too fast", 3.06554058242588]], "A": [{"id": "me", "st": "sloy", "mode": "at", "task": "gut", "at": true, "goal": "gut"}, {"id": "ckr7kcbni", "st": "sloy", "mode": "at", "task": "gut", "at": true, "goal": "gut"}, {"id": "cktwdou5o", "st": "is", "mode": "in", "task": null, "at": true, "goal": null}]}
+OK   they walked there (metres on deck), they did not jump 
+OK   under way the crew are inside and the skipper is at the wheel 
+OK   a hand given time off has no agent 
+OK   hauling line on the new sjark: one hauls, one bleeds, one guts, one packs and ices (below in the hold where the deck has no place for it, work.nopack), each on a place of their own (no two closer than 0.4 m), none in the kit 
+OK   a break on deck ends as she gets under way: the crew are on their way in within a second (a smoker may go aft) 
+OK   the rail places on every boat face the open air off the hull (no deck beyond them) and stand on the working deck 
+OK   the skipper's place at the helm is at the wheel, not on the roof over it, on every boat 
+      plastsjark: ['2>3'] ikke nådd på et minutt (gjennom huset), ikke med
+      plastsjark, 3 strekninger: 11.9 s mot 12.9 s (+8.4 %); verst én strekning +14 % {'0>1': 4.65, '1>2': 3.95, '3>4': 3.25} {'0>1': 5, '1>2': 4.15, '3>4': 3.7}
+      sjarkny, 4 strekninger: 20.5 s mot 21.7 s (+5.9 %); verst én strekning +9 % {'0>1': 2.8, '1>2': 3.25, '2>3': 5.05, '3>4': 9.4} {'0>1': 3.05, '1>2': 3.5, '2>3': 5.3, '3>4': 9.85}
+      kyst21, 3 strekninger: 14.8 s mot 15.6 s (+5.1 %); verst én strekning +14 % {'0>1': 2.1, '1>2': 3.05, '2>3': 9.65} {'0>1': 2.4, '1>2': 3.35, '2>3': 9.8}
+OK   gangtidene mellom stasjonene med myk start og stopp (FOT.ACC 2.5 m/s²) er som før innen 10 % for arbeidet på hver båt (verst +8.4 %, 3 båter) 
+OK   no page errors 
+FEIL: twenty seconds later everyone has arrived at their place

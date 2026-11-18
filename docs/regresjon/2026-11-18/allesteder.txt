@@ -1,0 +1,37 @@
+    0 / 1041 6 s
+    25 / 1041 95 s
+    50 / 1041 218 s
+allesteder: port Austafjord [64.9155, 10.9407] {"why": "route: Fant ingen rute dit. (to Rørvik, Rørvik verft, Ottersøy utstyrsbutikk, at chart datum)", "to": null, "nm": null, "min": null, "end": null, "log": null, "hits": null, "clash": null, "asleep": null, "h": 82.02, "hands": null, "inn": {"why": "in: route: Fant ingen trygg rute dit.", "nm": null, "min": null, "end": null, "hands": null, "hits": null, "clash": null, "log": null, "berthAt": null}}
+    75 / 1041 329 s
+    100 / 1041 479 s
+    125 / 1041 604 s
+    150 / 1041 700 s
+allesteder: port Tromsø [69.6541, 18.9675] {"why": "no headway for 40 min (sailing, at {\"lat\":69.65166051691806,\"lon\":18.977154169522098}, leg 8/13) 0.47 km out", "to": "Tromsdalen", "nm": 2, "min": 47, "end": "sailing", "log": [], "hits": [["merke", 1.7, 69.65235, 18.97347, 4]], "clash": null, "asleep": null, "h": 212.77, "hands": 4, "inn": {"why": null, "nm": 0.7, "min": 8, "end": "port", "hands": 0, "hits": null, "clash": null, "log": [], "berthAt": null}}
+    175 / 1041 800 s
+    200 / 1041 876 s
+    225 / 1041 963 s
+    250 / 1041 1050 s
+    275 / 1041 1121 s
+    300 / 1041 1229 s
+    325 / 1041 1320 s
+    350 / 1041 1413 s
+    375 / 1041 1497 s
+    400 / 1041 1595 s
+    425 / 1041 1703 s
+    450 / 1041 1934 s
+    475 / 1041 2012 s
+    500 / 1041 2092 s
+    525 / 1041 2360 s
+    550 / 1041 2539 s
+allesteder: rorbu Henningsvær [68.1673, 14.2565] {"why": "in: no headway for 40 min (idle, at {\"lat\":68.16689979391174,\"lon\":14.25075088155813}, leg -) 1.33 km out", "to": "Henningsvær", "nm": 2.2, "min": 20, "end": "port", "log": [], "hits": null, "clash": null, "asleep": null, "h": 747.9, "hands": 1, "inn": {"why": "in: no headway for 40 min (idle, at {\"lat\":68.16689979391174,\"lon\":14.25075088155813}, leg -) 1.33 km out", "nm": 0.6, "min": 48, "end": "idle", "hands": 1, "hits": null, "clash": null, "log": [], "berthAt": null}}
+allesteder: rorbu Øver-Steine [68.1222, 13.7724] {"why": "no headway for 40 min (sailing, at {\"lat\":68.12119819978714,\"lon\":13.770221746156214}, leg 3/17) 0.14 km out", "to": "Stamsund", "nm": 3.1, "min": 44, "end": "sailing", "log": [], "hits": null, "clash": null, "asleep": null, "h": 752.3, "hands": 1, "inn": {"why": null, "nm": 0.5, "min": 3, "end": "port", "hands": 0, "hits": null, "clash": null, "log": [], "berthAt": null}}
+    575 / 1041 2622 s
+    600 / 1041 2779 s
+allesteder: rorbu Olderstad [66.5557, 12.2568] {"why": "no headway for 40 min (sailing, at {\"lat\":66.58578008592946,\"lon\":12.225920946349888}, leg 6/7) 3.63 km out", "to": "Selvær", "nm": 2.7, "min": 62, "end": "sailing", "log": [], "hits": null, "clash": null, "asleep": null, "h": 836.18, "hands": 0, "inn": {"why": null, "nm": 0.9, "min": 6, "end": "port", "hands": 0, "hits": null, "clash": null, "log": [], "berthAt": null}}
+    625 / 1041 2956 s
+    650 / 1041 3487 s
+    675 / 1041 3840 s
+    700 / 1041 3968 s
+    725 / 1041 4360 s
+    750 / 1041 4517 s
+    775 / 1041 5118 s

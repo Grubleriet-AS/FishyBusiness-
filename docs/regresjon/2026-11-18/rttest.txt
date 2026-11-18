@@ -1,0 +1,14 @@
+OK   the way in: a good ticket opens and is greeted with the clock; the same ticket again, another key, a wrong signature, one run out, one too far ahead, a wrong origin, a wrong path and none are refused  {"good": 101, "again": 401, "wrongkey": 401, "badsig": 401, "old": 401, "far": 401, "origin": 403, "path": 404, "none": 401}
+OK   a boat hears the boats in her own 10 km square and the eight round it, not two squares on; also north of the frame (y below 0)  {"a1": ["a2a2a2a2a2"], "a2": ["a1a1a1a1a1"], "a3": []}
+OK   the far ones thinned: a boat under way at 5 a second reaches a boat 4.6 km off every time and one 5.4 km off once a second; a boat lying still reaches both every time  {"sent": {"under way": 15, "still": 3}, "heard": {"near": {"b5b5b5b5b5": 15, "b1b1b1b1b1": 3}, "far": {"b5b5b5b5b5": 3, "b1b1b1b1b1": 3}}}
+FEIL she glides onto the relay from the 15 s track over 2 s, slowing for a moment, with no jump  [0.0, 1.03]
+OK   a boat sailing a circle at 8 knots with 5 reports a second is drawn half a second behind, within a metre or two of where she was, at an even speed from frame to frame  {"frames": 482, "err_med_m": 0.04, "err_p99_m": 0.07, "err_max_m": 0.08, "lag_s": 0.5, "speed_dev_med": 0.008, "speed_dev_p95": 0.025, "speed_dev_max": 0.142, "true_m_s": 24.7, "glide_speed_min_max": [0.0, 1.03]}
+OK   the game's own boat goes to the others once a second lying still (in port, the berth's place to 0.1 m) and 5 times a second under way, each report the place, heading, speed, state and time only (20 bytes a boat)  {"still": 3, "moving": 15, "up": 32, "last": ["bbbbbbbbbb", 3, 0.0, 867.8311, 366.1926, 1.5708], "now": [867.8332459408443, 366.1926252088817]}
+OK   a guest's boat goes to no one (as pos_world), but the guest sees the others  {"rGotGuest": 0, "guestSaw": 85, "pageSawGuest": false}
+OK   when the boat leaves the relay, the game goes back to the 15 s track at once and she glides on, with no jump  {"back_at_frame": 33, "max_step_m": 0.61, "p95_step_relay_m": 0.43}
+OK   the same player on a second page: the newest has the relay, the older is told (4001)  {"new": 101, "old": 4001}
+OK   a flood is dropped above 12 a second and closed; bad frames and a frame too big are closed  {"flood": 1008, "dropped": 276, "bad": 1008, "big": 1009}
+OK   a hidden page lets go of the relay at once, and takes it again when it is seen  {"hidden": {"ws": false, "st": "off"}, "conns": 0}
+OK   the relay restarts: the game keeps the 15 s reports meanwhile and is back on the relay by itself  {"back_s": 7.1}
+OK   a database without rt_ticket (404) is asked once and not again; the game plays on with the 15 s reports  {"state": {"ws": false, "st": "off", "ready": true}, "asked": 1}
+sidefeil: []

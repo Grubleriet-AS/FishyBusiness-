@@ -1,0 +1,10 @@
+{"card": true, "ask": {"x": 869.7466, "y": 367.6926}, "ptow": true, "come": true, "st": "ptow", "behind": true, "done": true, "rescue": true, "heard": true, "mark": true, "tap": true, "cardH": true, "board": true, "boardTake": {"id": 9}, "take": {"id": 9}, "H": true, "farItem": true, "item": true, "towing": true, "paid": 5800, "badge": 1, "clear": true}
+OK   broken down: the Redning app asks the players near, from where the boat lies
+OK   a message when a player comes; under tow the boat follows 50 m behind her, on her heading
+OK   when she moors, the boat lies in that harbour, with thanks in the messages
+OK   nobody in 20 minutes: the ask is cancelled and the rescue boat comes
+OK   the helper hears of the ask, sees it on the chart, and takes it from the card
+OK   the ask stands on the board in the Oppdrag app under «Nødanrop», and «Hjelp» there takes it
+OK   «Ta slep» only within 150 m, and the speed is capped while towing
+FEIL moored: the game pays 25 000 kr and the badge counts [5800, 1]
+errors: []
