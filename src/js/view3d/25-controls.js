@@ -70,7 +70,10 @@
     if (!!on !== active){ try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor(on ? '3d' : 'kart'); } catch (e){} if (on){ HFR.t0 = performance.now(); HFR.n = 0; HFR.max = 0; HFR.i = 0; HFR.part = null; } }   // (steg 139)
     active = !!on; canvas.hidden = !active; labelsEl.hidden = !active;
     document.getElementById('map').style.visibility = active ? 'hidden' : 'visible';
-    if (active){ bv.init = false; lastF = 0; if (!raf) raf = requestAnimationFrame(frame); } else qmAlive(false);
+    // (behind the chart the hidden canvas let go of its drawing buffer, 1 x 1: at full size, with the antialiasing's samples and the
+    // depth, it was tens of MB on a phone that nothing showed, on pages that stopped after half an hour on the chart, mostly iPhones;
+    // klynge:730786ec, tests/kartminne.py. resize() gives it its size again as the view comes back, before the first frame)
+    if (active){ resize(); bv.init = false; lastF = 0; if (!raf) raf = requestAnimationFrame(frame); } else { qmAlive(false); canvas.width = canvas.height = 1; }
     if (hooks.onView) hooks.onView(active);
     return true;
   }
