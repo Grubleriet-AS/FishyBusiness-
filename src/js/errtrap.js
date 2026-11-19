@@ -15,6 +15,45 @@
     T.busy = false;
   }
   T.put = put;
+  // ===== THE TRACE (steg 139, DIAG1, 18.11.2026; Jonas: «den sirkulære loggbufferen skal fange opp de siste 8–10 abstrakte
+  // tilstandsovergangene … fortsatt strengt uten fritekst fra spiller eller posisjonsdata») =====
+  // A crash or a hang told nothing of what came before it (issue #124: the hangs in 3D could not be fixed for that). The last SPOR_N
+  // changes of state are kept here, the oldest out first, each [seconds since the page began, code, a number or two]: the view and the
+  // phone's page and the dock's drawer (the shop, the yard, the plant), the network, the screen hidden or shown, the time away played (catchUp: ms and game minutes), the WebGL context lost
+  // and back, and a button pressed (its id or action, never its text). Only codes from KODER, or «telefon:» / «dokk:» / «k:» with a short code
+  // name after; anything else is kept as «?». Never what the player wrote, never where the boat is. It goes with a crash (in the pulse,
+  // 10f-cloud.js aliveBeat), a hang (hangWatch, the watchdog) and the severe 3D faults (cloudErr), in the error's stack.
+  var SPOR_N = 10, SPOR = [], ST0 = Date.now();
+  var KODER = {start:1, kart:1, '3d':1, 'telefon-lukk':1, pub:1, 'pub-lukk':1, naust:1, 'naust-lukk':1, 'dokk-lukk':1,
+    online:1, offline:1, skjult:1, synlig:1, catchup:1, 'gl-mistet':1, 'gl-tilbake':1, 'pub-gl-mistet':1, 'naust-gl-mistet':1, '?':1, 'k:?':1, 'telefon:?':1, 'dokk:?':1};
+  var DEL = /^(telefon|dokk|k):([a-zA-Z][a-zA-Z0-9_+-]{0,23})$/;
+  function num(x){ return typeof x === 'number' && isFinite(x) ? Math.round(x) : undefined; }
+  T.spor = function(k, a, b){
+    if (!arguments.length) return SPOR.map(function(e){ return e.slice(); });
+    try {
+      k = String(k); if (!KODER[k] && !DEL.test(k)) k = /^(telefon|dokk|k):/.test(k) ? k.split(':')[0] + ':?' : '?';
+      var t = Math.round((Date.now() - ST0) / 100) / 10, l = SPOR[SPOR.length - 1];
+      // (the same button again and again: one entry that counts, so a finger on one button does not push the rest out)
+      if (l && l[1] === k && k.slice(0, 2) === 'k:'){ l[0] = t; l[2] = (l[2] || 1) + 1; return; }
+      var e = [t, k], na = num(a), nb = num(b);
+      if (na !== undefined) e.push(na); if (nb !== undefined){ if (na === undefined) e.push(null); e.push(nb); }
+      SPOR.push(e); while (SPOR.length > SPOR_N) SPOR.shift();
+    } catch (x){}
+  };
+  T.spor('start');
+  addEventListener('online', function(){ T.spor('online'); });
+  addEventListener('offline', function(){ T.spor('offline'); });
+  document.addEventListener('visibilitychange', function(){ T.spor(document.hidden ? 'skjult' : 'synlig'); });
+  // a button pressed: its data-spor, data-pa (the phone), data-act (the panels), data-dk (the dock's buttons) or id, never what it
+  // says; a field to write in is never read (pointerup only, nothing of the keys). (The drawer's tabs, data-pg, are «dokk:<side>».)
+  addEventListener('pointerup', function(e){
+    try {
+      var el = e.target && e.target.closest ? e.target.closest('[data-spor],[data-pa],[data-act],[data-dk],button,[role=button]') : null;
+      if (!el || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName) || el.isContentEditable) return;
+      var c = el.getAttribute('data-spor') || el.getAttribute('data-pa') || el.getAttribute('data-act') || el.getAttribute('data-dk') || el.id || '?';
+      T.spor('k:' + c);
+    } catch (x){}
+  }, true);
   addEventListener('error', function(e){
     var t = e.target;
     if (t && t !== window && t.tagName){   // a file the page could not load: what and from where, without its query

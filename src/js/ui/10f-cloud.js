@@ -357,7 +357,28 @@ function errNoise(msg){
   // (a fetch the network let down says so in the browser's words and nothing more: the save and the cloud try again by themselves)
   return /Failed to start the audio device|The AudioContext was not allowed to start|ResizeObserver loop|^Script error\.?$|AbortError|The user aborted a request|Failed to fetch|NetworkError when attempting|^(TypeError: )?Load failed$|net::ERR_/i.test(msg);
 }
-function cloudErr(msg, src, stack, kind){
+// the trace (steg 139, errtrap.js DSB_ERRTRAP.spor) goes with a crash, a hang and the severe 3D faults (the ones the weekly report
+// counts, supabase/migrations/20261118220000_agent_uke.sql), never with the others: they stay small
+const ERR_SEVERE3D = /^3D (svart skjerm|bildet er én farge|NaN i )/;
+function errSporOf(kind, msg){
+  if (kind !== 'hang' && !(kind === 'gfx' && ERR_SEVERE3D.test(msg))) return null;
+  try { return window.DSB_ERRTRAP && DSB_ERRTRAP.spor ? DSB_ERRTRAP.spor() : null; } catch (e){ return null; }
+}
+// into the stack (tm_error keeps the stack up to 2000 characters and lets only the fields it knows through meta, so the trace goes
+// here): into its JSON when it is that, after it otherwise; the oldest entries go first when it would not fit
+function errWithSpor(stack, spor){
+  stack = String(stack || ''); if (!Array.isArray(spor) || !spor.length) return stack;
+  let o = null; try { o = JSON.parse(stack); } catch (e){}
+  const sp = spor.slice();
+  for (;;){
+    const s = o && typeof o === 'object' && !Array.isArray(o) ? JSON.stringify(Object.assign({}, o, {spor:sp})) : stack + (stack ? '\n' : '') + 'spor ' + JSON.stringify(sp);
+    if (s.length <= 2000 || !sp.length) return s;
+    sp.shift();
+  }
+}
+const ERR_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// opt (steg 139): {sid, spor} of another page, the one that crashed (aliveCheck): its session and its trace go before this page's
+function cloudErr(msg, src, stack, kind, opt){
   if (!msg || !cloudOn()) return;   // no cloud for this page (the tests, the artifact, another host): nothing to send to
   msg = String(msg); if (errNoise(msg)) return;
   const key = msg.slice(0, 160);
@@ -365,7 +386,9 @@ function cloudErr(msg, src, stack, kind){
   CLOUD.errSeen[key] = 1; CLOUD.errs++;
   // (each half alone: while the page loads, one of them may not be able to say its part yet)
   const meta = {}; try { Object.assign(meta, cloudMeta()); } catch (e){} try { Object.assign(meta, cloudDev()); } catch (e){}
-  errSend({msg:srcMapStr(msg).slice(0, 400), src:srcMapStr(src).slice(0, 200), stack:srcMapStr(stack).slice(0, 2000), meta});
+  if (opt && typeof opt.sid === 'string' && ERR_UUID.test(opt.sid)) meta.sid = opt.sid;
+  const spor = opt && Array.isArray(opt.spor) ? opt.spor : errSporOf(kind, msg);
+  errSend({msg:srcMapStr(msg).slice(0, 400), src:srcMapStr(src).slice(0, 200), stack:errWithSpor(srcMapStr(stack), spor).slice(0, 2000), meta});
   if (kind === 'throw' && CLOUD.on && ERR.ready && typeof FEEDBACK !== 'undefined') setTimeout(() => { try { FEEDBACK.nudge('err'); } catch (e){} }, 2000);   // what the player saw helps (06e-feedback.js)
 }
 function errSend(e){
@@ -407,6 +430,9 @@ function errStart(){
   const p = ERR.pend.splice(0); for (const e of p) errSend(e);
   errFlush(); addEventListener('online', () => setTimeout(errFlush, 3000));
   setTimeout(errFlush, 60000);
+  // (and again every 2.5 minutes: an error kept while the cloud said no is held back by cloudRpc's pause after a failure (RPCB, at
+  // most RPC_BMAX), and until 18.11.2026 nothing asked again after the pause before the next start; errtest. Cheap when nothing waits)
+  setInterval(errFlush, 150000);
   try { if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage({dsbErrPull:1}); } catch (e){}   // what the worker kept
   hangWatch();
 }
@@ -424,8 +450,10 @@ function aliveBeat(gone){
     if (gone) delete a[ALIVE.id];
     else { let d = {}; try { d = cloudDev(); } catch (e){}
       const mem = performance && performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null;
+      // (steg 139: the session and the trace too, for it is the next page that tells of a crash: CLOUD.sid is gone with this one)
+      let spor = null; try { spor = window.DSB_ERRTRAP && DSB_ERRTRAP.spor ? DSB_ERRTRAP.spor() : null; } catch (e){}
       a[ALIVE.id] = {t:Date.now(), vis:!document.hidden, up:Math.round((Date.now() - ALIVE.t0) / 1000), view:d.view, lvl:d.lvl, mem, gl:d.gl, ready:typeof SIMREADY !== 'undefined' && !!SIMREADY,
-        v:(document.querySelector('meta[name=dsb-version]') || {}).content || 'dev'}; }
+        v:(document.querySelector('meta[name=dsb-version]') || {}).content || 'dev', sid:CLOUD.sid || null, spor}; }
     localStorage.setItem(ALIVE_KEY, JSON.stringify(a));
   } catch (e){}
 }
@@ -439,7 +467,8 @@ function aliveCheck(){
     if (!b.vis) continue;
     const where = !b.ready ? 'under lasting' : b.view === '3d' ? '3d' : 'kart', mins = Math.round((now - b.t) / 60000);
     cloudErr('Krasj: siden stoppet mens den var på skjermen · ' + where, 'crash',
-      JSON.stringify({version:b.v, up_s:b.up, view:b.view, lvl:b.lvl, js_mb:b.mem, gl_mb:b.gl == null ? null : b.gl, min_ago:mins}), 'crash');
+      JSON.stringify({version:b.v, up_s:b.up, view:b.view, lvl:b.lvl, js_mb:b.mem, gl_mb:b.gl == null ? null : b.gl, min_ago:mins}), 'crash',
+      {sid:b.sid, spor:Array.isArray(b.spor) ? b.spor : null});
   }
   if (changed) try { localStorage.setItem(ALIVE_KEY, JSON.stringify(a)); } catch (e){}
 }
@@ -461,8 +490,11 @@ function hangWatch(){
     if (!vis || document.hidden || gap < 5 || gap > 120) return;
     const b = gap < 10 ? '5–10' : gap < 30 ? '10–30' : '30–120';
     let d = {}; try { d = cloudDev(); } catch (e){}
-    cloudErr('Heng: spillet sto stille i ' + b + ' s · ' + (d.view || '?'), 'hang', JSON.stringify({s:Math.round(gap * 10) / 10, view:d.view, lvl:d.lvl, js_ms:d.js,
-      js_mb:performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null}), 'hang');
+    // (steg 139: in 3D, whether it was the first frames, how long the view had been up, the longest frame since the last message and,
+    // when the profile is on, the part of the frame that took the most; view3d/24-cinema.js HFR)
+    let f = null; try { f = typeof G3 !== 'undefined' && G3.hangInfo ? G3.hangInfo() : null; } catch (e){}
+    cloudErr('Heng: spillet sto stille i ' + b + ' s · ' + (d.view || '?'), 'hang', JSON.stringify(Object.assign({s:Math.round(gap * 10) / 10, view:d.view, lvl:d.lvl, js_ms:d.js,
+      js_mb:performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null}, f ? {g3:f} : {})), 'hang');
   }, 1000);
 }
 // the save goes up when it has changed (every three minutes and when the page closes); an older one than the cloud's is refused,
@@ -771,6 +803,14 @@ function cloudHooks(){
     cloudEv('sale', {kr:Math.round(s.total || 0), kg:Math.round(kg), port:s.port, field:s.field || null, tripMin:CLOUD.trip != null ? Math.round(S.t - CLOUD.trip) : null, acc:s.acc});
     if ((s.confKg || 0) > 0.5 || (s.crabDead || 0) > 0.05) CLOUD.neg = {t:Date.now(), k:'sale', x:(S.boat.pos || {}).x, y:(S.boat.pos || {}).y}; CLOUD.trip = null; });
   wrap('runAground', (r, a) => { const p = a[0] || S.boat.pos || {}, inc = (S.incidents || [])[(S.incidents || []).length - 1] || {}; cloudEv('aground', {x:+(p.x || 0).toFixed(3), y:+(p.y || 0).toFixed(3), boat:S.boat.type, v:+(inc.v != null ? inc.v : S.boat.v || 0).toFixed(1), how:inc.how || ''}); CLOUD.neg = {t:Date.now(), k:'aground', x:p.x, y:p.y}; });
+  // the blows, as the groundings (17.11.2026, Jonas: how many have run aground or collided, and where): a blow against a quay, a pier, a
+  // breakwater or a fixed thing (hullHit, 16c-hull.js; the vessels' own go by sjvBlow) and a collision with another vessel, a player's
+  // or an NPC's (sjvBlow, 05e-sjovei.js; harmless in the first weeks, so hullHit is not called for it). Where, how hard, the boat, and
+  // who steered: Autonav (leia), a drawn route, by hand (helm) or drifting; nothing about the other vessel's owner
+  const hitHow = () => { const w = S.plan && S.plan.wps[S.plan.idx]; return S.plan ? (w && (w.leia || w.obs || w.auto) ? 'leia' : S.plan.returning ? 'return' : S.plan.ops ? 'ops' : 'route') : (typeof helmOn === 'function' && helmOn()) ? 'helm' : 'drift'; };
+  const hitAt = (b = S.boat) => { const p = b.pos || {}; return {x:+(p.x || 0).toFixed(3), y:+(p.y || 0).toFixed(3), boat:b.type, how:b === S.boat ? hitHow() : 'flåte'}; };
+  wrap('hullHit', (r, a) => { if (a[2] === 'båt' || !(a[0] >= 1)) return; cloudEv('hit', {k:String(a[2] || ''), kn:+(+a[0]).toFixed(1), ...hitAt(a[3] || S.boat)}); });
+  wrap('sjvBlow', (r, a) => { if (!r || r.t !== S.t || r.kn !== +(+a[1]).toFixed(1)) return; cloudEv('clash', {k:r.peer ? 'spiller' : 'npc', kn:r.kn, ...hitAt()}); });
   wrap('startSet', (r, a) => { if (!r) cloudEv('gear', {gear:a[0], op:'set'}); });
   wrap('startHaul', (r) => { const g = S.boat.gop; if (!r && g) cloudEv('gear', {gear:g.kind, op:'haul'}); });
   if (typeof PHONE !== 'undefined' && PHONE.open){ const o = PHONE.open; PHONE.open = function(app){ cloudEv('app', {app:String(app || '')}); return o.apply(this, arguments); }; }

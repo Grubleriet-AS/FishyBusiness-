@@ -76,7 +76,8 @@ Spillet er live med betalende spillere. Målet er lav churn, rask oppstart, jevn
 - Testene kjører med frø (`seed=1`; `KYST_SEED=2` gir et annet kast, `0` slår av) og med roen av (`ro0`; bare `tut.py` og `roetest.py` har roen). En rød test er en feil, ikke et dårlig kast. En test som lager adressen selv, tar med `ro0`.
 - Nye tester: `await boot(pg)` fra `_env.py`, inn i `D3` eller `LITE` i `run.py`. En ny fil i `src/` legges i `COVER` i `run.py`. Trykk i 3D sendes som CDP-berøring; berøring og drag i kartet trenger `--disable-gpu-compositing`.
 - **3D-tester tegner bare det de ser på** (15.11.2026): en 3D-test som sjekker logikk (bevegelse, fortøyning, lossing, bunkring), åpner `GAME3D_MIN` fra `_env.py` (uten trær, dyreliv, vind, strand, skjær, marina og nærterreng). Full scene bare i testene av grafikken og der et bilde skal ses. Hver ny side koster 1–2 minutter i SwiftShader før 3D-en går: flytt båten og kameraet i samme side heller enn å starte en ny.
-- **Kronisk røde tester** (15.11.2026): en test som er rød på samme sjekk tre netter på rad i regresjonen, merkes «Kronisk» i backloggen 10.6 og blir et steg i køen: rett feilen, eller endre sjekken med Jonas' ja. Å slå av en test eller en sjekk krever fortsatt Jonas.
+- **Regresjonen går i GitHub Actions uten modell** (`regresjon.yml`, 19.11.2026): hver natt uten 3D og balansen, natt til mandag alt. En test rød to ganger (andre gang alene) blir én sak `regresjon`, som `klynge.py` leser, så Driften retter den innenfor Opus-taket (`tools/regresjon/RUTINE.md`).
+- **Kronisk røde tester** (15.11.2026; i sakene fra 19.11.2026): en test som er rød tre netter på rad, får merkelappen `kronisk` på saken sin og veier mer i triagen: rett feilen, eller endre sjekken med Jonas' ja. Å slå av en test eller en sjekk krever fortsatt Jonas.
 - Det som må stemme: `trip2.py` ender med `"st":"port"`, `tut.py` med `"tut": 0`, `dbg23o.py` skriver ingenting, sjekklinjer starter med `OK`, sidefeil er `[]`.
 
 ## Bygg

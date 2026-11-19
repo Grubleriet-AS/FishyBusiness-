@@ -81,7 +81,7 @@ const PUB3 = (() => {
       if (!gl) throw new Error('no webgl');
       const pr = prog(VS, FS), pt = prog(VT, FT), M = load(); if (!M) throw new Error('no model');
       P = Object.assign(M, {pr, pt, sq:signQuad(M.A), stex:null, sname:''});
-      cv.addEventListener('webglcontextlost', e => { e.preventDefault(); gl = null; P = null; failed = false; console.error('pub 3d: konteksten mistet'); });   // (the error trap sends it)
+      cv.addEventListener('webglcontextlost', e => { e.preventDefault(); gl = null; P = null; failed = false; try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('pub-gl-mistet'); } catch (e){} console.error('pub 3d: konteksten mistet'); });   // (the error trap sends it)
       return true;
     } catch (e){ failed = true; gl = null; console.error('pub 3d', e); return false; }   // (the error trap sends it: the page falls back to the flat picture)
   }
@@ -349,7 +349,7 @@ const PUB3 = (() => {
   function open(){
     if (!el) build();
     if (!init()){ PUBW.open(); return; }          // no WebGL or no model: the wheel as before
-    on = true; el.hidden = false; document.body.classList.add('in-pub'); panel(null);
+    on = true; el.hidden = false; document.body.classList.add('in-pub'); panel(null); try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('pub'); } catch (e){}   // (steg 139)
     const E = P.A.eye, Lk = P.A.look; if (Lk && E){ cam.yaw = Math.atan2(-(Lk[0] - E[0]), -(Lk[2] - E[2])); cam.pitch = Math.atan2(Lk[1] - E[1], Math.hypot(Lk[0] - E[0], Lk[2] - E[2])); }
     // start turned a little towards the wheel, so both it and the bartender are in sight
     cam.yaw -= 0.18; cam.fov = 1;
@@ -358,7 +358,7 @@ const PUB3 = (() => {
     tLast = 0; if (!raf) raf = requestAnimationFrame(frame);
   }
   function close(){
-    if (!on) return; on = false; if (el) el.hidden = true; document.body.classList.remove('in-pub'); panel(null);
+    if (!on) return; on = false; if (el) el.hidden = true; document.body.classList.remove('in-pub'); panel(null); try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('pub-lukk'); } catch (e){}
     if (typeof G3 !== 'undefined' && G3.hold) G3.hold(false);
     if (typeof renderActs === 'function') renderActs();
   }

@@ -8,6 +8,8 @@ Code environment, which sessions use without seeing it; it is never written anyw
     python3 tools/feedback/agent.py note ID --score 6 --status seen --note "..." [--reply "..."]
     python3 tools/feedback/agent.py run --report RAPPORT.md [--pr URL "title"]... [--n 12]
     python3 tools/feedback/agent.py tech [--days 7] [--out DIR]                 the errors and the frame rate by device to DIR/tech.json
+    python3 tools/feedback/agent.py incidents [--days 30] [--out DIR]           the groundings, the blows and the collisions to DIR/incidents.json,
+                                                                                summed up per place (17.11.2026)
     python3 tools/feedback/agent.py uke                                          the week's numbers (tools/triage/ukesrapport.py uses them)
     python3 tools/feedback/agent.py fixed ID --pr URL --ver V                    a fix of this feedback is out with the players: status
                                                                                 fixed, a confirmation and the takk-haill once (18.11.2026;
@@ -48,6 +50,43 @@ def call(op, **kw):
     return out.get('data')
 
 
+def to_ll(x, y):
+    # the game's frame (UTM zone 33 in km, core/00-proj.js natP): x = (E + 250 km) / 1000, y = (8 050 km - N) / 1000; None without pyproj
+    try:
+        from pyproj import Transformer
+        lon, lat = Transformer.from_crs('EPSG:25833', 'EPSG:4326', always_xy=True).transform(x * 1000 - 250000, 8050000 - y * 1000)
+        return round(lat, 4), round(lon, 4)
+    except Exception:
+        return None
+
+
+def incidents(d, out):
+    # the groundings ('aground'), the blows against a quay, a pier, a breakwater or a sea mark ('hit') and the collisions with another
+    # vessel ('clash'), each with where, the boat, the speed and who steered (leia = Autonav, route, return, ops, helm, sleep, drift)
+    if os.path.abspath(out).startswith(ROOT + os.sep):
+        sys.exit('--out must be outside the repo')
+    os.makedirs(out, exist_ok=True)
+    json.dump(d, open(os.path.join(out, 'incidents.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
+    rows = d.get('rows') or []
+    print('the last %s days: %d incidents; written to %s' % (d.get('days'), len(rows), os.path.join(out, 'incidents.json')))
+    for t in d.get('totals') or []:
+        print('  %-8s %-7s %4d times, %3d players' % (t['kind'], t.get('how') or '-', t['n'], t['players']))
+    # per place (1 km cells), most first: where the same thing happens to several players is a fault in the game, not a slip
+    cells = {}
+    for r in rows:
+        x, y = (r.get('d') or {}).get('x'), (r.get('d') or {}).get('y')
+        if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+            continue
+        c = cells.setdefault((r['kind'], int(x), int(y)), {'n': 0, 'who': set(), 'how': {}, 'boat': {}, 'x': x, 'y': y, 'last': r['ts'], 'ver': set()})
+        c['n'] += 1; c['who'].add(r.get('who')); c['ver'].add(r.get('version'))
+        h = (r.get('d') or {}).get('how') or '-'; c['how'][h] = c['how'].get(h, 0) + 1
+        bt = (r.get('d') or {}).get('boat') or '-'; c['boat'][bt] = c['boat'].get(bt, 0) + 1
+    print('places (1 km), most players first:')
+    for (k, cx, cy), c in sorted(cells.items(), key=lambda kv: (-len(kv[1]['who']), -kv[1]['n']))[:40]:
+        print('  %-7s %3d times %2d players  at %s (x %.2f, y %.2f)  %s  %s  last %s' % (k, c['n'], len(c['who']), to_ll(c['x'], c['y']), c['x'], c['y'],
+              ','.join('%s %d' % kv for kv in c['how'].items()), ','.join('%s %d' % kv for kv in c['boat'].items()), c['last'][:16]))
+
+
 def main():
     global URL
     ap = argparse.ArgumentParser()
@@ -58,6 +97,7 @@ def main():
     n = sub.add_parser('note'); n.add_argument('id', type=int); n.add_argument('--score', type=float); n.add_argument('--status', choices=['new', 'seen', 'fixed', 'planned', 'no'])
     n.add_argument('--note', required=True); n.add_argument('--reply')
     tc = sub.add_parser('tech'); tc.add_argument('--days', type=int, default=7); tc.add_argument('--out', default=os.path.join(tempfile.gettempdir(), 'dsb-feedback'))
+    ic = sub.add_parser('incidents'); ic.add_argument('--days', type=int, default=30); ic.add_argument('--out', default=os.path.join(tempfile.gettempdir(), 'dsb-feedback'))
     fx = sub.add_parser('fixed'); fx.add_argument('id', type=int); fx.add_argument('--pr', required=True); fx.add_argument('--ver', default='?')
     sub.add_parser('uke')
     r = sub.add_parser('run'); r.add_argument('--report', required=True); r.add_argument('--pr', nargs=2, action='append', metavar=('URL', 'TITLE'), default=[])
@@ -83,6 +123,8 @@ def main():
                     head, _, b64 = u.partition(',')
                     ext = 'png' if 'png' in head else 'webp' if 'webp' in head else 'jpg'
                     p = os.path.join(o.out, 'img', '%s-%d.%s' % (x['id'], k, ext)); open(p, 'wb').write(base64.b64decode(b64)); print('   picture', p)
+    elif o.cmd == 'incidents':
+        incidents(call('incidents', days=o.days), o.out)
     elif o.cmd == 'tech':
         d = call('tech', days=o.days) or {}
         os.makedirs(o.out, exist_ok=True); json.dump(d, open(os.path.join(o.out, 'tech.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1)
