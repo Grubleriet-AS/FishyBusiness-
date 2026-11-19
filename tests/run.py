@@ -431,7 +431,7 @@ def run(name, lite):
     env = dict(os.environ, KYST_LITE='1' if lite else '0', PYTHONUNBUFFERED='1')
     t0 = time.time(); log = os.path.join(LOGS, name + '.txt')
     try:
-        p = subprocess.run([sys.executable, os.path.join(HERE, name + '.py')], cwd=ROOT, env=env, capture_output=True, text=True, timeout=LONG.get(name, 900))
+        p = subprocess.run([sys.executable, os.path.join(HERE, name + '.py')], cwd=ROOT, env=env, capture_output=True, text=True, timeout=LONG.get(name, 900) * float(os.environ.get('KYST_TIDSFAKTOR') or 1))   # (KYST_TIDSFAKTOR: GitHub's machines in regresjon.yml draw SwiftShader slower; tut went past 3600 s there 19.11.2026)
         out, code = p.stdout + p.stderr, p.returncode
     except subprocess.TimeoutExpired as e:
         out, code = (e.stdout or b'').decode() if isinstance(e.stdout, bytes) else (e.stdout or ''), 'tid'

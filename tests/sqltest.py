@@ -4,7 +4,7 @@ asked for («Dette må ingen andre enn meg ha tilgang til»): no player reads a 
 factor (aal1) is refused, the admin with aal2 gets every panel. Needs the PostgreSQL server binaries (initdb, pg_ctl); prints OK or
 FEIL, and SKIP without them."""
 import datetime
-import glob, json, os, re, shutil, subprocess, sys, tempfile, time
+import glob, json, os, re, shlex, shutil, subprocess, sys, tempfile, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ok = lambda c: 'OK  ' if c else 'FEIL'
@@ -35,11 +35,13 @@ def main():
     tmp = tempfile.mkdtemp(prefix='dsbpg'); data = os.path.join(tmp, 'data'); sock = tmp
     user = 'postgres'
     run = lambda *a, **k: subprocess.run(list(a), capture_output=True, text=True, **k)
-    as_pg = (lambda cmd: ['su', 'postgres', '-c', ' '.join(cmd)]) if os.geteuid() == 0 else (lambda cmd: cmd)
+    # (as root through su, whose shell gets every argument quoted; as anyone else, GitHub's machine for one (regresjon.yml), the
+    # arguments as they are. Before 19.11.2026 the server's options were quoted for su's shell only, and pg_ctl got the quotes as text)
+    as_pg = (lambda cmd: ['su', 'postgres', '-c', ' '.join(shlex.quote(c) for c in cmd)]) if os.geteuid() == 0 else (lambda cmd: cmd)
     if os.geteuid() == 0: shutil.chown(tmp, 'postgres')
     r = run(*as_pg([os.path.join(BIN, 'initdb'), '-D', data, '-U', user, '-A', 'trust']))
     if r.returncode: print('FEIL initdb', r.stderr[-400:]); return
-    r = run(*as_pg([os.path.join(BIN, 'pg_ctl'), '-D', data, '-o', "'-k %s -c listen_addresses='\"''\"" % sock, '-l', os.path.join(tmp, 'log'), '-w', 'start']))
+    r = run(*as_pg([os.path.join(BIN, 'pg_ctl'), '-D', data, '-o', "-k %s -c listen_addresses=''" % sock, '-l', os.path.join(tmp, 'log'), '-w', 'start']))
     if r.returncode: print('FEIL pg_ctl', r.stderr[-400:], open(os.path.join(tmp, 'log')).read()[-400:] if os.path.exists(os.path.join(tmp, 'log')) else ''); return
     try:
         def sql(q, claims=None, role=None, expect_err=False):
