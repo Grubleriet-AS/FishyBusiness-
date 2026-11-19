@@ -44,8 +44,9 @@ import risiko, prlaas
 
 REPO = 'average01101010/FishyBusiness-'
 PROD_URL = 'https://detstorebla.no/version.json'
-OPUS_TAK = 2          # at most this many Opus runs (a fix or a queue step) in 24 hours, counted from the lock's history (tools/triage/
-                      # laas.py teller). Jonas 18.11.2026: «Tak: 4 i døgnet», then the same evening «Senk taket … fra 4 til 2 per døgn»
+OPUS_TAK = 4          # at most this many Opus runs (a fix or a queue step) in 24 hours, counted from the lock's history (tools/triage/
+                      # laas.py teller). Jonas 18.11.2026: «Tak: 4 i døgnet», then the same evening «Senk taket … fra 4 til 2 per døgn», and
+                      # 19.11.2026, when nothing had been fixed for 19 hours: «la opus kjøre 4 ganger i døgnet»
 STEG_TAK = 1          # of them, at most this many on steps from the queue («maksimalt 1 av de 2 daglige kjøringene kunne brukes på nye
 RESERVE = 1           # steg fra køen, slik at 1 plass alltid holdes i reserve for feilretting»): a step only when RESERVE is left after it
 MIN_FIX = 3            # the least weight a cluster or a feedback needs before Opus is woken for it (one crash in one session is 5)
@@ -547,11 +548,12 @@ def selftest():
     eq('oppgitt tilbakemelding', summary(decide([R[5]], [], [], [], iso(1), now, open_lock, iss_fb), [], 0)['trenger_opus'], False)
     eq('oppgitt i utkastet', 'Gitt opp etter to forsøk' in draft(decide([], [], E, [], iso(6), now, open_lock, iss), summary(decide([], [], E, [], iso(6), now, open_lock, iss), [], 0)), True)
     # the budget: 2 a day, at most 1 of them on a queue step, and a step only when one is left for a fix after it
-    eq('budsjett: ingen brukt', opus_budget(0, 0), (2, 1))
-    eq('budsjett: én retting brukt, ingen steg (reserven)', opus_budget(1, 0), (1, 0))
-    eq('budsjett: ett steg brukt', opus_budget(1, 1), (1, 0))
-    eq('budsjett: to brukt', opus_budget(2, 0), (0, 0))
-    eq('budsjett: aldri under null', opus_budget(3, 1), (-1, 0))
+    eq('budsjett: ingen brukt', opus_budget(0, 0), (4, 1))
+    eq('budsjett: én retting brukt, ett steg igjen', opus_budget(1, 0), (3, 1))
+    eq('budsjett: ett steg brukt, ingen flere steg', opus_budget(1, 1), (3, 0))
+    eq('budsjett: tre brukt, den siste er reserven til en feil', opus_budget(3, 0), (1, 0))
+    eq('budsjett: fire brukt', opus_budget(4, 0), (0, 0))
+    eq('budsjett: aldri under null', opus_budget(5, 1), (-1, 0))
     # the Opus cap: a fix waits when the day's runs are used, the triage goes on
     d = decide([], [], E, [], iso(6), now, open_lock)
     eq('taket nådd', (summary(d, [], 0, 0)['trenger_opus'], summary(d, [], 0, 0)['opus_taket_naadd'], summary(d, [], 0, 0)['ingenting']), (False, True, False))
