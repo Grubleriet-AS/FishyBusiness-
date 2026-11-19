@@ -1,0 +1,4 @@
+Bygg først: node build.mjs. 1 tester: 0 uten 3D to om gangen, så 1 med 3D alene etter hverandre, og 0 som måler tid, alene til slutt. Logger: tests/out/logs/
+OK   tut           1607 s  uten 3D  · 32 OK
+
+1 OK, 0 FEIL, 0 å lese, på 1607 s.
