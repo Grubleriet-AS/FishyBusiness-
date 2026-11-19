@@ -447,16 +447,19 @@ const CATCHUP_CAP = 72 * 60;
 // CATCH_LEFT and is played by the tick once the packs are in, so a slow network makes the clock wait, never guess.
 let CATCH_LEFT = 0;
 // (the time away, away: also while Autonav finds a way round shallow water, sailWaiting in core/05-vessels.js)
-function playMinutes(n, away){ let i = 0; LANDQ.away = !!away; try { for (; i < n; i++){ if (!simAreaReady() || (away && (sailWaiting() || drWaiting()))){ CATCH_LEFT += n - i; break; } step(); } } finally { LANDQ.away = false; } return i; }   // (LANDQ.away: no queue at the plants while the time away is played, core/07-harbours.js)
+// (ms, klynge:38184905: a time limit on the main thread; what is not played by then waits in CATCH_LEFT for the next tick. Two days away
+// played in one stretch when a slept tab came back held a phone's page 15 s, «Heng: spillet sto stille» in the error list; the tick
+// plays in bits of 250 ms, tests/hengkart.py. Called without it, as at the start and in the tests, all is played at once as before)
+function playMinutes(n, away, ms){ let i = 0; const end = ms ? performance.now() + ms : Infinity; LANDQ.away = !!away; try { for (; i < n; i++){ if (!simAreaReady() || (away && (sailWaiting() || drWaiting())) || (i && performance.now() > end)){ CATCH_LEFT += n - i; break; } step(); } } finally { LANDQ.away = false; } return i; }   // (LANDQ.away: no queue at the plants while the time away is played, core/07-harbours.js)
 // on the world's clock (core/01-world.js) the time away is what the game is behind it, all of it; more than two weeks is skipped to the
 // last two (the clock moves on, the simulation plays the last two weeks)
 const WORLD_SIM_MAX = 14 * 24 * 60;
-function catchUp(realMs){
+function catchUp(realMs, ms){   // (ms: from tick, a time limit on the main thread, playMinutes)
   let mins = Math.min(CATCHUP_CAP, Math.floor(realMs / 1000 / 60 * GAME_RATE));
   if (WCLOCK.on){ const w = worldT(); mins = Math.max(0, w - S.t); if (mins > WORLD_SIM_MAX){ S.t = w - WORLD_SIM_MAX; mins = WORLD_SIM_MAX; } realMs = mins / GAME_RATE * 60000; }
   if (mins < 1) return;
   if (mins >= 10) awayStart(mins, realMs);
-  const c0 = performance.now(); playMinutes(mins, true);
+  const c0 = performance.now(); playMinutes(mins, true, ms);
   try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('catchup', performance.now() - c0, mins - (CATCH_LEFT || 0)); } catch (e){}   // (steg 139: how long it took on the main thread, ms, and the game minutes played now; what waits for its waters, CATCH_LEFT, plays in tick)
   panelDirty = true;
   if (!CATCH_LEFT && AWAYR) awayEnd();
@@ -471,12 +474,12 @@ function tick(){
   if (dt > 8 && typeof cloudWake === 'function') cloudWake();
   if (TAB.held || TAB.wait) return;
   // (until the simulation's data is in, the clock waits: 11-boot.js)
-  if (SIMREADY){ if (CATCH_LEFT > 0){ DYN.on = false; const n = Math.min(CATCH_LEFT, 3000); CATCH_LEFT -= n; playMinutes(n, true); panelDirty = true; if (!CATCH_LEFT && AWAYR) awayEnd(); }
+  if (SIMREADY){ if (CATCH_LEFT > 0){ DYN.on = false; const n = Math.min(CATCH_LEFT, 3000); CATCH_LEFT -= n; playMinutes(n, true, 250); panelDirty = true; if (!CATCH_LEFT && AWAYR) awayEnd(); }
   else if (WCLOCK.on){
     // one clock for everyone: step on to the world's minute; more than ten minutes behind (the tab slept) is time away; a save from
     // before that is ahead goes at half pace until the world has caught up with it
     const wf = worldTf(), gap = wf - S.t;
-    if (gap > 10){ DYN.on = false; catchUp(0); }   // (time caught up plays the kinematic minute step: she keeps the world's clock, and the model takes over again from where that put her)
+    if (gap > 10){ DYN.on = false; catchUp(0, 250); }   // (time caught up plays the kinematic minute step: she keeps the world's clock, and the model takes over again from where that put her)
     else { dynTick(dt); let n = 0;
       if (gap >= 0){ while (S.t + 1 <= wf && n < 3000 && simAreaReady()){ step(); n++; } acc = clamp(wf - S.t, 0, 0.999); }
       else { acc += dt * GAME_RATE / 120; while (acc >= 1 && n < 3000 && simAreaReady()){ step(); acc -= 1; n++; } }
@@ -485,7 +488,7 @@ function tick(){
   // (as on the world's clock: a real stall of more than ten game minutes is caught up with the kinematic minute step; a shorter one is
   // stepped as usual, with the model moving her through it, so no game time is lost and she is not moved under the 3D view; the admin
   // tempo, S.mult, makes a tick worth many minutes and is stepped, never caught up: catchUp counts real time at the base rate)
-  else if (dt > 6 && dt * simRate() / 60 > 10){ DYN.on = false; catchUp(dt * 1000); acc += (dt * simRate() / 60) % 1; } else { dynTick(dt); acc += dt * simRate() / 60; let n = 0; while (acc >= 1 && n < 3000 && simAreaReady()){ step(); acc -= 1; n++; } } }
+  else if (dt > 6 && dt * simRate() / 60 > 10){ DYN.on = false; catchUp(dt * 1000, 250); acc += (dt * simRate() / 60) % 1; } else { dynTick(dt); acc += dt * simRate() / 60; let n = 0; while (acc >= 1 && n < 3000 && simAreaReady()){ step(); acc -= 1; n++; } } }
   if (WAKE_BACK && !CATCH_LEFT){ WAKE_BACK = false; if (asleep()) wakeEarly(true); }
   heatTick();
   if (!G3.isActive()){ renderDyn(); if (AISSEL) renderAisCard(); heatPaint(); } renderHud(); renderClock(); renderActs(); DOCK.tick(); showroomTick(); HUI.tick(); energyUi(); turFotoUi(); lopUi(); hopUi(); INSTR.renderGPS(); renderRouteTools(); tutUpdate(); PHONE.status(); PHONE.tickHome();
