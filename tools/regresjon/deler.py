@@ -45,7 +45,11 @@ def matrix(modus, nlite):
     """[{navn, tester}] for GitHub Actions: natt the tests without 3D, uke all, prove two light tests."""
     if modus == 'prove': ps = [('prove-1', ['unit', 'boottest', 'errtest'])]
     else:
-        ps = [('lite-%d' % (i + 1), p) for i, p in enumerate(parts('lite', nlite))]
+        # (the tests without 3D that draw 3D all the same, tut and markettest, on a machine of their own: tut alone took the hour it has
+        # on GitHub's machine, twice, 19.11.2026, and held its part back)
+        d3l = [n for n in R.DRAWS3D if n in R.LITE]
+        ps = [('lite-%d' % (i + 1), [n for n in p if n not in d3l]) for i, p in enumerate(parts('lite', nlite))]
+        if d3l: ps.append(('tegner-3d', sorted(d3l)))
         if modus == 'uke':
             ps += [('3d-%d' % (i + 1), p) for i, p in enumerate(parts('3d'))]
             ps.append(('solo', [n for p in parts('solo') for n in p]))   # (one machine for the timed ones, one after the other: alone)

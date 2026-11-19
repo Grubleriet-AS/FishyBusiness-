@@ -62,6 +62,10 @@ jobs:
     needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 340
+    env:
+      # (GitHub's machines draw SwiftShader slower than the sessions: every test's time limit in tests/run.py twice as long; tut went
+      # past its hour twice on 19.11.2026)
+      KYST_TIDSFAKTOR: '2'
     strategy:
       fail-fast: false
       matrix:

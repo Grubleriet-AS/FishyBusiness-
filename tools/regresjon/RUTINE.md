@@ -11,6 +11,8 @@ Regresjonen er workflowen `.github/workflows/regresjon.yml`, uten modell. De to 
 - **For hånd:** «Run workflow» på «Regresjonen» med `natt` eller `uke`.
 - **En PR som endrer workflowen eller `tools/regresjon/`** kjører en prøve: enhetstestene, `boottest` og `errtest`, og `saker.py --dry` (skriver ingen saker).
 - Hver del bygger med hele kysten (`tools/map/game.py`, `node build.mjs`) på arbeidsgrenen. Repoet er offentlig, så GitHubs maskiner er gratis; en jobb har høyst seks timer.
+- **Testene som tegner 3D uten å være 3D-tester** (`tut`, `markettest`, `DRAWS3D` i `tests/run.py`) går på en egen maskin (`tegner-3d`), og alle tidsgrensene i `run.py` er doble (`KYST_TIDSFAKTOR=2`): GitHubs maskiner tegner SwiftShader langsommere enn øktene, og `tut` gikk ut på tid to ganger første natt (19.11.2026, saken #150).
+- **`sqltest` som vanlig bruker:** GitHubs maskin kjører ikke som root. Til 19.11.2026 var serverens valg skrevet bare for `su`-skallet, og PostgreSQL startet ikke (saken #149); nå sendes de riktig begge veier.
 
 ## Det røde: én sak per test (`tools/regresjon/saker.py`)
 
