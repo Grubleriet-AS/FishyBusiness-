@@ -13,16 +13,38 @@ plain; .github/workflows/autofix.yml runs this on it, and merges and deploys whe
 3. No added code line does what a fix to the game never needs and an attack would: talk to another host (an address that is not
    detstorebla.no), run text as code (eval, new Function, import()), read cookies, beacons, sockets, new workers, write the document.
    The error list and the feedback that the routine reads come from anyone; this is the guard against a «fix» written by them.
-4. No test goes red that is green on the working branch, and a new test is green: the tests that cover the changed files (COVER in
-   tests/run.py, as `run.py changed` picks them), run on the PR's build and on the working branch's, side by side, plus the unit tests.
-5. Red test first (18.11.2026): some test the fix wrote or that covers it is red on the working branch's build (with the fix's test
-   files copied in) and green with the fix. Without that proof only a pure CSS or text change (risiko.css_tekst) goes out by itself;
-   any other fix waits for Jonas' click like a middels one.
+4. No test goes red that is green on the working branch, and the fix's own tests are green: the tests that cover the changed files
+   (COVER in tests/run.py, as `run.py changed` picks them) and the unit tests, on the PR's build. Only a test red there is run on the
+   working branch's build too, to see whether it was red before the fix (20.11.2026: before, every test ran on both builds, one after
+   the other, and a fix in the 3D view took close to the job's three hours). A test red with the fix and green without is run again
+   alone, up to RETRY times; red every time is a fault of the fix, and the gate stops at the first such fault without trying the
+   rest (Jonas 20.11.2026: «stoppe og avvise PR-en så snart den første testen er bekreftet som en ny feil»). The cheapest red test
+   is tried first.
+5. Red test first (18.11.2026): a test the fix wrote or changed (its own files under tests/) is red on the working branch's build,
+   with the fix's test files copied in, and green with the fix. Since 20.11.2026 only the fix's own test counts as that proof, not any
+   test that covers it (Jonas: «beviset for "rød test først" nå må komme fra den nye eller endrede testen selv»): an old test that is
+   red at random on the working branch cannot prove a fix. Without that proof only a pure CSS or text change (risiko.css_tekst) goes
+   out by itself; any other fix waits for Jonas' click like a middels one. A test of the fix's own that is red with the fix is a fault.
+
+The gate runs as one command (the default: the step «Slipper rettingen til spillerne» against main, and by hand), or in parts on
+several of GitHub's machines (.github/workflows/autofix.yml, 20.11.2026):
+
+    gate.py --lag-plan --out plan.json      1-3 above, the tests to run and how they are split (tools/regresjon/deler.py fordel)
+    gate.py --kjor --tester "a b" --out f   one part: builds the PR and runs those tests (tests/run.py smoke)
+    gate.py --kjor-base --plan plan.json --out f
+                                            the fix's own tests on the working branch's build (the proof in 5)
+    gate.py --avgjor --plan plan.json --dir art --out gate.json
+                                            puts the parts together, runs the unit tests, a red test again and on the working
+                                            branch, and decides as the one command does
+    gate.py --selftest                      the decision (decide) on made-up results
+
+--repo is the tree under test (default: this file's own). The workflow runs the gate from the working branch's tree and points
+--repo at the PR's: a fix cannot change the gate that judges it (20.11.2026; before, the PR's own gate.py and risiko.py ran).
 
 Prints what it found, writes it as JSON (--out) and exits 0 when the fix may go out by itself, 3 when it is tested and ready but its
 risk waits for Jonas' click (18.11.2026), 1 when it is stopped for a fault, 2 on a fault of its own.
 """
-import argparse, json, os, re, subprocess, sys, tempfile
+import argparse, glob, json, os, re, subprocess, sys, tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.join(ROOT, 'tools', 'ci'))
@@ -41,22 +63,25 @@ MAX_LINES, MAX_FILES = risiko.MAX_LINES, risiko.MAX_FILES   # 150 and 6 from 18.
 SHOT = re.compile(r'^docs/pr/[^/]+/[^/]+\.(jpe?g|png)$', re.I)
 SHOT_MAX, SHOT_N = 200 * 1024, 4
 RETRY = 2   # how many times a test red with the fix, green without, is run again alone before it stops the fix
+DELER = 3   # at most this many of GitHub's machines for the PR's tests (one more runs the fix's own tests on the working branch)
+GREEN = ('OK', 'LES')
 BAD = [(re.compile(r'https?://(?!(www\.)?detstorebla\.no\b)', re.I), 'en adresse til en annen vert'),
        (re.compile(r'\beval\s*\(|\bnew\s+Function\b|\bFunction\s*\(\s*[\'"`]|\bimport\s*\('), 'tekst som kjøres som kode'),
        (re.compile(r'document\.cookie|sendBeacon|\bWebSocket\b|new\s+(Shared)?Worker\b|document\.write\b|\bsetTimeout\s*\(\s*[\'"`]'), 'noe en retting av spillet ikke trenger'),
        (re.compile(r'DSB_CLOUD|supabase|cloudRpc|localStorage\.clear|FEEDBACK_AGENT|service_role', re.I), 'skyen, lagringen eller nøklene')]
 SKY = BAD[-1][1]   # the cloud, the save and the keys: not an attack by itself in a fix Jonas will look at, so a risk, not a fault (18.11.2026)
+REPO = ROOT        # the tree under test (--repo)
 
 
 def git(*a):
-    return subprocess.run(['git'] + list(a), cwd=ROOT, capture_output=True, text=True, check=True).stdout
+    return subprocess.run(['git'] + list(a), cwd=REPO, capture_output=True, text=True, check=True).stdout
 
 
 def shot_ok(f):
     """'' when f in HEAD is a JPEG or PNG under SHOT_MAX bytes, else why not."""
     size = int(git('cat-file', '-s', 'HEAD:' + f).strip())
     if size > SHOT_MAX: return '%d kB, grensen er %d kB' % (size // 1024, SHOT_MAX // 1024)
-    head = subprocess.run(['git', 'cat-file', 'blob', 'HEAD:' + f], cwd=ROOT, capture_output=True, check=True).stdout[:8]
+    head = subprocess.run(['git', 'cat-file', 'blob', 'HEAD:' + f], cwd=REPO, capture_output=True, check=True).stdout[:8]
     if not (head[:3] == b'\xff\xd8\xff' or head == b'\x89PNG\r\n\x1a\n'): return 'ikke et JPEG- eller PNG-bilde'
     return ''
 
@@ -81,17 +106,28 @@ def run_tests(root, names, env=None):
     return results(p.stdout), p.stdout[-6000:]
 
 
-def main():
-    ap = argparse.ArgumentParser(); ap.add_argument('--base', default='origin/ccr-5e1ba2f4-pusvyd'); ap.add_argument('--out'); ap.add_argument('--no-tests', action='store_true')
-    a = ap.parse_args()
+def build(root):
+    """'' when node build.mjs in root holds, else the end of its errors."""
+    b = subprocess.run(['node', 'build.mjs'], cwd=root, capture_output=True, text=True)
+    return '' if b.returncode == 0 else (b.stderr or b.stdout)[-300:]
+
+
+def unit(root):
+    """(green, the last line) of the unit tests in root."""
+    u = subprocess.run(['node', os.path.join(root, 'tests', 'unit', 'run.mjs')], cwd=root, capture_output=True, text=True)
+    return u.returncode == 0, (u.stdout.strip().splitlines() or [''])[-1][:200]
+
+
+def check(base):
+    """1-3: the risk, the files, the size and the added code, and which tests cover the change. R as the gate writes it."""
     # why: faults (the fix is wrong or not a fix); risk: what only Jonas lets out (18.11.2026). The tests run when there are no faults,
     # also when the risk stops it, so a `middels` or `hoy` fix comes to Jonas tested, ready for his one click
     R = {'ok': False, 'why': [], 'risk': [], 'files': [], 'lines': 0, 'bad': [], 'tests': {}}
-    mb = git('merge-base', 'HEAD', a.base).strip()
+    mb = git('merge-base', 'HEAD', base).strip()
     files = [f for f in git('diff', '--name-only', mb, 'HEAD').split('\n') if f]
     R['files'] = files
     # 0. the risk (tools/ci/risiko.py): only `lav` goes out by itself; `middels` and `hoy` wait for Jonas' click
-    rk = risiko.from_git(a.base, 'HEAD', ROOT, SHOT); R['risiko'] = rk
+    rk = risiko.from_git(base, 'HEAD', REPO, SHOT); R['risiko'] = rk
     if rk['klasse'] != risiko.LAV:
         R['risk'].append('risiko %s (%s)' % (rk['klasse'], '; '.join(sorted({'%s: %s' % (w['fil'], w['hvorfor']) for w in rk['grunner']}))[:400]))
     # 1. the files
@@ -127,77 +163,227 @@ def main():
             for rx, what in BAD:
                 if rx.search(code): (R['risk'] if what == SKY else R['bad']).append('%s: %s: %s' % (f, what, code[:140]))
     if R['bad']: R['why'].append('kode som ikke hører hjemme i en automatisk retting (%d linjer)' % len(R['bad']))
-    # 4. the tests, only when the rest holds (they take long)
-    if not R['why'] and not a.no_tests:
-        sys.path.insert(0, os.path.join(ROOT, 'tests')); import run as RUN
-        names = []
-        for f in files:
-            if f in RUN.COVER: names += RUN.COVER[f]
-            elif f.startswith('tests/') and f.count('/') == 1 and f.endswith('.py') and not os.path.basename(f).startswith('_') and f != 'tests/run.py':
-                names.append(os.path.basename(f)[:-3])   # a test the fix wrote or changed, also one not in run.py's lists yet (18.11.2026)
-            elif f.startswith('src/'): names.append('trip2')
-        names = list(dict.fromkeys(n for n in names if os.path.exists(os.path.join(ROOT, 'tests', n + '.py'))))
-        R['tests']['names'] = names
-        u = subprocess.run(['node', os.path.join(ROOT, 'tests', 'unit', 'run.mjs')], cwd=ROOT, capture_output=True, text=True)
-        R['tests']['unit'] = u.returncode == 0
-        if u.returncode: R['why'].append('enhetstestene er røde: ' + (u.stdout.strip().splitlines() or [''])[-1][:200])
-        b = subprocess.run(['node', 'build.mjs'], cwd=ROOT, capture_output=True, text=True)
-        if b.returncode: R['why'].append('bygget feiler: ' + b.stderr[-300:])
-        else:
-            mine, log = run_tests(ROOT, names); R['tests']['pr'] = mine
-            base_dir = tempfile.mkdtemp(prefix='autofix-base-')
-            git('worktree', 'add', '--detach', base_dir, a.base)
-            try:
-                # «rød test først» (18.11.2026): the tests the fix wrote or changed run on the build without the fix too, so the gate
-                # sees them red there; the fix's own test files are copied into the working branch's tree for that
-                own = [f for f in files if f.startswith('tests/') and (f.endswith('.py') or f.startswith('tests/unit/'))
-                       and not os.path.basename(f).startswith('_') and f not in ('tests/run.py', 'tests/unit/run.mjs') and os.path.isfile(os.path.join(ROOT, f))]
-                for f in own:
-                    os.makedirs(os.path.dirname(os.path.join(base_dir, f)), exist_ok=True)
-                    with open(os.path.join(ROOT, f), 'rb') as src, open(os.path.join(base_dir, f), 'wb') as dst: dst.write(src.read())
-                subprocess.run(['node', 'build.mjs'], cwd=base_dir, capture_output=True, text=True)
-                on_base = [n for n in names if os.path.exists(os.path.join(base_dir, 'tests', n + '.py'))]
-                base, _ = run_tests(base_dir, on_base); R['tests']['base'] = base
-                unit_own = [f for f in own if f.startswith('tests/unit/')]
-                if unit_own:
-                    ub = subprocess.run(['node', os.path.join(base_dir, 'tests', 'unit', 'run.mjs')], cwd=base_dir, capture_output=True, text=True)
-                    R['tests']['unit_base'] = ub.returncode == 0
-            finally:
-                subprocess.run(['git', 'worktree', 'remove', '--force', base_dir], cwd=ROOT, capture_output=True)
-            # a test red with the fix and green without is run again, alone, up to RETRY times (03.11.2026: tabtest went red at random
-            # on the working branch too, 3 of 5 runs, and stopped PR #39, a right fix): green once is a test that is not steady, and the
-            # fix goes on; red every time is the fix. The runs are in the result (tests.retry).
-            R['tests']['retry'] = {}
-            for n in names:
-                if mine.get(n) == 'FEIL' and (n not in base or base.get(n) != 'FEIL'):
-                    again = []
-                    for _ in range(RETRY):
-                        r, _l = run_tests(ROOT, [n]); again.append(r.get(n)); 
-                        if r.get(n) in ('OK', 'LES'): break
-                    R['tests']['retry'][n] = again
-                    if again and again[-1] in ('OK', 'LES'): R['tests'].setdefault('flaky', []).append(n); continue
-                    R['why'].append('testen %s er rød med rettingen%s, også %d ganger til alene' % (n, '' if n not in base else ', grønn uten', len(again)))
-                if n not in mine: R['why'].append('testen %s ga ikke noe svar' % n)
-            R['tests']['log'] = log
-            # the proof: a test red without the fix and green with it (CLAUDE.md «Se testen feile før den stoles på»). Only a pure CSS or
-            # text change is let through without one (risiko.css_tekst; Jonas 18.11.2026: «rene CSS- og tekstjusteringer skal kunne
-            # verifiseres med bygg og visuell sjekk»). Without it a lav fix does not go out by itself: it waits for Jonas
-            proof = [n for n in names if base.get(n) == 'FEIL' and mine.get(n) in ('OK', 'LES')]
-            if unit_own_any(files) and R['tests'].get('unit') and R['tests'].get('unit_base') is False: proof.append('unit')
-            R['tests']['bevis'] = proof
-            if not proof and not rk['css_tekst']:
-                R['risk'].append('ingen test er rød uten rettingen og grønn med den («rød test først»; bare ren CSS og tekst slipper)')
+    # the tests that cover the change (the gate's own copy of COVER; the fix cannot change tests/run.py, DENY), and the fix's own
+    sys.path.insert(0, os.path.join(ROOT, 'tests')); import run as RUN
+    names = []
+    for f in files:
+        if f in RUN.COVER: names += RUN.COVER[f]
+        elif f.startswith('tests/') and f.count('/') == 1 and f.endswith('.py') and not os.path.basename(f).startswith('_') and f != 'tests/run.py':
+            names.append(os.path.basename(f)[:-3])   # a test the fix wrote or changed, also one not in run.py's lists yet (18.11.2026)
+        elif f.startswith('src/'): names.append('trip2')
+    names = list(dict.fromkeys(n for n in names if os.path.exists(os.path.join(REPO, 'tests', n + '.py'))))
+    own = [f for f in files if f.startswith('tests/') and (f.endswith('.py') or f.startswith('tests/unit/'))
+           and not os.path.basename(f).startswith('_') and f not in ('tests/run.py', 'tests/unit/run.mjs') and os.path.isfile(os.path.join(REPO, f))]
+    R['tests'] = {'names': names, 'own': own, 'own_names': [n for n in names if 'tests/%s.py' % n in own], 'unit_own': unit_own_any(files)}
+    return R
+
+
+def split(R):
+    """The machines for the PR's tests (tools/regresjon/deler.py fordel), and one for the fix's own on the working branch."""
+    sys.path.insert(0, os.path.join(ROOT, 'tools', 'regresjon')); import deler
+    t = R['tests']; parts = []
+    for i, p in enumerate(deler.fordel(t['names'], DELER)): parts.append({'navn': 'pr-%d' % (i + 1), 'tester': ' '.join(p), 'base': 'nei'})
+    if t['own_names'] or t['unit_own']: parts.append({'navn': 'base', 'tester': ' '.join(t['own_names']), 'base': 'ja'})
+    return parts
+
+
+class Base:
+    """The working branch's tree in a worktree, with the fix's own test files copied in, built once when first asked for."""
+    def __init__(self, base, own):
+        self.base, self.own, self.dir, self.err = base, own, None, ''
+
+    def ready(self):
+        if self.dir is None:
+            self.dir = tempfile.mkdtemp(prefix='autofix-base-')
+            git('worktree', 'add', '--detach', self.dir, self.base)
+            # «rød test først» (18.11.2026): the fix's own test files are copied into the working branch's tree, so the gate sees them red there
+            for f in self.own:
+                os.makedirs(os.path.dirname(os.path.join(self.dir, f)), exist_ok=True)
+                with open(os.path.join(REPO, f), 'rb') as src, open(os.path.join(self.dir, f), 'wb') as dst: dst.write(src.read())
+            self.err = build(self.dir)
+        return not self.err
+
+    def run(self, names):
+        if not self.ready(): return {}
+        return run_tests(self.dir, [n for n in names if os.path.exists(os.path.join(self.dir, 'tests', n + '.py'))])[0]
+
+    def unit(self):
+        return unit(self.dir)[0] if self.ready() else None
+
+    def close(self):
+        if self.dir: subprocess.run(['git', 'worktree', 'remove', '--force', self.dir], cwd=REPO, capture_output=True)
+
+
+def decide(R, mine, base, run_pr, run_base, unit_ok, unit_base=None, cost=None):
+    """4 and 5 on the results. mine: the PR's build, {test: OK|FEIL|LES}; base: what is known of the working branch's (the fix's own
+    tests); run_pr(names) and run_base(names) run more and return the same; unit_ok: (green, last line) of the unit tests on the PR;
+    unit_base: the unit tests on the working branch with the fix's own copied in (None when not run); cost(name): seconds expected.
+    Fills R['tests'] and R['why'] / R['risk']."""
+    t = R['tests']; names, own = t['names'], set(t['own_names']); base = dict(base); cost = cost or (lambda n: 0)
+    t['pr'] = dict(mine); t['unit'] = unit_ok[0]; t['retry'] = {}; t['rod_fra_for'] = []; t['ikke_sjekket'] = []
+    if not unit_ok[0]: R['why'].append('enhetstestene er røde: ' + unit_ok[1])
+    for n in names:
+        if n not in mine: R['why'].append('testen %s ga ikke noe svar' % n)
+    reds = sorted((n for n in names if mine.get(n) == 'FEIL'), key=lambda n: (cost(n), names.index(n)))
+    for i, n in enumerate(reds):
+        if R['why']:   # one fault is enough: the rest are not tried (20.11.2026)
+            t['ikke_sjekket'] = reds[i:]; break
+        if n not in own:
+            # an old test: red on the working branch too is not the fix's doing
+            if n not in base: base.update(run_base([n]))
+            if base.get(n) == 'FEIL': t['rod_fra_for'].append(n); continue
+        again = []
+        for _ in range(RETRY):
+            r = run_pr([n]).get(n); again.append(r)
+            if r in GREEN: break
+        t['retry'][n] = again
+        if again and again[-1] in GREEN: t.setdefault('flaky', []).append(n); continue
+        if n in own: R['why'].append('testen %s som rettingen skrev, er rød med rettingen, også %d ganger til alene' % (n, len(again)))
+        else: R['why'].append('testen %s er rød med rettingen%s, også %d ganger til alene' % (n, ', grønn uten' if n in base else '', len(again)))
+    t['base'] = base
+    if unit_base is not None: t['unit_base'] = unit_base
+    # the proof: the fix's own test red without it and green with it (CLAUDE.md «Se testen feile før den stoles på»). Only a pure CSS or
+    # text change is let through without one (risiko.css_tekst; Jonas 18.11.2026: «rene CSS- og tekstjusteringer skal kunne
+    # verifiseres med bygg og visuell sjekk»). Without it a lav fix does not go out by itself: it waits for Jonas
+    proof = [n for n in names if n in own and base.get(n) == 'FEIL' and mine.get(n) in GREEN]
+    if t.get('unit_own') and unit_ok[0] and unit_base is False: proof.append('unit')
+    t['bevis'] = proof
+    if not R['why'] and not proof and not R['risiko'].get('css_tekst'):
+        R['risk'].append('ingen test rettingen skrev, er rød uten rettingen og grønn med den («rød test først»; bare ren CSS og tekst slipper)')
+
+
+def finish(R, out, no_tests=False):
     R['ok'] = not R['why'] and not R['risk']
     R['klar'] = not R['why'] and bool(R['risk'])        # ready for Jonas' click: no fault, only the risk
     if R['ok']: print('SLIPPES UT: risikoen, filene, størrelsen, koden og testene holder')
-    elif R['klar']: print('KLAR, VENTER PÅ JONAS: %s (%s)' % ('; '.join(R['risk']), 'testene ikke kjørt' if a.no_tests else 'filene, koden og testene holder'))
+    elif R['klar']: print('KLAR, VENTER PÅ JONAS: %s (%s)' % ('; '.join(R['risk']), 'testene ikke kjørt' if no_tests else 'filene, koden og testene holder'))
     else: print('STOPPET: ' + '; '.join(R['why'] + R['risk']))
     print('risiko: %s' % R['risiko']['klasse'])
     for l in R['bad'][:20]: print('  ' + l)
-    if R['tests'].get('flaky'): print('ustabile (røde én gang, grønne alene etterpå):', ', '.join(R['tests']['flaky']))
-    if 'pr' in R['tests']: print('tester:', json.dumps({n: [R['tests']['pr'].get(n), R['tests'].get('base', {}).get(n)] for n in R['tests']['names']}, ensure_ascii=False))
-    if a.out: json.dump(R, open(a.out, 'w'), ensure_ascii=False, indent=1)
+    t = R['tests']
+    if t.get('flaky'): print('ustabile (røde én gang, grønne alene etterpå):', ', '.join(t['flaky']))
+    if t.get('rod_fra_for'): print('røde også uten rettingen (ikke rettingens feil):', ', '.join(t['rod_fra_for']))
+    if t.get('ikke_sjekket'): print('ikke prøvd igjen etter den første feilen:', ', '.join(t['ikke_sjekket']))
+    if 'pr' in t: print('tester:', json.dumps({n: [t['pr'].get(n), t.get('base', {}).get(n)] for n in t['names']}, ensure_ascii=False))
+    if t.get('bevis'): print('bevis (rød uten rettingen, grønn med):', ', '.join(t['bevis']))
+    if out: json.dump(R, open(out, 'w'), ensure_ascii=False, indent=1)
     sys.exit(0 if R['ok'] else 3 if R['klar'] else 1)
+
+
+def cost_fn():
+    sys.path.insert(0, os.path.join(ROOT, 'tools', 'regresjon')); import deler
+    tt = deler.tider()
+    return lambda n: deler.tid(n, tt)
+
+
+def selftest():
+    bad, n = [], [0]
+    def case(what, names, own, mine, base_known, pr_again, base_more, unit_ok=(True, ''), unit_base=None, unit_own=False, css=False,
+             want_why=None, want_risk=None, want_proof=None, want_base_runs=None, want_pr_runs=None):
+        R = {'why': [], 'risk': [], 'risiko': {'klasse': risiko.LAV, 'css_tekst': css},
+             'tests': {'names': names, 'own_names': own, 'own': ['tests/%s.py' % n for n in own], 'unit_own': unit_own}}
+        n[0] += 1; runs = {'pr': [], 'base': []}
+        def rp(ns): runs['pr'] += ns; return {n: (pr_again[n].pop(0) if pr_again.get(n) else 'FEIL') for n in ns}
+        def rb(ns): runs['base'] += ns; return {n: base_more.get(n, 'OK') for n in ns}
+        decide(R, mine, base_known, rp, rb, unit_ok, unit_base, cost=lambda n: {'tung': 1500}.get(n, 10))
+        got = {'why': len(R['why']), 'risk': len(R['risk']), 'proof': R['tests']['bevis'], 'base_runs': runs['base'], 'pr_runs': runs['pr']}
+        for k, w in (('why', want_why), ('risk', want_risk), ('proof', want_proof), ('base_runs', want_base_runs), ('pr_runs', want_pr_runs)):
+            if w is not None and got[k] != w: bad.append('%s: %s er %r, skal være %r (%s)' % (what, k, got[k], w, '; '.join(R['why'] + R['risk'])))
+    # all green with the fix's own test red before: out, and the old tests never ran on the working branch
+    case('alt grønt', ['a', 'b', 'ny'], ['ny'], {'a': 'OK', 'b': 'OK', 'ny': 'OK'}, {'ny': 'FEIL'}, {}, {},
+         want_why=0, want_risk=0, want_proof=['ny'], want_base_runs=[], want_pr_runs=[])
+    # an old test red on the PR and red on the working branch: not the fix's, and not run again on the PR
+    case('rød fra før', ['a', 'ny'], ['ny'], {'a': 'FEIL', 'ny': 'OK'}, {'ny': 'FEIL'}, {}, {'a': 'FEIL'},
+         want_why=0, want_risk=0, want_proof=['ny'], want_base_runs=['a'], want_pr_runs=[])
+    # an old test red on the PR, green on the working branch, red twice more: a fault
+    case('ny feil', ['a', 'ny'], ['ny'], {'a': 'FEIL', 'ny': 'OK'}, {'ny': 'FEIL'}, {'a': ['FEIL', 'FEIL']}, {'a': 'OK'},
+         want_why=1, want_base_runs=['a'], want_pr_runs=['a', 'a'])
+    # red once, green alone: a test that is not steady, the fix goes on
+    case('ustabil', ['a', 'ny'], ['ny'], {'a': 'FEIL', 'ny': 'OK'}, {'ny': 'FEIL'}, {'a': ['OK']}, {'a': 'OK'},
+         want_why=0, want_risk=0, want_proof=['ny'], want_pr_runs=['a'])
+    # no own test red before: only proof from an old test that is red on the working branch does not count (20.11.2026)
+    case('ingen egen rød test', ['a', 'ny'], ['ny'], {'a': 'OK', 'ny': 'OK'}, {'ny': 'OK'}, {}, {},
+         want_why=0, want_risk=1, want_proof=[])
+    case('bevis bare fra egen test', ['gammel'], [], {'gammel': 'OK'}, {'gammel': 'FEIL'}, {}, {},
+         want_why=0, want_risk=1, want_proof=[])
+    # ... but a pure CSS or text change goes out without one
+    case('ren CSS', ['a'], [], {'a': 'OK'}, {}, {}, {}, css=True, want_why=0, want_risk=0, want_proof=[])
+    # the fix's own test red with the fix: a fault (before 20.11.2026 it was «red on both» and only waited for Jonas)
+    case('egen test rød', ['ny'], ['ny'], {'ny': 'FEIL'}, {'ny': 'FEIL'}, {'ny': ['FEIL', 'FEIL']}, {},
+         want_why=1, want_base_runs=[], want_pr_runs=['ny', 'ny'])
+    # two new faults: the cheapest is tried first, and the gate stops there without trying the heavy one
+    case('stopper ved første', ['tung', 'lett', 'ny'], ['ny'], {'tung': 'FEIL', 'lett': 'FEIL', 'ny': 'OK'}, {'ny': 'FEIL'},
+         {'lett': ['FEIL', 'FEIL']}, {'lett': 'OK', 'tung': 'OK'}, want_why=1, want_base_runs=['lett'], want_pr_runs=['lett', 'lett'])
+    # the unit tests red: a fault, and the red tests are not tried again at all
+    case('enhetstester røde', ['a'], [], {'a': 'FEIL'}, {}, {}, {}, unit_ok=(False, '1 FEIL'), want_why=1, want_base_runs=[], want_pr_runs=[])
+    # a test that gave no answer (a part that did not finish): a fault
+    case('uten svar', ['a', 'b'], [], {'a': 'OK'}, {}, {}, {}, want_why=1)
+    # the fix's own unit test red on the working branch and green with it is the proof
+    case('egen enhetstest', ['a'], [], {'a': 'OK'}, {}, {}, {}, unit_base=False, unit_own=True, want_why=0, want_risk=0, want_proof=['unit'])
+    print('OK gate selftest (%d tilfeller)' % n[0] if not bad else '%d FEIL\n' % len(bad) + '\n'.join(bad))
+    return 1 if bad else 0
+
+
+def main():
+    global REPO
+    ap = argparse.ArgumentParser(); ap.add_argument('--base', default='origin/ccr-5e1ba2f4-pusvyd'); ap.add_argument('--out'); ap.add_argument('--no-tests', action='store_true')
+    ap.add_argument('--repo'); ap.add_argument('--lag-plan', action='store_true'); ap.add_argument('--plan'); ap.add_argument('--kjor', action='store_true'); ap.add_argument('--tester', default='')
+    ap.add_argument('--kjor-base', action='store_true'); ap.add_argument('--avgjor', action='store_true'); ap.add_argument('--dir'); ap.add_argument('--selftest', action='store_true')
+    a = ap.parse_args()
+    if a.selftest: sys.exit(selftest())
+    if a.repo: REPO = os.path.abspath(a.repo)
+    if a.kjor:   # one part on the PR's build
+        err = build(REPO); res = {} if err else run_tests(REPO, a.tester.split())[0]
+        json.dump({'pr': res, 'bygg': err}, open(a.out, 'w'), ensure_ascii=False); print(json.dumps(res, ensure_ascii=False), err); return
+    if a.kjor_base:   # the fix's own tests on the working branch's build
+        P = json.load(open(a.plan)); t = P['tests']; B = Base(a.base, t['own'])
+        try:
+            res = B.run(t['own_names']); ub = B.unit() if t['unit_own'] else None
+        finally: B.close()
+        json.dump({'base': res, 'unit_base': ub, 'bygg_base': B.err}, open(a.out, 'w'), ensure_ascii=False); print(json.dumps(res, ensure_ascii=False), ub, B.err); return
+    if a.avgjor:
+        R = json.load(open(a.plan))
+        tested = not R['why'] and not a.no_tests
+        if tested:
+            mine, base, ub, errs = {}, {}, None, []
+            for f in sorted(glob.glob(os.path.join(a.dir, '**', 'del-*.json'), recursive=True)):
+                d = json.load(open(f))
+                if d.get('bygg'): errs.append(d['bygg'])
+                mine.update(d.get('pr') or {}); base.update(d.get('base') or {})
+                if 'unit_base' in d: ub = d['unit_base']
+            if errs: R['why'].append('bygget feiler: ' + errs[0])
+            # (the working branch's build failing is not the fix's fault: its own tests then have no answer there, and no proof)
+            B = Base(a.base, R['tests']['own']); built = {'pr': False}
+            def run_pr(ns):
+                if not built['pr']:
+                    e = build(REPO); built['pr'] = True
+                    if e: R['why'].append('bygget feiler: ' + e)
+                return run_tests(REPO, ns)[0]
+            try: decide(R, mine, base, run_pr, B.run, unit(REPO), ub, cost_fn())
+            finally: B.close()
+        finish(R, a.out, a.no_tests)
+    R = check(a.base)
+    if a.lag_plan:
+        tested = not R['why'] and not a.no_tests
+        R['deler'] = split(R) if tested else []
+        R['test'] = bool(R['deler']) or tested
+        print('Planen:', '; '.join('%s: %s' % (p['navn'], p['tester'] or '(enhetstestene)') for p in R['deler']) or 'ingen tester',
+              '| feil så langt:', '; '.join(R['why']) or 'ingen', '| risiko:', '; '.join(R['risk']) or 'ingen')
+        json.dump(R, open(a.out, 'w'), ensure_ascii=False, indent=1); return
+    # the one command: everything here, one test after the other
+    if not R['why'] and not a.no_tests:
+        t = R['tests']
+        err = build(REPO)
+        if err: R['why'].append('bygget feiler: ' + err)
+        else:
+            mine, log = run_tests(REPO, t['names'])
+            B = Base(a.base, t['own'])
+            try:
+                base = B.run(t['own_names']); ub = B.unit() if t['unit_own'] else None
+                decide(R, mine, base, lambda ns: run_tests(REPO, ns)[0], B.run, unit(REPO), ub, cost_fn())
+            finally: B.close()
+            R['tests']['log'] = log
+    finish(R, a.out, a.no_tests)
 
 
 if __name__ == '__main__':
