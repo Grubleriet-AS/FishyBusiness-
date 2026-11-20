@@ -56,6 +56,45 @@ def matrix(modus, nlite):
     return [{'navn': n, 'tester': ' '.join(p)} for n, p in ps]
 
 
+def tider(path=None):
+    """The median seconds of each test's green runs in tests/historikk.tsv (measured in the sessions; GitHub's machines are slower,
+    but the order between the tests is what the split needs)."""
+    import statistics
+    t = {}
+    try:
+        for l in open(path or os.path.join(ROOT, 'tests', 'historikk.tsv')):
+            r = l.rstrip('\n').split('\t')
+            if len(r) >= 6 and r[4] in ('OK', 'LES') and r[5].isdigit(): t.setdefault(r[3], []).append(int(r[5]))
+    except OSError: pass
+    return {n: statistics.median(v) for n, v in t.items()}
+
+
+def tid(n, t):
+    """The expected seconds of test n: its median, else 300 for one that draws 3D or is unknown to the lists (a new test), 60 else."""
+    if n in t: return t[n]
+    return 60 if n in R.LITE and n not in R.DRAWS3D else 300
+
+
+def fordel(names, maks=3, t=None):
+    """names over at most `maks` machines (the gate for an automatic fix, tools/autofix/gate.py, 20.11.2026): the longest first, each to
+    the machine with the least so far, and no more machines than it takes to come within a fifth of the longest test, which sets the
+    floor however many there are. Under a quarter of an hour in all is one machine. Each machine runs its tests one after the other
+    (tests/run.py smoke), so never two 3D tests at once on one."""
+    t = tider() if t is None else t
+    names = list(dict.fromkeys(names))
+    if not names: return []
+    w = {n: tid(n, t) for n in names}
+    order = sorted(names, key=lambda n: -w[n])
+    best = None
+    for k in range(1, max(1, maks) + 1):
+        bins = [[] for _ in range(k)]; load = [0.0] * k
+        for n in order:
+            i = load.index(min(load)); bins[i].append(n); load[i] += w[n]
+        best = [b for b in bins if b]
+        if sum(w.values()) <= 900 or max(load) <= 1.2 * w[order[0]]: break
+    return best
+
+
 if __name__ == '__main__':
     a = sys.argv[1:]
     nlite = int(a[a.index('--lite') + 1]) if '--lite' in a else 2
