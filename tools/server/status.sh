@@ -3,7 +3,7 @@
 # sent anywhere, and nothing of a player is shown (no addresses, no names): the machine, the relay's counts, Caddy's errors and the
 # requests per hour. Run as root on the server, and paste what it prints:
 #
-#   curl -fsSL https://raw.githubusercontent.com/average01101010/FishyBusiness-/ccr-5e1ba2f4-pusvyd/tools/server/status.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Grubleriet-AS/FishyBusiness-/ccr-5e1ba2f4-pusvyd/tools/server/status.sh | bash
 set -uo pipefail
 say(){ printf '\n== %s\n' "$*"; }
 say "Maskinen ($(hostname), $(date -u '+%Y-%m-%d %H:%M UTC'))"

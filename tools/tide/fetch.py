@@ -10,7 +10,7 @@ APIS = ['https://vannstand.kartverket.no/tideapi.php', 'https://api.sehavniva.no
 API = APIS[0]
 YEAR0 = dt.datetime(2026, 10, 1, tzinfo=dt.timezone.utc)
 CONS = ['M2', 'S2', 'N2', 'K2', 'K1', 'O1']
-S = requests.Session(); S.headers['User-Agent'] = 'kystfiske-tide/1 (github.com/average01101010/FishyBusiness-)'
+S = requests.Session(); S.headers['User-Agent'] = 'kystfiske-tide/1 (github.com/Grubleriet-AS/FishyBusiness-)'
 
 def fetch(lat, lon, t0, t1):
     p = dict(tide_request='locationdata', lat=lat, lon=lon, datatype='PRE', refcode='CD', lang='en', interval=60, dst=0, tzone=0,

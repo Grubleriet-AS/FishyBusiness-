@@ -19,7 +19,7 @@ Jonas 18.11.2026: «Deterministisk klustering og billig triage først … Ikke v
 
 ## Hver kjøring
 
-1. **Repoet.** Har økta ikke repoet med skrivetilgang: `add_repo` (eier `average01101010`, repo `FishyBusiness-`, `access: push`), klon slik svaret sier. `git fetch origin ccr-5e1ba2f4-pusvyd main` og `git checkout -B fiks-run origin/ccr-5e1ba2f4-pusvyd`. Les ikke mer enn denne fila før punkt 2.
+1. **Repoet.** Har økta ikke repoet med skrivetilgang: `add_repo` (eier `Grubleriet-AS`, repo `FishyBusiness-`, `access: push`), klon slik svaret sier. `git fetch origin ccr-5e1ba2f4-pusvyd main` og `git checkout -B fiks-run origin/ccr-5e1ba2f4-pusvyd`. Les ikke mer enn denne fila før punkt 2.
 2. **Trinn a, uten modell:** `python3 tools/triage/klynge.py --out <scratchpad>/triage --belonn`. Den henter de nye tilbakemeldingene og feillista, klynger, vekter, sorterer, sender takk-haillen for rettinger som er hos spillerne (punkt 7), og skriver `triage.json` og `rapport-utkast.md` i scratchpad-mappa. Siste linje er `TRIAGE {…}`.
    - `INGENTING Å GJØRE`: skriv bare «Ingen nye tilbakemeldinger» og avslutt. Ingen rapport, ingen lås, ingen flere kall.
    - En linje med `FEIL:` (nøkkelen mangler, nettet stopper, `gh` svarer ikke): skriv den kort og avslutt.

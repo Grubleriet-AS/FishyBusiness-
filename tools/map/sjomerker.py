@@ -38,7 +38,7 @@ def query(s, w, n, e):
     for k in range(6):
         url = OVERPASS[k % len(OVERPASS)]
         try:
-            r = requests.post(url, data={'data': q}, timeout=1200, headers={'User-Agent': 'kystfiske-sjomerker (github.com/average01101010/FishyBusiness-)'})
+            r = requests.post(url, data={'data': q}, timeout=1200, headers={'User-Agent': 'kystfiske-sjomerker (github.com/Grubleriet-AS/FishyBusiness-)'})
             if r.status_code == 200: return r.json()['elements']
             print('overpass', url, r.status_code, r.text[:200], flush=True)
         except Exception as ex: print('overpass', url, ex, flush=True)

@@ -24,7 +24,7 @@ psql's errors, never data. Exits 0 always (the answer is in the file); 2 on a fa
 """
 import json, os, re, subprocess, sys, tempfile, time, urllib.error, urllib.request
 
-REPO = 'average01101010/FishyBusiness-'
+REPO = 'Grubleriet-AS/FishyBusiness-'
 WORK, PROD = 'ccr-5e1ba2f4-pusvyd', 'main'
 SITE = os.environ.get('DSB_GATE_SITE', '/srv/dsb-gate')
 HERE = os.path.dirname(os.path.abspath(__file__))

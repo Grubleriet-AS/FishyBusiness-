@@ -42,7 +42,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.insert(0, os.path.join(ROOT, 'tools', 'ci')); sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import risiko, prlaas
 
-REPO = 'average01101010/FishyBusiness-'
+REPO = 'Grubleriet-AS/FishyBusiness-'
 PROD_URL = 'https://detstorebla.no/version.json'
 OPUS_TAK = 4          # at most this many Opus runs (a fix or a queue step) in 24 hours, counted from the lock's history (tools/triage/
                       # laas.py teller). Jonas 18.11.2026: «Tak: 4 i døgnet», then the same evening «Senk taket … fra 4 til 2 per døgn», and

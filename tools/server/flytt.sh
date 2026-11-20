@@ -3,7 +3,7 @@
 # smaller one, «få det gjort først som sist»). Run as root on the NEW server, with the old one still serving the players:
 #
 #   ssh -A root@<the new server>          (-A lends this login your key, so the new server can read from the old one)
-#   curl -fsSL https://raw.githubusercontent.com/average01101010/FishyBusiness-/ccr-5e1ba2f4-pusvyd/tools/server/flytt.sh -o flytt.sh
+#   curl -fsSL https://raw.githubusercontent.com/Grubleriet-AS/FishyBusiness-/ccr-5e1ba2f4-pusvyd/tools/server/flytt.sh -o flytt.sh
 #   bash flytt.sh detstorebla.no <the old server's address>
 #
 # What it does, in this order, and nothing on the old server is changed (it is only read):
@@ -18,7 +18,7 @@
 # Running it again is safe. It stops before it changes anything if it cannot read from the old server.
 set -euo pipefail
 DOMAIN=${1:?the domain, e.g. detstorebla.no}; OLD=${2:?the address of the old server}
-REF=${DSB_REF:-ccr-5e1ba2f4-pusvyd}; RAW="https://raw.githubusercontent.com/average01101010/FishyBusiness-/$REF/tools/server"
+REF=${DSB_REF:-ccr-5e1ba2f4-pusvyd}; RAW="https://raw.githubusercontent.com/Grubleriet-AS/FishyBusiness-/$REF/tools/server"
 SITE=/srv/detstorebla; CERTS=/var/lib/caddy/.local/share/caddy
 say(){ printf '\n== %s\n' "$*"; }
 [ "$(id -u)" = 0 ] || { echo "Run this as root on the new server."; exit 1; }

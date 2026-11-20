@@ -28,7 +28,7 @@ GitHub is reached with `gh api` and the workflow's GH_TOKEN (issues: write). --d
 import argparse, datetime, hashlib, json, os, re, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-REPO = 'average01101010/FishyBusiness-'
+REPO = 'Grubleriet-AS/FishyBusiness-'
 LABEL, KRONISK, BALANSE = 'regresjon', 'kronisk', 'balanse'
 KRONISK_N = 3          # nights in a row on the same test (CLAUDE.md, «Kronisk røde tester», 15.11.2026)
 BAL_LIMIT = 0.15       # a balance number that moves more than this from last night goes on top (tools/regresjon/RUTINE.md before fase 5)

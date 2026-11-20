@@ -37,7 +37,7 @@ NS = {'c': 'http://www.unidata.ucar.edu/namespaces/thredds/InvCatalog/v1.0'}
 
 def session():
     import requests
-    s = requests.Session(); s.headers['User-Agent'] = 'kystfiske-is/1 (github.com/average01101010/FishyBusiness-)'
+    s = requests.Session(); s.headers['User-Agent'] = 'kystfiske-is/1 (github.com/Grubleriet-AS/FishyBusiness-)'
     return s
 
 

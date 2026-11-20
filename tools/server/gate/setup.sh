@@ -19,7 +19,7 @@
 #
 # For Ubuntu or Debian. Run as root on the gate's server, straight from GitHub:
 #
-#   curl -fsSL https://raw.githubusercontent.com/average01101010/FishyBusiness-/ccr-5e1ba2f4-pusvyd/tools/server/gate/setup.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Grubleriet-AS/FishyBusiness-/ccr-5e1ba2f4-pusvyd/tools/server/gate/setup.sh | bash
 #
 # or from a checkout: bash tools/server/gate/setup.sh ["ssh-ed25519 AAAA… github-gate"]
 # Without a key it makes the upload key here and prints the three values for the repo's Actions secrets (GATE_HOST, GATE_KNOWN_HOSTS,
@@ -27,7 +27,7 @@
 # changed gate.py or fetch.py comes in by running this again).
 set -euo pipefail
 KEY=${1:-}
-REF=${DSB_REF:-ccr-5e1ba2f4-pusvyd}; RAW="https://raw.githubusercontent.com/average01101010/FishyBusiness-/$REF"
+REF=${DSB_REF:-ccr-5e1ba2f4-pusvyd}; RAW="https://raw.githubusercontent.com/Grubleriet-AS/FishyBusiness-/$REF"
 PW=1.63.0   # the Playwright the tests use (CLAUDE.md «Tester»); its Chromium is what the gate at GitHub ran
 DKEY=/root/dsb-gate-deploy; SITE=/srv/dsb-gate; OPT=/opt/dsb-gate; VAR=/var/lib/dsb-gate; ENVF=/etc/dsb-gate.env
 say(){ printf '\n== %s\n' "$*"; }

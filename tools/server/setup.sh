@@ -6,7 +6,7 @@
 # systemd service dsb-rt behind Caddy's /rt, restarted when GitHub uploads a new version. For Ubuntu or Debian. Run once as root, on
 # the server, straight from GitHub:
 #
-#   curl -fsSL https://raw.githubusercontent.com/average01101010/FishyBusiness-/ccr-5e1ba2f4-pusvyd/tools/server/setup.sh | bash -s detstorebla.no
+#   curl -fsSL https://raw.githubusercontent.com/Grubleriet-AS/FishyBusiness-/ccr-5e1ba2f4-pusvyd/tools/server/setup.sh | bash -s detstorebla.no
 #
 # or from a checkout: bash tools/server/setup.sh detstorebla.no ["ssh-ed25519 AAAA… github-deploy"]
 #
@@ -16,7 +16,7 @@
 # it keeps a Caddyfile that is not ours as a .bak, and it leaves the SSH login as it is. Running it again is safe.
 set -euo pipefail
 DOMAIN=${1:?the domain, e.g. detstorebla.no}; KEY=${2:-}
-REF=${DSB_REF:-ccr-5e1ba2f4-pusvyd}; RAW="https://raw.githubusercontent.com/average01101010/FishyBusiness-/$REF/tools/server"
+REF=${DSB_REF:-ccr-5e1ba2f4-pusvyd}; RAW="https://raw.githubusercontent.com/Grubleriet-AS/FishyBusiness-/$REF/tools/server"
 DKEY=/root/dsb-deploy; SITE=/srv/detstorebla
 say(){ printf '\n== %s\n' "$*"; }
 [ "$(id -u)" = 0 ] || { echo "Run this as root (or with sudo)."; exit 1; }

@@ -24,7 +24,7 @@ It never merges and never pushes: who moves `main` stands in tools/plan/RUTINE.m
 import argparse, datetime, json, os, re, subprocess, sys, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-REPO = 'average01101010/FishyBusiness-'
+REPO = 'Grubleriet-AS/FishyBusiness-'
 WORK, PROD = 'ccr-5e1ba2f4-pusvyd', 'main'
 PATCH_FILE = 'src/js/ui/phone/07-patch.js'
 # real money, the legal pages, and (from 18.11.2026) accounts and saved player data: never released before Jonas has seen the PR

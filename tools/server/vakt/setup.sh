@@ -3,11 +3,11 @@
 # in /etc/dsb-vakt.env (made here once, readable only by root); and dsb-vakt.timer, which runs it once a minute as a user of its own
 # with nothing but its state in /var/lib/dsb-vakt. tools/server/setup.sh runs it too; on its own, as root on the server:
 #
-#   curl -fsSL https://raw.githubusercontent.com/average01101010/FishyBusiness-/ccr-5e1ba2f4-pusvyd/tools/server/vakt/setup.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Grubleriet-AS/FishyBusiness-/ccr-5e1ba2f4-pusvyd/tools/server/vakt/setup.sh | bash
 #
 # It sends one test push at the end, and prints the topic to subscribe to in the ntfy app. Running it again is safe: the topic is kept.
 set -euo pipefail
-REF=${DSB_REF:-ccr-5e1ba2f4-pusvyd}; RAW="https://raw.githubusercontent.com/average01101010/FishyBusiness-/$REF"
+REF=${DSB_REF:-ccr-5e1ba2f4-pusvyd}; RAW="https://raw.githubusercontent.com/Grubleriet-AS/FishyBusiness-/$REF"
 ENVF=/etc/dsb-vakt.env; DIR=/opt/dsb-vakt
 [ "$(id -u)" = 0 ] || { echo "Run this as root (or with sudo)."; exit 1; }
 command -v curl >/dev/null || { apt-get update -q && apt-get install -yq curl; }
