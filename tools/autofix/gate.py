@@ -211,7 +211,16 @@ class Base:
         return unit(self.dir)[0] if self.ready() else None
 
     def close(self):
-        if self.dir: subprocess.run(['git', 'worktree', 'remove', '--force', self.dir], cwd=REPO, capture_output=True)
+        if not self.dir: return
+        # the working branch's test logs beside the PR's, as base-<test>.txt (the workflow uploads tests/out/logs): a test red there must
+        # be seen red for the right reason, not a crash (20.11.2026, the trial on #158)
+        out = os.path.join(REPO, 'tests', 'out', 'logs')
+        for f in glob.glob(os.path.join(self.dir, 'tests', 'out', 'logs', '*.txt')):
+            try:
+                os.makedirs(out, exist_ok=True)
+                with open(f, 'rb') as src, open(os.path.join(out, 'base-' + os.path.basename(f)), 'wb') as dst: dst.write(src.read())
+            except OSError: pass
+        subprocess.run(['git', 'worktree', 'remove', '--force', self.dir], cwd=REPO, capture_output=True)
 
 
 def decide(R, mine, base, run_pr, run_base, unit_ok, unit_base=None, cost=None):
