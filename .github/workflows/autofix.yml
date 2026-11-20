@@ -39,10 +39,10 @@ on:
       pr:
         description: 'PR-nummeret porten prøves på (bare en prøve: ingenting flettes, merkes, kommenteres eller slippes)'
         required: true
-permissions:
-  contents: write
-  pull-requests: write
-  actions: write
+# No rights at the top: each job asks for its own. The PR's code (the build and the tests in «tester» and «gate») runs with a token
+# that can only read, not kept on the disk (persist-credentials: false); the rights to merge, label, comment and release are only in
+# «utfall», after the gate has answered (20.11.2026).
+permissions: {}
 concurrency:
   group: autofix-${{ github.event.pull_request.number || format('prove-{0}', inputs.pr) }}
   cancel-in-progress: true
@@ -59,6 +59,9 @@ jobs:
       vars.AUTO_FIX_MERGE != 'off')
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       pr: ${{ steps.pr.outputs.pr }}
       sha: ${{ steps.pr.outputs.sha }}
@@ -81,7 +84,9 @@ jobs:
           # the trial was started on)
           if [ "$EVENT" = workflow_dispatch ]; then
             case "$INPUT_PR" in ''|*[!0-9]*) echo "::error::pr må være et tall"; exit 1;; esac
-            read -r sha base <<< "$(gh api "repos/${{ github.repository }}/pulls/$INPUT_PR" --jq '.head.sha + " " + .base.ref')"
+            read -r sha base head_repo <<< "$(gh api "repos/${{ github.repository }}/pulls/$INPUT_PR" --jq '.head.sha + " " + .base.ref + " " + .head.repo.full_name')"
+            # (only PRs from this repository, as the condition above for the PR events: a fork's code is never fetched here)
+            [ "$head_repo" = "${{ github.repository }}" ] || { echo "::error::PR #$INPUT_PR kommer fra $head_repo, ikke fra ${{ github.repository }}"; exit 1; }
             { echo "pr=$INPUT_PR"; echo "sha=$sha"; echo "base=$base"; echo "porten=${{ github.sha }}"; echo "prove=true"; } >> "$GITHUB_OUTPUT"
           else
             { echo "pr=$EV_PR"; echo "sha=$EV_SHA"; echo "base=$EV_BASE"; echo "porten=$EV_BASE"; echo "prove=false"; } >> "$GITHUB_OUTPUT"
@@ -90,16 +95,18 @@ jobs:
         with:
           ref: ${{ steps.pr.outputs.sha }}
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/checkout@v4
         with:
           ref: ${{ steps.pr.outputs.porten }}
           path: porten
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - id: p
         run: |
-          git fetch -q origin "${{ steps.pr.outputs.base }}"
+          git fetch -q "https://github.com/${{ github.repository }}.git" "+refs/heads/${{ steps.pr.outputs.base }}:refs/remotes/origin/${{ steps.pr.outputs.base }}"
           python3 porten/tools/autofix/gate.py --lag-plan --repo . --base "origin/${{ steps.pr.outputs.base }}" --out plan.json | tee plan.txt
           python3 -c "import json; P=json.load(open('plan.json')); print('test=' + ('true' if P['test'] and P['deler'] else 'false')); print('deler=' + json.dumps(P['deler'] or [{'navn': 'ingen', 'tester': '', 'base': 'nei'}]))" >> "$GITHUB_OUTPUT"
       - uses: actions/upload-artifact@v4
@@ -112,6 +119,8 @@ jobs:
     if: needs.plan.outputs.test == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 170
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -121,10 +130,12 @@ jobs:
         with:
           ref: ${{ needs.plan.outputs.sha }}
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.plan.outputs.porten }}
           path: porten
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -142,7 +153,7 @@ jobs:
           TESTER: ${{ matrix.del.tester }}
           BASE: ${{ needs.plan.outputs.base }}
         run: |
-          git fetch -q origin "$BASE"
+          git fetch -q "https://github.com/${{ github.repository }}.git" "+refs/heads/$BASE:refs/remotes/origin/$BASE"
           if [ "${{ matrix.del.base }}" = ja ]; then
             python3 porten/tools/autofix/gate.py --kjor-base --plan plan.json --repo . --base "origin/$BASE" --out "del-$NAVN.json"
           else
@@ -163,15 +174,21 @@ jobs:
     if: always() && needs.plan.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    permissions:
+      contents: read
+    outputs:
+      code: ${{ steps.gate.outputs.code }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.plan.outputs.sha }}
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/checkout@v4
         with:
           ref: ${{ needs.plan.outputs.porten }}
           path: porten
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -193,15 +210,49 @@ jobs:
         env:
           BASE: ${{ needs.plan.outputs.base }}
         run: |
-          git fetch -q origin "$BASE"
+          git fetch -q "https://github.com/${{ github.repository }}.git" "+refs/heads/$BASE:refs/remotes/origin/$BASE"
           set +e
           python3 porten/tools/autofix/gate.py --avgjor --plan plan.json --dir art --repo . --base "origin/$BASE" --out gate.json | tee gate.txt
           echo "code=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: porten
+          path: |
+            gate.json
+            gate.txt
       - name: Bare en prøve
         if: needs.plan.outputs.prove == 'true'
         run: echo "Prøve på PR #${{ needs.plan.outputs.pr }} med porten fra ${{ needs.plan.outputs.porten }}; svaret over (kode ${{ steps.gate.outputs.code }}). Ingenting er flettet, merket, kommentert eller sluppet."
+
+  utfall:
+    # what the gate's answer leads to: merge and release (0), or the label and the comment for Jonas (3 and 1). Not for a trial
+    needs: [plan, gate]
+    if: always() && needs.gate.result == 'success' && needs.plan.outputs.prove != 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Playwright
+        if: needs.gate.outputs.code == '0'
+        run: pip install playwright==1.63.0 && (python -m playwright install --with-deps chromium || python -m playwright install chromium)
+      - uses: actions/download-artifact@v4
+        with:
+          name: porten
       - name: Fletter inn og ruller ut
-        if: steps.gate.outputs.code == '0' && needs.plan.outputs.prove != 'true'
+        if: needs.gate.outputs.code == '0'
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ needs.plan.outputs.pr }}
@@ -220,7 +271,7 @@ jobs:
       # out. A fix that does not apply to main, or is red there, stays on the test edition and waits for the next release.
       # Off switch: the repository variable AUTO_FIX_SLIPP set to off.
       - name: Slipper rettingen til spillerne
-        if: steps.gate.outputs.code == '0' && vars.AUTO_FIX_SLIPP != 'off' && needs.plan.outputs.prove != 'true'
+        if: needs.gate.outputs.code == '0' && vars.AUTO_FIX_SLIPP != 'off'
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ needs.plan.outputs.pr }}
@@ -281,13 +332,13 @@ jobs:
           gh workflow run slipp.yml --ref "$BASE" -f gren="$br" -f migreringer=ingen
           say "Rettingen holder også mot spillernes versjon, og bygget holdt på test.detstorebla.no/auto/ (oppstarten der, og $names på de samme filene). Den slippes nå alene til detstorebla.no (grenen \`$br\`, workflowen «Slipp»; lagringsporten kjører før opplastingen). main flettes tilbake i arbeidsgrenen etterpå."
       - name: Stoppet eller klar for Jonas
-        if: steps.gate.outputs.code != '0' && needs.plan.outputs.prove != 'true'
+        if: needs.gate.outputs.code != '0'
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ needs.plan.outputs.pr }}
         run: |
           # code 3: stopped for its risk alone (middels or hoy), tested and without a fault: ready for Jonas' click (18.11.2026)
-          if [ "${{ steps.gate.outputs.code }}" = 3 ]; then
+          if [ "${{ needs.gate.outputs.code }}" = 3 ]; then
             gh label create venter-pa-jonas --color FBCA04 --description "Klar: middels eller høy risiko, venter på ett klikk fra Jonas" 2>/dev/null || true
             gh pr edit "$PR" --add-label venter-pa-jonas
             { echo "**Venter på deg: rettingen rører noe som bare går ut med ditt klikk** (risiko $(sed -n 's/^risiko: //p' gate.txt | head -1), \`tools/ci/risiko.py\`)."; echo; echo "Ser den riktig ut, trykker du «Merge» på PR-en. Den går da til testutgaven og med neste slipp. Vil du ikke ha den, lukker du PR-en."; echo; echo '```'; head -c 3500 gate.txt; echo '```'; echo; echo "---"; echo "_Automatisk retting (.github/workflows/autofix.yml)_"; } > body.md
@@ -297,4 +348,4 @@ jobs:
             { echo "Porten stoppet den automatiske rettingen. Den venter på Jonas."; echo; echo '```'; head -c 3500 gate.txt; echo '```'; echo; echo "---"; echo "_Automatisk retting (.github/workflows/autofix.yml)_"; } > body.md
           fi
           gh pr comment "$PR" --body-file body.md
-          [ "${{ steps.gate.outputs.code }}" = 3 ] || exit 1
+          [ "${{ needs.gate.outputs.code }}" = 3 ] || exit 1
