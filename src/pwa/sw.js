@@ -15,9 +15,22 @@ async function swErrSend(){
 self.addEventListener('error', e => swErr(e.message, e.error && e.error.stack));
 self.addEventListener('unhandledrejection', e => { const r = e.reason; swErr(r && r.message ? (r.name && r.name !== 'Error' ? r.name + ': ' : '') + r.message : String(r), r && r.stack); });
 self.addEventListener('message', e => { if (e.data && e.data.dsbErrPull) e.waitUntil(swErrSend()); });
+// (20.11.2026, klynge:d71d3758: one Cache.addAll failed the whole install when a single file did not come, a dropped connection or a
+// page closed in the middle, and the worker was thrown away. Each file now goes in by itself: one that does not come keeps the copy
+// from the cache before, so the app still opens offline, and the fetch below puts the new one in the next time it is fetched. Only a
+// file the server answers with an error, a file missing from the build, is told; a net that hiccups is not an error of the game.)
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(PAGE).then(c => c.addAll(['./', 'index.html', 'manifest.webmanifest', 'map/manifest.json', 'data/manifest.json', 'icon-192.png', 'icon-512.png'])).then(() => self.skipWaiting())
-    .catch(x => { swErr('install: ' + (x && x.message || x), x && x.stack); throw x; }));   // (the app then stays on the old worker, or none)
+  e.waitUntil((async () => {
+    const c = await caches.open(PAGE);
+    await Promise.all(['./', 'index.html', 'manifest.webmanifest', 'map/manifest.json', 'data/manifest.json', 'icon-192.png', 'icon-512.png'].map(async f => {
+      try {
+        const r = await fetch(f); if (r.ok) return await c.put(f, r);
+        swErr('install: ' + f + ' ' + r.status);
+      } catch (x){}
+      try { const old = await caches.match(f); if (old) await c.put(f, old); } catch (x){}
+    }));
+    await self.skipWaiting();
+  })());
 });
 // the packs the map manifest no longer lists go (a new map release names its changed packs anew), and the data files likewise
 async function prune(){
