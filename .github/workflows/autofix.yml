@@ -168,9 +168,94 @@ jobs:
             tests/out/logs/*.txt
           if-no-files-found: warn
 
-  gate:
+  rode:
+    # the tests red on the PR's build, each to be run again on a machine of its own (20.11.2026: on #159 the decision ran three red 3D
+    # tests on the working branch and again on the PR one after the other, 93 minutes; now they run side by side, gate.py --rode/--igjen)
     needs: [plan, tester]
-    # (also when a part did not finish: its tests then have no answer, and that stops the fix)
+    if: always() && needs.plan.result == 'success' && needs.plan.outputs.test == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      any: ${{ steps.r.outputs.any }}
+      deler: ${{ steps.r.outputs.deler }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.porten }}
+          path: porten
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/download-artifact@v4
+        with:
+          name: plan
+      - uses: actions/download-artifact@v4
+        continue-on-error: true   # (none when every part failed: then there is nothing to run again, and the decision stops the fix)
+        with:
+          pattern: del-*
+          path: art
+      - id: r
+        run: |
+          python3 porten/tools/autofix/gate.py --rode --plan plan.json --dir art --out rode.json
+          python3 -c "import json; d=json.load(open('rode.json')); print('any=' + ('true' if d else 'false')); print('deler=' + json.dumps(d or [{'navn': 'ingen', 'test': ''}]))" >> "$GITHUB_OUTPUT"
+
+  igjen:
+    # one red test: on the working branch (an old test; red there too is not the fix's) and up to twice more alone on the PR
+    needs: [plan, rode]
+    if: always() && needs.rode.outputs.any == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 170
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        del: ${{ fromJSON(needs.rode.outputs.deler) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.porten }}
+          path: porten
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Playwright
+        run: pip install playwright==1.63.0 && (python -m playwright install --with-deps chromium || python -m playwright install chromium)
+      - uses: actions/download-artifact@v4
+        with:
+          name: plan
+      - name: Again (${{ matrix.del.test }})
+        env:
+          TEST: ${{ matrix.del.test }}
+          BASE: ${{ needs.plan.outputs.base }}
+        run: |
+          git fetch -q "https://github.com/${{ github.repository }}.git" "+refs/heads/$BASE:refs/remotes/origin/$BASE"
+          python3 porten/tools/autofix/gate.py --igjen "$TEST" --plan plan.json --repo . --base "origin/$BASE" --out "del-igjen-$TEST.json"
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: del-${{ matrix.del.navn }}
+          path: |
+            del-*.json
+            tests/out/logs/*.txt
+          if-no-files-found: warn
+
+  gate:
+    needs: [plan, tester, rode, igjen]
+    # (also when a part did not finish: its tests then have no answer, and that stops the fix; a red test whose machine did not finish
+    # is run again here, as before 20.11.2026)
     if: always() && needs.plan.result == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 180
@@ -245,6 +330,13 @@ jobs:
         with:
           ref: ${{ needs.plan.outputs.sha }}
           fetch-depth: 0
+      # (the gate itself from the working branch for the check against main too: main's own copy is the one of the last release, and
+      # before 20.11.2026 it ran every test twice one after the other, 2 h 34 min for #159)
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.porten }}
+          path: porten
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -272,8 +364,8 @@ jobs:
           gh workflow run deploy.yml --ref ${{ needs.plan.outputs.base }}
       # Straight to the players (Jonas 16.11.2026: «Jeg vil hovedsaklig at feilrettingen skjer der brukerne er, altså på
       # produksjonsutgaven»; his choice the same day: only the fix, at once). The fix alone is picked onto a branch from main
-      # (slipp/auto-<PR>), the gate is run once more there (main's own copy of it, against main: the fix must hold on what the players
-      # have, not only on the working branch), and the workflow «Slipp» moves main to it. Nothing else of the working branch goes
+      # (slipp/auto-<PR>), the gate is run once more there (the working branch's copy of it from 20.11.2026, in porten/, against main: the fix
+      # must hold on what the players have, not only on the working branch), and the workflow «Slipp» moves main to it. Nothing else of the working branch goes
       # out. A fix that does not apply to main, or is red there, stays on the test edition and waits for the next release.
       # Off switch: the repository variable AUTO_FIX_SLIPP set to off.
       - name: Slipper rettingen til spillerne
@@ -300,7 +392,7 @@ jobs:
             exit 0
           fi
           set +e
-          python3 tools/autofix/gate.py --base origin/main --out gate-main.json > gate-main.txt 2>&1; code=$?
+          python3 porten/tools/autofix/gate.py --repo . --base origin/main --out gate-main.json > gate-main.txt 2>&1; code=$?
           set -e
           tail -n 20 gate-main.txt
           if [ "$code" != 0 ]; then
