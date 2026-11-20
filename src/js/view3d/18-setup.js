@@ -59,7 +59,14 @@
   const seaOkGet = () => { if (/sealite/.test(location.hash)) return 'true,true,true'; if (/sealvl=/.test(location.hash)) return null;
     try { const v = localStorage.getItem(SEA_OK) || ''; return v.startsWith(SEA_VER + ':') ? v.slice(SEA_VER.length + 1) : null; } catch (e){ return null; } };
   const seaOkSet = v => { if (/sealvl=|sealite/.test(location.hash)) return; try { if (v) localStorage.setItem(SEA_OK, SEA_VER + ':' + v); else localStorage.removeItem(SEA_OK); } catch (e){} };
-  const seaTryMark = on => { if (/sealvl=/.test(location.hash)) return; try { if (on) localStorage.setItem(SEA_TRY, seaLvl + ':' + SEAID + ':' + Date.now()); else localStorage.removeItem(SEA_TRY); } catch (e){} };
+  // (20.11.2026, klynge:46fd07ca: «3D sjønivå 0: et forsøk kom ikke tilbake» from iPhones, many a day, and almost never the second in a
+  // row.) A page hidden or closed while it makes the sea has not crashed: iOS ends pages in the background, the user leaves during the
+  // start, and the game loads itself again for a new version; the mark left behind was read as a try that never came back, and two such
+  // starts put the sea a level down for good. So the marks stand only while the page is in sight: taken down when it is hidden or leaves
+  // (seaAway), put back when it is seen again with the try still under way.
+  let seaTrying = false;
+  const seaTryPut = (away = document.hidden) => { if (/sealvl=/.test(location.hash)) return; try { if (seaTrying && !away) localStorage.setItem(SEA_TRY, seaLvl + ':' + SEAID + ':' + Date.now()); else localStorage.removeItem(SEA_TRY); } catch (e){} };
+  const seaTryMark = on => { seaTrying = on; seaTryPut(); };
   // The middle sea on level 1 (tilbakemelding #106, 01.11.2026: Firefox on a GTX 980, «Havet vises ikke»; Jonas: «Det er viktig at
   // spillet oppleves så likt som mulig uansett hvilken enhet eller nettleser»): level 1 drew the near sea with the far pass's shader, with
   // no short waves, ripples, wake, foam or lanterns on the water, and every Direct3D starts there. It now first tries the lite vertex
@@ -74,7 +81,10 @@
   const seaMidFailed = why => { seaMidTry = false; if (/seamid/.test(location.hash)) return;
     try { localStorage.setItem(SEA_MID, SEA_VER + ':no2'); localStorage.removeItem(SEA_MIDTRY); } catch (e){} goneSet(SEA_MIDGONE, 0);
     if (typeof cloudErr === 'function') cloudErr('3D mellomsjø feilet (' + why + '), neste start på sjønivå 1 · ' + GPU, 'view3d init', ''); };
-  const seaMidMark = on => { seaMidTry = on; if (/seamid/.test(location.hash)) return; try { if (on) localStorage.setItem(SEA_MIDTRY, '1:' + SEAID + ':' + Date.now()); else localStorage.removeItem(SEA_MIDTRY); } catch (e){} };
+  const seaMidPut = (away = document.hidden) => { if (/seamid/.test(location.hash)) return; try { if (seaMidTry && !away) localStorage.setItem(SEA_MIDTRY, '1:' + SEAID + ':' + Date.now()); else localStorage.removeItem(SEA_MIDTRY); } catch (e){} };
+  const seaMidMark = on => { seaMidTry = on; seaMidPut(); };
+  if (typeof document !== 'undefined'){ const seaAway = e => { const away = e.type === 'pagehide' || document.hidden; if (seaTrying) seaTryPut(away); if (seaMidTry) seaMidPut(away); };
+    document.addEventListener('visibilitychange', seaAway); addEventListener('pagehide', seaAway); addEventListener('pageshow', seaAway); }
   // a try of the middle sea that never came back: the second in a row marks it, the first is tried again; the level is not bumped for it
   const seaMidLeft = () => { if (!markRead(SEA_MIDTRY)) return;
     try { localStorage.removeItem(SEA_TRY); localStorage.removeItem(SEA_MIDTRY); } catch (e){}
