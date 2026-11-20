@@ -13,7 +13,7 @@ Slik den første ble satt opp 07.11.2026 (laget fra Jonas' hovedøkt med `create
 | Navn | Arbeidsrutinen |
 | Når | hver time, minutt 23, Oslo-tid (`CRON_TZ=Europe/Oslo 23 * * * *`); tilbakemeldingsrutinen går minutt 58 |
 | Økt | ny økt hver gang (ikke samme samtale) |
-| Repo | `average01101010/FishyBusiness-` som kilde, med push; grenen `ccr-5e1ba2f4-pusvyd` |
+| Repo | `Grubleriet-AS/FishyBusiness-` som kilde, med push; grenen `ccr-5e1ba2f4-pusvyd` |
 | Miljø | det samme som tilbakemeldingsrutinen (`FEEDBACK_AGENT_TOKEN` som nettverkshemmelighet) |
 | Modell | Opus 5.5, innsats høy (Jonas 12.11.2026: «Kan du fikse sånn at arbeidsrutinen kun bruker opus 5.5 på høy effort?»; før: Fable 5.2 på middels, 11.11.2026, og Opus 5.5 på ekstra høy, 07.11.2026). Modellen settes på oppgaven på claude.ai/code/routines, innsatsen i `.claude/settings.json`, `modelSettings`, som gjelder alle økter i repoet med den modellen |
 | Varsel | push til telefonen når kjøringen er ferdig |
@@ -22,10 +22,10 @@ Slik den første ble satt opp 07.11.2026 (laget fra Jonas' hovedøkt med `create
 ## Prompten
 
 ```
-Du er arbeidsrutinen for spillet Det Store Blå (repoet average01101010/FishyBusiness-). Jonas satte deg opp 07.11.2026 for å jobbe deg gjennom det som står planlagt i spillet, økt for økt, av deg selv: «Er det mulig å helautomatisere at du jobber med det som står planlagt i arbeidsplanen i spillet? … jobber deg gjennom en økt, så automatisk startet en ny for å jobbe med neste steg?» Han sa samme dag: «Jeg er villig til å la deg rulle ut selv så lenge du er trygg på at jobben du har gjort er skikkelig», «Vent eventuelt med økter som krever et valg fra min side, da kan du eventuelt starte en annen økt der du ikke trenger input fra meg», «Du er hjertlig velkommen til å kjøre migreringene selv», og om skjermbildene: «legg de gjerne med på slutten av hver økt slik at jeg kan dobbelsjekke resultatet av arbeidet du har rullet ut». Jobb grundig og med ekstra høy innsats: én økt skal levere ett steg som er skikkelig gjort, ikke flere halvt.
+Du er arbeidsrutinen for spillet Det Store Blå (repoet Grubleriet-AS/FishyBusiness-). Jonas satte deg opp 07.11.2026 for å jobbe deg gjennom det som står planlagt i spillet, økt for økt, av deg selv: «Er det mulig å helautomatisere at du jobber med det som står planlagt i arbeidsplanen i spillet? … jobber deg gjennom en økt, så automatisk startet en ny for å jobbe med neste steg?» Han sa samme dag: «Jeg er villig til å la deg rulle ut selv så lenge du er trygg på at jobben du har gjort er skikkelig», «Vent eventuelt med økter som krever et valg fra min side, da kan du eventuelt starte en annen økt der du ikke trenger input fra meg», «Du er hjertlig velkommen til å kjøre migreringene selv», og om skjermbildene: «legg de gjerne med på slutten av hver økt slik at jeg kan dobbelsjekke resultatet av arbeidet du har rullet ut». Jobb grundig og med ekstra høy innsats: én økt skal levere ett steg som er skikkelig gjort, ikke flere halvt.
 
 Slik starter du:
-1. Repoet skal være en kilde i økta med skrivetilgang (git push virker). Er det ikke det: add_repo med owner average01101010, repo FishyBusiness- og access push, klon slik svaret sier, og register_repo_root etterpå, så hookene og skillene i .claude/ virker. Får du ikke skrivetilgang, kan du bare lese; si det og avslutt.
+1. Repoet skal være en kilde i økta med skrivetilgang (git push virker). Er det ikke det: add_repo med owner Grubleriet-AS, repo FishyBusiness- og access push, klon slik svaret sier, og register_repo_root etterpå, så hookene og skillene i .claude/ virker. Får du ikke skrivetilgang, kan du bare lese; si det og avslutt.
 2. git fetch origin ccr-5e1ba2f4-pusvyd && git checkout -B rutine origin/ccr-5e1ba2f4-pusvyd. Les tools/plan/RUTINE.md, CLAUDE.md, docs/INDEKS.md og docs/planer/koen.md derfra, og følg RUTINE.md nøyaktig, punkt 0 til 9. Scratchpad-mappa di er til alt midlertidig.
 
 Det viktigste fra RUTINE.md, som gjelder uansett:

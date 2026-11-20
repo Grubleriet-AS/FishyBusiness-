@@ -30,7 +30,7 @@ def nodal(t):
 def model():
     """{constituent: (lat, lon, amplitude m, phase °)} from the model's ocean tide grids, fetched once into the cache"""
     import netCDF4
-    os.makedirs(CACHE, exist_ok=True); S = requests.Session(); S.headers['User-Agent'] = 'kystfiske-tide/1 (github.com/average01101010/FishyBusiness-)'
+    os.makedirs(CACHE, exist_ok=True); S = requests.Session(); S.headers['User-Agent'] = 'kystfiske-tide/1 (github.com/Grubleriet-AS/FishyBusiness-)'
     html = S.get(PAGE, timeout=120).text
     links = sorted(set(re.findall(r'https?://www\.seanoe\.org/data/00683/79489/data/\d+\.zip', html)))
     print('EOT20 files on the page:', links, file=sys.stderr, flush=True)

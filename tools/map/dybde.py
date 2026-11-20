@@ -4,7 +4,7 @@
 #   python3 tools/map/dybde.py fetch [out]    every coastal tile's 50 m depth (UTM 33) as half metres, into out/depth/ and a .npz each
 import os, re, sys, json, time, requests
 HERE = os.path.dirname(os.path.abspath(__file__))
-S = requests.Session(); S.headers['User-Agent'] = 'kystfiske-depth/1 (github.com/average01101010/FishyBusiness-)'
+S = requests.Session(); S.headers['User-Agent'] = 'kystfiske-depth/1 (github.com/Grubleriet-AS/FishyBusiness-)'
 CFG = json.load(open(os.path.join(HERE, 'dybde.json')))
 
 def get(url, **kw):

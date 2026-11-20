@@ -6,7 +6,7 @@
 # sjomerker- release (the sea marks, pinned as "sjomerker" there too) comes along into out/release/sjomerker-<n>/sjomerker.json.
 #   python3 tools/map/release.py [tag]
 import os, re, sys, json, tarfile, subprocess, requests
-REPO = os.environ.get('KYST_REPO', 'average01101010/FishyBusiness-')
+REPO = os.environ.get('KYST_REPO', 'Grubleriet-AS/FishyBusiness-')
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'out', 'release')
 PIN = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kart-release.json')
 def pinned(key='release', pre='kart'):

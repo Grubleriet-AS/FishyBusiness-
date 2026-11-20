@@ -26,7 +26,7 @@ Prints `PR-LÅS {json}` last: {"lav": true, "middels": bool, "hoy": bool, "filer
 """
 import argparse, datetime, json, re, subprocess, sys
 
-REPO = 'average01101010/FishyBusiness-'
+REPO = 'Grubleriet-AS/FishyBusiness-'
 WORK = 'ccr-5e1ba2f4-pusvyd'
 PREFIX = ('fiks/', 'fb/')
 FRIST_T = 24

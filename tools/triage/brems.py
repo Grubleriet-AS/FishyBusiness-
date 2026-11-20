@@ -23,7 +23,7 @@ The lock stays until Jonas releases himself (slipp.yml «tross_nodbrems: ja»).
 import argparse, datetime, json, os, re, subprocess, sys, urllib.request
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-REPO = 'average01101010/FishyBusiness-'
+REPO = 'Grubleriet-AS/FishyBusiness-'
 WORK = 'ccr-5e1ba2f4-pusvyd'
 URL = 'https://detstorebla.no/nodbrems.json'
 PR_NUM = re.compile(r'\(#(\d+)\)\s*$')

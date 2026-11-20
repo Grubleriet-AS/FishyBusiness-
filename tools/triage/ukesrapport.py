@@ -18,7 +18,7 @@ import argparse, datetime, importlib.util, json, os, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-REPO = 'average01101010/FishyBusiness-'
+REPO = 'Grubleriet-AS/FishyBusiness-'
 WORK = 'ccr-5e1ba2f4-pusvyd'
 
 
