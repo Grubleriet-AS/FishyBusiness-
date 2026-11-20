@@ -237,6 +237,31 @@ class Base:
         subprocess.run(['git', 'worktree', 'remove', '--force', self.dir], cwd=REPO, capture_output=True)
 
 
+IGJEN_MAKS = 6   # at most this many red tests are run again on machines of their own (the workflow's «igjen»); the rest, in the decision
+
+
+def igjen_one(n, own, known, run_pr, run_base):
+    """What the gate needs to know of a test red on the PR: {'base': the working branch's answer, 'retry': the runs again on the PR}.
+    An old test is run on the working branch first (known: its answer there, if any), and red there too is the end of it: not the fix's
+    doing. Else, and for the fix's own test, it is run again alone on the PR, up to RETRY times, until it is green once. The same for the
+    one command, the decision and a machine of its own in the workflow (20.11.2026: three red 3D tests one after the other took the
+    decision 93 minutes on #159; now each has a machine)."""
+    d = {'base': known, 'retry': []}
+    if not own:
+        if d['base'] is None: d['base'] = run_base([n]).get(n)
+        if d['base'] == 'FEIL': return d
+    for _ in range(RETRY):
+        r = run_pr([n]).get(n); d['retry'].append(r)
+        if r in GREEN: break
+    return d
+
+
+def reds_of(R, mine, cost=None):
+    """The tests red on the PR's build, the cheapest first (decide tries them in this order)."""
+    names = R['tests']['names']; cost = cost or (lambda n: 0)
+    return sorted((n for n in names if mine.get(n) == 'FEIL'), key=lambda n: (cost(n), names.index(n)))
+
+
 def decide(R, mine, base, run_pr, run_base, unit_ok, unit_base=None, cost=None):
     """4 and 5 on the results. mine: the PR's build, {test: OK|FEIL|LES}; base: what is known of the working branch's (the fix's own
     tests); run_pr(names) and run_base(names) run more and return the same; unit_ok: (green, last line) of the unit tests on the PR;
@@ -247,18 +272,15 @@ def decide(R, mine, base, run_pr, run_base, unit_ok, unit_base=None, cost=None):
     if not unit_ok[0]: R['why'].append('enhetstestene er røde: ' + unit_ok[1])
     for n in names:
         if n not in mine: R['why'].append('testen %s ga ikke noe svar' % n)
-    reds = sorted((n for n in names if mine.get(n) == 'FEIL'), key=lambda n: (cost(n), names.index(n)))
+    reds = reds_of(R, mine, cost)
     for i, n in enumerate(reds):
         if R['why']:   # one fault is enough: the rest are not tried (20.11.2026)
             t['ikke_sjekket'] = reds[i:]; break
-        if n not in own:
-            # an old test: red on the working branch too is not the fix's doing
-            if n not in base: base.update(run_base([n]))
-            if base.get(n) == 'FEIL': t['rod_fra_for'].append(n); continue
-        again = []
-        for _ in range(RETRY):
-            r = run_pr([n]).get(n); again.append(r)
-            if r in GREEN: break
+        d = igjen_one(n, n in own, base.get(n), run_pr, run_base)
+        if d['base'] is not None: base[n] = d['base']
+        # an old test red on the working branch too is not the fix's doing
+        if n not in own and d['base'] == 'FEIL': t['rod_fra_for'].append(n); continue
+        again = d['retry']
         t['retry'][n] = again
         if again and again[-1] in GREEN: t.setdefault('flaky', []).append(n); continue
         if n in own: R['why'].append('testen %s som rettingen skrev, er rød med rettingen, også %d ganger til alene' % (n, len(again)))
@@ -305,10 +327,24 @@ def selftest():
              want_why=None, want_risk=None, want_proof=None, want_base_runs=None, want_pr_runs=None):
         R = {'why': [], 'risk': [], 'risiko': {'klasse': risiko.LAV, 'css_tekst': css},
              'tests': {'names': names, 'own_names': own, 'own': ['tests/%s.py' % n for n in own], 'unit_own': unit_own}}
-        n[0] += 1; runs = {'pr': [], 'base': []}
+        n[0] += 1; runs = {'pr': [], 'base': []}; pr_again0 = {k: list(v) for k, v in pr_again.items()}
         def rp(ns): runs['pr'] += ns; return {n: (pr_again[n].pop(0) if pr_again.get(n) else 'FEIL') for n in ns}
         def rb(ns): runs['base'] += ns; return {n: base_more.get(n, 'OK') for n in ns}
         decide(R, mine, base_known, rp, rb, unit_ok, unit_base, cost=lambda n: {'tung': 1500}.get(n, 10))
+        # the workflow: each red test on a machine of its own first (igjen_one with the same runs), then the decision replays them and
+        # runs nothing itself; its answer must be the same
+        R2 = {'why': [], 'risk': [], 'risiko': dict(R['risiko']), 'tests': {'names': names, 'own_names': own, 'own': ['tests/%s.py' % n for n in own], 'unit_own': unit_own}}
+        pa = {k: list(v) for k, v in pr_again0.items()}
+        fp = lambda ns: {m: (pa[m].pop(0) if pa.get(m) else 'FEIL') for m in ns}
+        fb = lambda ns: {m: base_more.get(m, 'OK') for m in ns}
+        pre = {m: igjen_one(m, m in own, base_known.get(m), fp, fb) for m in reds_of(R2, mine)}
+        q = {m: list(d['retry']) for m, d in pre.items()}
+        def rp2(ns): return {m: q[m].pop(0) for m in ns}   # (KeyError or IndexError: the decision asked for a run the machines had not done)
+        def rb2(ns): return {m: pre[m]['base'] for m in ns}
+        try: decide(R2, mine, base_known, rp2, rb2, unit_ok, unit_base, cost=lambda n: {'tung': 1500}.get(n, 10))
+        except (KeyError, IndexError) as e: bad.append('%s: avgjørelsen ba om en kjøring maskinene ikke hadde gjort (%r)' % (what, e)); R2 = None
+        if R2 and (R2['why'], R2['risk'], R2['tests']['bevis']) != (R['why'], R['risk'], R['tests']['bevis']):
+            bad.append('%s: avgjørelsen fra egne maskiner (%r) er ikke den samme som i ett kall (%r)' % (what, R2['why'] + R2['risk'], R['why'] + R['risk']))
         got = {'why': len(R['why']), 'risk': len(R['risk']), 'proof': R['tests']['bevis'], 'base_runs': runs['base'], 'pr_runs': runs['pr']}
         for k, w in (('why', want_why), ('risk', want_risk), ('proof', want_proof), ('base_runs', want_base_runs), ('pr_runs', want_pr_runs)):
             if w is not None and got[k] != w: bad.append('%s: %s er %r, skal være %r (%s)' % (what, k, got[k], w, '; '.join(R['why'] + R['risk'])))
@@ -352,6 +388,7 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--base', default='origin/ccr-5e1ba2f4-pusvyd'); ap.add_argument('--out'); ap.add_argument('--no-tests', action='store_true')
     ap.add_argument('--repo'); ap.add_argument('--lag-plan', action='store_true'); ap.add_argument('--plan'); ap.add_argument('--kjor', action='store_true'); ap.add_argument('--tester', default='')
     ap.add_argument('--kjor-base', action='store_true'); ap.add_argument('--avgjor', action='store_true'); ap.add_argument('--dir'); ap.add_argument('--selftest', action='store_true')
+    ap.add_argument('--rode', action='store_true'); ap.add_argument('--igjen')
     a = ap.parse_args()
     if a.selftest: sys.exit(selftest())
     if a.repo: REPO = os.path.abspath(a.repo)
@@ -364,26 +401,53 @@ def main():
             res = B.run(t['own_names']); ub = B.unit() if t['unit_own'] else None
         finally: B.close()
         json.dump({'base': res, 'unit_base': ub, 'bygg_base': B.err}, open(a.out, 'w'), ensure_ascii=False); print(json.dumps(res, ensure_ascii=False), ub, B.err); return
+    def parts(R, d):
+        """The parts' answers in the folder: the PR's tests, the working branch's, the unit tests there, the builds that failed, and the red
+        tests run again on machines of their own (--igjen)."""
+        mine, base, ub, errs, pre = {}, {}, None, [], {}
+        for f in sorted(glob.glob(os.path.join(d, '**', 'del-*.json'), recursive=True)):
+            x = json.load(open(f))
+            if x.get('bygg'): errs.append(x['bygg'])
+            mine.update(x.get('pr') or {}); base.update(x.get('base') or {}); pre.update(x.get('igjen') or {})
+            if 'unit_base' in x: ub = x['unit_base']
+        return mine, base, ub, errs, pre
+    if a.rode:   # the red tests to run again, each on a machine of its own (the workflow's «igjen»), the cheapest first
+        R = json.load(open(a.plan)); mine, base, ub, errs, pre = parts(R, a.dir)
+        reds = [] if (R['why'] or errs) else reds_of(R, mine, cost_fn())[:IGJEN_MAKS]
+        out = [{'navn': 'igjen-' + n, 'test': n} for n in reds]
+        print('Røde på PR-en, kjøres igjen på egne maskiner:', ', '.join(reds) or 'ingen')
+        json.dump(out, open(a.out, 'w'), ensure_ascii=False); return
+    if a.igjen:   # one red test: on the working branch (an old test) and again on the PR, igjen_one
+        R = json.load(open(a.plan)); t = R['tests']; n = a.igjen; B = Base(a.base, t['own']); built = {'pr': ''}
+        def run_pr(ns):
+            if built['pr'] == '': built['pr'] = build(REPO) or 'ok'
+            return {} if built['pr'] != 'ok' else run_tests(REPO, ns)[0]
+        try: d = igjen_one(n, n in t['own_names'], None, run_pr, B.run)
+        finally: B.close()
+        json.dump({'igjen': {n: d}}, open(a.out, 'w'), ensure_ascii=False); print(n, json.dumps(d, ensure_ascii=False)); return
     if a.avgjor:
         R = json.load(open(a.plan))
         tested = not R['why'] and not a.no_tests
         if tested:
-            mine, base, ub, errs = {}, {}, None, []
-            for f in sorted(glob.glob(os.path.join(a.dir, '**', 'del-*.json'), recursive=True)):
-                d = json.load(open(f))
-                if d.get('bygg'): errs.append(d['bygg'])
-                mine.update(d.get('pr') or {}); base.update(d.get('base') or {})
-                if 'unit_base' in d: ub = d['unit_base']
+            mine, base, ub, errs, pre = parts(R, a.dir)
             if errs: R['why'].append('bygget feiler: ' + errs[0])
             # (the working branch's build failing is not the fix's fault: its own tests then have no answer there, and no proof)
             B = Base(a.base, R['tests']['own']); built = {'pr': False}
+            q = {n: list(d.get('retry') or []) for n, d in pre.items()}
             def run_pr(ns):
+                # a red test run again on a machine of its own (--igjen) is replayed; one that was not (more than IGJEN_MAKS, or its
+                # machine did not finish) is run here
+                if all(q.get(n) for n in ns): return {n: q[n].pop(0) for n in ns}
                 if not built['pr']:
                     e = build(REPO); built['pr'] = True
                     if e: R['why'].append('bygget feiler: ' + e)
                 return run_tests(REPO, ns)[0]
-            try: decide(R, mine, base, run_pr, B.run, unit(REPO), ub, cost_fn())
+            def run_base(ns):
+                if all(n in pre and pre[n].get('base') is not None for n in ns): return {n: pre[n]['base'] for n in ns}
+                return B.run(ns)
+            try: decide(R, mine, base, run_pr, run_base, unit(REPO), ub, cost_fn())
             finally: B.close()
+            R['tests']['igjen'] = pre
         finish(R, a.out, a.no_tests)
     R = check(a.base)
     if a.lag_plan:
