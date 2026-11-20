@@ -99,11 +99,25 @@ def results(text):
     return out
 
 
+def unlisted(names):
+    """The tests in none of tests/run.py's lists: a fix's new test (it cannot add it to run.py, DENY). run.py would run it as one that
+    does not look at 3D (KYST_LITE=1, the game with #no3d), and a test of the 3D view then never draws a frame and is red with the fix
+    and without it (kartminne in #158, 20.11.2026). They run as their author ran them: with 3D (run.py --3d)."""
+    sys.path.insert(0, os.path.join(ROOT, 'tests')); import run as RUN
+    known = set(RUN.D3) | set(RUN.LITE) | set(RUN.SOLO) | set(RUN.DRAWS3D)
+    return [n for n in names if n not in known]
+
+
 def run_tests(root, names, env=None):
     if not names: return {}, ''
-    p = subprocess.run([sys.executable, os.path.join(root, 'tests', 'run.py'), 'smoke'] + names, cwd=root, capture_output=True, text=True,
-                       env=dict(os.environ, **(env or {})))
-    return results(p.stdout), p.stdout[-6000:]
+    out, log = {}, ''
+    new = unlisted(names)
+    for group, extra in (([n for n in names if n not in new], []), (new, ['--3d'])):
+        if not group: continue
+        p = subprocess.run([sys.executable, os.path.join(root, 'tests', 'run.py'), 'smoke'] + group + extra, cwd=root, capture_output=True, text=True,
+                           env=dict(os.environ, **(env or {})))
+        out.update(results(p.stdout)); log += p.stdout[-6000:]
+    return out, log[-6000:]
 
 
 def build(root):
