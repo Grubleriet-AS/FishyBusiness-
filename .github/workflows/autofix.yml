@@ -222,7 +222,13 @@ jobs:
             gate.txt
       - name: Bare en prøve
         if: needs.plan.outputs.prove == 'true'
-        run: echo "Prøve på PR #${{ needs.plan.outputs.pr }} med porten fra ${{ needs.plan.outputs.porten }}; svaret over (kode ${{ steps.gate.outputs.code }}). Ingenting er flettet, merket, kommentert eller sluppet."
+        env:
+          PR: ${{ needs.plan.outputs.pr }}
+          PORTEN: ${{ needs.plan.outputs.porten }}
+          CODE: ${{ steps.gate.outputs.code }}
+        run: |
+          # (a block, not one line: « #» in a plain YAML line starts a comment, and cut this one off inside its quotes 20.11.2026)
+          echo "Prøve på PR #$PR med porten fra $PORTEN; svaret over (kode $CODE). Ingenting er flettet, merket, kommentert eller sluppet."
 
   utfall:
     # what the gate's answer leads to: merge and release (0), or the label and the comment for Jonas (3 and 1). Not for a trial
