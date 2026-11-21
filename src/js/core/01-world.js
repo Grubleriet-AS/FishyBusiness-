@@ -175,7 +175,10 @@ const BRIDGES = [[1,25,"Flakstadveien","yes",23456,52195,23432,52187],[1,41,"Tra
 let ROADS = null, FINE = null;
 async function loadFine(){
   if (typeof DecompressionStream === 'undefined') return [];
-  const buf = new Uint8Array(await new Response(new Blob([b64bytes(GEO_FINE)]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+  // (Safari on iOS and macOS can fail to read a Blob the page has just made: «NotReadableError: The I/O read operation failed.», klynge
+  // 8dead4b1, 20.11.2026. The bytes are then inflated once more from a Response of their own, which does not go through the blob store)
+  const gz = b64bytes(GEO_FINE), inflate = s => new Response(s.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer();
+  const buf = new Uint8Array(await inflate(new Blob([gz]).stream()).catch(() => inflate(new Response(gz).body)));
   const next = varints(buf), zz = v => (v % 2 ? -(v + 1) / 2 : v / 2), n = next(), out = [];
   for (let k = 0; k < n; k++){ const len = next(), xs = new Float64Array(len), zs = new Float64Array(len); let x = 0, z = 0, a = 1e9, b = 1e9, e = -1e9, f = -1e9;
     for (let j = 0; j < len; j++){ x += zz(next()); z += zz(next()); const q = LGm([x, z]); xs[j] = q[0]; zs[j] = q[1]; if (q[0] < a) a = q[0]; if (q[1] < b) b = q[1]; if (q[0] > e) e = q[0]; if (q[1] > f) f = q[1]; } out.push({xs, zs, bb:[a, b, e, f]}); }
@@ -183,7 +186,8 @@ async function loadFine(){
 }
 async function loadRoads(){
   if (typeof DecompressionStream === 'undefined') return [];
-  const buf = new Uint8Array(await new Response(new Blob([b64bytes(GEO_ROADS)]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+  const gz = b64bytes(GEO_ROADS), inflate = s => new Response(s.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer();   // (as in loadFine)
+  const buf = new Uint8Array(await inflate(new Blob([gz]).stream()).catch(() => inflate(new Response(gz).body)));
   const next = varints(buf), zz = v => (v % 2 ? -(v + 1) / 2 : v / 2), n = next(), out = [];
   for (let k = 0; k < n; k++){
     const c = next(), len = next(), xs = new Float64Array(len), zs = new Float64Array(len); let x = 0, z = 0, a = 1e9, b = 1e9, e = -1e9, f = -1e9;

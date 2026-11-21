@@ -19,7 +19,9 @@
     const el = document.getElementById('bld');
     if (!el || typeof DecompressionStream === 'undefined') return null;
     const n = +el.dataset.n, U = +el.dataset.u, bytes = (typeof DATAB !== 'undefined' && DATAB.get('bld')) || b64bytes(el.textContent.trim());   // (the bytes from bootData, 04.11.2026)
-    const raw = new Uint8Array(await new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+    // (a Blob Safari cannot read, klynge 8dead4b1: inflated once more from a Response of its own, as loadFine in core/01-world.js)
+    const inflate = s => new Response(s.pipeThrough(new DecompressionStream('deflate'))).arrayBuffer();
+    const raw = new Uint8Array(await inflate(new Blob([bytes]).stream()).catch(() => inflate(new Response(bytes).body)));
     const X = new Uint16Array(raw.buffer, 0, n), Y = new Uint16Array(raw.buffer, 2 * n, n), Lq = raw.subarray(4 * n, 5 * n), Wq = raw.subarray(5 * n, 6 * n), Aq = raw.subarray(6 * n, 7 * n), Tq = raw.subarray(7 * n, 8 * n);
     const dec = q => q <= 160 ? q * 0.5 : 80 + (q - 160) * 2;
     const B = {n, x:new Float64Array(n), z:new Float64Array(n), l:new Float32Array(n), w:new Float32Array(n), a:new Float32Array(n), t:new Uint8Array(n), lv:new Uint8Array(n), cells:new Map(), seed:0};
