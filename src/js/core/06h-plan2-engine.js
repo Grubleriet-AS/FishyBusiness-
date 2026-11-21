@@ -33,7 +33,7 @@ function plan2LegOk(o, a, ap, b, bp){
 // with it on and nothing to clear it: «Lager planen …» for good, the place and the gear locked and the engine skipping the plan (feedback
 // 220, 21.11.2026). A build counts only while this page runs it (P2MAKING, not saved) and not past P2MAKE_MAX ms, a map or route fetch
 // that never answers; else the flag goes
-const P2MAKING = new Map(), P2MAKE_MAX = 180000;
+const P2MAKING = new WeakMap(), P2MAKE_MAX = 180000;
 function plan2Building(o){
   if (!o || !o.building) return false;
   const m = P2MAKING.get(o); if (m && Date.now() - m.t < P2MAKE_MAX) return true;
@@ -42,13 +42,15 @@ function plan2Building(o){
 // ---- making the plan: the plant, the anchorages, the legs and the shelter ports. Async; cb(err) when done
 async function plan2Make(o, cb){
   const vid = S.cur, key = plan2Key(o), tok = {t:Date.now()}; o.building = true; o.err = null; P2MAKING.set(o, tok);
-  // (a build given up by plan2Building that answers late leaves the flag of a newer one alone)
-  const done = () => { if (P2MAKING.get(o) === tok){ P2MAKING.delete(o); o.building = false; } };
+  // (a build given up by plan2Building that answers late, after a phone that slept, does nothing more: no made or err and no cb, so a
+  // newer build is not stopped or started twice; it stops at the next await, the control 21.11.2026)
+  const own = () => P2MAKING.get(o) === tok, done = () => { P2MAKING.delete(o); o.building = false; };
   try {
     const C = plan2Check(o); if (!C.ok) throw C.errors[0];
     const P = o.places, mid = {x:P.reduce((a, q) => a + q.x, 0) / P.length, y:P.reduce((a, q) => a + q.y, 0) / P.length}, home = portById(o.home), big = (BOAT.len || 0) >= DRP.bigLen;
     if (home && home.rorbu && !siteFits(S.boat.type, home.id)){ const w = siteWhy(S.boat.type, home.id); throw gL(w[0] + ' Velg mottaket eller en havneplass som hjem.', w[1] + ' Choose the plant or a harbour berth as home.'); }   // (SITE_MAXLEN, SITE_SILL, 07-harbours.js)
     try { await mapNeed(mid, 14); await mapNeed(home.p, 6); for (const q of P) await mapNeed(q, p2Sno(o) ? 6 + DRP2.sno.row * Math.ceil(q.n / DRP2.sno.cols) + DRP2.sno.cols * DRP2.sno.col / 2 : 2); } catch (e){}
+    if (!own()) return;
     // (the snow crab's strings, H3c: their room checked again now the map round them is in)
     if (p2Sno(o)){ P2SNO_FIT.clear(); const C2 = plan2Check(o); if (!C2.ok) throw C2.errors[0]; }
     // the plant: the chosen one, or of the three nearest the grounds the one reached soonest from the nearest place
@@ -60,12 +62,13 @@ async function plan2Make(o, cb){
       let M = null, mh = 1e9;
       for (const q of near){ const k = drLK(first, null, q.p, q.id); if (!o.legs[k] || o.legs[k].none){ let r = null; try { r = await leiaRoute(first, q.p, null, q.id); } catch (e){} drLegPut(o, k, r, first, q.p); }
         const L = o.legs[k]; if (L && !L.none && L.d < mh){ mh = L.d; M = q; } }
+      if (!own()) return;
       if (!M) throw gL('Fant ingen vei fra plassene til et fiskemottak.', 'Found no way from the places to a fish plant.');
       o.M = M.id;
     }
     o.homeA = null; o.restA = null;
     if (o.anchor && big){ const a = driftAnchorage(o.home); if (!a) throw gL('Fant ingen ankerplass nær ' + home.name + '.', 'Found no anchorage near ' + home.name + '.'); o.homeA = {x:a.x, y:a.y}; }
-    if (o.rhythm === 'multi' && big){ const np = nearestPort(mid); try { await mapNeed(np.p, 14); } catch (e){} const a = driftAnchorage(np.id); if (a) o.restA = {x:a.x, y:a.y}; }
+    if (o.rhythm === 'multi' && big){ const np = nearestPort(mid); try { await mapNeed(np.p, 14); } catch (e){} if (!own()) return; const a = driftAnchorage(np.id); if (a) o.restA = {x:a.x, y:a.y}; }
     // the shelter port of each place: the nearest quays that are not rorbuer (the first with a way to it is kept in o.ly)
     o.ly = {}; const lyC = {};
     // (an ocean vessel has none: over her limits she lies to where she is, 05-vessels.js lieTo, H2c)
@@ -78,6 +81,7 @@ async function plan2Make(o, cb){
     add('M', 'H'); add('H', 'M'); if (o.homeA){ add('M', 'Q'); add('Q', 'M'); add('Q', 'H'); add('H', 'Q'); }
     drLegsStale(o); await drFetch(o, pairs, vid);
     const left = pairs.filter(q => !o.legs[drLK(q.a, q.ap, q.b, q.bp)]); if (left.length) await drFetch(o, left, vid);
+    if (!own()) return;
     for (const q of P){ const a = plan2P(o, q.id); o.ly[q.id] = (lyC[q.id].find(p => plan2LegOk(o, a, null, p.p, p.id)) || {id:null}).id; }
     // every leg the day can use must be there and sailable: a place without one is refused now, not out at sea
     const nmOf = k => k === 'H' || k === 'Q' ? home.name : k === 'M' ? (portById(o.M) || {}).name : k === 'A' ? gL('ankerplassen', 'the anchorage') : (() => { const i = P.findIndex(q => q.id === k), q = P[i]; return (q && q.k === 'juks' ? gL('juksplass ', 'jig place ') : gL('felt ', 'field ')) + (q ? P.filter(x => x.k === q.k).indexOf(q) + 1 : '?'); })();
@@ -85,7 +89,7 @@ async function plan2Make(o, cb){
     for (const k of ks){ for (const e of ends){ const w = bad(e, k) || bad(k, e); if (w) throw w; } for (const j of ks) if (j !== k){ const w = bad(k, j); if (w) throw w; } }
     { const w = bad('M', 'H') || bad('H', 'M'); if (w) throw w; }
     o.made = {key, t:S.t}; o.err = null; done(); if (cb) cb(null);
-  } catch (e){ o.err = typeof e === 'string' ? e : String(e && e.message || e); o.made = null; done(); console.warn('plan2Make', vid, o.err); if (cb) cb(o.err); }
+  } catch (e){ if (!own()) return; o.err = typeof e === 'string' ? e : String(e && e.message || e); o.made = null; done(); console.warn('plan2Make', vid, o.err); if (cb) cb(o.err); }
 }
 // ---- what the plan says, waits for and stops at
 // (who says it: the skipper you named, the ocean vessel's own skipper of the teams (H2c), or the plan)

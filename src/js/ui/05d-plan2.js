@@ -6,7 +6,8 @@ const PLAN2UI = (() => {
   const L = (no, en) => S.lang === 'no' ? no : en;
   const nm = id => (portById(id) || {name:'?'}).name;
   let open = null, busy0 = 0;
-  // (the page's own «making» from Start until plan3Make answers; a make that never answers lets go after P2MAKE_MAX, as plan2Building does)
+  // (the page's own «making» from Start until plan3Make answers; a make that never answers lets go after P2MAKE_MAX, as plan2Building does,
+  // and an answer from a make given up is not heard: each make has its own mark, mk)
   const busy = () => busy0 > 0 && Date.now() - busy0 < P2MAKE_MAX;
   // (and the drawer at once: «Lager planen …» stood up to 0.7 s after the plan was on, until the drawer's own tick, GUI review P5)
   const rerender = () => { if (typeof refreshAll === 'function') refreshAll(); else if (typeof PHONE !== 'undefined') PHONE.render(); if (typeof DOCK !== 'undefined' && DOCK.redraw) DOCK.redraw(); };
@@ -213,12 +214,12 @@ const PLAN2UI = (() => {
     const stale = o.v === DRV3 && (p2Auto(o) || p2Sno(o)) && (o.p3v || 0) < 4 && !plan2State(o).sets.length;
     if (plan2Made(o) && o.places.length && !stale){ go(); return; }
     if (stale) redo(o);
-    busy0 = Date.now(); plan3Make(o, err => { busy0 = 0; if (err) toast(err); else go(); rerender(); });
+    const mk = busy0 = Date.now(); plan3Make(o, err => { if (busy0 !== mk) return; busy0 = 0; if (err) toast(err); else go(); rerender(); });
   }
   // the gear in the sea is fetched on one trip while the plan is off (choice 2 A): a day of hauls without setting again, then home
   function fetch(o){
     if (o.v === DRV3 && !o.ring){ toast(L('Velg et sted først.', 'Choose a place first.')); return; }
-    if (!plan2Made(o)){ busy0 = Date.now(); plan3Make(o, err => { busy0 = 0; if (err) toast(err); else fetch(o); rerender(); }); return; }
+    if (!plan2Made(o)){ const mk = busy0 = Date.now(); plan3Make(o, err => { if (busy0 !== mk) return; busy0 = 0; if (err) toast(err); else fetch(o); rerender(); }); return; }
     plan2Abort(o); o.fetch = true; o.on = true; o.stop = null; o.held = null; o.hold = 0; o.run = null; o.paused = null; toast(L('Båten går ut og henter redskapet.', 'The boat goes out to fetch the gear.'));
   }
   function act(a, d){

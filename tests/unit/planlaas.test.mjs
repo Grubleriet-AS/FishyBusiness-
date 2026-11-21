@@ -21,7 +21,7 @@ export default function (t){
     now += P2MAKE_MAX + 1;
     t.ok(plan2Building(o2) === false && o2.building === false && !P2MAKING.has(o2), 'en laging som ikke har svart på ' + Math.round(P2MAKE_MAX / 1000) + ' s, slipper planen');
   } finally { Date.now = real; }
-  // a build that fails at once (no places to make it from) leaves nothing behind
+  // a build that fails before its first await (here plan2Check throws on a plan with no places made) leaves nothing behind
   const o3 = plan3New({x:500, y:300}, 'juksa', {tackle:'mark'}); S.ops = o3; let got;
   plan2Make(o3, e => { got = e; });
   t.ok(got && o3.building === false && !P2MAKING.has(o3) && plan2Building(o3) === false, 'en laging som feiler, slipper planen (' + got + ')');
