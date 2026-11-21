@@ -15,7 +15,7 @@ the number of saves is printed.
   python3 tools/saves/fetch.py --find 1a2b3c4d  # whose save the gate stopped on: the row behind a fingerprint (player id and time).
                                                 # Writes no file, and refuses in GitHub Actions: the answer is for Jonas' own screen
 """
-import base64, gzip, json, os, sys, urllib.request, hashlib
+import base64, gzip, json, os, socket, sys, time, urllib.request, hashlib
 
 URL = os.environ.get('SUPABASE_URL') or json.load(open(os.path.join(os.path.dirname(__file__), '../../src/data/cloud.json')))['supabaseUrl']
 KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -23,15 +23,26 @@ arg = lambda k: sys.argv[sys.argv.index(k) + 1] if k in sys.argv and sys.argv.in
 OUT = arg('--out') or os.path.join(os.path.dirname(__file__), '../../tests/saves')
 fp = lambda s: hashlib.sha256(s.encode('utf-8')).hexdigest()[:8]
 
-def get(path):
-    # a thousand rows at a time, until a page comes back empty (PostgREST gives no more than the project's «max rows» in one answer
-    # and says nothing about the rest); the caller's order must be total, or rows move between the pages while players save
+def page(path, n, off):
+    # one answer, tried three times: a read that times out is asked again after 5 and 15 s (the gate stopped two releases on
+    # 21.11.2026 on «The read operation timed out»: a page of a thousand rows of save_hist had grown to about 100 MB)
+    for i in range(3):
+        rq = urllib.request.Request(URL.rstrip('/') + '/rest/v1/' + path + '&limit=%d&offset=%d' % (n, off), headers={'apikey': KEY, 'Authorization': 'Bearer ' + KEY})
+        try:
+            with urllib.request.urlopen(rq, timeout=180) as r: return json.load(r)
+        except (socket.timeout, TimeoutError, ConnectionError) as e:
+            if i == 2: raise
+            time.sleep(5 if i == 0 else 15)
+
+def get(path, n=1000):
+    # n rows at a time, until a page comes back empty (PostgREST gives no more than the project's «max rows» in one answer and says
+    # nothing about the rest); the caller's order must be total, or rows move between the pages while players save. A row with a save
+    # in it is up to 200 kB, so those go 50 at a time (about 10 MB an answer)
     out = []
     while True:
-        rq = urllib.request.Request(URL.rstrip('/') + '/rest/v1/' + path + '&limit=1000&offset=%d' % len(out), headers={'apikey': KEY, 'Authorization': 'Bearer ' + KEY})
-        with urllib.request.urlopen(rq, timeout=60) as r: page = json.load(r)
-        if not page: return out
-        out += page
+        p = page(path, n, len(out))
+        if not p: return out
+        out += p
 
 def raw(code):
     if not code or not code.startswith('KYST2:'): return code
@@ -42,14 +53,17 @@ def main():
     find = arg('--find')
     if find and os.environ.get('GITHUB_ACTIONS'): sys.exit('--find is not for a job: its answer names a player, and the log is public')
     hist = int(arg('--hist') or 0) or (3 if find else 0)
-    rows = [('save', r) for r in get('saves?select=player_id,data,updated_at&order=player_id')]
+    rows = [('save', r) for r in get('saves?select=player_id,data,updated_at&order=player_id', 50)]
     if hist:
-        h = get('save_hist?select=player_id,data,saved_at&order=id.desc')
+        # which rows: the ids alone first (light), the newest `hist` of each player; then only those rows' saves, 50 at a time (before
+        # 21.11.2026 every row of save_hist came with its save, 156 MB, and all but one per player were thrown away)
         per = {}
-        for r in h:
+        for r in get('save_hist?select=id,player_id&order=id.desc'):
             per.setdefault(r['player_id'], [])
-            if len(per[r['player_id']]) < hist: per[r['player_id']].append(r)
-        rows += [('hist', r) for v in per.values() for r in v]
+            if len(per[r['player_id']]) < hist: per[r['player_id']].append(r['id'])
+        ids = sorted((i for v in per.values() for i in v), reverse=True)
+        for k in range(0, len(ids), 50):
+            rows += [('hist', r) for r in page('save_hist?select=id,player_id,data,saved_at&id=in.(%s)&order=id.desc' % ','.join(str(i) for i in ids[k:k + 50]), 50, 0)]
     if not find:
         os.makedirs(OUT, exist_ok=True)
         for f in os.listdir(OUT):
