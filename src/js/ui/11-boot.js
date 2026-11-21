@@ -39,7 +39,7 @@ const BOOT_WATCH = setInterval(() => {
 //   1+  «Oppstarten står fast: siden låste seg …» goes to the error list at once, at the sign-in (bootgReport, before the game is built),
 //       with what the save had going (the boats, the routes), and the admin gets the push (err_alert)
 //   2   the account's copy of this device's game, when this device has played past it (ui/10f-cloud.js cloudSync: a minute or so
-//       before; the newest is kept under Tidligere lagringer); with nothing older on the account, the safe start
+//       before; the newest is kept under Tidligere lagringer), once in a row of locks; with nothing older on the account, the safe start
 //   3   the safe start (bootgSafe): every Autonav route stops where the boat is and goes back to the draft, and the time away is
 //       played with the boats lying still
 //   4+  the game is not built: «Spillet startet ikke» with try again, safe mode and the save before (bootFail), each of which starts
@@ -51,9 +51,11 @@ const BOOTG = (() => {
   if (!p || typeof p !== 'object') p = null;
   const locked = !!(p && p.in && !p.ok && p.vis), fails = !p || p.ok ? 0 : (p.fails || 0) + (locked ? 1 : 0);
   // (took: the start before took the account's copy and loaded the page again, so this one tries that game as it is first;
-  // safe: the dialog's «sikker modus» asked for the safe start)
-  return {prev:p, fails, said:false, safe:false, save:null, rec:{fails, at:Date.now(), v:(document.querySelector('meta[name=dsb-version]') || {}).content || 'dev',
-    in:false, ok:false, vis:!document.hidden, took:!!(p && p.took && !p.in && !p.ok), safe:!!(p && p.safeAsk && !p.in)}};
+  // safe: the dialog's «sikker modus» asked for the safe start; res: the account's copy has been taken in this row of locks, once:
+  // a second take put the game just taken in the one place for the save before, over the device's own newest game, 21.11.2026;
+  // locked: the start before did lock, and is told (bootgReport), not a start that only took the copy or stopped in the background)
+  return {prev:p, fails, locked, said:false, safe:false, save:null, rec:{fails, at:Date.now(), v:(document.querySelector('meta[name=dsb-version]') || {}).content || 'dev',
+    in:false, ok:false, vis:!document.hidden, took:!!(p && p.took && !p.in && !p.ok), safe:!!(p && p.safeAsk && !p.in), res:!!(p && p.res && fails > 0)}};
 })();
 function bootgWrite(){ if (BOOTG.off) return; try { localStorage.setItem(BOOTG_KEY, JSON.stringify(BOOTG.rec)); } catch (e){} }
 bootgWrite();
@@ -91,7 +93,7 @@ function bootgOut(){ const r = BOOTG.rec; r.in = false; bootgWrite(); }
 function bootgClear(over){ BOOTG.off = true; try { if (over) localStorage.setItem(BOOTG_KEY, JSON.stringify(over)); else localStorage.removeItem(BOOTG_KEY); } catch (e){} }
 // the start before locked: told at once, while the cloud is there (ui/10f-cloud.js cloudGate, after tm_hello), with what waited from it
 function bootgReport(){
-  const g = BOOTG; if (g.said || g.fails < 1 || typeof cloudRpc !== 'function') return; g.said = true;
+  const g = BOOTG; if (g.said || g.fails < 1 || !g.locked || typeof cloudRpc !== 'function') return; g.said = true;
   const p = g.prev || {}, meta = {}; try { Object.assign(meta, cloudMeta()); } catch (e){} try { Object.assign(meta, cloudDev()); } catch (e){}
   const info = {fails:g.fails, version:p.v || null, min_ago:p.at ? Math.round((Date.now() - p.at) / 60000) : null, act:p.act || null, save:p.save || null};
   cloudRpc('tm_error', {msg:'Oppstarten står fast: siden låste seg mens spillet ble bygd', src:'boot', stack:JSON.stringify(info).slice(0, 2000), meta}).catch(() => {});
@@ -99,7 +101,7 @@ function bootgReport(){
   try { if (!ERR.ready && ERR.pend.length) for (const e of ERR.pend.splice(0)) cloudRpc('tm_error', e).catch(() => errKeep([e])); errFlush(); } catch (e){}
 }
 // the second lock: the account's copy of this device's game, when this device has played past it (ui/10f-cloud.js cloudSync)
-function bootgRescue(){ const g = BOOTG, r = g.rec; if (g.fails < 2 || g.fails >= 4 || r.took) return false; r.took = true; r.act = 'cloud'; bootgWrite(); return true; }
+function bootgRescue(){ const g = BOOTG, r = g.rec; if (g.fails < 2 || g.fails >= 4 || r.took || r.res) return false; r.took = true; r.res = true; r.act = 'cloud'; bootgWrite(); return true; }
 // the safe start (bootGame): every route stops where her boat is and goes back to the draft, as «Pause» does (ui/03b-route.js)
 function bootgSafe(){
   let n = 0;
