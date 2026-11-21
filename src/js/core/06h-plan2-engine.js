@@ -29,9 +29,21 @@ function plan2LegOk(o, a, ap, b, bp){
     for (let j = 1; j <= n; j++){ const p = {x:p0.x + (p1.x - p0.x) * j / n, y:p0.y + (p1.y - p0.y) * j / n}; try { if (inHarbour(p)) continue; if (isLand(p) || ((j & 3) === 0 || j === n) && depthF(p) + tl < BOAT.draft) return false; } catch (e){ return false; } } }
   return true;
 }
+// ---- is the plan being made? o.building is saved with the state, so a page closed or reloaded while a plan was being made came back
+// with it on and nothing to clear it: «Lager planen …» for good, the place and the gear locked and the engine skipping the plan (feedback
+// 220, 21.11.2026). A build counts only while this page runs it (P2MAKING, not saved) and not past P2MAKE_MAX ms, a map or route fetch
+// that never answers; else the flag goes
+const P2MAKING = new Map(), P2MAKE_MAX = 180000;
+function plan2Building(o){
+  if (!o || !o.building) return false;
+  const m = P2MAKING.get(o); if (m && Date.now() - m.t < P2MAKE_MAX) return true;
+  P2MAKING.delete(o); o.building = false; return false;
+}
 // ---- making the plan: the plant, the anchorages, the legs and the shelter ports. Async; cb(err) when done
 async function plan2Make(o, cb){
-  const vid = S.cur, key = plan2Key(o); o.building = true; o.err = null;
+  const vid = S.cur, key = plan2Key(o), tok = {t:Date.now()}; o.building = true; o.err = null; P2MAKING.set(o, tok);
+  // (a build given up by plan2Building that answers late leaves the flag of a newer one alone)
+  const done = () => { if (P2MAKING.get(o) === tok){ P2MAKING.delete(o); o.building = false; } };
   try {
     const C = plan2Check(o); if (!C.ok) throw C.errors[0];
     const P = o.places, mid = {x:P.reduce((a, q) => a + q.x, 0) / P.length, y:P.reduce((a, q) => a + q.y, 0) / P.length}, home = portById(o.home), big = (BOAT.len || 0) >= DRP.bigLen;
@@ -72,8 +84,8 @@ async function plan2Make(o, cb){
     const bad = (x, y) => { const a = plan2P(o, x), b = plan2P(o, y); if (!a || !b) return null; const L = drLeg(o, a, plan2Port(o, x), b, plan2Port(o, y)); if (!L) return gL('Fant ingen vei mellom ' + nmOf(x) + ' og ' + nmOf(y) + '. Flytt plassen litt.', 'Found no way between ' + nmOf(x) + ' and ' + nmOf(y) + '. Move the place a little.'); if (!plan2LegOk(o, a, plan2Port(o, x), b, plan2Port(o, y))) return gL('Leia mellom ' + nmOf(x) + ' og ' + nmOf(y) + ' går over grunt vann. Flytt plassen litt.', 'The way between ' + nmOf(x) + ' and ' + nmOf(y) + ' crosses shallow water. Move the place a little.'); return null; };
     for (const k of ks){ for (const e of ends){ const w = bad(e, k) || bad(k, e); if (w) throw w; } for (const j of ks) if (j !== k){ const w = bad(k, j); if (w) throw w; } }
     { const w = bad('M', 'H') || bad('H', 'M'); if (w) throw w; }
-    o.made = {key, t:S.t}; o.err = null; o.building = false; if (cb) cb(null);
-  } catch (e){ o.err = typeof e === 'string' ? e : String(e && e.message || e); o.made = null; o.building = false; console.warn('plan2Make', vid, o.err); if (cb) cb(o.err); }
+    o.made = {key, t:S.t}; o.err = null; done(); if (cb) cb(null);
+  } catch (e){ o.err = typeof e === 'string' ? e : String(e && e.message || e); o.made = null; done(); console.warn('plan2Make', vid, o.err); if (cb) cb(o.err); }
 }
 // ---- what the plan says, waits for and stops at
 // (who says it: the skipper you named, the ocean vessel's own skipper of the teams (H2c), or the plan)
@@ -230,7 +242,7 @@ function plan2Step(H){
   if (b.status === 'port' && b.landWait && b.port === b.landWait) return;
   plan2MeRest(o, H);
   if (o.hold && H < o.hold) return;
-  if (!plan2Made(o)){ if (o.building) return; const C = plan2Check(o); if (!C.ok){ plan2Stop(o, 'check', C.errors[0], C.errors[0]); return; }
+  if (!plan2Made(o)){ if (plan2Building(o)) return; const C = plan2Check(o); if (!C.ok){ plan2Stop(o, 'check', C.errors[0], C.errors[0]); return; }
     plan2Wait(o, 'make', 'Lager planen på nytt …', 'Making the plan again …', H + 1 / 60); plan2Make(o, err => { if (err && o.on) plan2Stop(o, 'make', err, err); }); return; }
   // a trip that ended where it should (at anchor), or anywhere else (a stop at sea, a takeover): the day goes on from here
   if (o.run && o.run.trip){ const tr = o.run.trip; o.run.trip = null; plan2Caught(o, tr); if (tr.sok) plan3SokEnd(o, tr, H); if (tr.anchor && b.anch) o.run.i = tr.to + 1; else o.run.replan = true; }

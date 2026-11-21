@@ -5,7 +5,9 @@
 const PLAN2UI = (() => {
   const L = (no, en) => S.lang === 'no' ? no : en;
   const nm = id => (portById(id) || {name:'?'}).name;
-  let open = null, busy = false;
+  let open = null, busy0 = 0;
+  // (the page's own «making» from Start until plan3Make answers; a make that never answers lets go after P2MAKE_MAX, as plan2Building does)
+  const busy = () => busy0 > 0 && Date.now() - busy0 < P2MAKE_MAX;
   // (and the drawer at once: «Lager planen …» stood up to 0.7 s after the plan was on, until the drawer's own tick, GUI review P5)
   const rerender = () => { if (typeof refreshAll === 'function') refreshAll(); else if (typeof PHONE !== 'undefined') PHONE.render(); if (typeof DOCK !== 'undefined' && DOCK.redraw) DOCK.redraw(); };
   const B = (a, label, extra, cls) => '<button class="ph-btn' + (cls ? ' ' + cls : '') + '" data-pa="' + a + '"' + (extra ? ' ' + extra : '') + '>' + label + '</button>';
@@ -84,7 +86,7 @@ const PLAN2UI = (() => {
   const ringName = c => { const p = nearestPort(c); if (!p) return '?'; const d = kmTrue(p.p, c) / NM; if (d < 20) return L('ved ', 'near ') + p.name;
     const k = Math.round(trueDeg(Math.atan2(c.x - p.p.x, p.p.y - c.y), p.p) / 45) % 8; return fmt(d, 0) + ' nm ' + DIRS[S.lang === 'no' ? 'no' : 'en'][k] + L(' av ', ' of ') + p.name; };
   const ringVal = o => o.ring ? (w => w[0].toUpperCase() + w.slice(1))(ringName(o.ring)) + ' · ' + fmt(DRP3.ring[plan3GearKey(o.rig)], 1) + L(' nm ring · ', ' nm ring · ') + fmt(kmTrue(S.boat.pos, o.ring) / NM, 1) + L(' nm unna', ' nm away') : L('ikke valgt', 'not chosen');
-  const locked = o => o.on || o.building || busy;
+  const locked = o => o.on || plan2Building(o) || busy();
   function stedBody(o){
     const d = fmt(DRP3.ring[plan3GearKey(o.rig)], 1);
     if (locked(o)) return '<p class="ph-note">' + L('Sett planen på pause for å flytte ringen.', 'Pause the plan to move the ring.') + '</p>';
@@ -151,7 +153,7 @@ const PLAN2UI = (() => {
   function top(o, C, untitled){
     const h = ['<div class="ph-card">' + (untitled ? '' : '<h4>' + L('Driftsplan · «', 'Operations plan · «') + S.boatName + '»</h4>')];
     const now = nowOf(o), stopped = !o.on && o.stop;
-    if (busy || o.building) h.push('<button class="dr-onoff" disabled>' + L('Lager planen …', 'Making the plan …') + '</button>');
+    if (busy() || plan2Building(o)) h.push('<button class="dr-onoff" disabled>' + L('Lager planen …', 'Making the plan …') + '</button>');
     else if (o.on) h.push('<button class="dr-onoff on" data-pa="p2-pause">' + L('På · trykk for pause', 'On · tap to pause') + '</button>');
     else h.push('<button class="dr-onoff" data-pa="p2-start"' + (C.ok ? '' : ' disabled') + '>' + (C.ok ? L('Start planen', 'Start the plan') : L('Ikke klar ennå', 'Not ready yet')) + '</button>');
     if (o.on || stopped || o.paused) h.push('<div class="dr-now' + (now[1] === 'bad' || stopped ? ' bad' : now[1] === 'wait' ? ' wait' : '') + '"><b>' + L('Nå: ', 'Now: ') + '</b>' + now[0] + '</div>');
@@ -211,12 +213,12 @@ const PLAN2UI = (() => {
     const stale = o.v === DRV3 && (p2Auto(o) || p2Sno(o)) && (o.p3v || 0) < 4 && !plan2State(o).sets.length;
     if (plan2Made(o) && o.places.length && !stale){ go(); return; }
     if (stale) redo(o);
-    busy = true; plan3Make(o, err => { busy = false; if (err) toast(err); else go(); rerender(); });
+    busy0 = Date.now(); plan3Make(o, err => { busy0 = 0; if (err) toast(err); else go(); rerender(); });
   }
   // the gear in the sea is fetched on one trip while the plan is off (choice 2 A): a day of hauls without setting again, then home
   function fetch(o){
     if (o.v === DRV3 && !o.ring){ toast(L('Velg et sted først.', 'Choose a place first.')); return; }
-    if (!plan2Made(o)){ busy = true; plan3Make(o, err => { busy = false; if (err) toast(err); else fetch(o); rerender(); }); return; }
+    if (!plan2Made(o)){ busy0 = Date.now(); plan3Make(o, err => { busy0 = 0; if (err) toast(err); else fetch(o); rerender(); }); return; }
     plan2Abort(o); o.fetch = true; o.on = true; o.stop = null; o.held = null; o.hold = 0; o.run = null; o.paused = null; toast(L('Båten går ut og henter redskapet.', 'The boat goes out to fetch the gear.'));
   }
   function act(a, d){

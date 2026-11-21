@@ -1248,7 +1248,7 @@ Driftsplan 2: the day is the plan (26.10.2026, docs/planer/driftsplan-2/02-desig
   - 429 `p2Kits()`
   - 430 `plan2Check(o, st)`
 
-## `src/js/core/06h-plan2-engine.js` (611 linjer)
+## `src/js/core/06h-plan2-engine.js` (623 linjer)
 
 Driftsplan 2, part 2: the engine (26.10.2026, docs/planer/driftsplan-2/02-design.md chapter 2). It follows the day that planDay
 
@@ -1257,50 +1257,52 @@ Driftsplan 2, part 2: the engine (26.10.2026, docs/planer/driftsplan-2/02-design
   - 11 `plan2Here(o)`
   - 23 `plan2TideMin()`
   - 24 `plan2LegOk(o, a, ap, b, bp)`
-- **32** making the plan: the plant, the anchorages, the legs and the shelter ports. Async; cb(err) when done
-  - 33 `plan2Make(o, cb)`
-- **78** what the plan says, waits for and stops at
-  - 83 `plan2ActWhy(w, why)`
-  - 85 `plan2Abort(o)`
-  - 88 `plan2Wait(o, k, no, en, until, open)`
-  - 94 `plan2Stop(o, k, no, en, fix)`
-  - 104 `plan2Pause(o)`
-  - 113 `plan2Start(o)`
-  - 118 `plan2Resume(o)`
-  - 120 `plan2CrewWhy(o, work)`
-  - 133 `plan2Wx()`
-  - 138 `plan2WxAhead(o, H, dur, pts, L)`
-  - 147 `plan2WxWait(o, wx, H)`
-  - 154 `plan2WxFirstOk(o, H, dur, pts)`
-- **155** shelter without a search (part 3): back the way she came to the last place or port she passed, and from a place the kept leg to its
-  - 158 `plan2Shelter(W, hsOver)`
-  - 185 `plan2WxHome(o, H, wx)`
-  - 201 `plan2Cut(o, why)`
-  - 213 `plan2RulesWhy(o, H, placesOnly)`
-  - 220 `plan2RulesOpenAt(o, H)`
-- **221** the engine: each minute, on each vessel (05-vessels.js calls it)
-  - 223 `plan2Step(H)`
-  - 239 `plan2Decide(o, H)`
-  - 270 `plan2MeRest(o, H)`
-  - 282 `plan2SkipGiven()`
-  - 292 `p2DayEnd(d)`
-  - 294 `plan2Boundary(o, H)`
-  - 313 `plan2Spent(o, H)`
-  - 322 `plan2NewDay(o, H)`
-  - 339 `plan2CostDay(o, r)`
-  - 342 `plan2Caught(o, tr)`
-  - 343 `plan2StatDay(o, d)`
-- **344** a trip: the steps from i0 to the next port call, as waypoints on the kept legs
-  - 345 `plan2Trip(o, D, i0)`
-  - 432 `plan2Go(o, H, i0)`
-  - 481 `plan2Sea(o, H)`
-  - 530 `plan2WorkStop(o, H, W, hs)`
-  - 541 `plan2WorkWait(o, H, wx, pts, port)`
-  - 552 `plan2Landed(pid, k)`
-  - 561 `plan2Report(pid, kg, total, landed)`
-  - 573 `plan2Bait(o, s)`
-  - 591 `plan2Egn(o, s)`
-  - 598 `plan2WatchTick(H)`
+- **32** is the plan being made? o.building is saved with the state, so a page closed or reloaded while a plan was being made came back
+  - 37 `plan2Building(o)`
+- **42** making the plan: the plant, the anchorages, the legs and the shelter ports. Async; cb(err) when done
+  - 43 `plan2Make(o, cb)`
+- **90** what the plan says, waits for and stops at
+  - 95 `plan2ActWhy(w, why)`
+  - 97 `plan2Abort(o)`
+  - 100 `plan2Wait(o, k, no, en, until, open)`
+  - 106 `plan2Stop(o, k, no, en, fix)`
+  - 116 `plan2Pause(o)`
+  - 125 `plan2Start(o)`
+  - 130 `plan2Resume(o)`
+  - 132 `plan2CrewWhy(o, work)`
+  - 145 `plan2Wx()`
+  - 150 `plan2WxAhead(o, H, dur, pts, L)`
+  - 159 `plan2WxWait(o, wx, H)`
+  - 166 `plan2WxFirstOk(o, H, dur, pts)`
+- **167** shelter without a search (part 3): back the way she came to the last place or port she passed, and from a place the kept leg to its
+  - 170 `plan2Shelter(W, hsOver)`
+  - 197 `plan2WxHome(o, H, wx)`
+  - 213 `plan2Cut(o, why)`
+  - 225 `plan2RulesWhy(o, H, placesOnly)`
+  - 232 `plan2RulesOpenAt(o, H)`
+- **233** the engine: each minute, on each vessel (05-vessels.js calls it)
+  - 235 `plan2Step(H)`
+  - 251 `plan2Decide(o, H)`
+  - 282 `plan2MeRest(o, H)`
+  - 294 `plan2SkipGiven()`
+  - 304 `p2DayEnd(d)`
+  - 306 `plan2Boundary(o, H)`
+  - 325 `plan2Spent(o, H)`
+  - 334 `plan2NewDay(o, H)`
+  - 351 `plan2CostDay(o, r)`
+  - 354 `plan2Caught(o, tr)`
+  - 355 `plan2StatDay(o, d)`
+- **356** a trip: the steps from i0 to the next port call, as waypoints on the kept legs
+  - 357 `plan2Trip(o, D, i0)`
+  - 444 `plan2Go(o, H, i0)`
+  - 493 `plan2Sea(o, H)`
+  - 542 `plan2WorkStop(o, H, W, hs)`
+  - 553 `plan2WorkWait(o, H, wx, pts, port)`
+  - 564 `plan2Landed(pid, k)`
+  - 573 `plan2Report(pid, kg, total, landed)`
+  - 585 `plan2Bait(o, s)`
+  - 603 `plan2Egn(o, s)`
+  - 610 `plan2WatchTick(H)`
 
 ## `src/js/core/06i-plan2-sno.js` (235 linjer)
 
@@ -3036,12 +3038,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1790 linjer)
+## `src/js/ui/phone/07-patch.js` (1792 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1778 `patch()`
+  - 1780 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (133 linjer)
 
@@ -3204,17 +3206,17 @@ the Mannskap page in the drawer (once «Arbeid»): the samhold on top, «På dek
   - 134 `lagCardHtml()`
   - 148 `energyUi()`
 
-## `src/js/ui/05d-plan2.js` (266 linjer)
+## `src/js/ui/05d-plan2.js` (268 linjer)
 
 The operations plan's page (the Drift app; phone/06-render.js, 14-act.js). Driftsplan 3 since DP3-3 (16.11.2026,
 
 - **1** The operations plan's page (the Drift app; phone/06-render.js, 14-act.js). Driftsplan 3 since DP3-3 (16.11.2026,
-- **22** Nå: the step she is on and when it ends, what she waits for and until when, or why she stopped
-- **50** the day: today's as the engine follows it (with «← nå»), or the next as planDay reckons it from the answers
-- **79** Driftsplan 3 (DP3-3, 16.11.2026, docs/planer/driftsplan-3.md): two choices, Sted and Redskap (Jonas 16.11.2026: «Spilleren [får]
-- **150** the top: Start or Pause, Nå, and the button that fixes a stop
-- **168** the statistics (R9): today, the last seven days, and all
-- **185** the page
+- **24** Nå: the step she is on and when it ends, what she waits for and until when, or why she stopped
+- **52** the day: today's as the engine follows it (with «← nå»), or the next as planDay reckons it from the answers
+- **81** Driftsplan 3 (DP3-3, 16.11.2026, docs/planer/driftsplan-3.md): two choices, Sted and Redskap (Jonas 16.11.2026: «Spilleren [får]
+- **152** the top: Start or Pause, Nå, and the button that fixes a stop
+- **170** the statistics (R9): today, the last seven days, and all
+- **187** the page
 
 ## `src/js/ui/05e-merker.js` (86 linjer)
 
@@ -3472,7 +3474,7 @@ Garderoben: the player changes how his figure looks (Jonas 10.10.2026)
 - **22** the right-hand side: what the current tab offers
 - **63** the little renderer
 
-## `src/js/ui/08-actions.js` (564 linjer)
+## `src/js/ui/08-actions.js` (567 linjer)
 
 actions
 
@@ -3493,18 +3495,18 @@ actions
   - 381 `awayEnd()`
   - 382 `showAway(A)`
 - **444** time
-  - 450 `playMinutes(n, away)`
-  - 454 `catchUp(realMs)`
-  - 466 `tick()`
-  - 503 `deliverOrder()`
-- **513** chrome
-  - 514 `applyLang()`
-- **527** screens: full-screen 3D, or the chart plotter for route planning
-  - 528 `setBodyView(v3d)`
-  - 534 `openPlotter()`
-  - 539 `plotSetRender()`
-  - 543 `plotSetOpen(on)`
-  - 556 `kinoUi()`
+  - 453 `playMinutes(n, away, ms)`
+  - 457 `catchUp(realMs, ms)`
+  - 469 `tick()`
+  - 506 `deliverOrder()`
+- **516** chrome
+  - 517 `applyLang()`
+- **530** screens: full-screen 3D, or the chart plotter for route planning
+  - 531 `setBodyView(v3d)`
+  - 537 `openPlotter()`
+  - 542 `plotSetRender()`
+  - 546 `plotSetOpen(on)`
+  - 559 `kinoUi()`
 
 ## `src/js/ui/08b-letter.js` (127 linjer)
 
@@ -3636,7 +3638,7 @@ SOUND (the user's wish 03.10.2026)
 - **144** the music (Jonas 05.10.2026: «rolig ambient instrumentaler som svak stemning i bakgrunnen. Må kunne skrus av i innstillinger»)
 - **312** the whistle and the bell (Ø11.2; sjøveisreglene FOR-1975-12-01-5 rules 32-35 and vedlegg III, read 06.11.2026)
 
-## `src/js/ui/10f-cloud.js` (1103 linjer)
+## `src/js/ui/10f-cloud.js` (1111 linjer)
 
 THE CLOUD (04.10.2026; docs/lansering.md E and F)
 
@@ -3720,29 +3722,29 @@ THE CLOUD (04.10.2026; docs/lansering.md E and F)
   - 778 `cloudRestore(id)`
 - **789** what is measured: the game's own functions, wrapped once they are all defined
   - 790 `cloudHooks()`
-- **813** the account card in Settings
-  - 814 `cloudCard()`
-  - 838 `histRows()`
-  - 850 `cloudAccountDel()`
-  - 861 `cloudMediaDel()`
-  - 867 `cloudAct(a, d)`
-- **903** registering, for a guest: in the game's own words, never a wall before the third landing
-  - 912 `guestHave()`
-  - 918 `guestAsk(why)`
-  - 944 `nameWhy(v)`
-  - 961 `namesKept()`
-  - 962 `namesKeep(o)`
-  - 964 `namesApply()`
-  - 972 `nameTake(n, quiet)`
-  - 982 `nameCheck()`
-  - 1003 `nameSuggest()`
-  - 1012 `nameAsk(why, reason)`
-  - 1037 `guestOpenAsk()`
-  - 1049 `nameNudge(force)`
-  - 1064 `guestNudge(step)`
-  - 1076 `guestLogin(src)`
-  - 1082 `guestRegister(signIn)`
-  - 1097 `guestGift()`
+- **821** the account card in Settings
+  - 822 `cloudCard()`
+  - 846 `histRows()`
+  - 858 `cloudAccountDel()`
+  - 869 `cloudMediaDel()`
+  - 875 `cloudAct(a, d)`
+- **911** registering, for a guest: in the game's own words, never a wall before the third landing
+  - 920 `guestHave()`
+  - 926 `guestAsk(why)`
+  - 952 `nameWhy(v)`
+  - 969 `namesKept()`
+  - 970 `namesKeep(o)`
+  - 972 `namesApply()`
+  - 980 `nameTake(n, quiet)`
+  - 990 `nameCheck()`
+  - 1011 `nameSuggest()`
+  - 1020 `nameAsk(why, reason)`
+  - 1045 `guestOpenAsk()`
+  - 1057 `nameNudge(force)`
+  - 1072 `guestNudge(step)`
+  - 1084 `guestLogin(src)`
+  - 1090 `guestRegister(signIn)`
+  - 1105 `guestGift()`
 
 ## `src/js/ui/10g-push.js` (210 linjer)
 
@@ -5143,7 +5145,7 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 657 `drawEffects(VP, eye, BM, dt, t)`
   - 795 `updateLabels(VP, eye, W, Hh)`
 
-## `src/js/view3d/25-controls.js` (286 linjer)
+## `src/js/view3d/25-controls.js` (289 linjer)
 
 ---------- controls ----------
 
@@ -5157,12 +5159,12 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 49 `liftY(k)`
   - 53 `showroom(type)`
   - 62 `show(on, auto)`
-  - 79 `bench(ks, ns)`
-  - 102 `benchPeers(n)`
-- **129** the profile (#prof, F1)
-  - 139 `pqInit()`
-  - 147 `pqPoll()`
-  - 156 `profBegin(rdt, j0)`
-  - 159 `profMark(k)`
-  - 163 `profEnd()`
-  - 173 `prof(sets)`
+  - 82 `bench(ks, ns)`
+  - 105 `benchPeers(n)`
+- **132** the profile (#prof, F1)
+  - 142 `pqInit()`
+  - 150 `pqPoll()`
+  - 159 `profBegin(rdt, j0)`
+  - 162 `profMark(k)`
+  - 166 `profEnd()`
+  - 176 `prof(sets)`
