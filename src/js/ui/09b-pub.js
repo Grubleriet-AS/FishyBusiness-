@@ -78,10 +78,10 @@ const PUB3 = (() => {
     if (typeof MODELS !== 'undefined' && !MODELS.done) return false;      // the model is still on its way (ui/11-boot.js bootDataLate): the flat picture this time, not for good
     try {
       gl = cv.getContext('webgl', {antialias:true, alpha:false, powerPreference:'high-performance'}) || cv.getContext('experimental-webgl');
+      if (gl && gl.isContextLost()){ gl = null; return false; }      // still lost (klynge:b26b3468): the flat picture this time, the room when it is back
       if (!gl) throw new Error('no webgl');
       const pr = prog(VS, FS), pt = prog(VT, FT), M = load(); if (!M) throw new Error('no model');
       P = Object.assign(M, {pr, pt, sq:signQuad(M.A), stex:null, sname:''});
-      cv.addEventListener('webglcontextlost', e => { e.preventDefault(); gl = null; P = null; failed = false; try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('pub-gl-mistet'); } catch (e){} console.error('pub 3d: konteksten mistet'); });   // (the error trap sends it)
       return true;
     } catch (e){ failed = true; gl = null; console.error('pub 3d', e); return false; }   // (the error trap sends it: the page falls back to the flat picture)
   }
@@ -203,7 +203,7 @@ const PUB3 = (() => {
   async function spin(){
     if (WH.busy || WH.ask) return; WH.ask = true; let d; try { d = await PUBW.round(); } finally { WH.ask = false; }
     if (!d || d.err){ PANELS.wheel(); if (d && d.err && panelKey === 'wheel'){ const p = document.querySelector('.pb-why') || document.querySelector('.pb-odds'); if (p) p.insertAdjacentHTML('beforebegin', '<p class="pb-why">' + esc(d.err) + '</p>'); } return; }
-    const A = (P.A.wheel && P.A.wheel.segs) || [], g = A.find(s => s[0] === d.seg.k && Math.abs(s[1] - d.seg.s0) < 0.5) || [d.seg.k, d.seg.s0, d.seg.s1];
+    const A = (P && P.A.wheel && P.A.wheel.segs) || [], g = A.find(s => s[0] === d.seg.k && Math.abs(s[1] - d.seg.s0) < 0.5) || [d.seg.k, d.seg.s0, d.seg.s1];
     const at = g[1] + (g[2] - g[1]) * (0.2 + 0.6 * Math.random()), cur = WH.a % (2 * Math.PI), aim = (360 - at) * Math.PI / 180;
     WH.from = cur; WH.to = cur + 5 * 2 * Math.PI + (((aim - cur) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); WH.t0 = performance.now() / 1000; WH.busy = true;
     WH.done = () => { if (panelKey === 'wheel') PANELS.wheel(); if (typeof renderHud === 'function') renderHud(); if (typeof renderActs === 'function') renderActs(); };
@@ -213,7 +213,7 @@ const PUB3 = (() => {
   }
   // the camera turns smoothly to a spot
   function turnTo(k, low){
-    const s = (P.A.spots || []).find(q => q[0] === k); if (!s) return; const E = P.A.eye, dx = s[1][0] - E[0], dy = s[1][1] - E[1], dz = s[1][2] - E[2];
+    if (!P) return; const s = (P.A.spots || []).find(q => q[0] === k); if (!s) return; const E = P.A.eye, dx = s[1][0] - E[0], dy = s[1][1] - E[1], dz = s[1][2] - E[2];
     const yaw = Math.atan2(-dx, -dz), pitch = Math.atan2(dy, Math.hypot(dx, dz)) - (low || 0); let dyaw = ((yaw - cam.yaw + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
     const y0 = cam.yaw, p0 = cam.pitch, t0 = performance.now();
     const step = () => { const k2 = Math.min(1, (performance.now() - t0) / 700), e = k2 * k2 * (3 - 2 * k2); cam.yaw = y0 + dyaw * e; cam.pitch = p0 + (pitch - p0) * e; if (k2 < 1 && on) requestAnimationFrame(step); };
@@ -330,12 +330,16 @@ const PUB3 = (() => {
     el.innerHTML = '<canvas></canvas><div class="pb-lab"></div><div class="pb-top"><div class="pb-t"></div><button data-q="who">👥</button><button data-q="out">' + L('Gå ut', 'Leave') + '</button></div>' +
       '<div class="pb-hint">' + L('Dra for å se deg rundt. Trykk på det du vil.', 'Drag to look around. Tap what you like.') + '</div><div class="pb-panel" hidden></div>';
     document.getElementById('mapwrap').appendChild(el); cv = el.querySelector('canvas');
+    // the context lost (klynge:b26b3468): on phones the browser takes it back when the page is hidden or the GPU is short of memory,
+    // and gives it back after. Normal, so a trace and no error; with the pub open the room is built again when it comes back
+    cv.addEventListener('webglcontextlost', e => { e.preventDefault(); gl = null; P = null; failed = false; try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('pub-gl-mistet'); } catch (e2){} });
+    cv.addEventListener('webglcontextrestored', () => { try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('pub-gl-tilbake'); } catch (e2){} if (on && !init()) close(); });
     // look round with a finger or the mouse; a short tap picks
     cv.addEventListener('pointerdown', e => { drag = {x:e.clientX, y:e.clientY, yaw:cam.yaw, pitch:cam.pitch, moved:false, id:e.pointerId}; try { cv.setPointerCapture(e.pointerId); } catch (_){} });
     cv.addEventListener('pointermove', e => { if (!drag || drag.id !== e.pointerId) return; const k = FY / Math.max(1, cv.clientHeight), dx = e.clientX - drag.x, dy = e.clientY - drag.y;
       if (Math.abs(dx) + Math.abs(dy) > 6) drag.moved = true; cam.yaw = drag.yaw + dx * k; cam.pitch = clamp(drag.pitch + dy * k, -1.1, 0.9);
       const hn = el.querySelector('.pb-hint'); if (hn && drag.moved) hn.classList.add('off'); });
-    const up = e => { if (!drag || drag.id !== e.pointerId) return; const d = drag; drag = null; if (d.moved) return; const r = cv.getBoundingClientRect(), k = pick(e.clientX - r.left, e.clientY - r.top); if (k) openSpot(k); else if (panelKey) panel(null); };
+    const up = e => { if (!drag || drag.id !== e.pointerId) return; const d = drag; drag = null; if (d.moved || !P) return; const r = cv.getBoundingClientRect(), k = pick(e.clientX - r.left, e.clientY - r.top); if (k) openSpot(k); else if (panelKey) panel(null); };
     cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', () => { drag = null; });
     cv.addEventListener('wheel', e => { e.preventDefault(); cam.fov = clamp(cam.fov * (e.deltaY > 0 ? 1.06 : 0.94), 0.55, 1.15); }, {passive:false});
     el.addEventListener('click', e => {

@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['planlaas-211126', '21.11.2026', 'Driftsplanen låser seg ikke', 'The plan no longer locks', [
+       ['Driftsplanen ble stående på «Lager planen …» hvis spillet ble lukket mens planen ble laget, og kunne ikke startes eller endres. Nå slipper den, og du kan starte den igjen.', 'The plan stayed on «Making the plan …» if the game was closed while the plan was being made, and could not be started or changed. Now it lets go, and you can start it again.']]],
     ['rettinger-181126', '18.11.2026', 'Rettinger fra spillerne', 'Fixes from the players', [
        ['Den siste etappen inn til stoppet ditt etter en Autonav-rute setter ikke lenger båten på grunn; hun stopper og finner vei rundt.', 'The last leg into your stop after an Autonav route no longer runs the boat aground; she stops and finds a way round.'],
        ['Båten går ikke lenger på grunn i svingen ut fra kaia på en gul etappe.', 'The boat no longer runs aground in the turn away from the quay on a yellow leg.'],

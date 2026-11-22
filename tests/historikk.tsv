@@ -6230,3 +6230,17 @@
 2026-11-19 02:05	regresjon/2026-11-18	edf871b	wpchiptest	OK	7	lite	samtidig	
 2026-11-19 02:29	regresjon/2026-11-18	edf871b	tut	FEIL	1420	lite	alene	FEIL staaende: kaia sier hva sløying om bord gir ved første levering
 2026-11-19 03:03	regresjon/2026-11-18	edf871b	tut	OK	1607	lite	alene	
+2026-11-21 13:15	ccr-be8acf7a-mlzhzb	f0f2d2e+	planlaas_ui	OK	18	lite	samtidig	
+2026-11-21 13:16	ccr-be8acf7a-mlzhzb	f0f2d2e+	driftsplan3test	OK	40	lite	samtidig	
+2026-11-21 13:16	ccr-be8acf7a-mlzhzb	f0f2d2e+	driftsplan2ui	OK	35	lite	samtidig	
+2026-11-21 13:17	ccr-be8acf7a-mlzhzb	f0f2d2e+	planlaas_ui	OK	14	lite	samtidig	
+2026-11-21 13:17	ccr-be8acf7a-mlzhzb	f0f2d2e+	driftsplan2ui	OK	32	lite	samtidig	
+2026-11-21 13:28	ccr-be8acf7a-mlzhzb	df1634e+	driftsplan3test	OK	31	lite	samtidig	
+2026-11-21 13:28	ccr-be8acf7a-mlzhzb	df1634e+	driftsplan2ui	OK	29	lite	samtidig	
+2026-11-21 13:29	ccr-be8acf7a-mlzhzb	df1634e+	planlaas_ui	OK	12	lite	alene	
+2026-11-21 13:29	ccr-be8acf7a-mlzhzb	df1634e+	planlaas_ui	OK	12	lite	alene	
+2026-11-21 13:40	ccr-be8acf7a-mlzhzb	f850c98	savestest	OK	13	lite	samtidig	
+2026-11-21 13:40	ccr-be8acf7a-mlzhzb	f850c98	gatetest	OK	18	lite	samtidig	
+2026-11-21 13:41	ccr-be8acf7a-mlzhzb	f850c98	boottest	OK	13	lite	samtidig	
+2026-11-21 14:35	ccr-be8acf7a-mlzhzb	5b09886+	fetchsaves	OK	6	lite	samtidig	
+2026-11-21 14:35	ccr-be8acf7a-mlzhzb	5b09886+	gatetest	OK	14	lite	samtidig	
