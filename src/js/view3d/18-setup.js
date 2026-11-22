@@ -68,8 +68,10 @@
   // process twice in a row (SEA_MIDTRY left behind), is marked (SEA_MID) and starts on the old level 1 next time, without a level bump.
   // The marks from before 05.11.2026 ('u2:no', some of them a second tab's start taken for a crash) give way to one more try; the new
   // mark is 'u2:no2'. #seamid in the address forces it, #sealvl= and #nomid leave it out (the tests of the old levels).
+  // Microsoft's basic renderer (WARP: Direct3D drawn by the CPU, a Windows PC with no GPU driver) lost its context on the middle sea,
+  // start after start (klynge:17e72b4c, 17.-22.11.2026), and the old level 1 came through after it: it goes there at once.
   const SEA_MID = 'dsb_sea_mid', SEA_MIDTRY = 'dsb_sea_midtry'; let seaMidTry = false;
-  const seaMidOn = () => { if (/seamid/.test(location.hash)) return true; if (/sealvl=|nomid/.test(location.hash)) return false;
+  const seaMidOn = () => { if (/seamid/.test(location.hash)) return true; if (/sealvl=|nomid/.test(location.hash) || /Basic Render/i.test(GPU)) return false;
     try { return localStorage.getItem(SEA_MID) !== SEA_VER + ':no2'; } catch (e){ return true; } };
   const seaMidFailed = why => { seaMidTry = false; if (/seamid/.test(location.hash)) return;
     try { localStorage.setItem(SEA_MID, SEA_VER + ':no2'); localStorage.removeItem(SEA_MIDTRY); } catch (e){} goneSet(SEA_MIDGONE, 0);
@@ -134,8 +136,9 @@
         // starts again when the browser gives the context back
         glWatch = true; let wasReady = false;
         canvas.addEventListener('webglcontextlost', e => { e.preventDefault(); try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('gl-mistet', ready ? 1 : 0); } catch (e2){} wasReady = ready; ready = false; failed = true; GLOK = false; show(false);
-          // (on the middle sea the level stays: the next start leaves the middle sea out)
-          if (!wasReady && stage === 'shadere' && seaMidTry){ seaMidFailed('konteksten mistet');
+          // (on the middle sea the level stays: the next start leaves the middle sea out; the loss is seen, so the try mark goes too, or
+          // the next start would take it for a try that never came back, klynge:c25c6d05)
+          if (!wasReady && stage === 'shadere' && seaMidTry){ seaMidFailed('konteksten mistet'); seaTryMark(false);
             failWhy = S.lang === 'en' ? 'the graphics driver gave up while starting. Reload the page and the game tries a simpler sea' : 'grafikkdriveren ga opp under oppstarten. Last siden på nytt, så prøver spillet en enklere sjø'; }
           else if (!wasReady && stage === 'shadere' && seaLvl < 2){ try { localStorage.setItem(SEA_KEY, String(seaLvl + 1)); } catch (e2){} if (seaLvl === 0) seaReSet('no');
             failWhy = S.lang === 'en' ? 'the graphics driver gave up while starting. Reload the page and the game tries a simpler sea' : 'grafikkdriveren ga opp under oppstarten. Last siden på nytt, så prøver spillet en enklere sjø';
