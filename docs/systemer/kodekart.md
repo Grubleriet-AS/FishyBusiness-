@@ -117,7 +117,7 @@ MAP DATA (phase K3 of the coast plan): the rasters in 10 km blocks, fetched in p
   - 290 `simAreaReady()`
   - 300 `mapDrop(pk)`
 
-## `src/js/core/01c-vec.js` (223 linjer)
+## `src/js/core/01c-vec.js` (227 linjer)
 
 THE COAST'S VECTORS (part 4 of the coast-wide plan, 03.10.2026): buildings, roads, bridges, piers and quay faces
 
@@ -125,17 +125,17 @@ THE COAST'S VECTORS (part 4 of the coast-wide plan, 03.10.2026): buildings, road
   - 25 `inQuad(Q, x, z)`
   - 30 `pierBoxes(out, kind, n, X, Z, src)`
   - 47 `vecDecode(D)`
-  - 122 `flyteTile(tx, ty)`
-  - 131 `vecFinish(r)`
-  - 140 `vecWorker()`
-  - 157 `vecInput(pk, inflate)`
-  - 165 `vecDecodeHere(pk)`
-  - 167 `vecTile(tx, ty)`
-  - 176 `vecTilesIn(x0, z0, x1, z1)`
-  - 184 `roadsIn(x0, z0, x1, z1)`
-  - 197 `bridgesIn(x0, z0, x1, z1)`
-  - 199 `vecWant(x0, y0, x1, y1, then)`
-  - 207 `vecPrune(pts, R = 60)`
+  - 126 `flyteTile(tx, ty)`
+  - 135 `vecFinish(r)`
+  - 144 `vecWorker()`
+  - 161 `vecInput(pk, inflate)`
+  - 169 `vecDecodeHere(pk)`
+  - 171 `vecTile(tx, ty)`
+  - 180 `vecTilesIn(x0, z0, x1, z1)`
+  - 188 `roadsIn(x0, z0, x1, z1)`
+  - 201 `bridgesIn(x0, z0, x1, z1)`
+  - 203 `vecWant(x0, y0, x1, y1, then)`
+  - 211 `vecPrune(pts, R = 60)`
 
 ## `src/js/core/01d-coast.js` (148 linjer)
 
@@ -2642,72 +2642,76 @@ THE CATCH: WHERE THE PLAYERS' BOATS TOUCH WHAT IS NOT CLEAN WATER (the autonav r
   - 167 `slamRate(b = S.boat, H = S.t / 60, hard = 1)`
   - 199 `slamMinute()`
 
-## `src/js/core/17-farbar.js` (648 linjer)
+## `src/js/core/17-farbar.js` (739 linjer)
 
 FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2.0 F1, steg 141, 23.11.2026)
 
 - **1** FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2.0 F1, steg 141, 23.11.2026)
-- **32** the boat as the map asks about her
-  - 34 `farbBoat(type)`
-  - 36 `farbHull(X, Z, psi, boat)`
-  - 41 `farbHalfW(f, boat)`
-  - 48 `farbKeelPts(boat, rim)`
-- **57** a thing, and how far a point is from it
-  - 61 `farbSegD(x, z, ax, az, bx, bz)`
-  - 62 `farbInPoly(P, x, z)`
-  - 64 `farbD(o, x, z)`
-- **77** her outline (a convex polygon P) against a point, a line and a thing
-  - 79 `farbPtPoly(P, x, z)`
-  - 84 `farbSegPoly(P, ax, az, bx, bz)`
-  - 91 `farbRingD(P, Q)`
-  - 94 `farbUnitRings(U)`
-  - 96 `farbPolyD(P, o)`
-  - 109 `farbBB(o)`
-  - 115 `farbPut(M, o)`
-  - 118 `farbBridge(M, br)`
-- **122** the layers
-  - 127 `farbOver(M, tx, ty, id, get)`
-  - 135 `farbRun(g)`
-  - 137 `farbTurn0()`
-  - 138 `farbRunA(g)`
-  - 155 `farbSiteM()`
-  - 159 `farbGlob()`
-  - 175 `farbInZone(Z, x, z)`
-  - 215 `farbTile(t)`
-  - 225 `farbMarks(k)`
-  - 229 `farbShoreG(x, z)`
-  - 253 `farbRocks(i, j)`
-- **255** the harbours' pockets
-  - 262 `farbPockets(x, z)`
-  - 271 `farbSegOutD2(PK, x, z, ax, az, bx, bz)`
-  - 287 `farbWalls(b)`
-- **289** the world under the things: land, the coast's distance, the depth, the tide
-  - 291 `farbLand(x, z)`
-  - 297 `farbCoast(x, z, cap, raw)`
-  - 313 `farbDepthRaw(x, z)`
-  - 316 `farbTideP(x, z)`
-  - 327 `farbDig(key, segs)`
-  - 331 `farbDepth(x, z, off)`
-  - 337 `farbKeel(x, z, boat, H, squat, off)`
-- **339** what is known
-  - 342 `farbKnown(x, z, R)`
-  - 352 `farbBlocks(x0, z0, x1, z1)`
-  - 358 `farbNeed(pts, padKm = 1.5, ms = 60000)`
-- **379** the questions
-  - 381 `farbGather(x, z, R)`
-  - 402 `farbGone(o, n, buf = FARB.buf)`
-  - 408 `farbNearest(x, z, cap, boat, opt)`
-  - 419 `farbClear(x, z, boat, cap, opt)`
-  - 422 `farbCoastSegs(x0, z0, x1, z1)`
-  - 433 `farbPose(X, Z, psi, boat, H, opt)`
-  - 474 `farbSweep(p0, p1, boat, H, opt)`
-- **487** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
-  - 501 `farbFieldBuild(J)`
-  - 564 `farbSegOutParts(PK, ax, az, bx, bz)`
-  - 621 `farbFieldWorker()`
-  - 629 `farbFieldTile(cell, fx, fz)`
-  - 632 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
-  - 646 `farbFieldAt(x, z, cell = 2)`
+- **35** the boat as the map asks about her
+  - 37 `farbBoat(type)`
+  - 39 `farbHull(X, Z, psi, boat)`
+  - 44 `farbHalfW(f, boat)`
+  - 51 `farbKeelPts(boat, rim)`
+- **60** a thing, and how far a point is from it
+  - 64 `farbSegD(x, z, ax, az, bx, bz)`
+  - 65 `farbInPoly(P, x, z)`
+  - 67 `farbD(o, x, z)`
+- **80** her outline (a convex polygon P) against a point, a line and a thing
+  - 82 `farbPtPoly(P, x, z)`
+  - 87 `farbSegPoly(P, ax, az, bx, bz)`
+  - 94 `farbRingD(P, Q)`
+  - 97 `farbUnitRings(U)`
+  - 99 `farbPolyD(P, o)`
+  - 113 `farbMoloR(o, y)`
+  - 115 `farbCoreDp(o, x, z)`
+  - 116 `farbCoreD(P, o)`
+  - 118 `farbBB(o)`
+  - 124 `farbPut(M, o)`
+  - 127 `farbBridge(M, br)`
+- **131** the layers
+  - 136 `farbOver(M, tx, ty, id, get)`
+  - 144 `farbRun(g)`
+  - 146 `farbTurn0()`
+  - 147 `farbRunA(g)`
+  - 164 `farbSiteM()`
+  - 176 `farbGlob()`
+  - 193 `farbInZone(Z, x, z)`
+  - 232 `farbMarina(cx, cz, rel, docks, water)`
+  - 256 `farbTile(t)`
+  - 266 `farbMarks(k)`
+  - 270 `farbShoreG(x, z)`
+  - 294 `farbRocks(i, j)`
+- **296** the harbours' pockets
+  - 303 `farbPockets(x, z)`
+  - 312 `farbSegOutD2(PK, x, z, ax, az, bx, bz)`
+  - 328 `farbWalls(b)`
+- **330** the world under the things: land, the coast's distance, the depth, the tide
+  - 332 `farbLand(x, z)`
+  - 338 `farbCoast(x, z, cap, raw)`
+  - 354 `farbDepthRaw(x, z)`
+  - 357 `farbTideP(x, z)`
+  - 368 `farbDig(key, segs)`
+  - 372 `farbDepth(x, z, off)`
+  - 378 `farbKeel(x, z, boat, H, squat, off)`
+- **380** what is known
+  - 383 `farbKnown(x, z, R)`
+  - 393 `farbBlocks(x0, z0, x1, z1)`
+  - 399 `farbNeed(pts, padKm = 1.5, ms = 60000)`
+- **420** the questions
+  - 422 `farbGather(x, z, R)`
+  - 443 `farbGone(o, n, buf = FARB.buf)`
+  - 449 `farbNearest(x, z, cap, boat, opt)`
+  - 460 `farbClear(x, z, boat, cap, opt)`
+  - 463 `farbCoastSegs(x0, z0, x1, z1)`
+  - 474 `farbPose(X, Z, psi, boat, H, opt)`
+  - 515 `farbSweep(p0, p1, boat, H, opt)`
+- **528** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
+  - 542 `farbFieldBuild(J)`
+  - 637 `farbSegOutParts(PK, ax, az, bx, bz)`
+  - 712 `farbFieldWorker()`
+  - 720 `farbFieldTile(cell, fx, fz)`
+  - 723 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
+  - 737 `farbFieldAt(x, z, cell = 2)`
 
 ## `src/js/ui/01-i18n.js` (120 linjer)
 
@@ -3106,12 +3110,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1792 linjer)
+## `src/js/ui/phone/07-patch.js` (1794 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1780 `patch()`
+  - 1782 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (133 linjer)
 
@@ -5001,14 +5005,14 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 61 `drawNear(VP, eye, t)`
   - 62 `drawNear0(VP, eye, t)`
 
-## `src/js/view3d/17g-marina.js` (61 linjer)
+## `src/js/view3d/17g-marina.js` (71 linjer)
 
 ---------- the small-boat harbours (G10 of docs/planer/grafikk-natur-og-miljo.md) ----------
 
 - **1** the small-boat harbours (G10 of docs/planer/grafikk-natur-og-miljo.md)
   - 9 `marinaModels()`
   - 27 `marinaBuild(eye, now)`
-  - 49 `drawMarinas(eye, t, VP)`
+  - 59 `drawMarinas(eye, t, VP)`
 
 ## `src/js/view3d/17h-shore.js` (93 linjer)
 
