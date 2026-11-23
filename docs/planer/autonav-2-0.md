@@ -178,6 +178,19 @@ Med båtmodellen kom 58 av treffene under seiling, 44 ut fra kai, 19 mens sikker
 
 **Gir benken samme svar to ganger?** 12 strekninger (45 kombinasjoner) kjørt to ganger etter hverandre: samme ruter, samme antall turer med treff (25 og 30) og samme antall treff (54 og 46). 5 av 45 skilte seg, alle med båtmodellen: turens lengde med 1–13 minutter, og på to turer som alt hadde treff, hvilke ting hun kom borti. Mot den fulle kjøringen (tre deler side om side, annen rekkefølge) skilte 7 av 45 seg, to av dem med ett treff. Rutene gjentar seg, bakgrunnsturene på minuttet nær; båtmodellen leser veggklokka og gjentar seg ikke helt.
 
+### Grunnlinja kjørt på nytt med moloens form (23.11.2026, steg 141)
+
+Observatøren fikk moloen slik 3D bygger den (8 m ut fra linja i vannskorpa, skråning 1:1,4), så hele benken ble kjørt på nytt (uten CPU-passet, som ikke berøres): `docs/planer/autonav-benk/grunnlinje2/turer.jsonl`. Dette er grunnlinja Autonav 2.0 måles mot fra F2. Ellers er alt som i tabellene over (ruter, lengde mot fasiten median 1,14, knekk).
+
+| Motor | turer | turer med treff | treff | per 1000 turer | molo |
+|---|---|---|---|---|---|
+| båtmodellen, før | 292 | 77 (26 %) | 140 | 479 | 1 på de ni molostrekningene |
+| båtmodellen, nå | 292 | 81 (28 %) | 137 | 469 | 5 |
+| bakgrunn, før | 292 | 95 (33 %) | 149 | 510 | 2 på de ni molostrekningene |
+| bakgrunn, nå | 292 | 97 (33 %) | 153 | 524 | 6 |
+
+På de ni molostrekningene gikk treffene fra 14 til 18 for begge motorer: sjarken og kyst21 kommer borti moloens skråning ved Øksfjord og Værøy. Resten av forskjellen er at båtmodellen ikke er helt lik fra kjøring til kjøring (i F0 skilte 5 av 45 turer seg på minutter eller på hvilke ting som ble berørt, med samme sum).
+
 ## Det benken fant
 
 1. **Bruene: Autonav legger ruta gjennom bruer spillet selv regner som stengt.** 42 av spillernes 47 berøringer med brudekk ligger ved tre bruer: Marøyvegen ved Bøvågen (54 m; 21 berøringer), Hønebrua ved Sandshamn verft (80 m; 11) og brua ved Straumen innenfor Engenes (53 m; 10). Tre til ligger ved Reksundveien ved Averøy (24 m). Spillet gir alle bruer under 60 m underkant 0 («en vegg», `obsBridge` i `core/11b-obstacles.js:34`), og dekket ellers en høyde etter lengden. Benken gjenskaper alle tre:
