@@ -255,22 +255,22 @@ Observatøren (`benkobs.js`, `benk.js`) leser rådataene selv; kartet holdes mot
 
 Et søk spør millioner av punkter, så det geometrien svarer nøyaktig på, legges ut på et rutenett, en flis om gangen: 250 × 250 ruter på 2 m (en flis på 500 m; 4 og 8 m for sund og åpen kyst), hver med avstanden til nærmeste ting ingen kan passere (i trinn på 0,25 m, rundet ned, høyst 60 m), det grunneste vannet blant ruta og naborutene (dm ved sjøkartnull) og den laveste underkanten av et brudekke innen 8 m. `farbFieldJob` samler det en flis trenger som rene tall på hovedtråden, i skiver; `farbFieldBuild` regner flisa ut i en worker; `farbFieldNeed` ber om flisene over en boks, og `farbFieldAt` leser en rute. Søket (F2) går på feltet; veien det finner, kontrolleres på geometrien (`farbSweep`) før båten sendes. Rasterblokkene kartet leser, pakkes ut i fflates egen worker først (`mapBlockWarm` i `01b-mapdata.js`): før holdt den første lesingen av en blokk hovedtråden i 1 til 3 ms.
 
-**Målt** (`python3 tools/autonav/farsjekk.py --felt`, feltet rundt starten av hver strekning, 800 × 800 m, ruter på 2 m, CPU-en strupet fire ganger; kjøringen 23.11.2026 før rettingen av ting over en flisgrense, se punkt 5 over):
+**Målt** (`python3 tools/autonav/farsjekk.py --felt`, feltet rundt starten av hver strekning, 800 × 800 m, ruter på 2 m, CPU-en strupet fire ganger; kjøringen 23.11.2026 etter alle rettingene):
 
 | | |
 |---|---|
 | Steder og fliser | 96 steder, 667 fliser |
-| Workeren per flis | 8 ms (median), lengste 20 ms |
+| Workeren per flis | 8 ms (median), lengste 18 ms |
 | Minnet per flis | 187 500 byte (tre lag à 62 500 ruter); 96 fliser holdes (18 MB), eldste ut først |
-| En lesing (`farbFieldAt`) | 1,8 µs |
-| Feltet mot geometrien, 259 200 ruter | lenger unna: 0; mer enn ett trinn (0,25 m) nærmere: 1 (1,32 m, ved veggen av ei havnelomme); vannet over 0,5 m dypere enn geometrien: 0 |
-| Brudekket | ulikt i 5 ruter ved Karmsund bru: det var feilen i geometrien (punkt 5 over); etter rettingen er de like der |
+| En lesing (`farbFieldAt`) | 1,7 µs |
+| Feltet mot geometrien, 259 200 ruter | lenger unna: 0; mer enn ett trinn (0,25 m) nærmere: 1 (1,32 m, ved veggen av ei havnelomme); vannet over 0,5 m dypere enn geometrien: 0 (én rute 0,42 m dypere) |
+| Brudekket | likt i alle rutene (før rettingen av ting over en flisgrense, punkt 5 over: ulikt i 5 ruter ved Karmsund bru) |
 | Vannet er forsiktig | av 61 700 ruter med under 10 m vann er feltet over 0,5 m grunnere i 13 382 (rutenettet på 12,5 m tar det grunneste av de fire punktene rundt) |
-| Samlingen på hovedtråden per flis | 84 ms i skiver (median; med det tette dybderutenettet ved havner) |
-| **Skivene på hovedtråden** | 69 924 i alt: **99,80 % under 4 ms,** 74 mellom 4 og 8 ms, 67 på 8 ms eller mer |
-| Kontrollen (en jobb som bare teller, like lenge) | 70 046 skiver: 99,95 % under 4 ms, 26 mellom 4 og 8 ms, 9 på 8 ms eller mer |
+| Samlingen på hovedtråden per flis | 91 ms i skiver (median; med det tette dybderutenettet ved havner) |
+| **Skivene på hovedtråden** | 70 383 i alt: **99,78 % under 4 ms,** 85 mellom 4 og 8 ms, 71 på 8 ms eller mer |
+| Kontrollen (en jobb som bare teller, like lenge) | 81 594 skiver: 99,93 % under 4 ms, 50 mellom 4 og 8 ms, 6 på 8 ms eller mer |
 
-**Kravet «hovedtråden aldri holdt over 4 ms» holder ikke.** Skivebudsjettet er 0,6 ms og hvert skritt er ett oppslag, så en vanlig skive er 2 til 3 ms med strupingen. De som går over, er enkeltoppslag som tar 1 til 5 ms i virkelig tid (strupingen firedobler det): en fjerdedel av dem har også en jobb som bare teller (maskinen og JavaScript-motorens egne pauser), resten ligger i spillets egne oppslag (dybden med mudringen, sorteringen av en flis' brygger), som lager søppel motoren må rydde. I den samme kjøringen sto siden stille i opptil 1,3 s uten at noe ble bygget. Det som er gjort: rasterblokkene pakkes ut i en worker (før 4 til 12 ms per blokk med strupingen), skjærene formes per kvadratkilometer, tidevannets sted holdes per kilometer, og hvert tungt skritt er delt. Neste grep står i `start/141.md`: la workeren lese dybden selv fra blokkene, så hovedtråden bare kopierer tall.
+**Kravet «hovedtråden aldri holdt over 4 ms» holder ikke.** Skivebudsjettet er 0,6 ms og hvert skritt er ett oppslag, så en vanlig skive er 2 til 3 ms med strupingen. De som går over, er enkeltoppslag som tar 1 til 5 ms i virkelig tid (strupingen firedobler det): rundt en tredel av dem har også en jobb som bare teller (maskinen og JavaScript-motorens egne pauser), resten ligger i spillets egne oppslag (dybden med mudringen, sorteringen av en flis' brygger), som lager søppel motoren må rydde. I den samme kjøringen sto siden stille i opptil 1,0 s uten at noe ble bygget (maskinen; den uavhengige kontrollen gikk ved siden av). Det som er gjort: rasterblokkene pakkes ut i en worker (før 4 til 12 ms per blokk med strupingen), skjærene formes per kvadratkilometer, tidevannets sted holdes per kilometer, og hvert tungt skritt er delt. Neste grep står i `start/141.md`: la workeren lese dybden selv fra blokkene, så hovedtråden bare kopierer tall.
 
 ### Båtenes høyde (`VESSELS.air`, valg 6)
 

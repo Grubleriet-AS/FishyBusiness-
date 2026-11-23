@@ -6247,3 +6247,7 @@
 2026-11-23 13:13	ccr-399c74e8-91vrad	0bfc5350+	boottest	OK	12	lite	samtidig	
 2026-11-23 13:13	ccr-399c74e8-91vrad	0bfc5350+	vesseltest	OK	9	lite	samtidig	
 2026-11-23 13:13	ccr-399c74e8-91vrad	0bfc5350+	trip2	OK	11	lite	samtidig	
+2026-11-23 14:07	ccr-399c74e8-91vrad	f9bdd72c	boottest	OK	11	lite	samtidig	
+2026-11-23 14:07	ccr-399c74e8-91vrad	f9bdd72c	maptest	OK	19	lite	samtidig	
+2026-11-23 14:07	ccr-399c74e8-91vrad	f9bdd72c	vesseltest	OK	10	lite	samtidig	
+2026-11-23 14:08	ccr-399c74e8-91vrad	f9bdd72c	trip2	OK	11	lite	samtidig	
