@@ -289,6 +289,8 @@ Et søk spør millioner av punkter, så det geometrien svarer nøyaktig på, leg
 
 Gjort så langt: rasterblokkene pakkes ut i en worker (før 4 til 12 ms per blokk med strupingen), skjærene formes per kvadratkilometer, tidevannets sted holdes per kilometer, og hvert tungt skritt er delt. `farsjekk.py --felt` skriver nå `FEIL` så lenge en skive er over 4 ms. Det som står igjen, står i `start/141.md`: finne det trege dybdeoppslaget, la workeren lese dybden selv fra blokkene, dele sorteringen av lange moloer, og se på lastingen av pakkene.
 
+**Jonas 23.11.2026** (spørsmålsverktøyet; A «Fortsett å jage», B «Godta som målt», C «Start F2 nå»): **«Fortsett å jage».** Kravet står. Neste økt på steg 141 flytter dybdeoppslaget inn i workeren, finner de trege enkeltskrittene og måler på nytt; kravet endres først om målingen da viser at resten er motorens egne pauser. Planleggeren (F2, steg 142) venter på 141.
+
 ### Båtenes høyde (`VESSELS.air`, valg 6)
 
 Høyeste punkt i 3D-modellen over modellens vannlinja (`lod0` i `src/data/boat-*.b64`, lest med spillets egen dekoder og holdt mot konstanten i Blender-skriptet). Før: 0,35 × lengden, høyst 16 m (`obsAir`), som bare aluminiumsbåten og trebåten holdt seg under.
