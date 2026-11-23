@@ -23,6 +23,7 @@ Spillet er live. Porten for de første brukerne og lanseringslinja er arkivert (
 
 ## Øktene som kjører
 
+- `ccr-399c74e8-91vrad` (Jonas' økt 23.11.2026, «Kjør på med resten av steg 141»): steg 141 AN2-F1, resten. Eier `src/js/core/17-farbar.js`, `tests/unit/farbar.test.mjs`, `tools/autonav/farsjekk.*`, og observatøren (`tools/autonav/benk.js`, `benkobs.js`) for moloenes form. Rører ikke `11-route.js`, `11b-obstacles.js` eller `16b-dyn.js`.
 - `ccr-013bxxie-121` (Jonas' økt 16.11.2026): steg 121 FB3, føttene i gange. Eier `src/js/deckcrew.js`, `src/js/view3d/08-plants.js` (`drawWorker` og sjøbein-hjelperne over den), i `src/js/view3d/20-trawl-seine.js` bare `drawDeckCrew` og `npcCrewDraw`, `tests/crewwalk.py`, `tests/sjobein.py`, ny `tests/unit/fotgli.test.mjs` og ny `tests/fotgli.py`. Ikke `ui/phone/07-patch.js` (118 eier den; patchnotatet står i raden).
 
 
