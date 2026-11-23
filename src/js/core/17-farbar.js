@@ -453,7 +453,7 @@ function farbNearest(x, z, cap, boat, opt){ FARB.n.near++;
   const c = farbCoast(x, z, cap); if (c !== c) return FARB_UNK; if (c < d){ d = c; what = 'land'; id = Math.round(x / 50) + ',' + Math.round(z / 50); }
   const air = boat ? boat.air + FARB.airOver : Infinity, n = farbGather(x, z, cap), buf = FARB.buf;
   for (let i = 0; i < n; i++){ const o = buf[i]; if (o.k === 's' && !(farbUnder(o) < air)) continue; const b = o.bb || farbBB(o); if (x < b[0] - d || x > b[2] + d || z < b[1] - d || z > b[3] + d) continue;
-    const e = o.molo && boat ? Math.max(0, farbCoreDp(o, x, z) - farbMoloR(o, boat.T + FARB.eps + farbZC(x, z))) : farbD(o, x, z); if (e < d && !farbGone(o, n)){ d = e; hit = o; what = o.what; id = o.id; } }   // (a breakwater for her at the lowest water)
+    const e = o.molo && boat && boat.T > 0 ? Math.max(0, farbCoreDp(o, x, z) - farbMoloR(o, boat.T + FARB.eps + farbZC(x, z))) : farbD(o, x, z); if (e < d && !farbGone(o, n)){ d = e; hit = o; what = o.what; id = o.id; } }   // (a breakwater for her at the lowest water)
   if (opt && opt.boats && !FARB.w) try { for (const o of fixBoats(x, z)){ const e = o.t === 0 ? Math.max(0, Math.hypot(x - o.x, z - o.z) - o.r) : Math.hypot(Math.max(0, Math.abs((x - o.x) * o.ux + (z - o.z) * o.uz) - o.l), Math.max(0, Math.abs((x - o.x) * o.uz - (z - o.z) * o.ux) - o.w)); if (e < d){ d = e; hit = o; what = 'båt'; id = 'båt#' + Math.round(o.x) + ',' + Math.round(o.z); } } } catch (e){}
   return what || hit ? {d, what, id, x, z, o:hit} : null; }
 // metres from x, z to the nearest thing she cannot pass, cap where there is none within it, NaN where the map is not in

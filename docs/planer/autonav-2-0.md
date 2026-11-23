@@ -220,7 +220,7 @@ På de ni molostrekningene gikk treffene fra 14 til 18 for begge motorer: sjarke
 - **En PC, ikke en telefon.** CPU-en er strupet fire ganger i nettleseren; hakking på en ekte enhet ser bare Jonas.
 - **Båtmodellen gjentar seg ikke helt** (over): et treff fra eller til på en tur som alt har treff, er innenfor støyen. Porten «0 treff» har ingen slik støy å gjemme seg i.
 
-## Farbarhetskartet (F1, steg 141, 23.11.2026: pågår)
+## Farbarhetskartet (F1, steg 141, 23.11.2026)
 
 Jonas 23.11.2026: «Kjør på med steg 141». `src/js/core/17-farbar.js` er den ene sannheten om hva en båt kan seile over og under. Ingenting i spillet kaller den ennå; gammel Autonav er urørt og seiler som før.
 
@@ -304,7 +304,16 @@ Et søk spør millioner av punkter, så det geometrien svarer nøyaktig på, leg
 
 **Jonas 23.11.2026, andre gang** (spørsmålsverktøyet, med tallene over; A «Skriv om kravet», B «Jag de ni videre», C «La det stå, start F2»): **«Skriv om kravet».** Det nye kravet: ingen skive av kartets arbeid er lengre enn den lengste i en jobb som bare lager søppel, med CPU-en strupet fire ganger og hvert sted målt på en fersk side. `farsjekk.py --felt` måler slik (en ny side per sted; `--samme-side` gir den gamle målingen), og steg 141 er ferdig når den er grønn. Grensa er ett sted i `farsjekk.py` og kan snus. Antallet skiver over 4 ms skrives fortsatt ut.
 
-Målingen etter det nye kravet kjøres i samme økt; tallene føres inn her når den er ferdig.
+**Målt etter det nye kravet** (23.11.2026, 96 steder, 571 fliser, en fersk side per sted, CPU-en strupet fire ganger):
+
+| | Kartets arbeid | Jobben som bare lager søppel | Jobben som bare teller |
+|---|---|---|---|
+| Skiver | 46 677 | 37 013 | 41 541 |
+| Over 4 ms | 340 (0,73 %) | 238 (0,64 %) | 21 (0,05 %) |
+| Lengste | **75 ms** (Bergen, lommene; så 52 og 42 ms i skjærene) | **118 ms** | 16 ms |
+
+Kravet holder i denne målingen (75 ms mot 118 ms): `OK farsjekken, hovedtråden`. To ting må sies: (1) på en fersk side er det flere lange skiver enn på en side som har gått en stund (0,73 % mot 0,29 %), fordi motoren oversetter koden første gang den kjøres; (2) sammenligningen er mellom to lengste verdier og kan snu på et lite utvalg: en kjøring med bare sju steder ga 13,8 ms for kartet og 11,5 ms for søppeljobben, altså rød. Kartets skiver og søppeljobbens er av samme størrelse; ingen av dem er jevnt lengst. Feltets egne fliser sto for 118 av de 340, lagene (én gang per flis på 50 km) for 222.
+
 
 ### Båtenes høyde (`VESSELS.air`, valg 6)
 
@@ -372,7 +381,7 @@ Hver fase er én økt (F2 og F3 kan trenge to). Gammel Autonav står urørt og e
 | Fase | Bygger | Filer | Ferdig når |
 |---|---|---|---|
 | **F0 (steg 140) Benken og grunnlinja, ferdig 23.11.2026** | Strekningslista, observatøren, målene, kjørt på dagens Autonav. Forklarer brudekk-treffene hos spillerne | `tools/autonav/`, `tests/` | Benken gir tall for dagens Autonav på alle strekninger og begge motorer; den er rød der spillerne og jakten har treff |
-| **F1 (steg 141) Farbarhetskartet** | Én geometri, avstandsfelt i worker, dybderegelen, skjær med størrelse, `VESSELS.air`, bruhøyder | ny `core/17-farbar.js`, `02-species-gear.js` (felt), `tools/map/` ved behov | Enhetstester mot rå geometri; observatøren og kartet er enige på benkens strekninger; lista over det 3D tegner annerledes er tom eller avgjort |
+| **F1 (steg 141) Farbarhetskartet, ferdig 23.11.2026** | Én geometri, avstandsfelt i worker, dybderegelen, skjær med størrelse, `VESSELS.air`, bruhøyder | ny `core/17-farbar.js`, `02-species-gear.js` (felt), `tools/map/` ved behov | Enhetstester mot rå geometri; observatøren og kartet er enige på benkens strekninger; lista over det 3D tegner annerledes er tom eller avgjort |
 | **F2 (steg 142) Planleggeren nær og i havn** | G1, G2, banen, bakgrunnsturen | ny `core/17b-bane.js`, `17c-plan.js` (worker) | 0 treff på benkens korte strekninger som bakgrunnstur, alle båter; lengde og CPU innen porten |
 | **F3 (steg 143) Styringen** | Banefølgeren, vakta, kaimanøveren, sanntid = bakgrunn | ny `core/17d-styr.js`, ett kall i `16b-dyn.js` | 0 treff i sanntid for alle båter i vind 3, 9 og 14 m/s; sporfeilen målt per båt og lagt inn i korridoren |
 | **F4 (steg 144) Hovedleden** | G0, leinettet baket på nytt, lange ruter | `tools/leia/`, `src/data/leinett.json`, `17c-plan.js` | Alle mottakspar og alle steder har rute; Oslo–Kirkenes under 1 s strupet |
@@ -425,3 +434,4 @@ Alle sju ble som anbefalt. Det som ikke ble valgt, står med for sammenhengen.
 - 23.11.2026: diagnosen og planen skrevet. Jonas svarte på de sju valgene samme dag, alle som anbefalt. Fasene lagt i køen som steg 140–147, startmeldingen for F0 skrevet (`docs/planer/start/140.md`).
 - 23.11.2026, F0 (steg 140) ferdig (Jonas: «Kjør på»; samme økt). Benken er bygget (`tools/autonav/benk.py`, `benk.js`, `benkobs.js`, `strekninger.json` med 97 strekninger, `tests/unit/benkobs.test.mjs`), kjørt på dagens Autonav, og grunnlinja står over. «Ferdig når» fra `start/140.md`: (1) 97 strekninger, med spillernes verste steder, de tre bruene og de fem stedene uten rute inn; (2) fire båter, begge motorer, treff, lengde mot fasit, knekk, planleggingstid, lengste blokkering strupet fire ganger, tid og diesel i de to motorene; (3) observatøren ser hele skroget sveipt, også bakgrunnsturene, og enhetstesten (26 sjekker; 9 røde med sveipet slått av) viser hva jaktens observatør hopper over; (4) grunnlinja står i planfila, og benken er rød på 29 av de 38 strekningene fra spillernes fangst; (5) brudekk-berøringene er gjenskapt ved alle tre bruene og forklart. Ingen endring i `src/`, ingen utrulling. Neste: F1 (steg 141), `docs/planer/start/141.md`.
 - 23.11.2026, F1 (steg 141) pågår (Jonas: «Kjør på med steg 141»; samme økt). Bygget: `core/17-farbar.js` med geometrien, spørsmålene og feltet i worker, `mapBlockWarm` i loaderen, `VESSELS.air` for alle 15 typene, `tests/unit/farbar.test.mjs` (117 sjekker), `tools/autonav/farsjekk.py`. Sjekket: 32 144 skrogstillinger og 3 648 sveip mot benkens observatør uten én stilling der kartet sier fritt og observatøren ser en berøring; feltet mot geometrien i 259 200 ruter. Den uavhengige kontrollen fant tre feil i sveipet og brudekket (punkt 7 til 9 i «Farbarhetskartet»), som er rettet, og at «aldri over 4 ms» ikke holder (124 av 75 017 skiver). Avgjort: båtenes høyde med pisker, bru-kilden (OSM og NVDB Vegnett Pluss; Kartverkets maritime infrastruktur forkastet til de har sagt ja), kraftspenn er ingen hindring. Lagt: steg 141b (bruene og `air` i bruk). Igjen i 141 («Hvor langt» i `start/141.md`): moloenes form, marinaenes småbåter, kaimodulene, de siste lange skivene.
+- 23.11.2026, F1 (steg 141) ferdig (Jonas: «Kjør på med resten av steg 141»; andre økt). Lagt til: dybden i workeren, moloens form i kartet, feltet og observatøren, marinaenes småbåter og kaiplassenes kaier i kartet, 3D rettet så småbåter ikke ligger i veien inn til en kai eller under bryggene, bassengpasset i farsjekken, grunnlinja kjørt på nytt (`grunnlinje2`). Jonas' to svar om hovedtråden: «Fortsett å jage», så «Skriv om kravet»; det nye kravet holder i målingen av alle 96 stedene. «Ferdig når» fra `start/141.md`: (1) holder; (2) 144 enhetssjekker; (3) 32 144 stillinger, 3 648 sveip og 23 173 bassengsveip uten én der kartet sier fritt og observatøren ser en berøring; (4) holder etter det nye kravet, 187,5 kB per flis; (5) holder, 141b lagt. Startmeldingen for F2 er skrevet (`start/142.md`). Ikke gjort: turbinene er ikke prøvd mot observatøren, og ingen renne er mudret; begge står i oppgaven til 142.

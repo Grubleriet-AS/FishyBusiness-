@@ -248,6 +248,7 @@ export default function (t){
     FARB.w = sea({zc:() => 1.5}); FARB.test = [mol()];
     t.near(K.farbClear(far.x, far.z + 20, sk, 60), 20 - (8 + 1.4 * (0.6 + 0.03 + 1.5)), 1e-9, 'molo: avstanden for en båt er til steinen i hennes kjøldybde ved laveste vann (sjøkartnull 1,5 m under middelvann)');
     t.near(K.farbClear(far.x, far.z + 20, null, 60), 20 - 5.9, 1e-9, 'molo: uten båt er det til det som står tørt ved høyeste flo');
+    t.near(K.farbClear(far.x, far.z + 20, {air:-Infinity}, 60), 20 - 5.9, 1e-9, 'molo: det samme for en «båt» uten dypgang (det feltets sjekk spør med: ingen brudekk, ingen båt)');
     const ring = () => ({k:'p', P:[at(-10, -10), at(10, -10), at(10, 10), at(-10, 10)], what:'molo', id:'mr', molo:1, base:0, reach:8.4});
     FARB.w = sea(); FARB.test = [ring()]; t.eq((K.farbPose(far.x, far.z + 10 + 1.2 + sk.B / 2, E, sk, 0) || {}).what + '|' + (K.farbPose(far.x, far.z + 10 + 0.6 + sk.B / 2, E, sk, 0) || {}).what, 'undefined|molo', 'molo som flate: skråningen står 0,9 m utenfor omrisset i småbåtens kjøldybde');
     // and in the field: what nobody passes is the part dry at the highest tide; the slope is depth
