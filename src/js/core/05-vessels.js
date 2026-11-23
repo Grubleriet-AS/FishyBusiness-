@@ -494,13 +494,18 @@ function coastSet(b, k, pI, i, H){
   b.cs = {key, v}; return v;
 }
 const COASTM = {k:'', v:[], g:[]};
-function coastNear(H, only){
+// (ms, klynge:38184905: a time limit on the main thread, given by the chart's moving layer. A harbour met the first time has its boats
+// placed at the quay or the buoy, its grounds weighed and its sets laid; with many in reach at once (the start, new waters) that held a
+// phone's page for seconds, «Heng: spillet sto stille · kart». Once over the limit the harbours not reached wait for the next call, and
+// the list is not kept (COASTM.k), so that call goes on from there. Called without it, as by the 3D view and the tests, all at once)
+function coastNear(H, only, ms){
   const b = S && S.boat; if (!b || !b.pos || !MAPD.man) return [];
   const R = AIS_KM, x = b.pos.x, y = b.pos.y, F = R + 25, k = H + '|' + x.toFixed(2) + ',' + y.toFixed(2) + '|' + VEC.ver;
   if (!only && COASTM.k === k) return COASTM.v;
   vecWant(x - F, y - F, x + F, y + F); vecPrune([b.pos], 120);
-  const out = [], gear = [], hod = hodOf(H), hod1 = hodOf(H - 1 / 60);
-  for (const t of vecTilesIn((x - F) * 1000, (y - F) * 1000, (x + F) * 1000, (y + F) * 1000)) for (const h of t.npc || []){
+  const out = [], gear = [], hod = hodOf(H), hod1 = hodOf(H - 1 / 60), end = ms && !only ? performance.now() + ms : Infinity; let nh = 0, cut = false;
+  tiles: for (const t of vecTilesIn((x - F) * 1000, (y - F) * 1000, (x + F) * 1000, (y + F) * 1000)) for (const h of t.npc || []){
+    if (nh++ && performance.now() > end){ cut = true; break tiles; }
     // a harbour whose berths, routes and grounds all lie beyond the range is passed over (its reach: the farthest of them from its
     // middle, worked out once; a long waterfront is one harbour)
     if (h.reach === undefined){ h.reach = 0.3; for (const bt of h.boats) h.reach = Math.max(h.reach, dist(bt.p, h) + 0.1); for (const g of h.grounds) for (const q of g.pts.concat([g.p])) h.reach = Math.max(h.reach, dist(q, h) + 0.6); }
@@ -515,10 +520,10 @@ function coastNear(H, only){
       out.push({id:bt.id, name:bt.name, type:bt.L >= 14 ? 'kyst' : 'sjark', p:A.p, hd:A.hd, cog:sog > 0.15 ? Math.atan2(dx, -dy) : A.hd, v:Math.round(sog * 10) / 10, st:A.st, coast:true, L:bt.L, B:bt.B, T:bt.T, liv:bt.liv, mainGear:bt.gear});   // (the register's main gear: the 3D view draws her by it, view3d npcGearT; not «gear», which colregCls reads as her set being in the sea)
     }
   }
-  if (!only){ COASTM.k = k; COASTM.v = out; COASTM.g = gear; }
+  if (!only){ COASTM.k = cut ? '' : k; COASTM.v = out; COASTM.g = gear; }
   return out;
 }
-function npcStates(H, only){
+function npcStates(H, only, ms){   // (ms: the chart's time limit for the coast's boats, coastNear)
   const out = [];
   // the coastal route's ships (Bergen - Kirkenes, one each way every day, by Entur's timetable; Senja's «MS Kystpilen» is one of them),
   // the car ferries, express boats and passenger ferries: Senja's own ferry (Botnhamn - Brensholmen, the summer season) and the coast's
@@ -533,7 +538,7 @@ function npcStates(H, only){
     out.push({id:'f' + i, name:f.n, type:f.L >= 14 ? 'kyst' : 'sjark', p:A.p, hd:A.hd, cog:sog > 0.15 ? Math.atan2(dx, -dy) : A.hd, v:Math.round(sog * 10) / 10, st:A.st, fleet:true, fi:i, L:f.L, B:f.B, liv:i % 4});
   });
   // the coast's boats within AIS range of the boat you follow (part 5)
-  if (!only || only[0] === 'c') for (const n of coastNear(H, only)) out.push(n);
+  if (!only || only[0] === 'c') for (const n of coastNear(H, only, ms)) out.push(n);
   // the ocean fleet within AIS range (H1, 05d-hav.js), and the coast's and the ocean fleet's gear in the sea for the chart and the 3D view
   if ((!only || only[0] === 'v') && typeof havNear === 'function') for (const n of havNear(H, only)) out.push(n);
   if (!only){ NPCGEAR.length = 0; for (const g of COASTM.g) NPCGEAR.push(g); if (typeof HAV !== 'undefined') for (const g of HAV.gear) NPCGEAR.push(g); }

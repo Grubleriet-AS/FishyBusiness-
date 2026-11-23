@@ -727,7 +727,7 @@ function renderDyn(){
   if (typeof PLANMAP !== 'undefined') g.push(PLANMAP.svg(u));   // the operations plan's ring and fields (ui/03g-planmap.js)
   // other vessels (AIS)
   const Hn = (S.t + liveFrac()) / 60;
-  AISNOW = npcStates(Hn).filter(aisShown);
+  AISNOW = npcStates(Hn, undefined, 40).filter(aisShown);   // (40 ms at most for the coast's harbours met the first time, core/05-vessels.js coastNear; klynge:38184905)
   if (AISSEL){ const tr = aisTrack(AISSEL, Hn); if (tr.length > 1) g.push('<polyline points="' + tr.map(q => q.x.toFixed(3) + ',' + q.y.toFixed(3)).join(' ') + '" class="aistrack" stroke-width="' + (1.6 * u) + '" stroke-dasharray="' + (4 * u) + ' ' + (3 * u) + '"/>'); }
   // names (Jonas 02.11.2026, choice 1A): the fishing boats' only while they are out, not in port, and only when the chart is under 4 km
   // tall; the other players' always; none on top of another or of the static layer's labels (LBLBOX), the players' first
