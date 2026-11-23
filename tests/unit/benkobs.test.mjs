@@ -93,4 +93,9 @@ export default function (t){
   t.near(Math.max(...xs) - Math.min(...xs), 3, 1e-9, 'skrogomrisset er så bredt som båten');
   t.near(Math.max(...zs) - Math.min(...zs), 10, 1e-9, 'og så langt');
   t.ok(H.every(([x, z]) => BKO.inConvex(H, x * 0.99, z * 0.99)), 'og konvekst');
+
+  // a breakwater mapped as an area, with the reach of its slope outside the outline (steg 141: the 3D view's rock falls 1 in 1.4)
+  const sq = [[-10, -10], [10, -10], [10, 10], [-10, 10]], hl = BKO.hull(0, 12.5, Math.PI / 2, 10, 3);   // (she lies along it, her side 1 m outside the outline)
+  t.eq(BKO.touches(hl, {k:'l', P:sq, r:0, closed:true}) + '|' + BKO.touches(hl, {k:'l', P:sq, r:1.5, closed:true}), 'false|true', 'benken: en molo som flate med skråning berøres 1 m utenfor omrisset når skråningen rekker 1,5 m');
+  t.ok(BKO.touches(BKO.hull(0, 0, 0, 4, 2), {k:'l', P:sq, r:0, closed:true}), 'benken: og et skrog inne i omrisset berører den');
 }

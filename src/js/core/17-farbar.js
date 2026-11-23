@@ -21,6 +21,9 @@
 // Metres on the grid throughout: x east, z south, psi from north clockwise (as the boat model); H game hours.
 const FARB = {C:250, cap:100, airOver:1, keel:0.5, side:2, eps:0.03, step:0.3, skip:60, slice:0.6, t0:0, live:false,
   shore:{top:2, g:1 / 3, gMole:1 / 1.5, deep:-2.5, reach:13.5},
+  // a breakwater as the 3D view builds it (view3d/05-quays-breakwaters.js MOLO): its rock meets the water at mean sea level half m
+  // out from a line (on the outline of one mapped as an area), and falls 1 in run from there down to foot m under it
+  molo:{half:8, run:1.4, foot:6},
   // her waterline, the starboard half from the bow aft: fractions of L forward and of B abeam (a rounded bow, a square stern)
   hullF:[[0.5, 0], [0.44, 0.27], [0.33, 0.45], [0.2, 0.5], [-0.5, 0.5]],
   lay:{stat:null, statN:-1, unit:null, unitN:-1, site:null, siteKey:null}, til:new WeakMap(), nTil:0, mk:new Map(), rk:new Map(), dug:new Map(), dugL:[], keelP:new Map(),
@@ -105,11 +108,17 @@ function farbPolyD(P, o){
   }
   return Infinity;
 }
+// A breakwater for a boat: how far out from its line (outside its outline) its rock stands at her keel's depth, y m under mean sea
+// level (under 0: her keel is over it). The line itself where she floats over the crest's shoulder; never beyond the rock's foot
+function farbMoloR(o, y){ const M = FARB.molo; return Math.max(0, o.base + M.run * Math.min(M.foot, y)); }
+// metres from a point, and from her outline, to a breakwater's line or outline itself
+function farbCoreDp(o, x, z){ if (o.k !== 'l') return farbD(o, x, z); const Q = o.P; let m = Q.length === 1 ? Math.hypot(x - Q[0][0], z - Q[0][1]) : Infinity; for (let i = 1; i < Q.length; i++){ const d = farbSegD(x, z, Q[i - 1][0], Q[i - 1][1], Q[i][0], Q[i][1]); if (d < m) m = d; } return m; }
+function farbCoreD(P, o){ if (o.k !== 'l') return farbRingD(P, o.P); const Q = o.P; let m = Q.length === 1 ? farbPtPoly(P, Q[0][0], Q[0][1]) : Infinity; for (let i = 1; i < Q.length && m > 0; i++){ const d = farbSegPoly(P, Q[i - 1][0], Q[i - 1][1], Q[i][0], Q[i][1]); if (d < m) m = d; } return m; }
 // a thing's box (m), kept on it
 function farbBB(o){ if (o.bb) return o.bb; let x0, z0, x1, z1;
   if (o.k === 'c' || o.k === 'e' || o.k === 'b' || o.k === 'u'){ const e = o.k === 'c' ? o.r : o.k === 'e' ? Math.max(o.a, o.b) : o.k === 'b' ? Math.hypot(o.l, o.w) : (o.U.y ? 200 : 120), cx = o.k === 'u' ? o.U.o[0] : o.x, cz = o.k === 'u' ? o.U.o[1] : o.z; x0 = cx - e; x1 = cx + e; z0 = cz - e; z1 = cz + e; }
   else if (o.k === 's'){ x0 = Math.min(o.ax, o.bx) - o.r; x1 = Math.max(o.ax, o.bx) + o.r; z0 = Math.min(o.az, o.bz) - o.r; z1 = Math.max(o.az, o.bz) + o.r; }
-  else { const r = o.k === 'l' ? o.r : 0; x0 = z0 = Infinity; x1 = z1 = -Infinity; for (const q of o.P){ if (q[0] < x0) x0 = q[0]; if (q[0] > x1) x1 = q[0]; if (q[1] < z0) z0 = q[1]; if (q[1] > z1) z1 = q[1]; } x0 -= r; x1 += r; z0 -= r; z1 += r; }
+  else { const r = (o.k === 'l' ? o.r : 0) + (o.reach || 0); x0 = z0 = Infinity; x1 = z1 = -Infinity; for (const q of o.P){ if (q[0] < x0) x0 = q[0]; if (q[0] > x1) x1 = q[0]; if (q[1] < z0) z0 = q[1]; if (q[1] > z1) z1 = q[1]; } x0 -= r; x1 += r; z0 -= r; z1 += r; }
   return o.bb = [x0, z0, x1, z1]; }
 // into a layer: a map from a cell of FARB.C m to the things whose box touches it
 function farbPut(M, o){ const b = farbBB(o), C = FARB.C; for (let j = Math.floor(b[1] / C); j <= Math.floor(b[3] / C); j++) for (let i = Math.floor(b[0] / C); i <= Math.floor(b[2] / C); i++){ const k = i * 1048576 + j, a = M.get(k); if (a) a.push(o); else M.set(k, [o]); } return o; }
@@ -208,7 +217,9 @@ function* farbTileG(t){ const M = new Map(), V = yield* farbDrawnG(t); if (FARB.
   for (const q of V.piers){ if (!(++n & 3)) yield; if (q.closed && !q.bw && !q.made && t.slabs && t.slabs[q.src]) continue; farbPut(M, farbPier(q, V.flo.has(q) ? 'flytebrygge' : null)); }
   for (const [P, f] of V.slabs){ if (!(++n & 3)) yield; farbPut(M, {k:'p', P, what:f ? 'flytebrygge' : 'brygge', id:'flate#' + Math.round(P[0][0]) + ',' + Math.round(P[0][1])}); }
   for (const P of V.molos){ if (!(++n & 3)) yield; if (!P || P.length < 2) continue; const cl = P.length > 3 && Math.hypot(P[0][0] - P[P.length - 1][0], P[0][1] - P[P.length - 1][1]) < 1;
-    farbPut(M, cl ? {k:'p', P, what:'molo', id:'molo#' + Math.round(P[0][0]) + ',' + Math.round(P[0][1])} : {k:'l', P, r:4.5, what:'molo', id:'molo#' + Math.round(P[0][0]) + ',' + Math.round(P[0][1])}); }
+    // (what nobody passes is what stands dry at the highest tide; how near a boat can go is by her draught and the water, farbMoloR)
+    const base = cl ? 0 : FARB.molo.half, r0 = Math.max(0, base - FARB.molo.run * farbHat(P[0][0], P[0][1])), id = 'molo#' + Math.round(P[0][0]) + ',' + Math.round(P[0][1]);
+    farbPut(M, cl ? {k:'p', P, what:'molo', id, molo:1, base, reach:FARB.molo.run * FARB.molo.foot} : {k:'l', P, r:r0, what:'molo', id, molo:1, base, reach:base - r0 + FARB.molo.run * FARB.molo.foot}); }
   for (const br of t.bridges || []){ yield 1; if (!bridgeUnderUnit(br)) farbBridge(M, br); }
   return {M, n:UNITA.length, dock:null, dockV:-1}; }
 // the tile's layer where it is built (null where not: farbNeed builds it), and the coast harbours' floating docks and gangways in it,
@@ -413,7 +424,7 @@ function farbNearest(x, z, cap, boat, opt){ FARB.n.near++;
   const c = farbCoast(x, z, cap); if (c !== c) return FARB_UNK; if (c < d){ d = c; what = 'land'; id = Math.round(x / 50) + ',' + Math.round(z / 50); }
   const air = boat ? boat.air + FARB.airOver : Infinity, n = farbGather(x, z, cap), buf = FARB.buf;
   for (let i = 0; i < n; i++){ const o = buf[i]; if (o.k === 's' && !(farbUnder(o) < air)) continue; const b = o.bb || farbBB(o); if (x < b[0] - d || x > b[2] + d || z < b[1] - d || z > b[3] + d) continue;
-    const e = farbD(o, x, z); if (e < d && !farbGone(o, n)){ d = e; hit = o; what = o.what; id = o.id; } }
+    const e = o.molo && boat ? Math.max(0, farbCoreDp(o, x, z) - farbMoloR(o, boat.T + FARB.eps + farbZC(x, z))) : farbD(o, x, z); if (e < d && !farbGone(o, n)){ d = e; hit = o; what = o.what; id = o.id; } }   // (a breakwater for her at the lowest water)
   if (opt && opt.boats && !FARB.w) try { for (const o of fixBoats(x, z)){ const e = o.t === 0 ? Math.max(0, Math.hypot(x - o.x, z - o.z) - o.r) : Math.hypot(Math.max(0, Math.abs((x - o.x) * o.ux + (z - o.z) * o.uz) - o.l), Math.max(0, Math.abs((x - o.x) * o.uz - (z - o.z) * o.ux) - o.w)); if (e < d){ d = e; hit = o; what = 'båt'; id = 'båt#' + Math.round(o.x) + ',' + Math.round(o.z); } } } catch (e){}
   return what || hit ? {d, what, id, x, z, o:hit} : null; }
 // metres from x, z to the nearest thing she cannot pass, cap where there is none within it, NaN where the map is not in
@@ -453,7 +464,7 @@ function farbPose(X, Z, psi, boat, H, opt){ FARB.n.pose++; const m = opt && opt.
   // the things
   const air = boat.air + FARB.airOver, n = farbGather(X, Z, R), buf = FARB.buf;
   for (let i = 0; i < n; i++){ const o = buf[i]; if (o.k === 's' && !(farbUnder(o) < air)) continue; const b = o.bb || farbBB(o); if (b[0] > x1 || b[2] < x0 || b[1] > z1 || b[3] < z0) continue;
-    if (farbPolyD(P, o) <= m && !farbGone(o, n)) return {what:o.what, id:o.id, x:o.x != null ? o.x : (b[0] + b[2]) / 2, z:o.z != null ? o.z : (b[1] + b[3]) / 2}; }
+    if ((o.molo ? farbCoreD(P, o) - farbMoloR(o, boat.T + (opt && opt.squat || 0) + (opt && opt.keel || 0) + FARB.eps - farbTide(H, X, Z) + farbZC(X, Z)) : farbPolyD(P, o)) <= m && !farbGone(o, n)) return {what:o.what, id:o.id, x:o.x != null ? o.x : (b[0] + b[2]) / 2, z:o.z != null ? o.z : (b[1] + b[3]) / 2}; }
   if (opt && opt.boats && !FARB.w) try { for (const o of fixBoats(X, Z)){ const d = o.t === 0 ? Math.max(0, farbPtPoly(P, o.x, o.z) - o.r) : farbRingD(P, o.Q || (o.Q = farbBoxPts(o))); if (d <= m) return {what:'båt', id:'båt#' + Math.round(o.x) + ',' + Math.round(o.z), x:o.x, z:o.z}; } } catch (e){}
   // the water under her: with the foreshore where the coast is near enough for it to reach in under her, and then her outline closely
   const s = Math.sin(psi), c = Math.cos(psi), sq = opt && opt.squat || 0, kl = opt && opt.keel || 0, reach = Math.hypot(boat.L, boat.B) / 2 + FARB.shore.reach + 2, cd = farbCoast(X, Z, reach, true);
@@ -502,6 +513,7 @@ FARB.F = {N:250, cap:60, q:0.25, deck:8, lat:40, pad:3.5, max:96, fld:new Map(),
 function farbFieldBuild(J){
   const N = J.N, cell = J.cell, cap = J.cap, NN = N * N, S = J.shore, reach = S.reach + 2, t0 = Date.now();
   const D = new Float32Array(NN).fill(cap), SH = new Float32Array(NN).fill(reach), MO = new Uint8Array(NN), U = new Uint8Array(NN).fill(255), Z = new Float32Array(NN);
+  const ML = J.molo ? new Float32Array(NN).fill(99) : null, mreach = J.molo ? J.molo.run * J.molo.foot : 0;   // (a breakwater's slope: metres out from where its rock meets mean sea level)
   const segD2 = (x, z, ax, az, bx, bz) => { const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz, u = L2 ? Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2)) : 0, ex = x - ax - dx * u, ez = z - az - dz * u; return ex * ex + ez * ez; };
   // the cells whose middles lie between lo - r and hi + r
   const lo = (v, r) => Math.max(0, Math.ceil((v - r) / cell - 0.5)), hi = (v, r) => Math.min(N - 1, Math.floor((v + r) / cell - 0.5));
@@ -513,17 +525,23 @@ function farbFieldBuild(J){
   const EO = J.eo, EC = J.ec || J.eo;
   for (let k = 0; k < EC.length; k += 5) line(D, cap, EC[k], EC[k + 1], EC[k + 2], EC[k + 3], 0);
   for (let k = 0; k < EO.length; k += 5) line(SH, reach, EO[k], EO[k + 1], EO[k + 2], EO[k + 3], 0, MO, EO[k + 4] ? 1 : 0);
-  // the things: 1 a circle, 2 a box, 3 a line with a width, 4 a closed outline, 5 an ellipse, 6 a piece of a bridge's deck
+  // the things: 1 a circle, 2 a box, 3 a line with a width, 4 a closed outline, 5 an ellipse, 6 a piece of a bridge's deck, 7 a
+  // breakwater's line (what nobody passes, and its slope as depth), 8 a breakwater's outline (the same)
+  const slope = (ax, az, bx, bz, base) => { const R = base + mreach, i0 = lo(Math.min(ax, bx), R), i1 = hi(Math.max(ax, bx), R), j0 = lo(Math.min(az, bz), R), j1 = hi(Math.max(az, bz), R);
+    for (let j = j0; j <= j1; j++){ const z = (j + 0.5) * cell; for (let i = i0; i <= i1; i++){ const k = j * N + i, v = Math.sqrt(segD2((i + 0.5) * cell, z, ax, az, bx, bz)) - base; if (v < ML[k]) ML[k] = v; } } };
+  const ringIn = (T, p, n, sl) => { let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
+    for (let i = 0, j = n - 1; i < n; j = i++){ const x = T[p + i * 2], z = T[p + i * 2 + 1]; line(D, cap, T[p + j * 2], T[p + j * 2 + 1], x, z, 0); if (sl) slope(T[p + j * 2], T[p + j * 2 + 1], x, z, 0); if (x < x0) x0 = x; if (x > x1) x1 = x; if (z < z0) z0 = z; if (z > z1) z1 = z; }
+    for (let j = lo(z0, 0); j <= hi(z1, 0); j++) for (let i = lo(x0, 0); i <= hi(x1, 0); i++) if (D[j * N + i] > 0 && inPoly(T, p, n, (i + 0.5) * cell, (j + 0.5) * cell)) D[j * N + i] = 0; };
   const T = J.th;
   for (let p = 0; p < T.length;){ const k = T[p++];
     if (k === 1){ line(D, cap, T[p], T[p + 1], T[p], T[p + 1], T[p + 2]); p += 3; }
     else if (k === 2){ const x = T[p], z = T[p + 1], l = T[p + 2], w = T[p + 3], ux = T[p + 4], uz = T[p + 5], e = Math.hypot(l, w) + cap; p += 6;
       for (let j = lo(z, e); j <= hi(z, e); j++) for (let i = lo(x, e); i <= hi(x, e); i++){ const dx = (i + 0.5) * cell - x, dz = (j + 0.5) * cell - z, d = Math.hypot(Math.max(0, Math.abs(dx * ux + dz * uz) - l), Math.max(0, Math.abs(dx * uz - dz * ux) - w)); if (d < D[j * N + i]) D[j * N + i] = d; } }
     else if (k === 3){ const r = T[p++], n = T[p++]; if (n === 1) line(D, cap, T[p], T[p + 1], T[p], T[p + 1], r); for (let i = 1; i < n; i++) line(D, cap, T[p + i * 2 - 2], T[p + i * 2 - 1], T[p + i * 2], T[p + i * 2 + 1], r); p += n * 2; }
-    else if (k === 4){ const n = T[p++]; let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
-      for (let i = 0, j = n - 1; i < n; j = i++){ const x = T[p + i * 2], z = T[p + i * 2 + 1]; line(D, cap, T[p + j * 2], T[p + j * 2 + 1], x, z, 0); if (x < x0) x0 = x; if (x > x1) x1 = x; if (z < z0) z0 = z; if (z > z1) z1 = z; }
-      for (let j = lo(z0, 0); j <= hi(z1, 0); j++) for (let i = lo(x0, 0); i <= hi(x1, 0); i++) if (D[j * N + i] > 0 && inPoly(T, p, n, (i + 0.5) * cell, (j + 0.5) * cell)) D[j * N + i] = 0;
-      p += n * 2; }
+    else if (k === 4){ const n = T[p++]; ringIn(T, p, n, false); p += n * 2; }
+    else if (k === 8){ const n = T[p++]; ringIn(T, p, n, !!ML); p += n * 2; }
+    else if (k === 7){ const base = T[p++], r0 = T[p++], n = T[p++]; if (n === 1){ line(D, cap, T[p], T[p + 1], T[p], T[p + 1], r0); if (ML) slope(T[p], T[p + 1], T[p], T[p + 1], base); }
+      for (let i = 1; i < n; i++){ line(D, cap, T[p + i * 2 - 2], T[p + i * 2 - 1], T[p + i * 2], T[p + i * 2 + 1], r0); if (ML) slope(T[p + i * 2 - 2], T[p + i * 2 - 1], T[p + i * 2], T[p + i * 2 + 1], base); } p += n * 2; }
     else if (k === 5){ const x = T[p], z = T[p + 1], a = T[p + 2], b = T[p + 3], th = T[p + 4], ct = Math.cos(th), st = Math.sin(th), mn = Math.min(a, b), e = Math.max(a, b) + cap; p += 5;
       for (let j = lo(z, e); j <= hi(z, e); j++) for (let i = lo(x, e); i <= hi(x, e); i++){ const dx = (i + 0.5) * cell - x, dz = (j + 0.5) * cell - z, q = Math.hypot((dx * ct + dz * st) / a, (-dx * st + dz * ct) / b), d = q <= 1 ? 0 : Math.max((q - 1) * mn, Math.hypot(dx, dz) - Math.max(a, b)); if (d < D[j * N + i]) D[j * N + i] = d; } }
     else if (k === 6){ const ax = T[p], az = T[p + 1], bx = T[p + 2], bz = T[p + 3], R = T[p + 4] + J.deck, v = Math.max(0, Math.min(254, Math.floor(T[p + 5] / 0.25))); p += 6;
@@ -576,6 +594,7 @@ function farbFieldBuild(J){
       if (ld){ D[k] = 0; Z[k] = -S.top - J.zc; continue; }
       let d = rawAt(x, z); if (d !== d){ Z[k] = NaN; continue; }
       if (!pk && SH[k] < reach){ const g = S.top - SH[k] * (MO[k] ? S.gMole : S.g); if (g > S.deep) d = Math.min(d, -g - J.zc); }
+      if (ML && ML[k] < mreach){ const dm = ML[k] / J.molo.run - J.zc; if (dm < d) d = dm; }   // (a breakwater's slope)
       Z[k] = d; } }
   // the dredged channels
   const G = J.dug; for (let q = 0; q < G.length; q += 6){ const ax = G[q], az = G[q + 1], bx = G[q + 2], bz = G[q + 3], r = G[q + 4], dd = G[q + 5];
@@ -642,6 +661,7 @@ function* farbFieldJob(cell, fx, fz){ const F = FARB.F, N = F.N, Tf = N * cell, 
   for (const o of list){ if (!(++k & 3)) yield;
     if (o.k === 'c') th.push(1, o.x - x0, o.z - z0, o.r);
     else if (o.k === 'b') th.push(2, o.x - x0, o.z - z0, o.l, o.w, o.ux, o.uz);
+    else if (o.molo){ if (o.k === 'l') th.push(7, o.base, o.r, o.P.length); else th.push(8, o.P.length); for (const q of o.P) th.push(q[0] - x0, q[1] - z0); }
     else if (o.k === 'l'){ th.push(3, o.r, o.P.length); for (const q of o.P) th.push(q[0] - x0, q[1] - z0); }
     else if (o.k === 'p') ring(o.P);
     else if (o.k === 'e') th.push(5, o.x - x0, o.z - z0, o.a, o.b, o.th);
@@ -658,7 +678,7 @@ function* farbFieldJob(cell, fx, fz){ const F = FARB.F, N = F.N, Tf = N * cell, 
     dep = {n:ln, step, v}; }
   const dug = []; for (const s of FARB.dugL) if (Math.max(s.ax, s.bx) + s.r > x0 && Math.min(s.ax, s.bx) - s.r < x0 + Tf && Math.max(s.az, s.bz) + s.r > z0 && Math.min(s.az, s.bz) - s.r < z0 + Tf) dug.push(s.ax - x0, s.az - z0, s.bx - x0, s.bz - z0, s.r, s.d);
   F.at = 'pakking'; yield; const eoA = yield* farbPackG(eo), ecA = ec ? yield* farbPackG(ec) : null, thA = yield* farbPackG(th);
-  return {N, cell, cap, q:F.q, deck:F.deck, shore:FARB.shore, zc:farbZC(cx, cz), co, eo:eoA, ec:ecA, pk:Float32Array.from(pkA), th:thA, dep, dr, dug:Float32Array.from(dug)}; }
+  return {N, cell, cap, q:F.q, deck:F.deck, shore:FARB.shore, molo:FARB.molo, zc:farbZC(cx, cz), co, eo:eoA, ec:ecA, pk:Float32Array.from(pkA), th:thA, dep, dr, dug:Float32Array.from(dug)}; }
 // the worker (false where one cannot start: then no field is built, and what asks goes to the geometry)
 function farbFieldWorker(){ const F = FARB.F; if (F.worker !== null) return F.worker;
   try { const src = farbFieldBuild.toString() + '\nonmessage = e => { try { const r = farbFieldBuild(e.data.J); postMessage({id:e.data.id, r}, [r.d.buffer, r.z.buffer, r.u.buffer]); } catch (err){ postMessage({id:e.data.id, err:String(err)}); } };';

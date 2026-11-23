@@ -55,7 +55,7 @@
       case 'b': return polyLine(P, o.P || (o.P = boxPts(o)), 0, true);
       case 's': return polyLine(P, [[o.ax, o.az], [o.bx, o.bz]], o.r, false);
       case 'p': case 'h': return polyLine(P, o.P, 0, true);
-      case 'l': return polyLine(P, o.P, o.r, false);
+      case 'l': return polyLine(P, o.P, o.r, !!o.closed);   // (closed: a breakwater mapped as an area, with its slope's reach outside the outline)
       case 'e': return polyEllipse(P, o);
     }
     return false;

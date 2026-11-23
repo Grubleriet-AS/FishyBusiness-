@@ -237,5 +237,22 @@ export default function (t){
     t.eq(zAt(fr, 31, 107) + '|' + zAt(fr, 31, 93), '2.1|1', 'kaiplassen foran et naust er mudret til dypgangen pluss 0,5 m, og ikke bak fronten');
     fr = K.farbFieldBuild(drj(cells(() => 2), {hb:Float32Array.from([0, 0, 40])}));
     t.eq(zAt(fr, 11, 11) + '|' + zAt(fr, 81, 81), '4.3|2', 'i en havn er vannet havnas egen dybde (4,35 m, rundet ned), utenfor er det kartets');
+
+    // ---- 11. a breakwater as the 3D view builds it: 8 m out from its line at mean sea level, falling 1 in 1.4 to 6 m under it ----
+    const mol = () => ({k:'l', P:[at(-50, 0), at(50, 0)], r:5.9, what:'molo', id:'mo', molo:1, base:8, reach:8 - 5.9 + 8.4}), sk = {L:5.9, B:2.45, T:0.6, air:2}, k21 = {L:21, B:7.2, T:3.4, air:10}, pel = {L:75, B:15.5, T:7.5, air:22}, E = Math.PI / 2;
+    const side = (b, d, w) => { FARB.w = sea(w); FARB.test = [mol()]; const q = K.farbPose(far.x, far.z + d + b.B / 2, E, b, 0); return q ? q.what : null; };   // (she lies along it, her side d m from its line)
+    t.eq(side(sk, 9.2) + '|' + side(sk, 8.6), 'null|molo', 'molo: en båt som stikker 0,6 m, går klar med siden 9,2 m fra linja og berører 8,6 m fra (steinen står 8,9 m ut i hennes kjøldybde)');
+    t.eq(side(k21, 13.1) + '|' + side(k21, 12.5), 'null|molo', 'molo: en som stikker 3,4 m, må 12,8 m ut');
+    t.eq(side(pel, 16.7) + '|' + side(pel, 16.1), 'null|molo', 'molo: foten ligger 6 m dypt, så ingen må lenger ut enn 16,4 m');
+    t.eq(side(sk, 7.6, {tide:() => 1.2}) + '|' + side(sk, 7.0, {tide:() => 1.2}), 'null|molo', 'molo: med 1,2 m flo over middelvann flyter småbåten 7,6 m fra linja (steinen 7,2 m ut der)');
+    FARB.w = sea({zc:() => 1.5}); FARB.test = [mol()];
+    t.near(K.farbClear(far.x, far.z + 20, sk, 60), 20 - (8 + 1.4 * (0.6 + 0.03 + 1.5)), 1e-9, 'molo: avstanden for en båt er til steinen i hennes kjøldybde ved laveste vann (sjøkartnull 1,5 m under middelvann)');
+    t.near(K.farbClear(far.x, far.z + 20, null, 60), 20 - 5.9, 1e-9, 'molo: uten båt er det til det som står tørt ved høyeste flo');
+    const ring = () => ({k:'p', P:[at(-10, -10), at(10, -10), at(10, 10), at(-10, 10)], what:'molo', id:'mr', molo:1, base:0, reach:8.4});
+    FARB.w = sea(); FARB.test = [ring()]; t.eq((K.farbPose(far.x, far.z + 10 + 1.2 + sk.B / 2, E, sk, 0) || {}).what + '|' + (K.farbPose(far.x, far.z + 10 + 0.6 + sk.B / 2, E, sk, 0) || {}).what, 'undefined|molo', 'molo som flate: skråningen står 0,9 m utenfor omrisset i småbåtens kjøldybde');
+    // and in the field: what nobody passes is the part dry at the highest tide; the slope is depth
+    fr = K.farbFieldBuild(job({co:null, eo:new Float32Array(0), molo:FARB.molo, th:Float32Array.from([7, 8, 5.9, 2, -20, 61, 140, 61])}));
+    t.eq(at2(fr, 51, 71)[0] + '|' + at2(fr, 51, 65)[0], '4|0', 'feltet: en molo er stengt for alle 5,9 m ut fra linja (10 m ut er avstanden 4,1 m, rundet ned)');
+    t.eq(at2(fr, 51, 77)[1] + '|' + at2(fr, 51, 71)[1] + '|' + at2(fr, 51, 91)[1], Math.floor((14 - 8) / 1.4 * 10) + '|0|254', 'feltet: skråningen er dybde (16 m ut: naboruta 14 m ut har 4,2 m; 10 m ut er naboruta på 8 m i vannskorpa; 30 m ut er det kartets)');
   } finally { FARB.w = null; FARB.test = null; K.farbDig('test', null); }
 }

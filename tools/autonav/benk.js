@@ -17,7 +17,7 @@
   const C = HIND.C, km = (x, z) => ({x:x / 1000, y:z / 1000}), sleep = ms => new Promise(r => setTimeout(r, ms));
   // (view3d/00-head.js rng, the seeded generator a rock's shape is drawn from)
   const rng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
-  const ROCK_FOOT = -2.4, COAST3 = {top:2, g:1 / 3, gMole:1 / 1.5, deep:-2.5};
+  const ROCK_FOOT = -2.4, COAST3 = {top:2, g:1 / 3, gMole:1 / 1.5, deep:-2.5}, MOLO3 = {half:8, run:1.4, foot:6};
   const nearPort = p => { let best = null, bd = 1e9; for (const q of PORTS){ const d = dist(q.p, p); if (d < bd){ bd = d; best = q; } } return best ? [best.name, Math.round(bd * 1000)] : null; };
   const WHAT = {quay:'kai', pier:'brygge', dock:'flytebrygge', rorbu:'rorbukai', naust:'naustkai', mark:'merke', turbine:'vindturbin'};
   // the ground of the foreshore at a point by the 3D view's rule (m over mean sea level), or null off it
@@ -50,7 +50,11 @@
     tileThings(t){ if (t.bkT) return t.bkT; const V = BK.drawn(t), M = new Map();
       const put = o => { const b = BKO.bbox(o); for (let j = Math.floor(b[1] / C); j <= Math.floor(b[3] / C); j++) for (let i = Math.floor(b[0] / C); i <= Math.floor(b[2] / C); i++){ const k = i * 1048576 + j; let a = M.get(k); if (!a) M.set(k, a = []); a.push(o); } };
       V.slabs.forEach((P, i) => put({k:'p', P, what:'brygge', id:'v' + t.k + ':b' + i}));
-      V.molos.forEach((P, i) => { if (!P || P.length < 2) return; const cl = P.length > 3 && Math.hypot(P[0][0] - P[P.length - 1][0], P[0][1] - P[P.length - 1][1]) < 1; put(cl ? {k:'p', P, what:'molo', id:'v' + t.k + ':m' + i} : {k:'l', P, r:4.5, what:'molo', id:'v' + t.k + ':m' + i}); });
+      // (a breakwater as the 3D view builds it, view3d/05-quays-breakwaters.js MOLO: its rock meets mean sea level 8 m out from a line, on
+      // the outline of one mapped as an area, and falls 1 in 1.4 to 6 m under it. Until steg 141 (23.11.2026) the bench had a line of
+      // 9 m and the bare outline: a boat 5 m from a breakwater's line counted as clear. In the index with the slope's whole reach; r
+      // is set for her draught and the water when it is asked for, thingsIn)
+      V.molos.forEach((P, i) => { if (!P || P.length < 2) return; const cl = P.length > 3 && Math.hypot(P[0][0] - P[P.length - 1][0], P[0][1] - P[P.length - 1][1]) < 1, base = cl ? 0 : MOLO3.half; put({k:'l', P, r:base + MOLO3.run * MOLO3.foot, closed:cl, base, molo:true, what:'molo', id:'v' + t.k + ':m' + i}); });
       return t.bkT = M; },
     // a rock as the 3D view shapes it (17i-rocks.js rockShape: the same seed and the same draws), where it is drawn (not well inside a
     // harbour's water, not under the foreshore's ground); and its outline at her keel's depth now: null where her keel goes over it
@@ -70,7 +74,7 @@
       const air = obsAir(), i0 = Math.floor(x0 / C), i1 = Math.floor(x1 / C), j0 = Math.floor(z0 / C), j1 = Math.floor(z1 / C); let tiles = []; try { tiles = vecTilesIn(x0 - 30, z0 - 30, x1 + 30, z1 + 30).map(t => BK.tileThings(t)); } catch (e){}
       for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++){ const k = i * 1048576 + j;
         if (idx) for (const o of idx.get(k) || []){ if (seen.has(o)) continue; seen.add(o); const t = BK.conv(o); if (!t || (t.k === 's' && !(t.under < air))) continue; out.push(t); }
-        for (const M of tiles) for (const o of M.get(k) || []) if (!seen.has(o)){ seen.add(o); out.push(o); } }
+        for (const M of tiles) for (const o of M.get(k) || []) if (!seen.has(o)){ seen.add(o); if (o.molo){ let h = 0; try { h = tideH(S.t / 60, km(o.P[0][0], o.P[0][1])); } catch (e){} o.r = Math.max(0, o.base + MOLO3.run * Math.min(MOLO3.foot, BOAT.draft + BK.squat - h)); } out.push(o); } }
       try { for (const q of rocksIn((x0 - 12) / 1000, (z0 - 12) / 1000, (x1 + 12) / 1000, (z1 + 12) / 1000)){ const r = BK.rock(q); if (r) out.push(r); } } catch (e){}
       if (!noBoats && typeof sjvNear === 'function') try { const X = (x0 + x1) / 2, Z = (z0 + z1) / 2, model = BK.eng === 'modell', H = (S.t + (model ? liveFrac() : 0)) / 60, T = sjvNear(H, X, Z), dt = (H - T.H) * 3600;
         for (const [list, lying] of [[T.v, false], [T.s, true]]){ if (!lying && !model) continue;   // (a vessel under way is where she is only for the boat that is looked at)
