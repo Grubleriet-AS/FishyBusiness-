@@ -71,7 +71,16 @@ function mapStale(pk){
 const mapLayerK = l => l.dec === 'hgt' ? 0.1 : l.dec === 'x10' ? 10 : l.kind === 'fin' ? 0.5 : 1;
 async function mapStart(base){
   if (base) MAPD.base = base;
-  const man = MAPD.man = await (await fetch(MAPD.base + 'manifest.json', {cache:'no-cache'})).json();
+  // asked again as the packs are (mapFetch), up to five tries (klynge:a9611bd1, 23.11.2026: Safari on iOS drops a fetch with «Load
+  // failed» when the phone switches network as the app opens, and the start stopped at once at the first try)
+  let man = null, err = null;
+  for (let t = 0; t < 5 && !man; t++){
+    if (t) await new Promise(res => setTimeout(res, 700 * t));
+    try { const r = await fetch(MAPD.base + 'manifest.json', {cache:'no-cache'}); if (!r.ok) throw new Error('HTTP ' + r.status); man = await r.json(); }
+    catch (e){ err = e; }
+  }
+  if (!man) throw new Error('map: manifest.json: ' + (err && err.message || err));
+  MAPD.man = man;
   let id = 0;
   for (const name in man.layers) MAPD.L[name] = Object.assign({name, id:id++, bx:NaN, by:NaN, ox:NaN, oy:NaN, b:null, k:mapLayerK(man.layers[name])}, man.layers[name]);
   const dc = MAPD.L.dc; Object.assign(DC, {nx:dc.nx, ny:dc.ny, ix0:dc.ix0, iy0:dc.iy0});
