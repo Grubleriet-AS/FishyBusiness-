@@ -36,6 +36,11 @@
       const T = MAPD.man ? MAPD.man.tile * 1000 : 50000, vt = VEC.tiles.get(Math.floor(cx / T) + ':' + Math.floor(cz / T)); let GN = null; try { GN = vt ? vecGone(vt) : null; } catch (e){}
       const docks = flyteTile(Math.floor(cx / T), Math.floor(cz / T)).filter(d => d.mx > x0 - 30 && d.mx < x1 + 30 && d.mz > z0 - 30 && d.mz < z1 + 30 && !unitCovers(d.mx, d.mz, 3) && !(GN && GN.fd.has(Math.round(d.mx) + ':' + Math.round(d.mz))));
       const zone = (x, z) => { try { return inPortZone(x, z); } catch (e){ return false; } };
+      // (and no boat on a buoy under a pier: the piers and slab piers that are drawn there, 11b-obstacles.js vecDrawn, with her half
+      // length and the buoy's reach to spare. Before, the rows of buoys went on in under the timber piers at Ålesund)
+      let PB = [], SL = []; try { const VD = vt ? vecDrawn(vt) : null; if (VD){ PB = VD.piers.filter(q => q.x > x0 - 40 && q.x < x1 + 40 && q.z > z0 - 40 && q.z < z1 + 40); SL = VD.slabs.map(q => q[0]).filter(Q => Q.some(([x, z]) => x > x0 - 40 && x < x1 + 40 && z > z0 - 40 && z < z1 + 40)); } } catch (e){}
+      const inSlab = (Q, x, z) => { let c = false; for (let i = 0, j = Q.length - 1; i < Q.length; j = i++){ const xi = Q[i][0], zi = Q[i][1], xj = Q[j][0], zj = Q[j][1]; if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) c = !c; } return c; };
+      const onPier = (x, z, m) => PB.some(q => { const ux = Math.sin(q.ang), uz = Math.cos(q.ang), dx = x - q.x, dz = z - q.z; return Math.abs(dx * ux + dz * uz) < q.l / 2 + m && Math.abs(dx * uz - dz * ux) < q.w / 2 + m; }) || SL.some(Q => inSlab(Q, x, z) || inSlab(Q, x + m, z) || inSlab(Q, x - m, z) || inSlab(Q, x, z + m) || inSlab(Q, x, z - m));
       let n = 0, fingers = 0;   // (fingers: the pieces of dock that can take boats; the buoys are for a marina with none, whatever the season left at them)
       // along the floating docks: a berth each 3.2 m on both sides, bow in, the boat as long as the finger it lies at
       for (const d of docks) for (const L of d.L){ const p = L.p;
@@ -46,7 +51,7 @@
             out.push([x, z, Math.atan2(-nx, nz), kind, 0, h]); n++; } } }
       // no docks: buoys in rows over the water inside the marina, 14 m by 10 m
       if (!fingers) for (let z = z0 + 5; z < z1; z += 14) for (let x = x0 + 5; x < x1; x += 10){
-        const h = hash(x * 0.31 + z * 0.17); if (h > occ * 0.9 || !marInside(P, x, z) || zone(x, z) || terrRaw(x, z) > -1.5 || terrRaw(x + 6, z) > -0.5 || terrRaw(x - 6, z) > -0.5 || terrRaw(x, z + 6) > -0.5 || terrRaw(x, z - 6) > -0.5) continue;
+        const h = hash(x * 0.31 + z * 0.17); if (h > occ * 0.9 || !marInside(P, x, z) || zone(x, z) || onPier(x, z, 6.5) || terrRaw(x, z) > -1.5 || terrRaw(x + 6, z) > -0.5 || terrRaw(x - 6, z) > -0.5 || terrRaw(x, z + 6) > -0.5 || terrRaw(x, z - 6) > -0.5) continue;
         out.push([x, z, hash(h * 3e4) * 0.6 - 0.3 + windDir(S.t / 60, {x:x / 1000, y:z / 1000}) * DEG, Math.floor(hash(h * 1e4) * 4), 1, h]); }
     }
     MAR.near = out;

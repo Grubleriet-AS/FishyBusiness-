@@ -226,6 +226,7 @@ function* farbDrawnG(t){ const o0 = VECDRAWN.get(t); if (o0 && o0.n === UNITA.le
 //    w / 2 + 9.6 m of the dock's line (a piece of it 4 m or longer; shorter has no berths).
 //  - With no berth at a dock: on buoys in rows, 10 m apart and 14 m between the rows, inside the outline, each swinging with the
 //    wind: a circle of 7 m round each (her half length 4.5 m, and the buoy 2 m ahead of her).
+//    (The view leaves out a buoy under a pier; the map keeps its circle there, where the pier is a thing anyway.)
 // docks: [{w, p:[[x, z] ...]}] the lines of the floating docks that are drawn there; water(x, z): whether a boat can lie there
 // (not on land, not in a trade place's zone, where the way to the quay goes)
 function farbMarina(cx, cz, rel, docks, water){ const out = [], P = []; let x0 = 1e18, x1 = -1e18, z0 = 1e18, z1 = -1e18;

@@ -520,4 +520,5 @@ Jonas 23.11.2026: «Kjør på med steg 141». Planen, tallene og avgjørelsene s
 - **Feltets dybde regnes i workeren** fra dybdelagets egne celler og det som mudrer (`farbDepthJobG`, `navAt` i `farbFieldBuild`): en kopi av `depthWater`, `unitDredge`, `siteDredge` og `depthNav`. Endres en av dem i spillet, må kopien følge; `farsjekk.py --felt` holder feltets vann mot geometriens og blir rød ellers.
 - **Marinaenes småbåter** er soner i kartet (`farbMarina`): 9,6 m fra siden av ei flytebrygge i en marina, 7 m rundt hver bøyeplass. Lista (`MARINA`) ligger i `01c-vec.js`, og 3D leser den derfra.
 - **Kaia ved en kaiplass rederiet holder** (3D: `quayMod`) er en ting i kartet. Den leses fra `S.havn` som den er: kartet skriver aldri i lagringen (`havnStore()` lager `S.havn` der den mangler, så den kalles ikke).
-- **Det som står igjen etter steg 141:** det synlige ved marinaene (141b), turbinene mot observatøren, rennene (F2), og kravet om 4 ms slik Jonas avgjør det.
+- **3D følger kartet i marinaene** (`marinaBuild`, 23.11.2026): ingen småbåt ved ei flytebrygge som ikke tegnes, i veien inn til en kai (`inPortZone`) eller på en bøye under ei brygge.
+- **Det som står igjen etter steg 141:** turbinene mot observatøren, rennene (F2), og kravet om 4 ms slik Jonas avgjør det.

@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['marina-231126', '23.11.2026', 'Småbåthavnene', 'The small-boat harbours', [
+       ['Småbåtene i småbåthavnene ligger ikke lenger i veien inn til kaia ved butikker, mottak og verft, og ikke under bryggene.', 'The small boats in the small-boat harbours no longer lie in the way in to the quay at shops, fish plants and yards, nor under the piers.']]],
     ['planlaas-211126', '21.11.2026', 'Driftsplanen låser seg ikke', 'The plan no longer locks', [
        ['Driftsplanen ble stående på «Lager planen …» hvis spillet ble lukket mens planen ble laget, og kunne ikke startes eller endres. Nå slipper den, og du kan starte den igjen.', 'The plan stayed on «Making the plan …» if the game was closed while the plan was being made, and could not be started or changed. Now it lets go, and you can start it again.']]],
     ['rettinger-181126', '18.11.2026', 'Rettinger fra spillerne', 'Fixes from the players', [
