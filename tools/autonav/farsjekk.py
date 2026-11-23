@@ -52,6 +52,10 @@ def felt_rapport(rows, out=sys.stdout):
     p('  skivene (lagene og feltet, %d i alt): under 4 ms %.2f %%, 4 til 8 ms %d, 8 ms og over %d' % (nH, 100.0 * sum(H[:4]) / nH, sum(H[4:8]), H[8]))
     Cn = [sum((r.get('ctrl') or [0] * 9)[i] for r in R) for i in range(9)]; nC = sum(Cn) or 1
     p('  kontrollen (en jobb som bare teller, like lenge, %d skiver): under 4 ms %.2f %%, 4 til 8 ms %d, 8 ms og over %d, lengste %.1f ms' % (nC, 100.0 * sum(Cn[:4]) / nC, sum(Cn[4:8]), Cn[8], mx('ctrlMax')))
+    C2 = [sum((r.get('ctrl2') or [0] * 9)[i] for r in R) for i in range(9)]; n2 = sum(C2) or 1
+    p('  kontrollen som lager søppel (%d skiver): under 4 ms %.2f %%, 4 til 8 ms %d, 8 ms og over %d, lengste %.1f ms' % (n2, 100.0 * sum(C2[:4]) / n2, sum(C2[4:8]), C2[8], mx('ctrl2Max')))
+    HL = [sum((r.get('hLay') or [0] * 9)[i] for r in R) for i in range(9)]; HF = [sum((r.get('hFelt') or [0] * 9)[i] for r in R) for i in range(9)]
+    p('  hver for seg: lagene (én gang per flis på 50 km) %d av %d skiver over 4 ms; feltets fliser %d av %d' % (sum(HL[4:]), sum(HL), sum(HF[4:]), sum(HF)))
     if built: p('  per flis: workeren %.0f ms (median; lengste %.0f), samlingen på hovedtråden %.0f ms i skiver (median), %d byte' % (sorted(r['workerMs'] for r in built)[len(built) // 2], max(r['workerMs'] for r in built), sorted(r['jobMs'] for r in built)[len(built) // 2], R[0]['bytes']))
     p('  en lesing: %.3f µs' % med('readUs'))
     p('  mot geometrien i %d ruter: feltet lenger unna %d (størst %.2f m), mer enn ett trinn nærmere %d (størst %.2f m); dekke ulikt %d; ukjent %d' % (T['n'], T['over'], max((r.get('cmp') or {}).get('maxOver', 0) for r in R), T['under'], max((r.get('cmp') or {}).get('maxUnder', 0) for r in R), T['uDiff'], T['unk']))

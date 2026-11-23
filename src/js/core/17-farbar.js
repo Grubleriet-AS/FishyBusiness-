@@ -187,9 +187,8 @@ function* farbGoneG(t){ const o0 = VECGONE.get(t); if (o0) return o0; const PZ =
   return {piers, fd}; }
 function* farbDrawnG(t){ const o0 = VECDRAWN.get(t); if (o0 && o0.n === UNITA.length) return o0; if (FARB.F) FARB.F.at = 'lag:tegnet'; let n = 0;
   const T = MAPD.man ? MAPD.man.tile * 1000 : 50000, UN = UNITA.filter(U => U.o[0] > t.x0 - 300 && U.o[0] < t.x0 + T + 300 && U.o[1] > t.z0 - 300 && U.o[1] < t.z0 + T + 300);
-  const under = (x, z) => unitCovers(x, z, 3), slabUnder = P => { let cx = 0, cz = 0; for (const [x, z] of P){ if (under(x, z)) return true; cx += x; cz += z; } return under(cx / P.length, cz / P.length); };
+  const under = (x, z) => unitCovers(x, z, 3);
   const onU = (x, z) => UN.some(U => { const [lx, lz] = unitL(U, x, z), g = ugeo(U); return groundOut(U, lx, lz) <= 2 || (Math.abs(lx) <= g.basinX && lz >= 0 && lz <= g.basinZ); });
-  const lineOnU = P => { for (let k = 0; k < P.length; k++){ const [ax, az] = P[k], [bx, bz] = P[Math.min(k + 1, P.length - 1)], m = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 3)); for (let s = 0; s <= m; s++) if (onU(ax + (bx - ax) * s / m, az + (bz - az) * s / m)) return true; } return false; };
   const boxOnU = q => { const ax = Math.sin(q.ang), az = Math.cos(q.ang), nx = Math.cos(q.ang), nz = -Math.sin(q.ang); for (let s = -1; s <= 1; s += 0.25) for (const k of [-1, 0, 1]) if (onU(q.x + ax * s * q.l / 2 + nx * k * q.w / 2, q.z + az * s * q.l / 2 + nz * k * q.w / 2)) return true; return false; };
   const G = yield* farbGoneG(t), FK = new Set(); if (FARB.F) FARB.F.at = 'lag:tegnet:flyte';
   for (const d of flyteTile(t.tx, t.ty)){ yield; const key = Math.round(d.mx) + ':' + Math.round(d.mz); if (!under(d.mx, d.mz) && !G.fd.has(key)) FK.add(key); }
@@ -198,8 +197,10 @@ function* farbDrawnG(t){ const o0 = VECDRAWN.get(t); if (o0 && o0.n === UNITA.le
   const slabF = P => { let cx = 0, cz = 0; for (const [x, z] of P){ cx += x; cz += z; } return isF(cx / P.length, cz / P.length); };
   const flo = new Set(), piers = [], slabs = [], molos = [];
   for (const q of t.piers || []){ yield; if (G.piers.has(q)) continue; if (q.fm && isF(q.fm[0], q.fm[1])){ flo.add(q); if (!under(q.x, q.z)) piers.push(q); } else if (!under(q.x, q.z) && !(UN.length && boxOnU(q))) piers.push(q); }
-  for (const P of t.slabs || []){ yield; if (P && P.length > 3 && !slabUnder(P) && !vecGoneSlab(G, P)) slabs.push([P, slabF(P)]); }
-  for (const P of t.molos || []){ yield; if (!UN.length || !lineOnU(P)) molos.push(P); }
+  // (a slab's corners and a breakwater's line are asked a few at a time: a long breakwater against the harbour units every third
+  // metre was one step of 5 ms)
+  for (const P of t.slabs || []){ yield; if (!(P && P.length > 3)) continue; let un = false, cx = 0, cz = 0, k = 0; for (const [x, z] of P){ if (under(x, z)){ un = true; break; } cx += x; cz += z; if (!(++k & 15)) yield; } if (!un && !under(cx / P.length, cz / P.length) && !vecGoneSlab(G, P)) slabs.push([P, slabF(P)]); }
+  for (const P of t.molos || []){ yield; let on = false, k = 0; if (UN.length) for (let a = 0; a < P.length && !on; a++){ const [ax, az] = P[a], [bx, bz] = P[Math.min(a + 1, P.length - 1)], m = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 3)); for (let q = 0; q <= m; q++){ if (onU(ax + (bx - ax) * q / m, az + (bz - az) * q / m)){ on = true; break; } if (!(++k & 15)) yield; } } if (!on) molos.push(P); }
   return {n:UNITA.length, piers, flo, slabs, molos}; }
 // a vec tile's own: its piers and quay decks as boxes (a pier mapped as an area as its outline instead), its slab piers and closed
 // breakwaters as outlines, a breakwater mapped as a line as a line 9 m wide, and its bridges
@@ -358,15 +359,15 @@ async function farbBlocks(x0, z0, x1, z1){ if (typeof mapBlockWarm !== 'function
 async function farbNeed(pts, padKm = 1.5, ms = 60000){ if (FARB.w || !MAPD.man || !pts.length) return true;
   const T = MAPD.man.tile, x0 = Math.min(...pts.map(p => p.x)) - padKm, x1 = Math.max(...pts.map(p => p.x)) + padKm, y0 = Math.min(...pts.map(p => p.y)) - padKm, y1 = Math.max(...pts.map(p => p.y)) + padKm, t0 = performance.now();
   const lat = []; for (let y = y0; y < y1 + 3; y += 3) for (let x = x0; x < x1 + 3; x += 3) lat.push({x:Math.min(x, x1), y:Math.min(y, y1)});
-  try { for (const p of lat) await mapNeed(p, 3); } catch (e){ return false; }
+  if (FARB.F) FARB.F.at = 'vent:pakker'; try { for (const p of lat) await mapNeed(p, 3); } catch (e){ return false; }
   const tiles = []; for (let ty = Math.floor(y0 / T); ty <= Math.floor(y1 / T); ty++) for (let tx = Math.floor(x0 / T); tx <= Math.floor(x1 / T); tx++) if (vecHas(tx, ty)){ tiles.push([tx, ty]); vecWant(tx * T, ty * T, (tx + 1) * T - 0.001, (ty + 1) * T - 0.001); }
-  while (!tiles.every(([tx, ty]) => vecTile(tx, ty))){ if (performance.now() - t0 > ms) return false; await new Promise(r => setTimeout(r, 50)); }
+  if (FARB.F) FARB.F.at = 'vent:vec'; while (!tiles.every(([tx, ty]) => vecTile(tx, ty))){ if (performance.now() - t0 > ms) return false; await new Promise(r => setTimeout(r, 50)); }
   const Y = FARB.lay, n = UNITA.length;
   if (!Y.stat || Y.statN !== n){ Y.stat = await farbRunA(farbStatG()); Y.statN = n; } if (!Y.unit || Y.unitN !== n){ Y.unit = await farbRunA(farbUnitG()); Y.unitN = n; }
   for (const [tx, ty] of tiles){ const t = VEC.tiles.get(tx + ':' + ty); if (!t) return false; const o = FARB.til.get(t); if (o && o.n === n) continue; FARB.til.set(t, await farbRunA(farbTileG(t))); FARB.nTil++; farbOver(FARB.til.get(t).M, tx, ty, 'v' + tx + ':' + ty, () => { const tt = VEC.tiles.get(tx + ':' + ty), Y = tt && FARB.til.get(tt); return Y ? Y.M : null; }); }
   // the harbours' pockets there with their walls, and the rocks' shapes (where the box is under 250 km2: a longer way has them
   // shaped as it is asked, a cell at a time), so what asks afterwards finds them made
-  await farbBlocks(x0 * 1000, y0 * 1000, x1 * 1000, y1 * 1000);
+  if (FARB.F) FARB.F.at = 'vent:blokker'; await farbBlocks(x0 * 1000, y0 * 1000, x1 * 1000, y1 * 1000);
   try { await farbRunA(farbWarmG(x0 * 1000, y0 * 1000, x1 * 1000, y1 * 1000)); } catch (e){ return false; }
   return true; }
 function* farbWarmG(x0, z0, x1, z1){ const seen = new Set(); let n = 0; if (FARB.F) FARB.F.at = 'lag:merker';
@@ -541,8 +542,32 @@ function farbFieldBuild(J){
     return !!(wl || wb); };
   // the chart's depth from the lattice: the least of the water among the four round the point (a lattice point on land is under 0),
   // the water two round where all four are land, and 0.8 m where there is none (a sound the mask closed); NaN where one is not known
-  const dep = J.dep, ln = dep.n, V = dep.v;
-  const rawAt = (x, z) => { let gi = Math.floor(x / dep.step), gj = Math.floor(z / dep.step); gi = gi < 0 ? 0 : gi > ln - 2 ? ln - 2 : gi; gj = gj < 0 ? 0 : gj > ln - 2 ? ln - 2 : gj; let m = Infinity;
+  // Or, where the tile lies on the chart's depth (J.dr), the depth as the game itself works it out (03-simulation.js depthWater and
+  // depthF, 07-harbours.js unitDredge, siteDredge and depthNav), from the chart's own cells over the tile and what dredges: the water
+  // between the four cells round a point that are water (the cells two round where none is; 2 m where there are none), at least
+  // 0.8 m; 0 on a harbour unit's ground, its basin dredged and rising 0.5 a metre outside it; the berth in front of a naust's or a
+  // rorbu's quay; and a harbour's own depth within its circles. So this thread only copies numbers, and the answer is the
+  // geometry's own at the cell's middle
+  const DR = J.dr;
+  const water = (x, z) => { const gx = (x - DR.lx0) / DR.c - 0.5, gy = (z - DR.lz0) / DR.c - 0.5, ix = Math.floor(gx), iy = Math.floor(gy), fx = gx - ix, fy = gy - iy, W = DR.W, Q = DR.v;
+    const a = Q[iy * W + ix], b = Q[iy * W + ix + 1], c = Q[(iy + 1) * W + ix], d = Q[(iy + 1) * W + ix + 1];
+    if (a > 0 && b > 0 && c > 0 && d > 0) return ((a * (1 - fx) + b * fx) * (1 - fy) + (c * (1 - fx) + d * fx) * fy) * DR.k;
+    const wa = a > 0 ? (1 - fx) * (1 - fy) : 0, wb = b > 0 ? fx * (1 - fy) : 0, wc = c > 0 ? (1 - fx) * fy : 0, wd = d > 0 ? fx * fy : 0, w = wa + wb + wc + wd;
+    if (w > 1e-6) return (a * wa + b * wb + c * wc + d * wd) / w * DR.k;
+    let sm = 0, n = 0; for (let j = iy - 1; j <= iy + 2; j++) for (let i = ix - 1; i <= ix + 2; i++){ const v = Q[j * W + i]; if (v > 0){ sm += v; n++; } }
+    return n ? sm / n * DR.k : 2; };
+  const navAt = (x, z) => { let d = Math.max(0.8, water(x, z)); const UN = DR.un, ST = DR.st, HB = DR.hb, SP = DR.site;
+    for (let p = 0; p < UN.length; p += 13 + UN[p + 12]){ const R = UN[p + 11], dx = x - UN[p], dz = z - UN[p + 1]; if (Math.abs(dx) > R || Math.abs(dz) > R) continue;
+      const lx = dx * UN[p + 2] + dz * UN[p + 3], lz = dx * UN[p + 4] + dz * UN[p + 5], nf = UN[p + 12];
+      if (Math.abs(lx) <= UN[p + 6] && lz <= 0 && lz >= -UN[p + 7]) return 0;
+      if (nf){ let ins = false; for (let i = 0, j = nf - 2; i < nf; j = i, i += 2){ const ax = UN[p + 13 + j], az = UN[p + 14 + j], bx = UN[p + 13 + i], bz = UN[p + 14 + i]; if ((az > lz) !== (bz > lz) && lx < ax + (lz - az) * (bx - ax) / (bz - az)) ins = !ins; } if (ins) return 0; }
+      if (lz > 0){ const dO = Math.hypot(Math.max(0, Math.abs(lx) - UN[p + 8]), Math.max(0, lz - UN[p + 9])), v = UN[p + 10] - J.zc - 0.5 * dO; if (v > d) d = v; } }
+    if (d > 0 && d < SP.want) for (let p = 0; p < ST.length; p += 5){ const R = SP.a + SP.w + SP.max + SP.want / SP.slope, dx = x - ST[p], dz = z - ST[p + 1]; if (Math.abs(dx) > R || Math.abs(dz) > R) continue;
+      const al = Math.abs(dx * ST[p + 2] + dz * ST[p + 3]), n = -dx * ST[p + 3] + dz * ST[p + 2]; if (n < 0) continue; const v = SP.want - SP.slope * Math.max(0, al - SP.a, n - SP.w - ST[p + 4]); if (v > d) d = v; }
+    if (d > 0 && d < DR.harb) for (let p = 0; p < HB.length; p += 3) if (Math.hypot(x - HB[p], z - HB[p + 1]) < HB[p + 2]){ d = DR.harb; break; }
+    return d; };
+  const dep = J.dep || {n:2, step:1, v:[]}, ln = dep.n, V = dep.v;
+  const rawAt = DR ? navAt : (x, z) => { let gi = Math.floor(x / dep.step), gj = Math.floor(z / dep.step); gi = gi < 0 ? 0 : gi > ln - 2 ? ln - 2 : gi; gj = gj < 0 ? 0 : gj > ln - 2 ? ln - 2 : gj; let m = Infinity;
     for (let b = 0; b < 2; b++) for (let a = 0; a < 2; a++){ const v = V[(gj + b) * ln + gi + a]; if (v !== v) return NaN; if (v >= 0 && v < m) m = v; }
     if (m < Infinity) return m;
     for (let b = -1; b < 3; b++) for (let a = -1; a < 3; a++){ const i = gi + a, j = gj + b; if (i < 0 || j < 0 || i >= ln || j >= ln) continue; const v = V[j * ln + i]; if (v >= 0 && v < m) m = v; }
@@ -570,6 +595,20 @@ function farbSegOutParts(PK, ax, az, bx, bz){ const dx = bx - ax, dz = bz - az, 
 // what the field's tiles were built from: a tile is built again when any of it has changed
 const farbFieldVer = () => VEC.ver + '|' + COAST.built + '|' + MARKS.ver + '|' + UNITA.length + '|' + FDOCK.ver + '|' + (RORBU.ver || 0) + '|' + (S && S.naust && S.naust.o ? S.naust.o.join(',') : '') + '|' + FARB.F.dugV;
 function* farbPackG(a){ const out = new Float32Array(a.length); for (let i = 0; i < a.length;){ const e = Math.min(a.length, i + 1024); for (; i < e; i++) out[i] = a[i]; yield; } return out; }
+// The chart's depth over a tile for the worker: the depth layer's own cells (two round the tile, as depthWater reads), the harbour units
+// near with what unitDredge needs, the naust's and the rorbuer's berths with what siteDredge needs, and the harbours' circles
+// (inHarbour). null where the worker cannot work it out as the game does: a tile by the layer's own edge, or a block no pack has
+// (the game then has the offshore model there); throws where a block is not loaded
+function* farbDepthJobG(x0, z0, Tf){ const L = MAPD.L.depth, c = L.c * 1000, i0 = Math.floor(x0 / c - 0.5) - 1, i1 = Math.floor((x0 + Tf) / c - 0.5) + 2, j0 = Math.floor(z0 / c - 0.5) - 1, j1 = Math.floor((z0 + Tf) / c - 0.5) + 2, W = i1 - i0 + 1, Hh = j1 - j0 + 1;
+  if (i0 < L.ix0 + 1 || j0 < L.iy0 + 1 || i1 > L.ix0 + L.nx - 3 || j1 > L.iy0 + L.ny - 3) return null;
+  for (let by = Math.floor(j0 / L.n); by <= Math.floor(j1 / L.n); by++) for (let bx = Math.floor(i0 / L.n); bx <= Math.floor(i1 / L.n); bx++) if (!mapPackOf(L, bx, by)) return null;
+  const v = new Float32Array(W * Hh); for (let j = j0; j <= j1; j++){ for (let i = i0; i <= i1; i++) v[(j - j0) * W + i - i0] = rcell(L, i, j); yield; }
+  const un = []; for (const U of UNITA){ const R = U.y ? 200 : 100; if (U.o[0] + R < x0 || U.o[0] - R > x0 + Tf || U.o[1] + R < z0 || U.o[1] - R > z0 + Tf) continue; const g = ugeo(U), f = U.f || []; un.push(U.o[0] - x0, U.o[1] - z0, U.u[0], U.u[1], U.n[0], U.n[1], g.E, g.B, g.basinX, g.basinZ, g.dredge, R, f.length); for (const q of f) un.push(q); }
+  yield; const st = [], sites = []; if (S && S.naust) sites.push(S.naust); for (const Rb of rorbuIn((x0 - 700) / 1000, (z0 - 700) / 1000, (x0 + Tf + 700) / 1000, (z0 + Tf + 700) / 1000)) sites.push(Rb.site);
+  for (const q of sites){ if (!q || !q.o || !q.u) continue; yield 1; const o = siteOut(q); st.push(q.o[0] - x0, q.o[1] - z0, q.u[0], q.u[1], o === o ? o : 0); }
+  yield; inHarbour({x:x0 / 1000, y:z0 / 1000}); const hb = [], seen = new Set();
+  for (let gy = Math.floor((z0 - 600) / 1000); gy <= Math.floor((z0 + Tf + 600) / 1000); gy++) for (let gx = Math.floor((x0 - 600) / 1000); gx <= Math.floor((x0 + Tf + 600) / 1000); gx++) for (const pt of PCELL.get(gx * 65536 + gy) || []){ if (seen.has(pt)) continue; seen.add(pt); hb.push(pt.p.x * 1000 - x0, pt.p.y * 1000 - z0, 600); if (pt.app) hb.push(pt.app.x * 1000 - x0, pt.app.y * 1000 - z0, 350); }
+  return {W, Hh, c, lx0:i0 * c - x0, lz0:j0 * c - z0, k:L.k, v, un:Float32Array.from(un), st:Float32Array.from(st), hb:Float32Array.from(hb), site:{a:SITE_POCK.a, w:SITE_POCK.w, slope:SITE_POCK.slope, max:QOUT.max, want:SITE_DRAFT + 0.5}, harb:HARB_DRAFT}; }
 // What the tile fx, fz of `cell` m needs, as plain numbers from its own corner (m): null where the map is not in, or where the tile
 // has no fine coast and the coarse one has land in it (the geometry answers there). In slices: it stops for breath as it goes
 function* farbFieldJob(cell, fx, fz){ const F = FARB.F, N = F.N, Tf = N * cell, x0 = fx * Tf, z0 = fz * Tf, cap = F.cap, T = MAPD.man.tile * 1000, CC = COAST.CC, COX = COAST.COX, COY = COAST.COY, cl = (v, n) => v < 0 ? 0 : v > n ? n : v;
@@ -608,15 +647,18 @@ function* farbFieldJob(cell, fx, fz){ const F = FARB.F, N = F.N, Tf = N * cell, 
     else if (o.k === 'e') th.push(5, o.x - x0, o.z - z0, o.a, o.b, o.th);
     else if (o.k === 's') th.push(6, o.ax - x0, o.az - z0, o.bx - x0, o.bz - z0, o.r, farbUnder(o));
     else if (o.k === 'u') for (const P of o.G || (o.G = farbUnitRings(o.U))) ring(P); }
-  // the chart's depth on a lattice (under 0 on land), a row at a time
-  // (twice as close where a harbour's pockets or a naust's or a rorbu's berth lie: the dredged ramps there (07-harbours.js unitDredge,
-  // siteDredge) meet the chart's depth in valleys a lattice of 12.5 m stepped over: 1 cell of 85 000 was 1.35 m deeper than the geometry)
-  let fine = PK.length > 0; if (!fine) try { fine = rorbuIn((x0 - 100) / 1000, (z0 - 100) / 1000, (x0 + Tf + 100) / 1000, (z0 + Tf + 100) / 1000).some(Rb => Rb.site) || !!(S && S.naust && S.naust.o && Math.abs(S.naust.o[0] - cx) < Tf && Math.abs(S.naust.o[1] - cz) < Tf); } catch (e){}
-  F.at = 'dybde'; const nl = fine ? F.lat * 2 : F.lat, ln = nl + 1, step = Tf / nl, v = new Float32Array(ln * ln);
-  for (let j = 0; j < ln; j++) for (let i = 0; i < ln; i++){ const x = x0 + i * step, z = z0 + j * step, l = farbLand(x, z); v[j * ln + i] = l !== l ? NaN : l ? -1 : farbDepthRaw(x, z); yield; }
+  // the chart's depth: its own cells for the worker (farbDepthJobG); where that cannot be, on a lattice here (under 0 on land),
+  // twice as close where a harbour's pockets or a naust's or a rorbu's berth lie (the dredged ramps meet the chart's depth in
+  // valleys a lattice of 12.5 m stepped over)
+  F.at = 'dybde'; let dr = null, dep = null;
+  if (co && DEPTH && !(F.lattice)) try { if (mapSimAt({x:cx / 1000, y:cz / 1000})) dr = yield* farbDepthJobG(x0, z0, Tf); } catch (e){ dr = null; }
+  if (!dr){ let fine = PK.length > 0; if (!fine) try { fine = rorbuIn((x0 - 100) / 1000, (z0 - 100) / 1000, (x0 + Tf + 100) / 1000, (z0 + Tf + 100) / 1000).some(Rb => Rb.site) || !!(S && S.naust && S.naust.o && Math.abs(S.naust.o[0] - cx) < Tf && Math.abs(S.naust.o[1] - cz) < Tf); } catch (e){}
+    const nl = fine ? F.lat * 2 : F.lat, ln = nl + 1, step = Tf / nl, v = new Float32Array(ln * ln);
+    for (let j = 0; j < ln; j++) for (let i = 0; i < ln; i++){ const x = x0 + i * step, z = z0 + j * step, l = farbLand(x, z); v[j * ln + i] = l !== l ? NaN : l ? -1 : farbDepthRaw(x, z); yield; }
+    dep = {n:ln, step, v}; }
   const dug = []; for (const s of FARB.dugL) if (Math.max(s.ax, s.bx) + s.r > x0 && Math.min(s.ax, s.bx) - s.r < x0 + Tf && Math.max(s.az, s.bz) + s.r > z0 && Math.min(s.az, s.bz) - s.r < z0 + Tf) dug.push(s.ax - x0, s.az - z0, s.bx - x0, s.bz - z0, s.r, s.d);
   F.at = 'pakking'; yield; const eoA = yield* farbPackG(eo), ecA = ec ? yield* farbPackG(ec) : null, thA = yield* farbPackG(th);
-  return {N, cell, cap, q:F.q, deck:F.deck, shore:FARB.shore, zc:farbZC(cx, cz), co, eo:eoA, ec:ecA, pk:Float32Array.from(pkA), th:thA, dep:{n:ln, step, v}, dug:Float32Array.from(dug)}; }
+  return {N, cell, cap, q:F.q, deck:F.deck, shore:FARB.shore, zc:farbZC(cx, cz), co, eo:eoA, ec:ecA, pk:Float32Array.from(pkA), th:thA, dep, dr, dug:Float32Array.from(dug)}; }
 // the worker (false where one cannot start: then no field is built, and what asks goes to the geometry)
 function farbFieldWorker(){ const F = FARB.F; if (F.worker !== null) return F.worker;
   try { const src = farbFieldBuild.toString() + '\nonmessage = e => { try { const r = farbFieldBuild(e.data.J); postMessage({id:e.data.id, r}, [r.d.buffer, r.z.buffer, r.u.buffer]); } catch (err){ postMessage({id:e.data.id, err:String(err)}); } };';
@@ -633,11 +675,11 @@ async function farbFieldNeed(x0, z0, x1, z1, cell = 2, opt){ const F = FARB.F, T
   if (!await farbNeed([{x:x0 / 1000, y:z0 / 1000}, {x:x1 / 1000, y:z1 / 1000}], F.pad)) return false;
   const here = !!(opt && opt.here), w = here ? null : farbFieldWorker(); if (!here && !w) return false; let all = true;
   for (let fz = Math.floor(z0 / Tf); fz <= Math.floor(z1 / Tf); fz++) for (let fx = Math.floor(x0 / Tf); fx <= Math.floor(x1 / Tf); fx++){ const key = cell + '|' + fx + '|' + fz, ver = farbFieldVer(), Y = F.fld.get(key); if (Y && Y.v === ver){ Y.use = ++F.use; continue; }
-    await farbBlocks(fx * Tf - 100, fz * Tf - 100, (fx + 1) * Tf + 100, (fz + 1) * Tf + 100);
+    F.at = 'vent:blokker'; await farbBlocks(fx * Tf - 100, fz * Tf - 100, (fx + 1) * Tf + 100, (fz + 1) * Tf + 100);
     const t0 = performance.now(), J = await farbRunA(farbFieldJob(cell, fx, fz)); F.n.job += performance.now() - t0;
     if (farbFieldVer() !== ver){ all = false; continue; }   // (the map changed under it: asked for again)
     if (!J){ F.fld.set(key, {none:true, v:ver, use:++F.use, cell, fx, fz}); continue; }
-    let r; try { r = here ? farbFieldBuild(J) : await new Promise((res, rej) => { const id = ++F.id; F.wait.set(id, {res, rej}); w.postMessage({id, J}, [J.eo.buffer, J.th.buffer, J.dep.v.buffer]); }); } catch (e){ all = false; continue; }
+    F.at = 'vent:worker'; let r; try { r = here ? farbFieldBuild(J) : await new Promise((res, rej) => { const id = ++F.id; F.wait.set(id, {res, rej}); w.postMessage({id, J}, [J.eo.buffer, J.th.buffer, (J.dr || J.dep).v.buffer]); }); } catch (e){ all = false; continue; }
     F.fld.set(key, {d:r.d, z:r.z, u:r.u, v:ver, use:++F.use, cell, fx, fz, x0:fx * Tf, z0:fz * Tf}); F.n.built++; F.n.ms += r.ms; F.n.bytes = r.d.byteLength + r.z.byteLength + r.u.byteLength;
     if (F.fld.size > F.max){ let old = null, ou = Infinity; for (const [k2, y] of F.fld) if (y.use < ou){ ou = y.use; old = k2; } F.fld.delete(old); } }
   return all; }

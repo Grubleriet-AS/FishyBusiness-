@@ -31,19 +31,23 @@
       // (the game's own first look at the traffic of a new place takes a tenth of a second or more: looked up before the clock starts, as BK.cpu does)
       try { npcStates(S.t / 60); sjvNear(S.t / 60, X, Z); fixBoats(X, Z); } catch (e){}
       F.n.slice = 0; let t0 = performance.now(); if (!await farbNeed([{x:(X - half) / 1000, y:(Z - half) / 1000}, {x:(X + half) / 1000, y:(Z + half) / 1000}], F.pad)) return {skip:'kartet kom ikke inn'};
-      const layMs = performance.now() - t0, laySlice = F.n.slice; F.n.slice = 0;
+      const layMs = performance.now() - t0, laySlice = F.n.slice, hLay = F.n.h.slice(); F.n.slice = 0;
       const n0 = F.n.built, ms0 = F.n.ms, job0 = F.n.job; let stop = probe(); t0 = performance.now();
-      const ok = await farbFieldNeed(X - half, Z - half, X + half, Z + half, cell), wall = performance.now() - t0, gap = stop(), slice = F.n.slice;
+      const ok = await farbFieldNeed(X - half, Z - half, X + half, Z + half, cell), wall = performance.now() - t0, gap = stop(), slice = F.n.slice, hFelt = F.n.h.map((v, i) => v - hLay[i]);
       stop = probe(); await new Promise(r => setTimeout(r, Math.min(4000, Math.max(300, wall)))); const idle = stop();
       // the control: a job that only counts, run through the same slices for as long as the field took. What it has over 4 ms is the
       // machine's and the engine's own (a pause for the garbage, another process), not the field's
       const hist = F.n.h.slice(); F.n.h.fill(0); F.n.slice = 0; F.at = 'kontroll';
       await farbRunA((function* (){ const t = performance.now(), dur = Math.min(6000, Math.max(300, wall)); let x = 0; while (performance.now() - t < dur){ for (let i = 0; i < 300; i++) x += Math.sqrt(i + x % 7); yield; } return x; })());
-      const ctrl = F.n.h.slice(), ctrlMax = F.n.slice; F.n.h = hist;
+      const ctrl = F.n.h.slice(), ctrlMax = F.n.slice; F.n.h.fill(0); F.n.slice = 0; F.at = 'kontroll2';
+      // the second control: the same, but each step makes as much garbage as a step of the map's own work does (small arrays and a
+      // function), so the engine has to clear up after it: what this one has over 4 ms is the engine's pauses for the garbage
+      await farbRunA((function* (){ const t = performance.now(), dur = Math.min(6000, Math.max(300, wall)); let x = 0; while (performance.now() - t < dur){ const a = []; for (let i = 0; i < 40; i++) a.push([i, x, {v:i}]); const f = q => q[0] + q[2].v + x; x = a.reduce((sm, q) => sm + f(q), 0) % 7; yield; } return x; })());
+      const ctrl2 = F.n.h.slice(), ctrl2Max = F.n.slice; F.n.h = hist;
       const Tf = F.N * cell, tiles = []; let none = 0;
       for (let fz = Math.floor((Z - half) / Tf); fz <= Math.floor((Z + half) / Tf); fz++) for (let fx = Math.floor((X - half) / Tf); fx <= Math.floor((X + half) / Tf); fx++){ const Y = farbFieldTile(cell, fx, fz); if (Y && !Y.none) tiles.push(Y); else if (Y) none++; }
       const R = {ok, cell, tiles:tiles.length, none, built:F.n.built - n0, workerMs:F.n.built > n0 ? +((F.n.ms - ms0) / (F.n.built - n0)).toFixed(1) : null, jobMs:F.n.built > n0 ? +((F.n.job - job0) / (F.n.built - n0)).toFixed(1) : null,
-        wall:Math.round(wall), slice:+slice.toFixed(2), gap:+gap.toFixed(2), idle:+idle.toFixed(2), layMs:Math.round(layMs), laySlice:+laySlice.toFixed(2), bytes:F.n.bytes, step:+F.n.step.toFixed(2), hist:F.n.h.slice(), ctrl, ctrlMax:+ctrlMax.toFixed(2), long:F.n.long.slice(), gaps:gaps.slice()};
+        wall:Math.round(wall), slice:+slice.toFixed(2), gap:+gap.toFixed(2), idle:+idle.toFixed(2), layMs:Math.round(layMs), laySlice:+laySlice.toFixed(2), bytes:F.n.bytes, step:+F.n.step.toFixed(2), hist:F.n.h.slice(), ctrl, ctrlMax:+ctrlMax.toFixed(2), ctrl2, ctrl2Max:+ctrl2Max.toFixed(2), hLay, hFelt, long:F.n.long.slice(), gaps:gaps.slice()};
       if (!tiles.length) return R;
       // a read
       t0 = performance.now(); let acc = 0; for (let i = 0; i < 100000; i++){ const q = farbFieldAt(X - half + ((i * 7919) % (2 * half)), Z - half + ((i * 104729) % (2 * half)), cell); if (q) acc += q.d; } R.readUs = +((performance.now() - t0) * 1000 / 100000).toFixed(3);

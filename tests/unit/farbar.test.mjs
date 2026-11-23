@@ -214,5 +214,28 @@ export default function (t){
     t.eq(at2(fr, 43, 31)[1], 40, 'feltet: en mudret renne gir sin dybde i fjæra (4 m, der alle naborutene ligger i renna)');
     const unk = lat.slice(); unk[3 * 7 + 4] = NaN; fr = K.farbFieldBuild(job({dep:{n:7, step:20, v:unk}}));
     t.eq(at2(fr, 71, 51)[1] + '|' + at2(fr, 111, 111)[1], '255|254', 'feltet: der kartets dybde ikke er kjent, er vannet ukjent (255), ikke dypt');
+
+    // ---- 10. the field's depth worked out from the chart's own cells, as the game does it (depthWater, unitDredge, siteDredge, depthNav) ----
+    // (cells of 50 m, six by six round a tile of 120 m: the cell i, j has its middle at -75 + 50 i, -75 + 50 j)
+    const cells = f => { const v = new Float32Array(36); for (let j = 0; j < 6; j++) for (let i = 0; i < 6; i++) v[j * 6 + i] = f(i, j); return v; };
+    const drj = (v, o) => job({co:null, eo:new Float32Array(0), dep:null, dr:Object.assign({W:6, Hh:6, c:50, lx0:-100, lz0:-100, k:1, v, un:new Float32Array(0), st:new Float32Array(0), hb:new Float32Array(0), site:{a:12, w:14, slope:0.5, max:16, want:2.1}, harb:4.35}, o || {})});
+    const zAt = (r, x, z) => r.z[Math.floor(z / 2) * 60 + Math.floor(x / 2)] / 10;
+    fr = K.farbFieldBuild(drj(cells((i, j) => 4 + i)));   // (4 m at x = -75, a metre more every 50 m east)
+    t.near(zAt(fr, 51, 51), 4 + (49 + 75) / 50, 0.11, 'feltets dybde fra kartets celler: lineært mellom cellene (det grunneste blant naborutene, i dm)');
+    fr = K.farbFieldBuild(drj(cells((i, j) => (i === 2 && j === 2 ? 0 : 6))));
+    t.eq(zAt(fr, 25, 25), 6, 'en celle som er land i kartets raster, tar ikke vannet ned: vannet er cellene rundt som er vann');
+    fr = K.farbFieldBuild(drj(cells(() => 0)));
+    t.eq(zAt(fr, 61, 61), 2, 'ingen vanncelle rundt (et sund masken har stengt): 2 m, som spillet');
+    fr = K.farbFieldBuild(drj(cells(() => 0.3))); t.eq(zAt(fr, 61, 61), 0.8, 'vann er minst 0,8 m');
+    // a harbour unit at 60, 60, its face along x and the sea toward +z: the block is dry, the basin 6.6 m, rising 0.5 a metre outside
+    const un = Float32Array.from([60, 60, 1, 0, 0, 1, 20, 10, 25, 20, 6.6, 100, 0]);
+    fr = K.farbFieldBuild(drj(cells(() => 2), {un}));
+    t.eq(zAt(fr, 61, 55) + '|' + zAt(fr, 61, 71), '0|6.6', 'havneenheten: blokka er tørr, bassenget er mudret til 6,6 m');
+    t.near(zAt(fr, 61, 87), 6.6 - 0.5 * 9, 0.11, 'og utenfor bassenget stiger bunnen 0,5 per meter (8 m ut, naboruta 9 m ut)');
+    // a naust's berth at 30, 100, the face along x, the sea toward +z; and a harbour's circle
+    fr = K.farbFieldBuild(drj(cells(() => 1), {st:Float32Array.from([30, 100, 1, 0, 0])}));
+    t.eq(zAt(fr, 31, 107) + '|' + zAt(fr, 31, 93), '2.1|1', 'kaiplassen foran et naust er mudret til dypgangen pluss 0,5 m, og ikke bak fronten');
+    fr = K.farbFieldBuild(drj(cells(() => 2), {hb:Float32Array.from([0, 0, 40])}));
+    t.eq(zAt(fr, 11, 11) + '|' + zAt(fr, 81, 81), '4.3|2', 'i en havn er vannet havnas egen dybde (4,35 m, rundet ned), utenfor er det kartets');
   } finally { FARB.w = null; FARB.test = null; K.farbDig('test', null); }
 }
