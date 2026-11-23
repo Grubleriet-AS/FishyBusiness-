@@ -229,18 +229,18 @@ Observatøren (`benkobs.js`, `benk.js`) leser rådataene selv; kartet holdes mot
 
 | | |
 |---|---|
-| Strekninger og båter | 304 (alle 97 strekningene, 8 båttyper) |
-| Skrogstillinger | 27 360 (langs linjene 8 208, i stripa 11 232, i kanten av en berøring 7 920) |
+| Strekninger og båter | 304 (96 av de 97 strekningene, 8 båttyper; `urangsvag-inn` har verken rute eller fasit i grunnlinja) |
+| Skrogstillinger | 32 144 (langs linjene 8 208, i stripa 11 232, i kanten av en berøring 7 920, rett på en ting 4 784: merke 1 140, brygge 1 019, skjær 954, brupilar 467, brudekke 414, molo 297, kai 224, flytebrygge 177, rorbukai 48, naustkai 44; ingen turbin står ved strekningene) |
 | Sveip mellom to stillinger | 3 648 |
 | **Observatøren ser en berøring, kartet sier fritt** | **0 stillinger, 0 sveip** |
 | **Skroget på en ting, og kartets avstand fra midten større enn skroget rekker** | **0** |
-| Begge fri / begge berøring | 18 791 / 7 624 |
-| Bare kartet (forsiktig) | 943 stillinger (3,4 %): grunn 932, båt 17, land 6, skjær 3, kai 1; 16 sveip |
-| Ukjent for kartet | 2 |
-| Kartets oppdelte kopier av `vecGone` og `vecDrawn` | like spillets i alle 170 flisene som ble pakket ut |
-| Tid per stilling | kartet 0,10 ms, observatøren 2,36 ms |
+| Begge fri / begge berøring | 18 774 / 12 406 |
+| Bare kartet (forsiktig) | 960 stillinger (3,0 %): grunn 931, båt 18, brudekke 17, land 6, skjær 3; 15 sveip |
+| Ukjent for kartet | 4 |
+| Kartets oppdelte kopier av `portZones`, `vecGone` og `vecDrawn` | like spillets i alle 176 flisene som ble pakket ut |
+| Tid per stilling | kartet 0,08 ms, observatøren 2,0 ms |
 
-«Bare kartet» er kartet som er strengere enn observatøren: vannet spørres i et rutenett på 4 m under hele skroget og med 3 cm sikkerhet (observatøren spør fem punkter), et liggende fartøy er en boks rundt skroget, og et skjær er hele foten.
+«Bare kartet» er kartet som er strengere enn observatøren: vannet spørres i et rutenett på 4 m under hele skroget og med 3 cm sikkerhet (observatøren spør fem punkter), et liggende fartøy er en boks rundt skroget, et skjær er hele foten, og et brudekke regnes fra høyeste flo.
 
 **Det sjekken fant underveis** (hvert av dem var rødt før rettingen):
 
@@ -251,6 +251,15 @@ Observatøren (`benkobs.js`, `benk.js`) leser rådataene selv; kartet holdes mot
 5. Karmsund bru ligger i flisa vest for sundet og rekker 50 m inn i neste. Et skrog under brua spurte bare sin egen flis og så ingen bru. Funnet av feltets sjekk mot geometrien (5 ruter med dekke i feltet og ingen i geometrien). Nå skrives hver flis' ting som ligger i en annen flis, opp (`FARB.ovr`).
 6. Listen over fartøy som ligger stille (`fixBoats`), holdes for spillminuttet; benken setter klokka tilbake ved hver start, så lista fra forrige sted ble brukt. Rettet i sjekken, ikke i spillet. I spillet gjelder lista det som er innen AIS-rekkevidde av båten: et sted langt unna kjenner hun ikke fartøyene på (F5).
 
+**Det den uavhengige kontrollen fant** (`/kontroll`, en fersk agent med endringen og «Ferdig når»-punktene; alt under er rettet, og hver retting ble sett rød først):
+
+7. **Sveipet gikk over fjæra like utenfor et havnebasseng.** Hoppet over åpent vann spurte etter kysten med lommene tatt ut og dybden uten fjæra, men fjæra tegnes fra kystlinja slik den er, også linja inne i bassenget. Kontrollens prøve langs yttersida av bassenget ved alle 369 havneenhetene: 1 336 sveip gikk fritt der observatøren så fjæra (ved 20 enheter, 58° til 71° N). Etter rettingen: 0 (samme prøve, 1 107 fronter og båter, 1 812 sveip gir nå berøring).
+8. **Sveipet spurte ikke dybden mellom hoppene:** en båt på 7,9 m hoppet 12,5 m og gikk fri over ei grunne på 4 m. Et hopp er nå aldri lengre enn vannlinja rekker langs veien der hun står (lengden forover, bredden sidelengs, den minste i en sving). Enhetstest forover og sidelengs.
+9. **Brudekket ble regnet uten flo.** Dekket tegnes fra middelvann, og vannet står høyere ved flo; en bru med 5,9 m slapp en båt på 4,9 m under med 1 m klaring uansett. Rommet under et dekke regnes nå fra høyeste astronomiske tidevann på stedet (summen av tidevannets ledd), slik en seilingshøyde måles. Benkens observatør har fortsatt den gamle regelen (derfor 17 «bare kartet» på brudekke).
+10. Mindre: et sveip som er for langt til å sveipes i ett, er «ukjent», ikke fritt; kystavstanden beholder naboflisas fine kanter der punktets egen flis mangler sjøkartpakke; lagene over en flisgrense hentes fra flisa slik den er nå, ikke fra den som var der da de ble skrevet opp; og kartets kopi av handelsstedenes soner holdes for seg (`FARB.pz`), så ingenting gammel Autonav leser (`PORTZ`), skrives av kartet.
+
+Kontrollen pekte også på at enhetstestene prøver hver form, ikke byggerne (naust- og rorbukaia, flytebryggene, skjærenes form, flislagene, merker på bru, den ekte kystavstanden med lommer): de prøves i nettleseren av farsjekken, som derfor fikk stillingene «rett på en ting». Turbinene er ikke prøvd mot observatøren (ingen står ved strekningene).
+
 ### Avstandsfeltet (bygges i en worker)
 
 Et søk spør millioner av punkter, så det geometrien svarer nøyaktig på, legges ut på et rutenett, en flis om gangen: 250 × 250 ruter på 2 m (en flis på 500 m; 4 og 8 m for sund og åpen kyst), hver med avstanden til nærmeste ting ingen kan passere (i trinn på 0,25 m, rundet ned, høyst 60 m), det grunneste vannet blant ruta og naborutene (dm ved sjøkartnull) og den laveste underkanten av et brudekke innen 8 m. `farbFieldJob` samler det en flis trenger som rene tall på hovedtråden, i skiver; `farbFieldBuild` regner flisa ut i en worker; `farbFieldNeed` ber om flisene over en boks, og `farbFieldAt` leser en rute. Søket (F2) går på feltet; veien det finner, kontrolleres på geometrien (`farbSweep`) før båten sendes. Rasterblokkene kartet leser, pakkes ut i fflates egen worker først (`mapBlockWarm` i `01b-mapdata.js`): før holdt den første lesingen av en blokk hovedtråden i 1 til 3 ms.
@@ -260,17 +269,25 @@ Et søk spør millioner av punkter, så det geometrien svarer nøyaktig på, leg
 | | |
 |---|---|
 | Steder og fliser | 96 steder, 667 fliser |
-| Workeren per flis | 8 ms (median), lengste 18 ms |
+| Workeren per flis | 8 ms (median), lengste 22 ms |
 | Minnet per flis | 187 500 byte (tre lag à 62 500 ruter); 96 fliser holdes (18 MB), eldste ut først |
 | En lesing (`farbFieldAt`) | 1,7 µs |
 | Feltet mot geometrien, 259 200 ruter | lenger unna: 0; mer enn ett trinn (0,25 m) nærmere: 1 (1,32 m, ved veggen av ei havnelomme); vannet over 0,5 m dypere enn geometrien: 0 (én rute 0,42 m dypere) |
 | Brudekket | likt i alle rutene (før rettingen av ting over en flisgrense, punkt 5 over: ulikt i 5 ruter ved Karmsund bru) |
 | Vannet er forsiktig | av 61 700 ruter med under 10 m vann er feltet over 0,5 m grunnere i 13 382 (rutenettet på 12,5 m tar det grunneste av de fire punktene rundt) |
-| Samlingen på hovedtråden per flis | 91 ms i skiver (median; med det tette dybderutenettet ved havner) |
-| **Skivene på hovedtråden** | 70 383 i alt: **99,78 % under 4 ms,** 85 mellom 4 og 8 ms, 71 på 8 ms eller mer |
-| Kontrollen (en jobb som bare teller, like lenge) | 81 594 skiver: 99,93 % under 4 ms, 50 mellom 4 og 8 ms, 6 på 8 ms eller mer |
+| Samlingen på hovedtråden per flis | 95 ms i skiver (median; med det tette dybderutenettet ved havner), mot 8 ms i workeren |
+| **Skivene på hovedtråden** | 75 017 i alt: **99,83 % under 4 ms,** 59 mellom 4 og 8 ms, 65 på 8 ms eller mer, den lengste 242 ms |
+| Kontrollen (en jobb som bare teller, like lenge) | 83 792 skiver: 99,93 % under 4 ms, 45 mellom 4 og 8 ms, 10 på 8 ms eller mer, den lengste 50 ms |
+| Hendelsesløkka sto over 100 ms | ved 19 av 96 steder mens feltet ble bygget (lengst 9,5 s), ved 5 uten bygging (lengst 2,2 s) |
 
-**Kravet «hovedtråden aldri holdt over 4 ms» holder ikke.** Skivebudsjettet er 0,6 ms og hvert skritt er ett oppslag, så en vanlig skive er 2 til 3 ms med strupingen. De som går over, er enkeltoppslag som tar 1 til 5 ms i virkelig tid (strupingen firedobler det): rundt en tredel av dem har også en jobb som bare teller (maskinen og JavaScript-motorens egne pauser), resten ligger i spillets egne oppslag (dybden med mudringen, sorteringen av en flis' brygger), som lager søppel motoren må rydde. I den samme kjøringen sto siden stille i opptil 1,0 s uten at noe ble bygget (maskinen; den uavhengige kontrollen gikk ved siden av). Det som er gjort: rasterblokkene pakkes ut i en worker (før 4 til 12 ms per blokk med strupingen), skjærene formes per kvadratkilometer, tidevannets sted holdes per kilometer, og hvert tungt skritt er delt. Neste grep står i `start/141.md`: la workeren lese dybden selv fra blokkene, så hovedtråden bare kopierer tall.
+**Kravet «hovedtråden aldri holdt over 4 ms» holder ikke.** Tallene over er fra en kjøring der ingenting annet gikk på maskinen. Skivebudsjettet er 0,6 ms og hvert skritt er ett oppslag, så en vanlig skive er 2 til 4 ms med strupingen. Men 124 av 75 017 skiver gikk over:
+
+- **Ett dybdeoppslag** (52 enkeltskritt over 4 ms): de fleste 4 til 22 ms med strupingen, altså 1 til 5 ms i virkelig tid; ett på 242 ms (Tufjord). Hva i spillets dybdeoppslag som av og til tar så lang tid, er ikke funnet.
+- **Én brygge, flate eller molo i sorteringen av en flis** (36 enkeltskritt, opptil 22 ms): en lang molo prøves mot havneenhetene hver tredje meter i ett skritt. Kan deles.
+- **Jobben som bare teller** hadde 55 av 83 792 over (lengst 50 ms): maskinen og JavaScript-motorens egne pauser står for en del, ikke alt.
+- **Hendelsesløkka sto over 100 ms ved 19 av 96 steder mens feltet ble bygget,** lengst 9,5 s, mot 5 steder uten bygging. Det ligger utenfor feltets skiver og er ikke undersøkt; trolig er det kartpakkene feltet ber om 3,5 km rundt, som spillets laster pakker ut på hovedtråden.
+
+Gjort så langt: rasterblokkene pakkes ut i en worker (før 4 til 12 ms per blokk med strupingen), skjærene formes per kvadratkilometer, tidevannets sted holdes per kilometer, og hvert tungt skritt er delt. `farsjekk.py --felt` skriver nå `FEIL` så lenge en skive er over 4 ms. Det som står igjen, står i `start/141.md`: finne det trege dybdeoppslaget, la workeren lese dybden selv fra blokkene, dele sorteringen av lange moloer, og se på lastingen av pakkene.
 
 ### Båtenes høyde (`VESSELS.air`, valg 6)
 
@@ -372,7 +389,7 @@ Alle sju ble som anbefalt. Det som ikke ble valgt, står med for sammenhengen.
 - ~~Hvorfor spillernes båter kommer under brudekk på Autonavs egne ruter (29 berøringer, tre bruer), er ikke forklart.~~ Forklart og gjenskapt i F0 (23.11.2026): «Det benken fant», punkt 1.
 - ~~Om bruenes seilingshøyde finnes i en åpen kilde med god dekning, er ikke sjekket.~~ Sjekket i F1 (23.11.2026): ingen åpen kilde har ekte seilingshøyde for mer enn rundt 150 bruer (OSM); resten får vegdekkets høyde fra NVDB Vegnett Pluss minus et fratrekk. Se «Bruene: kilden».
 - Sporfeilen per båt og fart er ikke målt. Korridorens bredde settes fra målingen i F3, ikke fra et anslag.
-- Tidene er fra PC. Kravet (4 ms, strupet fire ganger) er et anslag på en vanlig telefon; bare Jonas kan måle på en enhet. F1 viste at «aldri» ikke lar seg holde på hovedtråden for enkeltoppslag (99,8 % av skivene er under); se «Avstandsfeltet».
+- Tidene er fra PC. Kravet (4 ms, strupet fire ganger) er et anslag på en vanlig telefon; bare Jonas kan måle på en enhet. F1 holder det ikke ennå: 99,83 % av skivene er under, 124 av 75 017 over (lengst 242 ms); se «Avstandsfeltet».
 - ~~Om avstandsfeltene får plass i minnet på en telefon ved siden av 3D, måles i F1.~~ Målt i F1: 187,5 kB per flis på 500 m, 96 fliser holdes (18 MB).
 - Fasenes størrelse: F2 og F3 er de tyngste og kan bli to økter hver.
 - Benkens port (5 % over fasiten, 2 % mellom motorene) er startverdier.
@@ -390,4 +407,4 @@ Alle sju ble som anbefalt. Det som ikke ble valgt, står med for sammenhengen.
 
 - 23.11.2026: diagnosen og planen skrevet. Jonas svarte på de sju valgene samme dag, alle som anbefalt. Fasene lagt i køen som steg 140–147, startmeldingen for F0 skrevet (`docs/planer/start/140.md`).
 - 23.11.2026, F0 (steg 140) ferdig (Jonas: «Kjør på»; samme økt). Benken er bygget (`tools/autonav/benk.py`, `benk.js`, `benkobs.js`, `strekninger.json` med 97 strekninger, `tests/unit/benkobs.test.mjs`), kjørt på dagens Autonav, og grunnlinja står over. «Ferdig når» fra `start/140.md`: (1) 97 strekninger, med spillernes verste steder, de tre bruene og de fem stedene uten rute inn; (2) fire båter, begge motorer, treff, lengde mot fasit, knekk, planleggingstid, lengste blokkering strupet fire ganger, tid og diesel i de to motorene; (3) observatøren ser hele skroget sveipt, også bakgrunnsturene, og enhetstesten (26 sjekker; 9 røde med sveipet slått av) viser hva jaktens observatør hopper over; (4) grunnlinja står i planfila, og benken er rød på 29 av de 38 strekningene fra spillernes fangst; (5) brudekk-berøringene er gjenskapt ved alle tre bruene og forklart. Ingen endring i `src/`, ingen utrulling. Neste: F1 (steg 141), `docs/planer/start/141.md`.
-- 23.11.2026, F1 (steg 141) pågår (Jonas: «Kjør på med steg 141»; samme økt). Bygget: `core/17-farbar.js` med geometrien, spørsmålene og feltet i worker, `mapBlockWarm` i loaderen, `VESSELS.air` for alle 15 typene, `tests/unit/farbar.test.mjs` (117 sjekker), `tools/autonav/farsjekk.py`. Sjekket: 27 360 skrogstillinger og 3 648 sveip mot benkens observatør uten én stilling der kartet sier fritt og observatøren ser en berøring; feltet mot geometrien i 259 200 ruter. Avgjort: båtenes høyde med pisker, bru-kilden (OSM og NVDB Vegnett Pluss; Kartverkets maritime infrastruktur forkastet til de har sagt ja), kraftspenn er ingen hindring. Lagt: steg 141b (bruene og `air` i bruk). Igjen i 141 («Hvor langt» i `start/141.md`): moloenes form, marinaenes småbåter, kaimodulene, de siste lange skivene.
+- 23.11.2026, F1 (steg 141) pågår (Jonas: «Kjør på med steg 141»; samme økt). Bygget: `core/17-farbar.js` med geometrien, spørsmålene og feltet i worker, `mapBlockWarm` i loaderen, `VESSELS.air` for alle 15 typene, `tests/unit/farbar.test.mjs` (117 sjekker), `tools/autonav/farsjekk.py`. Sjekket: 32 144 skrogstillinger og 3 648 sveip mot benkens observatør uten én stilling der kartet sier fritt og observatøren ser en berøring; feltet mot geometrien i 259 200 ruter. Den uavhengige kontrollen fant tre feil i sveipet og brudekket (punkt 7 til 9 i «Farbarhetskartet»), som er rettet, og at «aldri over 4 ms» ikke holder (124 av 75 017 skiver). Avgjort: båtenes høyde med pisker, bru-kilden (OSM og NVDB Vegnett Pluss; Kartverkets maritime infrastruktur forkastet til de har sagt ja), kraftspenn er ingen hindring. Lagt: steg 141b (bruene og `air` i bruk). Igjen i 141 («Hvor langt» i `start/141.md`): moloenes form, marinaenes småbåter, kaimodulene, de siste lange skivene.

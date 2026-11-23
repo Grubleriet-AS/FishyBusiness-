@@ -58,23 +58,23 @@ def felt_rapport(rows, out=sys.stdout):
     p('  vannet i de åpne rutene: feltet dypere enn geometrien med over 0,1 m i %d ruter (over 0,5 m: %d, størst %.2f m); av %d ruter med under 10 m vann er feltet over 0,5 m grunnere i %d (forsiktig); ukjent %d' % (T['zOver'], T['zOver05'], max((r.get('cmp') or {}).get('zMax', 0) for r in R), T['z10'], T['zLow'], T['zUnk']))
     wrong = (T['over'] > 0) + (T['uDiff'] > 0)
     p('%s farsjekken, feltet mot geometrien: lenger unna i %d ruter, dekke ulikt i %d (vannet er en tilnærming i feltet: over 0,5 m dypere i %d)' % ('OK' if not wrong else 'FEIL', T['over'], T['uDiff'], T['zOver05']))
-    over4 = sum(H[4:]); c4 = sum(Cn[4:]); p('%s farsjekken, hovedtråden: %d av %d skiver over 4 ms (lengste %.1f ms); kontrollen %d av %d' % ('OK' if not over4 else 'LES', over4, nH, max(mx('slice'), mx('laySlice')), c4, nC))
+    over4 = sum(H[4:]); c4 = sum(Cn[4:]); p('%s farsjekken, hovedtråden: %d av %d skiver over 4 ms (lengste %.1f ms; kravet er ingen); kontrollen %d av %d (lengste %.1f ms)' % ('OK' if not over4 else 'FEIL', over4, nH, max(mx('slice'), mx('laySlice')), c4, nC, mx('ctrlMax'))); wrong += over4 > 0
     for r in R:
         for b in r.get('bad', [])[:3]: p('   ', r['strek'], json.dumps(b, ensure_ascii=False))
     return wrong
 
 
 def rapport(rows, out=sys.stdout):
-    T = collections.Counter(); kart = collections.Counter(); obs = collections.Counter(); av = collections.Counter(); per = collections.defaultdict(collections.Counter); bad = []; skip = 0
+    T = collections.Counter(); kart = collections.Counter(); obs = collections.Counter(); av = collections.Counter(); ting = collections.Counter(); per = collections.defaultdict(collections.Counter); bad = []; skip = 0
     for r in rows:
         if r.get('skip') or r.get('feil'): skip += 1; continue
         for k in ('n', 'fri', 'begge', 'bareKart', 'bareObs', 'ukjent', 'klaring', 'sveip', 'sveipObs', 'sveipKart', 'sveipBegge'): T[k] += r.get(k, 0); per[r['type']][k] += r.get(k, 0)
         T['msKart'] += r.get('msKart', 0); T['msObs'] += r.get('msObs', 0); T['rader'] += 1
-        kart.update(r.get('kart', {})); obs.update(r.get('obs', {})); av.update(r.get('av', {}))
+        kart.update(r.get('kart', {})); obs.update(r.get('obs', {})); av.update(r.get('av', {})); ting.update(r.get('ting', {}))
         for b in r.get('bad', []): bad.append((r['strek'], r['type'], b))
     p = lambda *a: print(*a, file=out)
     p('farsjekken: %d strekninger og båter (%d hoppet over), %d skrogstillinger og %d sveip' % (T['rader'], skip, T['n'], T['sveip']))
-    p('  stillingene: langs linjene %d, i stripa %d, i kanten av en berøring %d' % (av['rute'], av['stripe'], av['kant']))
+    p('  stillingene: langs linjene %d, i stripa %d, i kanten av en berøring %d, rett på en ting %d (%s)' % (av['rute'], av['stripe'], av['kant'], av['ting'], ', '.join('%s %d' % kv for kv in ting.most_common())))
     p('  begge fri %d, begge berøring %d, bare kartet %d, ukjent for kartet %d' % (T['fri'], T['begge'], T['bareKart'], T['ukjent']))
     p('  sveipene: begge berøring %d, bare kartet %d' % (T['sveipBegge'], T['sveipKart']))
     p('  observatøren så: ' + ', '.join('%s %d' % kv for kv in obs.most_common()))
@@ -155,7 +155,7 @@ async def run(a):
                 else:
                     lines = [[pr['from']] + (r.get('rute', {}).get('wps') or [pr['to']])]
                     if (r.get('fasit') or {}).get('pts'): lines.append(r['fasit']['pts'])
-                    R.update(await ev("o => FARSJ.run(o)", {'lines': lines, 'n': a.n, 'sweeps': a.sveip, 'seed': 1000 + k, 'strip': a.stripe}))
+                    R.update(await ev("o => FARSJ.run(o)", {'lines': lines, 'n': a.n, 'sweeps': a.sveip, 'things': a.ting, 'seed': 1000 + k, 'strip': a.stripe}))
             except Exception as e:
                 R['feil'] = str(e)[:300]
                 try: await fresh()
@@ -180,7 +180,7 @@ def main():
     ap.add_argument('--turer', default=os.path.join(ROOT, 'docs', 'planer', 'autonav-benk', 'grunnlinje'), help='a bench run (its turer.jsonl): the routes and the reference\'s ways are the lines')
     ap.add_argument('--strek', default=''); ap.add_argument('--bat', default=''); ap.add_argument('--del', dest='dele', default='')
     ap.add_argument('--n', type=int, default=90, help='poses per stretch and boat'); ap.add_argument('--sveip', type=int, default=12, help='sweeps per stretch and boat')
-    ap.add_argument('--stripe', type=float, default=150); ap.add_argument('--ut', default='', help='one line per stretch and boat is added to this file')
+    ap.add_argument('--ting', type=int, default=16, help='poses right on things, per stretch and boat'); ap.add_argument('--stripe', type=float, default=150); ap.add_argument('--ut', default='', help='one line per stretch and boat is added to this file')
     ap.add_argument('--felt', action='store_true', help='the field round each stretch\'s start, built with the CPU slowed four times'); ap.add_argument('--celle', type=int, default=2); ap.add_argument('--skritt', action='store_true', help='with --felt: each step of the gathering timed too (to find a step that is too long)')
     ap.add_argument('--rapport', nargs='+')
     a = ap.parse_args()

@@ -13,8 +13,8 @@
     // the same rules in slices) against the game's (11b-obstacles.js portZones, vecGone, vecDrawn), for every tile decoded: how many
     // tiles, and those that differ
     drawn(){ const bad = []; let n = 0, zones = null;
-      if (PORTZ.list){ const L0 = PORTZ.list, C0 = PORTZ.cells; PORTZ.list = null; PORTZ.cells = null; farbRun(farbZonesG()); const L1 = PORTZ.list;
-        zones = L1 && L1.length === L0.length && L1.every((g, i) => g.every((v, k) => Math.abs(v - L0[i][k]) < 1e-9)) && PORTZ.cells.size === C0.size; PORTZ.list = L0; PORTZ.cells = C0; }
+      { const G = portZones(), L0 = G.list, C0 = G.cells; PORTZ.list = null; FARB.pz = null; const M = farbRun(farbZonesG()), L1 = M.list; PORTZ.list = L0;   // (the game's own put back: the map's copy is built beside it)
+        zones = M !== PORTZ && L1.length === L0.length && L1.every((g, i) => g.every((v, k) => Math.abs(v - L0[i][k]) < 1e-9)) && M.cells.size === C0.size && M.r === G.r; }
       for (const t of VEC.tiles.values()){ n++; VECDRAWN.delete(t); VECGONE.delete(t); const a = farbRun(farbDrawnG(t)), b = vecDrawn(t);
         const same = (p, q) => p.length === q.length && p.every((v, i) => v === q[i]);
         const ok = same(a.piers, b.piers) && a.flo.size === b.flo.size && [...a.flo].every(q => b.flo.has(q)) && a.slabs.length === b.slabs.length && a.slabs.every((s, i) => s[0] === b.slabs[i][0] && s[1] === b.slabs[i][1]) && same(a.molos, b.molos);
@@ -55,7 +55,7 @@
         else if (gd - fd > F.q + 1e-3){ C.under++; C.maxUnder = Math.max(C.maxUnder, gd - fd); if (bad.length < 8) bad.push({hva:'felt nærmere', ll:ll(x, z), felt:fd, geo:+gd.toFixed(2), ting:g && g.what}); }
         // (the water where the field has the cell open: a cell with a thing on it is shut whatever water the lattice has round it)
         const gz = farbDepth(x, z), fz = Y.z[q]; if (fz === 255 || gz !== gz) C.zUnk++; else if (fd > 0){ const f = fz / 10, gg = Math.max(0, Math.min(25.4, gz)); if (f > gg + 0.1 + 1e-6){ C.zOver++; if (f > gg + 0.5) C.zOver05++; C.zMax = Math.max(C.zMax, f - gg); if (bad.length < 8) bad.push({hva:'vann dypere i feltet', ll:ll(x, z), felt:f, geo:+gg.toFixed(2)}); } if (gg < 10){ C.z10++; if (gg - f > 0.5) C.zLow++; } }
-        let gu = 255; const n = farbGather(x, z, F.deck + 30); for (let a = 0; a < n; a++){ const t = FARB.buf[a]; if (t.k === 's' && farbD(t, x, z) <= F.deck + 1e-6) gu = Math.min(gu, Math.max(0, Math.min(254, Math.floor(t.under / 0.25)))); }
+        let gu = 255; const n = farbGather(x, z, F.deck + 30); for (let a = 0; a < n; a++){ const t = FARB.buf[a]; if (t.k === 's' && farbD(t, x, z) <= F.deck + 1e-6) gu = Math.min(gu, Math.max(0, Math.min(254, Math.floor(farbUnder(t) / 0.25)))); }
         if (gu !== Y.u[q] && !(farbD({k:'c', x, z, r:0}, x, z) > 0)){ let edge = false; for (let a = 0; a < n; a++){ const t = FARB.buf[a]; if (t.k === 's' && Math.abs(farbD(t, x, z) - F.deck) < 0.01) edge = true; } if (!edge){ C.uDiff++; if (bad.length < 8) bad.push({hva:'dekke', ll:ll(x, z), felt:Y.u[q], geo:gu}); } } }
       C.maxOver = +C.maxOver.toFixed(2); C.maxUnder = +C.maxUnder.toFixed(2); C.zMax = +C.zMax.toFixed(2); R.cmp = C; R.bad = bad; return R; },
     // One stretch and boat: n poses along the lines (km: the route that was sailed and the reference's way), in a strip to each side,
@@ -72,7 +72,7 @@
       const tot = LN.reduce((a, l) => a + l.len, 0);
       const at = s => { let l = LN[0]; for (const q of LN){ if (s <= q.len){ l = q; break; } s -= q.len; l = q; } s = Math.max(0, Math.min(l.len, s)); let i = 1; while (i < l.P.length - 1 && l.cum[i] < s) i++;
         const a = l.P[i - 1], b = l.P[i], d = l.cum[i] - l.cum[i - 1] || 1, u = (s - l.cum[i - 1]) / d, hx = (b[0] - a[0]) / d, hz = (b[1] - a[1]) / d; return {X:a[0] + (b[0] - a[0]) * u, Z:a[1] + (b[1] - a[1]) * u, psi:Math.atan2(hx, -hz), nx:-hz, nz:hx}; };
-      const C = {n:0, fri:0, begge:0, bareKart:0, bareObs:0, ukjent:0, klaring:0, sveip:0, sveipObs:0, sveipKart:0, sveipBegge:0, kart:{}, obs:{}, av:{rute:0, stripe:0, kant:0}, msKart:0, msObs:0}, bad = [], seen = [];
+      const C = {n:0, fri:0, begge:0, bareKart:0, bareObs:0, ukjent:0, klaring:0, sveip:0, sveipObs:0, sveipKart:0, sveipBegge:0, kart:{}, obs:{}, av:{rute:0, stripe:0, kant:0, ting:0}, msKart:0, msObs:0}, bad = [], seen = [];
       const ll = (X, Z) => { const q = natLL({x:X / 1000, y:Z / 1000}); return [+q.lat.toFixed(5), +q.lon.toFixed(5)]; };
       const test = (kind, X, Z, psi) => { let t0 = performance.now(); const hs = FARSJ.obs(X, Z, psi, ob, world); let t1 = performance.now(); const m = farbPose(X, Z, psi, fb, H, opt); C.msObs += t1 - t0; C.msKart += performance.now() - t1;
         C.n++; C.av[kind]++; const touch = hs.length > 0;
@@ -101,6 +101,13 @@
         for (const d of [-0.3, -0.05, 0.02, 0.05, 0.15, 0.4]){ if (left <= 0) break; const u = Math.max(0, Math.min(1, hi + d / move)), q = P(u); test('kant', q[0], q[1], q[2]); left--; } }
       // what is left where the observer touched nothing at all: more of the strip
       for (; left > 0; left--){ const q = at(rand() * tot), off = (rand() * 2 - 1) * strip; test('stripe', q.X + q.nx * off, q.Z + q.nz * off, rand() * 2 * Math.PI); }
+      // right on the things of every kind there are along the lines (the observer's own list, no vessels): a pose with her middle on
+      // each, any heading, so the kinds a random pose seldom meets (a floating dock, a rorbu's quay, a turbine) are met
+      { let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity; for (const l of LN) for (const q of l.P){ if (q[0] < x0) x0 = q[0]; if (q[0] > x1) x1 = q[0]; if (q[1] < z0) z0 = q[1]; if (q[1] > z1) z1 = q[1]; }
+        let TH = []; try { TH = BK.thingsIn(x0 - strip, z0 - strip, x1 + strip, z1 + strip, true); } catch (e){}
+        const by = {}; for (const t of TH) (by[t.what] || (by[t.what] = [])).push(t); const kinds = Object.keys(by); C.ting = {};
+        for (let i = 0; i < (o.things || 0) && kinds.length; i++){ const kd = kinds[i % kinds.length], t = by[kd][Math.floor(rand() * by[kd].length)], q = t.P ? t.P[Math.floor(rand() * t.P.length)] : [t.x != null ? t.x : (t.ax + t.bx) / 2, t.z != null ? t.z : (t.az + t.bz) / 2];
+          C.ting[kd] = (C.ting[kd] || 0) + 1; test('ting', q[0], q[1], rand() * 2 * Math.PI); } }
       // sweeps: from one pose to another 3 to 25 m on, the hull swept between them by both
       for (let i = 0; i < (o.sweeps || 0); i++){ const s = rand() * tot, q0 = at(s), q1 = at(Math.min(tot, s + 3 + rand() * 22)), off = (rand() * 2 - 1) * (rand() < 0.5 ? B : 40);
         const p0 = {X:q0.X + q0.nx * off, Z:q0.Z + q0.nz * off, psi:q0.psi + (rand() * 2 - 1) * 0.4}, p1 = {X:q1.X + q1.nx * off, Z:q1.Z + q1.nz * off, psi:q1.psi + (rand() * 2 - 1) * 0.4};

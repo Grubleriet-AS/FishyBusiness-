@@ -24,7 +24,7 @@ const FARB = {C:250, cap:100, airOver:1, keel:0.5, side:2, eps:0.03, step:0.3, s
   // her waterline, the starboard half from the bow aft: fractions of L forward and of B abeam (a rounded bow, a square stern)
   hullF:[[0.5, 0], [0.44, 0.27], [0.33, 0.45], [0.2, 0.5], [-0.5, 0.5]],
   lay:{stat:null, statN:-1, unit:null, unitN:-1, site:null, siteKey:null}, til:new WeakMap(), nTil:0, mk:new Map(), rk:new Map(), dug:new Map(), dugL:[], keelP:new Map(),
-  kn:new Map(), knV:'', buf:[], cs:[], pk:new WeakMap(), tp:new Map(), rkm:new Map(), rkV:-1, ovr:new Map(), ovd:new Set(), q:0, mole:0, test:null, w:null, n:{pose:0, near:0, ms:0}};
+  kn:new Map(), knV:'', buf:[], cs:[], pk:new WeakMap(), tp:new Map(), rkm:new Map(), rkV:-1, ovr:new Map(), ovd:new Set(), pz:null, q:0, mole:0, test:null, w:null, n:{pose:0, near:0, ms:0}};
 const FARB_UNK = {d:NaN, what:'ukjent', id:'', x:0, z:0, o:null}, FARB_NONE = [];
 // (the 3D view's own generator for a rock's shape, view3d/00-head.js rng)
 const farbRng = seed => () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
@@ -164,22 +164,25 @@ function farbGlob(){ const Y = FARB.lay, n = UNITA.length;
 // The trade places' zones (11b-obstacles.js portZones), a tile's floating docks and open piers taken away there (vecGone) and what the
 // 3D view builds of its piers, slabs and breakwaters (vecDrawn): the same rules, in slices, kept here; where the game has worked one
 // out already (the 3D view asks for the tiles round the boat), that one is taken
-function* farbZonesG(){ if (PORTZ.list) return PORTZ; if (FARB.F) FARB.F.at = 'lag:soner';
+function* farbZonesG(){ if (PORTZ.list) return PORTZ; if (FARB.pz) return FARB.pz; if (FARB.F) FARB.F.at = 'lag:soner';
   const list = [], cells = new Map(), put = (z, x0, z0, x1, z1) => { for (let i = Math.floor((x0 - 60) / 1000); i <= Math.floor((x1 + 60) / 1000); i++) for (let j = Math.floor((z0 - 60) / 1000); j <= Math.floor((z1 + 60) / 1000); j++){ const k = i * 65536 + j; let a = cells.get(k); if (!a) cells.set(k, a = []); a.push(z); } };
   for (const pt of PORTS){ if (pt.havOnly) continue; let f = null; try { f = quayFace(pt.id, 'main'); } catch (e){}
     const px = pt.p.x * 1000, pz = pt.p.y * 1000, segs = [];
     if (f){ const e = f.hl + PORTZ.past; segs.push([f.x - f.ux * e, f.z - f.uz * e, f.x + f.ux * e, f.z + f.uz * e], [px, pz, f.x, f.z]); }
     else if (pt.coast) segs.push([px, pz, pt.coast.x * 1000, pt.coast.y * 1000]); else segs.push([px, pz, px, pz]);
     for (const g of segs){ list.push(g); put(g, Math.min(g[0], g[2]), Math.min(g[1], g[3]), Math.max(g[0], g[2]), Math.max(g[1], g[3])); } yield; }
-  if (!PORTZ.list){ PORTZ.list = list; PORTZ.cells = cells; } return PORTZ; }
-function* farbGoneG(t){ const o0 = VECGONE.get(t); if (o0) return o0; yield* farbZonesG(); if (FARB.F) FARB.F.at = 'lag:borte'; let n = 0;
-  const box = q => { const ax = Math.sin(q.ang), az = Math.cos(q.ang), nx = Math.cos(q.ang), nz = -Math.sin(q.ang); for (const s of [-1, -0.5, 0, 0.5, 1]) for (const k of [-1, 0, 1]) if (inPortZone(q.x + ax * s * q.l / 2 + nx * k * q.w / 2, q.z + az * s * q.l / 2 + nz * k * q.w / 2)) return true; return false; };
+  return FARB.pz = {list, cells, r:PORTZ.r}; }   // (kept here: the game's own, which the old Autonav reads, is the game's to build)
+function farbInZone(Z, x, z){ const L = Z.cells.get(Math.floor(x / 1000) * 65536 + Math.floor(z / 1000)); if (!L) return false;
+  for (const [ax, az, bx, bz] of L){ const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz, u = L2 ? Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L2)) : 0; if (Math.hypot(x - ax - dx * u, z - az - dz * u) < Z.r) return true; }
+  return false; }
+function* farbGoneG(t){ const o0 = VECGONE.get(t); if (o0) return o0; const PZ = yield* farbZonesG(); if (FARB.F) FARB.F.at = 'lag:borte'; let n = 0;
+  const box = q => { const ax = Math.sin(q.ang), az = Math.cos(q.ang), nx = Math.cos(q.ang), nz = -Math.sin(q.ang); for (const s of [-1, -0.5, 0, 0.5, 1]) for (const k of [-1, 0, 1]) if (farbInZone(PZ, q.x + ax * s * q.l / 2 + nx * k * q.w / 2, q.z + az * s * q.l / 2 + nz * k * q.w / 2)) return true; return false; };
   const fmK = q => q.fm ? Math.round(q.fm[0]) + ':' + Math.round(q.fm[1]) : null, hit = new Set(), piers = new Set(), fd = new Set();
   for (const q of t.piers || []){ if (!q.made && !q.bw && !q.closed && fmK(q) && box(q)) hit.add(fmK(q)); yield; }
   yield;
   if (hit.size) for (const q of t.piers || []){ if (!q.made && !q.bw && !q.closed && hit.has(fmK(q))) piers.add(q); if (!(++n & 15)) yield; }
   if (FARB.F) FARB.F.at = 'lag:borte:flyte'; yield 1; const FT = flyteTile(t.tx, t.ty); yield 1;
-  for (const d of FT){ if (d.L.some(l => l.p.some(([x, z]) => inPortZone(x, z)))) fd.add(Math.round(d.mx) + ':' + Math.round(d.mz)); yield; }
+  for (const d of FT){ if (d.L.some(l => l.p.some(([x, z]) => farbInZone(PZ, x, z)))) fd.add(Math.round(d.mx) + ':' + Math.round(d.mz)); yield; }
   if (fd.size) for (const q of t.piers || []){ if (q.fm){ const rx = Math.round(q.fm[0]), rz = Math.round(q.fm[1]); for (let a = -1; a <= 1; a++) for (let b = -1; b <= 1; b++) if (fd.has((rx + a) + ':' + (rz + b))) piers.add(q); } if (!(++n & 15)) yield; }
   return {piers, fd}; }
 function* farbDrawnG(t){ const o0 = VECDRAWN.get(t); if (o0 && o0.n === UNITA.length) return o0; if (FARB.F) FARB.F.at = 'lag:tegnet'; let n = 0;
@@ -213,7 +216,7 @@ function farbTile(t){ const Y = FARB.til.get(t); if (!Y || Y.n !== UNITA.length)
   if (Y.dockV !== FDOCK.ver){ const M = new Map(); for (const h of t.npc || []) for (const d of h.docks || []){ const L = d.np * FDOCK.PL, sm = d.s0 + L / 2;
       farbPut(M, {k:'b', x:d.o[0] + d.n[0] * sm, z:d.o[1] + d.n[1] * sm, l:L / 2, w:FDOCK.PW / 2, ux:d.n[0], uz:d.n[1], what:'flytebrygge', id:'fb#' + Math.round(d.o[0]) + ',' + Math.round(d.o[1])});
       farbPut(M, {k:'b', x:d.o[0] + d.n[0] * d.s0 / 2, z:d.o[1] + d.n[1] * d.s0 / 2, l:d.s0 / 2, w:0.8, ux:d.n[0], uz:d.n[1], what:'flytebrygge', id:'lg#' + Math.round(d.o[0]) + ',' + Math.round(d.o[1])}); }
-    Y.dock = M; Y.dockV = FDOCK.ver; if (M.size) farbOver(M, t.tx, t.ty, 'd' + t.tx + ':' + t.ty, () => { const Q = FARB.til.get(t); return Q ? Q.dock : null; }); }
+    Y.dock = M; Y.dockV = FDOCK.ver; if (M.size){ const tk = t.tx + ':' + t.ty; farbOver(M, t.tx, t.ty, 'd' + tk, () => { const tt = VEC.tiles.get(tk), Q = tt && FARB.til.get(tt); return Q && Q.dockV === FDOCK.ver ? Q.dock : null; }); } }
   return Y; }
 // a chart tile's sea marks (01e-marks.js MARKS.tiles), built when first asked (a tile has some hundreds)
 function* farbMarksG(k){ const t = MARKS.tiles.get(k); if (!t) return null; let Y = FARB.mk.get(k); if (Y && Y.t === t) return Y.M; let n = 0;
@@ -304,7 +307,7 @@ function farbCoast(x, z, cap, raw){ FARB.mole = 0;
           if (dd >= d2) continue; if (PK){ dd = farbSegOutD2(PK, x, z, ax + ox, az + oz, ed[o + 2] + ox, ed[o + 3] + oz); if (dd >= d2) continue; }
           d2 = dd; mole = I.K[e]; } } }
     if (PK) for (const b of PK) for (const w of farbWalls(b)){ const d = farbSegD(x, z, w[0], w[1], w[2], w[3]); if (d * d < d2){ d2 = d * d; mole = 0; } }
-    if (!own) return Math.min(cap, coastDist(p) * 1000);
+    if (!own){ const far = Math.min(cap, coastDist(p) * 1000), near = Math.sqrt(d2); if (near < far){ FARB.mole = mole; return near; } return far; }   // (the coarse distance, or a neighbour tile's fine line where that is nearer)
     FARB.mole = mole; return Math.sqrt(d2); } catch (e){ return NaN; } }
 // the chart's depth for navigation at chart datum (07-harbours.js depthNav: the harbours dredged), before the foreshore and the dredging
 function farbDepthRaw(x, z){ if (FARB.w) return FARB.w.rawDepth ? FARB.w.rawDepth(x, z) : 50; try { return depthNav({x:x / 1000, y:z / 1000}); } catch (e){ return NaN; } }
@@ -312,6 +315,10 @@ function farbDepthRaw(x, z){ if (FARB.w) return FARB.w.rawDepth ? FARB.w.rawDept
 // 40 µs, and a hull or a lattice over a km's border asked for the two in turn)
 function farbTideP(x, z){ const rx = Math.round(x / 1000), rz = Math.round(z / 1000), k = rx * 65536 + rz; let v = FARB.tp.get(k); if (!v){ if (FARB.tp.size > 4000) FARB.tp.clear(); FARB.tp.set(k, v = tidePlace({x:rx, y:rz})); } return v; }
 const farbZC = (x, z) => FARB.w ? FARB.w.zc(x, z) : farbTideP(x, z).zc;
+// A bridge's deck is drawn from mean sea level, and the water comes up under it: the room under a deck is from the highest tide
+// (what a bridge's sailing height is measured from), the sum of the tide's parts at the place. Kept on the piece
+const farbHat = (x, z) => { if (FARB.w) return FARB.w.hat ? FARB.w.hat(x, z) : 0; let a = 0; for (const c of farbTideP(x, z).C) a += c[0]; return a; };
+const farbUnder = o => o.uh !== undefined ? o.uh : (o.uh = o.under - farbHat((o.ax + o.bx) / 2, (o.az + o.bz) / 2));
 // the water level over chart datum at H (game hours)
 const farbTide = (H, x, z) => FARB.w ? FARB.w.tide(H, x, z) : tideCD(H, {x:x / 1000, y:z / 1000});
 // A channel dredged for the boats a place takes (Jonas' choice 5, 23.11.2026: «Tilpass havna»): pieces {ax, az, bx, bz, r (half its
@@ -356,7 +363,7 @@ async function farbNeed(pts, padKm = 1.5, ms = 60000){ if (FARB.w || !MAPD.man |
   while (!tiles.every(([tx, ty]) => vecTile(tx, ty))){ if (performance.now() - t0 > ms) return false; await new Promise(r => setTimeout(r, 50)); }
   const Y = FARB.lay, n = UNITA.length;
   if (!Y.stat || Y.statN !== n){ Y.stat = await farbRunA(farbStatG()); Y.statN = n; } if (!Y.unit || Y.unitN !== n){ Y.unit = await farbRunA(farbUnitG()); Y.unitN = n; }
-  for (const [tx, ty] of tiles){ const t = VEC.tiles.get(tx + ':' + ty); if (!t) return false; const o = FARB.til.get(t); if (o && o.n === n) continue; FARB.til.set(t, await farbRunA(farbTileG(t))); FARB.nTil++; farbOver(FARB.til.get(t).M, tx, ty, 'v' + tx + ':' + ty, () => { const Y = FARB.til.get(t); return Y ? Y.M : null; }); }
+  for (const [tx, ty] of tiles){ const t = VEC.tiles.get(tx + ':' + ty); if (!t) return false; const o = FARB.til.get(t); if (o && o.n === n) continue; FARB.til.set(t, await farbRunA(farbTileG(t))); FARB.nTil++; farbOver(FARB.til.get(t).M, tx, ty, 'v' + tx + ':' + ty, () => { const tt = VEC.tiles.get(tx + ':' + ty), Y = tt && FARB.til.get(tt); return Y ? Y.M : null; }); }
   // the harbours' pockets there with their walls, and the rocks' shapes (where the box is under 250 km2: a longer way has them
   // shaped as it is asked, a cell at a time), so what asks afterwards finds them made
   await farbBlocks(x0 * 1000, y0 * 1000, x1 * 1000, y1 * 1000);
@@ -404,7 +411,7 @@ function farbNearest(x, z, cap, boat, opt){ FARB.n.near++;
   let d = cap, hit = null, what = '', id = '';
   const c = farbCoast(x, z, cap); if (c !== c) return FARB_UNK; if (c < d){ d = c; what = 'land'; id = Math.round(x / 50) + ',' + Math.round(z / 50); }
   const air = boat ? boat.air + FARB.airOver : Infinity, n = farbGather(x, z, cap), buf = FARB.buf;
-  for (let i = 0; i < n; i++){ const o = buf[i]; if (o.k === 's' && !(o.under < air)) continue; const b = o.bb || farbBB(o); if (x < b[0] - d || x > b[2] + d || z < b[1] - d || z > b[3] + d) continue;
+  for (let i = 0; i < n; i++){ const o = buf[i]; if (o.k === 's' && !(farbUnder(o) < air)) continue; const b = o.bb || farbBB(o); if (x < b[0] - d || x > b[2] + d || z < b[1] - d || z > b[3] + d) continue;
     const e = farbD(o, x, z); if (e < d && !farbGone(o, n)){ d = e; hit = o; what = o.what; id = o.id; } }
   if (opt && opt.boats && !FARB.w) try { for (const o of fixBoats(x, z)){ const e = o.t === 0 ? Math.max(0, Math.hypot(x - o.x, z - o.z) - o.r) : Math.hypot(Math.max(0, Math.abs((x - o.x) * o.ux + (z - o.z) * o.uz) - o.l), Math.max(0, Math.abs((x - o.x) * o.uz - (z - o.z) * o.ux) - o.w)); if (e < d){ d = e; hit = o; what = 'båt'; id = 'båt#' + Math.round(o.x) + ',' + Math.round(o.z); } } } catch (e){}
   return what || hit ? {d, what, id, x, z, o:hit} : null; }
@@ -444,7 +451,7 @@ function farbPose(X, Z, psi, boat, H, opt){ FARB.n.pose++; const m = opt && opt.
   if (FARB.w && !FARB.w.segs) for (const [x, z] of P){ const c = farbCoast(x, z, m + 1); if (c !== c) return {what:'ukjent', id:'', x, z}; if (m > 0 && c <= m) return {what:'land', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z}; }
   // the things
   const air = boat.air + FARB.airOver, n = farbGather(X, Z, R), buf = FARB.buf;
-  for (let i = 0; i < n; i++){ const o = buf[i]; if (o.k === 's' && !(o.under < air)) continue; const b = o.bb || farbBB(o); if (b[0] > x1 || b[2] < x0 || b[1] > z1 || b[3] < z0) continue;
+  for (let i = 0; i < n; i++){ const o = buf[i]; if (o.k === 's' && !(farbUnder(o) < air)) continue; const b = o.bb || farbBB(o); if (b[0] > x1 || b[2] < x0 || b[1] > z1 || b[3] < z0) continue;
     if (farbPolyD(P, o) <= m && !farbGone(o, n)) return {what:o.what, id:o.id, x:o.x != null ? o.x : (b[0] + b[2]) / 2, z:o.z != null ? o.z : (b[1] + b[3]) / 2}; }
   if (opt && opt.boats && !FARB.w) try { for (const o of fixBoats(X, Z)){ const d = o.t === 0 ? Math.max(0, farbPtPoly(P, o.x, o.z) - o.r) : farbRingD(P, o.Q || (o.Q = farbBoxPts(o))); if (d <= m) return {what:'båt', id:'båt#' + Math.round(o.x) + ',' + Math.round(o.z), x:o.x, z:o.z}; } } catch (e){}
   // the water under her: with the foreshore where the coast is near enough for it to reach in under her, and then her outline closely
@@ -456,18 +463,26 @@ function farbPose(X, Z, psi, boat, H, opt){ FARB.n.pose++; const m = opt && opt.
   const lvl = farbTide(H, X, Z) - boat.T - sq;
   for (const [f, g] of farbKeelPts(boat, !off)){ const x = X + f * s + g * c, z = Z - f * c + g * s, k = farbDepth(x, z, off) + lvl; if (k !== k) return {what:'ukjent', id:'', x, z}; if (k < kl + FARB.eps) return {what:'grunn', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z, keel:k}; }
   return null; }
-// Her hull swept from one pose to another ({X, Z, psi}): the first thing it touches, or null. A pose every FARB.step m of the farthest
-// any point of her moves, each with half a step's margin so nothing slips between two of them; where nothing, the foreshore
-// neither, is within her reach she goes on over the open water at once, up to 12.5 m at a time with the water under her asked on the way
+// Her hull swept from one pose to another ({X, Z, psi}): the first thing it touches, or null; 'ukjent' where the map is not in. A pose
+// every FARB.step m of the farthest any point of her moves, each with half a step's margin so nothing slips between two of them.
+// Where nothing is within her reach she goes on over the open water at once, with the water under her asked at each stop. Two
+// things the independent control found (23.11.2026) are in the rule for that:
+//  - the foreshore is drawn from the coast's line as it is, also the line inside a harbour's pocket, so «nothing within reach»
+//    takes the raw line too (1 336 sweeps along the outside of the basins at 20 harbour units went over the foreshore);
+//  - a jump is never longer than her waterline reaches along her way where she stands (her length ahead, her beam sideways, the
+//    lesser of them in a turn), so the water is asked under every metre she passes (a 7.9 m boat stepped 12.5 m over a bar).
 function farbSweep(p0, p1, boat, H, opt){ const dx = p1.X - p0.X, dz = p1.Z - p0.Z; let dpsi = p1.psi - p0.psi; while (dpsi > Math.PI) dpsi -= 2 * Math.PI; while (dpsi < -Math.PI) dpsi += 2 * Math.PI;
-  const m = opt && opt.m || 0, move = Math.hypot(dx, dz) + Math.abs(dpsi) * boat.L / 2, R = Math.hypot(boat.L, boat.B) / 2 + m + FARB.step + FARB.shore.reach + 2, o2 = Object.assign({}, opt, {m:m + FARB.step / 2}), sq = opt && opt.squat || 0, kl = opt && opt.keel || 0; let u = 0;
+  const m = opt && opt.m || 0, tr = Math.hypot(dx, dz), move = tr + Math.abs(dpsi) * boat.L / 2, R = Math.hypot(boat.L, boat.B) / 2 + m + FARB.step + FARB.shore.reach + 2, o2 = Object.assign({}, opt, {m:m + FARB.step / 2}), sq = opt && opt.squat || 0, kl = opt && opt.keel || 0; let u = 0;
   for (let guard = 0; guard < 4e5; guard++){ const X = p0.X + dx * u, Z = p0.Z + dz * u, psi = p0.psi + dpsi * u; let adv = FARB.step;
-    const c = farbClear(X, Z, boat, R + FARB.skip, opt); if (c !== c) return {what:'ukjent', id:'', x:X, z:Z};
-    if (c > R){ adv = Math.min(c - R, 12.5); const s = Math.sin(psi), cs = Math.cos(psi), lvl = farbTide(H, X, Z) - boat.T - sq;
+    let c = farbClear(X, Z, boat, R + FARB.skip, opt); if (c !== c) return {what:'ukjent', id:'', x:X, z:Z};
+    if (c > R){ const cr = farbCoast(X, Z, R + FARB.skip, true); if (cr !== cr) return {what:'ukjent', id:'', x:X, z:Z}; if (cr < c) c = cr; }
+    if (c > R){ const s = Math.sin(psi), cs = Math.cos(psi), lvl = farbTide(H, X, Z) - boat.T - sq, al = tr > 1e-6 ? Math.min(1, Math.abs((dx * s - dz * cs) / tr)) : 0;
+      const ext = Math.abs(dpsi) > 0.02 || tr <= 1e-6 ? Math.min(boat.L, boat.B) : al * boat.L + Math.sqrt(1 - al * al) * boat.B;
+      adv = Math.min(c - R, 12.5, Math.max(FARB.step, ext));
       for (const [f, g] of farbKeelPts(boat)){ const x = X + f * s + g * cs, z = Z - f * cs + g * s, k = farbDepth(x, z, true) + lvl; if (!(k >= kl + FARB.eps)) return {what:k !== k ? 'ukjent' : 'grunn', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z, keel:k}; } }
     else { const t = farbPose(X, Z, psi, boat, H, o2); if (t) return t; }
     if (u >= 1) return null; u = move > 0 ? Math.min(1, u + Math.max(adv, FARB.step) / move) : 1; }
-  return null; }
+  return {what:'ukjent', id:'', x:p1.X, z:p1.Z}; }   // (a way too long to be swept in one go is not known to be free)
 
 // ===== THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER =====
 // A search (F2) asks millions of points, so what the geometry above answers exactly is laid out on a grid, a tile at a time:
@@ -591,7 +606,7 @@ function* farbFieldJob(cell, fx, fz){ const F = FARB.F, N = F.N, Tf = N * cell, 
     else if (o.k === 'l'){ th.push(3, o.r, o.P.length); for (const q of o.P) th.push(q[0] - x0, q[1] - z0); }
     else if (o.k === 'p') ring(o.P);
     else if (o.k === 'e') th.push(5, o.x - x0, o.z - z0, o.a, o.b, o.th);
-    else if (o.k === 's') th.push(6, o.ax - x0, o.az - z0, o.bx - x0, o.bz - z0, o.r, o.under);
+    else if (o.k === 's') th.push(6, o.ax - x0, o.az - z0, o.bx - x0, o.bz - z0, o.r, farbUnder(o));
     else if (o.k === 'u') for (const P of o.G || (o.G = farbUnitRings(o.U))) ring(P); }
   // the chart's depth on a lattice (under 0 on land), a row at a time
   // (twice as close where a harbour's pockets or a naust's or a rorbu's berth lie: the dredged ramps there (07-harbours.js unitDredge,

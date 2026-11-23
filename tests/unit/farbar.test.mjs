@@ -49,6 +49,12 @@ export default function (t){
     t.near(K.farbClear(far.x, far.z + 14, {L:10, B:3, T:1.5, air:5.5}, 60), 10, 1e-9, 'båten som er for høy, har 10 m til dekket 14 m unna');
     t.eq(K.farbClear(far.x, far.z, {L:10, B:3, T:1.5, air:4.9}, 60), 60, 'akkurat klar: 4,9 + 1 m er ikke over 5,9 m');
 
+    // a bridge's sailing height is from the highest tide, not from mean sea level (the deck is drawn from mean sea level, and the water
+    // comes up under it): where the tide's parts sum to 1.2 m, a deck 5.9 m over mean sea level leaves 4.7 m
+    FARB.w = sea({hat:() => 1.2}); FARB.test = [Object.assign({what:'brudekke', id:'d2'}, deck, {uh:undefined})];
+    t.eq(K.farbClear(far.x, far.z, {L:10, B:3, T:1.5, air:4}, 60), 0, 'med 1,2 m flo over middelvann stenger brua på 5,9 m for en båt på 4 m (4 + 1 m er over 4,7 m)');
+    t.eq(K.farbClear(far.x, far.z, {L:10, B:3, T:1.5, air:3.6}, 60), 60, 'og slipper en på 3,6 m under');
+    FARB.w = sea(); FARB.test = [];
     // ---- 3. her hull: the outline the bench's observer has, and as precise for the smallest boat as for the largest ----
     for (const [name, L, B] of [['skiff', 5.9, 2.45], ['sjark', 10.57, 4.1], ['kyst21', 21, 7.2], ['pelagisk', 75, 15.5]]){
       const b = {L, B, T:1, air:3}; let worst = 0, same = true;
@@ -107,6 +113,12 @@ export default function (t){
     p = K.farbPose(far.x, far.z, 0, big, 0); t.ok(p && p.what === 'grunn', 'og kartet finner den likevel: vannet spørres i et rutenett på 4 m under hele skroget', p && p.what);
     t.eq(K.farbPose(far.x - 2, far.z, 0, big, 0), null, '2 m til side for grunna går hun klar');
     p = K.farbSweep({X:far.x, Z:far.z - 200, psi:0}, {X:far.x, Z:far.z - 30, psi:0}, big, 0); t.ok(p && p.what === 'grunn', 'og et sveip over åpent vann finner grunna på veien', p && p.what);
+    // a bar 4 m wide across the way of a boat shorter than a jump over open water (the independent control, 23.11.2026: the sweep went
+    // 12.5 m at a time and asked the water only under her where she stood, so a 7.9 m boat stepped over it), ahead and sideways
+    const sn = {L:7.9, B:2.7, T:1.2, air:3.9}; FARB.w = sea({depth:(x, z) => (Math.abs(z - far.z + 106) < 2 ? 0.5 : 50)});
+    p = K.farbSweep({X:far.x, Z:far.z, psi:0}, {X:far.x, Z:far.z - 200, psi:0}, sn, 0); t.ok(p && p.what === 'grunn', 'et sveip over åpent vann med en båt på 7,9 m finner ei grunne på 4 m tvers over veien', p && p.what);
+    p = K.farbSweep({X:far.x, Z:far.z, psi:Math.PI / 2}, {X:far.x, Z:far.z - 200, psi:Math.PI / 2}, sn, 0); t.ok(p && p.what === 'grunn', 'også når hun går sidelengs (2,7 m bred) over den', p && p.what);
+    p = K.farbSweep({X:far.x + 300, Z:far.z, psi:0}, {X:far.x + 300, Z:far.z - 90, psi:0}, sn, 0); t.eq(p, null, 'og et sveip som stopper 10 m før grunna (6 m foran baugen), går fritt');
     // the foreshore: the ground stands 2 m over mean sea level on the coast line and falls 1 in 3 seaward (1 in 1.5 by a breakwater),
     // so with the sea at mean level (chart datum zc under it, the tide at zc) the water is d / 3 - 2 deep d metres out
     const shore = (zc, tide, moleK) => sea({rawDepth:() => 30, zc:() => zc, tide:() => tide, coast:(x, z) => [Math.abs(x - far.x), moleK || 0], depth:null});

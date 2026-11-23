@@ -2642,7 +2642,7 @@ THE CATCH: WHERE THE PLAYERS' BOATS TOUCH WHAT IS NOT CLEAN WATER (the autonav r
   - 167 `slamRate(b = S.boat, H = S.t / 60, hard = 1)`
   - 199 `slamMinute()`
 
-## `src/js/core/17-farbar.js` (633 linjer)
+## `src/js/core/17-farbar.js` (648 linjer)
 
 FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2.0 F1, steg 141, 23.11.2026)
 
@@ -2672,41 +2672,42 @@ FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2
   - 138 `farbRunA(g)`
   - 155 `farbSiteM()`
   - 159 `farbGlob()`
-  - 212 `farbTile(t)`
-  - 222 `farbMarks(k)`
-  - 226 `farbShoreG(x, z)`
-  - 250 `farbRocks(i, j)`
-- **252** the harbours' pockets
-  - 259 `farbPockets(x, z)`
-  - 268 `farbSegOutD2(PK, x, z, ax, az, bx, bz)`
-  - 284 `farbWalls(b)`
-- **286** the world under the things: land, the coast's distance, the depth, the tide
-  - 288 `farbLand(x, z)`
-  - 294 `farbCoast(x, z, cap, raw)`
-  - 310 `farbDepthRaw(x, z)`
-  - 313 `farbTideP(x, z)`
-  - 320 `farbDig(key, segs)`
-  - 324 `farbDepth(x, z, off)`
-  - 330 `farbKeel(x, z, boat, H, squat, off)`
-- **332** what is known
-  - 335 `farbKnown(x, z, R)`
-  - 345 `farbBlocks(x0, z0, x1, z1)`
-  - 351 `farbNeed(pts, padKm = 1.5, ms = 60000)`
-- **372** the questions
-  - 374 `farbGather(x, z, R)`
-  - 395 `farbGone(o, n, buf = FARB.buf)`
-  - 401 `farbNearest(x, z, cap, boat, opt)`
-  - 412 `farbClear(x, z, boat, cap, opt)`
-  - 415 `farbCoastSegs(x0, z0, x1, z1)`
-  - 426 `farbPose(X, Z, psi, boat, H, opt)`
-  - 462 `farbSweep(p0, p1, boat, H, opt)`
-- **472** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
-  - 486 `farbFieldBuild(J)`
-  - 549 `farbSegOutParts(PK, ax, az, bx, bz)`
-  - 606 `farbFieldWorker()`
-  - 614 `farbFieldTile(cell, fx, fz)`
-  - 617 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
-  - 631 `farbFieldAt(x, z, cell = 2)`
+  - 175 `farbInZone(Z, x, z)`
+  - 215 `farbTile(t)`
+  - 225 `farbMarks(k)`
+  - 229 `farbShoreG(x, z)`
+  - 253 `farbRocks(i, j)`
+- **255** the harbours' pockets
+  - 262 `farbPockets(x, z)`
+  - 271 `farbSegOutD2(PK, x, z, ax, az, bx, bz)`
+  - 287 `farbWalls(b)`
+- **289** the world under the things: land, the coast's distance, the depth, the tide
+  - 291 `farbLand(x, z)`
+  - 297 `farbCoast(x, z, cap, raw)`
+  - 313 `farbDepthRaw(x, z)`
+  - 316 `farbTideP(x, z)`
+  - 327 `farbDig(key, segs)`
+  - 331 `farbDepth(x, z, off)`
+  - 337 `farbKeel(x, z, boat, H, squat, off)`
+- **339** what is known
+  - 342 `farbKnown(x, z, R)`
+  - 352 `farbBlocks(x0, z0, x1, z1)`
+  - 358 `farbNeed(pts, padKm = 1.5, ms = 60000)`
+- **379** the questions
+  - 381 `farbGather(x, z, R)`
+  - 402 `farbGone(o, n, buf = FARB.buf)`
+  - 408 `farbNearest(x, z, cap, boat, opt)`
+  - 419 `farbClear(x, z, boat, cap, opt)`
+  - 422 `farbCoastSegs(x0, z0, x1, z1)`
+  - 433 `farbPose(X, Z, psi, boat, H, opt)`
+  - 474 `farbSweep(p0, p1, boat, H, opt)`
+- **487** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
+  - 501 `farbFieldBuild(J)`
+  - 564 `farbSegOutParts(PK, ax, az, bx, bz)`
+  - 621 `farbFieldWorker()`
+  - 629 `farbFieldTile(cell, fx, fz)`
+  - 632 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
+  - 646 `farbFieldAt(x, z, cell = 2)`
 
 ## `src/js/ui/01-i18n.js` (120 linjer)
 
