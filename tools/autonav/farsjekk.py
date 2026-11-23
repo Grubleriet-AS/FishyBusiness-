@@ -64,7 +64,12 @@ def felt_rapport(rows, out=sys.stdout):
     p('  vannet i de åpne rutene: feltet dypere enn geometrien med over 0,1 m i %d ruter (over 0,5 m: %d, størst %.2f m); av %d ruter med under 10 m vann er feltet over 0,5 m grunnere i %d (forsiktig); ukjent %d' % (T['zOver'], T['zOver05'], max((r.get('cmp') or {}).get('zMax', 0) for r in R), T['z10'], T['zLow'], T['zUnk']))
     wrong = (T['over'] > 0) + (T['uDiff'] > 0)
     p('%s farsjekken, feltet mot geometrien: lenger unna i %d ruter, dekke ulikt i %d (vannet er en tilnærming i feltet: over 0,5 m dypere i %d)' % ('OK' if not wrong else 'FEIL', T['over'], T['uDiff'], T['zOver05']))
-    over4 = sum(H[4:]); c4 = sum(Cn[4:]); p('%s farsjekken, hovedtråden: %d av %d skiver over 4 ms (lengste %.1f ms; kravet er ingen); kontrollen %d av %d (lengste %.1f ms)' % ('OK' if not over4 else 'FEIL', over4, nH, max(mx('slice'), mx('laySlice')), c4, nC, mx('ctrlMax'))); wrong += over4 > 0
+    over4 = sum(H[4:]); c4 = sum(Cn[4:]); lengst = max(mx('slice'), mx('laySlice')); grense = mx('ctrl2Max')
+    # The requirement (Jonas 23.11.2026, «Skriv om kravet»; before: never over 4 ms): no slice of the map's work longer than the longest
+    # of a job that only makes garbage, each place measured on a fresh page. The 4 ms count is kept to be read
+    p('  over 4 ms: %d av %d skiver av kartets arbeid; jobben som bare teller %d av %d; jobben som bare lager søppel %d av %d' % (over4, nH, c4, nC, sum(C2[4:]), n2))
+    verst = sorted(((max(r.get('slice') or 0, r.get('laySlice') or 0), r['strek']) for r in R), reverse=True)[:3]
+    p('%s farsjekken, hovedtråden: kartets lengste skive %.1f ms, søppeljobbens lengste %.1f ms (kravet: kartets ikke lengre); de lengste: %s' % ('OK' if lengst <= grense else 'FEIL', lengst, grense, ', '.join('%s %.1f' % (n, v) for v, n in verst))); wrong += lengst > grense
     for r in R:
         for b in r.get('bad', [])[:3]: p('   ', r['strek'], json.dumps(b, ensure_ascii=False))
     return wrong
@@ -146,9 +151,12 @@ async def run(a):
         if a.felt:
             seen = set(); rows = [r for r in rows if not (r['strek'] in seen or seen.add(r['strek']))]   # (one boat a stretch: the field is the same for all)
             print('farsjekken, feltet: %d steder, celle %s m, CPU strupet 4 ganger' % (len(rows), a.celle), flush=True)
-            for r in rows:
+            for k, r in enumerate(rows):
                 s = ST[r['strek']]; R = {'strek': r['strek'], 'type': r['type']}; t = time.time()
                 try:
+                    # (a fresh page for each place, Jonas 23.11.2026: a page that has loaded the maps of thirty places along the whole coast
+                    # has pauses of its own, up to 229 ms, that a place measured alone does not have)
+                    if k and not a.samme_side: await fresh()
                     pr = await ev(PREP, [s['fra'], s['til'], r['type']])
                     if pr.get('skip'): R['skip'] = pr['skip']
                     else:
@@ -203,7 +211,7 @@ def main():
     ap.add_argument('--n', type=int, default=90, help='poses per stretch and boat'); ap.add_argument('--sveip', type=int, default=12, help='sweeps per stretch and boat')
     ap.add_argument('--ting', type=int, default=16, help='poses right on things, per stretch and boat'); ap.add_argument('--stripe', type=float, default=150); ap.add_argument('--ut', default='', help='one line per stretch and boat is added to this file')
     ap.add_argument('--basseng', action='store_true', help='the sweep against the poses on its way along the outside of every harbour pocket')
-    ap.add_argument('--felt', action='store_true', help='the field round each stretch\'s start, built with the CPU slowed four times'); ap.add_argument('--celle', type=int, default=2); ap.add_argument('--skritt', action='store_true', help='with --felt: each step of the gathering timed too (to find a step that is too long)')
+    ap.add_argument('--felt', action='store_true', help='the field round each stretch\'s start, built with the CPU slowed four times'); ap.add_argument('--celle', type=int, default=2); ap.add_argument('--samme-side', dest='samme_side', action='store_true', help='with --felt: every place in one page (faster; the pauses of a big page are then in the numbers)'); ap.add_argument('--skritt', action='store_true', help='with --felt: each step of the gathering timed too (to find a step that is too long)')
     ap.add_argument('--rapport', nargs='+')
     a = ap.parse_args()
     if a.rapport:

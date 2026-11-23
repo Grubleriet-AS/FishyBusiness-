@@ -302,7 +302,9 @@ Et søk spør millioner av punkter, så det geometrien svarer nøyaktig på, leg
 - **Ni av kartets 28 268 skiver er lengre enn søppelkontrollens lengste.** De fire lengste (129 til 229 ms, i sorteringen av en flis på 50 km: skjærene, bryggene) gjentok seg ikke da de samme stedene ble målt alene på en fersk side (lengst 36 ms). De kom på en testside som hadde lastet kart for 32 steder langs hele kysten.
 - **De lange oppholdene i hendelsesløkka** (9,5 s ved Smøla i første måling) gjentok seg heller ikke alene (1,4 s for hele bygget der, lengste opphold 9,5 ms).
 
-Det som ikke er avgjort: om kravet skal skrives om til det målingen kan vise (ingen skive lengre enn en jobb som bare lager søppel, målt på en fersk side per sted), eller om de ni skal jages videre. Spørsmålet er stilt til Jonas på nytt med disse tallene.
+**Jonas 23.11.2026, andre gang** (spørsmålsverktøyet, med tallene over; A «Skriv om kravet», B «Jag de ni videre», C «La det stå, start F2»): **«Skriv om kravet».** Det nye kravet: ingen skive av kartets arbeid er lengre enn den lengste i en jobb som bare lager søppel, med CPU-en strupet fire ganger og hvert sted målt på en fersk side. `farsjekk.py --felt` måler slik (en ny side per sted; `--samme-side` gir den gamle målingen), og steg 141 er ferdig når den er grønn. Grensa er ett sted i `farsjekk.py` og kan snus. Antallet skiver over 4 ms skrives fortsatt ut.
+
+Målingen etter det nye kravet kjøres i samme økt; tallene føres inn her når den er ferdig.
 
 ### Båtenes høyde (`VESSELS.air`, valg 6)
 
