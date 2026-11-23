@@ -1,6 +1,6 @@
 # Autonav 2.0: ny ruteplanlegger og ny styring fra bunnen av
 
-Status: **valgene er tatt** (Jonas 23.11.2026, alle sju som anbefalt; Jonas' økt, grenen `ccr-399c74e8-91vrad`). Fasene står i køen som steg 140–147; F0 (steg 140) starter når Jonas sier «kjør på». Startmeldingen: `docs/planer/start/140.md`.
+Status: **F0 ferdig, F1 er neste** (23.11.2026, Jonas' økt, grenen `ccr-399c74e8-91vrad`). Valgene er tatt (Jonas 23.11.2026, alle sju som anbefalt), fasene står i køen som steg 140–147, og benken har gitt grunnlinja for dagens Autonav («Grunnlinja» og «Det benken fant» under). Startmeldingen for F1: `docs/planer/start/141.md`.
 
 ## Hva Jonas ba om
 
@@ -101,13 +101,118 @@ Planleggeren og avstandsfeltene går i en Web Worker (spillet har alt fire, blan
 - **Det som måles, gammel mot ny:** treff; rutelengde mot dagens og mot en fasit (fint søk med samme minstemål); knekk per nm og korte legger; planleggingstid og lengste blokkering av hovedtråden med CPU-en strupet fire ganger; sanntid mot bakgrunn (tid, diesel, vei); steder uten rute.
 - **Porten for slipp** (startverdier): 0 treff på hele benken og på en full jakt (minst 2 000 turer), i begge motorer; ingen rute lengre enn dagens uten at dagens gikk gjennom noe; medianen høyst 5 % over fasiten; hovedtråden aldri blokkert over 4 ms; sanntid og bakgrunn innen 2 % på tid og diesel; ingen steder mister ruta.
 
+## Grunnlinja: dagens Autonav på benken (F0, steg 140, 23.11.2026)
+
+`python3 tools/autonav/benk.py` på bygget `8d7a30f732df` (grenen `ccr-399c74e8-91vrad`, `src/` som arbeidsgrenen), kartet `kart-31`. 97 faste strekninger (`tools/autonav/strekninger.json`: 38 fra spillernes fangst, 14 fra jakten og `allesteder`, 10 fra backloggen, 15 bruer, 14 trange sund, 6 andre; 31 sør, 25 midt, 41 nord), hver med `skiff`, `sjark`, `kyst21` og den største båten stedene tar. Full fart (spillernes standard), sjøkartnull hele turen, vind 3 m/s fra sørvest. Hele rapporten med tabellen per strekning: `docs/planer/autonav-benk/grunnlinje-2026-11-23.md`; rådataene til senere sammenligning (`--sammenlign`): `docs/planer/autonav-benk/grunnlinje/turer.jsonl`; bilder av åtte strekninger (ruta, fasiten og treffene): `docs/planer/autonav-benk/bilder/`.
+
+333 kombinasjoner av strekning og båt (13 til der stedet ikke tar båten). **41 fikk ingen rute.** De 292 andre ble seilt i begge motorer.
+
+| Motor | turer | kom fram | turer med treff | treff | per 1000 turer |
+|---|---|---|---|---|---|
+| Båtmodellen (spillet åpent) | 292 | 291 | 77 (26 %) | 140 | 479 |
+| Bakgrunnstur (minuttsteget) | 292 | 292 | 95 (33 %) | 149 | 510 |
+
+Et treff er skroget (hele omrisset, sveipt mellom stegene) inntil noe 3D tegner i sjøen; samme slags berøring under 60 m fra den forrige er én hendelse. Båtens egen kaiplass (under 1 knop innen halvannen båtlengde fra endene, og det hun lå inntil da hun kastet loss) telles ikke. 61 av 97 strekninger har treff for minst én båt i minst én motor; 29 av de 38 fra spillernes fangst.
+
+| Båt | turer | med treff, båtmodellen | med treff, bakgrunn |
+|---|---|---|---|
+| `skiff` (5,9 m) | 95 | 14 (15 %) | 30 (32 %) |
+| `sjark` (10,6 m) | 87 | 14 (16 %) | 27 (31 %) |
+| `kyst21` (21 m) | 75 | 27 (36 %) | 20 (27 %) |
+| den største stedene tar (15–75 m) | 35 | 22 (63 %) | 18 (51 %) |
+
+| Hva | båtmodellen | bakgrunn |
+|---|---|---|
+| land | 56 | 52 |
+| grunn | 21 | 10 |
+| brudekke lavere enn båten | 20 | 20 |
+| brygge | 12 | 9 |
+| fartøy som ligger stille | 10 | 24 |
+| kai | 6 | 17 |
+| flytebrygge | 6 | 6 |
+| merke | 5 | 7 |
+| skjær | 3 | 0 |
+| molo | 1 | 2 |
+| brupilar | 0 | 2 |
+
+Med båtmodellen kom 58 av treffene under seiling, 44 ut fra kai, 19 mens sikkerhetsnettet lette etter vei, 14 under «hendene» og 5 inn mot kai. «Hendene» tok båten på 92 av 292 turer (gjennom havna 43, skarpt hjørne ved et merke 25, sto fast 20, støt 13, forbi grunt vann 8, naustet 4). I tillegg lå skroget over fjæra slik 3D tegner den på 144 av turene med båtmodellen og 102 av bakgrunnsturene; det telles for seg, se «Det benken ikke ser».
+
+**Rutene mot fasiten** (korteste vei med bare minstemålene: halv bredde + 2 m til siden, 0,5 m under kjølen; 279 ruter):
+
+- Medianen er 1,14 ganger fasiten, 90-prosentilen 1,86, den lengste 14,05. 128 ruter er mer enn 15 % lengre enn fasiten, 41 mer enn 50 %.
+- Knekk over 30° per nautisk mil: median 1,8, 90-prosentilen 4,3. 20 av 292 ruter har legger kortere enn to båtlengder utenfor havn.
+- 5 ruter er kortere enn fasiten fordi de går gjennom noe: brua på Marøyvegen (0,2 ganger fasiten for `skiff`, `sjark` og `kyst21`), Henningsværbrua med den pelagiske tråleren (0,29) og Knarrlagsund med `kyst21` (0,52).
+
+| De lengste omveiene | båt | rute nm | fasit nm | forhold |
+|---|---|---|---|---|
+| Under Steinvågbrua i Ålesund | `skiff`, `sjark` | 6,86 | 0,49 | 14,05 |
+| Sundet nord for Sørarnøy | `kyst21` | 4,93 | 0,66 | 7,43 |
+| Under Sørsundbrua i Kristiansund | `kyst21` | 2,35 | 0,49 | 4,78 |
+| Ålesund verft–Ålesund | `skiff`, `sjark` | 6,01 | 1,57 | 3,82 |
+| Smøla vest, ut gjennom sundet | `kyst21` | 1,86 | 0,57 | 3,27 |
+| Bøvågen–rorbua Marøy | `skiff`, `sjark`, `kyst15` | 4,19 | 1,28 | 3,26 |
+| Sundet nord for Sørarnøy | `sjark` | 1,80 | 0,66 | 2,71 |
+| Brua på Reksundveien ved Averøy | `kyst21` | 4,02 | 1,49 | 2,70 |
+
+**Uten rute (41):** «Fant ingen rute dit» 28, «For grunt der for båten» 7, «Fant ingen trygg rute dit» 6; den pelagiske tråleren 15, `sjark` 10, `kyst21` 9, `kyst15` 5, `skiff` 2. Elleve av dem er veien inn fra åpent vann til de fem stedene i backloggen (Vallersund og naustet der, Urangsvåg utstyrsbutikk, rorbuene Valen og Evja): alle båtene fra `sjark` og opp får nei, og heller ikke fasiten finner vei ved sjøkartnull. For 12 av de 41 har fasiten en vei: Saltstraumbrua (`kyst21`, pelagisk), Tromsøbrua (pelagisk), sundene ved Stamsund og Melandsjø (`kyst21`), ved Seløy, Sørarnøy, Bølandet og i Hvaler (pelagisk), rundt Hønebrua fra begge sider (pelagisk) og Smøla nord (`skiff`).
+
+**CPU** (CPU-en strupet fire ganger, kjørt alene; en PC, ikke en telefon):
+
+- **Rutesøket:** median 248 ms, 90-prosentilen 5,0 s, lengst 54 s (Engenes–rorbua Straumen, som ender uten rute). Ruter under 2 nm (193 av dem): median 139 ms, 90-prosentilen 0,8 s.
+- **Lengste blokkering av hovedtråden under søket:** median 113 ms, 90-prosentilen 382 ms, lengst 10,7 s (Bodø–Helligvær, 16 nm). Over 4 ms i 327 av 333 søk, over 50 ms i 236. Søket deler seg i skiver på 8 ms (`LEIA.slice`) og måler sin egen lengste skive til 14 ms i median; den målte blokkeringen er over det dobbelte i 168 av 292 søk, altså i deler søket ikke deler opp.
+- **Båtmodellen de første 120 tikkene fra kai** (trafikken rundt båten slått opp på forhånd): tyngste tikk 47 ms i median, 251 ms i 90-prosentilen, 486 ms på det meste; over 4 ms på 291 av 292 turer og over 50 ms på 133. Det tyngste kommer ved første minuttskifte. Et vanlig tikk tar 2,5 ms i median, og 33 av de 120 tikkene er over 4 ms.
+- **Trafikken** slås opp første gang på et nytt sted på 99 ms i median og 10,4 s på det meste. Det er ikke Autonavs kostnad (spillet betaler den når kartet eller 3D tegner de andre fartøyene), men uten et bilde åpent havner den på første tikk, og den er holdt utenfor tallene over.
+
+**Sanntid mot bakgrunn** (291 turer der begge kom fram, samme rute):
+
+- Tiden avviker 11 % i median, 65 % i 90-prosentilen og 150 % på det meste. 229 av 291 avviker mer enn 2 %.
+- Dieselen avviker 10 % i median og 33 % i 90-prosentilen.
+- Bakgrunnsturen har flere treff ved endene (ut fra kai 54, inn mot kai 14) enn båtmodellen (44 og 5): den starter i havnepunktet og går rett mot neste punkt, uten veien fra kaiplassen.
+
+**I 14 m/s vind** (`--vind 14`, fra sørvest; samme ruter, uten fasit og CPU; `docs/planer/autonav-benk/vind14/turer.jsonl`):
+
+- Båtmodellen: treff på 96 av 292 turer (33 %, mot 26 % i 3 m/s), 175 treff (mot 140). Land 75 (mot 56), kai 15 (mot 6), brygge 17 (mot 12). «Hendene» tok båten på 114 turer (mot 92).
+- `skiff` har treff på 32 % av turene (mot 15 %); `sjark` 18 %, `kyst21` 36 % og de største 66 % er som i 3 m/s. Vinden tar de små.
+- 27 turer kom ikke fram, 23 av dem med `skiff`: de fleste ligger stille eller har snudd etter spillets egen vindregel, to endte med skrogskade etter støt mot kai, og to med motorstopp.
+- Bakgrunnsturen er som i 3 m/s (92 turer med treff, 145 treff): minuttsteget kjenner ikke vinden. 24 kom ikke fram, av samme vindregel.
+
+**Gir benken samme svar to ganger?** 12 strekninger (45 kombinasjoner) kjørt to ganger etter hverandre: samme ruter, samme antall turer med treff (25 og 30) og samme antall treff (54 og 46). 5 av 45 skilte seg, alle med båtmodellen: turens lengde med 1–13 minutter, og på to turer som alt hadde treff, hvilke ting hun kom borti. Mot den fulle kjøringen (tre deler side om side, annen rekkefølge) skilte 7 av 45 seg, to av dem med ett treff. Rutene gjentar seg, bakgrunnsturene på minuttet nær; båtmodellen leser veggklokka og gjentar seg ikke helt.
+
+## Det benken fant
+
+1. **Bruene: Autonav legger ruta gjennom bruer spillet selv regner som stengt.** 42 av spillernes 47 berøringer med brudekk ligger ved tre bruer: Marøyvegen ved Bøvågen (54 m; 21 berøringer), Hønebrua ved Sandshamn verft (80 m; 11) og brua ved Straumen innenfor Engenes (53 m; 10). Tre til ligger ved Reksundveien ved Averøy (24 m). Spillet gir alle bruer under 60 m underkant 0 («en vegg», `obsBridge` i `core/11b-obstacles.js:34`), og dekket ellers en høyde etter lengden. Benken gjenskaper alle tre:
+   - **Marøyvegen:** ruta går rett gjennom brua for `skiff`, `sjark` og `kyst21`, 0,52 nm der veien rundt er 2,64 nm, og begge motorene seiler gjennom dekket. Det samme på ruta Bøvågen–rorbua Marøy.
+   - **Straumen:** `skiff` får en rute gjennom brua begge veier; `sjark` og `kyst15` får «Fant ingen rute dit». Rorbua Straumen kan altså bare nås av de minste båtene, og da gjennom en vegg. Hos spillerne var det snekka.
+   - **Hønebrua:** fra Sandshamn verft og vestover går `sjark` (4,7 m høy) og plastsjarken (4,3 m; prøvd for seg) under et stykke av dekket med 4,2 m underkant, i 4,7 knop: samme fart som i alle 11 berøringene hos spillerne, som alle var plastsjarker. Fasiten går under midten, der dekket er 5,9 m.
+   - **Frovåg på Senja, Reksundveien og veien inn til Vallersund:** samme sak (alle båtene ved Frovåg, den pelagiske tråleren ved Reksund, `skiff` ved Vallersund). Henningsværbrua og Storvalen bru med den pelagiske tråleren, og en bru på veien Knarrlagsund–Ansnes med `kyst21`: dekk lavere enn båten.
+   - **Årsaken** er tre ting sammen: (a) brumodellen er oppdiktet (ekte båter går under disse bruene); (b) når ruta treffer en hindring og `obsDetour` ikke finner en vei rundt, beholdes etappen som den er (`obsRoute0`, `core/11b-obstacles.js:510`: punktet legges i ruta uansett), så en «vegg» stenger ikke; (c) brudekket finnes ikke i båtmodellens kontakt, så hun seiler gjennom det uten støt, mens 3D tegner brua.
+   - Ruta ble den samme med og uten kystens anlegg pakket ut på forhånd i alle kombinasjonene, også med CPU-en strupet. Fristen på 4 s (`obsLoad`) slo altså ikke til her, og er ikke forklaringen på disse treffene.
+   - Samtidig går ruta 14 ganger for langt rundt Steinvågbrua, som `skiff` og `sjark` går under etter spillets egne tall. Bruene er både for åpne og for stengte.
+2. **Jo større båt, jo flere treff:** 15 % av turene for `skiff`, 16 % for `sjark`, 36 % for `kyst21` og 63 % for de største. Det er diagnosens punkt 2 og 3 (strek uten bredde, hjørnekutt større enn marginene) målt.
+3. **Bakgrunnsturene treffer oftere enn båtmodellen** (33 % mot 26 %) og har aldri vært målt før: 24 fartøy som ligger stille, 17 kaier, 54 treff ut fra kai.
+4. **Omveiene finnes og er store:** 41 av 279 ruter er mer enn 50 % lengre enn korteste vei, og medianruta har 1,8 knekk over 30° per nautisk mil.
+5. **Autonav sier nei der det er vei:** 12 av 41 uten rute har en vei som holder minstemålene. For de fem stedene i backloggen er det motsatt: der finnes ingen vei inn som holder minstemålene ved sjøkartnull for båtene fra `sjark` og opp, så de må tilpasses i dataene (valg 5).
+6. **De to motorene er uenige om tiden** (11 % i median) på samme rute.
+7. **«Hendene»** tar båten på en tredel av turene (92 av 292).
+8. **Regningen holder hovedtråden:** 113 ms i median og opptil 10,7 s under rutesøket, og 47 ms i median ved avgang, med CPU-en strupet fire ganger. Porten er 4 ms.
+
+## Det benken ikke ser
+
+- **Kaimodulene som 3D bygger ut til kaiplassene, og småbåtene i marinaene:** de finnes bare i 3D-visningen. F1 avgjør dem.
+- **Fjæra** (bakken 3D tegner fra kystlinja og 13,5 m ut) telles i egen kolonne, ikke som treff: 3D graver ut ved kaiplassene og har loddrette kaifronter ved havneenhetene, og benken kjenner bare rampen. Tallet (144 av 292 turer) er derfor et øvre anslag. F1 gjør fjæra til dybde i farbarhetskartet, og da telles den.
+- **Fartøy i fart** rapporteres for seg (0 treff i grunnlinja), fordi de er spøkelser for Autonav i dag (`SJV.ghost`).
+- **Fasiten** er en nedre grense, ikke en rute: ingen svingradius og ingen fart, 5 m-celler (2,5 m når et sund er trangt). For 42 kombinasjoner finner fasiten ingen vei. 29 av dem har heller ingen rute. De 13 andre har en rute som da går gjennom en bru som er en vegg (Straumen, Frovåg og veien inn til Vallersund) eller over vann grunnere enn minstemålet for et havfartøy (den pelagiske tråleren, 7,5 m dypgang, i havner mudret til 4,35 m: Senjahopen, Reksund, Storvalen; snøkrabbefartøyet ved Napp).
+- **Bare sjøkartnull,** og vinden bare i 3 og 14 m/s fra sørvest. 9 m/s, andre retninger og tidevannet som det går, kommer med F3 (`--vind`, `--retning`).
+- **En PC, ikke en telefon.** CPU-en er strupet fire ganger i nettleseren; hakking på en ekte enhet ser bare Jonas.
+- **Båtmodellen gjentar seg ikke helt** (over): et treff fra eller til på en tur som alt har treff, er innenfor støyen. Porten «0 treff» har ingen slik støy å gjemme seg i.
+
 ## Fasene
 
 Hver fase er én økt (F2 og F3 kan trenge to). Gammel Autonav står urørt og er standard til F6.
 
 | Fase | Bygger | Filer | Ferdig når |
 |---|---|---|---|
-| **F0 (steg 140) Benken og grunnlinja** | Strekningslista, observatøren, målene, kjørt på dagens Autonav. Forklarer brudekk-treffene hos spillerne | `tools/autonav/`, `tests/` | Benken gir tall for dagens Autonav på alle strekninger og begge motorer; den er rød der spillerne og jakten har treff |
+| **F0 (steg 140) Benken og grunnlinja, ferdig 23.11.2026** | Strekningslista, observatøren, målene, kjørt på dagens Autonav. Forklarer brudekk-treffene hos spillerne | `tools/autonav/`, `tests/` | Benken gir tall for dagens Autonav på alle strekninger og begge motorer; den er rød der spillerne og jakten har treff |
 | **F1 (steg 141) Farbarhetskartet** | Én geometri, avstandsfelt i worker, dybderegelen, skjær med størrelse, `VESSELS.air`, bruhøyder | ny `core/17-farbar.js`, `02-species-gear.js` (felt), `tools/map/` ved behov | Enhetstester mot rå geometri; observatøren og kartet er enige på benkens strekninger; lista over det 3D tegner annerledes er tom eller avgjort |
 | **F2 (steg 142) Planleggeren nær og i havn** | G1, G2, banen, bakgrunnsturen | ny `core/17b-bane.js`, `17c-plan.js` (worker) | 0 treff på benkens korte strekninger som bakgrunnstur, alle båter; lengde og CPU innen porten |
 | **F3 (steg 143) Styringen** | Banefølgeren, vakta, kaimanøveren, sanntid = bakgrunn | ny `core/17d-styr.js`, ett kall i `16b-dyn.js` | 0 treff i sanntid for alle båter i vind 3, 9 og 14 m/s; sporfeilen målt per båt og lagt inn i korridoren |
@@ -139,7 +244,7 @@ Alle sju ble som anbefalt. Det som ikke ble valgt, står med for sammenhengen.
 
 ## Antatt eller usikkert
 
-- Hvorfor spillernes båter kommer under brudekk på Autonavs egne ruter (29 berøringer, tre bruer), er ikke forklart. F0 finner det.
+- ~~Hvorfor spillernes båter kommer under brudekk på Autonavs egne ruter (29 berøringer, tre bruer), er ikke forklart.~~ Forklart og gjenskapt i F0 (23.11.2026): «Det benken fant», punkt 1.
 - Om bruenes seilingshøyde finnes i en åpen kilde med god dekning (OSMs `seamark:bridge:clearance_height`, NVDB, Kystverket), er ikke sjekket. Kilden og lisensen sjekkes i F1 før noe bygges inn.
 - Sporfeilen per båt og fart er ikke målt. Korridorens bredde settes fra målingen i F3, ikke fra et anslag.
 - Tidene er fra PC. Kravet (4 ms, strupet fire ganger) er et anslag på en vanlig telefon; bare Jonas kan måle på en enhet.
@@ -158,4 +263,5 @@ Alle sju ble som anbefalt. Det som ikke ble valgt, står med for sammenhengen.
 
 ## Status
 
-- 23.11.2026: diagnosen og planen skrevet. Jonas svarte på de sju valgene samme dag, alle som anbefalt. Fasene lagt i køen som steg 140–147, startmeldingen for F0 skrevet (`docs/planer/start/140.md`). Venter på «kjør på» for F0.
+- 23.11.2026: diagnosen og planen skrevet. Jonas svarte på de sju valgene samme dag, alle som anbefalt. Fasene lagt i køen som steg 140–147, startmeldingen for F0 skrevet (`docs/planer/start/140.md`).
+- 23.11.2026, F0 (steg 140) ferdig (Jonas: «Kjør på»; samme økt). Benken er bygget (`tools/autonav/benk.py`, `benk.js`, `benkobs.js`, `strekninger.json` med 97 strekninger, `tests/unit/benkobs.test.mjs`), kjørt på dagens Autonav, og grunnlinja står over. «Ferdig når» fra `start/140.md`: (1) 97 strekninger, med spillernes verste steder, de tre bruene og de fem stedene uten rute inn; (2) fire båter, begge motorer, treff, lengde mot fasit, knekk, planleggingstid, lengste blokkering strupet fire ganger, tid og diesel i de to motorene; (3) observatøren ser hele skroget sveipt, også bakgrunnsturene, og enhetstesten (26 sjekker; 9 røde med sveipet slått av) viser hva jaktens observatør hopper over; (4) grunnlinja står i planfila, og benken er rød på 29 av de 38 strekningene fra spillernes fangst; (5) brudekk-berøringene er gjenskapt ved alle tre bruene og forklart. Ingen endring i `src/`, ingen utrulling. Neste: F1 (steg 141), `docs/planer/start/141.md`.

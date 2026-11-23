@@ -47,8 +47,11 @@ CPU = r"""(n) => { BK.from = BK.put(BK.A); BK.plan(BK.R.r, BK.Z, BK.R.nt, true);
 SAIL = r"""async (eng) => { BK.from = BK.put(BK.A); const to = BK.plan(BK.R.r, BK.Z, BK.R.nt, true); return eng === 'modell' ? BK.sailModel(BK.R.r, to, BK.from) : BK.sailBg(BK.R.r, to, BK.from); }"""
 FASIT = r"""async () => { BK.put(BK.A); const z = BK.R && BK.R.nt ? {x:BK.R.nt.x, y:BK.R.nt.y} : BK.Z.p, pts = [BK.from, z].concat(BK.R ? BK.R.r.wps : []), G = BK.G;
   if (!G || BK.Gid !== BK.strek || pts.some(p => p.x < G.x0 + 0.05 || p.x > G.x1 - 0.05 || p.y < G.y0 + 0.05 || p.y > G.y1 - 0.05)){ BK.Gpts = (BK.Gid === BK.strek && BK.Gpts ? BK.Gpts : []).concat(pts); BK.Gid = BK.strek; await BK.landGrid(BK.Gpts); }
-  // (no way inside the window: the way there is may go round an island the window does not hold, so the window is widened, twice at most)
-  let f = BK.fasit(BK.from, z); for (const w of [3, 8]){ if (!(f.why && /^no way/.test(f.why)) || BK.G.widen >= w) continue; await BK.landGrid(BK.Gpts, w); f = BK.fasit(BK.from, z); }
+  // (no way on the grid: a sound narrower than three cells is shut by the cells themselves, so the same window on cells half as big; and
+  // the way there is may go round an island the window does not hold, so the window is widened, twice at most)
+  let f = BK.fasit(BK.from, z); const none = () => f.why && /^no way/.test(f.why);
+  if (none() && BK.G.cell > 2.5 && BK.G.widen === 1){ const G0 = BK.G; await BK.landGrid(BK.Gpts, 1, 2.5); if (BK.G.cell < G0.cell){ const f2 = BK.fasit(BK.from, z); if (f2.why) BK.G = G0; else f = f2; } else BK.G = G0; }
+  for (const w of [3, 8]){ if (!none() || BK.G.widen >= w) continue; await BK.landGrid(BK.Gpts, w); f = BK.fasit(BK.from, z); }
   f.grid = BK.G.ms; f.widen = BK.G.widen; return f; }"""
 
 
@@ -103,8 +106,8 @@ async def run(a):
                 try:
                     await ev("id => { BK.strek = id; }", s['id'])
                     pr = await ev(PREP, [s['fra'], s['til'], bt, a.vind, a.retning]); R.update(pr)
-                    if pr.get('skip') or pr['type'] in seen:
-                        if not pr.get('skip'): R['skip'] = 'samme båt som en annen i lista'
+                    if not pr.get('skip') and pr['type'] in seen: continue   # (the biggest the places take is one already sailed: no line)
+                    if pr.get('skip'): pass
                     else:
                         seen.add(pr['type'])
                         if not a.uten_cpu:
@@ -184,6 +187,7 @@ def rapport(dirs):
     # --bare-cpu, over a full run), but a line that failed never over one that did not
     last = {}
     for r in rows:
+        if r.get('skip') == 'samme båt som en annen i lista': continue
         k = (r['strek'], r.get('type') or r['bat'], r.get('vind'))
         if k in last and r.get('feil'): continue
         last[k] = dict(last[k], **r) if k in last and not last[k].get('feil') else r
@@ -218,7 +222,7 @@ def rapport(dirs):
     r4 = [r['rute4'] for r in done if r.get('rute4')]; ms = [x['ms'] for x in r4 if x.get('ms') is not None]; gap = [x['gap'] for x in r4 if x.get('gap') is not None]; cpu = [r['cpu'] for r in routed if r.get('cpu')]
     print('\n## CPU (strupet %d ganger)\n' % CPU_RATE)
     if ms: print('- Rutesøket: median %d ms, 90-prosentilen %d ms, lengst %d ms. Lengste blokkering av hovedtråden under søket: median %.0f ms, 90-prosentilen %.0f ms, lengst %.0f ms. Over 4 ms: %d av %d. Over 50 ms: %d.' % (med(ms), pct(ms, 0.9), max(ms), med(gap), pct(gap, 0.9), max(gap), sum(1 for g in gap if g > 4), len(gap), sum(1 for g in gap if g > 50)))
-    if cpu: print('- Tyngste tikk av båtmodellen de første %d tikkene fra kai (linja hun styrer etter, bygges): median %.0f ms, 90-prosentilen %.0f ms, lengst %.0f ms. Over 4 ms: %d av %d. Over 50 ms: %d. Et vanlig tikk: median %.1f ms.' % (CPU_TICKS, med([c['max'] for c in cpu]), pct([c['max'] for c in cpu], 0.9), max(c['max'] for c in cpu), sum(1 for c in cpu if c['max'] > 4), len(cpu), sum(1 for c in cpu if c['max'] > 50), med([c['mean'] for c in cpu])))
+    if cpu: print('- Tyngste tikk av båtmodellen de første %d tikkene fra kai (linja hun styrer etter, bygges; trafikken rundt henne er slått opp på forhånd): median %.0f ms, 90-prosentilen %.0f ms, lengst %.0f ms. Over 4 ms: %d av %d. Over 50 ms: %d. Et vanlig tikk (medianen av tikkene): median %.1f ms; 95-prosentilen av tikkene: median %.1f ms.' % (CPU_TICKS, med([c['max'] for c in cpu]), pct([c['max'] for c in cpu], 0.9), max(c['max'] for c in cpu), sum(1 for c in cpu if c['max'] > 4), len(cpu), sum(1 for c in cpu if c['max'] > 50), med([c.get('med', c['mean']) for c in cpu]), med([c['p95'] for c in cpu])))
     # the two engines against each other
     both = [r for r in routed if r.get('modell') and r.get('bakgrunn') and r['modell'].get('at') and r['bakgrunn'].get('at') and r['modell'].get('min')]
     if both:
@@ -232,13 +236,10 @@ def rapport(dirs):
     if hands: print('- «Hendene» tok båten på %d av %d turer med båtmodellen.' % (sum(1 for x in hands if x.get('hands')), len(hands)))
     # per stretch
     print('\n## Per strekning (treff med båtmodellen / som bakgrunnstur; – stedet tar ikke båten; ✕ ingen rute)\n')
-    types = []
-    for r in rows:
-        k = r['bat'] if r['bat'] != 'størst' else 'størst'
-        if k not in types: types.append(k)
+    types = ['skiff', 'sjark', 'kyst21', 'størst']
     print('| Strekning | slag | ' + ' | '.join(types) + ' | rute/fasit (sjark) |\n|---|---|' + '---|' * (len(types) + 1))
     by = collections.defaultdict(dict)
-    for r in rows: by[r['strek']][r['bat']] = r
+    for r in rows: by[r['strek']][r['bat'] if r['bat'] in types else (r.get('type') if r.get('type') in types[:3] else 'størst')] = r
     for sid, B in by.items():
         any_r = next(iter(B.values())); cells = []
         for k in types:
@@ -260,7 +261,10 @@ def sammenlign(A, B):
     def load(d):
         last = {}
         for l in open(os.path.join(d, 'turer.jsonl'), encoding='utf-8'):
-            if l.strip(): r = json.loads(l); last[(r['strek'], r.get('type') or r['bat'])] = r
+            if not l.strip(): continue
+            r = json.loads(l)
+            if r.get('skip') == 'samme båt som en annen i lista': continue
+            k = (r['strek'], r.get('type') or r['bat']); last[k] = dict(last[k], **r) if k in last and not last[k].get('feil') and not r.get('feil') else r
         return last
     a, b = load(A), load(B); keys = [k for k in a if k in b]
     def tot(R):

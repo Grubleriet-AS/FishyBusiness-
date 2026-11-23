@@ -80,7 +80,8 @@
       return {
         land(x, z){ const p = km(x, z); try { return onUnitGround(p) ? 2 : isLand(p) ? 1 : 0; } catch (e){ return 0; } },
         landSeg(ax, az, bx, bz){ try { return coastSegHit(km(ax, az), km(bx, bz)); } catch (e){ return false; } },
-        keel(x, z){ const p = km(x, z); try { return depthNav(p) + tideCD(H, p) - BOAT.draft - BK.squat; } catch (e){ return 9; } },
+        // (a point of her keel over land is the land's own touch, not shallow water: the depth there is 0 by definition)
+        keel(x, z){ const p = km(x, z); try { return isLand(p) ? 9 : depthNav(p) + tideCD(H, p) - BOAT.draft - BK.squat; } catch (e){ return 9; } },
         // the foreshore as drawn: the ground over her keel there (not in a harbour unit's basin, which is dug out)
         beach(x, z){ const p = km(x, z); try { if (inHarbourPocket(p)) return false; const g = shoreGround(p); return g != null && g < COAST3.top && g > tideH(H, p) - BOAT.draft; } catch (e){ return false; } },
         things(x0, z0, x1, z1){ return BK.thingsIn(x0, z0, x1, z1); },
@@ -205,9 +206,12 @@
       } catch (e){ R.why = 'error: ' + String(e && e.message).slice(0, 120); } finally { LANDQ.away = false; S.plan = null; }
       return BK.finish(R, r); },
     // the first n steps of the boat model from the berth, each timed (the line she steers by is built in the first, dynLineBuild)
-    cpu(n){ const T = []; if (depart() === false) return null; acc = 0; lastWall = Date.now();
+    // (the traffic round her is looked up first: the game pays for that when the chart or the 3D view draws the other vessels, whatever
+    // Autonav does, and with no view open here it would land on her first step; `warm` is what it took)
+    cpu(n){ const T = [], b = S.boat, t00 = performance.now(); try { npcStates(S.t / 60); sjvNear(S.t / 60, b.pos.x * 1000, b.pos.y * 1000); if (typeof fixBoats === 'function') fixBoats(b.pos.x * 1000, b.pos.y * 1000); } catch (e){} const warm = performance.now() - t00;
+      if (depart() === false) return null; acc = 0; lastWall = Date.now();
       for (let i = 0; i < n; i++){ const t0 = performance.now(); dynTick(0.25); T.push(performance.now() - t0); acc += 0.25 * simRate() / 60; lastWall = Date.now(); while (acc >= 1){ step(); acc -= 1; } }
-      S.plan = null; const s = T.slice().sort((a, b) => a - b); return {first:+T[0].toFixed(1), max:+s[s.length - 1].toFixed(1), mean:+(T.reduce((a, b) => a + b, 0) / T.length).toFixed(2), p95:+s[Math.floor(s.length * 0.95)].toFixed(2)}; }
+      S.plan = null; const s = T.slice().sort((a, b) => a - b); return {first:+T[0].toFixed(1), max:+s[s.length - 1].toFixed(1), at:T.indexOf(s[s.length - 1]), mean:+(T.reduce((a, b) => a + b, 0) / T.length).toFixed(2), med:+s[Math.floor(s.length / 2)].toFixed(2), p95:+s[Math.floor(s.length * 0.95)].toFixed(2), over4:s.filter(v => v > 4).length, warm:+warm.toFixed(1)}; }
   };
   Object.assign(BK, {
     // the boat, the wind and the bench's hour; the tide stands at chart datum the whole trip (Jonas 15.11.2026: «kun laveste lavvann,
@@ -221,9 +225,9 @@
     // shortest way over those cells (A* with eight neighbours, no corner cut), pulled tight where the straight line is clear. Not a
     // route to sail (no turning circle, no speed): the length no route can beat by much, to measure the detours against.
     FAS:{side:2, keel:0.5, cells:5e6, cell:5},
-    async landGrid(pts, widen = 1){ let x0 = Math.min(...pts.map(p => p.x)), x1 = Math.max(...pts.map(p => p.x)), y0 = Math.min(...pts.map(p => p.y)), y1 = Math.max(...pts.map(p => p.y));
+    async landGrid(pts, widen = 1, cell0 = 0){ let x0 = Math.min(...pts.map(p => p.x)), x1 = Math.max(...pts.map(p => p.x)), y0 = Math.min(...pts.map(p => p.y)), y1 = Math.max(...pts.map(p => p.y));
       const m = Math.max(0.3, Math.max(x1 - x0, y1 - y0) * 0.25) * widen; x0 -= m; x1 += m; y0 -= m; y1 += m;
-      let cell = BK.FAS.cell; while ((x1 - x0) * 1000 / cell * ((y1 - y0) * 1000 / cell) > BK.FAS.cells) cell *= 2;
+      let cell = cell0 || BK.FAS.cell; while ((x1 - x0) * 1000 / cell * ((y1 - y0) * 1000 / cell) > BK.FAS.cells) cell *= 2;
       const W = Math.ceil((x1 - x0) * 1000 / cell), Hh = Math.ceil((y1 - y0) * 1000 / cell), X0 = x0 * 1000, Z0 = y0 * 1000, t0 = performance.now();
       const need = []; for (let y = y0; y < y1 + 3; y += 3) for (let x = x0; x < x1 + 3; x += 3) need.push({x:Math.min(x, x1), y:Math.min(y, y1)});
       await mapPreload(need, [['sim', 3], ['chart', 3], ['vec', 3]]);
