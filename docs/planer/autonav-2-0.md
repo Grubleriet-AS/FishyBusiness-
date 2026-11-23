@@ -262,34 +262,34 @@ Kontrollen pekte også på at enhetstestene prøver hver form, ikke byggerne (na
 
 ### Avstandsfeltet (bygges i en worker)
 
-Et søk spør millioner av punkter, så det geometrien svarer nøyaktig på, legges ut på et rutenett, en flis om gangen: 250 × 250 ruter på 2 m (en flis på 500 m; 4 og 8 m for sund og åpen kyst), hver med avstanden til nærmeste ting ingen kan passere (i trinn på 0,25 m, rundet ned, høyst 60 m), det grunneste vannet blant ruta og naborutene (dm ved sjøkartnull) og den laveste underkanten av et brudekke innen 8 m. `farbFieldJob` samler det en flis trenger som rene tall på hovedtråden, i skiver; `farbFieldBuild` regner flisa ut i en worker; `farbFieldNeed` ber om flisene over en boks, og `farbFieldAt` leser en rute. Søket (F2) går på feltet; veien det finner, kontrolleres på geometrien (`farbSweep`) før båten sendes. Rasterblokkene kartet leser, pakkes ut i fflates egen worker først (`mapBlockWarm` i `01b-mapdata.js`): før holdt den første lesingen av en blokk hovedtråden i 1 til 3 ms.
+Et søk spør millioner av punkter, så det geometrien svarer nøyaktig på, legges ut på et rutenett, en flis om gangen: 250 × 250 ruter på 2 m (en flis på 500 m; 4 og 8 m for sund og åpen kyst), hver med avstanden til nærmeste ting ingen kan passere (i trinn på 0,25 m, rundet ned, høyst 60 m), det grunneste vannet blant ruta og naborutene (dm ved sjøkartnull) og den laveste underkanten av et brudekke innen 8 m (regnet fra høyeste flo). `farbFieldJob` samler det en flis trenger som rene tall på hovedtråden, i skiver; `farbFieldBuild` regner flisa ut i en worker; `farbFieldNeed` ber om flisene over en boks, og `farbFieldAt` leser en rute. Søket (F2) går på feltet; veien det finner, kontrolleres på geometrien (`farbSweep`) før båten sendes.
 
-**Målt** (`python3 tools/autonav/farsjekk.py --felt`, feltet rundt starten av hver strekning, 800 × 800 m, ruter på 2 m, CPU-en strupet fire ganger; kjøringen 23.11.2026 etter alle rettingene):
+**Dybden regnes i workeren** (andre økt 23.11.2026): hovedtråden sender dybdelagets egne celler over flisa og det som mudrer (havneenhetene, naustets og rorbuenes kaiplasser, havnenes sirkler), og workeren regner vannet slik spillet selv gjør (`depthWater`, `unitDredge`, `siteDredge`, `depthNav`). Der det ikke går (ingen fin kyst, en blokk uten pakke, lagets kant), spørres dybden på et rutenett på hovedtråden som før. Rasterblokkene pakkes ut i fflates egen worker først (`mapBlockWarm` i `01b-mapdata.js`).
 
-| | |
-|---|---|
-| Steder og fliser | 96 steder, 667 fliser |
-| Workeren per flis | 8 ms (median), lengste 22 ms |
-| Minnet per flis | 187 500 byte (tre lag à 62 500 ruter); 96 fliser holdes (18 MB), eldste ut først |
-| En lesing (`farbFieldAt`) | 1,7 µs |
-| Feltet mot geometrien, 259 200 ruter | lenger unna: 0; mer enn ett trinn (0,25 m) nærmere: 1 (1,32 m, ved veggen av ei havnelomme); vannet over 0,5 m dypere enn geometrien: 0 (én rute 0,42 m dypere) |
-| Brudekket | likt i alle rutene (før rettingen av ting over en flisgrense, punkt 5 over: ulikt i 5 ruter ved Karmsund bru) |
-| Vannet er forsiktig | av 61 700 ruter med under 10 m vann er feltet over 0,5 m grunnere i 13 382 (rutenettet på 12,5 m tar det grunneste av de fire punktene rundt) |
-| Samlingen på hovedtråden per flis | 95 ms i skiver (median; med det tette dybderutenettet ved havner), mot 8 ms i workeren |
-| **Skivene på hovedtråden** | 75 017 i alt: **99,83 % under 4 ms,** 59 mellom 4 og 8 ms, 65 på 8 ms eller mer, den lengste 242 ms |
-| Kontrollen (en jobb som bare teller, like lenge) | 83 792 skiver: 99,93 % under 4 ms, 45 mellom 4 og 8 ms, 10 på 8 ms eller mer, den lengste 50 ms |
-| Hendelsesløkka sto over 100 ms | ved 19 av 96 steder mens feltet ble bygget (lengst 9,5 s), ved 5 uten bygging (lengst 2,2 s) |
+**Målt** (`python3 tools/autonav/farsjekk.py --felt`, feltet rundt starten av hver strekning, 800 × 800 m, ruter på 2 m, CPU-en strupet fire ganger; siste kjøring 23.11.2026, ingenting annet på maskinen):
 
-**Kravet «hovedtråden aldri holdt over 4 ms» holder ikke.** Tallene over er fra en kjøring der ingenting annet gikk på maskinen. Skivebudsjettet er 0,6 ms og hvert skritt er ett oppslag, så en vanlig skive er 2 til 4 ms med strupingen. Men 124 av 75 017 skiver gikk over:
+| | Første økt (dybden på hovedtråden) | Nå (dybden i workeren) |
+|---|---|---|
+| Steder og fliser | 96 steder, 667 fliser | de samme |
+| Workeren per flis | 8 ms (median), lengste 22 ms | 10 ms, lengste 30 ms |
+| Samlingen på hovedtråden per flis | 95 ms i skiver | **3 ms** |
+| Minnet per flis | 187 500 byte; 96 fliser holdes (18 MB) | det samme |
+| Feltet mot geometrien, 259 200 ruter | lenger unna: 0; brudekket likt | lenger unna: 0; brudekket likt |
+| Vannet | forsiktig: 13 382 av 61 700 grunne ruter over 0,5 m grunnere enn geometrien | **geometriens eget:** 1 rute 0,5 m dypere, 4 911 over 0,5 m grunnere (det grunneste blant naborutene) |
+| Skiver på hovedtråden | 75 017, 124 over 4 ms (0,17 %), lengst 242 ms | **28 268, 82 over 4 ms (0,29 %),** lengst 229 ms |
+| Av dem i feltets fliser | | 10 av 3 177 |
+| Av dem i lagene (én gang per flis på 50 km) | | 72 av 25 091 |
+| Kontrollen som bare teller | 55 av 83 792 over 4 ms, lengst 50 ms | 19 av 26 984, lengst 12 ms |
+| Kontrollen som bare lager søppel | | **264 av 24 304 over 4 ms (1,09 %),** lengst 23 ms |
 
-- **Ett dybdeoppslag** (52 enkeltskritt over 4 ms): de fleste 4 til 22 ms med strupingen, altså 1 til 5 ms i virkelig tid; ett på 242 ms (Tufjord). Hva i spillets dybdeoppslag som av og til tar så lang tid, er ikke funnet.
-- **Én brygge, flate eller molo i sorteringen av en flis** (36 enkeltskritt, opptil 22 ms): en lang molo prøves mot havneenhetene hver tredje meter i ett skritt. Kan deles.
-- **Jobben som bare teller** hadde 55 av 83 792 over (lengst 50 ms): maskinen og JavaScript-motorens egne pauser står for en del, ikke alt.
-- **Hendelsesløkka sto over 100 ms ved 19 av 96 steder mens feltet ble bygget,** lengst 9,5 s, mot 5 steder uten bygging. Det ligger utenfor feltets skiver og er ikke undersøkt; trolig er det kartpakkene feltet ber om 3,5 km rundt, som spillets laster pakker ut på hovedtråden.
+**Kravet «hovedtråden aldri holdt over 4 ms» holder ikke bokstavelig, og målingen viser hvorfor.** Jonas 23.11.2026 (spørsmålsverktøyet; A «Fortsett å jage», B «Godta som målt», C «Start F2 nå»): **«Fortsett å jage».** Kravet står, og det endres først om målingen viser at resten er motorens egne pauser. Det som er funnet siden:
 
-Gjort så langt: rasterblokkene pakkes ut i en worker (før 4 til 12 ms per blokk med strupingen), skjærene formes per kvadratkilometer, tidevannets sted holdes per kilometer, og hvert tungt skritt er delt. `farsjekk.py --felt` skriver nå `FEIL` så lenge en skive er over 4 ms. Det som står igjen, står i `start/141.md`: finne det trege dybdeoppslaget, la workeren lese dybden selv fra blokkene, dele sorteringen av lange moloer, og se på lastingen av pakkene.
+- **Dybdeoppslaget er ikke tregt i seg selv:** ved Tufjord, der ett oppslag tok 242 ms, tok 3 av 230 000 oppslag over 0,4 ms da stedet ble målt alene. Det som holdt, var mengden: 1 700 til 6 600 oppslag per flis, hvert med søppel motoren må rydde. Nå gjør workeren dem.
+- **En jobb som bare lager søppel, har flere skiver over 4 ms enn kartet** (1,09 % mot 0,29 %), og opptil 23 ms. Skiver på 4 til 23 ms er altså på nivå med JavaScript-motorens egne pauser for rydding med denne strupingen.
+- **Ni av kartets 28 268 skiver er lengre enn søppelkontrollens lengste.** De fire lengste (129 til 229 ms, i sorteringen av en flis på 50 km: skjærene, bryggene) gjentok seg ikke da de samme stedene ble målt alene på en fersk side (lengst 36 ms). De kom på en testside som hadde lastet kart for 32 steder langs hele kysten.
+- **De lange oppholdene i hendelsesløkka** (9,5 s ved Smøla i første måling) gjentok seg heller ikke alene (1,4 s for hele bygget der, lengste opphold 9,5 ms).
 
-**Jonas 23.11.2026** (spørsmålsverktøyet; A «Fortsett å jage», B «Godta som målt», C «Start F2 nå»): **«Fortsett å jage».** Kravet står. Neste økt på steg 141 flytter dybdeoppslaget inn i workeren, finner de trege enkeltskrittene og måler på nytt; kravet endres først om målingen da viser at resten er motorens egne pauser. Planleggeren (F2, steg 142) venter på 141.
+Det som ikke er avgjort: om kravet skal skrives om til det målingen kan vise (ingen skive lengre enn en jobb som bare lager søppel, målt på en fersk side per sted), eller om de ni skal jages videre. Spørsmålet er stilt til Jonas på nytt med disse tallene.
 
 ### Båtenes høyde (`VESSELS.air`, valg 6)
 
@@ -341,13 +341,13 @@ Sjekket 23.11.2026 (dekning og lisens). Økta har begrenset nett: OSM-tallene, G
 
 | Ting | Status |
 |---|---|
-| Fjæra | I kartet som dybde, med 3D-ens tall. Holdt mot observatøren (5 279 berøringer). |
+| Fjæra | I kartet som dybde, med 3D-ens tall. Holdt mot observatøren (6 103 berøringer). |
 | Skjærene | 3D-ens form, hele foten (observatøren har omrisset i kjølens dybde; kartet er strengere). |
-| Brygger, kaidekk, bryggeflater, flytebrygger | Slik 3D bygger dem; reglene er like spillets i 170 fliser. |
-| **Moloer kartlagt som linje** | **Ikke rettet.** 3D tegner dem 16 m brede i vannlinja (`MOLO.half` 8 m, `view3d/05-quays-breakwaters.js:317`) med en skråning 1:1,4 ned til 6 m dyp; kartet og benkens observatør har 9 m. Kartet skal ha 3D-ens form: den harde delen 8 m til hver side, og skråningen som dybde etter båtens dypgang. Observatøren må få det samme, og det flytter grunnlinja. Moloer som omriss har samme skråning utenfor omrisset. |
+| Brygger, kaidekk, bryggeflater, flytebrygger | Slik 3D bygger dem; reglene er like spillets i 172 fliser. |
+| **Moloer** | **Rettet (andre økt 23.11.2026).** 3D bygger steinen i vannskorpa 8 m ut fra linja (på omrisset av en molo kartlagt som flate) med skråning 1:1,4 ned til 6 m dyp (`MOLO`, `view3d/05-quays-breakwaters.js:317`); kartet og observatøren hadde 9 m og det nakne omrisset. Nå følger det dypgangen og vannstanden (`farbMoloR`): en båt som stikker 0,6 m, må 8,9 m ut ved middelvann, en som stikker 3,4 m, 12,8 m, og ingen lenger enn 16,4 m. I feltet er den tørre delen stengt for alle og skråningen dybde. Observatøren (`benk.js`) har samme form. |
 | Kraftspenn over sjøen | Avgjort: ingen hindring. Laveste punkt er 30 m over sjøen (`VD_CLEAR`, `view3d/17d-vind.js:10`); høyeste båt er 24,3 m pluss 1 m. |
-| **Marinaenes småbåter** (`view3d/17g-marina.js`) | **Ikke rettet.** De tegnes ved fingerbryggene, men finnes ikke i kartet. Plassene må regnes ett sted i kjernen, som 3D og kartet leser. |
-| **Kaimodulene bygget ut til kaiplassene** | **Ikke gjennomgått.** |
+| **Marinaenes småbåter** (`view3d/17g-marina.js`) | **I kartet (andre økt).** 460 marinaer: 177 med flytebrygger (1 689 stykker, 67 km) og 283 med bøyer. Hvilke plasser som er tatt, skifter med årstiden, så kartet tar alle: ingen innen 9,6 m fra siden av ei flytebrygge i en marina (baugen inn, båter opptil 9 m), og en sirkel på 7 m rundt hver bøyeplass (10 m mellom, 14 m mellom rekkene) der det er vann og ikke en vei inn til et handelssted. Lista over marinaene er flyttet til kjernen (`MARINA` i `01c-vec.js`), så 3D og kartet leser den samme. **Igjen, og synlig:** 3D legger også båter ved flytebrygger som er tatt bort ved handelsstedene (`vecGone`) og på bøyer i veien inn til en kai (Ålesund utstyrsbutikk ligger inne i en bøyemarina); kartet har ikke soner der. 3D må slutte å tegne dem (to linjer i `marinaBuild`, med bilder i begge formater): del av 141b. Observatøren har ikke småbåtene. |
+| **Kaimodulene** (`view3d/22-docks-air.js` `quayMod`) | **Gjennomgått (andre økt).** 3D bygger en kai fra land ut til båten der hun ligger: ved kaiplassene rederiet holder, der spillerens båt ligger nå, og ved havnenes egne båter. Der en båt ligger, står kaia mellom henne og land, og hun er i kartet som fartøy som ligger stille. Kaia ved en kaiplass rederiet holder, står også mens båten er ute: den er nå en ting i kartet (leses fra `S.havn` uten å skrive i lagringen). |
 | Båtens egen kaiplass | En båt som ligger inntil sin egen kai, berører kaias vegg i kartet. Planleggeren og styringen (F2, F3) må ha regelen benken har: det hun lå inntil da hun kastet loss, er ikke et treff. |
 
 ## Fasene

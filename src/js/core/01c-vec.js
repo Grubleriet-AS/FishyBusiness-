@@ -118,6 +118,10 @@ const FLYTE = /*@include(data/flyte.json)*/null;
 // the wind turbines [x, z, hub, rotor] and the power line spans over the sea [x1, z1, x2, z2, kV] in metres (tools/vind/vind.py): the
 // 3D view stands them up (view3d/17d-vind.js), the chart draws them (ui/03-map.js)
 const VIND = /*@include(data/vind.json)*/null;
+// OpenStreetMap's marinas (tools/map/marina.py): m [x, z of its middle, its outline from there] in metres. The 3D view lays small boats
+// in them (view3d/17g-marina.js), and the map of what a boat can sail over knows where they lie (17-farbar.js farbMarina): here, so both
+// read the one list (Autonav 2.0 F1, steg 141, 23.11.2026; before, the list was the view's alone)
+const MARINA = /*@include(data/marina.json)*/null;
 let FLYT = null;
 function flyteTile(tx, ty){
   if (!FLYTE || !MAPD.man) return [];

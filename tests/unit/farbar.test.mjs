@@ -254,5 +254,15 @@ export default function (t){
     fr = K.farbFieldBuild(job({co:null, eo:new Float32Array(0), molo:FARB.molo, th:Float32Array.from([7, 8, 5.9, 2, -20, 61, 140, 61])}));
     t.eq(at2(fr, 51, 71)[0] + '|' + at2(fr, 51, 65)[0], '4|0', 'feltet: en molo er stengt for alle 5,9 m ut fra linja (10 m ut er avstanden 4,1 m, rundet ned)');
     t.eq(at2(fr, 51, 77)[1] + '|' + at2(fr, 51, 71)[1] + '|' + at2(fr, 51, 91)[1], Math.floor((14 - 8) / 1.4 * 10) + '|0|254', 'feltet: skråningen er dybde (16 m ut: naboruta 14 m ut har 4,2 m; 10 m ut er naboruta på 8 m i vannskorpa; 30 m ut er det kartets)');
+
+    // ---- 12. a marina's small boats: every berth there can be a boat in ----
+    const sqm = [-30, -20, 30, -20, 30, 20, -30, 20];   // (60 by 40 m round 0, 0)
+    let mar = K.farbMarina(far.x, far.z, sqm, [{w:2.4, p:[at(-20, 0), at(0, 0), at(2, 0)]}], () => true);
+    t.eq(mar.length + '|' + mar[0].k + '|' + mar[0].r, '1|l|' + (1.2 + 9.6), 'marina: et stykke flytebrygge på 20 m har båter på begge sider: 10,8 m fra linja (stykket på 2 m har ingen plass)');
+    mar = K.farbMarina(far.x, far.z, sqm, [], (x, z) => x < far.x + 10);
+    t.ok(mar.length === 12 && mar.every(o => o.k === 'c' && o.r === 7 && o.x < far.x + 10), 'marina uten flytebrygger: bøyer i rekker (10 m mellom, 14 m mellom rekkene) der en båt kan ligge', mar.length);
+    t.eq(K.farbMarina(far.x, far.z, sqm, [{w:2, p:[at(0, 0), at(3, 0)]}], () => false).length, 0, 'marina: ingen bøyer der det ikke er vann eller veien til en kai går');
+    FARB.w = sea(); FARB.test = K.farbMarina(far.x, far.z, sqm, [{w:2.4, p:[at(-20, 0), at(0, 0)]}], () => true);
+    t.ok(K.farbPose(far.x - 10, far.z + 10.8 + 0.3 + sk.B / 2, E, sk, 0) === null && K.farbPose(far.x - 10, far.z + 10.8 - 0.3 + sk.B / 2, E, sk, 0), 'marina: en båt går klar utenfor sonen og berører inne i den');
   } finally { FARB.w = null; FARB.test = null; K.farbDig('test', null); }
 }

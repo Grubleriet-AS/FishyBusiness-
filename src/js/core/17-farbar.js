@@ -164,11 +164,20 @@ function* farbUnitG(){ const M = new Map(); let n = 0; for (const U of UNITA){ f
 function farbSiteM(){ const M = new Map();
   if (S && S.naust && S.naust.o){ const n = S.naust, nx = -n.u[1], nz = n.u[0], fx = n.o[0] - n.u[0] * 0.5, fz = n.o[1] - n.u[1] * 0.5; farbPut(M, {k:'b', x:fx - nx * 1.7, z:fz - nz * 1.7, l:8.1, w:1.7, ux:n.u[0], uz:n.u[1], what:'naustkai', id:'naust'}); }
   for (const R of RORBUER) if (R.site){ const n = R.site, nx = -n.u[1], nz = n.u[0], w = RORBU.out / 2; farbPut(M, {k:'b', x:n.o[0] - nx * w, z:n.o[1] - nz * w, l:RORBU.hl, w, ux:n.u[0], uz:n.u[1], what:'rorbukai', id:'rorbu#' + R.id}); }
+  // The quay the 3D view builds from the shore out to a berth the company holds (view3d/22-docks-air.js quayMod: bays of 6 m along the
+  // face about the berth's middle, from 1.5 m (3 m at a coast face) in from the face out to her side): it stands there also while she
+  // is away. (Where a boat lies, hers or a harbour's own, the quay is between her and the shore, and she is in the map as a vessel
+  // lying still.)
+  // (S.havn is read as it is: havnStore() makes it in the save where it is not, and the map writes nothing to a save)
+  try { const st = S && S.havn; if (st && st.s) for (const id in st.s){ const b = st.s[id], f = b.face; if (!b.vid || !f || f.dock) continue; let out = f.out; if (out === undefined && typeof berthPose === 'function'){ const bp = berthPose(id, b.vtype); out = bp && bp.face ? bp.face.out : 0; }
+      if (!(f.kind === 2 || f.kind === 3 || (out || 0) > 0.3)) continue; out = out || 0; const inl = f.kind === 3 ? 3 : f.tre ? 0.5 : 1.5, nb = Math.ceil(((b.L || 10) + 4) / 6), mid = (out - inl) / 2;
+      farbPut(M, {k:'b', x:f.x + f.nx * mid, z:f.z + f.nz * mid, l:nb * 3, w:(out + inl) / 2, ux:f.ux, uz:f.uz, what:'kai', id:'kaiplass#' + id}); } } catch (e){}
   return M; }
 function farbGlob(){ const Y = FARB.lay, n = UNITA.length;
   if (!Y.stat || Y.statN !== n){ Y.stat = farbRun(farbStatG()); Y.statN = n; }
   if (!Y.unit || Y.unitN !== n){ Y.unit = farbRun(farbUnitG()); Y.unitN = n; }
-  const key = (S && S.naust && S.naust.o ? S.naust.o.join(',') : '') + '|' + (RORBU.ver || 0); if (Y.siteKey !== key){ Y.site = farbSiteM(); Y.siteKey = key; }
+  let hk = ''; try { const st = S && S.havn; if (st && st.s) for (const id in st.s) if (st.s[id].vid) hk += id + ':' + st.s[id].vid + ';'; } catch (e){}
+  const key = (S && S.naust && S.naust.o ? S.naust.o.join(',') : '') + '|' + (RORBU.ver || 0) + '|' + hk; if (Y.siteKey !== key){ Y.site = farbSiteM(); Y.siteKey = key; }
   return Y; }
 // The trade places' zones (11b-obstacles.js portZones), a tile's floating docks and open piers taken away there (vecGone) and what the
 // 3D view builds of its piers, slabs and breakwaters (vecDrawn): the same rules, in slices, kept here; where the game has worked one
@@ -211,6 +220,19 @@ function* farbDrawnG(t){ const o0 = VECDRAWN.get(t); if (o0 && o0.n === UNITA.le
   for (const P of t.slabs || []){ yield; if (!(P && P.length > 3)) continue; let un = false, cx = 0, cz = 0, k = 0; for (const [x, z] of P){ if (under(x, z)){ un = true; break; } cx += x; cz += z; if (!(++k & 15)) yield; } if (!un && !under(cx / P.length, cz / P.length) && !vecGoneSlab(G, P)) slabs.push([P, slabF(P)]); }
   for (const P of t.molos || []){ yield; let on = false, k = 0; if (UN.length) for (let a = 0; a < P.length && !on; a++){ const [ax, az] = P[a], [bx, bz] = P[Math.min(a + 1, P.length - 1)], m = Math.max(1, Math.ceil(Math.hypot(bx - ax, bz - az) / 3)); for (let q = 0; q <= m; q++){ if (onU(ax + (bx - ax) * q / m, az + (bz - az) * q / m)){ on = true; break; } if (!(++k & 15)) yield; } } if (!on) molos.push(P); }
   return {n:UNITA.length, piers, flo, slabs, molos}; }
+// The small boats of a marina, as the 3D view lays them (view3d/17g-marina.js marinaBuild), for the map: which berths are taken
+// changes with the season and by a fixed chance, so the map takes every berth there can be a boat in.
+//  - At a floating dock: bow in at the fingers on both sides, 0.6 m off the dock, a boat up to 9 m long: nobody within
+//    w / 2 + 9.6 m of the dock's line (a piece of it 4 m or longer; shorter has no berths).
+//  - With no berth at a dock: on buoys in rows, 10 m apart and 14 m between the rows, inside the outline, each swinging with the
+//    wind: a circle of 7 m round each (her half length 4.5 m, and the buoy 2 m ahead of her).
+// docks: [{w, p:[[x, z] ...]}] the lines of the floating docks that are drawn there; water(x, z): whether a boat can lie there
+// (not on land, not in a trade place's zone, where the way to the quay goes)
+function farbMarina(cx, cz, rel, docks, water){ const out = [], P = []; let x0 = 1e18, x1 = -1e18, z0 = 1e18, z1 = -1e18;
+  for (let i = 0; i < rel.length; i += 2){ const x = rel[i] + cx, z = rel[i + 1] + cz; P.push([x, z]); if (x < x0) x0 = x; if (x > x1) x1 = x; if (z < z0) z0 = z; if (z > z1) z1 = z; }
+  for (const L of docks) for (let k = 1; k < L.p.length; k++){ const a = L.p[k - 1], b = L.p[k]; if (Math.hypot(b[0] - a[0], b[1] - a[1]) < 4) continue; out.push({k:'l', P:[a, b], r:L.w / 2 + 9.6, what:'småbåt', id:'marina#' + Math.round(a[0]) + ',' + Math.round(a[1])}); }
+  if (!out.length) for (let z = z0 + 5; z < z1; z += 14) for (let x = x0 + 5; x < x1; x += 10) if (farbInPoly(P, x, z) && water(x, z)) out.push({k:'c', x, z, r:7, what:'småbåt', id:'bøye#' + Math.round(x) + ',' + Math.round(z)});
+  return out; }
 // a vec tile's own: its piers and quay decks as boxes (a pier mapped as an area as its outline instead), its slab piers and closed
 // breakwaters as outlines, a breakwater mapped as a line as a line 9 m wide, and its bridges
 function* farbTileG(t){ const M = new Map(), V = yield* farbDrawnG(t); if (FARB.F) FARB.F.at = 'lag:flis'; let n = 0;
@@ -221,6 +243,12 @@ function* farbTileG(t){ const M = new Map(), V = yield* farbDrawnG(t); if (FARB.
     const base = cl ? 0 : FARB.molo.half, r0 = Math.max(0, base - FARB.molo.run * farbHat(P[0][0], P[0][1])), id = 'molo#' + Math.round(P[0][0]) + ',' + Math.round(P[0][1]);
     farbPut(M, cl ? {k:'p', P, what:'molo', id, molo:1, base, reach:FARB.molo.run * FARB.molo.foot} : {k:'l', P, r:r0, what:'molo', id, molo:1, base, reach:base - r0 + FARB.molo.run * FARB.molo.foot}); }
   for (const br of t.bridges || []){ yield 1; if (!bridgeUnderUnit(br)) farbBridge(M, br); }
+  // the marinas whose middle lies in the tile (the view takes the floating docks of that tile), with the docks that are drawn
+  if (typeof MARINA !== 'undefined' && MARINA && MAPD.man){ if (FARB.F) FARB.F.at = 'lag:marina'; const T = MAPD.man.tile * 1000, G = yield* farbGoneG(t), PZ = yield* farbZonesG(), FT = flyteTile(t.tx, t.ty);
+    for (const [cx, cz, rel] of MARINA.m){ if (Math.floor(cx / T) !== t.tx || Math.floor(cz / T) !== t.ty) continue; yield;
+      let x0 = 1e18, x1 = -1e18, z0 = 1e18, z1 = -1e18; for (let i = 0; i < rel.length; i += 2){ const x = rel[i] + cx, z = rel[i + 1] + cz; if (x < x0) x0 = x; if (x > x1) x1 = x; if (z < z0) z0 = z; if (z > z1) z1 = z; }
+      const docks = []; for (const d of FT) if (d.mx > x0 - 30 && d.mx < x1 + 30 && d.mz > z0 - 30 && d.mz < z1 + 30 && !unitCovers(d.mx, d.mz, 3) && !G.fd.has(Math.round(d.mx) + ':' + Math.round(d.mz))) for (const L of d.L) docks.push(L);
+      for (const o of farbMarina(cx, cz, rel, docks, (x, z) => !farbInZone(PZ, x, z) && farbLand(x, z) === 0)){ farbPut(M, o); if (!(++n & 7)) yield; } } }
   return {M, n:UNITA.length, dock:null, dockV:-1}; }
 // the tile's layer where it is built (null where not: farbNeed builds it), and the coast harbours' floating docks and gangways in it,
 // which come when a harbour is moored (05-vessels.js moorHarbour, FDOCK.ver)
@@ -612,7 +640,7 @@ function farbSegOutParts(PK, ax, az, bx, bz){ const dx = bx - ax, dz = bz - az, 
   if (!ins.length) return [[0, 1]]; ins.sort((p, q) => p[0] - q[0]); const out = []; let t = 0;
   for (const [a, c] of ins){ if (a > t) out.push([t, a]); if (c > t) t = c; } if (t < 1) out.push([t, 1]); return out; }
 // what the field's tiles were built from: a tile is built again when any of it has changed
-const farbFieldVer = () => VEC.ver + '|' + COAST.built + '|' + MARKS.ver + '|' + UNITA.length + '|' + FDOCK.ver + '|' + (RORBU.ver || 0) + '|' + (S && S.naust && S.naust.o ? S.naust.o.join(',') : '') + '|' + FARB.F.dugV;
+const farbFieldVer = () => VEC.ver + '|' + COAST.built + '|' + MARKS.ver + '|' + UNITA.length + '|' + FDOCK.ver + '|' + (FARB.lay.siteKey || '') + '|' + FARB.F.dugV;   // (siteKey: the naust, the rorbuer and the berths held, farbGlob)
 function* farbPackG(a){ const out = new Float32Array(a.length); for (let i = 0; i < a.length;){ const e = Math.min(a.length, i + 1024); for (; i < e; i++) out[i] = a[i]; yield; } return out; }
 // The chart's depth over a tile for the worker: the depth layer's own cells (two round the tile, as depthWater reads), the harbour units
 // near with what unitDredge needs, the naust's and the rorbuer's berths with what siteDredge needs, and the harbours' circles

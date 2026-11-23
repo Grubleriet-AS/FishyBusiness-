@@ -64,6 +64,21 @@
         let gu = 255; const n = farbGather(x, z, F.deck + 30); for (let a = 0; a < n; a++){ const t = FARB.buf[a]; if (t.k === 's' && farbD(t, x, z) <= F.deck + 1e-6) gu = Math.min(gu, Math.max(0, Math.min(254, Math.floor(farbUnder(t) / 0.25)))); }
         if (gu !== Y.u[q] && !(farbD({k:'c', x, z, r:0}, x, z) > 0)){ let edge = false; for (let a = 0; a < n; a++){ const t = FARB.buf[a]; if (t.k === 's' && Math.abs(farbD(t, x, z) - F.deck) < 0.01) edge = true; } if (!edge){ C.uDiff++; if (bad.length < 8) bad.push({hva:'dekke', ll:ll(x, z), felt:Y.u[q], geo:gu}); } } }
       C.maxOver = +C.maxOver.toFixed(2); C.maxUnder = +C.maxUnder.toFixed(2); C.zMax = +C.zMax.toFixed(2); R.cmp = C; R.bad = bad; return R; },
+    // The sweep against the poses on its way, along the outside of every harbour pocket (the independent control's own probe, steg 141,
+    // 23.11.2026: the foreshore is drawn from the coast's line also where the line lies in a pocket, and the sweep's jump over open
+    // water went over it at 20 harbour units, 1 336 sweeps). pockets(): every unit's basin and every drawn quay's 50 m, by its outer
+    // side. basin(f): points 0.5 to 8 m outside that side; where a pose there is on the bottom, her hull is swept 12 m along the
+    // side through it, and the sweep must find what the poses every 0.25 m find
+    pockets(){ const out = []; for (const U of UNITA){ const g = ugeo(U), m = unitW(U, 0, g.basinZ); out.push({x:m[0], z:m[1], ux:U.u[0], uz:U.u[1], nx:U.n[0], nz:U.n[1], hl:g.basinX, out:0}); } for (const f of qPockets()) out.push({x:f.x, z:f.z, ux:f.ux, uz:f.uz, nx:f.nx, nz:f.nz, hl:f.hl + 4, out:POCKET}); return out; },
+    async basin(f){ if (!await farbNeed([{x:f.x / 1000, y:f.z / 1000}], 0.4)) return {skip:'kartet kom ikke inn'};
+      const L = BOAT.len, B = BOAT.beam, fb = {L, B, T:BOAT.draft, air:obsAir() - FARB.airOver}, H = S.t / 60, C = {pkt:0, grunn:0, sveipFri:0, sveipTreff:0, eks:[]};
+      for (let s = -f.hl + 1; s <= f.hl - 1; s += 2) for (const d of [0.5, 2, 4, 6, 8]){ const x = f.x + f.ux * s + f.nx * (f.out + d), z = f.z + f.uz * s + f.nz * (f.out + d); C.pkt++;
+        const raw = farbCoast(x, z, 20, true); if (!(raw > 0 && raw < FARB.shore.reach + 2)) continue;
+        const off = B / 2 - 0.2, X = x + f.nx * off, Z = z + f.nz * off, psi = Math.atan2(f.ux, -f.uz), p = farbPose(X, Z, psi, fb, H); if (!p || p.what !== 'grunn') continue; C.grunn++;
+        const p0 = {X:X - f.ux * 6, Z:Z - f.uz * 6, psi}, p1 = {X:X + f.ux * 6, Z:Z + f.uz * 6, psi}, m = farbSweep(p0, p1, fb, H);
+        let pose = null; for (let k = 0; k <= 48 && !pose; k++){ const u = k / 48; pose = farbPose(p0.X + (p1.X - p0.X) * u, p0.Z + (p1.Z - p0.Z) * u, psi, fb, H); }
+        if (!m && pose){ C.sveipFri++; if (C.eks.length < 2){ const q = natLL({x:X / 1000, y:Z / 1000}); C.eks.push({ll:[+q.lat.toFixed(5), +q.lon.toFixed(5)], pose:pose.what}); } } else if (m) C.sveipTreff++; }
+      return C; },
     // One stretch and boat: n poses along the lines (km: the route that was sailed and the reference's way), in a strip to each side,
     // and at the edge of what the observer touches; and sweeps between two poses. She is put at the stretch's start first (BK.put), so
     // BOAT is hers, and the two are asked for the same boat: the observer's height is the old Autonav's (obsAir), so the map gets that.

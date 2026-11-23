@@ -4,7 +4,7 @@
   // is deep enough. Four kinds (an open boat with an outboard, a snekke, a motor cruiser, a sailing boat with its mast), each its own
   // colours; four in five berths taken from May to September, one in three in the winter (the rest are on land). Where they lie is
   // decided by the berth's hash, so everyone sees the same. #marina0 in the address: none.
-  const MARINA = /*@include(data/marina.json)*/null;
+  // (MARINA, the marinas themselves: core/01c-vec.js, where the map of what a boat can sail over reads them too)
   const MAR = {on:!/marina0/.test(location.hash) && !PGFX.off.shore, M:null, near:[], at:-1e9, O:[1e9, 1e9], n:0};
   function marinaModels(){
     if (MAR.M) return MAR.M;
@@ -30,18 +30,23 @@
       if (Math.abs(cx - eye[0]) > 2200 || Math.abs(cz - eye[2]) > 2200) continue;
       const P = rel.map((v, i) => v + (i % 2 ? cz : cx)); let x0 = 1e18, x1 = -1e18, z0 = 1e18, z1 = -1e18;
       for (let i = 0; i < P.length; i += 2){ x0 = Math.min(x0, P[i]); x1 = Math.max(x1, P[i]); z0 = Math.min(z0, P[i + 1]); z1 = Math.max(z1, P[i + 1]); }
-      const T = MAPD.man ? MAPD.man.tile * 1000 : 50000, docks = flyteTile(Math.floor(cx / T), Math.floor(cz / T)).filter(d => d.mx > x0 - 30 && d.mx < x1 + 30 && d.mz > z0 - 30 && d.mz < z1 + 30);
-      let n = 0;
+      // (only the floating docks that are drawn: not one under a harbour unit, nor one taken away at a trade place, 11b-obstacles.js
+      // vecGone; and no boat in the way in to a trade place's quay, inPortZone. Before steg 141, 23.11.2026, boats lay at docks that
+      // were not there and on buoys in front of a quay. The map of what a boat can sail over has the same berths: 17-farbar.js farbMarina)
+      const T = MAPD.man ? MAPD.man.tile * 1000 : 50000, vt = VEC.tiles.get(Math.floor(cx / T) + ':' + Math.floor(cz / T)); let GN = null; try { GN = vt ? vecGone(vt) : null; } catch (e){}
+      const docks = flyteTile(Math.floor(cx / T), Math.floor(cz / T)).filter(d => d.mx > x0 - 30 && d.mx < x1 + 30 && d.mz > z0 - 30 && d.mz < z1 + 30 && !unitCovers(d.mx, d.mz, 3) && !(GN && GN.fd.has(Math.round(d.mx) + ':' + Math.round(d.mz))));
+      const zone = (x, z) => { try { return inPortZone(x, z); } catch (e){ return false; } };
+      let n = 0, fingers = 0;   // (fingers: the pieces of dock that can take boats; the buoys are for a marina with none, whatever the season left at them)
       // along the floating docks: a berth each 3.2 m on both sides, bow in, the boat as long as the finger it lies at
       for (const d of docks) for (const L of d.L){ const p = L.p;
-        for (let k = 1; k < p.length; k++){ const [ax, az] = p[k - 1], [bx, bz] = p[k], len = Math.hypot(bx - ax, bz - az); if (len < 4) continue; const ux = (bx - ax) / len, uz = (bz - az) / len;
+        for (let k = 1; k < p.length; k++){ const [ax, az] = p[k - 1], [bx, bz] = p[k], len = Math.hypot(bx - ax, bz - az); if (len < 4) continue; fingers++; const ux = (bx - ax) / len, uz = (bz - az) / len;
           for (let s = 2.5; s < len - 1.5; s += 3.2) for (const sd of [1, -1]){ const h = hash(ax * 0.37 + az * 0.71 + s * 13.1 + sd * 7.7); if (h > occ) continue;
             const kind = Math.floor(hash(h * 1e4) * 4), half = [2.5, 3.5, 4.5, 4.5][kind], nx = -uz * sd, nz = ux * sd, o = L.w / 2 + 0.6 + half;
-            const x = ax + ux * s + nx * o, z = az + uz * s + nz * o; if (terrRaw(x, z) > -0.8) continue;
+            const x = ax + ux * s + nx * o, z = az + uz * s + nz * o; if (terrRaw(x, z) > -0.8 || zone(x, z)) continue;
             out.push([x, z, Math.atan2(-nx, nz), kind, 0, h]); n++; } } }
       // no docks: buoys in rows over the water inside the marina, 14 m by 10 m
-      if (!n) for (let z = z0 + 5; z < z1; z += 14) for (let x = x0 + 5; x < x1; x += 10){
-        const h = hash(x * 0.31 + z * 0.17); if (h > occ * 0.9 || !marInside(P, x, z) || terrRaw(x, z) > -1.5 || terrRaw(x + 6, z) > -0.5 || terrRaw(x - 6, z) > -0.5 || terrRaw(x, z + 6) > -0.5 || terrRaw(x, z - 6) > -0.5) continue;
+      if (!fingers) for (let z = z0 + 5; z < z1; z += 14) for (let x = x0 + 5; x < x1; x += 10){
+        const h = hash(x * 0.31 + z * 0.17); if (h > occ * 0.9 || !marInside(P, x, z) || zone(x, z) || terrRaw(x, z) > -1.5 || terrRaw(x + 6, z) > -0.5 || terrRaw(x - 6, z) > -0.5 || terrRaw(x, z + 6) > -0.5 || terrRaw(x, z - 6) > -0.5) continue;
         out.push([x, z, hash(h * 3e4) * 0.6 - 0.3 + windDir(S.t / 60, {x:x / 1000, y:z / 1000}) * DEG, Math.floor(hash(h * 1e4) * 4), 1, h]); }
     }
     MAR.near = out;

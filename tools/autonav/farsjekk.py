@@ -19,6 +19,8 @@ Needs the whole coast and the vec packs in dist-vec/ and playwright, as the benc
     python3 tools/autonav/farsjekk.py --felt [--celle 2] [--del 1/4] [--ut FIL]     the field (the distance and the depth on a grid, built in
         a worker) round each stretch's start, with the CPU slowed four times: the longest the page's own thread was held by a slice
         of the field's work (must be 4 ms or less), the worker's time, the bytes a tile, and the field against the geometry
+    python3 tools/autonav/farsjekk.py --basseng [--bat skiff,sjark,kyst21]      the sweep against the poses on its way along the outside of every
+        harbour pocket (369 basins and drawn quays): a sweep must never be free where a pose on its way is not (under a minute)
     python3 tools/autonav/farsjekk.py --rapport FIL [FIL ...]
 The exit code is 1 when a pose is found where the observer touches and the map says free.
 """
@@ -126,6 +128,21 @@ async def run(a):
         async def ev(code, arg=None, secs=600): return await asyncio.wait_for(st['pg'].evaluate(code, arg), secs)
 
         await fresh(); T0 = time.time()
+        if a.basseng:
+            F = await ev("() => FARSJ.pockets()"); T = collections.Counter(); eks = []
+            for ty in (a.bat.split(',') if a.bat else ['skiff', 'sjark', 'kyst21']):
+                await ev("t => BK.cond([t, 3, 225, 0])", ty)
+                for f in F:
+                    try: R = await ev("f => FARSJ.basin(f)", f, 120)
+                    except Exception as e: R = {'skip': str(e)[:100]}
+                    if R.get('skip'): T['hoppet'] += 1; continue
+                    for q in ('pkt', 'grunn', 'sveipFri', 'sveipTreff'): T[q] += R[q]
+                    T['fronter'] += 1; eks += [(ty, e) for e in R.get('eks', [])]
+            await br.close()
+            print('%s farsjekken, bassengene: %d lommer og båter (%d hoppet over), %d punkter langs yttersida, %d stillinger på bunnen, %d sveip gjennom dem: %d ga berøring, %d gikk fritt (skal være 0); sidefeil %s' % (
+                'OK' if not T['sveipFri'] and T['fronter'] else 'FEIL', T['fronter'], T['hoppet'], T['pkt'], T['grunn'], T['sveipTreff'] + T['sveipFri'], T['sveipTreff'], T['sveipFri'], errs[:3]), flush=True)
+            for ty, e in eks[:10]: print('   ', ty, json.dumps(e, ensure_ascii=False))
+            return 1 if T['sveipFri'] or not T['fronter'] else 0
         if a.felt:
             seen = set(); rows = [r for r in rows if not (r['strek'] in seen or seen.add(r['strek']))]   # (one boat a stretch: the field is the same for all)
             print('farsjekken, feltet: %d steder, celle %s m, CPU strupet 4 ganger' % (len(rows), a.celle), flush=True)
@@ -185,6 +202,7 @@ def main():
     ap.add_argument('--strek', default=''); ap.add_argument('--bat', default=''); ap.add_argument('--del', dest='dele', default='')
     ap.add_argument('--n', type=int, default=90, help='poses per stretch and boat'); ap.add_argument('--sveip', type=int, default=12, help='sweeps per stretch and boat')
     ap.add_argument('--ting', type=int, default=16, help='poses right on things, per stretch and boat'); ap.add_argument('--stripe', type=float, default=150); ap.add_argument('--ut', default='', help='one line per stretch and boat is added to this file')
+    ap.add_argument('--basseng', action='store_true', help='the sweep against the poses on its way along the outside of every harbour pocket')
     ap.add_argument('--felt', action='store_true', help='the field round each stretch\'s start, built with the CPU slowed four times'); ap.add_argument('--celle', type=int, default=2); ap.add_argument('--skritt', action='store_true', help='with --felt: each step of the gathering timed too (to find a step that is too long)')
     ap.add_argument('--rapport', nargs='+')
     a = ap.parse_args()
