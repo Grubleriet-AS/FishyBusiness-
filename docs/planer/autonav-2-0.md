@@ -1,6 +1,6 @@
 # Autonav 2.0: ny ruteplanlegger og ny styring fra bunnen av
 
-Status: **plan, ikke låst** (23.11.2026, Jonas' økt, grenen `ccr-399c74e8-91vrad`). Ingenting bygges før Jonas har svart på valgene og sagt «kjør på».
+Status: **valgene er tatt** (Jonas 23.11.2026, alle sju som anbefalt; Jonas' økt, grenen `ccr-399c74e8-91vrad`). Fasene står i køen som steg 140–147; F0 (steg 140) starter når Jonas sier «kjør på». Startmeldingen: `docs/planer/start/140.md`.
 
 ## Hva Jonas ba om
 
@@ -107,26 +107,35 @@ Hver fase er én økt (F2 og F3 kan trenge to). Gammel Autonav står urørt og e
 
 | Fase | Bygger | Filer | Ferdig når |
 |---|---|---|---|
-| **F0 Benken og grunnlinja** | Strekningslista, observatøren, målene, kjørt på dagens Autonav. Forklarer brudekk-treffene hos spillerne | `tools/autonav/`, `tests/` | Benken gir tall for dagens Autonav på alle strekninger og begge motorer; den er rød der spillerne og jakten har treff |
-| **F1 Farbarhetskartet** | Én geometri, avstandsfelt i worker, dybderegelen, skjær med størrelse, `VESSELS.air`, bruhøyder | ny `core/17-farbar.js`, `02-species-gear.js` (felt), `tools/map/` ved behov | Enhetstester mot rå geometri; observatøren og kartet er enige på benkens strekninger; lista over det 3D tegner annerledes er tom eller avgjort |
-| **F2 Planleggeren nær og i havn** | G1, G2, banen, bakgrunnsturen | ny `core/17b-bane.js`, `17c-plan.js` (worker) | 0 treff på benkens korte strekninger som bakgrunnstur, alle båter; lengde og CPU innen porten |
-| **F3 Styringen** | Banefølgeren, vakta, kaimanøveren, sanntid = bakgrunn | ny `core/17d-styr.js`, ett kall i `16b-dyn.js` | 0 treff i sanntid for alle båter i vind 3, 9 og 14 m/s; sporfeilen målt per båt og lagt inn i korridoren |
-| **F4 Hovedleden** | G0, leinettet baket på nytt, lange ruter | `tools/leia/`, `src/data/leinett.json`, `17c-plan.js` | Alle mottakspar og alle steder har rute; Oslo–Kirkenes under 1 s strupet |
-| **F5 Trafikken og resten** | Fartøy som ligger stille, vikeplikt i korridoren, søvn, retur, driftsplan, redningsskøyta, «Hopp» | `05e-sjovei.js`, `05-vessels.js`, `06-*` (kall), `06j-hopp.js` er `hoy`: PR til Jonas | Benken med trafikk: 0 treff; alle 17 kall til `leiaRoute` går på den nye |
-| **F6 Bytte og slipp** | Full jakt, regresjon, testutgaven, gradvis slipp, fangsten merker motoren | `16e-anvtreff.js` (ett felt), flagget | Porten holder; Jonas har sett den på nettbrettet |
-| **F7 Rydding** | Gammel kode ut (`11-route.js` med flere) | | Etter to uker uten treff hos spillerne |
+| **F0 (steg 140) Benken og grunnlinja** | Strekningslista, observatøren, målene, kjørt på dagens Autonav. Forklarer brudekk-treffene hos spillerne | `tools/autonav/`, `tests/` | Benken gir tall for dagens Autonav på alle strekninger og begge motorer; den er rød der spillerne og jakten har treff |
+| **F1 (steg 141) Farbarhetskartet** | Én geometri, avstandsfelt i worker, dybderegelen, skjær med størrelse, `VESSELS.air`, bruhøyder | ny `core/17-farbar.js`, `02-species-gear.js` (felt), `tools/map/` ved behov | Enhetstester mot rå geometri; observatøren og kartet er enige på benkens strekninger; lista over det 3D tegner annerledes er tom eller avgjort |
+| **F2 (steg 142) Planleggeren nær og i havn** | G1, G2, banen, bakgrunnsturen | ny `core/17b-bane.js`, `17c-plan.js` (worker) | 0 treff på benkens korte strekninger som bakgrunnstur, alle båter; lengde og CPU innen porten |
+| **F3 (steg 143) Styringen** | Banefølgeren, vakta, kaimanøveren, sanntid = bakgrunn | ny `core/17d-styr.js`, ett kall i `16b-dyn.js` | 0 treff i sanntid for alle båter i vind 3, 9 og 14 m/s; sporfeilen målt per båt og lagt inn i korridoren |
+| **F4 (steg 144) Hovedleden** | G0, leinettet baket på nytt, lange ruter | `tools/leia/`, `src/data/leinett.json`, `17c-plan.js` | Alle mottakspar og alle steder har rute; Oslo–Kirkenes under 1 s strupet |
+| **F5 (steg 145) Trafikken og resten** | Fartøy som ligger stille, vikeplikt i korridoren, søvn, retur, driftsplan, redningsskøyta, «Hopp» | `05e-sjovei.js`, `05-vessels.js`, `06-*` (kall), `06j-hopp.js` er `hoy`: PR til Jonas | Benken med trafikk: 0 treff; alle 17 kall til `leiaRoute` går på den nye |
+| **F6 (steg 146) Bytte og slipp** | Full jakt, regresjon, testutgaven, gradvis slipp, fangsten merker motoren | `16e-anvtreff.js` (ett felt), flagget | Porten holder; Jonas har sett den på nettbrettet |
+| **F7 (steg 147) Rydding** | Gammel kode ut (`11-route.js` med flere) | | Etter to uker uten treff hos spillerne |
 
 Lagringen endres ikke: `S.plan.wps` er som før, og banen regnes fra veipunktene ved oppstart.
 
-## Valgene
+## Valgene (besvart av Jonas 23.11.2026, i spørsmålsverktøyet)
 
-1. **Andre fartøy i «null».** A (anbefalt): liggende fartøy er hindre ruta legges utenom, NPC-er legger aldri til i spillerens kaiplass eller vei inn, og Autonav slakker og viker innenfor korridoren for fartøy i fart. B: bare det som står fast, teller; fartøy er spøkelser. C: alt teller, og Autonav venter heller enn å gå nær. *Hvorfor A: 20 % av berøringene er liggende fartøy, og de står stille som en kai.*
-2. **Ruter tegnet for hånd.** A (anbefalt): vakta gjelder alle ruter; en tegnet rute rettes til en trygg bane ved «Kast loss», og grunnstøting finnes bare ved roret. B: som i dag, en rute tegnet gjennom grunna grunnstøter. C: følges som tegnet, men båten stopper foran faren. *Hvorfor A: 63 % av turene og alle 17 grunnstøtingene er tegnede ruter.*
-3. **Kaimanøveren.** A (anbefalt): fysikk etter en planlagt manøver, med en avgrenset hjelp som fører henne langs banen bare når hun er i ferd med å forlate båndet under 3 knop; benken teller hvor ofte. B: alltid ført (som «hendene»). C: ren fysikk. *Hvorfor A: garantien uten at alt går på skinner.*
-4. **Marginene.** A (anbefalt): harde minstemål fra båten (halv bredde + sporfeil + 2 m; dypgang + squat + 0,5 m ved laveste vann på turen; høyde + 1 m), og sjømannsavstand bare der det er plass og koster lite. B: romslig, alltid 50–100 m fra land utenfor havn. C: stramt, bare minstemålene. *Hvorfor A: korteste vei som fortsatt ser ut som en sjømann har lagt den.*
-5. **Steder som ikke passer en båt.** A (anbefalt): havna tilpasses båtene stedet tar i dag (mudret renne og småbrygger bort langs den kontrollerte veien); et sted stenges for en størrelse bare som siste utvei, med forklaring. B: stedet stenges for størrelsen, og dataene rettes sted for sted. *Hvorfor A: samme linje som «Mudre havnene» 18.11, og ingen spiller mister en havn.*
-6. **Bruene.** A (anbefalt): båtene får ekte høyde, bruene seilingshøyde fra offentlig kilde der den finnes, og 3D tegner samme høyde. B: dagens anslag beholdes. *Hvorfor A: 12 % av berøringene er brudekk, og de store båtene trenger ekte tall.*
-7. **Slippet.** A (anbefalt): gradvis, 10 % → 50 % → 100 % av spillerne, målt mot gammel Autonav i fangsten, med nødbremsen. B: alle samtidig når porten holder.
+Alle sju ble som anbefalt. Det som ikke ble valgt, står med for sammenhengen.
+
+1. **Andre fartøy i «null»: «Liggende er hindre».** Fartøy som ligger stille, er hindre ruta legges utenom. NPC-er legger aldri til i spillerens kaiplass eller vei inn. For fartøy i fart slakker og viker Autonav, men bare innenfor korridoren som er kontrollert fri. *Ikke valgt:* bare det faste teller (fartøy som spøkelser); alt teller og Autonav venter.
+2. **Ruter tegnet for hånd: «Rett til trygg bane».** Ved «Kast loss» rettes den tegnede ruta til nærmeste trygge bane, vist i kartet. Båten grunnstøter aldri på en rute; grunnstøting finnes bare når spilleren styrer selv ved roret. Det erstatter dagens regel om at en rute tegnet gjennom grunna (`pl.unsafe`) grunnstøter. *Ikke valgt:* stopp foran faren uten retting; som i dag.
+3. **Kaimanøveren: «Fysikk med hjelp».** Båten seiler en planlagt manøver med fysikken (rygge, snu, propeller). En avgrenset hjelp fører henne langs banen bare når hun under 3 knop er i ferd med å forlate den kontrollerte korridoren, og benken teller hvor ofte. *Ikke valgt:* alltid ført; ren fysikk.
+4. **Marginene: «Tilpasset».** Harde minstemål fra båten: halv bredde + målt sporfeil + 2 m til siden, dypgang + squat + 0,5 m under kjølen ved laveste vann på turen, båtens høyde + 1 m under bruer. I tillegg sjømannsavstand (rundt en båtlengde, minst 30 m fra land) bare der det er plass og det koster under et par prosent ekstra vei. *Ikke valgt:* romslig (alltid 50–100 m); stramt (bare minstemålene).
+5. **Steder som ikke passer en båt: «Tilpass havna».** Havna tilpasses båtene stedet tar i dag: en mudret renne og småbrygger bort langs den kontrollerte veien inn, som «Mudre havnene» 18.11.2026. Et sted stenges for en båtstørrelse bare som siste utvei, med forklaring i kartplotteren. *Ikke valgt:* steng stedet for størrelsen og rett dataene sted for sted.
+6. **Bruene: «Ekte høyder».** Båtene får en ekte høyde som eget felt. Bruene får seilingshøyde fra offentlig kilde der den finnes (kilde og lisens sjekkes først, og oppgis), ellers dagens anslag, og 3D tegner brua med samme høyde. *Ikke valgt:* dagens anslag beholdt.
+7. **Slippet: «Gradvis».** 10 % av spillerne først, så 50 % og 100 %, hvert trinn etter noen døgn der fangsten viser færre berøringer per 1000 turer enn gammel Autonav. Nødbremsen står på, og gammel Autonav ligger klar å falle tilbake på. *Ikke valgt:* alle samtidig.
+
+**Det valgene betyr for byggingen:**
+
+- Valg 2 gjør at vakta og banebyggeren (F2 og F3) også tar ruter spilleren tegner: rutepanelets varsler («Etappe WP2→WP3 krysser land», `legHazard`, `pl.unsafe`) og den grå «Kast loss»-knappen må følge den rettede banen. Det er en synlig endring i kartplotteren (`ui/03b-route.js`, `ui/07-guide.js`) og skal ses i begge formater.
+- Valg 5 trenger mudringen og fjerningen som data i farbarhetskartet (F1), slik `depthNav` og `vecGone` gjør det i dag, så 3D, kollisjonen og ruta er enige.
+- Valg 6 legger en kildesjekk og et datasteg inn i F1 (`tools/map/`), og et felt i `VESSELS`.
+- Valg 7 trenger et flagg som ikke ligger i lagringen (egen nøkkel, ikke `kystfiske_v2`) og et felt for motoren i fangstens hendelser (F6).
 
 ## Antatt eller usikkert
 
@@ -149,4 +158,4 @@ Lagringen endres ikke: `S.plan.wps` er som før, og banen regnes fra veipunktene
 
 ## Status
 
-- 23.11.2026: diagnosen og planen skrevet. Venter på Jonas' svar på valgene og klarsignal.
+- 23.11.2026: diagnosen og planen skrevet. Jonas svarte på de sju valgene samme dag, alle som anbefalt. Fasene lagt i køen som steg 140–147, startmeldingen for F0 skrevet (`docs/planer/start/140.md`). Venter på «kjør på» for F0.
