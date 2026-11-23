@@ -6255,3 +6255,5 @@
 2026-11-23 14:47	ccr-399c74e8-91vrad	facf8c9e+	maptest	OK	17	lite	samtidig	
 2026-11-23 14:47	ccr-399c74e8-91vrad	facf8c9e+	vesseltest	OK	9	lite	samtidig	
 2026-11-23 14:47	ccr-399c74e8-91vrad	facf8c9e+	trip2	OK	11	lite	samtidig	
+2026-11-23 18:30	ccr-399c74e8-91vrad	4a2806ef	havnshot	OK	694	3d	alene	
+2026-11-23 18:30	ccr-399c74e8-91vrad	4a2806ef	dbg23o	FEIL	33	3d	alene	avsluttet med kode 1
