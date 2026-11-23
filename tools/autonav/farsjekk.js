@@ -20,6 +20,44 @@
         const ok = same(a.piers, b.piers) && a.flo.size === b.flo.size && [...a.flo].every(q => b.flo.has(q)) && a.slabs.length === b.slabs.length && a.slabs.every((s, i) => s[0] === b.slabs[i][0] && s[1] === b.slabs[i][1]) && same(a.molos, b.molos);
         if (!ok) bad.push(t.tx + ':' + t.ty + ' brygger ' + a.piers.length + '/' + b.piers.length + ', flater ' + a.slabs.length + '/' + b.slabs.length + ', moloer ' + a.molos.length + '/' + b.molos.length); }
       return {tiles:n, zones, bad}; },
+    // The field round her (17-farbar.js farbFieldNeed: the tiles of o.cell m over a box of o.half m each way from where she lies),
+    // built with the page's own thread watched: the longest it was held by one of the field's slices (FARB.F.n.slice), the longest
+    // between two turns of the event loop while the field was built and for as long with nothing built, the worker's time and the
+    // bytes a tile, the time of a read; and the field held against the geometry at o.n cells' middles: never farther off, at most a
+    // step nearer; the water not deeper than the geometry has it; the same deck over.
+    async field(o){ const cell = o.cell || 2, F = FARB.F, half = o.half || 400, b = BK.from, X = b.x * 1000, Z = b.y * 1000, rand = rnd(o.seed || 7);
+      const gaps = [], probe = () => { const ch = new MessageChannel(); let last = performance.now(), gap = 0, on = true; ch.port1.onmessage = () => { const t = performance.now(); if (t - last > gap) gap = t - last; if (t - last > 6 && gaps.length < 30) gaps.push([Math.round(last), +(t - last).toFixed(1), F.at]); last = t; if (on) ch.port2.postMessage(0); }; ch.port2.postMessage(0); return () => { on = false; return gap; }; };
+      F.n.long.length = 0; F.steps = !!o.steps; F.n.step = 0; F.n.h.fill(0);
+      // (the game's own first look at the traffic of a new place takes a tenth of a second or more: looked up before the clock starts, as BK.cpu does)
+      try { npcStates(S.t / 60); sjvNear(S.t / 60, X, Z); fixBoats(X, Z); } catch (e){}
+      F.n.slice = 0; let t0 = performance.now(); if (!await farbNeed([{x:(X - half) / 1000, y:(Z - half) / 1000}, {x:(X + half) / 1000, y:(Z + half) / 1000}], F.pad)) return {skip:'kartet kom ikke inn'};
+      const layMs = performance.now() - t0, laySlice = F.n.slice; F.n.slice = 0;
+      const n0 = F.n.built, ms0 = F.n.ms, job0 = F.n.job; let stop = probe(); t0 = performance.now();
+      const ok = await farbFieldNeed(X - half, Z - half, X + half, Z + half, cell), wall = performance.now() - t0, gap = stop(), slice = F.n.slice;
+      stop = probe(); await new Promise(r => setTimeout(r, Math.min(4000, Math.max(300, wall)))); const idle = stop();
+      // the control: a job that only counts, run through the same slices for as long as the field took. What it has over 4 ms is the
+      // machine's and the engine's own (a pause for the garbage, another process), not the field's
+      const hist = F.n.h.slice(); F.n.h.fill(0); F.n.slice = 0; F.at = 'kontroll';
+      await farbRunA((function* (){ const t = performance.now(), dur = Math.min(6000, Math.max(300, wall)); let x = 0; while (performance.now() - t < dur){ for (let i = 0; i < 300; i++) x += Math.sqrt(i + x % 7); yield; } return x; })());
+      const ctrl = F.n.h.slice(), ctrlMax = F.n.slice; F.n.h = hist;
+      const Tf = F.N * cell, tiles = []; let none = 0;
+      for (let fz = Math.floor((Z - half) / Tf); fz <= Math.floor((Z + half) / Tf); fz++) for (let fx = Math.floor((X - half) / Tf); fx <= Math.floor((X + half) / Tf); fx++){ const Y = farbFieldTile(cell, fx, fz); if (Y && !Y.none) tiles.push(Y); else if (Y) none++; }
+      const R = {ok, cell, tiles:tiles.length, none, built:F.n.built - n0, workerMs:F.n.built > n0 ? +((F.n.ms - ms0) / (F.n.built - n0)).toFixed(1) : null, jobMs:F.n.built > n0 ? +((F.n.job - job0) / (F.n.built - n0)).toFixed(1) : null,
+        wall:Math.round(wall), slice:+slice.toFixed(2), gap:+gap.toFixed(2), idle:+idle.toFixed(2), layMs:Math.round(layMs), laySlice:+laySlice.toFixed(2), bytes:F.n.bytes, step:+F.n.step.toFixed(2), hist:F.n.h.slice(), ctrl, ctrlMax:+ctrlMax.toFixed(2), long:F.n.long.slice(), gaps:gaps.slice()};
+      if (!tiles.length) return R;
+      // a read
+      t0 = performance.now(); let acc = 0; for (let i = 0; i < 100000; i++){ const q = farbFieldAt(X - half + ((i * 7919) % (2 * half)), Z - half + ((i * 104729) % (2 * half)), cell); if (q) acc += q.d; } R.readUs = +((performance.now() - t0) * 1000 / 100000).toFixed(3);
+      // against the geometry
+      const C = {n:0, over:0, under:0, maxOver:0, maxUnder:0, zOver:0, zOver05:0, zMax:0, zUnk:0, zLow:0, z10:0, uDiff:0, unk:0}, bad = [], nob = {air:-Infinity}, ll = (x, z) => { const q = natLL({x:x / 1000, y:z / 1000}); return [+q.lat.toFixed(5), +q.lon.toFixed(5)]; };
+      for (let k = 0; k < (o.n || 3000); k++){ const Y = tiles[Math.floor(rand() * tiles.length)], i = Math.floor(rand() * F.N), j = Math.floor(rand() * F.N), x = Y.x0 + (i + 0.5) * cell, z = Y.z0 + (j + 0.5) * cell, q = j * F.N + i;
+        const g = farbNearest(x, z, F.cap, nob), gd = g ? g.d : F.cap; if (gd !== gd){ C.unk++; continue; } C.n++; const fd = Y.d[q] * F.q;
+        if (fd > gd + 1e-3){ C.over++; C.maxOver = Math.max(C.maxOver, fd - gd); if (bad.length < 8) bad.push({hva:'felt lenger unna', ll:ll(x, z), felt:fd, geo:+gd.toFixed(2), ting:g && g.what}); }
+        else if (gd - fd > F.q + 1e-3){ C.under++; C.maxUnder = Math.max(C.maxUnder, gd - fd); if (bad.length < 8) bad.push({hva:'felt nærmere', ll:ll(x, z), felt:fd, geo:+gd.toFixed(2), ting:g && g.what}); }
+        // (the water where the field has the cell open: a cell with a thing on it is shut whatever water the lattice has round it)
+        const gz = farbDepth(x, z), fz = Y.z[q]; if (fz === 255 || gz !== gz) C.zUnk++; else if (fd > 0){ const f = fz / 10, gg = Math.max(0, Math.min(25.4, gz)); if (f > gg + 0.1 + 1e-6){ C.zOver++; if (f > gg + 0.5) C.zOver05++; C.zMax = Math.max(C.zMax, f - gg); if (bad.length < 8) bad.push({hva:'vann dypere i feltet', ll:ll(x, z), felt:f, geo:+gg.toFixed(2)}); } if (gg < 10){ C.z10++; if (gg - f > 0.5) C.zLow++; } }
+        let gu = 255; const n = farbGather(x, z, F.deck + 30); for (let a = 0; a < n; a++){ const t = FARB.buf[a]; if (t.k === 's' && farbD(t, x, z) <= F.deck + 1e-6) gu = Math.min(gu, Math.max(0, Math.min(254, Math.floor(t.under / 0.25)))); }
+        if (gu !== Y.u[q] && !(farbD({k:'c', x, z, r:0}, x, z) > 0)){ let edge = false; for (let a = 0; a < n; a++){ const t = FARB.buf[a]; if (t.k === 's' && Math.abs(farbD(t, x, z) - F.deck) < 0.01) edge = true; } if (!edge){ C.uDiff++; if (bad.length < 8) bad.push({hva:'dekke', ll:ll(x, z), felt:Y.u[q], geo:gu}); } } }
+      C.maxOver = +C.maxOver.toFixed(2); C.maxUnder = +C.maxUnder.toFixed(2); C.zMax = +C.zMax.toFixed(2); R.cmp = C; R.bad = bad; return R; },
     // One stretch and boat: n poses along the lines (km: the route that was sailed and the reference's way), in a strip to each side,
     // and at the edge of what the observer touches; and sweeps between two poses. She is put at the stretch's start first (BK.put), so
     // BOAT is hers, and the two are asked for the same boat: the observer's height is the old Autonav's (obsAir), so the map gets that.

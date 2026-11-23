@@ -72,7 +72,7 @@ THE ERROR TRAP (02.11.2026; Jonas: «det viktigste er at vi klarer å fange opp 
   - 615 `bridgeUnderUnit(br, extra)`
   - 620 `portApproach(pt)`
 
-## `src/js/core/01b-mapdata.js` (281 linjer)
+## `src/js/core/01b-mapdata.js` (305 linjer)
 
 MAP DATA (phase K3 of the coast plan): the rasters in 10 km blocks, fetched in packs from map/
 
@@ -85,36 +85,37 @@ MAP DATA (phase K3 of the coast plan): the rasters in 10 km blocks, fetched in p
   - 58 `mapStale(pk)`
 - **68** the manifest and the packs
   - 72 `mapStart(base)`
-  - 88 `mapLoad(pk)`
-  - 99 `mapPackOf(L, bx, by)`
-  - 100 `mapPacksIn(kind, x0, y0, x1, y1)`
-  - 108 `mapSimPacks(p, r)`
-  - 109 `mapReadyAt(p, r)`
-  - 111 `mapSimAt(p)`
-  - 112 `mapViewAt(p)`
-  - 115 `mapKindIn(kind, p, memo)`
-  - 117 `mapNeed(p, r)`
-  - 123 `mapPreload(pts, kinds, onProgress)`
-  - 140 `mapLoadKind(kind)`
-- **141** blocks
-  - 142 `med16(raw, n)`
-  - 148 `med8(raw, n)`
-  - 153 `mapDecode(L, raw)`
-  - 167 `mapBlock(L, bx, by)`
-  - 179 `mapHasBlock(L, bx, by)`
-  - 182 `mapBlockKnown(L, bx, by)`
-  - 185 `rcell(L, ix, iy)`
-  - 193 `rbil(L, p)`
-  - 198 `rbilM(L, x, z)`
-- **202** the fine ground along the sea (Ø13 K1, 11.11.2026)
-  - 210 `finBlock(L, bx, by)`
-  - 216 `finCell(L, ix, iy)`
-  - 232 `finH(x, z, h)`
-  - 245 `mapHasM(L, x0, z0, x1, z1)`
-  - 252 `mapVec(pk, name)`
-  - 259 `mapViewReady(x0, y0, x1, y1, then, kinds)`
-  - 266 `simAreaReady()`
-  - 276 `mapDrop(pk)`
+  - 97 `mapLoad(pk)`
+  - 108 `mapPackOf(L, bx, by)`
+  - 109 `mapPacksIn(kind, x0, y0, x1, y1)`
+  - 117 `mapSimPacks(p, r)`
+  - 118 `mapReadyAt(p, r)`
+  - 120 `mapSimAt(p)`
+  - 121 `mapViewAt(p)`
+  - 124 `mapKindIn(kind, p, memo)`
+  - 126 `mapNeed(p, r)`
+  - 132 `mapPreload(pts, kinds, onProgress)`
+  - 149 `mapLoadKind(kind)`
+- **150** blocks
+  - 151 `med16(raw, n)`
+  - 157 `med8(raw, n)`
+  - 162 `mapDecode(L, raw)`
+  - 176 `mapBlock(L, bx, by)`
+  - 191 `mapBlockWarm(L, bx, by)`
+  - 203 `mapHasBlock(L, bx, by)`
+  - 206 `mapBlockKnown(L, bx, by)`
+  - 209 `rcell(L, ix, iy)`
+  - 217 `rbil(L, p)`
+  - 222 `rbilM(L, x, z)`
+- **226** the fine ground along the sea (Ø13 K1, 11.11.2026)
+  - 234 `finBlock(L, bx, by)`
+  - 240 `finCell(L, ix, iy)`
+  - 256 `finH(x, z, h)`
+  - 269 `mapHasM(L, x0, z0, x1, z1)`
+  - 276 `mapVec(pk, name)`
+  - 283 `mapViewReady(x0, y0, x1, y1, then, kinds)`
+  - 290 `simAreaReady()`
+  - 300 `mapDrop(pk)`
 
 ## `src/js/core/01c-vec.js` (223 linjer)
 
@@ -171,7 +172,7 @@ THE SEA MARKS ALONG THE WHOLE COAST (05.10.2026; Jonas: «Sjømerker må ordnes 
   - 129 `feltShapesFrom(bytes)`
   - 142 `feltShape(f)`
 
-## `src/js/core/02-species-gear.js` (459 linjer)
+## `src/js/core/02-species-gear.js` (464 linjer)
 
 Placeholder prices (NOK/kg, grade A) – to be tuned
 
@@ -182,25 +183,25 @@ Placeholder prices (NOK/kg, grade A) – to be tuned
   - 118 `minKgAt(sp, p)`
   - 122 `letGo(sp, w, p, H)`
 - **123** vessels, equipment, crew
-  - 276 `fuelWeek(w)`
-  - 278 `fuelPrice(H = S.t / 60, pid = S.boat && S.boat.port, diesel = BOAT.die…)`
-  - 370 `equipFits(k, type)`
-- **371** the upgrades in tiers (OPP1 of docs/planer/oppgraderinger.md, 07.11.2026)
-  - 375 `upgSum(...p)`
-  - 380 `equipLv(k, eq = S.equip, type = S.boat && S.boat.type)`
-  - 384 `equipTier(k, eq, type)`
-  - 388 `tierUnits(k, lv, type = S.boat && S.boat.type, eq = S.equip)`
-  - 394 `tierKr(k, lv, type = S.boat && S.boat.type, eq = S.equip)`
-  - 399 `equipKr(k, eq = S.equip, type = S.boat && S.boat.type)`
-  - 405 `knifeX(eq, type)`
-  - 406 `hookX(f, eq, type)`
-  - 409 `jigSlip(eq, type)`
-  - 412 `fuelBase(v, vmax, planing)`
-  - 413 `fuelKOf(V)`
-  - 415 `vesselDerive(V)`
-  - 428 `reqOf(V)`
-  - 434 `reqFill(eq, type)`
-  - 452 `lsaOf(V)`
+  - 281 `fuelWeek(w)`
+  - 283 `fuelPrice(H = S.t / 60, pid = S.boat && S.boat.port, diesel = BOAT.die…)`
+  - 375 `equipFits(k, type)`
+- **376** the upgrades in tiers (OPP1 of docs/planer/oppgraderinger.md, 07.11.2026)
+  - 380 `upgSum(...p)`
+  - 385 `equipLv(k, eq = S.equip, type = S.boat && S.boat.type)`
+  - 389 `equipTier(k, eq, type)`
+  - 393 `tierUnits(k, lv, type = S.boat && S.boat.type, eq = S.equip)`
+  - 399 `tierKr(k, lv, type = S.boat && S.boat.type, eq = S.equip)`
+  - 404 `equipKr(k, eq = S.equip, type = S.boat && S.boat.type)`
+  - 410 `knifeX(eq, type)`
+  - 411 `hookX(f, eq, type)`
+  - 414 `jigSlip(eq, type)`
+  - 417 `fuelBase(v, vmax, planing)`
+  - 418 `fuelKOf(V)`
+  - 420 `vesselDerive(V)`
+  - 433 `reqOf(V)`
+  - 439 `reqFill(eq, type)`
+  - 457 `lsaOf(V)`
 
 ## `src/js/core/03-simulation.js` (1497 linjer)
 
@@ -2641,6 +2642,72 @@ THE CATCH: WHERE THE PLAYERS' BOATS TOUCH WHAT IS NOT CLEAN WATER (the autonav r
   - 167 `slamRate(b = S.boat, H = S.t / 60, hard = 1)`
   - 199 `slamMinute()`
 
+## `src/js/core/17-farbar.js` (633 linjer)
+
+FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2.0 F1, steg 141, 23.11.2026)
+
+- **1** FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2.0 F1, steg 141, 23.11.2026)
+- **32** the boat as the map asks about her
+  - 34 `farbBoat(type)`
+  - 36 `farbHull(X, Z, psi, boat)`
+  - 41 `farbHalfW(f, boat)`
+  - 48 `farbKeelPts(boat, rim)`
+- **57** a thing, and how far a point is from it
+  - 61 `farbSegD(x, z, ax, az, bx, bz)`
+  - 62 `farbInPoly(P, x, z)`
+  - 64 `farbD(o, x, z)`
+- **77** her outline (a convex polygon P) against a point, a line and a thing
+  - 79 `farbPtPoly(P, x, z)`
+  - 84 `farbSegPoly(P, ax, az, bx, bz)`
+  - 91 `farbRingD(P, Q)`
+  - 94 `farbUnitRings(U)`
+  - 96 `farbPolyD(P, o)`
+  - 109 `farbBB(o)`
+  - 115 `farbPut(M, o)`
+  - 118 `farbBridge(M, br)`
+- **122** the layers
+  - 127 `farbOver(M, tx, ty, id, get)`
+  - 135 `farbRun(g)`
+  - 137 `farbTurn0()`
+  - 138 `farbRunA(g)`
+  - 155 `farbSiteM()`
+  - 159 `farbGlob()`
+  - 212 `farbTile(t)`
+  - 222 `farbMarks(k)`
+  - 226 `farbShoreG(x, z)`
+  - 250 `farbRocks(i, j)`
+- **252** the harbours' pockets
+  - 259 `farbPockets(x, z)`
+  - 268 `farbSegOutD2(PK, x, z, ax, az, bx, bz)`
+  - 284 `farbWalls(b)`
+- **286** the world under the things: land, the coast's distance, the depth, the tide
+  - 288 `farbLand(x, z)`
+  - 294 `farbCoast(x, z, cap, raw)`
+  - 310 `farbDepthRaw(x, z)`
+  - 313 `farbTideP(x, z)`
+  - 320 `farbDig(key, segs)`
+  - 324 `farbDepth(x, z, off)`
+  - 330 `farbKeel(x, z, boat, H, squat, off)`
+- **332** what is known
+  - 335 `farbKnown(x, z, R)`
+  - 345 `farbBlocks(x0, z0, x1, z1)`
+  - 351 `farbNeed(pts, padKm = 1.5, ms = 60000)`
+- **372** the questions
+  - 374 `farbGather(x, z, R)`
+  - 395 `farbGone(o, n, buf = FARB.buf)`
+  - 401 `farbNearest(x, z, cap, boat, opt)`
+  - 412 `farbClear(x, z, boat, cap, opt)`
+  - 415 `farbCoastSegs(x0, z0, x1, z1)`
+  - 426 `farbPose(X, Z, psi, boat, H, opt)`
+  - 462 `farbSweep(p0, p1, boat, H, opt)`
+- **472** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
+  - 486 `farbFieldBuild(J)`
+  - 549 `farbSegOutParts(PK, ax, az, bx, bz)`
+  - 606 `farbFieldWorker()`
+  - 614 `farbFieldTile(cell, fx, fz)`
+  - 617 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
+  - 631 `farbFieldAt(x, z, cell = 2)`
+
 ## `src/js/ui/01-i18n.js` (120 linjer)
 
 the logo (src/brand/logo.svg, the user's anchor of 03.11.2026), filled with currentColor: the sign-in's gate (ui/10f-cloud.js) and the
@@ -3537,7 +3604,7 @@ actions
 
 - **1** fishing by hand: jig, strike on the bite, reel without snapping the line
 
-## `src/js/ui/09b-pub.js` (368 linjer)
+## `src/js/ui/09b-pub.js` (372 linjer)
 
 ---------- the pub in 3D: a stool at the bar, seen in first person (Jonas 08.10.2026) ----------
 
@@ -4965,22 +5032,22 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 139 `drawRockFoam(VP, eye, t)`
   - 175 `rocksInfo(ax, az)`
 
-## `src/js/view3d/18-setup.js` (275 linjer)
+## `src/js/view3d/18-setup.js` (278 linjer)
 
 ---------- setup ----------
 
 - **1** setup
   - 30 `seaMarksSettle()`
-  - 94 `prep()`
-  - 95 `initGL(pre)`
-  - 222 `init()`
-  - 253 `anchorAlarm3d(kind)`
-  - 256 `sayBoat(id, txt)`
-  - 258 `sayWorker(pid, idx, nm, no, en)`
-  - 262 `crewFx3d(c, kind, o)`
-  - 264 `say3d(c, no, en)`
-  - 268 `buildLabels()`
-  - 269 `resize()`
+  - 96 `prep()`
+  - 97 `initGL(pre)`
+  - 225 `init()`
+  - 256 `anchorAlarm3d(kind)`
+  - 259 `sayBoat(id, txt)`
+  - 261 `sayWorker(pid, idx, nm, no, en)`
+  - 265 `crewFx3d(c, kind, o)`
+  - 267 `say3d(c, no, en)`
+  - 271 `buildLabels()`
+  - 272 `resize()`
 
 ## `src/js/view3d/19-wildlife-npc.js` (200 linjer)
 

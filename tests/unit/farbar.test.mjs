@@ -160,5 +160,47 @@ export default function (t){
     t.ok(n && n.what === 'merke' && Math.abs(n.d - (6 - K.get('obsMarkR')[mk[2]])) < 1e-6, 'et sjømerke på Senja er en sirkel med merkets radius', n && [n.what, n.d]);
     t.eq(K.farbBoat('skiff').B, K.get('VESSELS').skiff.beam, 'farbBoat leser båttypen'); t.ok(K.farbBoat('pelagisk').air > 0, 'og båtens høyde');
     for (const k of Object.keys(K.get('VESSELS'))) t.ok(K.get('VESSELS')[k].air > 0, 'VESSELS.' + k + ' har høyden over vannlinja (air)', K.get('VESSELS')[k].air);
+
+    // ---- 9. the field of a tile, as the worker works it out from plain numbers: an island, a mark, a breakwater, a deck ----
+    // (a tile of 60 x 60 cells of 2 m; the coast is one cell of the coast's index with a square island from 20 to 40 m each way)
+    const sq = [[20, 20], [40, 20], [40, 40], [20, 40]], ed = [], eo = [];
+    for (let i = 0; i < 4; i++){ const a = sq[i], b = sq[(i + 1) % 4]; ed.push(a[0], a[1], b[0], b[1]); eo.push(a[0], a[1], b[0], b[1], 0); }
+    const lat = new Float32Array(7 * 7).fill(30); lat[1 * 7 + 1] = -1;   // (the lattice point at 20, 20 is on the island)
+    const job = o => Object.assign({N:60, cell:2, cap:60, q:0.25, deck:8, shore:FARB.shore, zc:0, co:{CC:1000, n:1, m:1, cx0:-10, cz0:-10, wl:new Int8Array(1), wb:new Int8Array(1), cs:Int32Array.from([0, 4]), ce:Int32Array.from([0, 1, 2, 3]), ed:Float32Array.from(ed), K:new Uint8Array(4)},
+      eo:Float32Array.from(eo), ec:null, pk:new Float32Array(0), th:new Float32Array(0), dep:{n:7, step:20, v:lat}, dug:new Float32Array(0)}, o || {});
+    const at2 = (r, x, z) => { const k = Math.floor(z / 2) * 60 + Math.floor(x / 2); return [r.d[k] * 0.25, r.z[k], r.u[k]]; };
+    let fr = K.farbFieldBuild(job());
+    t.eq(at2(fr, 31, 31).slice(0, 2).join(), '0,0', 'feltet: på øya er avstanden 0 og det er tørt');
+    t.eq(at2(fr, 51, 31)[0], 11, 'feltet: 11 m ut fra øya er avstanden 11 m (fra midten av ruta)');
+    t.eq(at2(fr, 51, 31)[1], 10, 'feltet: vannet der er fjæras, det grunneste blant naborutene (9 m ut: 9 / 3 − 2 = 1,0 m)');
+    t.eq(at2(fr, 81, 31)[1], 254, 'feltet: utenfor fjæra er det kartets dybde (30 m: 25,4 m eller mer)');
+    t.eq(at2(fr, 81, 31)[2], 255, 'feltet: ingen bru');
+    t.eq(at2(fr, 45, 45)[0], Math.floor(Math.hypot(5, 5) / 0.25) * 0.25, 'feltet: ved hjørnet er avstanden til hjørnet, rundet ned til 0,25 m');
+    fr = K.farbFieldBuild(job({th:Float32Array.from([1, 91, 91, 2,   3, 4.5, 2, 60, 111, 110, 111,   6, 0, 71, 120, 71, 4, 5.9,   2, 21, 91, 6, 2, 1, 0,   4, 3, 80, 10, 100, 10, 80, 30,   5, 101, 51, 6, 3, 0])}));
+    t.eq(at2(fr, 101, 91)[0], 8, 'feltet: et merke med 2 m radius 10 m unna gir 8 m');
+    t.eq(at2(fr, 81, 105)[0], 1.5, 'feltet: en molo som linje med 9 m bredde: 6 m fra midten er 1,5 m fra siden');
+    t.eq(at2(fr, 81, 111)[0], 0, 'feltet: og 0 på den');
+    t.eq(at2(fr, 51, 73)[2], Math.floor(5.9 / 0.25), 'feltet: under et brudekke står underkanten (5,9 m, i trinn på 0,25 m)');
+    t.eq(at2(fr, 51, 85)[2], 255, 'feltet: 14 m fra midten av et dekke på 8 m (10 m fra kanten) er det ingen bru');
+    t.eq(at2(fr, 51, 73)[0] > 0, true, 'feltet: et brudekke er ikke en ting i avstanden (det stenger etter båtens høyde)');
+    t.eq(at2(fr, 21, 91)[0] + '|' + at2(fr, 31, 91)[0], '0|4', 'feltet: en boks (ei brygge) er 0 på og 4 m fra enden');
+    t.eq(at2(fr, 87, 15)[0] + '|' + at2(fr, 71, 15)[0], '0|9', 'feltet: et omriss (ei bryggeflate) er 0 inni og 9 m fra kanten');
+    t.eq(at2(fr, 101, 51)[0], 0, 'feltet: et skjær er 0 på foten');
+    // against the geometry's own answer, at every cell's middle: the field is never farther off, and at most a step nearer
+    FARB.w = sea(); FARB.test = [{k:'c', x:far.x + 91, z:far.z + 91, r:2}, {k:'l', P:[at(60, 111), at(110, 111)], r:4.5}, {k:'b', x:far.x + 21, z:far.z + 91, l:6, w:2, ux:1, uz:0}, {k:'p', P:[at(80, 10), at(100, 10), at(80, 30)]}, {k:'e', x:far.x + 101, z:far.z + 51, a:6, b:3, th:0}].map((o, i) => Object.assign(o, {what:'ting', id:'t' + i}));
+    fr = K.farbFieldBuild(job({co:null, eo:new Float32Array(0), th:Float32Array.from([1, 91, 91, 2,   3, 4.5, 2, 60, 111, 110, 111,   2, 21, 91, 6, 2, 1, 0,   4, 3, 80, 10, 100, 10, 80, 30,   5, 101, 51, 6, 3, 0])}));
+    let over = 0, under = 0; for (let j = 0; j < 60; j++) for (let i = 0; i < 60; i++){ const g = K.farbClear(far.x + i * 2 + 1, far.z + j * 2 + 1, null, 60), f = fr.d[j * 60 + i] * 0.25; if (f > g + 1e-6) over++; if (g - f > 0.25 + 1e-6) under++; }
+    t.eq(over + '|' + under, '0|0', 'feltet mot geometrien i 3 600 ruter: aldri lenger unna, og høyst ett trinn (0,25 m) nærmere');
+    // a harbour's pocket: the island's part in it is water, and the line there is no land
+    const pkA = Float32Array.from([30, 30, 1, 0, 0, 1, 12, 4]), ec = []; for (let k = 0; k < eo.length; k += 5) for (const [a, c] of K.farbSegOutParts([{x:30, z:30, ux:1, uz:0, nx:0, nz:1, l:12, w:4}], eo[k], eo[k + 1], eo[k + 2], eo[k + 3])) if (c - a > 1e-9) ec.push(eo[k] + (eo[k + 2] - eo[k]) * a, eo[k + 1] + (eo[k + 3] - eo[k + 1]) * a, eo[k] + (eo[k + 2] - eo[k]) * c, eo[k + 1] + (eo[k + 3] - eo[k + 1]) * c, 0);
+    fr = K.farbFieldBuild(job({pk:pkA, ec:Float32Array.from(ec)}));
+    t.eq(at2(fr, 31, 31)[0] > 0 && at2(fr, 31, 31)[1] > 0, true, 'feltet: i ei lomme over øya er det vann, og avstanden er til landet utenfor lomma', at2(fr, 31, 31));
+    t.eq(at2(fr, 31, 23)[0], 0, 'feltet: øya utenfor lomma er fortsatt land');
+    t.eq(at2(fr, 45, 31)[0], Math.floor(Math.hypot(5, 3) / 0.25) * 0.25, 'feltet: der kystkanten går gjennom lomma, er nærmeste land der den kommer ut (3 m til siden)');
+    // a dredged channel, and a lattice that is not known
+    fr = K.farbFieldBuild(job({dug:Float32Array.from([44, 0, 44, 120, 5, 4])}));
+    t.eq(at2(fr, 43, 31)[1], 40, 'feltet: en mudret renne gir sin dybde i fjæra (4 m, der alle naborutene ligger i renna)');
+    const unk = lat.slice(); unk[3 * 7 + 4] = NaN; fr = K.farbFieldBuild(job({dep:{n:7, step:20, v:unk}}));
+    t.eq(at2(fr, 71, 51)[1] + '|' + at2(fr, 111, 111)[1], '255|254', 'feltet: der kartets dybde ikke er kjent, er vannet ukjent (255), ikke dypt');
   } finally { FARB.w = null; FARB.test = null; K.farbDig('test', null); }
 }

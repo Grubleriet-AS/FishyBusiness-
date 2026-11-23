@@ -183,6 +183,21 @@ function mapBlock(L, bx, by){
   for (const [kk, v] of MAPD.blk){ if (MAPD.bytes <= MAPD.budget) break; if (kk === k) continue; MAPD.blk.delete(kk); MAPD.bytes -= v.byteLength; }
   return a;
 }
+// A block unpacked off the page's own thread and put where mapBlock looks (Autonav 2.0 F1, steg 141, 23.11.2026). mapBlock inflates a
+// block the first time a cell of it is read: 1 to 3 ms on the thread the game is drawn from, four times that on a phone. What reads
+// far from the boat (the field of farbarhetskartet, 17-farbar.js) asks for its blocks here first: fflate's own worker inflates, and
+// only the unpacking of the numbers (mapDecode) is left for this thread. true when the block is in; false where it cannot be (no
+// pack, a pack not loaded, the packs changed meanwhile): the reader then gets mapBlock's own answer, as before
+function mapBlockWarm(L, bx, by){
+  const k = gridKey(bx, by) * 64 + L.id; if (MAPD.blk.has(k)) return Promise.resolve(true);
+  const pk = mapPackOf(L, bx, by), e = pk && pk.buf && pk.idx && pk.idx.get(L.name + ':' + bx + ':' + by); if (!e || typeof fflate.inflate !== 'function') return Promise.resolve(false);
+  const W = MAPD.warm || (MAPD.warm = new Map()); let w = W.get(k); if (w) return w; const gen = MAPD.gen;
+  w = new Promise(res => { try { fflate.inflate(pk.buf.slice(e[0], e[0] + e[1]), {consume:true}, (err, raw) => { W.delete(k);
+      if (err || MAPD.gen !== gen){ res(false); return; }
+      if (!MAPD.blk.has(k)){ const a = mapDecode(L, raw); MAPD.blk.set(k, a); MAPD.bytes += a.byteLength; for (const [kk, v] of MAPD.blk){ if (MAPD.bytes <= MAPD.budget) break; if (kk === k) continue; MAPD.blk.delete(kk); MAPD.bytes -= v.byteLength; } }
+      res(true); }); } catch (e2){ W.delete(k); res(false); } });
+  W.set(k, w); return w;
+}
 // whether a cell is in the layer (the readers that pick cells themselves keep to it)
 const mapIn = (L, ix, iy) => ix >= L.ix0 && iy >= L.iy0 && ix < L.ix0 + L.nx && iy < L.iy0 + L.ny;
 function mapHasBlock(L, bx, by){ const pk = mapPackOf(L, bx, by); return !!(pk && pk.buf && pk.idx.has(L.name + ':' + bx + ':' + by)); }
