@@ -404,6 +404,12 @@ for _f in ('src/js/ui/10f-cloud.js', 'tests/lagrefeiltest.py'): COVER[_f] = list
 # The watch on the database and the server's numbers (steg 138, 17.11.2026)
 for _f in ('tools/server/vakt/vakt.sh', 'tools/server/vakt/setup.sh', 'tools/server/status.sh', 'tools/server/setup.sh', 'tests/vakttest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['vakttest']))
 
+# Autonav 2.0 F1 (steg 141, 23.11.2026): farbarhetskartet (17-farbar.js). Nothing of the game calls it yet, so what it can break is the
+# shared script scope (boottest, trip2). Its own checks: tests/unit/farbar.test.mjs (run first with the unit tests), and
+# tools/autonav/farsjekk.py, which holds it against the bench's observer along the bench's stretches (by hand: it needs dist-vec/)
+COVER['src/js/core/17-farbar.js'] = ['boottest', 'trip2']; COVER['tests/unit/farbar.test.mjs'] = []
+for _f in ('tools/autonav/farsjekk.py', 'tools/autonav/farsjekk.js'): COVER[_f] = []
+
 
 def cover_dups():
     import ast

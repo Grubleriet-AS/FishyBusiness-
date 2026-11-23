@@ -134,12 +134,17 @@ function letGo(sp, w, p, H){ const s = SPECIES[sp]; return w < minKgAt(sp, p) ||
 // deckCargo (kg of freight on deck, not in the hold), iceMaker and gutMachine (kg a day and kg an hour, 0 without; only over 14.99 m),
 // freezeT and plantLph (an ocean vessel's plate freezers, kg of product a day, and her generators' litres an hour at sea while not under
 // way; optional, H2b 05.11.2026: 05-vessels.js deckMinute and plantFuel),
+// air (m, Autonav 2.0 F1, steg 141, 23.11.2026; Jonas' choice 6: «Ekte høyder»): her highest point over the waterline, with the mast,
+// the lanterns and the whip aerials, as her 3D model is drawn: the top of lod0 in src/data/boat-*.b64 over the model's waterline
+// (y = 0, the empty boat's), read with the game's own decoder and held against the constant in her Blender script (tools/boats/*.py;
+// the table with each top and its line: docs/planer/autonav-2-0.md «Båtenes høyde»). Before: 0.35 x the length, at most 16 m
+// (11b-obstacles.js obsAir), which only the skiff and the wooden boat stayed under. What she can sail under asks this (17-farbar.js),
 // lph (litres an hour at cruising speed, the truth the burn curve is scaled to: fuelK is derived), cabins, fac {house: open, hardtop or
 // hus; shelter over the working deck; galley: none, plate or bysse; wc; dry (drying room); mess}, stations {table, hauler: how many work
 // there at once}, crane (tonnes, 0 without), quay (-1: she lies with her port side to the quay, where her deck crane stands, F22 OB4
 // 11.11.2026; left out: starboard, 07-harbours.js berthSide). vesselDerive adds fuelK, range (nm), watch (a 2+2 watch is possible), haulers and openOk.
 const VESSELS = {
-  skiff:{name:{no:'Aluminiumsbåt 19 fot (5,9 m), 60 hk påhengs', en:'19 ft aluminium boat (5.9 m), 60 hp outboard'}, len:5.9, beam:2.45, draft:0.6, disp:1.0, holdCap:500, iceCap:150, fuelCap:90, hp:60, engine:{no:'60 hk påhengsmotor, bensin', en:'60 hp petrol outboard'},
+  skiff:{name:{no:'Aluminiumsbåt 19 fot (5,9 m), 60 hk påhengs', en:'19 ft aluminium boat (5.9 m), 60 hp outboard'}, len:5.9, beam:2.45, draft:0.6, air:2.07, disp:1.0, holdCap:500, iceCap:150, fuelCap:90, hp:60, engine:{no:'60 hk påhengsmotor, bensin', en:'60 hp petrol outboard'},
     vmax:24, vcruise:18, accel:10, turnR:35, planing:true, outboard:true, diesel:false, risk:[1.0, 1.8, 10.8, 13.9], sea:0.45, crewMax:1, berths:0, tubCap:60, land:'tub', std:[],
     rigs:['juksa', 'line', 'garn'], jukseMax:2, gearMax:{garn:6, stamp:4}, svcH:100, svcCost:3500, svcJobH:3, cls:'open', price:95000, year:2008,
     hullMat:'alu', kar:{n:1, max:1}, hold:{kind:'dekk', m3:0.8}, deckCargo:150, iceMaker:0, gutMachine:0, lph:11, cabins:0, fac:{house:'open', shelter:false, galley:'none', wc:false, dry:false, mess:false}, stations:{table:1, hauler:1}, crane:0,
@@ -147,7 +152,7 @@ const VESSELS = {
   // Father's old boat, the first one (Jonas 05.10.2026: «en 23fot trebåt med innenbords semidiesel ... topphastigheten skal være 7
   // knop», the rest made up from the skiff's): hold, ice, crew and gear as the skiff, a semi-diesel single that sips diesel (semi: the
   // engine's own sound and its black puffs, ui/10e-sound.js and view3d.js; rpm 340 idle as in Jonas's video, 850 at most, his word), heavier and kinder in a sea than the aluminium boat
-  trebat:{name:{no:'Trebåt 23 fot (7,0 m), 8 hk semidiesel', en:'23 ft wooden boat (7.0 m), 8 hp semi-diesel'}, len:7.0, beam:2.26, draft:0.62, disp:1.9, holdCap:500, iceCap:150, fuelCap:60, hp:8, engine:{no:'8 hk semidiesel, én sylinder', en:'8 hp semi-diesel, single cylinder'},
+  trebat:{name:{no:'Trebåt 23 fot (7,0 m), 8 hk semidiesel', en:'23 ft wooden boat (7.0 m), 8 hp semi-diesel'}, len:7.0, beam:2.26, draft:0.62, air:2.09, disp:1.9, holdCap:500, iceCap:150, fuelCap:60, hp:8, engine:{no:'8 hk semidiesel, én sylinder', en:'8 hp semi-diesel, single cylinder'},
     vmax:7, vcruise:6, accel:2, turnR:28, planing:false, outboard:false, diesel:true, semi:true, rpm:[340, 850], risk:[1.2, 2.0, 11, 14.5], sea:0.3, crewMax:1, berths:0, tubCap:60, land:'tub', std:[],
     rigs:['juksa', 'line', 'garn'], jukseMax:2, gearMax:{garn:6, stamp:4}, svcH:120, svcCost:2000, svcJobH:4, cls:'open', price:45000, year:1956,
     // no pots (OB1; Jonas 09.11.2026: «Jeg tror ikke den trebåten skal kunne holde på med krabbeteiner. Det har den åpenbart ikke plass
@@ -161,7 +166,7 @@ const VESSELS = {
   // no pots on the snekke either (Jonas 09.11.2026, OB6, valg 24 A: «Om båten ikke har plass til teiner på en realistisk måte, skal den ikke
   // drive med teiner»): the 1.4 m pot has no flat place on her 1.8 m sole that is not a catch tub, the helm seat, the ice box or a person;
   // as on the wooden boat, rigs without teiner keeps the pot hauler, the crab tank and the pots off her (equipFits fit.rig, potsUnfit)
-  snekke:{name:{no:'Plastsnekke 26 fot, 30 hk diesel', en:'26 ft fibreglass snekke, 30 hp diesel'}, len:7.9, beam:2.7, draft:1.2, disp:3.0, holdCap:1000, iceCap:400, fuelCap:220, hp:30, engine:{no:'30 hk innenbords diesel', en:'30 hp inboard diesel'},
+  snekke:{name:{no:'Plastsnekke 26 fot, 30 hk diesel', en:'26 ft fibreglass snekke, 30 hp diesel'}, len:7.9, beam:2.7, draft:1.2, air:3.9, disp:3.0, holdCap:1000, iceCap:400, fuelCap:220, hp:30, engine:{no:'30 hk innenbords diesel', en:'30 hp inboard diesel'},
     vmax:8, vcruise:7, accel:3, turnR:45, planing:false, outboard:false, diesel:true, risk:[1.5, 2.5, 12.5, 16], sea:0.22, crewMax:1, berths:0, tubCap:150, land:'tub', std:['plotter', 'vhf'],
     rigs:['juksa', 'line', 'garn'], jukseMax:2, gearMax:{garn:15, stamp:10}, svcH:250, svcCost:6000, svcJobH:5, cls:'open', price:245000, year:1994,
     hullMat:'glassfiber', kar:{n:2, max:2}, hold:{kind:'dekk', m3:1.8}, deckCargo:300, iceMaker:0, gutMachine:0, lph:3.0, cabins:0, fac:{house:'hardtop', shelter:false, galley:'none', wc:false, dry:false, mess:false}, stations:{table:1, hauler:1}, crane:0,
@@ -169,7 +174,7 @@ const VESSELS = {
   // the 31 ft fibreglass sjark that became the standard Norwegian sjark from the late 1970s (the Viksund 31 Sjark; the make is only named
   // here). Measures from the registers and used-boat listings read 17.10.2026: 9.26–9.45 x 3.05–3.30 m, draft 1.2–1.5 m by the load, 5–6 t
   // as a working boat, 68–120 hp, 8 knots (the sources are in tools/boats/plast31.py). A used one of 1992: step 3 of the ladder (docs/batplan.md del 9)
-  plastsjark:{name:{no:'Plastsjark 31 fot (9,45 m), 100 hk', en:'31 ft fibreglass sjark (9.45 m), 100 hp'}, len:9.45, beam:3.3, draft:1.35, disp:6, holdCap:3500, iceCap:1200, fuelCap:600, hp:100, engine:{no:'100 hk diesel', en:'100 hp diesel'},
+  plastsjark:{name:{no:'Plastsjark 31 fot (9,45 m), 100 hk', en:'31 ft fibreglass sjark (9.45 m), 100 hp'}, len:9.45, beam:3.3, draft:1.35, air:5.7, disp:6, holdCap:3500, iceCap:1200, fuelCap:600, hp:100, engine:{no:'100 hk diesel', en:'100 hp diesel'},
     vmax:8.5, vcruise:7.5, accel:3, turnR:60, planing:false, outboard:false, diesel:true, risk:[2.2, 3.5, 14, 18], sea:0.17, crewMax:2, berths:2, tubCap:250, land:'tub', std:['plotter', 'vhf'],
     rigs:['juksa', 'line', 'garn'], jukseMax:4, gearMax:{garn:30, stamp:18}, svcH:220, svcCost:9000, svcJobH:6, cls:'open', price:850000, year:1992,
     hullMat:'glassfiber', hold:{kind:'rom', m3:6}, deckCargo:800, iceMaker:0, gutMachine:0, lph:8, cabins:1, fac:{house:'hus', shelter:false, galley:'plate', wc:false, dry:false, mess:false}, stations:{table:1, hauler:1}, crane:0,
@@ -180,40 +185,40 @@ const VESSELS = {
   // (and the plastsjark, OB7 09.11.2026: her deck aft takes a stack or the place where a pot is tipped and emptied, not both; Jonas:
   // «Ingen teiner»)
   // as on the snekke (valg 24 A); potsUnfit takes off what an old save has over that
-  sjark:{name:{no:'Havsjark 35 fot (10,6 m) med bakk og styrhus', en:'35 ft havsjark (10.6 m) with forecastle and wheelhouse'}, len:10.57, beam:4.1, draft:1.6, disp:12, holdCap:6500, iceCap:2000, fuelCap:900, hp:180, engine:{no:'180 hk diesel', en:'180 hp diesel'},
+  sjark:{name:{no:'Havsjark 35 fot (10,6 m) med bakk og styrhus', en:'35 ft havsjark (10.6 m) with forecastle and wheelhouse'}, len:10.57, beam:4.1, draft:1.6, air:8.61, disp:12, holdCap:6500, iceCap:2000, fuelCap:900, hp:180, engine:{no:'180 hk diesel', en:'180 hp diesel'},
     vmax:10, vcruise:8.5, accel:3, turnR:70, planing:false, outboard:false, diesel:true, risk:[2.5, 3.8, 15, 19], sea:0.14, crewMax:3, berths:4, tubCap:300, land:'tub', std:['plotter', 'vhf'],
     rigs:['juksa', 'line', 'garn'], jukseMax:5, gearMax:{garn:40, stamp:24}, svcH:250, svcCost:14000, svcJobH:8, cls:'open', price:1150000, year:1985,
     hullMat:'glassfiber', hold:{kind:'rom', m3:11}, deckCargo:1500, iceMaker:0, gutMachine:0, lph:12, cabins:1, fac:{house:'hus', shelter:false, galley:'plate', wc:true, dry:false, mess:false}, stations:{table:2, hauler:1}, crane:0,
     desc:{no:'Tung og sjøsterk havsjark med styrhus midtskips på en kort bakk, lasterom og redskapsrom akter og styttesegl på aktermasten. Rommet tar 6,5 tonn. Det er ikke plass til kongekrabbeteiner på dekk.', en:'A heavy, seaworthy havsjark with the wheelhouse amidships on a short forecastle, the hold and a gear room aft and a riding sail on the mizzen. The hold takes 6.5 tonnes. There is no room for king crab pots on deck.'}},
-  hurtigsjark:{name:{no:'Brukt hurtigsjark 10,99 m, 500 hk', en:'Used 10.99 m speed sjark, 500 hp'}, len:10.99, beam:3.9, draft:1.6, disp:12, holdCap:5000, iceCap:1600, fuelCap:1500, hp:500, engine:{no:'500 hk diesel', en:'500 hp diesel'},
+  hurtigsjark:{name:{no:'Brukt hurtigsjark 10,99 m, 500 hk', en:'Used 10.99 m speed sjark, 500 hp'}, len:10.99, beam:3.9, draft:1.6, air:9.35, disp:12, holdCap:5000, iceCap:1600, fuelCap:1500, hp:500, engine:{no:'500 hk diesel', en:'500 hp diesel'},
     vmax:22, vcruise:17, accel:9, turnR:75, planing:true, outboard:false, diesel:true, risk:[2.3, 3.6, 14.8, 18.5], sea:0.15, crewMax:2, berths:2, tubCap:350, land:'tub', std:['plotter', 'vhf'],
     rigs:['juksa', 'line', 'garn', 'teiner'], jukseMax:3, gearMax:{garn:50, stamp:26, teine:6}, svcH:300, svcCost:18000, svcJobH:9, cls:'open', price:4900000, year:2009,
     hullMat:'glassfiber', hold:{kind:'rom', m3:8}, deckCargo:1200, iceMaker:0, gutMachine:0, lph:55, cabins:1, fac:{house:'hus', shelter:false, galley:'plate', wc:true, dry:false, mess:false}, stations:{table:2, hauler:1}, crane:0.5,
     desc:{no:'Planende sjark i glassfiber med styrhus forut. Rask til feltet og hjem igjen, men tørst.', en:'Planing fibreglass sjark with the wheelhouse forward. Fast to the grounds and home again, but thirsty.'}},
-  sjarkny:{name:{no:'Ny hurtigsjark 10,99 m, 650 hk', en:'New 10.99 m speed sjark, 650 hp'}, len:10.99, beam:4.68, draft:2.06, disp:15, holdCap:7000, iceCap:2400, fuelCap:2000, hp:650, engine:{no:'650 hk diesel', en:'650 hp diesel'},
+  sjarkny:{name:{no:'Ny hurtigsjark 10,99 m, 650 hk', en:'New 10.99 m speed sjark, 650 hp'}, len:10.99, beam:4.68, draft:2.06, air:7.27, disp:15, holdCap:7000, iceCap:2400, fuelCap:2000, hp:650, engine:{no:'650 hk diesel', en:'650 hp diesel'},
     vmax:12, vcruise:10, accel:10, turnR:80, planing:false, outboard:false, diesel:true, risk:[2.4, 3.8, 15, 19], sea:0.14, crewMax:3, berths:4, tubCap:400, land:'tub', std:['plotter', 'vhf'],
     rigs:['juksa', 'line', 'garn', 'teiner'], jukseMax:3, gearMax:{garn:60, stamp:30, teine:12}, svcH:300, svcCost:22000, svcJobH:10, cls:'open', price:10500000, isNew:true, year:2027,
     hullMat:'glassfiber', hold:{kind:'rom', m3:12}, deckCargo:1800, iceMaker:0, gutMachine:0, lph:55, cabins:2, fac:{house:'hus', shelter:false, galley:'bysse', wc:true, dry:true, mess:false}, stations:{table:2, hauler:1}, crane:0.5, quay:-1,
     desc:{no:'Nybygd hurtigsjark fra verftet i Finnsnes, med styrhus forut og stort arbeidsdekk. Bredt og dypt skrog som bærer mye, med propellen i dyse: 12 knop.', en:'Newly built speed sjark from the yard in Finnsnes, wheelhouse forward and a big working deck. A broad, deep hull that carries a lot, her propeller in a nozzle: 12 knots.'}},   // (Jonas 05.11.2026: 12 kn as the drawing, a displacement hull; 10.11.2026: «Hun skal ligge riktig i sjøen i henhold til estimert ekte vekt, med farten deretter»; lph 55 at 10 kn is assumed)
   // drawn after the 36-foot Malo sjark (general arrangement and data sheet from Jemar Norpower): 10.99 x 4.20 m (4.40 over the
   // fenders), depth 2.34 m, hold 19 m3, fuel 3.4 m3, 300 hp, about 10 kn; the 3D model is the detailed GLB from tools/boats/malo36.py
-  breisjark:{name:{no:'Sjark 36 fot med bakk og ly', en:'36 ft sjark with forecastle and shelter'}, len:10.99, beam:4.2, draft:2.0, disp:20, holdCap:10000, iceCap:2500, fuelCap:3400, hp:300, engine:{no:'300 hk diesel, seks sylindre', en:'300 hp six-cylinder diesel'},
+  breisjark:{name:{no:'Sjark 36 fot med bakk og ly', en:'36 ft sjark with forecastle and shelter'}, len:10.99, beam:4.2, draft:2.0, air:8.43, disp:20, holdCap:10000, iceCap:2500, fuelCap:3400, hp:300, engine:{no:'300 hk diesel, seks sylindre', en:'300 hp six-cylinder diesel'},
     vmax:10.5, vcruise:9.5, accel:2.5, turnR:80, planing:false, outboard:false, diesel:true, risk:[2.6, 4.0, 15, 19], sea:0.13, crewMax:4, berths:4, tubCap:450, land:'tub', std:['plotter', 'vhf'],
     rigs:['juksa', 'line', 'garn', 'teiner'], jukseMax:1, gearMax:{garn:100, stamp:33, teine:6}, svcH:300, svcCost:22000, svcJobH:12, cls:'open', price:9000000, year:2015,   // (jukseMax, OB11 10.11.2026, valg 32, Jonas: «den burde ha 2 maskiner»: two jigging places on her low starboard rail, one in the open side aft of the bleeding tub and one aft of the shelter's corner; her aft bulwark stands 1.5 m over the deck, tools/boats/malo36.py JIG, STEP_S)
     hullMat:'glassfiber', hold:{kind:'rom', m3:19}, deckCargo:2500, iceMaker:0, gutMachine:0, lph:20, cabins:2, fac:{house:'hus', shelter:true, galley:'bysse', wc:true, dry:true, mess:false}, stations:{table:2, hauler:1}, crane:0,
     desc:{no:'Den klassiske kystsjarken på 36 fot: høy baug med bakk, styrhus med panoramavinduer, ly over garnhaleren og lasterom på 19 kubikk. Sjødyktig og solid, med to lugarer.', en:'The classic 36-foot coastal sjark: a high bow with a forecastle, a wheelhouse with panoramic windows, a shelter over the net hauler and a 19 m3 hold. Seaworthy and solid, with two cabins.'}},
-  kyst15:{name:{no:'Kystbåt 14,99 m med lugarer', en:'14.99 m coastal vessel with cabins'}, len:14.99, beam:6.6, draft:3.0, thrusters:2, disp:75, holdCap:28000, iceCap:8000, fuelCap:9000, hp:750, engine:{no:'750 hk diesel', en:'750 hp diesel'},
+  kyst15:{name:{no:'Kystbåt 14,99 m med lugarer', en:'14.99 m coastal vessel with cabins'}, len:14.99, beam:6.6, draft:3.0, air:9.41, thrusters:2, disp:75, holdCap:28000, iceCap:8000, fuelCap:9000, hp:750, engine:{no:'750 hk diesel', en:'750 hp diesel'},
     vmax:11.5, vcruise:10, accel:2, turnR:110, planing:false, outboard:false, diesel:true, risk:[3.3, 4.8, 17, 21.5], sea:0.1, crewMax:5, berths:6, tubCap:800, land:'tub', std:['plotter', 'vhf', 'ais'],
     rigs:['juksa', 'line', 'garn'], jukseMax:4, gearMax:{garn:160, stamp:33}, svcH:400, svcCost:45000, svcJobH:16, cls:'kyst', price:18000000, year:2012,
     hullMat:'glassfiber', hold:{kind:'rom', m3:45}, deckCargo:6000, iceMaker:0, gutMachine:0, lph:60, cabins:3, fac:{house:'hus', shelter:true, galley:'bysse', wc:true, dry:true, mess:true}, stations:{table:3, hauler:2}, crane:1, quay:-1,
     desc:{no:'Kystbåt bygd til de magiske 15 meterne, med baksdekk, styrhus forut, haleport, setteport i hekken og lugarer til seks. Krever hjemmel i lukket gruppe. Det er ikke plass til kongekrabbeteiner under lyet.', en:'Coastal vessel built to the magic 15 metres, with a shelter deck, the wheelhouse forward, a hauling port, a setting port in the stern and cabins for six. Needs a closed-group licence. There is no room for king crab pots under the shelter.'}},
-  kyst21:{name:{no:'Eldre kystbåt 21 m, garn og line', en:'Older 21 m coastal vessel, nets and line'}, len:21, beam:7.2, draft:3.4, thrusters:2, disp:190, holdCap:55000, iceCap:15000, fuelCap:25000, hp:900, engine:{no:'900 hk diesel', en:'900 hp diesel'},
+  kyst21:{name:{no:'Eldre kystbåt 21 m, garn og line', en:'Older 21 m coastal vessel, nets and line'}, len:21, beam:7.2, draft:3.4, air:10.56, thrusters:2, disp:190, holdCap:55000, iceCap:15000, fuelCap:25000, hp:900, engine:{no:'900 hk diesel', en:'900 hp diesel'},
     vmax:11, vcruise:10, accel:1.5, turnR:150, planing:false, outboard:false, diesel:true, risk:[3.8, 5.5, 18, 23], sea:0.08, crewMax:6, berths:8, tubCap:1200, land:'tub', std:['plotter', 'vhf', 'ais'],
     rigs:['juksa', 'line', 'garn', 'teiner'], jukseMax:8, gearMax:{garn:240, stamp:33, teine:30}, svcH:400, svcCost:70000, svcJobH:24, cls:'kyst', price:9000000, year:1978,
     hullMat:'stål', hold:{kind:'rom', m3:90}, deckCargo:10000, iceMaker:0, gutMachine:0, lph:80, cabins:4, fac:{house:'hus', shelter:false, galley:'bysse', wc:true, dry:true, mess:true}, stations:{table:3, hauler:2}, crane:2, quay:-1,
     desc:{no:'Stålbåt fra 70-tallet med bakk, rundgatt og galge, åpent arbeidsdekk og akterdekk med setterull i hekken. Fra 15 meter kan hun ikke fiske innenfor fjordlinja.', en:'Steel boat from the 70s with a forecastle, a cruiser stern and a gallows, an open working deck and an after deck with a setting roller in the stern. From 15 metres she may not fish inside the fjord line.'}},
   // the ocean fleet: shown in the market with the full spec, bought when the ocean grounds open (west of today's chart)
-  snokrabbe:{name:{no:'Snøkrabbefartøy 50 m med fryseri', en:'50 m snow crab vessel with a freezing plant'}, len:50, beam:11, draft:6, thrusters:2, disp:1800, holdCap:500000, iceCap:0, fuelCap:350000, hp:3600, engine:{no:'3 600 hk diesel', en:'3,600 hp diesel'},
+  snokrabbe:{name:{no:'Snøkrabbefartøy 50 m med fryseri', en:'50 m snow crab vessel with a freezing plant'}, len:50, beam:11, draft:6, air:22.25, thrusters:2, disp:1800, holdCap:500000, iceCap:0, fuelCap:350000, hp:3600, engine:{no:'3 600 hk diesel', en:'3,600 hp diesel'},
     vmax:13.5, vcruise:11, accel:1, turnR:300, planing:false, outboard:false, diesel:true, risk:[6, 9, 24, 30], sea:0.04, crewMax:22, berths:26, tubCap:2000, land:'tub', std:['plotter', 'vhf', 'ais', 'chirp', 'sonar'],
     // (H3a, 06.11.2026) pot: her conical snow crab pots (POTS.sno in 10-gear.js); gearMax.teine the cap of høstingsforskriften § 28
     // (8 000 a vessel): the fleet carries up to 12 000 pots a trip (Olsen et al. 2019, a search snippet), the conical pots stack, so the
@@ -237,19 +242,19 @@ const VESSELS = {
     // for 30 days (the notes' frozen trips 15-28 days between landings, the live 7-15)
     hullMat:'stål', hold:{kind:'frys', m3:900}, deckCargo:40000, iceMaker:0, gutMachine:0, freezeT:12000, plantLph:180, tank:{m3:400, kg:40000}, provDays:30, lph:400, cabins:13, fac:{house:'hus', shelter:true, galley:'bysse', wc:true, dry:true, mess:true}, stations:{table:4, hauler:2}, crane:5,
     desc:{no:'Teinefartøy for snøkrabbe i Barentshavet, med fabrikk for klør og tanker for levende krabbe. Krever snøkrabbetillatelse.', en:'Pot vessel for snow crab in the Barents Sea, with a factory for the clusters and tanks for live crab. Needs a snow crab licence.'}},
-  autoliner:{name:{no:'Autoliner 45 m med frysing', en:'45 m autoliner with freezing'}, len:45.4, beam:10.45, draft:3.8, thrusters:2, disp:1050, holdCap:400000, iceCap:0, fuelCap:300000, hp:3000, engine:{no:'3 000 hk diesel', en:'3,000 hp diesel'},
+  autoliner:{name:{no:'Autoliner 45 m med frysing', en:'45 m autoliner with freezing'}, len:45.4, beam:10.45, draft:3.8, air:23, thrusters:2, disp:1050, holdCap:400000, iceCap:0, fuelCap:300000, hp:3000, engine:{no:'3 000 hk diesel', en:'3,000 hp diesel'},
     vmax:13, vcruise:11, accel:1, turnR:280, planing:false, outboard:false, diesel:true, risk:[6, 9, 24, 30], sea:0.04, crewMax:14, berths:16, tubCap:2000, land:'tub', std:['plotter', 'vhf', 'ais', 'chirp', 'sonar'],
     rigs:['line'], jukseMax:0, gearMax:{garn:0, stamp:0, teine:4}, autoHooks:40000, svcH:600, svcCost:350000, svcJobH:72, mottak:['Konvensjonelle'], cls:'hav', price:70000000, priceNew:300000000, year:1999,
     crew:{key:['skipper', 'styrmann', 'maskinsjef', '2. maskinist', 'kokk', 'bas'], teams:[{role:'dekk', n:4}, {role:'fabrikk', n:4}], rot:2},
     hullMat:'stål', hold:{kind:'frys', m3:700}, deckCargo:30000, iceMaker:0, gutMachine:2500, freezeT:15000, plantLph:95, lph:350, cabins:8, fac:{house:'hus', shelter:true, galley:'bysse', wc:true, dry:true, mess:true}, stations:{table:4, hauler:1}, crane:3,
     desc:{no:'Linebåt med egnemaskin som setter og trekker 40 000 kroker i døgnet, og fryser fisken om bord. Krever konsesjon for konvensjonelle havfiskefartøy.', en:'Longliner with a baiting machine that sets and hauls 40,000 hooks a day and freezes the catch aboard. Needs a licence for conventional ocean vessels.'}},
-  bunntral:{name:{no:'Frysetråler 60 m med akterslipp', en:'60 m freezer trawler with a stern ramp'}, len:60.3, beam:12.5, draft:5.1, thrusters:2, disp:2200, holdCap:800000, iceCap:0, fuelCap:700000, hp:8000, engine:{no:'8 000 hk diesel', en:'8,000 hp diesel'},
+  bunntral:{name:{no:'Frysetråler 60 m med akterslipp', en:'60 m freezer trawler with a stern ramp'}, len:60.3, beam:12.5, draft:5.1, air:24.3, thrusters:2, disp:2200, holdCap:800000, iceCap:0, fuelCap:700000, hp:8000, engine:{no:'8 000 hk diesel', en:'8,000 hp diesel'},
     vmax:15, vcruise:12, accel:0.8, turnR:400, planing:false, outboard:false, diesel:true, risk:[7, 10, 26, 33], sea:0.03, crewMax:25, berths:30, tubCap:3000, land:'tub', std:['plotter', 'vhf', 'ais', 'chirp', 'sonar'],
     rigs:[], jukseMax:0, gearMax:{garn:0, stamp:0, teine:4}, svcH:800, svcCost:900000, svcJobH:120, mottak:['Trål'], cls:'hav', price:150000000, priceNew:500000000, year:2004, lock:true,
     crew:{key:['skipper', 'styrmann', '2. styrmann', 'maskinsjef', '2. maskinist', 'elektriker', 'kokk', 'stuert', 'fabrikksjef'], teams:[{role:'dekk', n:4}, {role:'fabrikk', n:6}, {role:'fabrikk', n:6}], rot:2},
     hullMat:'stål', hold:{kind:'frys', m3:1400}, deckCargo:60000, iceMaker:0, gutMachine:4000, lph:900, cabins:15, fac:{house:'hus', shelter:true, galley:'bysse', wc:true, dry:true, mess:true}, stations:{table:6, hauler:2}, crane:5,
     desc:{no:'Bunntråler for torsk, hyse, sei og uer, med fabrikk og fryselager. Krever torsketrålkonsesjon.', en:'Bottom trawler for cod, haddock, saithe and redfish, with a factory and a freezer hold. Needs a cod trawl licence.'}},
-  pelagisk:{name:{no:'Ringnot- og pelagisk tråler 75 m', en:'75 m purse seiner and pelagic trawler'}, len:75, beam:15.5, draft:7.5, thrusters:2, disp:5000, holdCap:2000000, iceCap:0, fuelCap:650000, hp:9000, engine:{no:'9 000 hk diesel', en:'9,000 hp diesel'},
+  pelagisk:{name:{no:'Ringnot- og pelagisk tråler 75 m', en:'75 m purse seiner and pelagic trawler'}, len:75, beam:15.5, draft:7.5, air:22.15, thrusters:2, disp:5000, holdCap:2000000, iceCap:0, fuelCap:650000, hp:9000, engine:{no:'9 000 hk diesel', en:'9,000 hp diesel'},
     vmax:17, vcruise:14, accel:0.8, turnR:450, planing:false, outboard:false, diesel:true, risk:[7, 10, 26, 33], sea:0.03, crewMax:12, berths:16, tubCap:3000, land:'tub', std:['plotter', 'vhf', 'ais', 'chirp', 'sonar'],
     rigs:[], jukseMax:0, gearMax:{garn:0, stamp:0, teine:4}, svcH:800, svcCost:900000, svcJobH:120, mottak:['Not', 'Trål'], cls:'hav', price:250000000, priceNew:800000000, year:2010, lock:true,
     crew:{key:['skipper', 'styrmann', 'maskinsjef', '2. maskinist', 'kokk'], teams:[{role:'dekk', n:7}], rot:1},
@@ -259,7 +264,7 @@ const VESSELS = {
   // multi-purpose purse seiner and fly-shooter built in Blender after a real boat's build report and photographs (tools/boats/ringnot38.py);
   // her place in the ladder is not decided (B1 = C), so she is locked like the ocean fleet. Data from the build report: Lpp 34.00, B 9.50,
   // 499 GT, fuel 78.6 m3, RSW 419.5 m3, 749 kW (1,018 hp) main engine
-  ringnot38:{name:{no:'Kystnotbåt 38,55 m, ringnot og snurrevad', en:'38.55 m coastal purse seiner and fly-shooter'}, len:38.55, beam:9.5, draft:3.85, thrusters:2, disp:800, holdCap:400000, iceCap:0, fuelCap:78600, hp:1018, engine:{no:'1 018 hk diesel', en:'1,018 hp diesel'},
+  ringnot38:{name:{no:'Kystnotbåt 38,55 m, ringnot og snurrevad', en:'38.55 m coastal purse seiner and fly-shooter'}, len:38.55, beam:9.5, draft:3.85, air:20.85, thrusters:2, disp:800, holdCap:400000, iceCap:0, fuelCap:78600, hp:1018, engine:{no:'1 018 hk diesel', en:'1,018 hp diesel'},
     vmax:13, vcruise:11, accel:1.2, turnR:200, planing:false, outboard:false, diesel:true, risk:[5, 8, 22, 28], sea:0.05, crewMax:8, berths:10, tubCap:1200, land:'tub', std:['plotter', 'vhf', 'ais', 'chirp', 'sonar'],
     rigs:[], jukseMax:0, gearMax:{garn:0, stamp:0, teine:4}, svcH:600, svcCost:450000, svcJobH:80, mottak:['Not', 'Konvensjonelle'], cls:'hav', price:95000000, priceNew:180000000, year:2014, lock:true,
     crew:{key:['skipper', 'styrmann', 'maskinsjef', 'kokk'], teams:[{role:'dekk', n:4}], rot:1},

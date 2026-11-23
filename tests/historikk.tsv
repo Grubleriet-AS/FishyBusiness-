@@ -6244,3 +6244,6 @@
 2026-11-21 13:41	ccr-be8acf7a-mlzhzb	f850c98	boottest	OK	13	lite	samtidig	
 2026-11-21 14:35	ccr-be8acf7a-mlzhzb	5b09886+	fetchsaves	OK	6	lite	samtidig	
 2026-11-21 14:35	ccr-be8acf7a-mlzhzb	5b09886+	gatetest	OK	14	lite	samtidig	
+2026-11-23 13:13	ccr-399c74e8-91vrad	0bfc5350+	boottest	OK	12	lite	samtidig	
+2026-11-23 13:13	ccr-399c74e8-91vrad	0bfc5350+	vesseltest	OK	9	lite	samtidig	
+2026-11-23 13:13	ccr-399c74e8-91vrad	0bfc5350+	trip2	OK	11	lite	samtidig	
