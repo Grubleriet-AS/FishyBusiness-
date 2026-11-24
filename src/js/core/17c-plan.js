@@ -12,7 +12,7 @@
 //     search goes again, a few times at most.
 // Within a length and a half of the two ends her own quay does not count (the bench's rule for her own berth, tools/autonav/benk.js).
 // Where there is no way, the answer says why and where. Nothing calls this but the bench (--autonav ny) and the flag (planOn).
-const PLAN = {on:null, cell:2, fineR:350, k:1, w8:1.03, tries:6, maxExp:6e6, w:null, id:0, wait:new Map(), n:{plans:0, ms:0, tiles:0}};
+const PLAN = {on:null, cell:2, co:100, fineR:350, k:1, w8:1.15, tries:6, maxExp:6e6, w:null, id:0, wait:new Map(), n:{plans:0, ms:0, tiles:0}};
 // The search: self-contained (it runs in the worker, and in Node for the unit tests). start(J) begins one; run() goes on till it has a
 // way {path, exp}, has none {why, at, cause}, or needs tiles {need:[[cell, fx, fz] ...]}, which put() gives it; block() shuts a disc.
 // Two sizes of cell on one lattice: the fine one (J.c2 m; a tile of it is a block) within J.fineR of the two ends and where a search
@@ -26,7 +26,7 @@ const PLAN = {on:null, cell:2, fineR:350, k:1, w8:1.03, tries:6, maxExp:6e6, w:n
 // left), endR (metres round the ends where only what is solid shuts a cell), fineR, maxExp}
 function planMake(){
   const T2 = new Map(), T4 = new Map(), R2 = Math.SQRT2, DX = [1, 1, 0, -1, -1, -1, 0, 1], DZ = [0, 1, 1, 1, 0, -1, -1, -1];
-  let J = null, N = 0, c2 = 0, HF = new Float64Array(1024), HX = new Int32Array(1024), HZ = new Int32Array(1024), hn = 0, blocks = [], best = null, exp = 0, gx = 0, gz = 0, sx = 0, sz = 0, fine = new Set(), refined = 0, behind = null, far = false;
+  let J = null, N = 0, c2 = 0, HF = new Float64Array(1024), HX = new Int32Array(1024), HZ = new Int32Array(1024), hn = 0, blocks = [], best = null, exp = 0, gx = 0, gz = 0, sx = 0, sz = 0, fine = new Set(), refined = 0, behind = null, far = false, lim = 0;
   let cT = null, cK = 0, cS = 1, cX = 0, cZ = 0, cFx = 0, cFz = 0;   // (the cell last looked up: its tile, its place in it, its size in fine cells, its middle, the tile's own place)
   const key = (a, b) => a * 100003 + b;
   const at = (ix, iz) => { const bx = Math.floor(ix / N), bz = Math.floor(iz / N);
@@ -39,7 +39,30 @@ function planMake(){
       for (;;){ let c = 2 * i + 1; if (c >= hn) break; if (c + 1 < hn && HF[c + 1] < HF[c]) c++; if (HF[c] >= lf) break; HF[i] = HF[c]; HX[i] = HX[c]; HZ[i] = HZ[c]; i = c; } HF[i] = lf; HX[i] = lx; HZ[i] = lz; } return [f, x, z]; };
   // (what is left to the goal at least, as the cells are walked: straight and diagonal steps; J.w a little over 1 makes the search
   // go for the goal over open water instead of widening evenly, for a way that is at most that much longer before it is pulled straight)
-  const hh = (ix, iz) => { const a = Math.abs(gx - ix), b = Math.abs(gz - iz); return (a > b ? a + b * (R2 - 1) : b + a * (R2 - 1)) * c2 * (J.w || 1); };
+  // And where the chart's own cells are given (J.co: {x0, z0, c, W, H, v: 1 water, 0 land, 2 not known}), the way to the goal over
+  // them (CD, metres from each cell): round an island the straight line says nothing of how far it is, and the search would widen
+  // over all the water nearer the goal than the way round. It is counted as the search itself counts (straight and diagonal steps),
+  // less a cell and a half, so it is seldom more than what is truly left; in a sound the chart's cells shut, the straight line is
+  // what there is.
+  let CO = null, CD = null;
+  const coarse = () => { CO = J.co || null; CD = null; if (!CO) return; const W = CO.W, H = CO.H, c = CO.c, v = CO.v, n = W * H, wt = new Uint8Array(n);
+    for (let k = 0; k < n; k++) wt[k] = v[k] ? 1 : 0;
+    const D = new Float64Array(n).fill(Infinity), hf = [], hi = [], put = (f, k) => { let i = hf.length; hf.push(f); hi.push(k); while (i > 0){ const p = (i - 1) >> 1; if (hf[p] <= f) break; hf[i] = hf[p]; hi[i] = hi[p]; i = p; } hf[i] = f; hi[i] = k; };
+    const take = () => { const k = hi[0], lf = hf.pop(), lk = hi.pop(), m = hf.length; if (m){ let i = 0; for (;;){ let q = 2 * i + 1; if (q >= m) break; if (q + 1 < m && hf[q + 1] < hf[q]) q++; if (hf[q] >= lf) break; hf[i] = hf[q]; hi[i] = hi[q]; i = q; } hf[i] = lf; hi[i] = lk; } return k; };
+    const gi = Math.floor((J.b[0] - CO.x0) / c), gj = Math.floor((J.b[1] - CO.z0) / c);
+    for (let b = -2; b <= 2; b++) for (let a = -2; a <= 2; a++){ const x = gi + a, z = gj + b; if (x < 0 || z < 0 || x >= W || z >= H) continue; const d = Math.hypot((x + 0.5) * c + CO.x0 - J.b[0], (z + 0.5) * c + CO.z0 - J.b[1]); D[z * W + x] = d; put(d, z * W + x); }   // (the goal may lie on a quay the chart calls land)
+    while (hf.length){ const f = hf[0], k = take(); if (f > D[k]) continue; const i = k % W, j = (k - i) / W;
+      for (let q = 0; q < 8; q++){ const x = i + DX[q], z = j + DZ[q]; if (x < 0 || z < 0 || x >= W || z >= H) continue; const k2 = z * W + x; if (!wt[k2]) continue;
+        const nd = f + c * (q & 1 ? R2 : 1); if (nd < D[k2]){ D[k2] = nd; put(nd, k2); } } }
+    CD = D; };
+  // (what is left to the goal at least, as the cells are walked: straight and diagonal steps; J.w a little over 1 makes the search
+  // go for the goal over open water instead of widening evenly, for a way that is at most that much longer before it is pulled straight)
+  const hh = (ix, iz) => { const a = Math.abs(gx - ix), b = Math.abs(gz - iz); let h = (a > b ? a + b * (R2 - 1) : b + a * (R2 - 1)) * c2;
+    if (CD){ const c = CO.c, W = CO.W, fx = ((ix + 0.5) * c2 - CO.x0) / c - 0.5, fz = ((iz + 0.5) * c2 - CO.z0) / c - 0.5, i = Math.floor(fx), j = Math.floor(fz);
+      if (i >= 0 && j >= 0 && i < W - 1 && j < CO.H - 1){ const k = j * W + i, p = CD[k], q = CD[k + 1], r = CD[k + W], t = CD[k + W + 1];
+        const u = fx - i, w = fz - j, wp = p < Infinity ? (1 - u) * (1 - w) : 0, wq = q < Infinity ? u * (1 - w) : 0, wr = r < Infinity ? (1 - u) * w : 0, wt = t < Infinity ? u * w : 0, ws = wp + wq + wr + wt;   // (between the four cells round her that have a way; a cell of land has none)
+        if (ws > 1e-6){ const cd = ((wp ? p * wp : 0) + (wq ? q * wq : 0) + (wr ? r * wr : 0) + (wt ? t * wt : 0)) / ws - c * 1.5; if (cd > h) h = cd; } } }
+    return h * (J.w || 1); };
   // the water she needs at a place (dm): with her squat at full speed, less of it near the two ends, where she is slower
   const zNeed = (x, z) => { if (!(J.slowR > 0)) return J.needZ; const d = Math.sqrt(Math.min((x - J.a[0]) * (x - J.a[0]) + (z - J.a[1]) * (z - J.a[1]), (x - J.b[0]) * (x - J.b[0]) + (z - J.b[1]) * (z - J.b[1]))); return d >= J.slowR ? J.needZ : J.needZ0 + (J.needZ - J.needZ0) * d / J.slowR; };
   const nearEnd = (x, z) => { const e = J.endR; return (x - J.a[0]) * (x - J.a[0]) + (z - J.a[1]) * (z - J.a[1]) < e * e || (x - J.b[0]) * (x - J.b[0]) + (z - J.b[1]) * (z - J.b[1]) < e * e; };
@@ -64,7 +87,7 @@ function planMake(){
     for (let b = -m; b <= m; b++) for (let a = -m; a <= m; a++){ const d = a * a + b * b; if (d < bd && okAt(ix + a, iz + b) === 1){ bd = d; out = [ix + a, iz + b]; } } return out; };
   const reset = () => { for (const M of [T2, T4]) for (const t of M.values()) if (t.g){ t.g.fill(Infinity); t.st.fill(0); t.op.fill(0); } hn = 0; best = null; far = false; J.ready = false; };
   const fineAt = (x, z, r) => { const Tb = N * c2; for (let bz = Math.floor((z - r) / Tb); bz <= Math.floor((z + r) / Tb); bz++) for (let bx = Math.floor((x - r) / Tb); bx <= Math.floor((x + r) / Tb); bx++) fine.add(key(bx, bz)); };
-  function start(job){ J = job; N = J.N; c2 = J.c2; fine = new Set(); fineAt(J.a[0], J.a[1], J.fineR); fineAt(J.b[0], J.b[1], J.fineR); for (const f of J.fine || []) fineAt(f[0], f[1], f[2]); exp = 0; refined = 0; reset(); }
+  function start(job){ J = job; N = J.N; c2 = J.c2; fine = new Set(); fineAt(J.a[0], J.a[1], J.fineR); fineAt(J.b[0], J.b[1], J.fineR); for (const f of J.fine || []) fineAt(f[0], f[1], f[2]); exp = 0; refined = 0; coarse(); reset(); }
   function put(c, fx, fz, t){ const Y = t && !t.none ? {d:t.d, z:t.z, u:t.u, g:new Float32Array(N * N).fill(Infinity), par:new Int8Array(N * N), st:new Uint8Array(N * N), op:new Uint8Array(N * N)} : {none:true}; (c === c2 ? T2 : T4).set(key(fx, fz), Y); }
   function block(x, z, r){ blocks.push([x, z, r]); }
   function again(){ exp = 0; refined = 0; reset(); }   // (the same search once more, after a place was shut: the fine cells it had stay)
@@ -75,13 +98,14 @@ function planMake(){
       for (const [cx, cz] of [[ax, az], [bx, bz]]) for (const q of missing(cx, cz, m)) if (!need.some(v => v[0] === q[0] && v[1] === q[1] && v[2] === q[2])) need.push(q);
       if (need.length) return {need};
       const s = nearest(ax, az), g = nearest(bx, bz); if (!s) return {why:'start', at:J.a, cause:cause(ax, az)}; if (!g) return {why:'mål', at:J.b, cause:cause(bx, bz)};
-      sx = s[0]; sz = s[1]; gx = g[0]; gz = g[1]; at(sx, sz); cT.g[cK] = 0; push(hh(sx, sz), sx, sz); J.ready = true; }
+      sx = s[0]; sz = s[1]; gx = g[0]; gz = g[1]; at(sx, sz); cT.g[cK] = 0; push(hh(sx, sz), sx, sz); J.ready = true;
+      lim = Math.min(J.maxExp, exp + 3e5 + 150 * hh(sx, sz) / (c2 * 2)); }   // (a search that finds no way stops when it has looked at 150 cells for each one of the way it took to be left)
     while (hn){ const top = pop(), ix = top[1], iz = top[2]; at(ix, iz); const t = cT, k = cK, s = cS, px = cX, pz = cZ; if (t.st[k] === 2) continue;
       const m = 1 + (s === 1 ? J.rb2 : J.rb4), lx = k % N, lz = (k - lx) / N;
       if (lx < m || lz < m || lx >= N - m || lz >= N - m){ const need = missing(ix, iz, m * s); if (need.length){ push(top[0], ix, iz); return {need}; } }
       t.st[k] = 2; exp++; if (ix === gx && iz === gz) return finish();
       const h = hh(ix, iz); if (!best || h < best[0]) best = [h, ix, iz];
-      if (exp > J.maxExp){ hn = 0; far = true; break; }
+      if (exp > lim){ hn = 0; far = true; break; }
       const g0 = t.g[k]; let ok = 0;   // (bit i: the neighbour i is open)
       for (let i = 0; i < 8; i++) if (okAt(ix + DX[i] * s, iz + DZ[i] * s) === 1) ok |= 1 << i;
       for (let i = 0; i < 8; i++){ if (!(ok & (1 << i))) continue; if (i & 1){ if (!(ok & (1 << (i - 1))) || !(ok & (1 << ((i + 1) & 7)))) continue; }   // (no cutting a corner of what is shut)
@@ -146,7 +170,8 @@ function planMake(){
     return {path, exp, cells:n, refined}; }
   // (for the bench's pictures and the tests: whether the cell at a place is open to her, whether the search has been there, and its size)
   const peek = (x, z) => { const ix = Math.floor(x / c2), iz = Math.floor(z / c2); if (!at(ix, iz)) return null; const st = cT.st ? cT.st[cK] : 0, s = cS; return [okAt(ix, iz), st, s]; };
-  return {start, put, run, block, again, clear, peek};
+  const left = (x, z) => hh(Math.floor(x / c2), Math.floor(z / c2));   // (what the search takes to be left to the goal from a place, metres)
+  return {start, put, run, block, again, clear, peek, left};
 }
 // the worker (false where one cannot start): the search and its tiles live there
 function planWorker(){ if (PLAN.w !== null) return PLAN.w;
@@ -160,6 +185,15 @@ function planWorker(){ if (PLAN.w !== null) return PLAN.w;
 function planWhy(r){ const c = {grunt:['for grunt for båten', 'too shallow for the boat'], bru:['brua er for lav for båten', 'the bridge is too low for the boat'], trangt:['for trangt for båten', 'too narrow for the boat'], land:['land i veien', 'land in the way'], ukjent:['kartet er ikke lastet der', 'the chart is not loaded there']}[r.cause] || ['ingen vei', 'no way'];
   const p = r.at ? natLL({x:r.at[0] / 1000, y:r.at[1] / 1000}) : null, at = p ? ' (' + p.lat.toFixed(4) + '° N, ' + p.lon.toFixed(4) + '° Ø)' : '';
   return r.why === 'for langt' ? ['Fant ingen bane: søket ble for stort' + at, 'Found no way: the search grew too large' + at] : ['Fant ingen bane: ' + c[0] + at, 'Found no way: ' + c[1] + at]; }
+// The chart's own cells over the water between the two ends and a way round them, for the search's sense of how far it is (planMake,
+// J.co): cells of PLAN.co m, each 1 where one of the depth layer's cells in it is water, 0 land, 2 where the chart is not in.
+// null where it would be too big, or the layer is not there. In slices
+function* planCoarseG(ax, az, bx, bz){ const L = MAPD.L && MAPD.L.depth; if (!L) return null; const c = L.c * 1000, m = Math.max(1, Math.round(PLAN.co / c)), C = c * m, D = Math.hypot(bx - ax, bz - az), M = Math.max(2000, Math.min(8000, 0.35 * D + 1500));
+  const i0 = Math.floor((Math.min(ax, bx) - M) / C), j0 = Math.floor((Math.min(az, bz) - M) / C), W = Math.floor((Math.max(ax, bx) + M) / C) - i0 + 1, H = Math.floor((Math.max(az, bz) + M) / C) - j0 + 1; if (W * H > 400000) return null;
+  const v = new Uint8Array(W * H), r0 = L.ix0 + 1, r1 = L.ix0 + L.nx - 2, s0 = L.iy0 + 1, s1 = L.iy0 + L.ny - 2; if (FARB.F) FARB.F.at = 'plan:kart';
+  for (let j = 0; j < H; j++){ for (let i = 0; i < W; i++){ let o = 0; for (let b = 0; b < m && o !== 1; b++) for (let a = 0; a < m; a++){ const ri = (i0 + i) * m + a, rj = (j0 + j) * m + b; if (ri < r0 || ri > r1 || rj < s0 || rj > s1 || !mapPackOf(L, Math.floor(ri / L.n), Math.floor(rj / L.n))){ o = 2; continue; }
+        let q; try { q = rcell(L, ri, rj); } catch (e){ o = 2; continue; } if (q > 0){ o = 1; break; } } v[j * W + i] = o; if (!(i & 63)) yield; } yield; }
+  return {x0:i0 * C, z0:j0 * C, c:C, W, H, v}; }
 // The bane from a to b (km) for a boat of the type (hers when left out): {bane, pts (for a plan, each with s), nm, ms, tiles, tries,
 // exp, Hmin} or {why (words), cause, at ([X, Z] m), ms}. opt: {kn (the speed she is sent at), end (false: she does not stop at b),
 // side (the margin to the side, m)}. Asynchronous: the tiles are built as the search asks for them
@@ -172,7 +206,11 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
   const side = opt && opt.side != null ? opt.side : FARB.side, own = BANE.own * boat.L;
   const nd = c => Math.ceil((boat.B / 2 + side + c * 0.5) / F.q), rb = c => boat.B / 2 + side > c * 1.5 ? Math.ceil((boat.B / 2 + side - c * 1.5) / c) : 0;
   const J = {c2, N:F.N, q:F.q, a:[ax, az], b:[bx, bz], clr:boat.B / 2 + side, needD2:nd(c2), needD4:nd(c2 * 2), rb2:rb(c2), rb4:rb(c2 * 2), needZ:Math.ceil((boat.T + sq + FARB.keel - lv + FARB.eps) * 10), needZ0:Math.ceil((boat.T + FARB.keel - lv + FARB.eps) * 10), slowR:bb.stop(bb.vmax) * 0.6, needU:Math.ceil((boat.air + FARB.airOver) / 0.25),
-    pref:Math.min(F.cap - 1, Math.max(25, boat.B * 3)), k:PLAN.k, w:PLAN.w8, endR:own + c2 * 2, fineR:PLAN.fineR, maxExp:Math.min(PLAN.maxExp, 4e5 + 40 * (Math.hypot(bx - ax, bz - az) / (c2 * 2)) ** 2)};   // (a search that finds no way stops when it has been over forty times the square of the distance)
+    pref:Math.min(F.cap - 1, Math.max(25, boat.B * 3)), k:PLAN.k, w:PLAN.w8, endR:own + c2 * 2, fineR:PLAN.fineR, maxExp:PLAN.maxExp};
+  // (the chart's cells for the way round: the packs over the box are waited for as a tap in the chart waits for them, the blocks warmed)
+  try { const M = Math.max(2000, Math.min(8000, 0.35 * Math.hypot(bx - ax, bz - az) + 1500)), x0 = Math.min(ax, bx) - M, x1 = Math.max(ax, bx) + M, z0 = Math.min(az, bz) - M, z1 = Math.max(az, bz) + M;
+    for (let z = z0; z < z1 + 6000; z += 6000) for (let x = x0; x < x1 + 6000; x += 6000) await mapNeed({x:Math.min(x, x1) / 1000, y:Math.min(z, z1) / 1000}, 4.5);
+    await farbBlocks(x0, z0, x1, z1); J.co = await farbRunA(planCoarseG(ax, az, bx, bz)); } catch (e){ J.co = null; }
   PLAN.J = J;
   const send = msg => new Promise(res => { const id = ++PLAN.id; PLAN.wait.set(id, res); w.postMessage(Object.assign({id}, msg)); });
   const skip = h => Math.hypot(h.x - ax, h.z - az) - (h.R || 0) < own || Math.hypot(h.x - bx, h.z - bz) - (h.R || 0) < own;   // (her own berth, by where the touch is; a vessel lying there by her nearest point)

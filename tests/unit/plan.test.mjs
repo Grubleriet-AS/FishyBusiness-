@@ -89,6 +89,17 @@ export default function (t){
   W = world(box(gap8)); r = solve(W, {a:[100, 100], b:[700, 100]});
   t.ok(r.why && r.cause === 'trangt', 'et løp på 8 m er for trangt for henne også på de fine rutene, og svaret sier det', [r.why, r.cause]);
 
+  // The chart's own cells for how far it is (J.co): a long island with the way round its far end. The straight line to the goal says
+  // nothing of that, and the search looks through all the water on this side; with the chart's cells it goes for the end at once
+  const lang = box((x, z) => Math.abs(x - 400) < 100 && z > -200);   // (an island 200 m across: the chart's cells of 50 m have it)
+  const chart = (land, c) => { const x0 = -200, z0 = -400, Wc = Math.ceil(1200 / c), Hc = Math.ceil(1000 / c), v = new Uint8Array(Wc * Hc);
+    for (let j = 0; j < Hc; j++) for (let i = 0; i < Wc; i++){ let o = 0; for (let b = 0; b < 4 && !o; b++) for (let a = 0; a < 4; a++) if (!land(x0 + (i + (a + 0.5) / 4) * c, z0 + (j + (b + 0.5) / 4) * c)){ o = 1; break; } v[j * Wc + i] = o; } return {x0, z0, c, W:Wc, H:Hc, v}; };
+  W = world(lang); const uten = solve(W, {a:[100, 300], b:[700, 300], w:1.03}), med = solve(W, {a:[100, 300], b:[700, 300], w:1.03, co:chart(lang, 50)});
+  t.ok(uten.path && med.path && Math.abs(len(med.path) - len(uten.path)) < len(uten.path) * 0.01, 'med sjøkartets ruter som avstand til målet: samme vei rundt en lang øy (innen 1 %)', [uten.path && len(uten.path), med.path && len(med.path)]);
+  t.ok(med.exp < uten.exp * 0.8, 'og færre ruter sett på (i en så liten verden er det meste fine ruter ved endene)', [uten.exp, med.exp]);
+  t.ok(med.PL.left(100, 300) > 1100 && med.PL.left(100, 300) < 1327 * 1.08 && uten.PL.left(100, 300) < 650, 'fra starten vet søket at det er over 1 100 m igjen (veien er 1 327), ikke 600 som den rette linja sier', [med.PL.left(100, 300), uten.PL.left(100, 300)]);
+  console.log('plan: rundt en lang øy (' + (uten.path ? len(uten.path).toFixed(0) : '-') + ' og ' + (med.path ? len(med.path).toFixed(0) : '-') + ' m), ruter sett på uten og med sjøkartets avstand: ' + uten.exp + ' og ' + med.exp + ', fliser ' + uten.asked + ' og ' + med.asked);
+
   // a place shut after the check on the geometry found something there: the way goes another
   W = world(() => false); r = solve(W, {a:[100, 100], b:[400, 100]}, [[250, 100, 30]]);
   t.ok(r.path && distTo(r.path, 250, 100) >= 26, 'et sted kontrollen har stengt, går veien utenom', r.path && distTo(r.path, 250, 100));
