@@ -861,7 +861,7 @@ crew: people with skills, habits and moods
   - 722 `flyOut(c)`
   - 730 `flyTick()`
 
-## `src/js/core/05-vessels.js` (1513 linjer)
+## `src/js/core/05-vessels.js` (1514 linjer)
 
 ---------- other vessels (deterministic, so every player sees the same traffic) ----------
 
@@ -926,52 +926,52 @@ crew: people with skills, habits and moods
   - 816 `plantFuel(b)`
   - 819 `sailV(H, hs)`
   - 835 `sail(H, W, hs)`
-  - 872 `sailWaiting()`
-  - 873 `sailReplan(pl, b, gp)`
-  - 929 `iceWhy(p, tried)`
-  - 931 `sailStop(pl, b, why)`
-  - 939 `haltPlan(need)`
-  - 949 `arrive(w)`
-  - 970 `unstuckWhy()`
-  - 976 `unstuckSpot()`
-  - 989 `agFree()`
-  - 1000 `unstuck()`
-- **1014** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
-  - 1022 `moorPhase(b)`
-  - 1037 `dock(pid, berth)`
-  - 1065 `catchFactors(H, W, hs)`
-  - 1078 `stockDev(p, sp)`
-  - 1084 `fish(H, W, hs)`
-  - 1190 `endFishing(why)`
-  - 1211 `bycHere(how)`
-  - 1215 `bycAdd(sp, kg, how)`
-  - 1219 `bycConf()`
-  - 1222 `addCatch(sp, kg, cls, hook, opt)`
-- **1244** work on deck: gutting and icing take hands and time
-  - 1260 `deckHands()`
-  - 1263 `deckPending()`
-  - 1264 `deckEta(hands)`
-  - 1269 `moveKg(x, kg, patch)`
-  - 1277 `iceMinute()`
-  - 1284 `iceOut(out)`
-  - 1290 `deckMinute()`
-- **1315** lying to in a storm (H1b R8, 05.11.2026)
-  - 1337 `quayFar(b)`
-  - 1341 `lieTo(W, hs)`
-  - 1348 `lieToStep(W, hs)`
-  - 1358 `risk(W, hs)`
-  - 1386 `hullRepair()`
-  - 1389 `svcOverdue()`
-- **1390** the rescue boat (plan E3, 05.10.2026)
-  - 1416 `rescueBases()`
-  - 1425 `rescueBase(p)`
-  - 1432 `rescueAis(H)`
-  - 1436 `rescue(keepCatch)`
-  - 1464 `towSea(p)`
-  - 1469 `towRoutes(b)`
-  - 1480 `towStep(H)`
-  - 1493 `towDone(t)`
-  - 1502 `towPose(frac)`
+  - 873 `sailWaiting()`
+  - 874 `sailReplan(pl, b, gp)`
+  - 930 `iceWhy(p, tried)`
+  - 932 `sailStop(pl, b, why)`
+  - 940 `haltPlan(need)`
+  - 950 `arrive(w)`
+  - 971 `unstuckWhy()`
+  - 977 `unstuckSpot()`
+  - 990 `agFree()`
+  - 1001 `unstuck()`
+- **1015** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
+  - 1023 `moorPhase(b)`
+  - 1038 `dock(pid, berth)`
+  - 1066 `catchFactors(H, W, hs)`
+  - 1079 `stockDev(p, sp)`
+  - 1085 `fish(H, W, hs)`
+  - 1191 `endFishing(why)`
+  - 1212 `bycHere(how)`
+  - 1216 `bycAdd(sp, kg, how)`
+  - 1220 `bycConf()`
+  - 1223 `addCatch(sp, kg, cls, hook, opt)`
+- **1245** work on deck: gutting and icing take hands and time
+  - 1261 `deckHands()`
+  - 1264 `deckPending()`
+  - 1265 `deckEta(hands)`
+  - 1270 `moveKg(x, kg, patch)`
+  - 1278 `iceMinute()`
+  - 1285 `iceOut(out)`
+  - 1291 `deckMinute()`
+- **1316** lying to in a storm (H1b R8, 05.11.2026)
+  - 1338 `quayFar(b)`
+  - 1342 `lieTo(W, hs)`
+  - 1349 `lieToStep(W, hs)`
+  - 1359 `risk(W, hs)`
+  - 1387 `hullRepair()`
+  - 1390 `svcOverdue()`
+- **1391** the rescue boat (plan E3, 05.10.2026)
+  - 1417 `rescueBases()`
+  - 1426 `rescueBase(p)`
+  - 1433 `rescueAis(H)`
+  - 1437 `rescue(keepCatch)`
+  - 1465 `towSea(p)`
+  - 1470 `towRoutes(b)`
+  - 1481 `towStep(H)`
+  - 1494 `towDone(t)`
+  - 1503 `towPose(frac)`
 
 ## `src/js/core/05b-ferje.js` (197 linjer)
 
@@ -2642,7 +2642,7 @@ THE CATCH: WHERE THE PLAYERS' BOATS TOUCH WHAT IS NOT CLEAN WATER (the autonav r
   - 167 `slamRate(b = S.boat, H = S.t / 60, hard = 1)`
   - 199 `slamMinute()`
 
-## `src/js/core/17-farbar.js` (739 linjer)
+## `src/js/core/17-farbar.js` (741 linjer)
 
 FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2.0 F1, steg 141, 23.11.2026)
 
@@ -2700,18 +2700,48 @@ FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2
 - **420** the questions
   - 422 `farbGather(x, z, R)`
   - 443 `farbGone(o, n, buf = FARB.buf)`
-  - 449 `farbNearest(x, z, cap, boat, opt)`
-  - 460 `farbClear(x, z, boat, cap, opt)`
-  - 463 `farbCoastSegs(x0, z0, x1, z1)`
-  - 474 `farbPose(X, Z, psi, boat, H, opt)`
-  - 515 `farbSweep(p0, p1, boat, H, opt)`
-- **528** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
-  - 542 `farbFieldBuild(J)`
-  - 637 `farbSegOutParts(PK, ax, az, bx, bz)`
-  - 712 `farbFieldWorker()`
-  - 720 `farbFieldTile(cell, fx, fz)`
-  - 723 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
-  - 737 `farbFieldAt(x, z, cell = 2)`
+  - 450 `farbNearest(x, z, cap, boat, opt)`
+  - 461 `farbClear(x, z, boat, cap, opt)`
+  - 464 `farbCoastSegs(x0, z0, x1, z1)`
+  - 476 `farbPose(X, Z, psi, boat, H, opt)`
+  - 517 `farbSweep(p0, p1, boat, H, opt)`
+- **530** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
+  - 544 `farbFieldBuild(J)`
+  - 639 `farbSegOutParts(PK, ax, az, bx, bz)`
+  - 714 `farbFieldWorker()`
+  - 722 `farbFieldTile(cell, fx, fz)`
+  - 725 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
+  - 739 `farbFieldAt(x, z, cell = 2)`
+
+## `src/js/core/17b-bane.js` (104 linjer)
+
+BANEN: THE WAY AS A TRAJECTORY SHE CAN SAIL (Autonav 2.0 F2, steg 142, 24.11.2026)
+
+- **1** BANEN: THE WAY AS A TRAJECTORY SHE CAN SAIL (Autonav 2.0 F2, steg 142, 24.11.2026)
+  - 13 `baneBoat(type, kn)`
+  - 21 `baneBuild(pts, o)`
+  - 34 `baneAt(B, s)`
+  - 39 `baneBefore(o, v1, d)`
+  - 42 `baneSpeed(B)`
+  - 53 `baneV(B, s)`
+  - 54 `baneS(B, t)`
+  - 58 `banePts(B)`
+  - 76 `baneFri(B, boat, H, opt)`
+  - 82 `baneLeg(pl)`
+  - 83 `baneOf(g)`
+  - 90 `baneSail(pl, b, left0)`
+
+## `src/js/core/17c-plan.js` (281 linjer)
+
+PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2, steg 142, 24.11.2026)
+
+- **1** PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2, steg 142, 24.11.2026)
+  - 28 `planMake()`
+  - 192 `planWorker()`
+  - 200 `planWhy(r)`
+  - 215 `planBane(a, b, type, opt)`
+  - 275 `planInto(pl, R, i0, i1)`
+  - 280 `planOn()`
 
 ## `src/js/ui/01-i18n.js` (120 linjer)
 

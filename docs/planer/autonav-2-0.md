@@ -374,6 +374,48 @@ Sjekket 23.11.2026 (dekning og lisens). Økta har begrenset nett: OSM-tallene, G
 | **Kaimodulene** (`view3d/22-docks-air.js` `quayMod`) | **Gjennomgått (andre økt).** 3D bygger en kai fra land ut til båten der hun ligger: ved kaiplassene rederiet holder, der spillerens båt ligger nå, og ved havnenes egne båter. Der en båt ligger, står kaia mellom henne og land, og hun er i kartet som fartøy som ligger stille. Kaia ved en kaiplass rederiet holder, står også mens båten er ute: den er nå en ting i kartet (leses fra `S.havn` uten å skrive i lagringen). |
 | Båtens egen kaiplass | En båt som ligger inntil sin egen kai, berører kaias vegg i kartet. Planleggeren og styringen (F2, F3) må ha regelen benken har: det hun lå inntil da hun kastet loss, er ikke et treff. |
 
+## Planleggeren (F2, steg 142, pågår 24.11.2026)
+
+Jonas: «Kjør på med steg 142». Koden: `src/js/core/17b-bane.js` (banen) og `17c-plan.js` (søket og kontrollen); systemdokumentet `docs/systemer/autonav.md` 4.12y sier hva hver del gjør. Ingenting i spillet kaller dette ennå: bare benken (`tools/autonav/benk.py --autonav ny --motor bakgrunn`). Gammel Autonav er urørt.
+
+### Det som er bygget
+
+- **Banen:** rette stykker og buer hun kan svinge, fart etter stopplengden (også ut fra kai), fartsgrense per strekk, skroget sveipt langs hvert stykke med `farbSweep`, og minuttsteget som følger banen etter klokka (`baneSail`, ett kall i `sail()`). Planen lagrer bare punktene og en kort oppskrift (`b2`); banen bygges ved behov.
+- **Søket:** A* på feltets fliser i en worker, med to rutestørrelser på ett gitter (2 m ved endene og der det er trangt, 4 m ellers), styrt av avstanden over sjøkartets 50 m-ruter. Kostnaden er tiden: lengden, mer nær land der det er plass, mer der hun må gå sakte over grunt vann.
+- **Kontrollen:** veien blir bane og sveipes på geometrien ved laveste vann, med marginene fra valg 4. Buer strammes, farten senkes over grunt vann, og det som fortsatt tar borti, stenges før et nytt søk. Uten bane sier svaret hvorfor og hvor.
+- **Benken:** `--autonav ny` planlegger med `planBane` og seiler bakgrunnsturen langs banen.
+
+### Det benken viser (runde 6, 24.11.2026, `docs/planer/autonav-benk/ny-steg142/turer.jsonl`)
+
+332 av rundt 372 linjer (kjøringen ble stoppet der; 93 strekninger, alle unntatt kategorien `rute`), bakgrunnsturen, uten CPU-strupingen. Mot grunnlinja (`grunnlinje2`, bakgrunn: 97 turer med treff, 153 treff):
+
+| | Ny (delvis) | Kravet |
+|---|---|---|
+| Turer seilt | 224 | |
+| Turer med treff | 11 (16 treff: 9 fartøy som ligger stille, 3 flytebrygge, 3 fjære, 1 land) | 0 |
+| Uten bane der fasiten har vei | 46 (20 «søket ble for stort», 12 «for grunt», 8 «brua er for lav», 5 «for trangt», 1 «land») | 0 |
+| Lengde mot fasiten, median | 1,5 % over | høyst 5 % |
+| Baner over 15 % lenger enn fasiten | 8 (sund-bolandet, sund-urangsvag, stamsund, smola-vest-ut) | ingen |
+| Planleggingstid, ustrupet, maskinen opptatt | median 0,6 s, p90 2,8 s, lengst 9,7 s | under 1 s strupet fire ganger (ikke målt) |
+| Seilt tid mot banens tid | median 1,8 ganger | innen 2 % |
+
+Tallene er fra en maskin som kjørte tre benkdeler samtidig, så tidene er ikke målinger etter kravet. Treffene og banene er ikke påvirket av det.
+
+### Det som står igjen i steget
+
+1. **«Søket ble for stort» (20):** ikke funnet ut av. Kontrollens forklaring (fliser bedt om bare ved flisas egen kant) er rettet og dekket av en test, men tallet gikk ikke ned. Neste: bilde av søkets ruter på ett av stedene (bru-storvalen, 0,49 nm).
+2. **«For grunt» og «brua er for lav» (20):** fasiten ser ikke dybde, så en del av disse er steder som trenger mudret renne (valg 5, oppgave 7: ikke begynt), og kaidekker som feltet har som lav bru utenfor egen plass.
+3. **Treffene (11 turer):** fartøy som ligger stille like utenfor regelen for egen kaiplass, og fjære ved sund-urangsvag.
+4. **Omveiene (8 baner):** der det trange løpet ikke er på veien det første søket (bare det faste stenger) finner.
+5. **Ankomsttiden:** `sailV` har 5 knop i havn, fartsgrenser og akselerasjon per minutt som banens profil ikke kjenner. Banen må ta dem inn, eller `sail()` følge banens fart.
+6. **Planleggingstiden** målt etter kravet (strupet fire ganger, stille maskin, `farsjekk.py --felt`-måten for skivene). Trolig trengs 8 m-ruter på åpne strekk.
+7. **Ikke begynt:** havnesøket med kurs (G2: rygge ut, snu), flagget `#autonav2` i spillet (`planOn()` finnes, ingenting kaller den), tegnede ruter rettet ved «Kast loss» med logglinje, rennene, strekningen forbi havvind ved Karmøy.
+8. **Fra den uavhengige kontrollen, ikke rettet:** laveste vann regnes fra nå, ikke fra når en senere etappe seiles; `planInto` flytter ikke `pl.unsafe`; en vending over 172° gir en bue som ikke tangerer neste strekk; buer strammes ned til halve bredden (en manøver, ikke en sving: F3 må behandle dem slik); minuttsteget langs banen viker ikke for andre fartøy og brenner diesel etter minuttets fart.
+
+### Det kontrollen fant (24.11.2026)
+
+En fersk agent fikk diffen og «Ferdig når». Den fant at punkt 1 og 2 holder delvis og 3–5 ikke, og ti feil i koden. Rettet samme økt: flisene bes om der søket kommer til dem; et første søk viser hvor de fine rutene trengs (et løp på 13 m ble ellers 43 % omvei); fartsgrensen til korte stykker; minnet over frie stykker kjenner farten; egen kaiplass regnes etter der hun selv er for ting; stenging legges der hun sto; `baneSail` går videre fra planens sted, stopper for sjøis og fyller ikke sporet; workeren kaster flisene når kartet endres. Ett funn var feil lest: benken lar det observatøren ser av vannet følge samme regel som kaia (bare spillets egen grunnstøting teller alltid), og fars naust har tørt opptrekk.
+
 ## Fasene
 
 Hver fase er én økt (F2 og F3 kan trenge to). Gammel Autonav står urørt og er standard til F6.
@@ -435,3 +477,4 @@ Alle sju ble som anbefalt. Det som ikke ble valgt, står med for sammenhengen.
 - 23.11.2026, F0 (steg 140) ferdig (Jonas: «Kjør på»; samme økt). Benken er bygget (`tools/autonav/benk.py`, `benk.js`, `benkobs.js`, `strekninger.json` med 97 strekninger, `tests/unit/benkobs.test.mjs`), kjørt på dagens Autonav, og grunnlinja står over. «Ferdig når» fra `start/140.md`: (1) 97 strekninger, med spillernes verste steder, de tre bruene og de fem stedene uten rute inn; (2) fire båter, begge motorer, treff, lengde mot fasit, knekk, planleggingstid, lengste blokkering strupet fire ganger, tid og diesel i de to motorene; (3) observatøren ser hele skroget sveipt, også bakgrunnsturene, og enhetstesten (26 sjekker; 9 røde med sveipet slått av) viser hva jaktens observatør hopper over; (4) grunnlinja står i planfila, og benken er rød på 29 av de 38 strekningene fra spillernes fangst; (5) brudekk-berøringene er gjenskapt ved alle tre bruene og forklart. Ingen endring i `src/`, ingen utrulling. Neste: F1 (steg 141), `docs/planer/start/141.md`.
 - 23.11.2026, F1 (steg 141) pågår (Jonas: «Kjør på med steg 141»; samme økt). Bygget: `core/17-farbar.js` med geometrien, spørsmålene og feltet i worker, `mapBlockWarm` i loaderen, `VESSELS.air` for alle 15 typene, `tests/unit/farbar.test.mjs` (117 sjekker), `tools/autonav/farsjekk.py`. Sjekket: 32 144 skrogstillinger og 3 648 sveip mot benkens observatør uten én stilling der kartet sier fritt og observatøren ser en berøring; feltet mot geometrien i 259 200 ruter. Den uavhengige kontrollen fant tre feil i sveipet og brudekket (punkt 7 til 9 i «Farbarhetskartet»), som er rettet, og at «aldri over 4 ms» ikke holder (124 av 75 017 skiver). Avgjort: båtenes høyde med pisker, bru-kilden (OSM og NVDB Vegnett Pluss; Kartverkets maritime infrastruktur forkastet til de har sagt ja), kraftspenn er ingen hindring. Lagt: steg 141b (bruene og `air` i bruk). Igjen i 141 («Hvor langt» i `start/141.md`): moloenes form, marinaenes småbåter, kaimodulene, de siste lange skivene.
 - 23.11.2026, F1 (steg 141) ferdig (Jonas: «Kjør på med resten av steg 141»; andre økt). Lagt til: dybden i workeren, moloens form i kartet, feltet og observatøren, marinaenes småbåter og kaiplassenes kaier i kartet, 3D rettet så småbåter ikke ligger i veien inn til en kai eller under bryggene, bassengpasset i farsjekken, grunnlinja kjørt på nytt (`grunnlinje2`). Jonas' to svar om hovedtråden: «Fortsett å jage», så «Skriv om kravet»; det nye kravet holder i målingen av alle 96 stedene. «Ferdig når» fra `start/141.md`: (1) holder; (2) 144 enhetssjekker; (3) 32 144 stillinger, 3 648 sveip og 23 173 bassengsveip uten én der kartet sier fritt og observatøren ser en berøring; (4) holder etter det nye kravet, 187,5 kB per flis; (5) holder, 141b lagt. Startmeldingen for F2 er skrevet (`start/142.md`). Ikke gjort: turbinene er ikke prøvd mot observatøren, og ingen renne er mudret; begge står i oppgaven til 142.
+- 24.11.2026, F2 (steg 142) pågår (Jonas: «Kjør på med steg 142»). Bygget: banen, søket på to rutestørrelser i worker, kontrollen, bakgrunnsturen langs banen, benken med `--autonav ny`. Benken (delvis, 332 linjer): 11 av 224 turer med treff (grunnlinja: 97), 46 uten bane der fasiten har vei, median lengde 1,5 % over fasiten. «Ferdig når» 1 og 2 holder delvis, 3–5 ikke; se «Planleggeren (F2, steg 142)» for hva som står igjen. Samme steg fortsetter.
