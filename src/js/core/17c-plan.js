@@ -27,7 +27,7 @@ const PLAN = {on:null, realAir:false, ver:'', sent:0, cell:2, co:100, fineR:350,
 // left), endR (metres round the ends where only what is solid shuts a cell), fineR, maxExp}
 function planMake(){
   const T2 = new Map(), T4 = new Map(), R2 = Math.SQRT2, DX = [1, 1, 0, -1, -1, -1, 0, 1], DZ = [0, 1, 1, 1, 0, -1, -1, -1];
-  let J = null, N = 0, c2 = 0, HF = new Float64Array(1024), HX = new Int32Array(1024), HZ = new Int32Array(1024), hn = 0, blocks = [], best = null, exp = 0, gx = 0, gz = 0, sx = 0, sz = 0, fine = new Set(), refined = 0, behind = null, far = false, lim = 0, pre = 2, fineN = 0;
+  let J = null, N = 0, c2 = 0, HF = new Float64Array(1024), HX = new Int32Array(1024), HZ = new Int32Array(1024), hn = 0, blocks = [], best = null, exp = 0, gx = 0, gz = 0, sx = 0, sz = 0, fine = new Set(), refined = 0, behind = null, far = false, lim = 0, pre = 2, fineN = 0, decks = 0;
   let cT = null, cK = 0, cS = 1, cX = 0, cZ = 0, cFx = 0, cFz = 0;   // (the cell last looked up: its tile, its place in it, its size in fine cells, its middle, the tile's own place)
   const key = (a, b) => a * 100003 + b;
   const at = (ix, iz) => { const bx = Math.floor(ix / N), bz = Math.floor(iz / N);
@@ -91,7 +91,7 @@ function planMake(){
     for (let b = -m; b <= m; b++) for (let a = -m; a <= m; a++){ const d = a * a + b * b; if (d < bd && okAt(ix + a, iz + b) === 1){ bd = d; out = [ix + a, iz + b]; } } return out; };
   const reset = () => { for (const M of [T2, T4]) for (const t of M.values()) if (t.g){ t.g.fill(Infinity); t.st.fill(0); t.op.fill(0); } hn = 0; best = null; far = false; J.ready = false; };
   const fineAt = (x, z, r) => { const Tb = N * c2; for (let bz = Math.floor((z - r) / Tb); bz <= Math.floor((z + r) / Tb); bz++) for (let bx = Math.floor((x - r) / Tb); bx <= Math.floor((x + r) / Tb); bx++) fine.add(key(bx, bz)); };
-  function start(job){ J = job; N = J.N; c2 = J.c2; fine = new Set(); fineAt(J.a[0], J.a[1], J.fineR); fineAt(J.b[0], J.b[1], J.fineR); for (const f of J.fine || []) fineAt(f[0], f[1], f[2]); exp = 0; refined = 0; fineN = 0; pre = J.pre === false ? 2 : 1; coarse(); reset(); }
+  function start(job){ J = job; N = J.N; c2 = J.c2; fine = new Set(); fineAt(J.a[0], J.a[1], J.fineR); fineAt(J.b[0], J.b[1], J.fineR); for (const f of J.fine || []) fineAt(f[0], f[1], f[2]); exp = 0; refined = 0; fineN = 0; decks = 0; pre = J.pre === false ? 2 : 1; coarse(); reset(); }
   function put(c, fx, fz, t){ const Y = t && !t.none ? {d:t.d, z:t.z, u:t.u, g:new Float32Array(N * N).fill(Infinity), par:new Int8Array(N * N), st:new Uint8Array(N * N), op:new Uint8Array(N * N)} : {none:true}; (c === c2 ? T2 : T4).set(key(fx, fz), Y); }
   function block(x, z, r){ blocks.push([x, z, r]); }
   function again(){ exp = 0; refined = 0; pre = 2; reset(); }   // (the same search once more, after a place was shut: the fine cells it had stay)
@@ -103,7 +103,7 @@ function planMake(){
       if (need.length) return {need};
       const s = nearest(ax, az), g = nearest(bx, bz); if (!s) return {why:'start', at:J.a, cause:cause(ax, az)}; if (!g) return {why:'mål', at:J.b, cause:cause(bx, bz)};
       sx = s[0]; sz = s[1]; gx = g[0]; gz = g[1]; at(sx, sz); cT.g[cK] = 0; push(hh(sx, sz), sx, sz); J.ready = true;
-      lim = Math.min(J.maxExp, exp + 5e5 + 600 * hh(sx, sz) / (c2 * 2)); }   // (a search that finds no way stops when it has looked at 600 cells for each one of the way it took to be left: the way round a bridge too low for her, which the chart's cells know nothing of, is found by filling the water this side of it)
+      lim = exp + Math.min(J.maxExp, 5e5 + 600 * hh(sx, sz) / (c2 * 2)); }   // (a search that finds no way stops when it has looked at 600 cells for each one of the way it took to be left: the way round a bridge too low for her, which the chart's cells know nothing of, is found by filling the water this side of it)
     while (hn){ const top = pop(), ix = top[1], iz = top[2]; at(ix, iz); const t = cT, k = cK, s = cS, px = cX, pz = cZ; if (t.st[k] === 2) continue;
       const m = 1 + (s === 1 ? J.rb2 : J.rb4), lx = k % N, lz = (k - lx) / N;
       if (lx < m || lz < m || lx >= N - m || lz >= N - m){ const need = missing(ix, iz, m * s); if (need.length){ push(top[0], ix, iz); return {need}; } }
@@ -128,6 +128,13 @@ function planMake(){
     // Nothing more to try. What shut her out, and where the water goes on behind it; where that is behind something narrow or
     // shallow on the big cells, the same is searched again on the fine ones there (three times at most)
     at(best[1], best[2]); const bxm = cX, bzm = cZ, cs = cause(best[1], best[2], true); if (cs && cs.need) return cs;
+    // A bridge too low for her: the chart's cells know nothing of it, so the way they showed went under it and the search filled the
+    // water on this side. The cells with a deck too low over them (in the tiles that are in) are land to the chart's cells from now,
+    // and the search goes again with the way round as its sense of how far it is (three times at most)
+    if (cs === 'bru' && CO && decks < 3){ let n = 0; const c = CO.c, W = CO.W, H = CO.H;
+      for (const [M, sz] of [[T2, c2], [T4, c2 * 2]]) for (const [kk, t] of M){ if (t.none) continue; const fz = kk % 100003, fx = (kk - fz) / 100003, x0 = fx * N * sz, z0 = fz * N * sz;
+        for (let k = 0; k < N * N; k++){ const u = t.u[k]; if (u === 255 || u >= J.needU) continue; const i = Math.floor((x0 + (k % N + 0.5) * sz - CO.x0) / c), j = Math.floor((z0 + (Math.floor(k / N) + 0.5) * sz - CO.z0) / c); if (i >= 0 && j >= 0 && i < W && j < H && CO.v[j * W + i]){ CO.v[j * W + i] = 0; n++; } } }
+      if (n){ decks++; coarse(); reset(); return {again:true}; } }
     if (far) return {why:'for langt', at:[bxm, bzm], cause:cs, exp};
     if (behind && (cs === 'grunt' || cs === 'trangt') && refined < 3 && behind.some(q => q[2] === 2)){ refined++; for (const q of behind) fineAt(q[0], q[1], 60); fineAt(bxm, bzm, 60); reset(); return {again:true}; }
     return {why:'ingen vei', at:[bxm, bzm], cause:cs, exp}; }
@@ -182,7 +189,7 @@ function planMake(){
     // (the ends as they were given: the first and the last cell's middle give way to them where they are in the same cell)
     if (Math.hypot(path[0][0] - J.a[0], path[0][1] - J.a[1]) < c2 * 1.5) path[0] = J.a.slice(); else path.unshift(J.a.slice());
     const e = path.length - 1; if (Math.hypot(path[e][0] - J.b[0], path[e][1] - J.b[1]) < c2 * 1.5 && e > 0) path[e] = J.b.slice(); else path.push(J.b.slice());
-    return {path, exp, cells:n, refined, fineN}; }
+    return {path, exp, cells:n, refined, fineN, decks}; }
   // (for the bench's pictures and the tests: whether the cell at a place is open to her, whether the search has been there, and its size)
   const peek = (x, z) => { const ix = Math.floor(x / c2), iz = Math.floor(z / c2); if (!at(ix, iz)) return null; const st = cT.st ? cT.st[cK] : 0, s = cS; return [okAt(ix, iz), st, s]; };
   const left = (x, z) => hh(Math.floor(x / c2), Math.floor(z / c2));   // (what the search takes to be left to the goal from a place, metres)

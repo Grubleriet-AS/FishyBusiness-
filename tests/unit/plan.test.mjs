@@ -122,6 +122,13 @@ export default function (t){
     r = solve(W1, {a:[290, 900], b:[290, 230], w:1.15});
     t.ok(r.path && r.exp < 20000 && Math.abs(len(r.path) - 670) < 5, 'fra åpent hav inn i en kanal, målet 290 m inne: funnet rett fram (flisene bes om der søket kommer til dem)', r.path ? [r.exp, r.asked, len(r.path)] : [r.why, r.cause, r.exp, r.asked]); }
 
+  // A sound through the island with a bridge too low for her, and the way round the island's far end. The chart's cells have the sound
+  // open, so the search goes for it and fills the water on this side; when that has found nothing, the deck is land to the chart's
+  // cells and the search goes round (the bench, 24.11.2026: Hønebrua, Steinvågbrua and Reine gave «søket ble for stort»)
+  { const sund = box((x, z) => Math.abs(x - 400) < 100 && z > -200 && Math.abs(z - 300) > 20), lav = (x, z) => Math.abs(x - 400) < 110 && Math.abs(z - 300) < 26 ? 12 : 255;
+    W = world(sund, null, lav); r = solve(W, {a:[100, 300], b:[700, 300], w:1.15, co:chart(sund, 50), maxExp:9000});
+    t.ok(r.path && r.decks >= 1 && r.path.some(p => p[1] < -200), 'et sund med en for lav bru, og veien rundt øya: når søket ikke kommer under, blir brua land for sjøkartets ruter, og det går rundt', r.path ? [r.decks, len(r.path), r.exp] : [r.why, r.cause, r.exp]); }
+
   // a place shut after the check on the geometry found something there: the way goes another
   W = world(() => false); r = solve(W, {a:[100, 100], b:[400, 100]}, [[250, 100, 30]]);
   t.ok(r.path && distTo(r.path, 250, 100) >= 26, 'et sted kontrollen har stengt, går veien utenom', r.path && distTo(r.path, 250, 100));
