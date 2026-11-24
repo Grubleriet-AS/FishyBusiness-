@@ -33,8 +33,8 @@ export default function (t){
   r = solve(W, {a:[450, 250], b:[50, 50]}); t.ok(r.path && Math.abs(len(r.path) - Math.hypot(400, 200)) < 1e-6, 'og samme vei tilbake: fra fine ruter til grove også mot vest og nord', r.path ? len(r.path) : [r.why, r.cause]);
 
   // out of a bay that opens to the west only: from the fine cells into the big ones on that side (a big cell is come to at its even place)
-  W = world((x, z) => x > 300 && (x > 470 || Math.abs(z - 250) > 30)); r = solve(W, {a:[450, 250], b:[100, 250]});
-  t.ok(r.path && Math.abs(len(r.path) - 350) < 1, 'ut av en bukt som bare er åpen mot vest: fra fine ruter til grove også den veien', r.path ? len(r.path) : [r.why, r.cause]);
+  W = world((x, z) => x > 300 && (x > 670 || Math.abs(z - 250) > 30)); r = solve(W, {a:[650, 250], b:[100, 250]});
+  t.ok(r.path && !r.refined && Math.abs(len(r.path) - 550) < 1, 'ut av en bukt som bare er åpen mot vest: fra fine ruter til grove også den veien', r.path ? len(r.path) : [r.why, r.cause]);
 
   // a breakwater across the way (x 250, z from -200 to 300): round its end at z 300, never nearer it than her half beam and margin
   const molo = (x, z) => Math.abs(x - 250) < 4 && z > -200 && z < 300;
