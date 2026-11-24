@@ -16,7 +16,7 @@ export default function (t){
   // the search run to its end, the tiles given as it asks (asked: how many; fineT: how many of them of the fine cells)
   const solve = (W, J, blocks) => { const PL = K.planMake(), job = Object.assign({c2, N, q, clr:3.5, needD2:Math.ceil((3.5 + 1) / q), needD4:Math.ceil((3.5 + 2) / q), rb2:0, rb4:0, needZ:25, needZf:25, slow:3, needU:20, pref:25, k:0.35, w:1, endR:14, fineR:40, maxExp:1e6}, J); let asked = 0, fineT = 0;
     PL.start(job); for (const b of blocks || []) PL.block(b[0], b[1], b[2]);
-    for (let g = 0; g < 900; g++){ const r = PL.run(); if (!r.need) return Object.assign(r, {asked, fineT, PL}); for (const [c, fx, fz] of r.need){ asked++; if (c === c2) fineT++; PL.put(c, fx, fz, W.tile(c, fx, fz)); } }
+    for (let g = 0; g < 900; g++){ const r = PL.run(); if (r.needCo){ PL.co(job.coBig || null); job.coBig = null; continue; } if (!r.need) return Object.assign(r, {asked, fineT, PL}); for (const [c, fx, fz] of r.need){ asked++; if (c === c2) fineT++; PL.put(c, fx, fz, W.tile(c, fx, fz)); } }
     return {why:'løkke'}; };
   const len = P => P.reduce((s, p, i) => i ? s + Math.hypot(p[0] - P[i - 1][0], p[1] - P[i - 1][1]) : 0, 0);
   const distTo = (P, x, z) => { let m = Infinity; for (let i = 1; i < P.length; i++){ const ax = P[i - 1][0], az = P[i - 1][1], bx = P[i][0], bz = P[i][1], l2 = (bx - ax) ** 2 + (bz - az) ** 2, u = l2 ? Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (z - az) * (bz - az)) / l2)) : 0; m = Math.min(m, Math.hypot(ax + (bx - ax) * u - x, az + (bz - az) * u - z)); } return m; };
@@ -133,10 +133,12 @@ export default function (t){
   W = world(() => false); r = solve(W, {a:[100, 100], b:[400, 100]}, [[250, 100, 30]]);
   t.ok(r.path && distTo(r.path, 250, 100) >= 26, 'et sted kontrollen har stengt, går veien utenom', r.path && distTo(r.path, 250, 100));
 
-  // her height for the bridges: the one the game sails by today (0.35 of her length, 2 to 16 m), till the bridges have their real
-  // clearances (steg 141b); the model's own height with aerials (VESSELS.air) when PLAN.realAir says both are real
-  { const P = K.get('PLAN'), V = K.get('VESSELS'), b0 = K.planBoat('sjark'); t.near(b0.air, Math.min(16, Math.max(2, V.sjark.len * 0.35)), 1e-9, 'båtens høyde under bruer er den spillet seiler etter i dag (0,35 av lengden)');
+  // her height for the bridges: as the game counts it today (0.35 of her length, 2 to 16 m, and no tide), till the bridges have their
+  // real clearances (steg 141b); the model's own height with aerials (VESSELS.air) when PLAN.realAir says both are real
+  { const P = K.get('PLAN'), V = K.get('VESSELS'), FB = K.get('FARB'), b0 = K.planBoat('sjark'), rule = Math.min(16, Math.max(2, V.sjark.len * 0.35)); t.near(b0.air, rule, 1e-9, 'båtens høyde under bruer er den spillet seiler etter i dag (0,35 av lengden)');
     t.ok(V.sjark.air > b0.air + 2, 'og ikke modellens egen med antenner, som er flere meter mer', [V.sjark.air, b0.air]);
+    FB.w = {land:() => 0, coast:() => [1e9, 0], depth:() => 50, tide:() => 0, zc:() => 0, hat:() => 1.5, pocket:() => false, known:() => true};
+    try { const b1 = K.planBoat('sjark', 9e6, 9e6); t.near(b1.air, rule - K.farbHat(9e6, 9e6), 1e-9, 'og kartets høyeste tidevann trekkes fra, for kartet måler dekket derfra og spillets regel gjør det ikke', [b1.air, K.farbHat(9e6, 9e6)]); } finally { FB.w = null; }
     P.realAir = true; try { t.near(K.planBoat('sjark').air, V.sjark.air, 1e-9, 'med ekte bruhøyder inne (PLAN.realAir) er det modellens egen'); } finally { P.realAir = false; } }
 
   // the words
