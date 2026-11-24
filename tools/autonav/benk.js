@@ -171,14 +171,23 @@
     // held between two turns of the event loop while it was worked out
     async route(A, Z, from){ const b = S.boat, atN = b.status === 'port' && berthKind(b) === 'naust'; let nt = null;
       if (Z.kind === 'naust'){ nt = naustTarget(berthPose(Z.id, b.type, 'naust') || Z.p, 0.5); if (!nt) return {why:'the naust is not a place to go for her (naustTarget)'}; }
+      if (BK.ny) return BK.route2(Z, from, nt);
       const ch = new MessageChannel(); let last = performance.now(), gap = 0, on = true; ch.port1.onmessage = () => { const t = performance.now(); if (t - last > gap) gap = t - last; last = t; if (on) ch.port2.postMessage(0); }; ch.port2.postMessage(0);
       const t0 = performance.now(); let r;
       try { r = await draftWay(from, Z.p, A.kind === 'll' || atN ? null : A.id, Z.kind === 'll' ? null : Z.id, atN, A.kind === 'll' ? null : A.id, nt); } catch (e){ r = {why:['error: ' + String(e && e.message).slice(0, 120)]}; }
       const ms = performance.now() - t0; on = false; const t = performance.now(); if (t - last > gap) gap = t - last; ch.port1.close();
       if (!r || !r.wps || !r.wps.length) return {why:String(r && r.why ? r.why[0] : 'none').slice(0, 120), ms:Math.round(ms), gap:+gap.toFixed(1)};
       const st = r.st || {}; return {r, nt, ms:Math.round(ms), gap:+gap.toFixed(1), st:{ms:st.ms, maxSlice:st.maxSlice, slices:st.slices, expanded:st.expanded, by:st.by, loadMs:st.loadMs, soft:st.soft}}; },
+    // Autonav 2.0 (--autonav ny): the bane the planner finds (17c-plan.js planBane), timed the same way
+    async route2(Z, from, nt){ const ch = new MessageChannel(); let last = performance.now(), gap = 0, on = true; ch.port1.onmessage = () => { const t = performance.now(); if (t - last > gap) gap = t - last; last = t; if (on) ch.port2.postMessage(0); }; ch.port2.postMessage(0);
+      const t0 = performance.now(), sl0 = FARB.F.n.slice; FARB.F.n.slice = 0; let R;
+      try { R = await planBane(from, nt ? {x:nt.x, y:nt.y} : Z.p, null, {kn:BOAT.vmax}); } catch (e){ R = {why:['error: ' + String(e && e.message).slice(0, 120)]}; }
+      const ms = performance.now() - t0; on = false; const t = performance.now(); if (t - last > gap) gap = t - last; ch.port1.close(); const slice = FARB.F.n.slice; FARB.F.n.slice = Math.max(sl0, slice);
+      if (!R.bane) return {why:String(R.why ? R.why[0] : 'none').slice(0, 160), cause:R.cause, at:R.at, ms:Math.round(ms), gap:+gap.toFixed(1), tries:R.tries, tiles:R.tiles};
+      return {r:{wps:R.pts.map(q => ({x:q.x, y:q.y})), nm:R.nm, bane:R}, nt, ms:Math.round(ms), gap:+gap.toFixed(1), st:{ms:R.ms, maxSlice:+slice.toFixed(1), expanded:R.exp, tiles:R.tiles, tries:R.tries, time:Math.round(R.bane.time)}}; },
     plan(r, Z, nt, full){ const n = r.wps.length, last = nt ? {x:nt.x, y:nt.y, port:Z.id, berth:'naust', fish:0} : Z.id ? {x:Z.p.x, y:Z.p.y, port:Z.id, fish:0} : {x:Z.p.x, y:Z.p.y, port:null, fish:0, leia:true};
       S.plan = {wps:r.wps.map((q, i) => i === n - 1 ? last : {x:q.x, y:q.y, port:null, fish:0, leia:true}), idx:0, speed:full ? BOAT.vmax : BOAT.vcruise, full:!!full, returning:false};
+      if (r.bane){ S.plan.wps = [last]; planInto(S.plan, r.bane, 0, 1); }
       return {id:Z.id, name:Z.name, p:nt ? {x:nt.x, y:nt.y} : Z.p, berth:Z.kind === 'naust' ? 'naust' : null}; },
     // how the route looks: its length, its turns over 30 degrees per nautical mile, all its turning (degrees a mile), its legs shorter
     // than two boat lengths outside the harbours, and the straight line

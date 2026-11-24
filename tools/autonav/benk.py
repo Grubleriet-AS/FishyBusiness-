@@ -92,6 +92,7 @@ async def run(a):
             pg.on('pageerror', lambda e: st['errs'].append(str(e)[:200]))
             await boot(pg, GAME + ('' if 'no3d' in GAME else ',no3d'))
             await pg.evaluate(ns['SETUP'], ['kyst21', 0, True]); await pg.evaluate(obs_js); await pg.evaluate(bk_js)
+            await pg.evaluate("v => { BK.ny = v; }", a.autonav == 'ny')
             st['pg'] = pg; st['cdp'] = await pg.context.new_cdp_session(pg)
 
         async def ev(js, arg=None, secs=900): return await asyncio.wait_for(st['pg'].evaluate(js, arg), secs)
@@ -116,7 +117,7 @@ async def run(a):
                         R['rute'] = await ev(ROUTE, True)
                         if R['rute'].get('why'): R['ingen_rute'] = R['rute']['why']
                         else:
-                            if not a.uten_cpu:
+                            if not a.uten_cpu and a.autonav != 'ny':   # (the boat model's ticks: the new one has none before F3)
                                 await slow(True); R['cpu'] = await ev(CPU, CPU_TICKS); await slow(False)
                             for e in engines: R[e] = await ev(SAIL, e); n_trip += 1
                         if not a.uten_fasit: R['fasit'] = await ev(FASIT, None)
@@ -303,7 +304,7 @@ def main():
     ap.add_argument('--uten-cpu', action='store_true'); ap.add_argument('--uten-fasit', action='store_true'); ap.add_argument('--bare-rute', action='store_true')
     ap.add_argument('--bare-cpu', action='store_true', help='the route and the first steps of the model with the CPU slowed, nothing sailed: run alone, so the times are the machine\'s own')
     ap.add_argument('--bilde', default='', help='a folder for a picture of each stretch and boat run: the route, the reference and the touches')
-    ap.add_argument('--autonav', default='gammel', help='which Autonav is sailed (gammel: the game as it is; ny comes with F2)')
+    ap.add_argument('--autonav', default='gammel', help='which Autonav is sailed (gammel: the game as it is; ny: the planner of F2, 17c-plan.js, as the background trip: --motor bakgrunn)')
     ap.add_argument('--liste', action='store_true'); ap.add_argument('--rapport', nargs='+'); ap.add_argument('--sammenlign', nargs=2, metavar=('A', 'B'))
     a = ap.parse_args()
     if a.rapport: return rapport(a.rapport)

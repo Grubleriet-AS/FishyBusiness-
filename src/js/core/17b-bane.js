@@ -67,13 +67,23 @@ function* baneFriG(B, boat, H, opt, memo){
     if (memo) memo.set(key, 1); }
   return null; }
 function baneFri(B, boat, H, opt){ const g = baneFriG(B, boat, H, opt); let r; while (!(r = g.next()).done); return r.value; }
-// The minute step along a plan with a bane (05-vessels.js sail calls this instead of its own way from point to point): she goes as
-// far along the bane as its own speeds take her in the minute, never faster than the minute's own speed (the weather, the plan's
-// setting), and comes to the plan's points as she passes them (arrive: the quay, the logbook). left0: km she may go this minute
-function baneSail(pl, b, left0){ const B = pl.bane; if (!B || !B.T){ return false; }
-  const s0 = pl.baneS || 0; let s = s0, t = 0; const cap = left0 * 1000;
+// A plan that follows banes has pl.b2: {len (how many points the plan had when it was made), legs:[{i0, n, q, kn, end, type}], at, s}.
+// A leg is the plan's points i0 .. i0 + n - 1 (the bane's own, banePts) and what the bane is built again from: q its points (with
+// each corner's radius), kn the speed and the boat's type. The bane itself (typed arrays) is never in the plan, which is saved:
+// it is built when it is asked for and kept by the leg (BANE.of). at, s: the leg she is on and how far along it
+BANE.of = new WeakMap();
+function baneLeg(pl){ const Y = pl.b2; if (!Y || Y.len !== pl.wps.length) return null; for (const g of Y.legs) if (pl.idx >= g.i0 && pl.idx < g.i0 + g.n) return g; return null; }
+function baneOf(g){ let Y = BANE.of.get(g); if (Y) return Y.B ? Y : null;
+  try { const B = baneBuild(g.q.map(q => q.slice()), Object.assign(baneBoat(g.type, g.kn), {end:g.end !== false})), at = banePts(B).map(q => q.s); Y = at.length === g.n ? {B, at} : {}; } catch (e){ Y = {}; }
+  BANE.of.set(g, Y); return Y.B ? Y : null; }
+// The minute step along a plan with a bane (05-vessels.js sail calls this before its own way from point to point): she goes as far
+// along the bane as its own speeds take her in the minute, never faster than the minute's own speed (the weather, the plan's
+// setting), and comes to the plan's points as she passes them (arrive: the quay, the logbook). left0: km she may go this minute.
+// False where the plan has no bane for where she is (it then sails as before)
+function baneSail(pl, b, left0){ const g = baneLeg(pl), Y = g && baneOf(g); if (!Y) return false; const B = Y.B, R = pl.b2;
+  if (R.at !== g.i0){ R.at = g.i0; R.s = pl.idx > g.i0 ? Y.at[pl.idx - g.i0 - 1] : 0; }
+  const s0 = R.s; let s = s0, t = 0; const cap = left0 * 1000;
   while (t < 60 && s < B.len && s - s0 < cap){ const v = Math.max(BANE.vMin, baneV(B, s)), dt = Math.min(2, 60 - t); s = Math.min(B.len, s + v * dt, s0 + cap); t += dt; }
-  pl.baneS = s; const q = baneAt(B, s); b.heading = q.psi; b.v = (s - s0) / 60 / KN_MS;
-  // the plan's points she has passed (the points are the bane's own, banePts: pl.baneAt[i] is how far along each lies)
-  while (pl.idx < pl.wps.length && (pl.baneAt ? pl.baneAt[pl.idx] : Infinity) <= s + 1e-3){ const w = pl.wps[pl.idx]; b.pos = {x:w.x, y:w.y}; if (arrive(w)) return true; }
+  R.s = s; const q = baneAt(B, s); b.heading = q.psi; b.v = (s - s0) / 60 / KN_MS;
+  while (pl.idx < g.i0 + g.n && Y.at[pl.idx - g.i0] <= s + 1e-3){ const w = pl.wps[pl.idx], i = pl.idx; b.pos = {x:w.x, y:w.y}; if (arrive(w) || S.plan !== pl || pl.idx === i) return true; }
   b.pos = {x:q.X / 1000, y:q.Z / 1000}; return true; }

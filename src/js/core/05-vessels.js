@@ -841,6 +841,7 @@ function sail(H, W, hs){
   const v = sailV(H, hs); b.v = v;
   let left = v * NM / 60 * gridScale(b.pos);   // (true km on the grid: gridScale, H1b)
   fuelUse(b, fuelLph(v, W) / 60);
+  if (pl.b2 && baneSail(pl, b, left)) return;   // Autonav 2.0: the plan has a bane, and she follows it by the clock (17b-bane.js)
   obsSail(pl, b);   // round a bridge's pier, a pier or a mark on the leg ahead (11b-obstacles.js)
   if (sjvSail(pl, b, left)) return;   // giving way for a vessel she must (Ø11.1, 05e-sjovei.js): the minute is the manoeuvre's
   // (her squat at the minute's speed, in open water: the manoeuvring model has the narrow sounds when the game is open, Ø9 F5)
@@ -955,7 +956,7 @@ function arrive(w){
   if (w.port){ dock(w.port, w.berth); return true; }
   pl.idx++;
   if (w.anchor){ S.plan = null; b.status = 'idle'; b.v = 0; if (!dropAnchor(true)) log('Fant ikke grunn å ankre på her.', 'Found no ground to anchor on here.'); return true; }   // a rest at anchor, or home at an anchorage (06h-plan2-engine.js)
-  if (!(w.fish > 0) && pl.idx < pl.wps.length){ const nw = pl.wps[pl.idx], c = Math.round(trueDeg(Math.atan2(nw.x - w.x, -(nw.y - w.y)), w)) % 360; log('WP' + pl.idx + ' passert. Ny kurs ' + String(c).padStart(3, '0') + '°.', 'WP' + pl.idx + ' passed. New course ' + String(c).padStart(3, '0') + '°.', 'nav'); }
+  if (!(w.fish > 0) && !w.bane && pl.idx < pl.wps.length){ const nw = pl.wps[pl.idx], c = Math.round(trueDeg(Math.atan2(nw.x - w.x, -(nw.y - w.y)), w)) % 360; log('WP' + pl.idx + ' passert. Ny kurs ' + String(c).padStart(3, '0') + '°.', 'WP' + pl.idx + ' passed. New course ' + String(c).padStart(3, '0') + '°.', 'nav'); }
   // work with passive gear at this waypoint: set or haul, then any fishing hours with the jig
   if (w.act){ b.status = 'idle'; const why = w.act.op === 'cycle' ? gearCycle(w, w.fish) : w.act.op === 'haul' ? startHaul(w.act.sid, w.act.reset, w.fish) : startSet(w.act.kind, w.act.spec, w.fish); if (!why) return true; log(why[0], why[0]); if (S.plan && S.plan.p2 && typeof plan2ActWhy === 'function') plan2ActWhy(w, why); if (!(w.fish > 0)) b.status = 'sailing'; }
   if (w.fish > 0){ b.status = 'fishing'; b.fishUntil = S.t + w.fish * 60; if ((rigJig() || (S.plan && S.plan.ops && !S.plan.noJig)) && vesselJigs()) log('Fremme på feltet. Starter fiske i ' + w.fish + ' t.', 'Arrived on the grounds. Fishing for ' + w.fish + ' h.'); else log('Fremme. Båten er rigget for ' + rigName(rigOf()).toLowerCase() + ', så den ligger og venter i ' + w.fish + ' t.', 'Arrived. The boat is rigged for ' + rigName(rigOf()).toLowerCase() + ', so it waits for ' + w.fish + ' h.'); return true; }

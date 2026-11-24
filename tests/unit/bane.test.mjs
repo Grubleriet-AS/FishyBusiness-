@@ -41,5 +41,20 @@ export default function (t){
     t.eq(K.baneFri(B, boat, 0), null, 'en stake i selve hjørnepunktet (utenfor buen) er ikke i veien: banen går ikke dit');
     FARB.test = [{k:'c', what:'merke', id:'slutt', x:far.x + 200, z:far.z + 190, r:0.5}];
     h = K.baneFri(B, boat, 0); t.ok(h && h.id === 'slutt', 'en stake på det siste stykket blir funnet'); t.eq(K.baneFri(B, boat, 0, {skip:(q2, X, Z) => Math.hypot(q2.x - far.x - 200, q2.z - far.z - 200) < 15}), null, 'og ikke når det er det hun legger til ved (innen halvannen båtlengde fra enden)');
+    // the minute step along it (05-vessels.js sail asks baneSail first): the plan holds the bane's points and what it is built again
+    // from, and she comes to the end when the bane says she does
+    const bb = K.baneBoat('sjark', 8), B3 = K.baneBuild([at(0, 0), at(600, 0), at(600, 900), at(900, 1200)], Object.assign({}, bb, {end:true})), S = K.get('S');
+    const pl = {wps:[{x:0, y:0, port:null, fish:0, leia:true}], idx:0, speed:8}; K.planInto(pl, {pts:K.banePts(B3), bane:B3}, 0, 1);
+    t.eq(pl.wps.length, K.banePts(B3).length, 'planen får banens punkter'); t.ok(pl.b2 && pl.b2.legs.length === 1 && !('bane' in pl) && JSON.stringify(pl).length < 4000, 'og en kort oppskrift på banen, ikke banen selv (planen lagres)', JSON.stringify(pl).length);
+    const pl2 = JSON.parse(JSON.stringify(pl)); S.plan = pl2; S.boat.pos = {x:far.x / 1000, y:far.z / 1000}; S.boat.status = 'sailing';   // (as after a save and a load)
+    let min = 0, at2 = null; while (pl2.idx < pl2.wps.length && min < 500){ if (!K.baneSail(pl2, S.boat, 99)) break; min++; if (min === 2) at2 = {x:S.boat.pos.x, y:S.boat.pos.y, h:S.boat.heading}; }
+    t.ok(Math.abs(min * 60 - B3.time) < Math.max(60, B3.time * 0.02), 'hun er framme når banen sier det, innen 2 % (eller minuttet)', [min * 60, B3.time]);
+    const q2 = K.baneAt(B3, K.baneS(B3, 120)); t.ok(at2 && Math.hypot(at2.x * 1000 - q2.X, at2.y * 1000 - q2.Z) < 12, 'og etter to minutter der banen sier hun er', at2 && Math.hypot(at2.x * 1000 - q2.X, at2.y * 1000 - q2.Z));
+    t.near(S.boat.pos.x * 1000, far.x + 900, 0.01, 'turen ender i banens siste punkt');
+    // never faster than the minute's own speed (the weather): 0.1 km a minute at most
+    const pl3 = JSON.parse(JSON.stringify(pl)); S.plan = pl3; S.boat.pos = {x:far.x / 1000, y:far.z / 1000}; K.baneSail(pl3, S.boat, 0.1);
+    t.near(Math.hypot(S.boat.pos.x * 1000 - far.x, S.boat.pos.y * 1000 - far.z), 100, 0.5, 'og aldri fortere enn minuttets egen fart');
+    // a plan whose points were changed after the bane was put in has none (it sails as before)
+    const pl4 = JSON.parse(JSON.stringify(pl)); pl4.wps.splice(1, 1); t.eq(K.baneSail(pl4, S.boat, 99), false, 'en plan som er endret etterpå, har ingen bane og seiler som før');
   } finally { FARB.w = null; FARB.test = null; }
 }

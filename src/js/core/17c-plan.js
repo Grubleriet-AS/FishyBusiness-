@@ -12,7 +12,7 @@
 //     search goes again, a few times at most.
 // Within a length and a half of the two ends her own quay does not count (the bench's rule for her own berth, tools/autonav/benk.js).
 // Where there is no way, the answer says why and where. Nothing calls this but the bench (--autonav ny) and the flag (planOn).
-const PLAN = {cell:4, k:1, tries:6, maxExp:6e6, w:null, id:0, wait:new Map(), n:{plans:0, ms:0, tiles:0}};
+const PLAN = {on:null, cell:4, k:1, tries:6, maxExp:6e6, w:null, id:0, wait:new Map(), n:{plans:0, ms:0, tiles:0}};
 // The search: self-contained (it runs in the worker, and in Node for the unit tests). start(J) begins one; run() goes on till it has a
 // way {path, exp}, has none {why, at, cause}, or needs tiles {need:[[fx, fz] ...]}, which put() gives it; block() shuts a disc.
 // J: {cell, N, q (metres a step of d), a, b ([X, Z] metres), clr (metres she needs to the side: half her beam and the margin), needD (steps of q:
@@ -154,7 +154,12 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     if (hit.what === 'ukjent' || ++tries > PLAN.tries){ PLAN.n.plans++; return fail({why:'ingen vei', cause:cs, at:[hit.x, hit.z]}, {tiles, tries, exp, hit:hit.what + ':' + hit.id}); }
     // shut round what she touched, a cell wider for each time, and search again
     r = await send({op:'block', J, x:hit.x, z:hit.z, r:boat.B / 2 + side + cell * (1 + tries)}); } }
-// The plan's points replaced by a bane's (the bench, and the flag): pl.bane, pl.baneAt (how far along each point lies), pl.baneS (how
-// far she has come). The last point keeps what the plan's last point was (the harbour she docks in)
-function planInto(pl, R){ const last = pl.wps[pl.wps.length - 1], n = R.pts.length;
-  pl.wps = R.pts.map((q, i) => i === n - 1 ? Object.assign({}, last, {x:q.x, y:q.y}) : {x:q.x, y:q.y, port:null, fish:0, leia:true}); pl.baneAt = R.pts.map(q => q.s); pl.bane = R.bane; pl.baneS = 0; pl.idx = 0; return pl; }
+// A bane into a plan (the bench, and the flag): the plan's points i0 .. i1 - 1 (the way to the stop at i1 - 1, which is kept as it is:
+// the harbour she docks in, the fishing there) replaced by the bane's own, and the leg written in pl.b2 (17b-bane.js baneLeg).
+// A plan's legs are put in from the last to the first, so the places of those before stand
+function planInto(pl, R, i0, i1){ const last = pl.wps[i1 - 1], n = R.pts.length, B = R.bane;
+  const pts = R.pts.map((q, i) => i === n - 1 ? Object.assign({}, last, {x:q.x, y:q.y}) : {x:q.x, y:q.y, port:null, fish:0, leia:true, bane:true});
+  pl.wps.splice(i0, i1 - i0, ...pts); const Y = pl.b2 || (pl.b2 = {legs:[], at:-1, s:0}); for (const g of Y.legs) if (g.i0 >= i1) g.i0 += n - (i1 - i0);
+  Y.legs.push({i0, n, q:B.Q.map(q => [+q[0].toFixed(2), +q[1].toFixed(2), +(q[2] || 0).toFixed(2)]), kn:+(B.o.vmax / KN_MS).toFixed(2), end:B.o.end !== false, type:B.o.type}); Y.len = pl.wps.length; return pl; }
+// whether the new Autonav is the one that sails: #autonav2 in the address (and what the bench sets)
+function planOn(){ if (PLAN.on == null){ PLAN.on = false; try { PLAN.on = /[#&,]autonav2\b/.test(location.hash); } catch (e){} } return PLAN.on; }
