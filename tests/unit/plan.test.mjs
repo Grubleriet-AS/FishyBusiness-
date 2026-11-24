@@ -91,7 +91,7 @@ export default function (t){
   // on each side), open on the fine ones, which the search turns to there when it finds the water goes on behind something narrow
   const gap = (x, z) => Math.abs(x - 400) < 4 && Math.abs(z - 100) > 6.5;
   W = world(box(gap), (x, z) => 200); r = solve(W, {a:[100, 100], b:[700, 100]});
-  t.ok(r.path && r.refined >= 1 && distTo(r.path, 400, 100) < 6, 'et løp på 13 m midt på veien: stengt på de grove rutene, funnet på de fine, som søket tar i bruk der', r.path ? [r.refined, distTo(r.path, 400, 100)] : [r.why, r.cause]);
+  t.ok(r.path && (r.refined >= 1 || r.fineN > 0) && distTo(r.path, 400, 100) < 6, 'et løp på 13 m midt på veien: stengt på de grove rutene, funnet på de fine, som søket tar i bruk der', r.path ? [r.refined, distTo(r.path, 400, 100)] : [r.why, r.cause]);
   t.ok(r.PL.peek(400, 100)[2] === 1 && r.PL.peek(250, 250)[2] === 2, 'og bare der: resten av veien er fortsatt grov');
   const gap8 = (x, z) => Math.abs(x - 400) < 4 && Math.abs(z - 100) > 4;
   W = world(box(gap8)); r = solve(W, {a:[100, 100], b:[700, 100]});
@@ -107,6 +107,20 @@ export default function (t){
   t.ok(med.exp < uten.exp * 0.8, 'og færre ruter sett på (i en så liten verden er det meste fine ruter ved endene)', [uten.exp, med.exp]);
   t.ok(med.PL.left(100, 300) > 1100 && med.PL.left(100, 300) < 1327 * 1.08 && uten.PL.left(100, 300) < 650, 'fra starten vet søket at det er over 1 100 m igjen (veien er 1 327), ikke 600 som den rette linja sier', [med.PL.left(100, 300), uten.PL.left(100, 300)]);
   console.log('plan: rundt en lang øy (' + (uten.path ? len(uten.path).toFixed(0) : '-') + ' og ' + (med.path ? len(med.path).toFixed(0) : '-') + ' m), ruter sett på uten og med sjøkartets avstand: ' + uten.exp + ' og ' + med.exp + ', fliser ' + uten.asked + ' og ' + med.asked);
+
+  // the same sound with a wide opening 300 m to the side (the independent control's case, 24.11.2026): the way goes through the sound, not
+  // round by the opening, because the first search (only what is solid shuts a cell) shows where the fine cells are needed
+  const gap2 = (x, z) => Math.abs(x - 400) < 4 && Math.abs(z - 100) > 6.5 && !(z > 380 && z < 440);
+  W = world(box(gap2)); r = solve(W, {a:[100, 100], b:[700, 100]}); const rundt = solve(W, {a:[100, 100], b:[700, 100], pre:false});
+  t.ok(r.path && len(r.path) < 620 && r.fineN > 0, 'et løp på 13 m med en bred åpning 300 m unna: gjennom løpet, ikke rundt', r.path ? [len(r.path), r.fineN] : [r.why, r.cause]);
+  t.ok(rundt.path && len(rundt.path) > 800, '(uten det første søket går veien rundt: 43 % lenger)', rundt.path && len(rundt.path));
+  // From the open sea into a channel of 40 m, the goal 290 m up it (the control's case): a block of fine cells begins in the middle of a
+  // big tile, so the tiles are asked for where the search comes to them, not only at a tile's own edge (the fine block's edge was a
+  // wall, and the search filled the sea: 615 000 cells and no way)
+  { const kan = (x, z) => x < -600 || x > 1200 || z > 1500 || z < 100 || (z < 520 && Math.abs(x - 290) > 20), W0 = world(kan);
+    const W1 = {tile:(c, fx, fz) => { const T = N * c, x0 = fx * T, z0 = fz * T; return z0 > 600 && z0 + T < 1420 && x0 > -520 && x0 + T < 1120 ? {d:new Uint8Array(N * N).fill(240), z:new Uint8Array(N * N).fill(200), u:new Uint8Array(N * N).fill(255)} : W0.tile(c, fx, fz); }};
+    r = solve(W1, {a:[290, 900], b:[290, 230], w:1.15});
+    t.ok(r.path && r.exp < 20000 && Math.abs(len(r.path) - 670) < 5, 'fra åpent hav inn i en kanal, målet 290 m inne: funnet rett fram (flisene bes om der søket kommer til dem)', r.path ? [r.exp, r.asked, len(r.path)] : [r.why, r.cause, r.exp, r.asked]); }
 
   // a place shut after the check on the geometry found something there: the way goes another
   W = world(() => false); r = solve(W, {a:[100, 100], b:[400, 100]}, [[250, 100, 30]]);

@@ -28,7 +28,7 @@ function baneBuild(pts, o){ const Q = [pts[0]]; for (let i = 1; i < pts.length; 
     if (l > 1e-6){ P.push({k:'l', ax:prev[0], az:prev[1], bx:e[0], bz:e[1], psi:Math.atan2(u1[0], -u1[1]), len:l, s0:s, c:i, vl:Math.min(o.vmax, Q[i][3] > 0 ? Q[i][3] : Infinity)}); s += l; }
     prev = e;
     if (i < n - 1 && cut[i] > 0 && rad[i] > 0.05){ const r = rad[i], g = sg[i], cx = e[0] - u1[1] * g * r, cz = e[1] + u1[0] * g * r, a0 = Math.atan2(e[1] - cz, e[0] - cx), da = g * phi[i], l2 = r * phi[i];
-      P.push({k:'a', cx, cz, r, a0, da, len:l2, s0:s, c:i, vl:Math.min(r >= o.R * 0.98 ? o.vmax : Math.min(o.vmax * Math.max(0.3, r / o.R), r < o.R * 0.5 ? Math.max(BANE.vTight, o.vmax * 0.3) : o.vmax), Q[i][3] > 0 ? Q[i][3] : Infinity, Q[i + 1][3] > 0 ? Q[i + 1][3] : Infinity, Q[i][4] > 0 ? Q[i][4] : Infinity)}); s += l2; prev = [cx + r * Math.cos(a0 + da), cz + r * Math.sin(a0 + da)]; } }
+      P.push({k:'a', cx, cz, r, a0, da, len:l2, s0:s, c:i, vl:Math.min(r >= o.R * 0.98 ? o.vmax : (r < o.R * 0.5 ? Math.min(o.vmax, BANE.vTight) : o.vmax * r / o.R), Q[i][3] > 0 ? Q[i][3] : Infinity, Q[i + 1][3] > 0 ? Q[i + 1][3] : Infinity, Q[i][4] > 0 ? Q[i][4] : Infinity)}); s += l2; prev = [cx + r * Math.cos(a0 + da), cz + r * Math.sin(a0 + da)]; } }
   const B = {P, len:s, o, Q, S:null, V:null, T:null}; baneSpeed(B); return B; }
 // where she is s metres along it: {X, Z, psi, i (the piece)}
 function baneAt(B, s){ const P = B.P; if (!P.length) return null; s = Math.max(0, Math.min(B.len, s)); let i = 0, lo = 0, hi = P.length - 1; while (lo < hi){ const m = (lo + hi + 1) >> 1; if (P[m].s0 <= s) lo = m; else hi = m - 1; } i = lo;
@@ -39,8 +39,10 @@ function baneAt(B, s){ const P = B.P; if (!P.length) return null; s = Math.max(0
 function baneBefore(o, v1, d){ let lo = v1, hi = o.vmax; if (hi <= lo) return lo; const s1 = o.stop(v1); if (o.stop(hi) - s1 <= d) return hi;
   for (let k = 0; k < 14; k++){ const m = (lo + hi) / 2; if (o.stop(m) - s1 <= d) lo = m; else hi = m; } return lo; }
 // the speed and the time along it: at most each piece's own, and never more than she can slow from before a slower piece or the end
-function baneSpeed(B){ const o = B.o, ds = BANE.ds, n = Math.max(1, Math.ceil(B.len / ds)), S = new Float32Array(n + 1), V = new Float32Array(n + 1), T = new Float32Array(n + 1); let pi = 0;
-  for (let k = 0; k <= n; k++){ const s = Math.min(B.len, k * ds); S[k] = s; while (pi < B.P.length - 1 && B.P[pi + 1].s0 <= s) pi++; V[k] = B.P.length ? B.P[pi].vl : o.vmax; }
+function baneSpeed(B){ const o = B.o, ds = BANE.ds, n = Math.max(1, Math.ceil(B.len / ds)), S = new Float32Array(n + 1), V = new Float32Array(n + 1), T = new Float32Array(n + 1); 
+  for (let k = 0; k <= n; k++){ S[k] = Math.min(B.len, k * ds); V[k] = o.vmax; }
+  // (each piece's limit at every place within it and at the two on either side, so a piece shorter than the step has its own too)
+  for (const p of B.P){ const k0 = Math.max(0, Math.floor(p.s0 / ds)), k1 = Math.min(n, Math.ceil((p.s0 + p.len) / ds)); for (let k = k0; k <= k1; k++) if (p.vl < V[k]) V[k] = p.vl; }
   if (o.end) V[n] = Math.min(V[n], BANE.vEnd);
   // (from the berth she gathers way as she would lose it: the speed she has d metres on is the one she could have stopped from in d)
   if (o.start !== false){ V[0] = Math.min(V[0], BANE.vEnd); for (let k = 0; k < n; k++) V[k + 1] = Math.min(V[k + 1], baneBefore(o, V[k], S[k + 1] - S[k])); }
@@ -62,7 +64,7 @@ function banePts(B){ const out = [], put = (X, Z, s) => out.push({x:X / 1000, y:
 // already found free, so a bane built again with one corner changed sweeps only what is new. opt.sqV(v): her squat at the speed v,
 // asked for each part at the most she has on it (else opt.squat the whole way)
 function* baneFriG(B, boat, H, opt, memo){
-  for (let i = 0; i < B.P.length; i++){ const p = B.P[i], key = memo ? (p.k === 'l' ? 'l' + p.ax.toFixed(2) + ',' + p.az.toFixed(2) + ',' + p.bx.toFixed(2) + ',' + p.bz.toFixed(2) : 'a' + p.cx.toFixed(2) + ',' + p.cz.toFixed(2) + ',' + p.r.toFixed(2) + ',' + p.a0.toFixed(4) + ',' + p.da.toFixed(4)) : '';
+  for (let i = 0; i < B.P.length; i++){ const p = B.P[i], key = memo ? (p.k === 'l' ? 'l' + p.ax.toFixed(2) + ',' + p.az.toFixed(2) + ',' + p.bx.toFixed(2) + ',' + p.bz.toFixed(2) : 'a' + p.cx.toFixed(2) + ',' + p.cz.toFixed(2) + ',' + p.r.toFixed(2) + ',' + p.a0.toFixed(4) + ',' + p.da.toFixed(4)) + '|' + p.vl.toFixed(2) : '';   // (the speed too: her squat is asked at it)
     if (memo && memo.has(key)) continue;
     const sq = opt && opt.sqV, at = (a, b) => sq ? Object.assign({}, opt, {squat:sq(Math.max(baneV(B, a), baneV(B, b), baneV(B, (a + b) / 2)))}) : opt;
     if (p.k === 'l'){ const m = Math.max(1, Math.ceil(p.len / BANE.piece));
@@ -86,9 +88,16 @@ function baneOf(g){ let Y = BANE.of.get(g); if (Y) return Y.B ? Y : null;
 // setting), and comes to the plan's points as she passes them (arrive: the quay, the logbook). left0: km she may go this minute.
 // False where the plan has no bane for where she is (it then sails as before)
 function baneSail(pl, b, left0){ const g = baneLeg(pl), Y = g && baneOf(g); if (!Y) return false; const B = Y.B, R = pl.b2;
-  if (R.at !== g.i0){ R.at = g.i0; R.s = pl.idx > g.i0 ? Y.at[pl.idx - g.i0 - 1] : 0; }
+  // (how far along she is, from the plan's own place where something else has moved her on: the boat model while the game was open, a jump)
+  if (R.at !== g.i0 || R.i !== pl.idx){ R.at = g.i0; R.s = pl.idx > g.i0 ? Y.at[pl.idx - g.i0 - 1] : 0; }
   const s0 = R.s; let s = s0, t = 0; const cap = left0 * 1000;
   while (t < 60 && s < B.len && s - s0 < cap){ const v = Math.max(BANE.vMin, baneV(B, s)), dt = Math.min(2, 60 - t); s = Math.min(B.len, s + v * dt, s0 + cap); t += dt; }
-  R.s = s; const q = baneAt(B, s); b.heading = q.psi; b.v = (s - s0) / 60 / KN_MS;
-  while (pl.idx < g.i0 + g.n && Y.at[pl.idx - g.i0] <= s + 1e-3){ const w = pl.wps[pl.idx], i = pl.idx; b.pos = {x:w.x, y:w.y}; if (arrive(w) || S.plan !== pl || pl.idx === i) return true; }
-  b.pos = {x:q.X / 1000, y:q.Z / 1000}; return true; }
+  const q = baneAt(B, s);
+  // (sea ice on the minute's way stops her as it does on any trip: the planner's map knows the land and the water, not the ice)
+  if (typeof groundCheck === 'function'){ let gp = null; try { gp = groundCheck(b.pos, {x:q.X / 1000, y:q.Z / 1000}, 0); } catch (e){} if (gp && gp.ice){ sailStop(pl, b, iceWhy(gp)); return true; } }
+  R.s = s; b.heading = q.psi; b.v = (s - s0) / 60 / KN_MS;
+  // (the bane's own points are passed without a line in the log; one in the trail every 250 m; a stop is come to as on any trip: arrive)
+  while (pl.idx < g.i0 + g.n && Y.at[pl.idx - g.i0] <= s + 1e-3){ const w = pl.wps[pl.idx], i = pl.idx;
+    if (w.bane){ pl.idx++; const l = S.trail[S.trail.length - 1]; if (!l || Math.hypot(l.x - w.x, l.y - w.y) > 0.25) S.trail.push({x:w.x, y:w.y, port:null}); continue; }
+    b.pos = {x:w.x, y:w.y}; R.i = pl.idx + 1; if (arrive(w) || S.plan !== pl || pl.idx === i) return true; }
+  R.i = pl.idx; b.pos = {x:q.X / 1000, y:q.Z / 1000}; return true; }

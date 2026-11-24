@@ -33,6 +33,9 @@ export default function (t){
     // a leg she may only have 2 m/s on (shallow water, her squat): slower there, full speed before and after
     const B5 = K.baneBuild([at(0, 0), at(400, 0), [far.x + 600, far.z, 0, 2], at(1000, 0)], Object.assign({}, o, {end:false}));
     t.ok(K.baneV(B5, 200) > 4.9 && K.baneV(B5, 500) <= 2 + 1e-6 && K.baneV(B5, 900) > 4.9 && K.baneV(B5, 390) < 3, 'et strekk med fartsgrense (grunt vann): sakte der, full fart før og etter, og hun slakker av før det', [K.baneV(B5, 200), K.baneV(B5, 390), K.baneV(B5, 500), K.baneV(B5, 900)]);
+    // a tight arc between short legs (the control's case): slow in it wherever it lies between the places the speed is kept at
+    for (const dx of [0, 1, 2, 3, 4]){ const B6 = K.baneBuild([at(0, 0), at(100 + dx, 0), at(100 + dx, 3), at(200, 3)], Object.assign({}, o, {end:false})), A6 = B6.P.filter(p => p.k === 'a');
+      t.ok(A6.length === 2 && A6.every(p => K.baneV(B6, p.s0 + p.len / 2) <= p.vl + 1e-6) && A6[0].vl <= 1.5 + 1e-9, 'en krapp bue mellom korte strekk holder buens egen fart, hvor den enn ligger (' + dx + ' m)', A6.map(p => [p.r, p.vl, K.baneV(B6, p.s0 + p.len / 2)])); }
     // the points for a plan: the corner as chords, each with how far along it lies
     B = K.baneBuild([at(0, 0), at(200, 0), at(200, 200)], o); const pts = K.banePts(B);
     t.ok(pts.length >= 10 && Math.abs(pts[pts.length - 1].s - B.len) < 1e-6 && pts.every((p, i) => !i || p.s > pts[i - 1].s), 'punktene til planen ligger i rekkefølge langs banen, buen som korder', pts.length);
@@ -55,6 +58,10 @@ export default function (t){
     t.ok(Math.abs(min * 60 - B3.time) < Math.max(60, B3.time * 0.02), 'hun er framme når banen sier det, innen 2 % (eller minuttet)', [min * 60, B3.time]);
     const q2 = K.baneAt(B3, K.baneS(B3, 120)); t.ok(at2 && Math.hypot(at2.x * 1000 - q2.X, at2.y * 1000 - q2.Z) < 12, 'og etter to minutter der banen sier hun er', at2 && Math.hypot(at2.x * 1000 - q2.X, at2.y * 1000 - q2.Z));
     t.near(S.boat.pos.x * 1000, far.x + 900, 0.01, 'turen ender i banens siste punkt');
+    // moved on by something else (the boat model while the game was open, a jump): she goes on from the plan's own place, not back
+    const pl5 = JSON.parse(JSON.stringify(pl)); S.plan = pl5; K.baneSail(pl5, S.boat, 99); pl5.idx = 22; const w21 = pl5.wps[21]; S.boat.pos = {x:w21.x, y:w21.y}; K.baneSail(pl5, S.boat, 0.05);
+    t.ok(pl5.idx >= 22 && Math.hypot(S.boat.pos.x - w21.x, S.boat.pos.y - w21.y) < 0.06, 'flyttet fram av noe annet (båtmodellen, et hopp): hun går videre derfra, ikke tilbake', [pl5.idx, Math.hypot(S.boat.pos.x - w21.x, S.boat.pos.y - w21.y)]);
+    t.ok(S.trail.length < 12, 'banens egne punkter fyller ikke sporet (ett hver 250 m)', S.trail.length);
     // never faster than the minute's own speed (the weather): 0.1 km a minute at most
     const pl3 = JSON.parse(JSON.stringify(pl)); S.plan = pl3; S.boat.pos = {x:far.x / 1000, y:far.z / 1000}; K.baneSail(pl3, S.boat, 0.1);
     t.near(Math.hypot(S.boat.pos.x * 1000 - far.x, S.boat.pos.y * 1000 - far.z), 100, 0.5, 'og aldri fortere enn minuttets egen fart');

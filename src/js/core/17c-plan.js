@@ -12,7 +12,7 @@
 //     search goes again, a few times at most.
 // Within a length and a half of the two ends her own quay does not count (the bench's rule for her own berth, tools/autonav/benk.js).
 // Where there is no way, the answer says why and where. Nothing calls this but the bench (--autonav ny) and the flag (planOn).
-const PLAN = {on:null, cell:2, co:100, fineR:350, k:1, w8:1.15, tries:6, maxExp:6e6, w:null, id:0, wait:new Map(), n:{plans:0, ms:0, tiles:0}};
+const PLAN = {on:null, ver:'', sent:0, cell:2, co:100, fineR:350, k:1, w8:1.15, tries:6, maxExp:6e6, w:null, id:0, wait:new Map(), n:{plans:0, ms:0, tiles:0}};
 // The search: self-contained (it runs in the worker, and in Node for the unit tests). start(J) begins one; run() goes on till it has a
 // way {path, exp}, has none {why, at, cause}, or needs tiles {need:[[cell, fx, fz] ...]}, which put() gives it; block() shuts a disc.
 // Two sizes of cell on one lattice: the fine one (J.c2 m; a tile of it is a block) within J.fineR of the two ends and where a search
@@ -27,7 +27,7 @@ const PLAN = {on:null, cell:2, co:100, fineR:350, k:1, w8:1.15, tries:6, maxExp:
 // left), endR (metres round the ends where only what is solid shuts a cell), fineR, maxExp}
 function planMake(){
   const T2 = new Map(), T4 = new Map(), R2 = Math.SQRT2, DX = [1, 1, 0, -1, -1, -1, 0, 1], DZ = [0, 1, 1, 1, 0, -1, -1, -1];
-  let J = null, N = 0, c2 = 0, HF = new Float64Array(1024), HX = new Int32Array(1024), HZ = new Int32Array(1024), hn = 0, blocks = [], best = null, exp = 0, gx = 0, gz = 0, sx = 0, sz = 0, fine = new Set(), refined = 0, behind = null, far = false, lim = 0;
+  let J = null, N = 0, c2 = 0, HF = new Float64Array(1024), HX = new Int32Array(1024), HZ = new Int32Array(1024), hn = 0, blocks = [], best = null, exp = 0, gx = 0, gz = 0, sx = 0, sz = 0, fine = new Set(), refined = 0, behind = null, far = false, lim = 0, pre = 2, fineN = 0;
   let cT = null, cK = 0, cS = 1, cX = 0, cZ = 0, cFx = 0, cFz = 0;   // (the cell last looked up: its tile, its place in it, its size in fine cells, its middle, the tile's own place)
   const key = (a, b) => a * 100003 + b;
   const at = (ix, iz) => { const bx = Math.floor(ix / N), bz = Math.floor(iz / N);
@@ -70,6 +70,7 @@ function planMake(){
   const nearEnd = (x, z) => { const e = J.endR; return (x - J.a[0]) * (x - J.a[0]) + (z - J.a[1]) * (z - J.a[1]) < e * e || (x - J.b[0]) * (x - J.b[0]) + (z - J.b[1]) * (z - J.b[1]) < e * e; };
   // whether the cell last looked up is open to her (-1 its tile is not in, 0 shut, 1 open); why: counts what shut it
   const openC = why => { const t = cT; if (!t) return -1; if (t.none){ if (why) why.ukjent++; return 0; } const zz = t.z[cK], u = t.u[cK], d = t.d[cK], x = cX, z = cZ;
+    if (pre === 1){ if (zz === 255 || d < 1 || (u !== 255 && u < J.needU && !nearEnd(x, z))) return 0; for (const b of blocks) if ((x - b[0]) * (x - b[0]) + (z - b[1]) * (z - b[1]) < b[2] * b[2]) return 0; return 1; }
     if (zz === 255){ if (why) why.ukjent++; return 0; } if (zz < zNeed(x, z)){ if (why && d > 0) why.grunt++; else if (why) why.land++; return 0; }
     const ne = nearEnd(x, z);   // (at her own berth a quay's deck over her is the quay she lies at: the check on the geometry has the rule)
     if (u !== 255 && u < J.needU && !ne){ if (why) why.bru++; return 0; }
@@ -80,7 +81,7 @@ function planMake(){
   // half of the cell's middle: a hull wider than that asks the cells rb out on every side too, so a shoal under her side shuts the
   // cell as one under her keel does
   const okAt = (ix, iz, why) => { at(ix, iz); const t = cT, k = cK; if (t && t.op && !why){ const v = t.op[k]; if (v) return v === 1 ? 1 : 0; }
-    let o = openC(why); if (o === 1){ const rb = cS === 1 ? J.rb2 : J.rb4; if (rb){ const s = cS * rb;
+    let o = openC(why); if (o === 1 && pre !== 1){ const rb = cS === 1 ? J.rb2 : J.rb4; if (rb){ const s = cS * rb;
         for (let i = 0; i < 8; i++){ at(ix + DX[i] * s, iz + DZ[i] * s); const t2 = cT; if (!t2 || t2.none) continue; const zz = t2.z[cK]; if (zz !== 255 && t2.d[cK] > 0 && zz < zNeed(cX, cZ)){ if (why) why.grunt++; o = 0; break; } } } }
     if (t && t.op && o >= 0) t.op[k] = o === 1 ? 1 : 2; return o; };
   // the tiles that are not in round a place, mg fine cells out: [[cell, fx, fz] ...]
@@ -90,10 +91,10 @@ function planMake(){
     for (let b = -m; b <= m; b++) for (let a = -m; a <= m; a++){ const d = a * a + b * b; if (d < bd && okAt(ix + a, iz + b) === 1){ bd = d; out = [ix + a, iz + b]; } } return out; };
   const reset = () => { for (const M of [T2, T4]) for (const t of M.values()) if (t.g){ t.g.fill(Infinity); t.st.fill(0); t.op.fill(0); } hn = 0; best = null; far = false; J.ready = false; };
   const fineAt = (x, z, r) => { const Tb = N * c2; for (let bz = Math.floor((z - r) / Tb); bz <= Math.floor((z + r) / Tb); bz++) for (let bx = Math.floor((x - r) / Tb); bx <= Math.floor((x + r) / Tb); bx++) fine.add(key(bx, bz)); };
-  function start(job){ J = job; N = J.N; c2 = J.c2; fine = new Set(); fineAt(J.a[0], J.a[1], J.fineR); fineAt(J.b[0], J.b[1], J.fineR); for (const f of J.fine || []) fineAt(f[0], f[1], f[2]); exp = 0; refined = 0; coarse(); reset(); }
+  function start(job){ J = job; N = J.N; c2 = J.c2; fine = new Set(); fineAt(J.a[0], J.a[1], J.fineR); fineAt(J.b[0], J.b[1], J.fineR); for (const f of J.fine || []) fineAt(f[0], f[1], f[2]); exp = 0; refined = 0; fineN = 0; pre = J.pre === false ? 2 : 1; coarse(); reset(); }
   function put(c, fx, fz, t){ const Y = t && !t.none ? {d:t.d, z:t.z, u:t.u, g:new Float32Array(N * N).fill(Infinity), par:new Int8Array(N * N), st:new Uint8Array(N * N), op:new Uint8Array(N * N)} : {none:true}; (c === c2 ? T2 : T4).set(key(fx, fz), Y); }
   function block(x, z, r){ blocks.push([x, z, r]); }
-  function again(){ exp = 0; refined = 0; reset(); }   // (the same search once more, after a place was shut: the fine cells it had stay)
+  function again(){ exp = 0; refined = 0; pre = 2; reset(); }   // (the same search once more, after a place was shut: the fine cells it had stay)
   function clear(){ blocks = []; }
   function run(){ for (;;){ const r = search(); if (!r.again) return r; } }
   function search(){
@@ -106,11 +107,15 @@ function planMake(){
     while (hn){ const top = pop(), ix = top[1], iz = top[2]; at(ix, iz); const t = cT, k = cK, s = cS, px = cX, pz = cZ; if (t.st[k] === 2) continue;
       const m = 1 + (s === 1 ? J.rb2 : J.rb4), lx = k % N, lz = (k - lx) / N;
       if (lx < m || lz < m || lx >= N - m || lz >= N - m){ const need = missing(ix, iz, m * s); if (need.length){ push(top[0], ix, iz); return {need}; } }
-      t.st[k] = 2; exp++; if (ix === gx && iz === gz) return finish();
+      // (her neighbours first, bit i: the neighbour i is open. One whose tile is not in is asked for before the search is done with this
+      // cell: a block of fine cells begins in the middle of a big tile, so a tile's own edge is not where they are all met)
+      let ok = 0, nd = null;
+      for (let i = 0; i < 8; i++){ const v = okAt(ix + DX[i] * s, iz + DZ[i] * s); if (v === 1) ok |= 1 << i; else if (v === -1){ const c = cS * c2, fx = cFx, fz = cFz; nd = nd || []; if (!nd.some(q => q[0] === c && q[1] === fx && q[2] === fz)) nd.push([c, fx, fz]); } }
+      if (nd){ push(top[0], ix, iz); return {need:nd}; }
+      t.st[k] = 2; exp++; if (ix === gx && iz === gz) return pre === 1 ? preDone(true) : finish();
       const h = hh(ix, iz); if (!best || h < best[0]) best = [h, ix, iz];
       if (exp > lim){ hn = 0; far = true; break; }
-      const g0 = t.g[k]; let ok = 0;   // (bit i: the neighbour i is open)
-      for (let i = 0; i < 8; i++) if (okAt(ix + DX[i] * s, iz + DZ[i] * s) === 1) ok |= 1 << i;
+      const g0 = t.g[k];
       for (let i = 0; i < 8; i++){ if (!(ok & (1 << i))) continue; if (i & 1){ if (!(ok & (1 << (i - 1))) || !(ok & (1 << ((i + 1) & 7)))) continue; }   // (no cutting a corner of what is shut)
         let nx = ix + DX[i] * s, nz = iz + DZ[i] * s; at(nx, nz); const nt = cT, nk = cK, ns = cS, qx = cX, qz = cZ, ox = ns === 2 ? nx & 1 : 0, oz = ns === 2 ? nz & 1 : 0;
         nx -= ox; nz -= oz;   // (a big cell is come to at its own place: its even one)
@@ -118,6 +123,7 @@ function planMake(){
         if (nt.st[nk] === 2) continue;
         const dm = nt.d[nk] * J.q, ng = g0 + Math.hypot(qx - px, qz - pz) * (1 + (dm >= J.pref ? 0 : J.k * (1 - dm / J.pref))) * (nt.z[nk] < J.needZf ? J.slow : 1);
         if (ng < nt.g[nk]){ nt.g[nk] = ng; nt.par[nk] = i + (s === 2 ? 8 : 0) + ox * 16 + oz * 32; push(ng + hh(nx, nz), nx, nz); } } }
+    if (pre === 1) return preDone(false);
     if (!best) return {why:'ingen vei', at:J.a, cause:'ukjent', exp};
     // Nothing more to try. What shut her out, and where the water goes on behind it; where that is behind something narrow or
     // shallow on the big cells, the same is searched again on the fine ones there (three times at most)
@@ -154,6 +160,12 @@ function planMake(){
       if (dm - Math.hypot(x - cX, z - cZ) < J.clr + cS * c2 * 0.25 && !nearEnd(x, z)) return -1;   // (the distance is from the cell's middle: no nearer than that less the way from the middle)
       if (u >= L) break; c += st * (1 + (dm >= J.pref ? 0 : J.k * (1 - dm / J.pref))) * (cT.z[cK] < J.needZf ? J.slow : 1); u = Math.min(L, u + st); }
     return c; };
+  // The first time round (pre 1) only what is solid shuts a cell: the way then found shows where she would go were the big cells not
+  // too coarse for a narrow sound or a harbour's mouth, and the big cells on it that are shut to her are made fine before the search
+  // proper (16 blocks at most). So a sound of 13 m is tried also where a longer way round is open on the big cells
+  function preDone(found){ const C = []; if (found){ let ix = gx, iz = gz; for (let guard = 0; guard < 4e6; guard++){ at(ix, iz); C.push(ix, iz); if (ix === sx && iz === sz) break; const p = cT.par[cK], s = p & 8 ? 2 : 1; ix += (p & 16 ? 1 : 0) - DX[p & 7] * s; iz += (p & 32 ? 1 : 0) - DZ[p & 7] * s; } }
+    pre = 2; reset(); const n0 = fine.size; for (let q = 0; q < C.length && fine.size - n0 < 16; q += 2) if (okAt(C[q], C[q + 1]) === 0){ at(C[q], C[q + 1]); if (cS === 2) fineAt(cX, cZ, 30); }
+    fineN += fine.size - n0; reset(); return {again:true}; }
   function finish(){ const C = []; let ix = gx, iz = gz;
     for (let guard = 0; guard < 4e6; guard++){ at(ix, iz); C.push([cX, cZ, cT.g[cK]]); if (ix === sx && iz === sz) break; const p = cT.par[cK], s = p & 8 ? 2 : 1; ix += (p & 16 ? 1 : 0) - DX[p & 7] * s; iz += (p & 32 ? 1 : 0) - DZ[p & 7] * s; }
     C.reverse(); const n = C.length, out = [C[0]]; let i = 0;
@@ -170,7 +182,7 @@ function planMake(){
     // (the ends as they were given: the first and the last cell's middle give way to them where they are in the same cell)
     if (Math.hypot(path[0][0] - J.a[0], path[0][1] - J.a[1]) < c2 * 1.5) path[0] = J.a.slice(); else path.unshift(J.a.slice());
     const e = path.length - 1; if (Math.hypot(path[e][0] - J.b[0], path[e][1] - J.b[1]) < c2 * 1.5 && e > 0) path[e] = J.b.slice(); else path.push(J.b.slice());
-    return {path, exp, cells:n, refined}; }
+    return {path, exp, cells:n, refined, fineN}; }
   // (for the bench's pictures and the tests: whether the cell at a place is open to her, whether the search has been there, and its size)
   const peek = (x, z) => { const ix = Math.floor(x / c2), iz = Math.floor(z / c2); if (!at(ix, iz)) return null; const st = cT.st ? cT.st[cK] : 0, s = cS; return [okAt(ix, iz), st, s]; };
   const left = (x, z) => hh(Math.floor(x / c2), Math.floor(z / c2));   // (what the search takes to be left to the goal from a place, metres)
@@ -178,7 +190,7 @@ function planMake(){
 }
 // the worker (false where one cannot start): the search and its tiles live there
 function planWorker(){ if (PLAN.w !== null) return PLAN.w;
-  try { const src = 'const PL = (' + planMake.toString() + ')();\nonmessage = e => { const m = e.data; try { if (m.op === "start"){ PL.clear(); PL.start(m.J); } else if (m.op === "tiles"){ for (const t of m.tiles) PL.put(t.c, t.fx, t.fz, t.none ? null : t); } else if (m.op === "block"){ PL.block(m.x, m.z, m.r); PL.again(); } postMessage(Object.assign({id:m.id}, PL.run())); } catch (err){ postMessage({id:m.id, why:"feil", err:String(err)}); } };';
+  try { const src = 'const MK = ' + planMake.toString() + '; let PL = MK();\nonmessage = e => { const m = e.data; try { if (m.op === "reset"){ PL = MK(); postMessage({id:m.id, ok:1}); return; } if (m.op === "start"){ PL.clear(); PL.start(m.J); } else if (m.op === "tiles"){ for (const t of m.tiles) PL.put(t.c, t.fx, t.fz, t.none ? null : t); } else if (m.op === "block"){ PL.block(m.x, m.z, m.r); PL.again(); } postMessage(Object.assign({id:m.id}, PL.run())); } catch (err){ postMessage({id:m.id, why:"feil", err:String(err)}); } };';
     const w = new Worker(URL.createObjectURL(new Blob([src], {type:'text/javascript'})));
     w.onmessage = e => { const res = PLAN.wait.get(e.data.id); if (res){ PLAN.wait.delete(e.data.id); res(e.data); } };
     w.onerror = () => { PLAN.w = false; for (const res of PLAN.wait.values()) res({why:'feil', err:'the planner worker failed'}); PLAN.wait.clear(); };
@@ -186,8 +198,8 @@ function planWorker(){ if (PLAN.w !== null) return PLAN.w;
   return PLAN.w; }
 // why there is no way, in words (Norwegian, English)
 function planWhy(r){ const c = {grunt:['for grunt for båten', 'too shallow for the boat'], bru:['brua er for lav for båten', 'the bridge is too low for the boat'], trangt:['for trangt for båten', 'too narrow for the boat'], land:['land i veien', 'land in the way'], ukjent:['kartet er ikke lastet der', 'the chart is not loaded there']}[r.cause] || ['ingen vei', 'no way'];
-  const p = r.at ? natLL({x:r.at[0] / 1000, y:r.at[1] / 1000}) : null, at = p ? ' (' + p.lat.toFixed(4) + '° N, ' + p.lon.toFixed(4) + '° Ø)' : '';
-  return r.why === 'for langt' ? ['Fant ingen bane: søket ble for stort' + at, 'Found no way: the search grew too large' + at] : ['Fant ingen bane: ' + c[0] + at, 'Found no way: ' + c[1] + at]; }
+  const p = r.at ? natLL({x:r.at[0] / 1000, y:r.at[1] / 1000}) : null, at = p ? ' (' + p.lat.toFixed(4) + '° N, ' + p.lon.toFixed(4) + '° Ø)' : '', atE = at.replace('Ø', 'E');
+  return r.why === 'for langt' ? ['Fant ingen bane: søket ble for stort' + at, 'Found no way: the search grew too large' + atE] : ['Fant ingen bane: ' + c[0] + at, 'Found no way: ' + c[1] + atE]; }
 // The chart's own cells over the water between the two ends and a way round them, for the search's sense of how far it is (planMake,
 // J.co): cells of PLAN.co m, each 1 where one of the depth layer's cells in it is water, 0 land, 2 where the chart is not in.
 // null where it would be too big, or the layer is not there. In slices
@@ -216,7 +228,14 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     await farbBlocks(x0, z0, x1, z1); J.co = await farbRunA(planCoarseG(ax, az, bx, bz)); } catch (e){ J.co = null; }
   PLAN.J = J;
   const send = msg => new Promise(res => { const id = ++PLAN.id; PLAN.wait.set(id, res); w.postMessage(Object.assign({id}, msg)); });
-  const skip = h => Math.hypot(h.x - ax, h.z - az) - (h.R || 0) < own || Math.hypot(h.x - bx, h.z - bz) - (h.R || 0) < own;   // (her own berth, by where the touch is; a vessel lying there by her nearest point)
+  // Her own berth (the bench's rule, tools/autonav/benk.js: a touch within a length and a half of the ends is the quay she lies at;
+  // never a grounding). The land's touch is where it is; a thing's is the thing's middle, which says nothing of where along a
+  // long quay she is, so a thing counts by where she herself is (within 0.9 of her length: her far end then within 1.4), and a vessel
+  // lying there by her nearest point
+  const touchP = h => /^-?\d+,-?\d+$/.test(h.id), nearE = (x, z, r) => Math.hypot(x - ax, z - az) < r || Math.hypot(x - bx, z - bz) < r;
+  const skip = (h, X, Z) => h.what === 'grunn' ? false : h.R ? nearE(h.x, h.z, own + h.R) : touchP(h) ? nearE(h.x, h.z, own) : nearE(X, Z, 0.9 * boat.L);
+  // (the worker keeps the tiles it was given: thrown when the map has changed since, more of it come in or a channel dug, and when they are many)
+  { const fv = farbFieldVer(); if (PLAN.ver !== fv || PLAN.sent > 300){ await send({op:'reset'}); PLAN.ver = fv; PLAN.sent = 0; } }
   let r = await send({op:'start', J}), tiles = 0, tries = 0, exp = 0; const shut = [];   // (shut: what the check on the geometry found and shut, for the answer)
   const o = Object.assign({}, bb, {end:!(opt && opt.end === false)}), sw = {m:side, keel:FARB.keel, squat:sq, sqV:P ? v => dynSquat(P, v, false) : null, boats:true, skip}, memo = new Map(), rMin = Math.max(boat.B / 2, bb.R / 16);
   for (;;){
@@ -224,7 +243,7 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
       for (const [cell, fx, fz] of r.need){ const Tf = F.N * cell; let Y = farbFieldTile(cell, fx, fz); tiles++;
         for (let k = 0; k < 5 && !Y; k++){ await farbFieldNeed(fx * Tf + 1, fz * Tf + 1, (fx + 1) * Tf - 1, (fz + 1) * Tf - 1, cell); Y = farbFieldTile(cell, fx, fz); }   // (a tile is asked for again where the map changed under it: more of it came in)
         if (Y && !Y.none){ const d = Y.d.slice(), z = Y.z.slice(), u = Y.u.slice(); out.push({c:cell, fx, fz, d, z, u}); tr.push(d.buffer, z.buffer, u.buffer); } else out.push({c:cell, fx, fz, none:true}); }
-      r = await new Promise(res => { const id = ++PLAN.id; PLAN.wait.set(id, res); w.postMessage({id, op:'tiles', tiles:out}, tr); }); continue; }
+      PLAN.sent += out.length; r = await new Promise(res => { const id = ++PLAN.id; PLAN.wait.set(id, res); w.postMessage({id, op:'tiles', tiles:out}, tr); }); continue; }
     if (r.why){ PLAN.n.plans++; return fail(r, {tiles, tries, exp:exp + (r.exp || 0), shut}); }
     exp += r.exp || 0;
     // The way as a bane she can sail, her hull swept along it on the geometry at the lowest water. An arc that touches is made
@@ -246,7 +265,9 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     if (hit.what === 'ukjent' || ++tries > PLAN.tries){ PLAN.n.plans++; return fail({why:'ingen vei', cause:cs, at:[hit.x, hit.z]}, {tiles, tries, exp, hit:hit.what + ':' + hit.id}); }
     // shut round what she touched, a cell wider for each time, and search again
     shut.push(hit.what + ':' + hit.id + '@' + Math.round(hit.x) + ',' + Math.round(hit.z) + (B.P[hit.i].k === 'a' ? ' (bue r ' + B.P[hit.i].r.toFixed(1) + ')' : ''));
-    r = await send({op:'block', x:hit.x, z:hit.z, r:(hit.R || 0) + boat.B / 2 + side + c2 * (1 + tries)}); } }
+    // (round the touch where that is known, the land's and the water's; round where she stood for a thing, whose touch is its middle)
+    const tp = hit.R || touchP(hit) || hit.px == null;
+    r = await send({op:'block', x:tp ? hit.x : hit.px, z:tp ? hit.z : hit.pz, r:tp ? (hit.R || 0) + boat.B / 2 + side + c2 * (1 + tries) : (boat.B / 2 + side) / 2 + c2 * (1 + tries)}); } }
 // A bane into a plan (the bench, and the flag): the plan's points i0 .. i1 - 1 (the way to the stop at i1 - 1, which is kept as it is:
 // the harbour she docks in, the fishing there) replaced by the bane's own, and the leg written in pl.b2 (17b-bane.js baneLeg).
 // A plan's legs are put in from the last to the first, so the places of those before stand
