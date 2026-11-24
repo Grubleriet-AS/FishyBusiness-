@@ -471,10 +471,11 @@ function farbCoastSegs(x0, z0, x1, z1){ const out = FARB.cs; let n = 0;
 // Her hull at a pose: null when it is free, else what it touches {what, id, x, z}: the land under a corner of her outline, the
 // coast's line or a thing within opt.m of the outline (0: touching it), or less water under the outline than she draws ('grunn';
 // opt.squat hers at the speed she has, opt.keel a margin under her keel); 'ukjent' where the map is not in
-function farbPose(X, Z, psi, boat, H, opt){ FARB.n.pose++; const m = opt && opt.m || 0, P = farbHull(X, Z, psi, boat), R = Math.hypot(boat.L, boat.B) / 2 + m + 4;
+// (opt.skip(touch, X, Z): true for a touch that does not count, such as the quay she lies at: the planner's rule for her own berth)
+function farbPose(X, Z, psi, boat, H, opt){ FARB.n.pose++; const m = opt && opt.m || 0, sk = opt && opt.skip, out = h => (sk && sk(h, X, Z) ? null : h), P = farbHull(X, Z, psi, boat), R = Math.hypot(boat.L, boat.B) / 2 + m + 4;
   if (!farbKnown(X, Z, R)) return {what:'ukjent', id:'', x:X, z:Z};
   let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
-  for (const [x, z] of P){ const l = farbLand(x, z); if (l !== l) return {what:'ukjent', id:'', x, z}; if (l) return {what:l === 2 ? 'kai' : 'land', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z}; if (x < x0) x0 = x; if (x > x1) x1 = x; if (z < z0) z0 = z; if (z > z1) z1 = z; }
+  for (const [x, z] of P){ const l = farbLand(x, z); if (l !== l) return {what:'ukjent', id:'', x, z}; if (l) { const h_ = out({what:l === 2 ? 'kai' : 'land', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z}); if (h_) return h_; } if (x < x0) x0 = x; if (x > x1) x1 = x; if (z < z0) z0 = z; if (z > z1) z1 = z; }
   x0 -= m; z0 -= m; x1 += m; z1 += m;
   // the coast's line between her corners and within the margin (a crossing in a harbour unit's basin does not count: the basin is water)
   const cs = FARB.cs, nc = farbCoastSegs(x0, z0, x1, z1); if (nc < 0) return {what:'ukjent', id:'', x:X, z:Z};
@@ -485,16 +486,16 @@ function farbPose(X, Z, psi, boat, H, opt){ FARB.n.pose++; const m = opt && opt.
     for (let i = 0, j = P.length - 1; i < P.length && !hit; j = i++){ const px = P[j][0], pz = P[j][1], qx = P[i][0], qz = P[i][1], d1 = farbTurn(px, pz, qx, qz, ax, az), d2 = farbTurn(px, pz, qx, qz, bx, bz), d3 = farbTurn(ax, az, bx, bz, px, pz), d4 = farbTurn(ax, az, bx, bz, qx, qz);
       if (!(((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) && ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0)))) continue; crossed = true; const t = d3 / (d3 - d4); hx = px + (qx - px) * t; hz = pz + (qz - pz) * t; hit = !!FARB.w || !inHarbourPocket({x:hx / 1000, y:hz / 1000}); }
     if (!crossed){ const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz, u = L2 ? Math.max(0, Math.min(1, ((X - ax) * dx + (Z - az) * dz) / L2)) : 0; hx = ax + dx * u; hz = az + dz * u; hit = !!FARB.w || !inHarbourPocket({x:hx / 1000, y:hz / 1000}); }
-    if (hit) return {what:'land', id:Math.round(hx / 50) + ',' + Math.round(hz / 50), x:hx, z:hz}; }
+    if (hit) { const h_ = out({what:'land', id:Math.round(hx / 50) + ',' + Math.round(hz / 50), x:hx, z:hz}); if (h_) return h_; } }
   // (and a pocket's wall: the land outside a basin's side, where it runs in between her corners)
-  if (!FARB.w){ const PK = farbPockets(X, Z); if (PK) try { for (const b of PK) for (const w of farbWalls(b)) if (!(Math.max(w[0], w[2]) < x0 || Math.min(w[0], w[2]) > x1 || Math.max(w[1], w[3]) < z0 || Math.min(w[1], w[3]) > z1) && farbSegPoly(P, w[0], w[1], w[2], w[3]) <= m) return {what:'land', id:Math.round(w[0] / 50) + ',' + Math.round(w[1] / 50), x:w[0], z:w[1]}; } catch (e){ return {what:'ukjent', id:'', x:X, z:Z}; } }
+  if (!FARB.w){ const PK = farbPockets(X, Z); if (PK) try { for (const b of PK) for (const w of farbWalls(b)) if (!(Math.max(w[0], w[2]) < x0 || Math.min(w[0], w[2]) > x1 || Math.max(w[1], w[3]) < z0 || Math.min(w[1], w[3]) > z1) && farbSegPoly(P, w[0], w[1], w[2], w[3]) <= m) { const h_ = out({what:'land', id:Math.round(w[0] / 50) + ',' + Math.round(w[1] / 50), x:w[0], z:w[1]}); if (h_) return h_; } } catch (e){ return {what:'ukjent', id:'', x:X, z:Z}; } }
   // (a test's world without the coast's edges: the distance at her corners)
-  if (FARB.w && !FARB.w.segs) for (const [x, z] of P){ const c = farbCoast(x, z, m + 1); if (c !== c) return {what:'ukjent', id:'', x, z}; if (m > 0 && c <= m) return {what:'land', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z}; }
+  if (FARB.w && !FARB.w.segs) for (const [x, z] of P){ const c = farbCoast(x, z, m + 1); if (c !== c) return {what:'ukjent', id:'', x, z}; if (m > 0 && c <= m) { const h_ = out({what:'land', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z}); if (h_) return h_; } }
   // the things
   const air = boat.air + FARB.airOver, n = farbGather(X, Z, R), buf = FARB.buf;
   for (let i = 0; i < n; i++){ const o = buf[i]; if (o.k === 's' && !(farbUnder(o) < air)) continue; const b = o.bb || farbBB(o); if (b[0] > x1 || b[2] < x0 || b[1] > z1 || b[3] < z0) continue;
-    if ((o.molo ? farbCoreD(P, o) - farbMoloR(o, boat.T + (opt && opt.squat || 0) + (opt && opt.keel || 0) + FARB.eps - farbTide(H, X, Z) + farbZC(X, Z)) : farbPolyD(P, o)) <= m && !farbGone(o, n)) return {what:o.what, id:o.id, x:o.x != null ? o.x : (b[0] + b[2]) / 2, z:o.z != null ? o.z : (b[1] + b[3]) / 2}; }
-  if (opt && opt.boats && !FARB.w) try { for (const o of fixBoats(X, Z)){ const d = o.t === 0 ? Math.max(0, farbPtPoly(P, o.x, o.z) - o.r) : farbRingD(P, o.Q || (o.Q = farbBoxPts(o))); if (d <= m) return {what:'båt', id:'båt#' + Math.round(o.x) + ',' + Math.round(o.z), x:o.x, z:o.z}; } } catch (e){}
+    if ((o.molo ? farbCoreD(P, o) - farbMoloR(o, boat.T + (opt && opt.squat || 0) + (opt && opt.keel || 0) + FARB.eps - farbTide(H, X, Z) + farbZC(X, Z)) : farbPolyD(P, o)) <= m && !farbGone(o, n)) { const h_ = out({what:o.what, id:o.id, x:o.x != null ? o.x : (b[0] + b[2]) / 2, z:o.z != null ? o.z : (b[1] + b[3]) / 2}); if (h_) return h_; } }
+  if (opt && opt.boats && !FARB.w) try { for (const o of fixBoats(X, Z)){ const d = o.t === 0 ? Math.max(0, farbPtPoly(P, o.x, o.z) - o.r) : farbRingD(P, o.Q || (o.Q = farbBoxPts(o))); if (d <= m) { const h_ = out({what:'båt', id:'båt#' + Math.round(o.x) + ',' + Math.round(o.z), x:o.x, z:o.z}); if (h_) return h_; } } } catch (e){}
   // the water under her: with the foreshore where the coast is near enough for it to reach in under her, and then her outline closely
   const s = Math.sin(psi), c = Math.cos(psi), sq = opt && opt.squat || 0, kl = opt && opt.keel || 0, reach = Math.hypot(boat.L, boat.B) / 2 + FARB.shore.reach + 2, cd = farbCoast(X, Z, reach, true);
   if (cd !== cd) return {what:'ukjent', id:'', x:X, z:Z}; const off = cd >= reach;
@@ -502,7 +503,7 @@ function farbPose(X, Z, psi, boat, H, opt){ FARB.n.pose++; const m = opt && opt.
   // a km is that of the point it was last asked there, so two askers can be some mm apart: FARB.eps, 3 cm of water, covers that.
   // The check against the bench's observer found it: 2 poses of 27 360, each 2 cm past the edge of the foreshore)
   const lvl = farbTide(H, X, Z) - boat.T - sq;
-  for (const [f, g] of farbKeelPts(boat, !off)){ const x = X + f * s + g * c, z = Z - f * c + g * s, k = farbDepth(x, z, off) + lvl; if (k !== k) return {what:'ukjent', id:'', x, z}; if (k < kl + FARB.eps) return {what:'grunn', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z, keel:k}; }
+  for (const [f, g] of farbKeelPts(boat, !off)){ const x = X + f * s + g * c, z = Z - f * c + g * s, k = farbDepth(x, z, off) + lvl; if (k !== k) return {what:'ukjent', id:'', x, z}; if (k < kl + FARB.eps) { const h_ = out({what:'grunn', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z, keel:k}); if (h_) return h_; } }
   return null; }
 // Her hull swept from one pose to another ({X, Z, psi}): the first thing it touches, or null; 'ukjent' where the map is not in. A pose
 // every FARB.step m of the farthest any point of her moves, each with half a step's margin so nothing slips between two of them.
@@ -520,8 +521,8 @@ function farbSweep(p0, p1, boat, H, opt){ const dx = p1.X - p0.X, dz = p1.Z - p0
     if (c > R){ const s = Math.sin(psi), cs = Math.cos(psi), lvl = farbTide(H, X, Z) - boat.T - sq, al = tr > 1e-6 ? Math.min(1, Math.abs((dx * s - dz * cs) / tr)) : 0;
       const ext = Math.abs(dpsi) > 0.02 || tr <= 1e-6 ? Math.min(boat.L, boat.B) : al * boat.L + Math.sqrt(1 - al * al) * boat.B;
       adv = Math.min(c - R, 12.5, Math.max(FARB.step, ext));
-      for (const [f, g] of farbKeelPts(boat)){ const x = X + f * s + g * cs, z = Z - f * cs + g * s, k = farbDepth(x, z, true) + lvl; if (!(k >= kl + FARB.eps)) return {what:k !== k ? 'ukjent' : 'grunn', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z, keel:k}; } }
-    else { const t = farbPose(X, Z, psi, boat, H, o2); if (t) return t; }
+      for (const [f, g] of farbKeelPts(boat)){ const x = X + f * s + g * cs, z = Z - f * cs + g * s, k = farbDepth(x, z, true) + lvl; if (!(k >= kl + FARB.eps)) return {what:k !== k ? 'ukjent' : 'grunn', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z, keel:k, px:X, pz:Z}; } }
+    else { const t = farbPose(X, Z, psi, boat, H, o2); if (t){ t.px = X; t.pz = Z; return t; } }   // (px, pz: where she stood when she touched)
     if (u >= 1) return null; u = move > 0 ? Math.min(1, u + Math.max(adv, FARB.step) / move) : 1; }
   return {what:'ukjent', id:'', x:p1.X, z:p1.Z}; }   // (a way too long to be swept in one go is not known to be free)
 

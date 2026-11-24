@@ -408,6 +408,9 @@ for _f in ('tools/server/vakt/vakt.sh', 'tools/server/vakt/setup.sh', 'tools/ser
 # shared script scope (boottest, trip2). Its own checks: tests/unit/farbar.test.mjs (run first with the unit tests), and
 # tools/autonav/farsjekk.py, which holds it against the bench's observer along the bench's stretches (by hand: it needs dist-vec/)
 COVER['src/js/core/17-farbar.js'] = ['boottest', 'trip2']; COVER['tests/unit/farbar.test.mjs'] = []
+# Autonav 2.0 F2 (steg 142, 24.11.2026): banen and the planner (17b-bane.js, 17c-plan.js). Called only by the bench and behind the flag
+# (planOn), so what they can break in the game is the page itself (one script) and a trip (sail asks whether the plan has a bane)
+COVER['src/js/core/17b-bane.js'] = ['boottest', 'trip2']; COVER['src/js/core/17c-plan.js'] = ['boottest', 'trip2']; COVER['tests/unit/bane.test.mjs'] = []; COVER['tests/unit/plan.test.mjs'] = []
 for _f in ('tools/autonav/farsjekk.py', 'tools/autonav/farsjekk.js'): COVER[_f] = []
 
 

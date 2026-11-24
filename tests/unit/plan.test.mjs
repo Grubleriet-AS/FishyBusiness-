@@ -1,0 +1,78 @@
+// Planleggeren (core/17c-plan.js; Autonav 2.0 F2, steg 142): the search on the field's tiles (planMake, which runs in a worker in the
+// game and as it is here), against geometry that is known: round a breakwater, under a bridge that is high enough and round one
+// that is too low, off a shoal, out from a quay, with the tiles given as it asks for them, and the words for a way that is not there.
+export default function (t){
+  const K = t.K, N = 32, cell = 4, q = 0.25;
+  // a world of tiles made from what is land, how deep it is (dm) and how high a deck is (steps of 0.25 m; 255 none)
+  const world = (land, depth, deck) => { const T = new Map(), lands = [];
+    const tile = (fx, fz) => { const key = fx + ',' + fz; if (T.has(key)) return T.get(key); const d = new Uint8Array(N * N), z = new Uint8Array(N * N), u = new Uint8Array(N * N);
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){ const x = (fx * N + i + 0.5) * cell, zz = (fz * N + j + 0.5) * cell; let m = 60;
+        for (let b = -16; b <= 16 && m > 0; b++) for (let a = -16; a <= 16; a++) if (land(x + a * cell, zz + b * cell)){ const dd = Math.max(0, Math.hypot(a, b) * cell - cell * 0.5); if (!a && !b) m = 0; else if (dd < m) m = dd; }
+        d[j * N + i] = Math.min(240, Math.floor(m / q)); z[j * N + i] = land(x, zz) ? 0 : Math.min(254, depth ? depth(x, zz) : 200); u[j * N + i] = deck ? deck(x, zz) : 255; }
+      const Y = {d, z, u}; T.set(key, Y); return Y; };
+    return {tile, lands}; };
+  // the search run to its end, the tiles given as it asks (count: how many it asked for)
+  const solve = (W, J, blocks) => { const PL = K.planMake(), job = Object.assign({cell, N, q, clr:3.5, needD:Math.ceil((1.5 + 2 + 2) / q), needZ:25, needU:20, pref:25, k:0.35, endR:14, maxExp:1e6, rb:0}, J); let asked = 0;
+    PL.start(job); for (const b of blocks || []) PL.block(b[0], b[1], b[2]);
+    for (let g = 0; g < 500; g++){ const r = PL.run(); if (!r.need) return Object.assign(r, {asked}); for (const [fx, fz] of r.need){ asked++; PL.put(fx, fz, W.tile(fx, fz)); } }
+    return {why:'løkke'}; };
+  const len = P => P.reduce((s, p, i) => i ? s + Math.hypot(p[0] - P[i - 1][0], p[1] - P[i - 1][1]) : 0, 0);
+  const distTo = (P, x, z) => { let m = Infinity; for (let i = 1; i < P.length; i++){ const ax = P[i - 1][0], az = P[i - 1][1], bx = P[i][0], bz = P[i][1], l2 = (bx - ax) ** 2 + (bz - az) ** 2, u = l2 ? Math.max(0, Math.min(1, ((x - ax) * (bx - ax) + (z - az) * (bz - az)) / l2)) : 0; m = Math.min(m, Math.hypot(ax + (bx - ax) * u - x, az + (bz - az) * u - z)); } return m; };
+
+  // open sea: the straight way, two points, and only the tiles along it asked for
+  let W = world(() => false), r = solve(W, {a:[50, 50], b:[450, 250]});
+  t.ok(r.path && r.path.length === 2, 'åpent hav: den rette veien, to punkter', r.path && r.path.length); t.near(len(r.path), Math.hypot(400, 200), 1e-6, 'så lang som avstanden');
+  t.ok(r.asked >= 2 && r.asked <= 20, 'flisene hentes etter hvert som søket kommer til dem', r.asked);
+
+  // a breakwater across the way (x 250, z from -200 to 300): round its end at z 300, never nearer it than her half beam and margin
+  const molo = (x, z) => Math.abs(x - 250) < 4 && z > -200 && z < 300;
+  W = world(molo); r = solve(W, {a:[100, 100], b:[400, 100], k:1});
+  t.ok(r.path && r.path.length >= 3, 'en molo på tvers: veien går rundt', r.path && r.path.length);
+  let mn = Infinity; if (r.path) for (let zz = -200; zz <= 300; zz += 2) for (const xx of [246, 254]) mn = Math.min(mn, distTo(r.path, xx, zz));   // (its two edges)
+  console.log('plan: nærmest moloens kant ' + mn.toFixed(1) + ' m, veien ' + JSON.stringify(r.path && r.path.map(p => p.map(Math.round))));
+  t.ok(mn >= 1.5 + 2 - 0.01, 'og aldri nærmere moloen enn halve bredden og marginen (3,5 m fra kanten)', mn);
+  t.ok(r.path && r.path.some(p => p[1] > 300), 'rundt enden i sør (den i nord er lenger unna)');
+  t.ok(r.path && len(r.path) < (Math.hypot(150, 215) + Math.hypot(150, 215)) * 1.06, 'uten omvei: under 6 % lenger enn den strammeste veien med klaring', r.path && len(r.path));
+  // along a shore with open water outside: she keeps off it where there is room (both ends 8 m off the land; the middle of the way farther out)
+  W = world((x, z) => z < 100); r = solve(W, {a:[100, 108], b:[500, 108], k:1});
+  const mid = r.path ? Math.max(...r.path.map(p => p[1])) - 100 : 0;
+  t.ok(mid > 15 && len(r.path) < 400 * 1.08, 'langs en strand med åpent vann utenfor holder hun seg lenger ute enn det minste, uten å gå langt', [mid, r.path && len(r.path)]);
+  // a strait with two openings in a wall (z 200): the nearer under a deck too low for her, the farther high enough
+  const wall = (x, z) => Math.abs(z - 200) < 4 && !(x > 180 && x < 220) && !(x > 480 && x < 520);
+  const deck = h1 => (x, z) => Math.abs(z - 200) < 12 ? (x > 170 && x < 230 ? h1 : x > 470 && x < 530 ? 80 : 255) : 255;
+  W = world(wall, null, deck(12)); r = solve(W, {a:[200, 100], b:[200, 300]});   // (needs 5 m: 20 steps; the near deck 3 m, the far 20 m)
+  t.ok(r.path && r.path.some(p => p[0] > 470), 'en bru som er for lav: veien går under den som er høy nok, lenger borte', r.path && r.path.map(p => Math.round(p[0])));
+  W = world(wall, null, deck(40)); r = solve(W, {a:[200, 100], b:[200, 300]});
+  t.ok(r.path && r.path.every(p => p[0] < 300), 'er den nære brua høy nok, går hun under den');
+  W = world((x, z) => Math.abs(z - 200) < 4 && !(x > 180 && x < 220), null, deck(12)); r = solve(W, {a:[200, 100], b:[200, 300], maxExp:60000});
+  t.ok(r.why && r.cause === 'bru', 'og er den eneste åpningen under en for lav bru, sier svaret at brua er grunnen', [r.why, r.cause]);
+  t.ok(r.at && Math.hypot(r.at[0] - 200, r.at[1] - 200) < 60, 'og hvor: stedet søket kom nærmest målet fra', r.at);
+
+  // a shoal on the straight way (1.5 m of water; she needs 2.5): round it; for a wider hull a cell more to the side
+  const shoal = (x, z) => Math.hypot(x - 250, z - 100) < 40 ? 15 : 200;
+  W = world(() => false, shoal); r = solve(W, {a:[100, 100], b:[400, 100]});
+  t.ok(r.path && distTo(r.path, 250, 100) > 40, 'en grunne midt i veien: rundt den', r.path && distTo(r.path, 250, 100));
+  const r2 = solve(W, {a:[100, 100], b:[400, 100], rb:3});
+  t.ok(r2.path && distTo(r2.path, 250, 100) > distTo(r.path, 250, 100) + 6, 'et bredt skrog holder seg tilsvarende lenger fra grunna', r2.path && [distTo(r.path, 250, 100), distTo(r2.path, 250, 100)]);
+  W = world((x, z) => Math.abs(x - 250) < 4, () => 200); r = solve(W, {a:[100, 100], b:[400, 100], maxExp:60000});
+  t.ok(r.why === 'ingen vei' || r.why === 'for langt', 'land hele veien på tvers: ingen vei', r.why); t.eq(r.cause, 'land', 'og grunnen er land');
+  W = world(() => false, (x, z) => Math.abs(x - 250) < 20 ? 15 : 200); r = solve(W, {a:[100, 100], b:[400, 100], maxExp:60000});
+  t.eq(r.cause, 'grunt', 'en grunne hele veien på tvers: grunnen er at det er for grunt');
+
+  // out from a quay: her place lies on the quay's edge (land), the way starts there and goes to the nearest water she can float in
+  const kai = (x, z) => z < 100;
+  W = world(kai); r = solve(W, {a:[200, 99], b:[200, 400]});
+  t.ok(r.path && r.path[0][0] === 200 && r.path[0][1] === 99, 'fra en kai: veien begynner der hun ligger, også når punktet er på kaikanten', r.path && r.path[0]);
+  t.ok(r.path && len(r.path) < 310, 'og går rett ut', r.path && len(r.path));
+  r = solve(W, {a:[200, 20], b:[200, 400]});
+  t.ok(r.why === 'start' && r.cause === 'land', 'et sted langt inne på land har ingen start', [r.why, r.cause]);
+
+  // a place shut after the check on the geometry found something there: the way goes another
+  W = world(() => false); r = solve(W, {a:[100, 100], b:[400, 100]}, [[250, 100, 30]]);
+  t.ok(r.path && distTo(r.path, 250, 100) >= 26, 'et sted kontrollen har stengt, går veien utenom', r.path && distTo(r.path, 250, 100));
+
+  // the words
+  const S0 = K.get('S'); K.set('S', K.newState());
+  try { const w = K.planWhy({why:'ingen vei', cause:'bru', at:[500000, 900000]});
+    t.ok(/brua er for lav/.test(w[0]) && /bridge is too low/.test(w[1]) && /° N/.test(w[0]), 'svaret sier hvorfor og hvor, på norsk og engelsk', w); } finally { K.set('S', S0); }
+}
