@@ -8,13 +8,14 @@
 // minute step follows the bane by the clock when the plan has one (baneSail: one call in 05-vessels.js sail); the boat model follows
 // it from F3. Nothing of the old Autonav is changed: a plan without a bane sails as before.
 // Metres on the grid (x east, z south), psi from north clockwise, speeds m/s, as 17-farbar.js.
-const BANE = {chord:0.12, ds:5, vEnd:0.5, vMin:0.3, own:1.3, piece:20, vTight:1.5};
+const BANE = {chord:0.12, ds:5, vEnd:0.5, vMin:0.3, own:1.3, piece:20, vTight:1.5, vSlow:1.5};
 // what a bane needs of her: R the radius she turns, vmax the speed she is sent at (m/s), stop(v) her stopping distance from v
 function baneBoat(type, kn){ const k = type || S.boat.type, V = VESSELS[k] || VESSELS.skiff, cal = dynCal(k);
   return {type:k, L:V.len, R:clamp(V.turnR || 2 * V.len, 1.2 * V.len, 2 * V.len), vmax:Math.max(1, (kn || V.vcruise || 6) * KN_MS), stop:v => dynStopDist(cal, v)}; }
 // The bane through the points [[X, Z] ...]: each inner corner rounded by an arc of her radius, or of what the two legs have room for
 // (half of the shorter), where she then goes slower (o.start false: she has her speed from the first metre); a point's third number is the most the arc at it may have (the planner sets it
-// where her own radius has no room). o: {R, vmax, stop, end (true: she stops at the last point)}. Q: the points it was built from.
+// where her own radius has no room), its fourth the most speed she may have on the leg to it, its fifth in the arc at it (where the
+// water is too shallow for her squat at more). o: {R, vmax, stop, end (true: she stops at the last point)}. Q: the points it was built from.
 // P: the pieces, each {k:'l', ax, az, bx, bz, psi} or {k:'a', cx, cz, r, a0, da}, with len, s0 (metres along from the start) and vl
 // (the most she has there); len; S, V, T: the speed and the time at every BANE.ds metres along
 function baneBuild(pts, o){ const Q = [pts[0]]; for (let i = 1; i < pts.length; i++) if (Math.hypot(pts[i][0] - Q[Q.length - 1][0], pts[i][1] - Q[Q.length - 1][1]) > 0.5) Q.push(pts[i]);
@@ -24,10 +25,10 @@ function baneBuild(pts, o){ const Q = [pts[0]]; for (let i = 1; i < pts.length; 
     let t = Math.min(o.R, Q[i][2] > 0 ? Q[i][2] : Infinity) * Math.tan(Math.min(f, 3.0) / 2); const lim = Math.min(leg(i), leg(i + 1)) / 2; if (t > lim) t = lim; cut[i] = t; rad[i] = t / Math.tan(Math.min(f, 3.0) / 2); phi[i] = f; sg[i] = u1[0] * u2[1] - u1[1] * u2[0] >= 0 ? 1 : -1; }
   let prev = Q[0];
   for (let i = 1; i < n; i++){ const u1 = U(i), e = i < n - 1 ? [Q[i][0] - u1[0] * cut[i], Q[i][1] - u1[1] * cut[i]] : Q[i], l = Math.hypot(e[0] - prev[0], e[1] - prev[1]);
-    if (l > 1e-6){ P.push({k:'l', ax:prev[0], az:prev[1], bx:e[0], bz:e[1], psi:Math.atan2(u1[0], -u1[1]), len:l, s0:s, vl:o.vmax}); s += l; }
+    if (l > 1e-6){ P.push({k:'l', ax:prev[0], az:prev[1], bx:e[0], bz:e[1], psi:Math.atan2(u1[0], -u1[1]), len:l, s0:s, c:i, vl:Math.min(o.vmax, Q[i][3] > 0 ? Q[i][3] : Infinity)}); s += l; }
     prev = e;
     if (i < n - 1 && cut[i] > 0 && rad[i] > 0.05){ const r = rad[i], g = sg[i], cx = e[0] - u1[1] * g * r, cz = e[1] + u1[0] * g * r, a0 = Math.atan2(e[1] - cz, e[0] - cx), da = g * phi[i], l2 = r * phi[i];
-      P.push({k:'a', cx, cz, r, a0, da, len:l2, s0:s, c:i, vl:r >= o.R * 0.98 ? o.vmax : Math.min(o.vmax * Math.max(0.3, r / o.R), r < o.R * 0.5 ? Math.max(BANE.vTight, o.vmax * 0.3) : o.vmax)}); s += l2; prev = [cx + r * Math.cos(a0 + da), cz + r * Math.sin(a0 + da)]; } }
+      P.push({k:'a', cx, cz, r, a0, da, len:l2, s0:s, c:i, vl:Math.min(r >= o.R * 0.98 ? o.vmax : Math.min(o.vmax * Math.max(0.3, r / o.R), r < o.R * 0.5 ? Math.max(BANE.vTight, o.vmax * 0.3) : o.vmax), Q[i][3] > 0 ? Q[i][3] : Infinity, Q[i + 1][3] > 0 ? Q[i + 1][3] : Infinity, Q[i][4] > 0 ? Q[i][4] : Infinity)}); s += l2; prev = [cx + r * Math.cos(a0 + da), cz + r * Math.sin(a0 + da)]; } }
   const B = {P, len:s, o, Q, S:null, V:null, T:null}; baneSpeed(B); return B; }
 // where she is s metres along it: {X, Z, psi, i (the piece)}
 function baneAt(B, s){ const P = B.P; if (!P.length) return null; s = Math.max(0, Math.min(B.len, s)); let i = 0, lo = 0, hi = P.length - 1; while (lo < hi){ const m = (lo + hi + 1) >> 1; if (P[m].s0 <= s) lo = m; else hi = m - 1; } i = lo;

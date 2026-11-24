@@ -14,7 +14,7 @@ export default function (t){
       const Y = {d, z, u}; T.set(key, Y); return Y; };
     return {tile}; };
   // the search run to its end, the tiles given as it asks (asked: how many; fineT: how many of them of the fine cells)
-  const solve = (W, J, blocks) => { const PL = K.planMake(), job = Object.assign({c2, N, q, clr:3.5, needD2:Math.ceil((3.5 + 1) / q), needD4:Math.ceil((3.5 + 2) / q), rb2:0, rb4:0, needZ:25, needZ0:25, slowR:0, needU:20, pref:25, k:0.35, w:1, endR:14, fineR:40, maxExp:1e6}, J); let asked = 0, fineT = 0;
+  const solve = (W, J, blocks) => { const PL = K.planMake(), job = Object.assign({c2, N, q, clr:3.5, needD2:Math.ceil((3.5 + 1) / q), needD4:Math.ceil((3.5 + 2) / q), rb2:0, rb4:0, needZ:25, needZf:25, slow:3, needU:20, pref:25, k:0.35, w:1, endR:14, fineR:40, maxExp:1e6}, J); let asked = 0, fineT = 0;
     PL.start(job); for (const b of blocks || []) PL.block(b[0], b[1], b[2]);
     for (let g = 0; g < 900; g++){ const r = PL.run(); if (!r.need) return Object.assign(r, {asked, fineT, PL}); for (const [c, fx, fz] of r.need){ asked++; if (c === c2) fineT++; PL.put(c, fx, fz, W.tile(c, fx, fz)); } }
     return {why:'løkke'}; };
@@ -70,6 +70,14 @@ export default function (t){
   t.ok(r.why === 'ingen vei' || r.why === 'for langt', 'land hele veien på tvers: ingen vei', r.why); t.eq(r.cause, 'land', 'og grunnen er land');
   W = world(box(), (x, z) => Math.abs(x - 250) < 20 ? 15 : 200); r = solve(W, {a:[100, 100], b:[400, 100]});
   t.eq(r.cause, 'grunt', 'en grunne hele veien på tvers: grunnen er at det er for grunt');
+
+  // water she can float over but not at full speed (3 m; she needs 2.5 slowly, 4 with her squat): over it where it lies across the
+  // whole way, and through the deep gap where there is one near (the cost is the time, and she is slow over the shallow)
+  const band = hull => (x, z) => Math.abs(x - 250) < 40 && !(hull && Math.abs(z - 220) < 30) ? 30 : 200;
+  W = world(box(), band(false)); r = solve(W, {a:[100, 100], b:[400, 100], needZf:40});
+  t.ok(r.path && r.path.length === 2, 'vann hun flyter over, men ikke i full fart: rett over der det ligger på tvers av hele veien', r.path ? r.path.length : [r.why, r.cause]);
+  W = world(box(), band(true)); r = solve(W, {a:[100, 100], b:[400, 100], needZf:40});
+  t.ok(r.path && r.path.some(p => Math.abs(p[0] - 250) < 60 && Math.abs(p[1] - 220) < 30), 'og gjennom det dype løpet der det finnes et like ved (kostnaden er tiden)', r.path && r.path.map(p => p.map(Math.round)));
 
   // out from a quay: her place lies on the quay's edge (land), the way starts there and goes to the nearest water she can float in
   const kai = (x, z) => z < 100;

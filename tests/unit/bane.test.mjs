@@ -30,6 +30,9 @@ export default function (t){
     t.near(K.baneS(B, 100), 500, 1, 'etter 100 s er hun 500 m på vei'); t.eq(K.baneS(B, 1e6), 1000, 'og etter lang tid framme');
     const B2 = K.baneBuild([at(0, 0), at(1000, 0)], Object.assign({}, o, {end:false})); t.near(K.baneV(B2, 1000), 5, 1e-6, 'uten stopp i enden holder hun farten ut');
     const B4 = K.baneBuild([at(0, 0), at(1000, 0)], Object.assign({}, o, {start:true})); t.ok(K.baneV(B4, 0) <= 0.5 + 1e-6 && K.baneV(B4, 20) < 3.4 && K.baneV(B4, 60) > 4.9, 'fra kai tar hun fart slik hun mister den: sakte de første metrene, full fart etter stopplengden', [K.baneV(B4, 0), K.baneV(B4, 20), K.baneV(B4, 60)]);
+    // a leg she may only have 2 m/s on (shallow water, her squat): slower there, full speed before and after
+    const B5 = K.baneBuild([at(0, 0), at(400, 0), [far.x + 600, far.z, 0, 2], at(1000, 0)], Object.assign({}, o, {end:false}));
+    t.ok(K.baneV(B5, 200) > 4.9 && K.baneV(B5, 500) <= 2 + 1e-6 && K.baneV(B5, 900) > 4.9 && K.baneV(B5, 390) < 3, 'et strekk med fartsgrense (grunt vann): sakte der, full fart før og etter, og hun slakker av før det', [K.baneV(B5, 200), K.baneV(B5, 390), K.baneV(B5, 500), K.baneV(B5, 900)]);
     // the points for a plan: the corner as chords, each with how far along it lies
     B = K.baneBuild([at(0, 0), at(200, 0), at(200, 200)], o); const pts = K.banePts(B);
     t.ok(pts.length >= 10 && Math.abs(pts[pts.length - 1].s - B.len) < 1e-6 && pts.every((p, i) => !i || p.s > pts[i - 1].s), 'punktene til planen ligger i rekkefølge langs banen, buen som korder', pts.length);

@@ -20,8 +20,9 @@ const PLAN = {on:null, cell:2, co:100, fineR:350, k:1, w8:1.15, tries:6, maxExp:
 // so a harbour's mouth of 20 m is shut on cells of 4 m and open on cells of 2), and cells twice as big everywhere else. A place is a
 // pair of whole numbers on the fine lattice; a big cell is come to at its even ones.
 // J: {c2, N, q (metres a step of d), a, b ([X, Z] metres), clr (metres she needs to the side: half her beam and the margin), needD2,
-// needD4 (steps of q: clr and half a cell), rb2, rb4 (cells to the side a wide hull asks the water of), needZ (dm, with her squat at
-// full speed), needZ0, slowR (the water she needs at the ends, and how far from them she has her full speed), needU (steps of 0.25 m),
+// needD4 (steps of q: clr and half a cell), rb2, rb4 (cells to the side a wide hull asks the water of), needZ (dm: the water she
+// needs to float over a place slowly), needZf (with her squat at full speed), slow (how much longer the way takes where she must go
+// slowly), needU (steps of 0.25 m),
 // pref (metres off the land she keeps where there is room), k (how much longer a way she takes for that), w (the weight on what is
 // left), endR (metres round the ends where only what is solid shuts a cell), fineR, maxExp}
 function planMake(){
@@ -63,14 +64,16 @@ function planMake(){
         const u = fx - i, w = fz - j, wp = p < Infinity ? (1 - u) * (1 - w) : 0, wq = q < Infinity ? u * (1 - w) : 0, wr = r < Infinity ? (1 - u) * w : 0, wt = t < Infinity ? u * w : 0, ws = wp + wq + wr + wt;   // (between the four cells round her that have a way; a cell of land has none)
         if (ws > 1e-6){ const cd = ((wp ? p * wp : 0) + (wq ? q * wq : 0) + (wr ? r * wr : 0) + (wt ? t * wt : 0)) / ws - c * 1.5; if (cd > h) h = cd; } } }
     return h * (J.w || 1); };
-  // the water she needs at a place (dm): with her squat at full speed, less of it near the two ends, where she is slower
-  const zNeed = (x, z) => { if (!(J.slowR > 0)) return J.needZ; const d = Math.sqrt(Math.min((x - J.a[0]) * (x - J.a[0]) + (z - J.a[1]) * (z - J.a[1]), (x - J.b[0]) * (x - J.b[0]) + (z - J.b[1]) * (z - J.b[1]))); return d >= J.slowR ? J.needZ : J.needZ0 + (J.needZ - J.needZ0) * d / J.slowR; };
+  // the water she needs at a place (dm) to float over it slowly; where there is less than she needs at full speed (J.needZf, with her
+  // squat), she goes slowly and the way there costs J.slow times as much (the cost is the time it takes)
+  const zNeed = (x, z) => J.needZ;
   const nearEnd = (x, z) => { const e = J.endR; return (x - J.a[0]) * (x - J.a[0]) + (z - J.a[1]) * (z - J.a[1]) < e * e || (x - J.b[0]) * (x - J.b[0]) + (z - J.b[1]) * (z - J.b[1]) < e * e; };
   // whether the cell last looked up is open to her (-1 its tile is not in, 0 shut, 1 open); why: counts what shut it
   const openC = why => { const t = cT; if (!t) return -1; if (t.none){ if (why) why.ukjent++; return 0; } const zz = t.z[cK], u = t.u[cK], d = t.d[cK], x = cX, z = cZ;
     if (zz === 255){ if (why) why.ukjent++; return 0; } if (zz < zNeed(x, z)){ if (why && d > 0) why.grunt++; else if (why) why.land++; return 0; }
-    if (u !== 255 && u < J.needU){ if (why) why.bru++; return 0; }
-    if (d < (nearEnd(x, z) ? 1 : cS === 1 ? J.needD2 : J.needD4)){ if (why){ if (d === 0) why.land++; else why.trangt++; } return 0; }
+    const ne = nearEnd(x, z);   // (at her own berth a quay's deck over her is the quay she lies at: the check on the geometry has the rule)
+    if (u !== 255 && u < J.needU && !ne){ if (why) why.bru++; return 0; }
+    if (d < (ne ? 1 : cS === 1 ? J.needD2 : J.needD4)){ if (why){ if (d === 0) why.land++; else why.trangt++; } return 0; }
     for (const b of blocks) if ((x - b[0]) * (x - b[0]) + (z - b[1]) * (z - b[1]) < b[2] * b[2]){ if (why) why.trangt++; return 0; }
     return 1; };
   // The cell at a place, open or not (kept per cell till the search is begun again). The field's water is the least within a cell and a
@@ -113,7 +116,7 @@ function planMake(){
         nx -= ox; nz -= oz;   // (a big cell is come to at its own place: its even one)
         if (ns === 1 && s === 2 && okAt(ix + DX[i], iz + DZ[i]) !== 1) continue;   // (from a big cell into the fine ones: the fine cell stepped over is open too)
         if (nt.st[nk] === 2) continue;
-        const dm = nt.d[nk] * J.q, ng = g0 + Math.hypot(qx - px, qz - pz) * (1 + (dm >= J.pref ? 0 : J.k * (1 - dm / J.pref)));
+        const dm = nt.d[nk] * J.q, ng = g0 + Math.hypot(qx - px, qz - pz) * (1 + (dm >= J.pref ? 0 : J.k * (1 - dm / J.pref))) * (nt.z[nk] < J.needZf ? J.slow : 1);
         if (ng < nt.g[nk]){ nt.g[nk] = ng; nt.par[nk] = i + (s === 2 ? 8 : 0) + ox * 16 + oz * 32; push(ng + hh(nx, nz), nx, nz); } } }
     if (!best) return {why:'ingen vei', at:J.a, cause:'ukjent', exp};
     // Nothing more to try. What shut her out, and where the water goes on behind it; where that is behind something narrow or
@@ -149,7 +152,7 @@ function planMake(){
     for (let guard = 0; guard < 1e6; guard++){ const x = ax + (bx - ax) * (L ? u / L : 0), z = az + (bz - az) * (L ? u / L : 0), ix = Math.floor(x / c2), iz = Math.floor(z / c2); if (okAt(ix, iz) !== 1) return -1;
       at(ix, iz); const dm = cT.d[cK] * J.q, st = Math.min(cS * c2 * 0.5, Math.max(L - u, 1e-9));
       if (dm - Math.hypot(x - cX, z - cZ) < J.clr + cS * c2 * 0.25 && !nearEnd(x, z)) return -1;   // (the distance is from the cell's middle: no nearer than that less the way from the middle)
-      if (u >= L) break; c += st * (1 + (dm >= J.pref ? 0 : J.k * (1 - dm / J.pref))); u = Math.min(L, u + st); }
+      if (u >= L) break; c += st * (1 + (dm >= J.pref ? 0 : J.k * (1 - dm / J.pref))) * (cT.z[cK] < J.needZf ? J.slow : 1); u = Math.min(L, u + st); }
     return c; };
   function finish(){ const C = []; let ix = gx, iz = gz;
     for (let guard = 0; guard < 4e6; guard++){ at(ix, iz); C.push([cX, cZ, cT.g[cK]]); if (ix === sx && iz === sz) break; const p = cT.par[cK], s = p & 8 ? 2 : 1; ix += (p & 16 ? 1 : 0) - DX[p & 7] * s; iz += (p & 32 ? 1 : 0) - DZ[p & 7] * s; }
@@ -205,7 +208,7 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
   let sq = 0, P = null; try { P = dynCal(ty).P; sq = dynSquat(P, bb.vmax, false); } catch (e){}
   const side = opt && opt.side != null ? opt.side : FARB.side, own = BANE.own * boat.L;
   const nd = c => Math.ceil((boat.B / 2 + side + c * 0.5) / F.q), rb = c => boat.B / 2 + side > c * 1.5 ? Math.ceil((boat.B / 2 + side - c * 1.5) / c) : 0;
-  const J = {c2, N:F.N, q:F.q, a:[ax, az], b:[bx, bz], clr:boat.B / 2 + side, needD2:nd(c2), needD4:nd(c2 * 2), rb2:rb(c2), rb4:rb(c2 * 2), needZ:Math.ceil((boat.T + sq + FARB.keel - lv + FARB.eps) * 10), needZ0:Math.ceil((boat.T + FARB.keel - lv + FARB.eps) * 10), slowR:bb.stop(bb.vmax) * 0.6, needU:Math.ceil((boat.air + FARB.airOver) / 0.25),
+  const J = {c2, N:F.N, q:F.q, a:[ax, az], b:[bx, bz], clr:boat.B / 2 + side, needD2:nd(c2), needD4:nd(c2 * 2), rb2:rb(c2), rb4:rb(c2 * 2), needZ:Math.ceil((boat.T + FARB.keel - lv + FARB.eps) * 10), needZf:Math.ceil((boat.T + sq + FARB.keel - lv + FARB.eps) * 10), slow:Math.max(1.5, Math.min(4, bb.vmax / BANE.vSlow)), needU:Math.ceil((boat.air + FARB.airOver) / 0.25),
     pref:Math.min(F.cap - 1, Math.max(25, boat.B * 3)), k:PLAN.k, w:PLAN.w8, endR:own + c2 * 2, fineR:PLAN.fineR, maxExp:PLAN.maxExp};
   // (the chart's cells for the way round: the packs over the box are waited for as a tap in the chart waits for them, the blocks warmed)
   try { const M = Math.max(2000, Math.min(8000, 0.35 * Math.hypot(bx - ax, bz - az) + 1500)), x0 = Math.min(ax, bx) - M, x1 = Math.max(ax, bx) + M, z0 = Math.min(az, bz) - M, z1 = Math.max(az, bz) + M;
@@ -229,8 +232,15 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     let Q = r.path.map(q => [q[0], q[1], 0]), B = null, hit = null;
     for (let i = 0; i + 1 < Q.length; i++){ const n = Math.max(1, Math.ceil(Math.hypot(Q[i + 1][0] - Q[i][0], Q[i + 1][1] - Q[i][1]) / 2000));
       for (let j = 0; j < n; j++) if (!await farbNeed([{x:(Q[i][0] + (Q[i + 1][0] - Q[i][0]) * j / n) / 1000, y:(Q[i][1] + (Q[i + 1][1] - Q[i][1]) * j / n) / 1000}, {x:(Q[i][0] + (Q[i + 1][0] - Q[i][0]) * (j + 1) / n) / 1000, y:(Q[i][1] + (Q[i + 1][1] - Q[i][1]) * (j + 1) / n) / 1000}], 0.4)) return fail({why:'ingen vei', cause:'ukjent', at:[Q[i][0], Q[i][1]]}, {tiles, tries, exp}); }
-    for (let guard = 0; guard < 200; guard++){ B = baneBuild(Q, o); Q = B.Q; hit = await farbRunA(baneFriG(B, boat, Hmin, sw, memo)); if (!hit || hit.what === 'ukjent') break;
-      const p = B.P[hit.i]; if (p.k !== 'a' || p.r / 2 < rMin) break; Q[p.c][2] = p.r / 2; }
+    for (let guard = 0; guard < 400; guard++){ B = baneBuild(Q, o); Q = B.Q; hit = await farbRunA(baneFriG(B, boat, Hmin, sw, memo)); if (!hit || hit.what === 'ukjent') break;
+      const p = B.P[hit.i];
+      // (water too shallow for her squat at the speed she has there: she goes slower over it, down to BANE.vSlow, before it is shut)
+      if (hit.what === 'grunn' && p.vl > BANE.vSlow + 1e-6){ const v2 = Math.max(BANE.vSlow, p.vl / 2);
+        if (p.k === 'a'){ Q[p.c][4] = v2; continue; }
+        const c0 = Q[p.c][3] || 0, u0 = hit.s - p.s0 - 15, u1 = hit.s - p.s0 + BANE.piece + 15, dx = (p.bx - p.ax) / p.len, dz = (p.bz - p.az) / p.len, ins = [];
+        if (u0 > 2) ins.push([p.ax + dx * u0, p.az + dz * u0, 0, c0]); if (u1 < p.len - 2) ins.push([p.ax + dx * u1, p.az + dz * u1, 0, v2]); else Q[p.c][3] = v2;
+        if (ins.length){ if (!(u1 < p.len - 2)) ins[ins.length - 1][3] = c0; Q.splice(p.c, 0, ...ins); } continue; }
+      if (p.k !== 'a' || p.r / 2 < rMin) break; Q[p.c][2] = p.r / 2; }
     if (!hit){ PLAN.n.plans++; PLAN.n.tiles += tiles; const ms = Math.round(performance.now() - t0); PLAN.n.ms += ms; return {bane:B, pts:banePts(B), nm:B.len / 1852, ms, tiles, tries, exp, Hmin, need:J}; }
     const cs = hit.what === 'ukjent' ? 'ukjent' : hit.what === 'grunn' ? 'grunt' : hit.what === 'brudekke' ? 'bru' : 'trangt';
     if (hit.what === 'ukjent' || ++tries > PLAN.tries){ PLAN.n.plans++; return fail({why:'ingen vei', cause:cs, at:[hit.x, hit.z]}, {tiles, tries, exp, hit:hit.what + ':' + hit.id}); }
@@ -242,6 +252,6 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
 function planInto(pl, R, i0, i1){ const last = pl.wps[i1 - 1], n = R.pts.length, B = R.bane;
   const pts = R.pts.map((q, i) => i === n - 1 ? Object.assign({}, last, {x:q.x, y:q.y}) : {x:q.x, y:q.y, port:null, fish:0, leia:true, bane:true});
   pl.wps.splice(i0, i1 - i0, ...pts); const Y = pl.b2 || (pl.b2 = {legs:[], at:-1, s:0}); for (const g of Y.legs) if (g.i0 >= i1) g.i0 += n - (i1 - i0);
-  Y.legs.push({i0, n, q:B.Q.map(q => [+q[0].toFixed(2), +q[1].toFixed(2), +(q[2] || 0).toFixed(2)]), kn:+(B.o.vmax / KN_MS).toFixed(2), end:B.o.end !== false, type:B.o.type}); Y.len = pl.wps.length; return pl; }
+  Y.legs.push({i0, n, q:B.Q.map(q => [+q[0].toFixed(2), +q[1].toFixed(2), +(q[2] || 0).toFixed(2), +(q[3] || 0).toFixed(2), +(q[4] || 0).toFixed(2)]), kn:+(B.o.vmax / KN_MS).toFixed(2), end:B.o.end !== false, type:B.o.type}); Y.len = pl.wps.length; return pl; }
 // whether the new Autonav is the one that sails: #autonav2 in the address (and what the bench sets)
 function planOn(){ if (PLAN.on == null){ PLAN.on = false; try { PLAN.on = /[#&,]autonav2\b/.test(location.hash); } catch (e){} } return PLAN.on; }
