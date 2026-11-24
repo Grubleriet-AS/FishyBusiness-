@@ -3,7 +3,7 @@
 // repairs (A* in three window sizes, a corridor, the fairway net, lanes, a pocket search, a split, a reversal, mending, straightening,
 // pulling and detours), each of them checking a line without a width. This one is two steps:
 //  1. the search (planMake, in a worker): A* over the cells of the field (17-farbar.js: the distance to what nobody can pass, the
-//     least water, the lowest deck), open to her where the distance is over half her beam and the margin, the water deep enough at
+//     least water, the lowest deck; cells of 2 m near the ends and where it is narrow, 4 m elsewhere), open to her where the distance is over half her beam and the margin, the water deep enough at
 //     the lowest tide of the trip and no deck too low. The cost is the way's length, a little more near the land where there is room
 //     to keep off it. The way is then pulled straight wherever the cells between two of its points are as open as the way itself was.
 //     It asks for the field's tiles as it comes to them, so only the water it looks at is worked out;
@@ -12,84 +12,123 @@
 //     search goes again, a few times at most.
 // Within a length and a half of the two ends her own quay does not count (the bench's rule for her own berth, tools/autonav/benk.js).
 // Where there is no way, the answer says why and where. Nothing calls this but the bench (--autonav ny) and the flag (planOn).
-const PLAN = {on:null, cell:4, k:1, tries:6, maxExp:6e6, w:null, id:0, wait:new Map(), n:{plans:0, ms:0, tiles:0}};
+const PLAN = {on:null, cell:2, fineR:350, k:1, w8:1.03, tries:6, maxExp:6e6, w:null, id:0, wait:new Map(), n:{plans:0, ms:0, tiles:0}};
 // The search: self-contained (it runs in the worker, and in Node for the unit tests). start(J) begins one; run() goes on till it has a
-// way {path, exp}, has none {why, at, cause}, or needs tiles {need:[[fx, fz] ...]}, which put() gives it; block() shuts a disc.
-// J: {cell, N, q (metres a step of d), a, b ([X, Z] metres), clr (metres she needs to the side: half her beam and the margin), needD (steps of q:
-// clr and half a cell), rb (cells to the side a wide hull asks the water of), needZ (dm), needU (steps of 0.25 m), pref (metres off
-// the land she keeps where there is room), k (how much longer a way she takes for that), endR (metres round the ends where only what
-// is solid shuts a cell), maxExp}
+// way {path, exp}, has none {why, at, cause}, or needs tiles {need:[[cell, fx, fz] ...]}, which put() gives it; block() shuts a disc.
+// Two sizes of cell on one lattice: the fine one (J.c2 m; a tile of it is a block) within J.fineR of the two ends and where a search
+// that came to nothing found water behind something narrow or shallow (the field's water is the least within a cell and a half,
+// so a harbour's mouth of 20 m is shut on cells of 4 m and open on cells of 2), and cells twice as big everywhere else. A place is a
+// pair of whole numbers on the fine lattice; a big cell is come to at its even ones.
+// J: {c2, N, q (metres a step of d), a, b ([X, Z] metres), clr (metres she needs to the side: half her beam and the margin), needD2,
+// needD4 (steps of q: clr and half a cell), rb2, rb4 (cells to the side a wide hull asks the water of), needZ (dm, with her squat at
+// full speed), needZ0, slowR (the water she needs at the ends, and how far from them she has her full speed), needU (steps of 0.25 m),
+// pref (metres off the land she keeps where there is room), k (how much longer a way she takes for that), w (the weight on what is
+// left), endR (metres round the ends where only what is solid shuts a cell), fineR, maxExp}
 function planMake(){
-  const TL = new Map(), R2 = Math.SQRT2, DX = [1, 1, 0, -1, -1, -1, 0, 1], DZ = [0, 1, 1, 1, 0, -1, -1, -1];
-  let J = null, N = 0, cell = 0, HF = new Float64Array(1024), HX = new Int32Array(1024), HZ = new Int32Array(1024), hn = 0, blocks = [], best = null, exp = 0, gx = 0, gz = 0, sx = 0, sz = 0, live = [];
-  const tk = (fx, fz) => fx * 100003 + fz, tileAt = (ix, iz) => TL.get(tk(Math.floor(ix / N), Math.floor(iz / N)));
+  const T2 = new Map(), T4 = new Map(), R2 = Math.SQRT2, DX = [1, 1, 0, -1, -1, -1, 0, 1], DZ = [0, 1, 1, 1, 0, -1, -1, -1];
+  let J = null, N = 0, c2 = 0, HF = new Float64Array(1024), HX = new Int32Array(1024), HZ = new Int32Array(1024), hn = 0, blocks = [], best = null, exp = 0, gx = 0, gz = 0, sx = 0, sz = 0, fine = new Set(), refined = 0, behind = null, far = false;
+  let cT = null, cK = 0, cS = 1, cX = 0, cZ = 0, cFx = 0, cFz = 0;   // (the cell last looked up: its tile, its place in it, its size in fine cells, its middle, the tile's own place)
+  const key = (a, b) => a * 100003 + b;
+  const at = (ix, iz) => { const bx = Math.floor(ix / N), bz = Math.floor(iz / N);
+    if (fine.has(key(bx, bz))){ cT = T2.get(key(bx, bz)); cK = (iz - bz * N) * N + ix - bx * N; cS = 1; cX = (ix + 0.5) * c2; cZ = (iz + 0.5) * c2; cFx = bx; cFz = bz; }
+    else { const jx = Math.floor(ix / 2), jz = Math.floor(iz / 2), fx = Math.floor(jx / N), fz = Math.floor(jz / N); cT = T4.get(key(fx, fz)); cK = (jz - fz * N) * N + jx - fx * N; cS = 2; cX = (jx + 0.5) * c2 * 2; cZ = (jz + 0.5) * c2 * 2; cFx = fx; cFz = fz; }
+    return cT; };
   const push = (f, x, z) => { if (hn === HF.length){ const n2 = hn * 2, a = new Float64Array(n2), b = new Int32Array(n2), c = new Int32Array(n2); a.set(HF); b.set(HX); c.set(HZ); HF = a; HX = b; HZ = c; }
     let i = hn++; while (i > 0){ const p = (i - 1) >> 1; if (HF[p] <= f) break; HF[i] = HF[p]; HX[i] = HX[p]; HZ[i] = HZ[p]; i = p; } HF[i] = f; HX[i] = x; HZ[i] = z; };
   const pop = () => { const f = HF[0], x = HX[0], z = HZ[0]; hn--; if (hn > 0){ const lf = HF[hn], lx = HX[hn], lz = HZ[hn]; let i = 0;
       for (;;){ let c = 2 * i + 1; if (c >= hn) break; if (c + 1 < hn && HF[c + 1] < HF[c]) c++; if (HF[c] >= lf) break; HF[i] = HF[c]; HX[i] = HX[c]; HZ[i] = HZ[c]; i = c; } HF[i] = lf; HX[i] = lx; HZ[i] = lz; } return [f, x, z]; };
+  // (what is left to the goal at least, as the cells are walked: straight and diagonal steps; J.w a little over 1 makes the search
+  // go for the goal over open water instead of widening evenly, for a way that is at most that much longer before it is pulled straight)
+  const hh = (ix, iz) => { const a = Math.abs(gx - ix), b = Math.abs(gz - iz); return (a > b ? a + b * (R2 - 1) : b + a * (R2 - 1)) * c2 * (J.w || 1); };
+  // the water she needs at a place (dm): with her squat at full speed, less of it near the two ends, where she is slower
+  const zNeed = (x, z) => { if (!(J.slowR > 0)) return J.needZ; const d = Math.sqrt(Math.min((x - J.a[0]) * (x - J.a[0]) + (z - J.a[1]) * (z - J.a[1]), (x - J.b[0]) * (x - J.b[0]) + (z - J.b[1]) * (z - J.b[1]))); return d >= J.slowR ? J.needZ : J.needZ0 + (J.needZ - J.needZ0) * d / J.slowR; };
   const nearEnd = (x, z) => { const e = J.endR; return (x - J.a[0]) * (x - J.a[0]) + (z - J.a[1]) * (z - J.a[1]) < e * e || (x - J.b[0]) * (x - J.b[0]) + (z - J.b[1]) * (z - J.b[1]) < e * e; };
-  // whether the cell is open to her (0 shut; else 1): t its tile, k its place in it; why: counts what shut it
-  const open = (t, k, ix, iz, why) => { if (t.none){ if (why) why.ukjent++; return 0; } const zz = t.z[k], u = t.u[k], x = (ix + 0.5) * cell, z = (iz + 0.5) * cell;
-    if (zz === 255){ if (why) why.ukjent++; return 0; } if (zz < J.needZ){ if (why && t.d[k] > 0) why.grunt++; else if (why) why.land++; return 0; }
+  // whether the cell last looked up is open to her (-1 its tile is not in, 0 shut, 1 open); why: counts what shut it
+  const openC = why => { const t = cT; if (!t) return -1; if (t.none){ if (why) why.ukjent++; return 0; } const zz = t.z[cK], u = t.u[cK], d = t.d[cK], x = cX, z = cZ;
+    if (zz === 255){ if (why) why.ukjent++; return 0; } if (zz < zNeed(x, z)){ if (why && d > 0) why.grunt++; else if (why) why.land++; return 0; }
     if (u !== 255 && u < J.needU){ if (why) why.bru++; return 0; }
-    if (t.d[k] < (nearEnd(x, z) ? 1 : J.needD)){ if (why){ if (t.d[k] === 0) why.land++; else why.trangt++; } return 0; }
+    if (d < (nearEnd(x, z) ? 1 : cS === 1 ? J.needD2 : J.needD4)){ if (why){ if (d === 0) why.land++; else why.trangt++; } return 0; }
     for (const b of blocks) if ((x - b[0]) * (x - b[0]) + (z - b[1]) * (z - b[1]) < b[2] * b[2]){ if (why) why.trangt++; return 0; }
     return 1; };
-  // (the field's water is the least within a cell and a half of the cell's middle: a hull wider than that asks the cells J.rb out
-  // on every side too, so a shoal under her side shuts the cell as one under her keel does)
-  const okAt = (ix, iz, why) => { const t = tileAt(ix, iz); if (!t) return -1; const o = open(t, (iz - Math.floor(iz / N) * N) * N + ix - Math.floor(ix / N) * N, ix, iz, why); if (!o || !J.rb) return o;
-    for (let i = 0; i < 8; i++){ const jx = ix + DX[i] * J.rb, jz = iz + DZ[i] * J.rb, t2 = tileAt(jx, jz); if (!t2 || t2.none) continue; const k2 = (jz - Math.floor(jz / N) * N) * N + jx - Math.floor(jx / N) * N, zz = t2.z[k2];
-      if (zz !== 255 && zz < J.needZ && t2.d[k2] > 0){ if (why) why.grunt++; return 0; } }
-    return 1; };
-  const state = t => { if (!t.g){ t.g = new Float32Array(N * N).fill(Infinity); t.par = new Int8Array(N * N).fill(-1); t.st = new Uint8Array(N * N); live.push(t); } return t; };
-  const missing = (ix, iz) => { const out = [], mg = 1 + (J.rb || 0); for (let b = -1; b <= 1; b++) for (let a = -1; a <= 1; a++){ const fx = Math.floor((ix + a * mg) / N), fz = Math.floor((iz + b * mg) / N); if (!TL.has(tk(fx, fz)) && !out.some(q => q[0] === fx && q[1] === fz)) out.push([fx, fz]); } return out; };
-  // the nearest open cell to a cell within the ends' reach (a port's point may lie on the quay)
-  const nearest = (ix, iz) => { if (okAt(ix, iz) === 1) return [ix, iz]; const m = Math.ceil(J.endR / cell) + 2; let bd = Infinity, out = null;
+  // The cell at a place, open or not (kept per cell till the search is begun again). The field's water is the least within a cell and a
+  // half of the cell's middle: a hull wider than that asks the cells rb out on every side too, so a shoal under her side shuts the
+  // cell as one under her keel does
+  const okAt = (ix, iz, why) => { at(ix, iz); const t = cT, k = cK; if (t && t.op && !why){ const v = t.op[k]; if (v) return v === 1 ? 1 : 0; }
+    let o = openC(why); if (o === 1){ const rb = cS === 1 ? J.rb2 : J.rb4; if (rb){ const s = cS * rb;
+        for (let i = 0; i < 8; i++){ at(ix + DX[i] * s, iz + DZ[i] * s); const t2 = cT; if (!t2 || t2.none) continue; const zz = t2.z[cK]; if (zz !== 255 && t2.d[cK] > 0 && zz < zNeed(cX, cZ)){ if (why) why.grunt++; o = 0; break; } } } }
+    if (t && t.op && o >= 0) t.op[k] = o === 1 ? 1 : 2; return o; };
+  // the tiles that are not in round a place, mg fine cells out: [[cell, fx, fz] ...]
+  const missing = (ix, iz, mg) => { const out = []; for (let b = -1; b <= 1; b++) for (let a = -1; a <= 1; a++){ if (at(ix + a * mg, iz + b * mg)) continue; const c = cS * c2, fx = cFx, fz = cFz; if (!out.some(q => q[0] === c && q[1] === fx && q[2] === fz)) out.push([c, fx, fz]); } return out; };
+  // the nearest open cell to a place within the ends' reach (a port's point may lie on the quay)
+  const nearest = (ix, iz) => { if (okAt(ix, iz) === 1) return [ix, iz]; const m = Math.ceil(J.endR / c2) + 2; let bd = Infinity, out = null;
     for (let b = -m; b <= m; b++) for (let a = -m; a <= m; a++){ const d = a * a + b * b; if (d < bd && okAt(ix + a, iz + b) === 1){ bd = d; out = [ix + a, iz + b]; } } return out; };
-  function start(job){ J = job; N = J.N; cell = J.cell; for (const t of live){ t.g.fill(Infinity); t.par.fill(-1); t.st.fill(0); } hn = 0; exp = 0; best = null; J.ready = false; }
-  function put(fx, fz, t){ TL.set(tk(fx, fz), t && !t.none ? {d:t.d, z:t.z, u:t.u} : {none:true}); }
+  const reset = () => { for (const M of [T2, T4]) for (const t of M.values()) if (t.g){ t.g.fill(Infinity); t.st.fill(0); t.op.fill(0); } hn = 0; best = null; far = false; J.ready = false; };
+  const fineAt = (x, z, r) => { const Tb = N * c2; for (let bz = Math.floor((z - r) / Tb); bz <= Math.floor((z + r) / Tb); bz++) for (let bx = Math.floor((x - r) / Tb); bx <= Math.floor((x + r) / Tb); bx++) fine.add(key(bx, bz)); };
+  function start(job){ J = job; N = J.N; c2 = J.c2; fine = new Set(); fineAt(J.a[0], J.a[1], J.fineR); fineAt(J.b[0], J.b[1], J.fineR); for (const f of J.fine || []) fineAt(f[0], f[1], f[2]); exp = 0; refined = 0; reset(); }
+  function put(c, fx, fz, t){ const Y = t && !t.none ? {d:t.d, z:t.z, u:t.u, g:new Float32Array(N * N).fill(Infinity), par:new Int8Array(N * N), st:new Uint8Array(N * N), op:new Uint8Array(N * N)} : {none:true}; (c === c2 ? T2 : T4).set(key(fx, fz), Y); }
   function block(x, z, r){ blocks.push([x, z, r]); }
+  function again(){ exp = 0; refined = 0; reset(); }   // (the same search once more, after a place was shut: the fine cells it had stay)
   function clear(){ blocks = []; }
-  function run(){
-    if (!J.ready){ const ax = Math.floor(J.a[0] / cell), az = Math.floor(J.a[1] / cell), bx = Math.floor(J.b[0] / cell), bz = Math.floor(J.b[1] / cell), m = Math.ceil(J.endR / cell) + 3, need = [];
-      for (const [cx, cz] of [[ax, az], [bx, bz]]) for (let fz = Math.floor((cz - m) / N); fz <= Math.floor((cz + m) / N); fz++) for (let fx = Math.floor((cx - m) / N); fx <= Math.floor((cx + m) / N); fx++) if (!TL.has(tk(fx, fz)) && !need.some(q => q[0] === fx && q[1] === fz)) need.push([fx, fz]);
+  function run(){ for (;;){ const r = search(); if (!r.again) return r; } }
+  function search(){
+    if (!J.ready){ const ax = Math.floor(J.a[0] / c2), az = Math.floor(J.a[1] / c2), bx = Math.floor(J.b[0] / c2), bz = Math.floor(J.b[1] / c2), m = Math.min(N - 1, Math.ceil(J.endR / c2) + 3 + 2 * (J.rb2 || 0)), need = [];
+      for (const [cx, cz] of [[ax, az], [bx, bz]]) for (const q of missing(cx, cz, m)) if (!need.some(v => v[0] === q[0] && v[1] === q[1] && v[2] === q[2])) need.push(q);
       if (need.length) return {need};
       const s = nearest(ax, az), g = nearest(bx, bz); if (!s) return {why:'start', at:J.a, cause:cause(ax, az)}; if (!g) return {why:'mål', at:J.b, cause:cause(bx, bz)};
-      sx = s[0]; sz = s[1]; gx = g[0]; gz = g[1]; const t = state(tileAt(sx, sz)), k = (sz - Math.floor(sz / N) * N) * N + sx - Math.floor(sx / N) * N; t.g[k] = 0; push(Math.hypot(gx - sx, gz - sz) * cell, sx, sz); J.ready = true; }
-    const mg = 1 + (J.rb || 0);
-    while (hn){ const top = pop(), ix = top[1], iz = top[2], t = state(tileAt(ix, iz)), lx = ix - Math.floor(ix / N) * N, lz = iz - Math.floor(iz / N) * N, k = lz * N + lx; if (t.st[k] === 2) continue;
-      if (lx < mg || lz < mg || lx >= N - mg || lz >= N - mg){ const need = missing(ix, iz); if (need.length){ push(top[0], ix, iz); return {need}; } }
+      sx = s[0]; sz = s[1]; gx = g[0]; gz = g[1]; at(sx, sz); cT.g[cK] = 0; push(hh(sx, sz), sx, sz); J.ready = true; }
+    while (hn){ const top = pop(), ix = top[1], iz = top[2]; at(ix, iz); const t = cT, k = cK, s = cS, px = cX, pz = cZ; if (t.st[k] === 2) continue;
+      const m = 1 + (s === 1 ? J.rb2 : J.rb4), lx = k % N, lz = (k - lx) / N;
+      if (lx < m || lz < m || lx >= N - m || lz >= N - m){ const need = missing(ix, iz, m * s); if (need.length){ push(top[0], ix, iz); return {need}; } }
       t.st[k] = 2; exp++; if (ix === gx && iz === gz) return finish();
-      const h = Math.hypot(gx - ix, gz - iz) * cell; if (!best || h < best[0]) best = [h, ix, iz];
-      if (exp > J.maxExp) return {why:'for langt', at:[(best[1] + 0.5) * cell, (best[2] + 0.5) * cell], cause:cause(best[1], best[2], true), exp};
+      const h = hh(ix, iz); if (!best || h < best[0]) best = [h, ix, iz];
+      if (exp > J.maxExp){ hn = 0; far = true; break; }
       const g0 = t.g[k]; let ok = 0;   // (bit i: the neighbour i is open)
-      for (let i = 0; i < 8; i++) if (okAt(ix + DX[i], iz + DZ[i]) === 1) ok |= 1 << i;
+      for (let i = 0; i < 8; i++) if (okAt(ix + DX[i] * s, iz + DZ[i] * s) === 1) ok |= 1 << i;
       for (let i = 0; i < 8; i++){ if (!(ok & (1 << i))) continue; if (i & 1){ if (!(ok & (1 << (i - 1))) || !(ok & (1 << ((i + 1) & 7)))) continue; }   // (no cutting a corner of what is shut)
-        const nx = ix + DX[i], nz = iz + DZ[i], nt = state(tileAt(nx, nz)), nk = (nz - Math.floor(nz / N) * N) * N + nx - Math.floor(nx / N) * N; if (nt.st[nk] === 2) continue;
-        const dm = nt.d[nk] * J.q, ng = g0 + cell * (i & 1 ? R2 : 1) * (1 + (dm >= J.pref ? 0 : J.k * (1 - dm / J.pref)));
-        if (ng < nt.g[nk]){ nt.g[nk] = ng; nt.par[nk] = i; push(ng + Math.hypot(gx - nx, gz - nz) * cell, nx, nz); } } }
-    return best ? {why:'ingen vei', at:[(best[1] + 0.5) * cell, (best[2] + 0.5) * cell], cause:cause(best[1], best[2], true), exp} : {why:'ingen vei', at:J.a, cause:'ukjent', exp}; }
+        let nx = ix + DX[i] * s, nz = iz + DZ[i] * s; at(nx, nz); const nt = cT, nk = cK, ns = cS, qx = cX, qz = cZ, ox = ns === 2 ? nx & 1 : 0, oz = ns === 2 ? nz & 1 : 0;
+        nx -= ox; nz -= oz;   // (a big cell is come to at its own place: its even one)
+        if (ns === 1 && s === 2 && okAt(ix + DX[i], iz + DZ[i]) !== 1) continue;   // (from a big cell into the fine ones: the fine cell stepped over is open too)
+        if (nt.st[nk] === 2) continue;
+        const dm = nt.d[nk] * J.q, ng = g0 + Math.hypot(qx - px, qz - pz) * (1 + (dm >= J.pref ? 0 : J.k * (1 - dm / J.pref)));
+        if (ng < nt.g[nk]){ nt.g[nk] = ng; nt.par[nk] = i + (s === 2 ? 8 : 0) + ox * 16 + oz * 32; push(ng + hh(nx, nz), nx, nz); } } }
+    if (!best) return {why:'ingen vei', at:J.a, cause:'ukjent', exp};
+    // Nothing more to try. What shut her out, and where the water goes on behind it; where that is behind something narrow or
+    // shallow on the big cells, the same is searched again on the fine ones there (three times at most)
+    at(best[1], best[2]); const bxm = cX, bzm = cZ, cs = cause(best[1], best[2], true); if (cs && cs.need) return cs;
+    if (far) return {why:'for langt', at:[bxm, bzm], cause:cs, exp};
+    if (behind && (cs === 'grunt' || cs === 'trangt') && refined < 3 && behind.some(q => q[2] === 2)){ refined++; for (const q of behind) fineAt(q[0], q[1], 60); fineAt(bxm, bzm, 60); reset(); return {again:true}; }
+    return {why:'ingen vei', at:[bxm, bzm], cause:cs, exp}; }
   // What shuts her out. At an end (no water for her within reach of the place): what the cells round it are shut by. For a search
   // that came to nothing (wall): what she would have to be without to come on from where it came nearest the goal: under a deck
-  // too low, over water too shallow, or through a gap too narrow; else it is land (or a chart that is not in)
-  function cause(ix, iz, wall){ const w = {grunt:0, bru:0, trangt:0, land:0, ukjent:0}; for (let b = -4; b <= 4; b++) for (let a = -4; a <= 4; a++) if (okAt(ix + a, iz + b, w) === -1) w.ukjent++;
+  // too low, over water too shallow, or through a gap too narrow; else it is land (or a chart that is not in). behind: the cells
+  // the way through went over that were shut to her ([x, z, their size]), for the search on finer cells
+  function cause(ix, iz, wall){ const w = {grunt:0, bru:0, trangt:0, land:0, ukjent:0}; behind = null; for (let b = -4; b <= 4; b++) for (let a = -4; a <= 4; a++) if (okAt(ix + a * 2, iz + b * 2, w) === -1 && !wall) w.ukjent++;
     if (!wall) return w.ukjent > 40 ? 'ukjent' : w.grunt ? 'grunt' : w.bru ? 'bru' : 'land';
-    for (const kind of ['bru', 'grunt', 'trangt']){ const seen = new Set([ix * 100003 + iz]), qx = [ix], qz = [iz];
-      for (let h = 0; h < qx.length && h < 30000; h++) for (let i = 0; i < 8; i += 2){ const nx = qx[h] + DX[i], nz = qz[h] + DZ[i], key = nx * 100003 + nz; if (seen.has(key)) continue; seen.add(key);
-        const t = tileAt(nx, nz); if (!t || t.none) continue; const k = (nz - Math.floor(nz / N) * N) * N + nx - Math.floor(nx / N) * N, zz = t.z[k], u = t.u[k], d = t.d[k]; if (zz === 255 || d < 1) continue;
-        if (kind !== 'grunt' && zz < J.needZ) continue; if (kind !== 'bru' && u !== 255 && u < J.needU) continue; if (kind !== 'trangt' && d < J.needD) continue;
-        if (!t.st || t.st[k] !== 2){ if (okAt(nx, nz) === 1) return kind; }
-        qx.push(nx); qz.push(nz); } }
+    const reach = Math.ceil(300 / c2), need = [];   // (the way through is looked for within 300 m; the tiles it comes to that are not in are asked for first)
+    // whether she could be at a place were she without what the kind names (-1: the tile is not in, and is asked for)
+    const pass = (nx, nz, kind) => { const t = at(nx, nz); if (!t){ const c = cS * c2, fx = cFx, fz = cFz; if (!need.some(v => v[0] === c && v[1] === fx && v[2] === fz)) need.push([c, fx, fz]); return -1; } if (t.none) return 0;
+      const k = cK, zz = t.z[k], u = t.u[k], d = t.d[k]; if (zz === 255 || d < 1) return 0;
+      if (kind === 'bru' && zz < zNeed(cX, cZ)) return 0;   // (through a gap too narrow the water is not asked for either: a cell's water is the least a cell and a half round it, land too)
+      if (kind !== 'bru' && u !== 255 && u < J.needU) return 0; if (kind !== 'trangt' && d < (cS === 1 ? J.needD2 : J.needD4)) return 0; return 1; };
+    for (const kind of ['bru', 'grunt', 'trangt']){ const seen = new Map([[key(ix, iz), -1]]), qx = [ix], qz = [iz], shut = [0];
+      for (let h = 0; h < qx.length && h < 40000; h++){ at(qx[h], qz[h]); const s = cS; for (let i = 0; i < 8; i += 2){ let nx = qx[h] + DX[i] * s, nz = qz[h] + DZ[i] * s; at(nx, nz); if (cS === 2){ nx -= nx & 1; nz -= nz & 1; } const kk = key(nx, nz); if (seen.has(kk)) continue; seen.set(kk, h);
+        if (Math.abs(nx - ix) > reach || Math.abs(nz - iz) > reach) continue;
+        if (pass(nx, nz, kind) !== 1) continue; const t = cT, k = cK, st = t.st[k], sz2 = cS, mx = cX, mz = cZ;
+        if (sz2 === 1 && s === 2 && pass(qx[h] + DX[i], qz[h] + DZ[i], kind) !== 1) continue;   // (the fine cell stepped over, as in the search)
+        const o = okAt(nx, nz);
+        if (st !== 2 && o === 1 && (sz2 === 2 || s === 1 || okAt(qx[h] + DX[i], qz[h] + DZ[i]) === 1)){ behind = []; for (let q = h; q >= 0; q = seen.get(key(qx[q], qz[q]))){ if (shut[q]) behind.push([shut[q][0], shut[q][1], shut[q][2]]); if (behind.length > 200) break; } if (behind.length) return kind; behind = null; }   // (open water come to over nothing that was shut is no answer)
+        qx.push(nx); qz.push(nz); shut.push(o === 1 ? 0 : [mx, mz, sz2]); } }
+      if (need.length) return {need}; }
     return w.ukjent > 8 ? 'ukjent' : 'land'; }
   // what the straight way between two points costs (as the search counts: its length, more near the land); -1 where a cell on it is shut
-  const los = (ax, az, bx, bz) => { const L = Math.hypot(bx - ax, bz - az), n = Math.max(1, Math.ceil(L / (cell * 0.5))), st = L / n; let c = 0;
-    for (let i = 0; i <= n; i++){ const x = ax + (bx - ax) * i / n, z = az + (bz - az) * i / n, ix = Math.floor(x / cell), iz = Math.floor(z / cell); if (okAt(ix, iz) !== 1) return -1;
-      const t = tileAt(ix, iz), dm = t.d[(iz - Math.floor(iz / N) * N) * N + ix - Math.floor(ix / N) * N] * J.q;
-      if (dm - Math.hypot(x - (ix + 0.5) * cell, z - (iz + 0.5) * cell) < J.clr + st * 0.5 && !nearEnd(x, z)) return -1;   // (the distance is from the cell's middle: no nearer than that less the way from the middle)
-      c += st * (i === 0 || i === n ? 0.5 : 1) * (1 + (dm >= J.pref ? 0 : J.k * (1 - dm / J.pref))); }
+  const los = (ax, az, bx, bz) => { const L = Math.hypot(bx - ax, bz - az); let c = 0, u = 0;
+    for (let guard = 0; guard < 1e6; guard++){ const x = ax + (bx - ax) * (L ? u / L : 0), z = az + (bz - az) * (L ? u / L : 0), ix = Math.floor(x / c2), iz = Math.floor(z / c2); if (okAt(ix, iz) !== 1) return -1;
+      at(ix, iz); const dm = cT.d[cK] * J.q, st = Math.min(cS * c2 * 0.5, Math.max(L - u, 1e-9));
+      if (dm - Math.hypot(x - cX, z - cZ) < J.clr + cS * c2 * 0.25 && !nearEnd(x, z)) return -1;   // (the distance is from the cell's middle: no nearer than that less the way from the middle)
+      if (u >= L) break; c += st * (1 + (dm >= J.pref ? 0 : J.k * (1 - dm / J.pref))); u = Math.min(L, u + st); }
     return c; };
   function finish(){ const C = []; let ix = gx, iz = gz;
-    for (let guard = 0; guard < 4e6; guard++){ const t = tileAt(ix, iz), k = (iz - Math.floor(iz / N) * N) * N + ix - Math.floor(ix / N) * N; C.push([(ix + 0.5) * cell, (iz + 0.5) * cell, t.g[k]]); if (ix === sx && iz === sz) break; const p = t.par[k]; if (p < 0) break; ix -= DX[p]; iz -= DZ[p]; }
+    for (let guard = 0; guard < 4e6; guard++){ at(ix, iz); C.push([cX, cZ, cT.g[cK]]); if (ix === sx && iz === sz) break; const p = cT.par[cK], s = p & 8 ? 2 : 1; ix += (p & 16 ? 1 : 0) - DX[p & 7] * s; iz += (p & 32 ? 1 : 0) - DZ[p & 7] * s; }
     C.reverse(); const n = C.length, out = [C[0]]; let i = 0;
     // Pulled straight: from each point the farthest one the straight way to is open and costs no more than the way found between
     // them did (so where she kept off the land because there was room, she still does)
@@ -102,14 +141,16 @@ function planMake(){
       out.push(C[k]); i = k; }
     const path = out.map(q => [q[0], q[1]]);
     // (the ends as they were given: the first and the last cell's middle give way to them where they are in the same cell)
-    if (Math.hypot(path[0][0] - J.a[0], path[0][1] - J.a[1]) < cell * 1.5) path[0] = J.a.slice(); else path.unshift(J.a.slice());
-    const e = path.length - 1; if (Math.hypot(path[e][0] - J.b[0], path[e][1] - J.b[1]) < cell * 1.5 && e > 0) path[e] = J.b.slice(); else path.push(J.b.slice());
-    return {path, exp, cells:n}; }
-  return {start, put, run, block, clear};
+    if (Math.hypot(path[0][0] - J.a[0], path[0][1] - J.a[1]) < c2 * 1.5) path[0] = J.a.slice(); else path.unshift(J.a.slice());
+    const e = path.length - 1; if (Math.hypot(path[e][0] - J.b[0], path[e][1] - J.b[1]) < c2 * 1.5 && e > 0) path[e] = J.b.slice(); else path.push(J.b.slice());
+    return {path, exp, cells:n, refined}; }
+  // (for the bench's pictures and the tests: whether the cell at a place is open to her, whether the search has been there, and its size)
+  const peek = (x, z) => { const ix = Math.floor(x / c2), iz = Math.floor(z / c2); if (!at(ix, iz)) return null; const st = cT.st ? cT.st[cK] : 0, s = cS; return [okAt(ix, iz), st, s]; };
+  return {start, put, run, block, again, clear, peek};
 }
 // the worker (false where one cannot start): the search and its tiles live there
 function planWorker(){ if (PLAN.w !== null) return PLAN.w;
-  try { const src = 'const PL = (' + planMake.toString() + ')();\nonmessage = e => { const m = e.data; try { if (m.op === "start"){ PL.clear(); PL.start(m.J); } else if (m.op === "tiles"){ for (const t of m.tiles) PL.put(t.fx, t.fz, t.none ? null : t); } else if (m.op === "block"){ PL.block(m.x, m.z, m.r); PL.start(m.J); } postMessage(Object.assign({id:m.id}, PL.run())); } catch (err){ postMessage({id:m.id, why:"feil", err:String(err)}); } };';
+  try { const src = 'const PL = (' + planMake.toString() + ')();\nonmessage = e => { const m = e.data; try { if (m.op === "start"){ PL.clear(); PL.start(m.J); } else if (m.op === "tiles"){ for (const t of m.tiles) PL.put(t.c, t.fx, t.fz, t.none ? null : t); } else if (m.op === "block"){ PL.block(m.x, m.z, m.r); PL.again(); } postMessage(Object.assign({id:m.id}, PL.run())); } catch (err){ postMessage({id:m.id, why:"feil", err:String(err)}); } };';
     const w = new Worker(URL.createObjectURL(new Blob([src], {type:'text/javascript'})));
     w.onmessage = e => { const res = PLAN.wait.get(e.data.id); if (res){ PLAN.wait.delete(e.data.id); res(e.data); } };
     w.onerror = () => { PLAN.w = false; for (const res of PLAN.wait.values()) res({why:'feil', err:'the planner worker failed'}); PLAN.wait.clear(); };
@@ -122,23 +163,26 @@ function planWhy(r){ const c = {grunt:['for grunt for båten', 'too shallow for 
 // The bane from a to b (km) for a boat of the type (hers when left out): {bane, pts (for a plan, each with s), nm, ms, tiles, tries,
 // exp, Hmin} or {why (words), cause, at ([X, Z] m), ms}. opt: {kn (the speed she is sent at), end (false: she does not stop at b),
 // side (the margin to the side, m)}. Asynchronous: the tiles are built as the search asks for them
-async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = type || S.boat.type, boat = farbBoat(ty), bb = baneBoat(ty, opt && opt.kn), F = FARB.F, cell = PLAN.cell, Tf = F.N * cell, H0 = S.t / 60;
+async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = type || S.boat.type, boat = farbBoat(ty), bb = baneBoat(ty, opt && opt.kn), F = FARB.F, c2 = PLAN.cell, H0 = S.t / 60;
   const ax = a.x * 1000, az = a.y * 1000, bx = b.x * 1000, bz = b.y * 1000, fail = (r, extra) => Object.assign({why:planWhy(r), cause:r.cause || r.why, at:r.at || null, ms:Math.round(performance.now() - t0)}, extra || {});
   const w = planWorker(); if (!w) return fail({why:'feil', cause:'ukjent'});
   // the lowest water while she is on the way (the tide where she starts: it is the same within a trip of this length)
   const hrs = Math.hypot(bx - ax, bz - az) / bb.vmax / 3600 * 1.5 + 0.25; let Hmin = H0, lv = Infinity; for (let h = 0; h <= hrs + 1e-9; h += 1 / 6){ const v = farbTide(H0 + h, ax, az); if (v < lv){ lv = v; Hmin = H0 + h; } }
-  let sq = 0; try { sq = dynSquat(dynCal(ty).P, bb.vmax, false); } catch (e){}
+  let sq = 0, P = null; try { P = dynCal(ty).P; sq = dynSquat(P, bb.vmax, false); } catch (e){}
   const side = opt && opt.side != null ? opt.side : FARB.side, own = BANE.own * boat.L;
-  const J = {cell, N:F.N, q:F.q, a:[ax, az], b:[bx, bz], clr:boat.B / 2 + side, needD:Math.ceil((boat.B / 2 + side + cell * 0.5) / F.q), needZ:Math.ceil((boat.T + sq + FARB.keel - lv + FARB.eps) * 10), needU:Math.ceil((boat.air + FARB.airOver) / 0.25),
-    pref:Math.min(F.cap - 1, Math.max(25, boat.B * 3)), k:PLAN.k, endR:own + cell, maxExp:PLAN.maxExp, rb:boat.B / 2 + side > cell * 1.5 ? Math.ceil((boat.B / 2 + side - cell * 1.5) / cell) : 0};
+  const nd = c => Math.ceil((boat.B / 2 + side + c * 0.5) / F.q), rb = c => boat.B / 2 + side > c * 1.5 ? Math.ceil((boat.B / 2 + side - c * 1.5) / c) : 0;
+  const J = {c2, N:F.N, q:F.q, a:[ax, az], b:[bx, bz], clr:boat.B / 2 + side, needD2:nd(c2), needD4:nd(c2 * 2), rb2:rb(c2), rb4:rb(c2 * 2), needZ:Math.ceil((boat.T + sq + FARB.keel - lv + FARB.eps) * 10), needZ0:Math.ceil((boat.T + FARB.keel - lv + FARB.eps) * 10), slowR:bb.stop(bb.vmax) * 0.6, needU:Math.ceil((boat.air + FARB.airOver) / 0.25),
+    pref:Math.min(F.cap - 1, Math.max(25, boat.B * 3)), k:PLAN.k, w:PLAN.w8, endR:own + c2 * 2, fineR:PLAN.fineR, maxExp:Math.min(PLAN.maxExp, 4e5 + 40 * (Math.hypot(bx - ax, bz - az) / (c2 * 2)) ** 2)};   // (a search that finds no way stops when it has been over forty times the square of the distance)
+  PLAN.J = J;
   const send = msg => new Promise(res => { const id = ++PLAN.id; PLAN.wait.set(id, res); w.postMessage(Object.assign({id}, msg)); });
-  const skip = h => Math.hypot(h.x - ax, h.z - az) < own || Math.hypot(h.x - bx, h.z - bz) < own;   // (her own berth, by where the touch is)
+  const skip = h => Math.hypot(h.x - ax, h.z - az) - (h.R || 0) < own || Math.hypot(h.x - bx, h.z - bz) - (h.R || 0) < own;   // (her own berth, by where the touch is; a vessel lying there by her nearest point)
   let r = await send({op:'start', J}), tiles = 0, tries = 0, exp = 0;
-  const o = Object.assign({}, bb, {end:!(opt && opt.end === false)}), sw = {m:side, keel:FARB.keel, squat:sq, boats:true, skip}, memo = new Map(), rMin = Math.max(boat.B / 2, bb.R / 16);
+  const o = Object.assign({}, bb, {end:!(opt && opt.end === false)}), sw = {m:side, keel:FARB.keel, squat:sq, sqV:P ? v => dynSquat(P, v, false) : null, boats:true, skip}, memo = new Map(), rMin = Math.max(boat.B / 2, bb.R / 16);
   for (;;){
     if (r.need){ const out = [], tr = [];
-      for (const [fx, fz] of r.need){ await farbFieldNeed(fx * Tf + 1, fz * Tf + 1, (fx + 1) * Tf - 1, (fz + 1) * Tf - 1, cell); const Y = farbFieldTile(cell, fx, fz); tiles++;
-        if (Y && !Y.none){ const d = Y.d.slice(), z = Y.z.slice(), u = Y.u.slice(); out.push({fx, fz, d, z, u}); tr.push(d.buffer, z.buffer, u.buffer); } else out.push({fx, fz, none:true}); }
+      for (const [cell, fx, fz] of r.need){ const Tf = F.N * cell; let Y = farbFieldTile(cell, fx, fz); tiles++;
+        for (let k = 0; k < 5 && !Y; k++){ await farbFieldNeed(fx * Tf + 1, fz * Tf + 1, (fx + 1) * Tf - 1, (fz + 1) * Tf - 1, cell); Y = farbFieldTile(cell, fx, fz); }   // (a tile is asked for again where the map changed under it: more of it came in)
+        if (Y && !Y.none){ const d = Y.d.slice(), z = Y.z.slice(), u = Y.u.slice(); out.push({c:cell, fx, fz, d, z, u}); tr.push(d.buffer, z.buffer, u.buffer); } else out.push({c:cell, fx, fz, none:true}); }
       r = await new Promise(res => { const id = ++PLAN.id; PLAN.wait.set(id, res); w.postMessage({id, op:'tiles', tiles:out}, tr); }); continue; }
     if (r.why){ PLAN.n.plans++; return fail(r, {tiles, tries, exp:exp + (r.exp || 0)}); }
     exp += r.exp || 0;
@@ -153,7 +197,7 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     const cs = hit.what === 'ukjent' ? 'ukjent' : hit.what === 'grunn' ? 'grunt' : hit.what === 'brudekke' ? 'bru' : 'trangt';
     if (hit.what === 'ukjent' || ++tries > PLAN.tries){ PLAN.n.plans++; return fail({why:'ingen vei', cause:cs, at:[hit.x, hit.z]}, {tiles, tries, exp, hit:hit.what + ':' + hit.id}); }
     // shut round what she touched, a cell wider for each time, and search again
-    r = await send({op:'block', J, x:hit.x, z:hit.z, r:boat.B / 2 + side + cell * (1 + tries)}); } }
+    r = await send({op:'block', x:hit.x, z:hit.z, r:(hit.R || 0) + boat.B / 2 + side + c2 * (1 + tries)}); } }
 // A bane into a plan (the bench, and the flag): the plan's points i0 .. i1 - 1 (the way to the stop at i1 - 1, which is kept as it is:
 // the harbour she docks in, the fishing there) replaced by the bane's own, and the leg written in pl.b2 (17b-bane.js baneLeg).
 // A plan's legs are put in from the last to the first, so the places of those before stand

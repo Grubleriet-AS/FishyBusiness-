@@ -13,7 +13,7 @@ const BANE = {chord:0.12, ds:5, vEnd:0.5, vMin:0.3, own:1.3, piece:20, vTight:1.
 function baneBoat(type, kn){ const k = type || S.boat.type, V = VESSELS[k] || VESSELS.skiff, cal = dynCal(k);
   return {type:k, L:V.len, R:clamp(V.turnR || 2 * V.len, 1.2 * V.len, 2 * V.len), vmax:Math.max(1, (kn || V.vcruise || 6) * KN_MS), stop:v => dynStopDist(cal, v)}; }
 // The bane through the points [[X, Z] ...]: each inner corner rounded by an arc of her radius, or of what the two legs have room for
-// (half of the shorter), where she then goes slower; a point's third number is the most the arc at it may have (the planner sets it
+// (half of the shorter), where she then goes slower (o.start false: she has her speed from the first metre); a point's third number is the most the arc at it may have (the planner sets it
 // where her own radius has no room). o: {R, vmax, stop, end (true: she stops at the last point)}. Q: the points it was built from.
 // P: the pieces, each {k:'l', ax, az, bx, bz, psi} or {k:'a', cx, cz, r, a0, da}, with len, s0 (metres along from the start) and vl
 // (the most she has there); len; S, V, T: the speed and the time at every BANE.ds metres along
@@ -41,6 +41,8 @@ function baneBefore(o, v1, d){ let lo = v1, hi = o.vmax; if (hi <= lo) return lo
 function baneSpeed(B){ const o = B.o, ds = BANE.ds, n = Math.max(1, Math.ceil(B.len / ds)), S = new Float32Array(n + 1), V = new Float32Array(n + 1), T = new Float32Array(n + 1); let pi = 0;
   for (let k = 0; k <= n; k++){ const s = Math.min(B.len, k * ds); S[k] = s; while (pi < B.P.length - 1 && B.P[pi + 1].s0 <= s) pi++; V[k] = B.P.length ? B.P[pi].vl : o.vmax; }
   if (o.end) V[n] = Math.min(V[n], BANE.vEnd);
+  // (from the berth she gathers way as she would lose it: the speed she has d metres on is the one she could have stopped from in d)
+  if (o.start !== false){ V[0] = Math.min(V[0], BANE.vEnd); for (let k = 0; k < n; k++) V[k + 1] = Math.min(V[k + 1], baneBefore(o, V[k], S[k + 1] - S[k])); }
   for (let k = n - 1; k >= 0; k--) V[k] = Math.min(V[k], baneBefore(o, V[k + 1], S[k + 1] - S[k]));
   for (let k = 0; k < n; k++) T[k + 1] = T[k] + (S[k + 1] - S[k]) / Math.max(BANE.vMin, (V[k] + V[k + 1]) / 2);
   B.S = S; B.V = V; B.T = T; B.time = T[n]; return B; }
@@ -56,14 +58,16 @@ function banePts(B){ const out = [], put = (X, Z, s) => out.push({x:X / 1000, y:
 // Her hull swept along the whole of it (17-farbar.js farbSweep), a straight piece in parts of BANE.piece metres and an arc as chords
 // with her heading turning along it: null when it is free, else the first touch {what, id, x, z, px, pz (where she stood), s (metres
 // along), i (the piece)}. opt as farbSweep's. baneFriG is the same in slices (a yield between the parts); memo: a Map of the pieces
-// already found free, so a bane built again with one corner changed sweeps only what is new
+// already found free, so a bane built again with one corner changed sweeps only what is new. opt.sqV(v): her squat at the speed v,
+// asked for each part at the most she has on it (else opt.squat the whole way)
 function* baneFriG(B, boat, H, opt, memo){
   for (let i = 0; i < B.P.length; i++){ const p = B.P[i], key = memo ? (p.k === 'l' ? 'l' + p.ax.toFixed(2) + ',' + p.az.toFixed(2) + ',' + p.bx.toFixed(2) + ',' + p.bz.toFixed(2) : 'a' + p.cx.toFixed(2) + ',' + p.cz.toFixed(2) + ',' + p.r.toFixed(2) + ',' + p.a0.toFixed(4) + ',' + p.da.toFixed(4)) : '';
     if (memo && memo.has(key)) continue;
+    const sq = opt && opt.sqV, at = (a, b) => sq ? Object.assign({}, opt, {squat:sq(Math.max(baneV(B, a), baneV(B, b), baneV(B, (a + b) / 2)))}) : opt;
     if (p.k === 'l'){ const m = Math.max(1, Math.ceil(p.len / BANE.piece));
-      for (let j = 0; j < m; j++){ const u0 = j / m, u1 = (j + 1) / m, t = farbSweep({X:p.ax + (p.bx - p.ax) * u0, Z:p.az + (p.bz - p.az) * u0, psi:p.psi}, {X:p.ax + (p.bx - p.ax) * u1, Z:p.az + (p.bz - p.az) * u1, psi:p.psi}, boat, H, opt); if (t) return Object.assign({s:p.s0 + p.len * u0, i}, t); yield; } }
+      for (let j = 0; j < m; j++){ const u0 = j / m, u1 = (j + 1) / m, t = farbSweep({X:p.ax + (p.bx - p.ax) * u0, Z:p.az + (p.bz - p.az) * u0, psi:p.psi}, {X:p.ax + (p.bx - p.ax) * u1, Z:p.az + (p.bz - p.az) * u1, psi:p.psi}, boat, H, at(p.s0 + p.len * u0, p.s0 + p.len * u1)); if (t) return Object.assign({s:p.s0 + p.len * u0, i}, t); yield; } }
     else { const m = Math.max(1, Math.ceil(Math.abs(p.da) / BANE.chord)); let q0 = baneAt(B, p.s0 + 1e-6);
-      for (let j = 1; j <= m; j++){ const q1 = baneAt(B, Math.min(B.len, p.s0 + p.len * j / m - (j === m ? 1e-6 : 0))), t = farbSweep(q0, q1, boat, H, opt); if (t) return Object.assign({s:p.s0 + p.len * (j - 1) / m, i}, t); q0 = q1; yield; } }
+      for (let j = 1; j <= m; j++){ const q1 = baneAt(B, Math.min(B.len, p.s0 + p.len * j / m - (j === m ? 1e-6 : 0))), t = farbSweep(q0, q1, boat, H, at(p.s0 + p.len * (j - 1) / m, p.s0 + p.len * j / m)); if (t) return Object.assign({s:p.s0 + p.len * (j - 1) / m, i}, t); q0 = q1; yield; } }
     if (memo) memo.set(key, 1); }
   return null; }
 function baneFri(B, boat, H, opt){ const g = baneFriG(B, boat, H, opt); let r; while (!(r = g.next()).done); return r.value; }

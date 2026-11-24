@@ -5,7 +5,7 @@ export default function (t){
   const far = {x:9e6, z:9e6}, at = (dx, dz) => [far.x + dx, far.z + dz];
   const sea = o => Object.assign({land:() => 0, coast:() => [1e9, 0], depth:() => 50, tide:() => 0, zc:() => 0, pocket:() => false, known:() => true}, o || {});
   // (a boat that turns on 20 m, sails 5 m/s and stops on v * v * 2 metres: 50 m from 5 m/s)
-  const o = {R:20, vmax:5, stop:v => v * v * 2, end:true};
+  const o = {R:20, vmax:5, stop:v => v * v * 2, end:true, start:false};
   try {
     // a right-angle corner: east 200 m, then south 200 m
     let B = K.baneBuild([at(0, 0), at(200, 0), at(200, 200)], o);
@@ -29,6 +29,7 @@ export default function (t){
     t.ok(B.time > 1000 / 5 && B.time < 1000 / 5 + 40, 'tiden er litt mer enn lengden delt på farten', B.time);
     t.near(K.baneS(B, 100), 500, 1, 'etter 100 s er hun 500 m på vei'); t.eq(K.baneS(B, 1e6), 1000, 'og etter lang tid framme');
     const B2 = K.baneBuild([at(0, 0), at(1000, 0)], Object.assign({}, o, {end:false})); t.near(K.baneV(B2, 1000), 5, 1e-6, 'uten stopp i enden holder hun farten ut');
+    const B4 = K.baneBuild([at(0, 0), at(1000, 0)], Object.assign({}, o, {start:true})); t.ok(K.baneV(B4, 0) <= 0.5 + 1e-6 && K.baneV(B4, 20) < 3.4 && K.baneV(B4, 60) > 4.9, 'fra kai tar hun fart slik hun mister den: sakte de første metrene, full fart etter stopplengden', [K.baneV(B4, 0), K.baneV(B4, 20), K.baneV(B4, 60)]);
     // the points for a plan: the corner as chords, each with how far along it lies
     B = K.baneBuild([at(0, 0), at(200, 0), at(200, 200)], o); const pts = K.banePts(B);
     t.ok(pts.length >= 10 && Math.abs(pts[pts.length - 1].s - B.len) < 1e-6 && pts.every((p, i) => !i || p.s > pts[i - 1].s), 'punktene til planen ligger i rekkefølge langs banen, buen som korder', pts.length);

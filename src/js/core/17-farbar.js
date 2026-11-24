@@ -445,7 +445,8 @@ function farbGone(o, n, buf = FARB.buf){ if (o.mk){ if (o.hung === undefined){ l
   return false; }
 // The nearest thing she cannot pass within cap of x, z: {d (metres to it, 0 on it), what, id, x, z, o}; null where there is none;
 // FARB_UNK (d NaN) where the map is not in. The land, the coast line, the things, a bridge's deck lower than boat.air and
-// FARB.airOver, and with opt.boats the vessels lying still (11b-obstacles.js fixBoats)
+// FARB.airOver, and with opt.boats the vessels lying still (11b-obstacles.js fixBoats); a vessel's touch has x, z her middle and R how far
+// she reaches from it
 function farbNearest(x, z, cap, boat, opt){ FARB.n.near++;
   if (!farbKnown(x, z, cap)) return FARB_UNK;
   const land = farbLand(x, z); if (land !== land) return FARB_UNK; if (land) return {d:0, what:land === 2 ? 'kai' : 'land', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z, o:null};
@@ -495,7 +496,7 @@ function farbPose(X, Z, psi, boat, H, opt){ FARB.n.pose++; const m = opt && opt.
   const air = boat.air + FARB.airOver, n = farbGather(X, Z, R), buf = FARB.buf;
   for (let i = 0; i < n; i++){ const o = buf[i]; if (o.k === 's' && !(farbUnder(o) < air)) continue; const b = o.bb || farbBB(o); if (b[0] > x1 || b[2] < x0 || b[1] > z1 || b[3] < z0) continue;
     if ((o.molo ? farbCoreD(P, o) - farbMoloR(o, boat.T + (opt && opt.squat || 0) + (opt && opt.keel || 0) + FARB.eps - farbTide(H, X, Z) + farbZC(X, Z)) : farbPolyD(P, o)) <= m && !farbGone(o, n)) { const h_ = out({what:o.what, id:o.id, x:o.x != null ? o.x : (b[0] + b[2]) / 2, z:o.z != null ? o.z : (b[1] + b[3]) / 2}); if (h_) return h_; } }
-  if (opt && opt.boats && !FARB.w) try { for (const o of fixBoats(X, Z)){ const d = o.t === 0 ? Math.max(0, farbPtPoly(P, o.x, o.z) - o.r) : farbRingD(P, o.Q || (o.Q = farbBoxPts(o))); if (d <= m) { const h_ = out({what:'båt', id:'båt#' + Math.round(o.x) + ',' + Math.round(o.z), x:o.x, z:o.z}); if (h_) return h_; } } } catch (e){}
+  if (opt && opt.boats && !FARB.w) try { for (const o of fixBoats(X, Z)){ const d = o.t === 0 ? Math.max(0, farbPtPoly(P, o.x, o.z) - o.r) : farbRingD(P, o.Q || (o.Q = farbBoxPts(o))); if (d <= m) { const h_ = out({what:'båt', id:'båt#' + Math.round(o.x) + ',' + Math.round(o.z), x:o.x, z:o.z, R:o.t === 0 ? o.r : Math.hypot(o.l, o.w)}); if (h_) return h_; } } } catch (e){}
   // the water under her: with the foreshore where the coast is near enough for it to reach in under her, and then her outline closely
   const s = Math.sin(psi), c = Math.cos(psi), sq = opt && opt.squat || 0, kl = opt && opt.keel || 0, reach = Math.hypot(boat.L, boat.B) / 2 + FARB.shore.reach + 2, cd = farbCoast(X, Z, reach, true);
   if (cd !== cd) return {what:'ukjent', id:'', x:X, z:Z}; const off = cd >= reach;
