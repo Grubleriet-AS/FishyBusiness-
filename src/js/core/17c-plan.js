@@ -12,7 +12,7 @@
 //     search goes again, a few times at most.
 // Within a length and a half of the two ends her own quay does not count (the bench's rule for her own berth, tools/autonav/benk.js).
 // Where there is no way, the answer says why and where. Nothing calls this but the bench (--autonav ny) and the flag (planOn).
-const PLAN = {on:null, ver:'', sent:0, cell:2, co:100, fineR:350, k:1, w8:1.15, tries:6, maxExp:6e6, w:null, id:0, wait:new Map(), n:{plans:0, ms:0, tiles:0}};
+const PLAN = {on:null, realAir:false, ver:'', sent:0, cell:2, co:100, fineR:350, k:1, w8:1.15, tries:6, maxExp:6e6, w:null, id:0, wait:new Map(), n:{plans:0, ms:0, tiles:0}};
 // The search: self-contained (it runs in the worker, and in Node for the unit tests). start(J) begins one; run() goes on till it has a
 // way {path, exp}, has none {why, at, cause}, or needs tiles {need:[[cell, fx, fz] ...]}, which put() gives it; block() shuts a disc.
 // Two sizes of cell on one lattice: the fine one (J.c2 m; a tile of it is a block) within J.fineR of the two ends and where a search
@@ -209,10 +209,15 @@ function* planCoarseG(ax, az, bx, bz){ const L = MAPD.L && MAPD.L.depth; if (!L)
   for (let j = 0; j < H; j++){ for (let i = 0; i < W; i++){ let o = 0; for (let b = 0; b < m && o !== 1; b++) for (let a = 0; a < m; a++){ const ri = (i0 + i) * m + a, rj = (j0 + j) * m + b; if (ri < r0 || ri > r1 || rj < s0 || rj > s1 || !mapPackOf(L, Math.floor(ri / L.n), Math.floor(rj / L.n))){ o = 2; continue; }
         let q; try { q = rcell(L, ri, rj); } catch (e){ o = 2; continue; } if (q > 0){ o = 1; break; } } v[j * W + i] = o; if (!(i & 63)) yield; } yield; }
   return {x0:i0 * C, z0:j0 * C, c:C, W, H, v}; }
+// The boat as the planner asks the map for her. Her height is the one the game sails by today (11b-obstacles.js obsAir: 0.35 of her
+// length, 2 to 16 m), not the model's own with its aerials (VESSELS.air), till the bridges have their real clearances too (steg 141b,
+// Jonas' choice 6): a real height held against a bridge's height by the old rule shut nearly every bridge (the bench, 24.11.2026:
+// the sjark's 8.6 m under decks the rule gives 6.8 m). PLAN.realAir turns it when both are real
+function planBoat(type){ const b = farbBoat(type); if (!PLAN.realAir) b.air = Math.min(16, Math.max(2, b.L * 0.35)); return b; }
 // The bane from a to b (km) for a boat of the type (hers when left out): {bane, pts (for a plan, each with s), nm, ms, tiles, tries,
 // exp, Hmin} or {why (words), cause, at ([X, Z] m), ms}. opt: {kn (the speed she is sent at), end (false: she does not stop at b),
 // side (the margin to the side, m)}. Asynchronous: the tiles are built as the search asks for them
-async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = type || S.boat.type, boat = farbBoat(ty), bb = baneBoat(ty, opt && opt.kn), F = FARB.F, c2 = PLAN.cell, H0 = S.t / 60;
+async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = type || S.boat.type, boat = planBoat(ty), bb = baneBoat(ty, opt && opt.kn), F = FARB.F, c2 = PLAN.cell, H0 = S.t / 60;
   const ax = a.x * 1000, az = a.y * 1000, bx = b.x * 1000, bz = b.y * 1000, fail = (r, extra) => Object.assign({why:planWhy(r), cause:r.cause || r.why, at:r.at || null, ms:Math.round(performance.now() - t0)}, extra || {});
   const w = planWorker(); if (!w) return fail({why:'feil', cause:'ukjent'});
   // the lowest water while she is on the way (the tide where she starts: it is the same within a trip of this length)

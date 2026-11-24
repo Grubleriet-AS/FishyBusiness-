@@ -126,6 +126,12 @@ export default function (t){
   W = world(() => false); r = solve(W, {a:[100, 100], b:[400, 100]}, [[250, 100, 30]]);
   t.ok(r.path && distTo(r.path, 250, 100) >= 26, 'et sted kontrollen har stengt, går veien utenom', r.path && distTo(r.path, 250, 100));
 
+  // her height for the bridges: the one the game sails by today (0.35 of her length, 2 to 16 m), till the bridges have their real
+  // clearances (steg 141b); the model's own height with aerials (VESSELS.air) when PLAN.realAir says both are real
+  { const P = K.get('PLAN'), V = K.get('VESSELS'), b0 = K.planBoat('sjark'); t.near(b0.air, Math.min(16, Math.max(2, V.sjark.len * 0.35)), 1e-9, 'båtens høyde under bruer er den spillet seiler etter i dag (0,35 av lengden)');
+    t.ok(V.sjark.air > b0.air + 2, 'og ikke modellens egen med antenner, som er flere meter mer', [V.sjark.air, b0.air]);
+    P.realAir = true; try { t.near(K.planBoat('sjark').air, V.sjark.air, 1e-9, 'med ekte bruhøyder inne (PLAN.realAir) er det modellens egen'); } finally { P.realAir = false; } }
+
   // the words
   const S0 = K.get('S'); K.set('S', K.newState());
   try { const w = K.planWhy({why:'ingen vei', cause:'bru', at:[500000, 900000]});
