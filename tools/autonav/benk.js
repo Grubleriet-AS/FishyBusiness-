@@ -187,7 +187,7 @@
       return {r:{wps:R.pts.map(q => ({x:q.x, y:q.y})), nm:R.nm, bane:R}, nt, ms:Math.round(ms), gap:+gap.toFixed(1), st:{ms:R.ms, maxSlice:+slice.toFixed(1), expanded:R.exp, tiles:R.tiles, tries:R.tries, time:Math.round(R.bane.time)}}; },
     plan(r, Z, nt, full){ const n = r.wps.length, last = nt ? {x:nt.x, y:nt.y, port:Z.id, berth:'naust', fish:0} : Z.id ? {x:Z.p.x, y:Z.p.y, port:Z.id, fish:0} : {x:Z.p.x, y:Z.p.y, port:null, fish:0, leia:true};
       S.plan = {wps:r.wps.map((q, i) => i === n - 1 ? last : {x:q.x, y:q.y, port:null, fish:0, leia:true}), idx:0, speed:full ? BOAT.vmax : BOAT.vcruise, full:!!full, returning:false};
-      if (r.bane){ S.plan.wps = [last]; planInto(S.plan, r.bane, 0, 1); }
+      if (r.bane){ S.plan.wps = [last]; planInto(S.plan, r.bane, 0, 1); const q0 = r.bane.bane.Q[0]; S.boat.pos = {x:q0[0] / 1000, y:q0[1] / 1000}; }   // (she is where the bane begins: at her berth, the naust's too, not at the harbour's point)
       return {id:Z.id, name:Z.name, p:nt ? {x:nt.x, y:nt.y} : Z.p, berth:Z.kind === 'naust' ? 'naust' : null}; },
     // how the route looks: its length, its turns over 30 degrees per nautical mile, all its turning (degrees a mile), its legs shorter
     // than two boat lengths outside the harbours, and the straight line
