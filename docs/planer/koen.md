@@ -23,7 +23,6 @@ Spillet er live. Porten for de første brukerne og lanseringslinja er arkivert (
 
 ## Øktene som kjører
 
-- `ccr-399c74e8-91vrad` (Jonas' økt 24.11.2026): steg 142 AN2-F2, planleggeren nær og i havn. Eier nye `src/js/core/17b-bane.js` og `17c-plan.js` (og linjene i `src/index.html`), `tests/unit/bane.test.mjs`, `plan.test.mjs`, `tools/autonav/benk.*` (koblingen `--autonav ny`) og flagget i `05-vessels.js` `sail`. Rører ikke `11-route.js`, `11b-obstacles.js` eller `16b-dyn.js`.
 - `ccr-013bxxie-121` (Jonas' økt 16.11.2026): steg 121 FB3, føttene i gange. Eier `src/js/deckcrew.js`, `src/js/view3d/08-plants.js` (`drawWorker` og sjøbein-hjelperne over den), i `src/js/view3d/20-trawl-seine.js` bare `drawDeckCrew` og `npcCrewDraw`, `tests/crewwalk.py`, `tests/sjobein.py`, ny `tests/unit/fotgli.test.mjs` og ny `tests/fotgli.py`. Ikke `ui/phone/07-patch.js` (118 eier den; patchnotatet står i raden).
 
 
