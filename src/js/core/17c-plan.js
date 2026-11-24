@@ -228,13 +228,13 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     await farbBlocks(x0, z0, x1, z1); J.co = await farbRunA(planCoarseG(ax, az, bx, bz)); } catch (e){ J.co = null; }
   PLAN.J = J;
   const send = msg => new Promise(res => { const id = ++PLAN.id; PLAN.wait.set(id, res); w.postMessage(Object.assign({id}, msg)); });
-  // Her own berth (the bench's rule, tools/autonav/benk.js: a touch within a length and a half of the ends is the quay she lies at;
-  // a grounding always counts). The land's touch is where it is; a thing's is the thing's middle, which says nothing of where along a
+  // Her own berth (the bench's rule, tools/autonav/benk.js: a touch within a length and a half of the ends is the quay she lies at). The land's touch is where it is; a thing's is the thing's middle, which says nothing of where along a
   // long quay she is, so a thing counts by where she herself is (within 0.9 of her length: her far end then within 1.4), and a vessel
   // lying there by her nearest point
   const touchP = h => /^-?\d+,-?\d+$/.test(h.id), nearE = (x, z, r) => Math.hypot(x - ax, z - az) < r || Math.hypot(x - bx, z - bz) < r;
-  // (the water: at her own berth she may lie with less under the keel than the margin, as at a naust's slip, but never aground)
-  const skip = (h, X, Z) => h.what === 'grunn' ? h.keel >= 0 && nearE(h.x, h.z, own) : h.R ? nearE(h.x, h.z, own + h.R) : touchP(h) ? nearE(h.x, h.z, own) : nearE(X, Z, 0.9 * boat.L);
+  // (the water under her counts the same way, by where it is: a naust's slip is dry under her for some metres. The bench has the same
+  // rule for what its observer sees of the water; what the game itself calls a grounding always counts there)
+  const skip = (h, X, Z) => h.what === 'grunn' ? nearE(h.x, h.z, own) : h.R ? nearE(h.x, h.z, own + h.R) : touchP(h) ? nearE(h.x, h.z, own) : nearE(X, Z, 0.9 * boat.L);
   // (the worker keeps the tiles it was given: thrown when the map has changed since, more of it come in or a channel dug, and when they are many)
   { const fv = farbFieldVer(); if (PLAN.ver !== fv || PLAN.sent > 300){ await send({op:'reset'}); PLAN.ver = fv; PLAN.sent = 0; } }
   let r = await send({op:'start', J}), tiles = 0, tries = 0, exp = 0; const shut = [];   // (shut: what the check on the geometry found and shut, for the answer)
