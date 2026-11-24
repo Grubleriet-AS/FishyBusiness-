@@ -2731,17 +2731,19 @@ BANEN: THE WAY AS A TRAJECTORY SHE CAN SAIL (Autonav 2.0 F2, steg 142, 24.11.202
   - 83 `baneOf(g)`
   - 90 `baneSail(pl, b, left0)`
 
-## `src/js/core/17c-plan.js` (281 linjer)
+## `src/js/core/17c-plan.js` (312 linjer)
 
 PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2, steg 142, 24.11.2026)
 
 - **1** PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2, steg 142, 24.11.2026)
   - 28 `planMake()`
-  - 192 `planWorker()`
-  - 200 `planWhy(r)`
-  - 215 `planBane(a, b, type, opt)`
-  - 275 `planInto(pl, R, i0, i1)`
-  - 280 `planOn()`
+  - 212 `planWorker()`
+  - 220 `planWhy(r)`
+  - 226 `planCoarseM(ax, az, bx, bz, grow)`
+  - 239 `planBoat(type, x, z)`
+  - 243 `planBane(a, b, type, opt)`
+  - 306 `planInto(pl, R, i0, i1)`
+  - 311 `planOn()`
 
 ## `src/js/ui/01-i18n.js` (120 linjer)
 
