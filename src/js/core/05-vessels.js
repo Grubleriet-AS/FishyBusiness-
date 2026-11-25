@@ -1372,7 +1372,8 @@ function risk(W, hs){
       log('Tok inn sjø over ripa. Mistet ' + Math.round(tot * frac) + ' kg fisk.', 'Shipped water over the gunwale. Lost ' + Math.round(tot * frac) + ' kg of fish.'); loreWater();
     } else log('Tok inn sjø, men fikk lenset.', 'Shipped water, but bailed it out.');
   } else if (r < 0.65){
-    if (b.status !== 'engine' && b.status !== 'adrift'){
+    // (not while lying to: the engine is what holds her head to the sea, and a stop would end the lieTo and drop her route, havtur #145)
+    if (b.status !== 'engine' && b.status !== 'adrift' && !b.hove){
       b.prev = b.status; b.status = 'engine'; b.engineUntil = S.t + 20 + Math.floor(Math.random() * 40);
       log('Motorstopp i grov sjø.', 'Engine failure in rough seas.');
     }
