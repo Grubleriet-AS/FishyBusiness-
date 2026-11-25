@@ -119,6 +119,13 @@ Kvotesystemet ligger i `core/03d-quota.js` (04.10.2026, plan Q1–Q6). Grunnlage
 - **§ 29 ved båtbytte:**
   - Det eieren har fisket i åpen gruppe i år, følger med til neste båt i åpen gruppe (`S.openUsed`).
   - En båt som tar over en hjemmel, starter året med det selgeren har fisket (`sellerCod`).
+  - **Tilstanden ved båtbytte (steg 148, K0 av `docs/planer/regler-i-klartekst.md`, 25.11.2026):**
+    - **Tomt rom før innbytte** (`tiHoldWhy` i `ui/phone/10-fartoy.js`, spurt av arkene og av `buy` og `buylic` i `14-act.js`): med fisk i rommet er «Kjøp og bytt inn» grå med grunnen. Før fulgte fangsten med til den nye båten og ble landet med hennes adgang. Samme regel som flytting og salg av hjemmel (`mbMoveWhy`, `kmPutWhy`). «Til flåten» er ikke berørt.
+    - **Innbytte med hjemmel mot hjemmel** (`buylic`): den gamle hjemmelen går tilbake til registeret (`regFree`), som i `buy`. Er hjemmelslengden den samme, sendes verken `reg_free` eller `reg_take` (én ut og én inn er ingen endring, og to kall samtidig kunne krysse på serveren). Den andre kvoten (`two`) og strukturkvotene gis ikke tilbake: den første faller bort (kap. 2 § 6), og en strukturert båt er ute for godt.
+    - **Båtens id gis aldri to ganger** (`vesselSeq`, `vesselGone` i `core/03-simulation.js`; `S.vseq` er det høyeste nummeret som er gitt, og en lagring uten feltet leser det fra flåten, `S.saldo`, `S.bkq.v` og `S.sales`). Når en båt selges (`mbDrop`, den særlige ordningen), ryddes det som sto på id-en: `S.saldo`, `S.bkq.v`, `S.mobScan`. Før fikk en båt kjøpt etter at den høyeste id-en var solgt, den solgtes saldo, blåkveitefangst og landinger. Ved innbytte beholder båten id-en; `switchVessel` tar da bort saldoen, så den nye har sin egen pris. Årets blåkveite og landingene følger eieren ved innbytte, som torsken gjør (§ 29).
+    - **`freshQuota()` beholder det som ikke er hjemmelens** gjennom året (`QKEEP` i `core/03d-quota.js`): `byCod`, `nsjo`, `skag4`, ukas ferskfisktall og det inndratte. Før ga en hjemmel satt på og tatt av igjen (gratis, KM4) takene tilbake.
+    - **Ikke rettet:** en bestilling fra før 13.10.2026 som leveres (`deliverOrder` i `ui/08-actions.js`), går utenom tomt-rom-regelen; den finnes bare i gamle lagringer med `S.order`.
+    - Tester: `tests/unit/tilstand.test.mjs` (18 sjekker, 11 røde før rettingen) og seks sjekker i `tests/quotatest.py` merket «steg 148».
 - **Registeret i lukket gruppe** (`REGN`, `npcReg`):
   - Torsk nord hadde 1 622 deltakeradganger per 17.10.2025. I spillet er de fordelt på hjemmelslengdene spillet selger, og hver har en NPC-eier.
   - Kjøper du en hjemmel, går eieren ut, så det blir én NPC mindre. Strukturering tar båten ut for godt.
