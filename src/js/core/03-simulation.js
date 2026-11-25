@@ -1305,7 +1305,9 @@ function finance(x, months){ if (x.payoff) payDown(x.payoff); if (x.bankL > 0) t
   if (S.cash < x.cost && bankS().spare > 0) bankMove('spare', -(x.cost - S.cash), 'Fra sparekontoen til båtkjøpet', 'From the savings for the vessel');   // the savings are equity
   book('baat', -x.cost, 'Båtkjøp', 'Vessel bought'); }
 function lenGroup(){ const L = BOAT.len || 5.8; return L < 8 ? 0 : L < 10 ? 1 : 2; }
-function codLimits(H){ if (H == null) H = S.t / 60; if (S.lic){ const c = licQ(S.lic, H).torsk; return {max:c, guar:c}; } const O = yearQuota(yearH(H)).open, g = lenGroup(); return {max:(O.max[g] + openMaxAdd(H)) * 1000, guar:O.guar[g] * 1000}; }
+function codLimits(H){ if (H == null) H = S.t / 60; if (S.lic){ const c = licQ(S.lic, H).torsk; return {max:c, guar:c}; } const O = yearQuota(yearH(H)).open, g = lenGroup(), A = openAdd(H), base = {max:(O.max[g] + openMaxAdd(H)) * 1000, guar:O.guar[g] * 1000};
+  // the open group: § 21's quota for the vessel's length, and on top of it the coastal-fishing scheme and the age addition (J-161-2026 §§ 22 and 23; 03d-quota.js openAdd)
+  return {max:base.max + A.sum, guar:base.guar + A.sum, base, add:A}; }
 // the open group's maximum-quota fishing is stopped when the group quota is estimated fished (the stop and the raises are worked out in
 // 03d-quota.js); after the stop only the guaranteed quota is left. A closed-group vessel quota is never stopped.
 function codOpen(H){ if (S.lic) return true; const sd = codStopDoy(yearH(H)); return sd == null || doyH(H) < sd; }

@@ -1,5 +1,10 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['kvote-251126', '25.11.2026', 'Mer torsk i åpen gruppe', 'More cod in the open group', [
+       ['Båter i åpen gruppe har nå alderstillegget: 2 tonn torsk i tillegg til kvoten etter båtens lengde.', 'Boats in the open group now have the age addition: 2 tonnes of cod on top of the quota by the boat\'s length.'],
+       ['Har du hjemsted i Finnmark, Nord-Troms eller en av de andre kommunene i kystfiskeordningen, får du 3,5 tonn til.', 'If your home is in Finnmark, northern Troms or one of the other municipalities in the coastal-fishing scheme, you get 3.5 tonnes more.'],
+       ['Tilleggene gjelder med en gang, også når du alt har fylt kvoten. Kvote-appen viser hva kvoten din består av.', 'The additions apply at once, also when you have already filled the quota. The Kvote app shows what your quota is made of.'],
+       ['Når torskekvoten er full, står det øverst i Kvote-appen hva du kan fiske nå, og når torsken åpner igjen.', 'When the cod quota is full, the top of the Kvote app says what you can fish now, and when the cod opens again.']]],
     ['rettinger-251126', '25.11.2026', 'Rettinger fra spillerne', 'Fixes from the players', [
        ['Gjesteboka åpner seg igjen når du trykker på den i Bygd og ved rorbua.', 'The guest book opens again when you tap it in the village and at the rorbu.'],
        ['En rute som ble stående fast mens båten lå til kai, tas nå bort av seg selv, så du kan legge en ny.', 'A route that got stuck while the boat lay at the quay is now taken away by itself, so you can lay a new one.'],

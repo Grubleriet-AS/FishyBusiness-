@@ -5,8 +5,31 @@
   function kvote(){ const t = ['mine', 'pris', 'land', 'open', 'stock', 'mkt'].includes(sub.kvote) ? sub.kvote : 'mine', H = S.t / 60;
     const top = subs('kvote', [['mine', 'Mine kvoter', 'My quotas'], ['pris', 'Priser', 'Prices'], ['land', 'Landinger', 'Landings'], ['open', 'Åpen gruppe', 'Open group'], ['stock', 'Bestand', 'Stock'], ['mkt', 'Marked', 'Market']]);
     if (t === 'pris' || t === 'land') return top + salg(t);
-    if (t === 'mine') return top + '<div class="ph-c">' + '<h4 style="margin:4px 2px 6px">' + L('Papirer', 'Papers') + '</h4>' + papBladB() + papPermit() + papZlic() + kvSor() + papKv() + (rederiOpen() ? '' : papBiz()) + '</div>' + salg('kvote');
+    if (t === 'mine') return top + '<div class="ph-c">' + kvFull(H) + '<h4 style="margin:4px 2px 6px">' + L('Papirer', 'Papers') + '</h4>' + papBladB() + papPermit() + papZlic() + kvSor() + papKv() + (rederiOpen() ? '' : papBiz()) + '</div>' + salg('kvote');
     return top + '<div class="ph-c">' + (t === 'open' ? kvOpen(H) : t === 'stock' ? kvStock(H) : kvMkt(H)) + '</div>'; }
+  // KV1 (steg 148, 25.11.2026): the open group's cod quota is full. Most of the first week's wishes were about this («må vente», «kjøpe
+  // mer kvote»): the card says what is open now and when the next things come, with the dates, at the top of Mine kvoter. Nothing here is
+  // a promise: a raise on 1 May or 1 June comes only when the group cannot take its quota (qyStep)
+  function kvFull(H){
+    // the cod aboard counts, as in the warning in the log (05-vessels.js fish): the card is there when the log sends the player here
+    if (S.lic || access() !== 'open') return ''; const lim = codLimitNow(H), q = quotaState(), ab = Math.max(0, S.hold.filter(x => x.sp === 'torsk').reduce((a, x) => a + x.kg, 0) - sorCodAboard());
+    if (!isFinite(lim) || lim - q.torsk - ab > 25) return '';
+    const y = yearH(H), d = doyH(H), Y = qyAt(H), pct = ffPct(H), F = S.fm || {n:0, kr:0, b:false}, landed = lim - q.torsk <= 25, nextFF = pct ? null : ffPlan(y).find(x => x[0] > d && x[1] > 0);
+    const rows = [[L('Hyse og sei', 'Haddock and saithe'), L('fritt fiske', 'free fishing')]];
+    if (!landed) rows.unshift([L('Torsk om bord', 'Cod aboard'), fmt(ab, 0) + ' kg · ' + L('igjen på kvoten ', 'left on the quota ') + fmt(Math.max(0, lim - q.torsk), 0) + ' kg']);
+    if (Y.stop == null && Y.free == null){ const nx = [doyOf(y, 5, 1), doyOf(y, 6, 1)].find(x => x > d); if (nx != null) rows.push([L('Maksimalkvoten kan bli økt', 'The maximum quota may be raised'), dayStr(hOfDoy(y, nx))]); }
+    if (pct) rows.push([L('Ferskfiskordningen', 'Fresh-fish scheme'), L('nå: ', 'now: ') + Math.round(pct * 100) + L(' % torsk av det du lander fersk', ' % cod of what you land fresh')]);
+    else if (nextFF) rows.push([L('Ferskfiskordningen', 'Fresh-fish scheme'), L('fra ', 'from ') + dayStr(hOfDoy(y, nextFF[0])) + ' · ' + Math.round(nextFF[1] * 100) + ' %']);
+    rows.push([L('Ny kvote', 'New quota'), dayStr(hOfDoy(y + 1, 0))]);
+    rows.push([L('Blad B', 'Blad B'), F.b ? L('ført', 'entered') : fmt(F.n, 0) + ' / ' + BLADB.days + L(' landingsdager · ', ' landing days · ') + kr(F.kr) + ' / ' + kr(BLADB.kr)]);
+    // what happens to cod landed now: within the fresh-fish share of the week's fresh landings it is outside the quota, the rest is confiscated
+    const now = pct ? L('Kvoten er brukt opp. Torsk innenfor ferskfiskordningen, ' + Math.round(pct * 100) + ' % av det du lander fersk hver uke, går utenom kvoten; torsk ut over det blir inndratt. ', 'The quota is used up. Cod within the fresh-fish scheme, ' + Math.round(pct * 100) + ' % of what you land fresh each week, is outside the quota; cod beyond that is confiscated. ')
+      : L('Torsk ut over kvoten blir inndratt ved levering, og det er ikke lov å ha torsk som bifangst ut over kvoten. Fisk hyse, sei og andre arter til torsken åpner igjen. ', 'Cod beyond the quota is confiscated at the landing, and cod may not be a bycatch beyond the quota. Fish haddock, saithe and other species until the cod opens again. ') +
+        (nextFF ? L('Når ferskfiskordningen starter, kan en del av det du lander fersk hver uke, være torsk utenom kvoten. ', 'When the fresh-fish scheme starts, a share of what you land fresh each week may be cod outside the quota. ') : '');
+    return '<div class="ph-card papc" id="kvFull"><div class="pap-h" style="background:#a8432f">' + (landed ? L('Torskekvoten er full', 'The cod quota is full') : L('Torsken om bord fyller kvoten', 'The cod aboard fills the quota')) + '</div>' + rows.map(([a, b]) => kv(a, b)).join('') +
+      '<p class="ph-note">' + now + L('Vil du fiske mer torsk hele året, trenger du en båt med hjemmel i lukket gruppe: den har sin egen fartøykvote. Det krever blad B.', 'To fish more cod all year you need a boat with a right in the closed group: it has a vessel quota of its own. That needs blad B.') + '</p>' +
+      '<button class="ph-btn alt" data-pa="sub" data-s="mkt">' + L('Se hjemlene i Marked', 'See the rights in Market') + '</button></div>';
+  }
   // Ø10c: the caps south of 62° N (core/03d-quota.js SORQ): the open group's 3 tonnes of cod in the North Sea and the jig exception's 3 tonnes
   // in the Skagerrak, what is landed on them this year, what is aboard from there and what is left. Shown to the boat that lies south of
   // 62° N or has landed on a cap this year
@@ -38,6 +61,7 @@
     h.push('<div class="ph-card"><h4>' + L('Ferskfiskordningen ', 'Fresh-fish scheme ') + y + '</h4>' + kv(L('Tillegg nå', 'Allowance now'), pct ? Math.round(pct * 100) + ' %' : L('ikke i gang', 'not running')) +
       ff.map(([d0, p]) => kv(doyStr(y, d0), p ? Math.round(p * 100) + ' %' : L('stoppet', 'stopped'))).join('') + '</div>');
     h.push('<p class="ph-note">' + L('Rundt 2 100 båter deler gruppekvoten i åpen gruppe. Når den er beregnet oppfisket, stopper Fiskeridirektoratet fisket på maksimalkvotene med en ukes varsel i Kystposten. Blir mye stående igjen, økes maksimalkvotene, og om høsten kan det bli fritt fiske. Fangsten din teller med.', 'About 2,100 boats share the open group\'s quota. When it is estimated fished, the Directorate stops fishing on the maximum quotas with a week\'s notice in the Coast Post. If much is left, the maximum quotas are raised, and in the autumn fishing can be made free. Your catch counts.') + '</p>');
+    h.push('<p class="ph-note">' + L('I tillegg til kvoten etter lengden kommer kystfiskeordningen (' + fmt(O.kyst, 1) + ' tonn for dem med hjemsted i Finnmark, Nord-Troms og enkelte kommuner i Troms og Nordland) og alderstillegget (' + fmt(O.alder, 1) + ' tonn for fiskere på 30 år eller yngre). Torsk kan ikke være bifangst ut over kvoten.', 'On top of the quota by length come the coastal-fishing scheme (' + fmt(O.kyst, 1) + ' tonnes for those whose home is in Finnmark, northern Troms and some municipalities in Troms and Nordland) and the age addition (' + fmt(O.alder, 1) + ' tonnes for fishers of 30 or younger). Cod may not be a bycatch beyond the quota.') + '</p>');   // (KV1: J-161-2026 §§ 21–23)
     return h.join('');
   }
   function kvStock(H){

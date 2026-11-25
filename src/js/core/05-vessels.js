@@ -699,7 +699,7 @@ function step(){
   if (S.t % 60 === 0) for (const pid in S.market) for (const sp in S.market[pid]) S.market[pid][sp] *= 0.97;
   if (S.t % 60 === 0 && S.stock) stockHour(H);
   if (S.t % 60 === 0) gearHour(H);
-  if (S.t % 60 === 0){ seasonDay(H); pressDay(H); bkNews(H); lbNews(H); }   // ... and the Greenland halibut's opening and stop (03d-quota.js)   // the seasons' news and the skrei festival (09c-seasons.js), a record price (09h-press.js)
+  if (S.t % 60 === 0){ seasonDay(H); pressDay(H); bkNews(H); lbNews(H); openAddNews(H); }   // ... and the Greenland halibut's opening and stop (03d-quota.js)   // the seasons' news and the skrei festival (09c-seasons.js), a record price (09h-press.js)
   folkPort(H);                        // Edvard on the quay in the home harbour (09d-folk.js)
   eachVessel(() => vesselStep(H));
   lopTick();                          // the race Lindesnes–Nordkapp: the finish, the penalties, a tow (09o-kapplop.js)
@@ -1204,7 +1204,7 @@ function fish(H, W, hs){
   // (Ø10c: the cod taken south of 62° N is not on this quota, 03d-quota.js sorCodAboard; the North Sea's 3 tonnes say so themselves, once a day)
   const q = quotaState(), codHold = S.hold.filter(x => x.sp === 'torsk').reduce((a, x) => a + x.kg, 0) - sorCodAboard();
   if (bycHere('juksa') === 'nsjo' && sorAcc() !== 'none' && sorLeft('nsjo') <= 0 && (S.sorWarn || -1e9) < S.t - 1440){ S.sorWarn = S.t; log('Maksimalkvoten på 3 tonn torsk i Nordsjøen er full. Torsk kan bare være bifangst nå, høyst 15 % av fangsten.', 'The maximum quota of 3 tonnes of cod in the North Sea is full. Cod may only be a bycatch now, at most 15% of the catch.'); }
-  if (codHold > 0 && access() !== 'none' && q.torsk + codHold >= codLimitNow(H) && !ffPct(H) && (S.codWarn || -1e9) < S.t - 1440){ S.codWarn = S.t; log('Torskekvoten er full. Torsk du lander nå blir inndratt.', 'The cod quota is full. Cod you land now will be confiscated.'); }
+  if (codHold > 0 && access() !== 'none' && q.torsk + codHold >= codLimitNow(H) && !ffPct(H) && (S.codWarn || -1e9) < S.t - 1440){ S.codWarn = S.t; log('Torskekvoten er full. Torsk du lander nå blir inndratt. Kvote-appen viser hva du kan fiske nå, og når torsken åpner igjen.', 'The cod quota is full. Cod you land now will be confiscated. The Kvote app shows what you can fish now, and when the cod opens again.'); }
 }
 function endFishing(why){
   const b = S.boat; b.fishUntil = null; b.deckStop = false; b.deckEnd = null;
