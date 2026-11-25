@@ -6329,3 +6329,9 @@
 2026-11-25 07:22	ccr-e101e6f0-y7fg6x	67790f2	vesseltest	OK	9	lite	samtidig	
 2026-11-25 07:22	ccr-e101e6f0-y7fg6x	67790f2	boottest	OK	11	lite	samtidig	
 2026-11-25 07:22	ccr-e101e6f0-y7fg6x	67790f2	trip2	OK	12	lite	samtidig	
+2026-11-25 08:35	ccr-e101e6f0-y7fg6x	d96137c+	kvotemaal	FEIL	15	lite	alene	FEIL liggende: from half the quota a row with the bar: landed and aboard  {"row": false, "txt": "", "cls": "", "w": [], "rules": "✓ Lov her ›", "l3": "", "l3cls
+2026-11-25 08:35	ccr-e101e6f0-y7fg6x	d96137c+	kvotemaal	FEIL	19	lite	alene	FEIL telefon: and red when it is full  ["! Torskekvoten er full", "st nx r1"]
+2026-11-25 08:36	ccr-e101e6f0-y7fg6x	d96137c+	kvotemaal	OK	18	lite	alene	
+2026-11-25 08:36	ccr-e101e6f0-y7fg6x	d96137c+	kvotemaal	OK	18	lite	alene	
+2026-11-25 08:37	ccr-e101e6f0-y7fg6x	d96137c+	kvotemaal	OK	25	lite	alene	
+2026-11-25 08:43	ccr-e101e6f0-y7fg6x	7bacfa5+	kvotemaal	OK	32	lite	samtidig	
