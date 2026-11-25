@@ -3,9 +3,10 @@ boat and the money a new game starts with (newState and START_KR: Father's woode
 until steg 153, 25.11.2026, the bot began in the skiff with 15 000 kr, so the documents' weeks were not today's start), trips on the plan's route out to the ground north of Husøy, the landing at the plant, and the hand jig and the jigging reels
 bought when the money is there. Three paces: a trip every third day, every other day, and every day the weather allows (as the
 standing plan with you aboard). Prints, week by week, the cash, the net worth, cod against the quota and blad B, and the first day
-and trip the entry boat (the right under 7 m, with Kystfondet's top-up) is within reach. A test to be read (LES): the aim is
-about 13 trips, a week of ordinary play. The calibration (October 2026): blad B, that is 1 G, comes after 14-16 trips at every
-pace, and Kystfondet's top-up of 15 % (5 % equity) puts the entry there too; with 10 % it took 24 trips."""
+and trip the entry boat (the right under 7 m, with Kystfondet's top-up) is within reach. A test to be read (LES). The aim was
+about 13 trips, a week of ordinary play, and the calibration (October 2026, from the skiff with 15 000 kr) put blad B at 14-16 trips
+and, with Kystfondet's top-up of 15 % (5 % equity), the entry there too. From today's start (25.11.2026): blad B after 14-15 trips
+at every pace, the entry after 19 (day 30 with a trip every day, day 51 every other day, not within 56 days every third day)."""
 import asyncio, json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _env import boot

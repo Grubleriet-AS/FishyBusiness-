@@ -6474,3 +6474,8 @@
 2026-11-25 17:01	ccr-e101e6f0-y7fg6x	fc5c064+	kvotemaal	OK	29	lite	samtidig	
 2026-11-25 17:01	ccr-e101e6f0-y7fg6x	fc5c064+	trinntest	OK	19	lite	samtidig	
 2026-11-25 17:01	ccr-e101e6f0-y7fg6x	fc5c064+	romtest	OK	21	lite	samtidig	
+2026-11-25 17:09	ccr-e101e6f0-y7fg6x	6b6826a+	quotatest	OK	7	lite	samtidig	
+2026-11-25 17:09	ccr-e101e6f0-y7fg6x	6b6826a+	selltest	LES	11	lite	samtidig	
+2026-11-25 17:09	ccr-e101e6f0-y7fg6x	6b6826a+	r4test	OK	6	lite	samtidig	
+2026-11-25 17:09	ccr-e101e6f0-y7fg6x	6b6826a+	admintest	OK	14	lite	samtidig	
+2026-11-25 17:09	ccr-e101e6f0-y7fg6x	6b6826a+	kvotemaal	OK	25	lite	samtidig	

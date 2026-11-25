@@ -2,7 +2,8 @@
 -- share usage statistics: land_conf {kg, acc} (a landing with something confiscated, in three sizes, by the group), why_shown {code} (the
 -- reason a grey button showed), mer_open {k} (a «Mer» fold opened, by the page), vis_alt {on} («Vis alt» in the settings), buy_noacc {k}
 -- (a purchase that took the quota from the boat traded in, made after the question) and bladb {} (blad B reached); sale and km_reg were
--- there before. For the admin's funnel: sums and distinct players only, never who, which boat or where. Additions only: one new function.
+-- there before. (A null key would make jsonb_object_agg throw and the whole card fail, so a code or a page that is null is left out.)
+-- For the admin's funnel: sums and distinct players only, never who, which boat or where. Additions only: one new function.
 create or replace function public.admin_regler(weeks int default 8) returns jsonb
 language plpgsql stable security definer set search_path = public as $$
 declare since timestamptz := now() - make_interval(weeks => greatest(1, least(coalesce(admin_regler.weeks, 8), 52)));
@@ -18,10 +19,10 @@ begin
         from events where kind = 'land_conf' and ts >= since group by 1) x), '{}'::jsonb),
     'why', coalesce((select jsonb_object_agg(k, jsonb_build_object('n', n, 'p', p)) from (
         select left(data ->> 'code', 24) k, count(*) n, count(distinct player_id) p
-        from events where kind = 'why_shown' and data ? 'code' and ts >= since group by 1) x), '{}'::jsonb),
+        from events where kind = 'why_shown' and data ->> 'code' is not null and ts >= since group by 1) x), '{}'::jsonb),
     'mer', coalesce((select jsonb_object_agg(k, jsonb_build_object('n', n, 'p', p)) from (
         select left(data ->> 'k', 24) k, count(*) n, count(distinct player_id) p
-        from events where kind = 'mer_open' and data ? 'k' and ts >= since group by 1) x), '{}'::jsonb),
+        from events where kind = 'mer_open' and data ->> 'k' is not null and ts >= since group by 1) x), '{}'::jsonb),
     'vis_on', (select count(distinct player_id) from events where kind = 'vis_alt' and data ->> 'on' = '1' and ts >= since),
     'vis_off', (select count(distinct player_id) from events where kind = 'vis_alt' and data ->> 'on' = '0' and ts >= since),
     'noacc', (select count(*) from events where kind = 'buy_noacc' and ts >= since),
