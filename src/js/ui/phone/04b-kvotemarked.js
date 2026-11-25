@@ -21,7 +21,7 @@
     haslic:['Båten har hjemmel fra før.', 'The boat has a right already.'], len:['Lengderegelen: hjemmelen kan ikke flyttes til en så lang båt.', 'The length rule: the right cannot be moved to a boat that long.'],
     nolic:['Båten har ingen hjemmel å strukturere inn på.', 'The boat has no right to structure onto.'], group:['Ikke samme gruppe (bare 11–27,99 m, i samme gruppe).', 'Not the same group (only 11–27.99 m, in the same group).'],
     cap:['Over kvotetaket.', 'Over the quota cap.'], cash:['Du har ikke nok penger.', 'You do not have the money.']};
-  const kxWhy = (w, r) => (r && r.text) || (KX_WHY[w] ? L(KX_WHY[w][0], KX_WHY[w][1]) : L('Det går ikke nå.', 'Not now.'));
+  const kxWhy = (w, r) => (r && r.text) || whyLine('km.' + w) || (KX_WHY[w] ? L(KX_WHY[w][0], KX_WHY[w][1]) : L('Det går ikke nå.', 'Not now.'));
   const kxT = (kg, d) => fmt(kg / 1000, d == null ? 1 : d) + ' t';
   const kxName = it => (it.kind === 'struct' ? L('Strukturkvote ', 'Structure quota ') : L('Hjemmel ', 'Right ')) + mgEsc(HJ[it.id].hl);
   const kxNow = Q => Q.top != null ? Q.top : Q.start;

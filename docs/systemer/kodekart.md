@@ -3215,30 +3215,31 @@ the home screen (UI 2, U2-6; Jonas 06.11.2026, V6 A and V2 A in docs/planer/ui-2
   - 189 `redning()`
 - **209** vessels: my vessel overview and the market
 
-## `src/js/ui/phone/10-fartoy.js` (396 linjer)
+## `src/js/ui/phone/10-fartoy.js` (403 linjer)
 
 - **7** «Dette endrer seg» (steg 151, K3 of docs/planer/regler-i-klartekst.md): what a purchase changes, from rmBuy (core/03l-room.js),
   - 11 `buyRes(offer)`
   - 14 `buyCard(offer, head, foot)`
   - 35 `buyAsk(offer)`
-  - 42 `whyBox(code, ctx)`
-  - 62 `goals()`
-  - 88 `goalsCard()`
-- **93** «Båten og utstyret» (OPP4 of docs/planer/oppgraderinger.md, 07.11.2026; Jonas: «én side for båten og utstyret»: «enig»): every
-  - 107 `haulNow(kind)`
-  - 111 `haulNow0(kind)`
-  - 122 `tierLad(k, pg, fxOf)`
-  - 128 `oneLad(k, base, pg, fx, nm)`
-  - 191 `ladders()`
-  - 208 `kitCard()`
-  - 209 `kitCard0()`
-- **238** the boat market: tabs for the open group, boats with a closed-group right, the coastal fleet over 11 m and the ocean fleet;
-  - 247 `mkCard(k, O)`
-  - 251 `market()`
-  - 283 `specSecs(k, O)`
-  - 307 `sheet(k, O)`
-  - 360 `fartoy(tab0)`
-- **395** the company: the fleet at a glance and what needs you. The vessel apps work on the vessel picked at the top (default: the one you follow)
+  - 43 `whyBox(code, ctx)`
+  - 54 `whyLine(code)`
+  - 69 `goals()`
+  - 95 `goalsCard()`
+- **100** «Båten og utstyret» (OPP4 of docs/planer/oppgraderinger.md, 07.11.2026; Jonas: «én side for båten og utstyret»: «enig»): every
+  - 114 `haulNow(kind)`
+  - 118 `haulNow0(kind)`
+  - 129 `tierLad(k, pg, fxOf)`
+  - 135 `oneLad(k, base, pg, fx, nm)`
+  - 198 `ladders()`
+  - 215 `kitCard()`
+  - 216 `kitCard0()`
+- **245** the boat market: tabs for the open group, boats with a closed-group right, the coastal fleet over 11 m and the ocean fleet;
+  - 254 `mkCard(k, O)`
+  - 258 `market()`
+  - 290 `specSecs(k, O)`
+  - 314 `sheet(k, O)`
+  - 367 `fartoy(tab0)`
+- **402** the company: the fleet at a glance and what needs you. The vessel apps work on the vessel picked at the top (default: the one you follow)
 
 ## `src/js/ui/phone/11-rederi.js` (94 linjer)
 

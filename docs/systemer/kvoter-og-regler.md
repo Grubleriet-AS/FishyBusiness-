@@ -606,14 +606,16 @@ Jonas 25.11.2026: spillerne skal «forstå handlingsrommet sitt uten å måtte l
 - **Ikke gjort:** stikkprøven tre steder langs kysten for Regler-linja (bygget i økta har bare Senja; det `rmNow` legger på, har ingen posisjon). Trykkflaten på raden er rundt 30 px, som «Regler ›» ved siden av, ikke 48.
 - Tester: `tests/kvotemaal.py` (boksen, stripa, uten adgang, kaia, lasten, sluttseddelen og hjemskjermen i 1280×800, 800×1280 og 390×844), og `rmWarn` i `room.test.mjs`.
 
-**Kjøpet (steg 151, K3, 25.11.2026; pågår, se «Står igjen»):**
+**Kjøpet (steg 151, K3, 25.11.2026):**
 - **Kortet «Dette endrer seg»** (`buyCard` i `ui/phone/10-fartoy.js`, fylt av `rmBuy`): kvoten og årets torsk før og etter med selgerens del, hvem som kan fiske på den, om den kan stoppes, og båten som mister åpen gruppe. Prisen og knappen står inne i kortet de hører til. På verftets fire kjøp (med og uten hjemmel, innbytte og til flåten), over budet hos Kystmegleren, og under båtvalget i Kvotemarkedet når en hjemmel settes på en båt uten.
 - **Rødt kort** (`chg-bad`) når båten ikke har kvote etterpå, eller innbyttebåtens hjemmel går tapt uten at en ny kommer. Knappen er da ikke arkets sterke knapp, og `buy` spør først (`buyAsk`, `confirm`). `buylic` spør ikke: den gir alltid en ny hjemmel.
 - **Grunnen under en grå knapp** (`whyBox`, fylt av `rmWhy`): setningen, hva som løser det, veien dit og «Loven bak». Den står alltid åpen under knappen, ikke ved trykk (**valgt uten å spørre**: en `disabled` knapp gir ikke klikk, og en grunn som synes, trenger ikke letes opp; snus ved å folde boksen). På verftet (`yardWhy`: verft, bestilling, salg, last, banken), for blad B, og for meglerens «kan ikke kjøpe». `payNote` sier ikke grunnen lenger.
 - **Rederi** viser gruppa per båt i klartekst, med fagordet i parentes på det første kortet.
 - **Fjernet, fordi kortet sier det:** notatet om at åpen gruppe-båten mister plassen, «Uten hjemmel kan hun bare …» på verftet og hos megleren, og «et rederi kan bare ha én båt i åpen gruppe».
-- **Står igjen (steget er `pågår`):** de grå valgene i Kvotemarkedet og meglerens `data-why` bruker fortsatt `KX_WHY` og `MB_WHY`, ikke `rmWhy`; `romtest` kaller `kmApply` og `mbUnpack` og ikke oppgjøret (`mbApply`); megleren, Kvotemarkedet, Rederi og 390 px er ikke sett på bilde; hendelsen «åpnet hvorfor» finnes ikke (boksen står åpen), bare `buy_noacc`.
-- Tester: `tests/romtest.py` (kortet mot kjøpet i sju kjøpsveier, sett rød mot et bygg der `rmBuy` utelot selgerens del; arkene i 800×1280 og 1280×800).
+- **Samme setning overalt:** Kvotemarkedets grå valg (`kxWhy`) og meglerens grunner (`mbWhyTxt`) henter setningen fra `rmWhy` (`whyLine`), så «over kvotetaket» og «kan ikke kjøpe» leses likt på verftet, hos megleren og i Kvotemarkedet. Lengderegelen beholder linja med lengden i, og serverens egen tekst går foran.
+- **Målingen:** `buy_noacc` når et kjøp som tar kvoten, gjennomføres etter spørsmålet, og `why_shown` med koden første gang en grunn vises i økta. Aldri hvem eller hvilken båt.
+- **Jonas 25.11.2026** om grunnen skal stå åpen eller komme ved trykk: «Gjør det du mener blir mest riktig.» Den står åpen.
+- Tester: `tests/romtest.py` (kortet mot kjøpet i sju kjøpsveier, megleren og Kvotemarkedet gjennom oppgjøret `mbApply`; sett rød mot et bygg der `rmBuy` utelot selgerens del; arkene i 800×1280, 1280×800 og 390×844), og en sjekk i `megletest` at kortet står over auksjonen.
 
 ## 5.30 Kystvakta om bord (V1 i `docs/planer/oppdrag-2.md`, 31.10.2026)
 

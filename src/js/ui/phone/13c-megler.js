@@ -59,7 +59,7 @@
   // the seller's choice in «Legg ut til salgs»: null (the right follows her), or where it stays: {v} or {free:true}
   function mbKeepOf(v){ if (sub.mblic !== 'keep' || !vget(v, 'lic') || mbMoveWhy({v}, {free:true})) return null;
     const o = mbKeepList({v}).find(o => o.v.id === sub.mbkeep && !o.why); return o ? {v:o.v} : {free:true}; }
-  const mbWhyTxt = (w, r) => (r && r.text) || (MB_WHY[w] ? L(MB_WHY[w][0], MB_WHY[w][1]) : L('Det går ikke nå.', 'Not now.'));
+  const mbWhyTxt = (w, r) => (r && r.text) || whyLine('mb.' + w) || (MB_WHY[w] ? L(MB_WHY[w][0], MB_WHY[w][1]) : L('Det går ikke nå.', 'Not now.'));
   // your own boats: for sale (the bids, the time left, «Trekk fra salg» while nobody has bid), or the buttons to put her out and to sell her
   // now, and delivery to where you are or home (Rederi and the broker's page; quick: with «Selg nå», which Rederi has behind «⋯»)
   function mgOwnRow(v, quick){

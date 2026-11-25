@@ -39,12 +39,19 @@
     return null;
   }
   // why a grey button is grey (rmWhy): the sentence, how to mend it with the way there, and the law behind it for the one who asks
+  const WHY_SEEN = new Set();
   function whyBox(code, ctx){
     const W = code ? rmWhy(code, ctx) : null; if (!W) return '';
+    // (for the funnel, K5: which reasons the players meet, once a code a session; never who or what boat)
+    if (!WHY_SEEN.has(code)){ WHY_SEEN.add(code); if (typeof cloudEv === 'function') try { cloudEv('why_shown', {code}); } catch (e){} }
     return '<div class="whybox" data-why="' + code + '"><p><b>' + L(W.t[0], W.t[1]) + '</b>' + (W.fix ? ' ' + L(W.fix[0], W.fix[1]) : '') + '</p>' +
       (W.app ? '<button class="ph-btn alt" data-pa="open" data-a="' + W.app + '"' + (W.sub ? ' data-s="' + W.sub + '"' : '') + '>' + (W.app === 'bank' ? L('Til banken', 'To the bank') : W.app === 'kvote' ? L('Se papirene', 'See the papers') : L('Åpne', 'Open')) + '</button>' : '') +
       (W.law ? '<details class="whylaw"><summary>' + L('Loven bak', 'The law behind') + '</summary><p>' + W.law + '</p></details>' : '') + '</div>';
   }
+  // the same sentence as one line, for the places that have a line and no room for a box (a chip's small text, a button's data-why): the
+  // quota market's and the broker's own words stood there, so the same reason read differently from place to place. null for a word
+  // rmWhy has not, or one whose figures the caller does not have (the length rule keeps the callers' own line with the length in it)
+  function whyLine(code){ if (/\.len$/.test(code)) return null; const W = rmWhy(code, {n:Math.min((S.fm || {}).n || 0, BLADB.days), of:BLADB.days, boat:S.boatName}); return W ? L(W.t[0], W.t[1]) + (W.fix ? ' ' + L(W.fix[0], W.fix[1]) : '') : null; }
   // the yard's buttons: the first thing in the way, as rmWhy's word
   const yardWhy = (x, ti) => !atKind('verft') ? 'yard' : S.order ? 'order' : ti && tiLocked(curVessel()) ? 'sale' : ti && tiHoldWhy() ? 'hold' : !x.ok ? (x.why || 'cash') : null;
   const yardCtx = x => ({n:(S.sales || []).length, need:kr(x.eqNeed), boat:S.boatName});

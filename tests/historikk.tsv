@@ -6391,3 +6391,18 @@
 2026-11-25 11:35	ccr-e101e6f0-y7fg6x	c1a8ec8	fleet3test	OK	6	lite	samtidig	
 2026-11-25 11:36	ccr-e101e6f0-y7fg6x	c1a8ec8	shoptest	OK	15	lite	samtidig	
 2026-11-25 11:37	ccr-e101e6f0-y7fg6x	c1a8ec8	uishots	OK	87	lite	samtidig	
+2026-11-25 12:28	ccr-e101e6f0-y7fg6x	967202c+	romtest	OK	22	lite	samtidig	
+2026-11-25 12:28	ccr-e101e6f0-y7fg6x	967202c+	megletest	OK	25	lite	samtidig	
+2026-11-25 12:28	ccr-e101e6f0-y7fg6x	967202c+	kvotemarkedtest	FEIL	26	lite	samtidig	FEIL kvotetaket (5 ganger egen kvote) stenger valget av båten som er full, og uten blad B kan ingen by  {"ch": [{"v": "v1", "dis": true, "t": "Strukturer inn på
+2026-11-25 12:29	ccr-e101e6f0-y7fg6x	967202c+	kvotemarkedtest	OK	28	lite	samtidig	
+2026-11-25 12:29	ccr-e101e6f0-y7fg6x	967202c+	megletest	OK	24	lite	samtidig	
+2026-11-25 12:30	ccr-e101e6f0-y7fg6x	967202c+	megletest	OK	23	lite	alene	
+2026-11-25 12:30	ccr-e101e6f0-y7fg6x	967202c+	romtest	OK	22	lite	samtidig	
+2026-11-25 12:30	ccr-e101e6f0-y7fg6x	967202c+	megletest	OK	25	lite	samtidig	
+2026-11-25 12:31	ccr-e101e6f0-y7fg6x	967202c+	kvotemarkedtest	OK	28	lite	samtidig	
+2026-11-25 12:31	ccr-e101e6f0-y7fg6x	967202c+	vesseltest	OK	9	lite	samtidig	
+2026-11-25 12:31	ccr-e101e6f0-y7fg6x	967202c+	quotatest	OK	6	lite	samtidig	
+2026-11-25 12:31	ccr-e101e6f0-y7fg6x	967202c+	fleet3test	OK	6	lite	samtidig	
+2026-11-25 12:31	ccr-e101e6f0-y7fg6x	967202c+	shoptest	OK	15	lite	samtidig	
+2026-11-25 12:32	ccr-e101e6f0-y7fg6x	967202c+	uishots	OK	89	lite	samtidig	
+2026-11-25 12:32	ccr-e101e6f0-y7fg6x	967202c+	docktest	OK	64	lite	samtidig	

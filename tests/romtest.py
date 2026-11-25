@@ -27,8 +27,8 @@ CASES = {
     'verftet, kystbåt uten hjemmel i bytte': "(() => { const P = %s(rmBuy({kind:'hull', type:'kyst15', ti:true})); PHONE.dact('rederi', 'buy', {k:'kyst15', ti:'1'}); return {P, G:%s(curVessel()), ask:ASK.length}; })()",
     'verftet, større båt i åpen gruppe i bytte': "(() => { const P = %s(rmBuy({kind:'hull', type:'plastsjark', ti:true})); PHONE.dact('rederi', 'buy', {k:'plastsjark', ti:'1'}); return {P, G:%s(curVessel()), ask:ASK.length}; })()",
     'verftet, kystbåt uten hjemmel til flåten': "(() => { const P = %s(rmBuy({kind:'hull', type:'kyst15', ti:false})); PHONE.dact('rederi', 'buy', {k:'kyst15', ti:'0'}); const v = S.fleet[S.fleet.length - 1]; return {P, G:%s(v), ov:openVesselId(), n:S.fleet.length}; })()",
-    'Kvotemarkedet, hjemmel med strukturkvote satt på': "(() => { const v = newVesselObj('kyst15', S.boat.port), y = yearH(S.t / 60), it = {kind:'right', id:'h14', flen:14.9, st:[{id:'h14', kf:4.7, from:y, until:y + 20}], used:{torsk:7000, hyse:0, sei:0}, y}; const P = %s(rmBuy({kind:'right', id:it.id, st:it.st, used:it.used, y, v})); kmApply(it, {v, how:'put'}); return {P, G:%s(v), ov:openVesselId()}; })()",
-    'megleren, båt med hjemmel': "(() => { const lic = {id:'h9', hl:HJ.h9.hl, since:2026, st:[]}; licExtra(lic); const pk = {type:'sjark', lic, quota:{y:yearH(S.t / 60), torsk:4000, hyse:0, sei:0}}; const P = %s(rmBuy({kind:'boat', type:pk.type, lic:pk.lic, quota:pk.quota})); const v = mbUnpack(pk, S.boat.port); return {P, G:%s(v), ov:openVesselId()}; })()",
+    'Kvotemarkedet, hjemmel med strukturkvote satt på': "(() => { const v = newVesselObj('kyst15', S.boat.port), y = yearH(S.t / 60), it = {kind:'right', id:'h14', flen:14.9, st:[{id:'h14', kf:4.7, from:y, until:y + 20}], used:{torsk:7000, hyse:0, sei:0}, y}; const P = %s(rmBuy({kind:'right', id:it.id, st:it.st, used:it.used, y, v})); kmState().to[901] = {vid:v.id, how:'put'}; const done = mbApply([{id:990001, kind:'right', listing:901, kr:0, lk:'right', data:{name:'Hjemmel 14–14,9 m', item:it}}]); return {P, G:%s(v), ov:openVesselId(), done}; })()",
+    'megleren, båt med hjemmel': "(() => { const lic = {id:'h9', hl:HJ.h9.hl, since:2026, st:[]}; licExtra(lic); const pk = {type:'sjark', lic, quota:{y:yearH(S.t / 60), torsk:4000, hyse:0, sei:0}}; const P = %s(rmBuy({kind:'boat', type:pk.type, lic:pk.lic, quota:pk.quota})); const n0 = S.fleet.length, done = mbApply([{id:990002, kind:'boat', listing:902, kr:0, data:{name:'Testbåt', vessel:pk, from:S.boat.port, port:S.boat.port, price:1000}}]); const v = S.fleet[S.fleet.length - 1]; return {P, G:%s(v), ov:openVesselId(), done, n:[n0, S.fleet.length]}; })()",
 }
 SHEET = """((tab, sel) => { const tap = q => { const e = document.querySelector('#drawerBody ' + q); if (e) e.click(); return !!e; }; DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=' + tab + ']'); tap(sel);
   const cs = [...document.querySelectorAll('#drawerBody .ph-card.chg')], bt = document.querySelector('#drawerBody [data-ti="1"]'), wb = document.querySelector('#drawerBody .whybox');
@@ -47,6 +47,8 @@ async def main():
             r = await pg.evaluate(js % (PRED, STATE)); P, G = r['P'], r['G']
             same = P and G and P['acc'] == G['acc'] and (P['acc'] == 'none' or (abs(P['limit'] - G['limit']) <= 1 and abs(P['used'] - G['used']) <= 1))
             check(same, name + ': the card and the purchase agree on the group, the limit and the cod fished', r)
+            if 'done' in r:
+                check(len(r['done']) == 1, name + ': made through the settlement itself (mbApply), not the function under it', r['done'])
             if 'ov' in r:
                 check((P['loses'] is None and r['ov'] is not None) or (P['loses'] is not None and r['ov'] is None), name + ': and on whether the open-group boat loses her place', {'loses': P['loses'], 'ov': r['ov']})
             if name.startswith('verftet, kystbåt uten hjemmel i bytte'):
@@ -71,6 +73,11 @@ async def main():
         # the fleet app says each boat's group
         await pg.evaluate(BASE); fl = await pg.evaluate("(() => { newVesselObj('kyst15', S.boat.port); PHONE.open('rederi'); const t = document.getElementById('phone').textContent; PHONE.show(false); return t; })()")
         check('felleskvoten for småbåter (åpen gruppe)' in fl and 'ingen kvote: bare bifangst' in fl, 'Rederi says each boat\'s group', fl[:0])
+        await pg.evaluate("PHONE.open('rederi')"); await pg.wait_for_timeout(400); await pg.screenshot(path=os.path.join(OUT, 'rederi-liggende.png')); await pg.evaluate("PHONE.show(false)")
+        # the yard's sheet on a phone
+        await pg.close(); pg = await br.new_page(viewport={'width': 390, 'height': 844}); pg.on('pageerror', lambda e: errs.append(str(e)[:200])); await boot(pg, GAME); await pg.evaluate(BASE)
+        s = await pg.evaluate(SHEET + "('lic', '[data-pa=mksel][data-k=trebat][data-o=u7]')"); w = await pg.evaluate("(() => { const c = document.querySelector('#drawerBody .ph-card.chg'), t = c.querySelector('table'); c.scrollIntoView({block:'start'}); return [Math.round(c.getBoundingClientRect().width), Math.round(t.scrollWidth), Math.round(t.clientWidth), innerWidth]; })()")
+        check(s['n'] == 2 and w[1] <= w[2] + 1 and w[0] <= w[3], 'telefon 390 px: the card and its three columns fit the sheet', w); await pg.wait_for_timeout(250); await pg.screenshot(path=os.path.join(OUT, 'verft-hjemmel-telefon.png'))
         # a right that goes with the boat traded in for a small boat without one: the card is red, and the purchase asks first
         await pg.evaluate(BASE); lo = await pg.evaluate("(() => { S.lic = {id:'u7', hl:HJ.u7.hl, since:yearH(S.t / 60) - 1}; freshQuota(); const P = rmBuy({kind:'hull', type:'snekke', ti:true}); const r = (" + SHEET + ")('open', '[data-pa=mksel][data-k=snekke]:not([data-o])'); DOCK.close(); ASK.length = 0; PHONE.dact('rederi', 'buy', {k:'snekke', ti:'1'}); return {lost:P.lost, bad:r.bad, txt:r.txt, ask:ASK.length, lic:!!S.lic, type:S.boat.type}; })()")
         check(lo['lost'] and lo['bad'][0] and 'følger innbyttebåten' in lo['txt'] and lo['ask'] == 1 and lo['type'] == 'snekke' and not lo['lic'], 'a right that goes with the boat traded in: the card is red, and the purchase asks first', {k: lo[k] for k in ('lost', 'bad', 'ask', 'lic', 'type')})
