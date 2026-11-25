@@ -6451,3 +6451,18 @@
 2026-11-25 13:27	ccr-e101e6f0-y7fg6x	d78fbde+	r4test	OK	6	lite	samtidig	
 2026-11-25 13:27	ccr-e101e6f0-y7fg6x	d78fbde+	trinntest	OK	17	lite	samtidig	
 2026-11-25 13:27	ccr-e101e6f0-y7fg6x	d78fbde+	vesseltest	OK	10	lite	samtidig	
+2026-11-25 13:41	ccr-e101e6f0-y7fg6x	d67ad69	tut	OK	772	lite	alene	
+2026-11-25 13:45	ccr-e101e6f0-y7fg6x	d67ad69	trinntest	OK	17	lite	samtidig	
+2026-11-25 13:45	ccr-e101e6f0-y7fg6x	d67ad69	romtest	OK	20	lite	samtidig	
+2026-11-25 13:45	ccr-e101e6f0-y7fg6x	d67ad69	kvotemaal	OK	26	lite	samtidig	
+2026-11-25 13:45	ccr-e101e6f0-y7fg6x	d67ad69	quotatest	FEIL	6	lite	samtidig	FEIL the Kvote app has four tabs: my quotas, the open group, the stocks and the market {'open': True, 'stock': True, 'mkt': True, 'mine': False}
+2026-11-25 13:45	ccr-e101e6f0-y7fg6x	d67ad69	vesseltest	OK	9	lite	samtidig	
+2026-11-25 13:46	ccr-e101e6f0-y7fg6x	d67ad69	megletest	OK	24	lite	samtidig	
+2026-11-25 13:46	ccr-e101e6f0-y7fg6x	d67ad69	kvotemarkedtest	OK	27	lite	samtidig	
+2026-11-25 13:46	ccr-e101e6f0-y7fg6x	d67ad69	shoptest	OK	13	lite	samtidig	
+2026-11-25 13:46	ccr-e101e6f0-y7fg6x	d67ad69	hbtest	OK	15	lite	samtidig	
+2026-11-25 13:47	ccr-e101e6f0-y7fg6x	d67ad69	docktest	OK	62	lite	samtidig	
+2026-11-25 13:48	ccr-e101e6f0-y7fg6x	d67ad69	uishots	OK	86	lite	samtidig	
+2026-11-25 13:48	ccr-e101e6f0-y7fg6x	d67ad69	fleet3test	OK	6	lite	samtidig	
+2026-11-25 13:48	ccr-e101e6f0-y7fg6x	d67ad69	r4test	OK	6	lite	samtidig	
+2026-11-25 13:48	ccr-e101e6f0-y7fg6x	d67ad69+	quotatest	OK	6	lite	alene	

@@ -84,7 +84,7 @@ TRADE = """(async () => { const R = {}, y = yearH(S.t / 60), tap = q => { const 
   S.qyY = y - 1; S.lic.coop.y = y - 1; quotaNewYear(y); R.coop.after = {coop:S.lic.coop, crew:S.crew.length};
   // the app: four tabs, each rendered
   PHONE.open('kvote'); const txt = s => { PHONE.dact('kvote', 'sub', {s}); PHONE.render(); return document.querySelector('#phone').textContent; };
-  R.app = {open:/Gruppekvote/.test(txt('open')), stock:/Gytebestand|Totalkvote/.test(txt('stock')), mkt:/Deltakeradganger/.test(txt('mkt')), mine:/Fartøykvote|Maksimalkvote|Ingen adgang/.test(txt('mine'))}; PHONE.show(false);
+  R.app = {open:/Gruppekvote/.test(txt('open')), stock:/Gytebestand|Totalkvote/.test(txt('stock')), mkt:/Deltakeradganger/.test(txt('mkt')), mine:/fartøykvote|maksimalkvote|Ingen kvote/i.test(txt('mine'))}; PHONE.show(false);
   return R; })()"""
 
 
