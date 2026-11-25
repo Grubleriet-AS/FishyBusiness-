@@ -1,6 +1,6 @@
 # Regelverket i klartekst: trinn, målere og «hvorfor kan jeg ikke» (plan 25.11.2026)
 
-**Status: valgene er tatt 25.11.2026 (V1 A, V2 A, V3 B). Fasene er steg 148–153 i køen. K0 (steg 148) venter på «kjør på». Ingenting er bygd.**
+**Status: valgene er tatt 25.11.2026 (V1 A, V2 A, V3 A; V3 var først B og ble endret samme dag). Fasene er steg 148–153 i køen. K0 (steg 148) venter på «kjør på». Ingenting er bygd.**
 
 ## Hva Jonas ba om
 
@@ -84,9 +84,10 @@ En ny fil i kjernen, `src/js/core/03l-room.js`, med rene funksjoner som bare les
 |---|---|---|
 | `rmStage()` | Hvor langt er spilleren kommet? | Trinn 1–5 (4.2), avledet av det som alt lagres. Ingen nye felt i lagringen. |
 | `rmMeters(H)` | Hvor mye har jeg igjen? | Én rad per art som binder båten nå: landet, om bord, tak, igjen, tilstand (`ok`, `near`, `full`, `none`), og hvor mye av det som er om bord som ville blitt inndratt nå (fra `landConf`). |
-| `rmNow()` | Kan jeg fiske her, med denne båten? | `ruNow()` slått sammen med gruppa og kvoten: «! Bare bifangst: båten har ikke adgang», «! Torskekvoten er full». |
+| `rmNow()` | Kan jeg fiske her, med denne båten? | `ruNow()` slått sammen med gruppa og kvoten: «! Bare bifangst: båten har ingen kvote», «! Torskekvoten er full». |
 | `rmBuy(tilbud)` | Hva endrer dette kjøpet? | Før og etter: gruppe, torsk igjen i år (med selgerens del trukket fra), hvem som kan fiske på kvoten, hvilken annen båt som mister adgangen, og det som hindrer kjøpet. |
-| `rmWhy(kode, ctx)` | Hvorfor kan jeg ikke? | Én kort setning med fagordene som de er (V3 B), «slik løser du det» med knapp til riktig sted, og loven bak (paragraf og kilde) for den som vil. |
+| `rmWhy(kode, ctx)` | Hvorfor kan jeg ikke? | Én setning i klartekst, «slik løser du det» med knapp til riktig sted, og loven bak (paragraf og kilde) for den som vil. |
+| `rmTerm(ord)` | Hva heter det? | Klartekstordet fra tabellen `RM_TERMS` (4.5), med fagordet i parentes første gang på en side. Ordene står ett sted, så et ord byttes ett sted. |
 
 `landConf` flyttes uendret fra `ui/08-actions.js` til kjernen, så enhetstestene når den (de laster bare `js/core/`). Prefikset `rm` er ledig i det delte skopet i dag; det sjekkes igjen før navnene tas.
 
@@ -98,9 +99,9 @@ Trinnet styrer hva som **vises først**, aldri hva som er lov. Reglene gjelder l
 
 | Trinn | Når (avledet) | Nytt på skjermen |
 |---|---|---|
-| 1 Åpen gruppe | Fra start: én båt under 11 m | Seile, redskap, fangst, levering. Én måler: torsk i år. Regler-linja. Neste mål. |
-| 2 Blad B | Blad B nådd (`bladB()`) | Hjemmel og lukket gruppe forklart i tre setninger. Kjøpskortet. Fanen «Med hjemmel» løftes fram. |
-| 3 Lukket gruppe | Rederiet har eller har hatt en hjemmel | Målerne for hyse og sei. Ferskfiskordningen. Kvotemarkedet (Hjemler). Bestand. |
+| 1 Fisker | Fra start: én båt under 11 m | Seile, redskap, fangst, levering. Én måler: torsk i år. Regler-linja. Neste mål. |
+| 2 Yrkesfisker | Blad B nådd (`bladB()`) | «Egen kvote» forklart i tre setninger. Kjøpskortet. Fanen «Med hjemmel» løftes fram. |
+| 3 Egen kvote | Rederiet har eller har hatt en hjemmel | Målerne for hyse og sei. Høsttillegget. Kvotemarkedet. Bestand. |
 | 4 Reder | Båt fra 11 m, flere båter eller strukturkvote | Strukturering, kvotetaket, lengderegelen, flytting av hjemmel, reglene for fjordlinja og grunnlinja etter lengde. |
 | 5 Hav | Havtillatelse | Havkvotene og kvotefaktorene. |
 
@@ -109,12 +110,12 @@ Det som hører til et senere trinn, ligger under «Mer» i samme app. Innstillin
 ### 4.3 Målerne og varslene
 
 - **Kvotemåleren** er en søyle med tre deler: landet, om bord, og taket. Den blir gul fra 80 % og rød når det som er om bord, ikke får plass. Et trykk åpner Kvote › Mine kvoter.
-- **Til sjøs** (statusboksen): måleren vises når den betyr noe (valg V2). Varslene kommer ved 80 % («0,8 t igjen av torskekvoten») og når den er full («Torskekvoten er full. Torsk du tar nå, blir inndratt; du får 20 % i vederlag.»), også mens ferskfiskordningen løper, og for hyse, sei og blåkveite der de har tak.
+- **Til sjøs** (statusboksen): måleren vises når den betyr noe (valg V2). Varslene kommer ved 80 % («0,8 t igjen av torskekvoten») og når den er full («Torskekvoten er full. Torsk du tar nå, får du bare 20 % for.»), også mens høsttillegget løper, og for hyse, sei og blåkveite der de har tak.
 - **Lasten:** den delen av rommet som ville blitt inndratt nå, merkes i lasten.
 - **Kaia før «Lever»:** `landWarn` beholdes, med måleren ved siden av.
 - **Sluttseddelen:** én ny rad, «Igjen av torskekvoten: 2,1 av 4,0 t», fra første levering. Første tur får ingen nye steg.
 - **Hjemskjermen:** «Nå»-kortet «Torsk i år: 1,2 av 4,0 t».
-- **Regler-linja** bruker `rmNow()`, så en båt uten adgang ikke får grønt.
+- **Regler-linja** bruker `rmNow()`, så en båt uten kvote ikke får grønt.
 
 Måleren regnes ut én gang per spillminutt og ved levering, ikke per bilde.
 
@@ -124,35 +125,42 @@ Hvert båtark (verftet, Kystmegleren, Kvotemarkedets «Sett på») får kortet *
 
 | | Nå | Etter kjøpet |
 |---|---|---|
-| Gruppe | Åpen gruppe | Lukket gruppe, hjemmel under 7 m |
-| Torsk i år | 2,8 t igjen av maksimalkvoten på 4,0 t | 3,7 t igjen av fartøykvoten på 10,6 t (selgeren har fisket 6,9 t) |
+| Kvote | Felleskvoten for småbåter (åpen gruppe) | Egen kvote (lukket gruppe) |
+| Torsk du kan levere i år | 2,8 t igjen av 4,0 t | 3,7 t igjen av 10,6 t (selgeren har fisket 6,9 t) |
 | Hvem kan fiske på kvoten | Bare når du er om bord | Båten, også med leid skipper |
-| Kan stoppes i år | Ja, når gruppekvoten er fisket | Nei |
-| «Havbris» | Åpen gruppe | Ingen adgang: torsk, hyse og sei bare som bifangst |
+| Kan stoppes i år | Ja, når felleskvoten er fisket | Nei |
+| «Havbris» | Fisker på felleskvoten | Kan ikke lenger fiske torsk, hyse og sei for salg, bare som bifangst |
 
-En båt som **tar fra spilleren** adgang (11 m eller mer uten hjemmel, eller en hjemmel som følger innbyttebåten), får et rødt felt øverst og ett spørsmål før kjøpet. En knapp som er grå, viser grunnen ved trykk (`rmWhy`): «Du må stå på blad B i fiskermanntallet: 6 av 10 landingsdager», med knappen «Se Papirer».
+En båt som **tar fra spilleren** adgang (11 m eller mer uten hjemmel, eller en hjemmel som følger innbyttebåten), får et rødt felt øverst og ett spørsmål før kjøpet. En knapp som er grå, viser grunnen ved trykk (`rmWhy`): «Du må være yrkesfisker (blad B): 6 av 10 dager med levering», med knappen «Se Papirer».
 
-### 4.5 Ordene (V3 B)
+### 4.5 Ordene (V3 A)
 
-Jonas 25.11.2026: «V3B». Fagordene står som i dag, overalt. Hvert av dem får en oppføring i ordboka i teksten (`ORDBOK`, `ui/05k-ordbok.js`), så det får prikket strek og kan trykkes på der det står: én setning på vanlig norsk. Ordboka har 18 ord i dag og ingen av disse.
+Jonas valgte først B («V3B») og endret det samme dag, 25.11.2026: «Vi må gjerne bytte ut ord til noe som er mer forståelig for brukerne … jeg mener det er viktig at spillet er forståelig for så mange som mulig, mens det enda ivaretar autensiteten».
 
-| Fagord | Setningen i ordboka (forslag) |
-|---|---|
-| åpen gruppe | Båter under 11 m uten hjemmel. De deler én gruppekvote, og hver båt har et tak (maksimalkvoten). |
-| lukket gruppe | Båter med hjemmel. Hver båt har sin egen kvote hele året. |
-| hjemmel, deltakeradgang | Retten til å fiske i lukket gruppe. Den hører til båten og kan kjøpes og selges. |
-| maksimalkvote | Det meste båten kan lande av arten i år, så lenge gruppekvoten ikke er fisket. |
-| garantert kvote | Det båten kan lande uansett, også etter at fisket på maksimalkvotene er stoppet. |
-| fartøykvote | Båtens egen kvote i lukket gruppe. |
-| kvotefaktor | Tallet som sier hvor stor del av gruppas kvote hjemmelen gir. |
-| adgang | At båten har lov til å fiske torsk, hyse og sei for salg. Uten adgang kan de bare være bifangst. |
-| inndratt | Fisk over kvoten eller regelen betaler salgslaget ikke for. Du får 20 % av verdien for å føre den i land. |
-| blad B | Den delen av fiskermanntallet der de med fiske som hovedyrke står. Kreves for å kjøpe en båt med hjemmel. |
-| ferskfiskordningen | Et tillegg om høsten: en del av ukas ferske leveringer kan være torsk utenom kvoten. |
-| strukturkvote | Kvoten fra en annen båt i samme gruppe, lagt til din i 20 år med 10 % avkorting. |
-| høvedsmann | Den som fører båten. I åpen gruppe må eieren selv være om bord. |
+Slik brukes ordene:
 
-Ordboka merker i dag bare løpende tekst i skuffen og telefonens apper, første gang ordet står på siden; knapper, faner, overskrifter og tabellhoder merkes ikke (`ORD_SKIP`). Kjøpskortet og «hvorfor»-arket skrives som løpende tekst, så ordene i dem kan trykkes på. Dialoger og toast har ikke ordbok; om de skal få det, avgjøres i K4.
+- **Klartekstordet står først.** Fagordet står i parentes første gang det nevnes på en side: «felleskvoten for småbåter (åpen gruppe)». Etter det bare klartekstordet.
+- **Fagordene blir i spillet.** De står alene der de hører hjemme: i brev fra Fiskeridirektoratet, i Kystposten, på Papirer og bak «Loven bak» i Regler-appen. Der, og i parentesene, har de prikket strek fra ordboka i teksten (`ORDBOK`, `ui/05k-ordbok.js`), og et trykk gir setningen i høyre spalte.
+- **Ordene står ett sted** (`RM_TERMS` i `core/03l-room.js`, lest med `rmTerm`). Vil Jonas bytte et ord, byttes det der.
+- «Kvote» og «bifangst» står som de er; de er vanlige nok og står alt i ordboka.
+
+| Fagord | Klartekst (forslag, Jonas retter) | Setningen i ordboka (forslag) |
+|---|---|---|
+| åpen gruppe | felleskvoten for småbåter | Båter under 11 m uten hjemmel. De deler én gruppekvote, og hver båt har et tak (maksimalkvoten). |
+| lukket gruppe | egen kvote | Båter med hjemmel. Hver båt har sin egen kvote hele året. |
+| hjemmel, deltakeradgang | kvoterett | Retten til å fiske i lukket gruppe. Den hører til båten og kan kjøpes og selges. |
+| maksimalkvote | taket ditt i år | Det meste båten kan lande av arten i år, så lenge gruppekvoten ikke er fisket. |
+| garantert kvote | det du har uansett | Det båten kan lande uansett, også etter at fisket på maksimalkvotene er stoppet. |
+| fartøykvote | båtens kvote | Båtens egen kvote i lukket gruppe. |
+| kvotefaktor | kvotens størrelse | Tallet som sier hvor stor del av gruppas kvote hjemmelen gir. |
+| adgang | lov til å fiske torsk, hyse og sei for salg | At båten har lov til å fiske torsk, hyse og sei for salg. Uten adgang kan de bare være bifangst. |
+| inndratt | får du ikke betalt for | Fisk over kvoten eller regelen betaler salgslaget ikke for. Du får 20 % av verdien for å føre den i land. |
+| blad B | yrkesfisker | Den delen av fiskermanntallet der de med fiske som hovedyrke står. Kreves for å kjøpe en båt med hjemmel. |
+| ferskfiskordningen | høsttillegget for fersk fisk | Et tillegg om høsten: en del av ukas ferske leveringer kan være torsk utenom kvoten. |
+| strukturkvote | kvote slått sammen fra en annen båt | Kvoten fra en annen båt i samme gruppe, lagt til din i 20 år med 10 % avkorting. |
+| høvedsmann | skipper om bord | Den som fører båten. I åpen gruppe må eieren selv være om bord. |
+
+Ordboka merker i dag bare løpende tekst i skuffen og telefonens apper, første gang ordet står på siden; knapper, faner, overskrifter og tabellhoder merkes ikke (`ORD_SKIP`). Kjøpskortet og «hvorfor»-arket skrives som løpende tekst, så ordene i dem kan trykkes på. Dialoger og toast har ikke ordbok; om de skal få det, avgjøres i K4. Den engelske utgaven følger samme prinsipp; de engelske ordene skrives i K4.
 
 ## 5. Fasene
 
@@ -167,7 +175,7 @@ Hver fase er én økt. K1 må komme før K2–K4. Risikoklassene er fra `tools/c
 
 ### K1 Handlingsrommet
 
-- **Bygger:** `core/03l-room.js` (4.1), `landConf` til kjernen. Ingenting nytt på skjermen.
+- **Bygger:** `core/03l-room.js` (4.1) med ordtabellen `RM_TERMS` (4.5), `landConf` til kjernen. Ingenting nytt på skjermen.
 - **Filer:** ny `src/js/core/03l-room.js`, `src/index.html` (malen), `ui/08-actions.js`, `tests/run.py` (`COVER`).
 - **Tester:** ny `tests/unit/room.test.mjs`: trinnene fra faste lagringer; `rmMeters` sin inndragning er lik `landConf` for et sett trukne laster; `rmBuy` for hver kjøpsvei.
 - **Ferdig når:** (1) enhetstestene er grønne og sett røde; (2) `sell()` og `landWarn` gir samme tall som før (`r4test`, `quotatest`); (3) bygget er likt på skjermen (`uishots`).
@@ -189,10 +197,10 @@ Hver fase er én økt. K1 må komme før K2–K4. Risikoklassene er fra `tools/c
 
 ### K4 Trinnene og ordene
 
-- **Bygger:** 4.2 og 4.5: innholdet i Kvote, Regler og Båthandel etter trinn, «Mer» og «Vis alt», de 13 fagordene i ordboka, dryppene (det gamle `kvote`-dryppet skrives om). Fagordene i tekstene står som de er.
+- **Bygger:** 4.2 og 4.5: innholdet i Kvote, Regler og Båthandel etter trinn, «Mer» og «Vis alt», klartekstordene i Kvote, Båthandel, Rederi og hjemskjermen (`rmTerm`), de 13 fagordene i ordboka, dryppene (det gamle `kvote`-dryppet skrives om). Tekstene K2 og K3 bygger, bruker tabellen fra starten.
 - **Filer:** `ui/phone/04-kvote.js`, `09-vaer-post-salg-redning.js`, `03-regler.js`, `10-fartoy.js`, `05-rigg-innst-admin.js`, `08-home-papers-merker.js`, `ui/05k-ordbok.js`, `ui/07c-handbook.js`, `07-patch.js` (lav).
 - **Tester:** `hbtest`, `docktest`, `uishots`, `tut.py` i begge formater.
-- **Ferdig når:** (1) en ny lagring ser ett kvotekort og ingen paragrafer uten å trykke «Mer»; (2) en lagring med kystbåt og strukturkvote ser alt som i dag; (3) «Vis alt» gir dagens visning på trinn 1; (4) hvert fagord i tabellen i 4.5 har prikket strek og gir setningen sin ved trykk i Kvote, Båthandel, Rederi og Meldinger.
+- **Ferdig når:** (1) en ny lagring ser ett kvotekort og ingen paragrafer uten å trykke «Mer»; (2) en lagring med kystbåt og strukturkvote ser alt som i dag; (3) «Vis alt» gir dagens visning på trinn 1; (4) i Kvote › Mine kvoter, Båthandel og Rederi står ingen av fagordene i 4.5 alene: klartekstordet står først, og fagordet i parentes har prikket strek og gir setningen sin ved trykk; (5) et brev fra Fiskeridirektoratet har fagordene som før, med ordbok.
 
 ### K5 Målingen
 
@@ -202,13 +210,13 @@ Hver fase er én økt. K1 må komme før K2–K4. Risikoklassene er fra `tools/c
 
 ## 6. Valgene (tatt 25.11.2026)
 
-Jonas 25.11.2026: «V1A V2A V3B».
+Jonas 25.11.2026: «V1A V2A V3B», og senere samme dag V3 endret til A.
 
 **V1 Hva fases inn? Valgt: A.** Alle appene står som i dag. Innholdet i Kvote, Regler og Båthandel følger trinnet, med «Mer» og bryteren «Vis alt». (B var å skjule fanene helt til trinnet er nådd, C ingen trinn.)
 
 **V2 Kvotemåleren på skjermen til sjøs. Valgt: A.** Den vises når den betyr noe: fra halv kvote med det som er om bord, eller når noe ville blitt inndratt. En smal søyle i statusboksen og et merke på stripa. (B var alltid synlig, C bare i telefonen, på kaia og på sluttseddelen.)
 
-**V3 Ordene. Valgt: B.** Fagordene som i dag, men alle med ordbok (4.5). Anbefalingen var A, klartekst først med fagordet i parentes; den er ikke valgt, så ingen fagord byttes ut. (C var bare klartekst.)
+**V3 Ordene. Valgt: A** (først B, endret samme dag; Jonas' ord står i 4.5). Klartekst først, fagordet i parentes første gang, paragrafen bak «Loven bak». Fagordene lever videre i brevene, Regler-appen og ordboka. (B var fagordene som i dag med ordbok, C bare klartekst.)
 
 ## 7. Valgt uten å spørre (kan snus)
 
@@ -217,11 +225,13 @@ Jonas 25.11.2026: «V1A V2A V3B».
 - **Trinnet lagres ikke.** Det avledes av blad B, rederiet og flåten, så ingen lagring må endres.
 - **«Neste mål» peker på kystbåten med hjemmel**, ikke på skroget alene.
 - **Første tur får ingen nye steg.** Raden på sluttseddelen er alt den ser av kvoten.
+- **Brev fra Fiskeridirektoratet, Kystposten, Papirer og «Loven bak» beholder fagordene** uten klartekst foran: der står de som i virkeligheten, med ordbok. Snus ved å la `rmTerm` skrive dem også der.
 
 ## 8. Antatt eller usikkert
 
 - **Hullene i kapittel 3 er lest, ikke kjørt.** T1 og T3 er jeg sikker på etter koden; T4 og T5 trenger en test som viser dem før de rettes.
-- **Kildene er ikke lest på nytt.** Planen innfører ingen regel. Setningene i ordboka (4.5) skal stemme med kildene i kapittel 6 i `docs/systemer/kvoter-og-regler.md` og kontrolleres mot dem i K4.
+- **Kildene er ikke lest på nytt.** Planen innfører ingen regel. Klartekstordene og setningene i ordboka (4.5) skal stemme med kildene i kapittel 6 i `docs/systemer/kvoter-og-regler.md` og kontrolleres mot dem i K4.
+- **Et klartekstord kan forenkle for mye.** «Egen kvote» om lukket gruppe er sant for torsk, men hyse og sei har fortsatt maksimalkvoter der; «felleskvoten for småbåter» sier ikke at båten også har et eget tak. Parentesen og ordboka skal bære resten, og ordene prøves på skjermbildene i K4.
 - **T5 (åpen gruppe-båten på tur når rederiet får en hjemmel) er ikke løst her.** Å låse adgangen ved avgang ville være en ny regel i motoren, og hva som gjelder for fangst om bord når deltakeradgangen endres, er ikke sjekket mot Fiskeridirektoratet. Planen varsler før kjøpet (K3) og lar resten stå.
 - **Grunnlaget er blindtestene og koden,** ikke tilbakemeldinger fra spillere: ingen nummerert tilbakemelding i `docs/` handler om kvote, inndragning eller hjemmel. Trakten i admin er ikke lest.
 - **Tersklene 50 % og 80 %** er startverdier.
@@ -232,7 +242,7 @@ Jonas 25.11.2026: «V1A V2A V3B».
 
 - Endrer ingen regel, kvote, pris eller sperre i motoren (`rulesAt`, `landConf`, `licQ`, `codLimits`, `kmBuyWhy`).
 - Skjuler ingen app og låser ingen handling.
-- Bytter ikke ut fagordene (V3 B). Navnet på planen står, fordi «hvorfor kan jeg ikke» og kjøpskortet fortsatt skal svare i korte, hele setninger.
+- Tar ikke fagordene ut av spillet: de står i parentes, i ordboka, i brevene og bak «Loven bak».
 - Lar ikke spilleren velge hvilken båt som er i åpen gruppe; Rederi viser bare hvilken det er.
 - Rører ikke databasen, `supabase/`, lagringsformatet eller butikken.
 - Legger ikke inn noe som selges, og ingen tidspress knyttet til kjøp.
@@ -240,4 +250,4 @@ Jonas 25.11.2026: «V1A V2A V3B».
 ## Status
 
 - 25.11.2026: planen skrevet i Jonas' økt (grenen `ccr-e101e6f0-y7fg6x`).
-- 25.11.2026: valgene tatt («V1A V2A V3B»). 4.2–4.5 og K4 er skrevet om etter V3 B. K0–K5 er steg 148–153 i `docs/planer/koen.md`, startmeldingen for K0 står i `docs/planer/start/148.md`. K0 venter på «kjør på»; Jonas ba om gjennomgang før noe bygges.
+- 25.11.2026: valgene tatt («V1A V2A V3B»), og V3 endret til A samme dag (4.5). 4.1–4.5, K1 og K4 følger V3 A. K0–K5 er steg 148–153 i `docs/planer/koen.md`, startmeldingen for K0 står i `docs/planer/start/148.md`. K0 venter på «kjør på»; Jonas ba om gjennomgang før noe bygges.
