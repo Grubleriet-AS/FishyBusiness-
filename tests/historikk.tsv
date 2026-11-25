@@ -6329,3 +6329,9 @@
 2026-11-25 06:31	ccr-77518a05-fvougw	1a52905	vectest	FEIL	0	3d	alene	FEIL hele kysten i tools/map/out/game (python3 tools/map/release.py og game.py)
 2026-11-25 06:50	ccr-77518a05-fvougw	1a52905	trytest	FEIL	1108	3d	alene	FEIL kjøpt: haleren heises om bord og står på dekk mens den monteres, og prisen er betalt  {"trying": "garnhaler", "hoist": null, "painting": true, "haul": "gar
 2026-11-25 06:56	ccr-77518a05-fvougw	1a52905	heattest	OK	378	3d	alene	
+2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	quotatest	OK	8	lite	samtidig	
+2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	selltest	LES	13	lite	samtidig	
+2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	kystvakttest	FEIL	8	lite	samtidig	FEIL havsjekken trenger hele kysten i tools/map/out/game (release.py og game.py)
+2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	trip2	OK	13	lite	samtidig	
+2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	kvfulltest	OK	10	lite	samtidig	
+2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	worldtest	OK	20	lite	samtidig	

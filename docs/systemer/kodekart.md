@@ -203,7 +203,7 @@ Placeholder prices (NOK/kg, grade A) – to be tuned
   - 439 `reqFill(eq, type)`
   - 457 `lsaOf(V)`
 
-## `src/js/core/03-simulation.js` (1497 linjer)
+## `src/js/core/03-simulation.js` (1499 linjer)
 
 fleet: each vessel keeps its own state; the company holds the rest. The simulation steps through the vessels one at a
 
@@ -403,46 +403,46 @@ fleet: each vessel keeps its own state; the company holds the rest. The simulati
   - 1304 `finance(x, months)`
   - 1307 `lenGroup()`
   - 1308 `codLimits(H)`
-  - 1311 `codOpen(H)`
-  - 1312 `codLimitNow(H)`
-- **1313** haill: luck from the quay. Fresh goods: full effect for two days, fading to nothing on day seven. Sold for real money only (test mode now) or won at the pub.
-  - 1337 `haillBoost()`
-  - 1338 `haillLeft()`
-  - 1339 `haillStage()`
-  - 1341 `haillF()`
-  - 1342 `luck(sp)`
-  - 1346 `haillCap()`
-  - 1355 `haillInit()`
-  - 1363 `haillFromSrv(loc, srv, wait)`
-  - 1370 `srvToT(m, srvNow, t, world)`
-  - 1371 `tToSrv(m, srvNow, t, world)`
-  - 1374 `boostSrv(list, stack, now)`
-  - 1376 `haillMirror(list, used)`
-  - 1380 `haillStock(inv, srv, used)`
-  - 1385 `giveHaill(type, how, id)`
-  - 1390 `useHaill(type)`
-  - 1404 `pubEvening(H)`
-  - 1405 `pubOpen(H)`
-  - 1408 `capHold()`
-  - 1410 `cargoRoom()`
-  - 1412 `cargoMin(kg)`
-- **1413** the daily login bonus: each real calendar day you open the game adds a point to a bonus on the fish price; each day
-  - 1416 `streakState()`
-  - 1417 `streakPct()`
-  - 1418 `streakTouch()`
-- **1429** cold: effective temperature from air temperature and wind, plus wet from rain, snow and spray. Cold, wet hands fish worse;
-  - 1433 `effTemp(H)`
-  - 1434 `coldPen(H, hs)`
-- **1441** orders from buyers and customers: species, amount, quality, deadline and a price premium; reputation builds with each buyer
-  - 1456 `gradeOk(g, q)`
-  - 1457 `ordState()`
-  - 1460 `custNear(c)`
-  - 1465 `repOf(id)`
-  - 1467 `bkOrderable(H)`
-  - 1469 `bkPlant(id)`
-  - 1470 `custSp(c)`
-  - 1471 `spCatchable(sp, H)`
-  - 1473 `ordersTick(H)`
+  - 1313 `codOpen(H)`
+  - 1314 `codLimitNow(H)`
+- **1315** haill: luck from the quay. Fresh goods: full effect for two days, fading to nothing on day seven. Sold for real money only (test mode now) or won at the pub.
+  - 1339 `haillBoost()`
+  - 1340 `haillLeft()`
+  - 1341 `haillStage()`
+  - 1343 `haillF()`
+  - 1344 `luck(sp)`
+  - 1348 `haillCap()`
+  - 1357 `haillInit()`
+  - 1365 `haillFromSrv(loc, srv, wait)`
+  - 1372 `srvToT(m, srvNow, t, world)`
+  - 1373 `tToSrv(m, srvNow, t, world)`
+  - 1376 `boostSrv(list, stack, now)`
+  - 1378 `haillMirror(list, used)`
+  - 1382 `haillStock(inv, srv, used)`
+  - 1387 `giveHaill(type, how, id)`
+  - 1392 `useHaill(type)`
+  - 1406 `pubEvening(H)`
+  - 1407 `pubOpen(H)`
+  - 1410 `capHold()`
+  - 1412 `cargoRoom()`
+  - 1414 `cargoMin(kg)`
+- **1415** the daily login bonus: each real calendar day you open the game adds a point to a bonus on the fish price; each day
+  - 1418 `streakState()`
+  - 1419 `streakPct()`
+  - 1420 `streakTouch()`
+- **1431** cold: effective temperature from air temperature and wind, plus wet from rain, snow and spray. Cold, wet hands fish worse;
+  - 1435 `effTemp(H)`
+  - 1436 `coldPen(H, hs)`
+- **1443** orders from buyers and customers: species, amount, quality, deadline and a price premium; reputation builds with each buyer
+  - 1458 `gradeOk(g, q)`
+  - 1459 `ordState()`
+  - 1462 `custNear(c)`
+  - 1467 `repOf(id)`
+  - 1469 `bkOrderable(H)`
+  - 1471 `bkPlant(id)`
+  - 1472 `custSp(c)`
+  - 1473 `spCatchable(sp, H)`
+  - 1475 `ordersTick(H)`
 
 ## `src/js/core/03b-sea.js` (313 linjer)
 
@@ -517,96 +517,102 @@ STABILITY: hydrostatics, the boat's motions in a sea, and what they do to the wo
   - 276 `hullX(R)`
   - 291 `hullStep(H, R, X, eta, deta, dt, o)`
 
-## `src/js/core/03d-quota.js` (567 linjer)
+## `src/js/core/03d-quota.js` (614 linjer)
 
 Quotas for cod, haddock and saithe north of 62° N. The regulation as it stood from 1 October 2026 (J-187-2026, fiskeridir.no)
 
 - **1** Quotas for cod, haddock and saithe north of 62° N. The regulation as it stood from 1 October 2026 (J-187-2026, fiskeridir.no)
-  - 20 `norQuota(sp, tac)`
-  - 30 `codChain(N)`
-  - 37 `tacOf(sp, y)`
-  - 40 `yearQuota(y)`
-- **54** the closed group: quota lengths the game sells, with J-187-2026's quota factors and quantities (§§ 16, 18, 19). Cod is a fixed
-  - 71 `licQ(l, H, len)`
-  - 83 `sellerCod(id, H)`
-  - 90 `openUsedSave(q)`
-  - 92 `openUsedLoad()`
-  - 93 `freshQuota()`
-  - 94 `licStart(lic)`
-- **95** the stocks and the total quotas year by year. History and the advice for 2027 from the Institute of Marine Research (hi.no,
-  - 137 `kystAt(T, y)`
-  - 138 `kystF(lat, H)`
-  - 146 `stockYear(sp, y, sd)`
-  - 163 `ssbAt(sp, H)`
-  - 164 `stockF(sp, H)`
-- **166** the open group's season. About 2 100 boats fish the group quota down a day at a time (more in the skrei season and on days
-  - 177 `qyOf(y)`
-  - 184 `qyBoats(Y, y)`
-  - 185 `qyStep(Y, y, d)`
-  - 203 `quotaNewYear(y)`
-  - 207 `qyAt(H)`
-  - 209 `codStopDoy(y)`
-  - 210 `openMaxAdd(H)`
-  - 215 `ffPlan(y)`
-  - 223 `ffPct(H)`
-- **225** the closed group's register: a fixed number of rights (1 622 in the cod fishery north of 62° N on 17.10.2025, case document
-  - 243 `npcReg()`
-  - 245 `regSend(fn, id)`
-  - 250 `regTake(id)`
-  - 252 `regFree(id)`
-  - 254 `regSeller(id, H)`
-- **256** structure quotas (forskrift om spesielle kvoteordninger for kystfiskeflåten, J-244-2025): quota lengths 11–27.99 m may buy a
-  - 264 `structFits(l, add)`
-  - 265 `structRoom(l, id)`
-  - 266 `structPrice(id, H)`
-  - 268 `structIn(l, id, H)`
-  - 269 `licExtra(l)`
-  - 271 `structExpire(l, y)`
-- **272** the special scheme for quota lengths under 11 m (kap. 2, from 2025): an owner with two such boats, both owned since the year
-  - 274 `twoOK(la, lb, y)`
-- **275** quota cooperation (J-187-2026 § 31): two closed-group boats under 11 m with different owners; both owners aboard, the passive
-  - 279 `coopOffer(H)`
-  - 280 `coopOK(l, y)`
-- **282** the ocean permits (H1 of docs/planer/havsteget.md, 03.11.2026). Jonas' choices the same day: V1 A (the autoliner first), V2 B
-- **304** the snow crab's regulation year by year, as data (V4 of docs/planer/havsteget-h3-snokrabbe.md, Jonas 06.11.2026: «Gjør det som blir
-  - 323 `snoQuota(H)`
-  - 325 `snoRoom(H)`
-  - 328 `snoFlexNewYear(q, y)`
-  - 334 `snoYear(y)`
-- **349** the quota price that lives (KM5 of docs/planer/kvotemarkedet.md, steg 64; Jonas 07.11.2026, V4 B: «V4, anbefalt»)
-  - 371 `kpkOut(H, y)`
-  - 379 `kpkCodIx(H)`
-  - 382 `kpkAt(H)`
-  - 392 `havLicFor(type)`
-  - 394 `havF(id, sp, y)`
-  - 405 `havGroup(id, y)`
-  - 408 `havQ(l, H)`
-  - 416 `havLicWhy(type)`
-  - 423 `havOffer(id, H)`
-  - 426 `havValue(l, H)`
-  - 440 `snoLicValue(y)`
-  - 446 `havPrice(type, H)`
-  - 448 `havLicTake(type, H)`
-- **452** ling and tusk for vessels of 28 m and over (H2a of docs/planer/havsteget-h2-autoline.md, 05.11.2026). J-128-2026 (2026) and the
-  - 460 `lbStop(y)`
-  - 464 `lbShare(sp, H)`
-  - 466 `lbNews(H)`
-- **472** Greenland halibut (blåkveite) for vessels under 28 m (J-241-2025, the regulation for 2026; docs/blakveite.md 2-3, 07.10.2026)
-  - 480 `bkSeason(y)`
-  - 483 `bkOpen(H)`
-  - 489 `bkDirect(H, len)`
-  - 491 `bkState(H)`
-  - 494 `bkAllow(H, bk, all)`
-  - 499 `bkLanded(H, bk, all)`
-  - 501 `bkNews(H)`
-- **507** cod south of 62° N (Ø10c, steg 68, 11.11.2026; docs/systemer/kvoter-og-regler.md 5.28e). Forskrift 19. desember 2025 nr. 2805 om
-  - 541 `sorOpenId()`
-  - 542 `sorAcc()`
-  - 545 `sorCodAboard()`
-  - 548 `sorRoom(k, q, acc)`
-  - 550 `sorLeft(k)`
-  - 557 `sorConf(byc, codHold, q, acc)`
-  - 566 `sorLanded(q, ok)`
+  - 22 `norQuota(sp, tac)`
+  - 32 `codChain(N)`
+  - 39 `tacOf(sp, y)`
+  - 42 `yearQuota(y)`
+- **57** the closed group: quota lengths the game sells, with J-187-2026's quota factors and quantities (§§ 16, 18, 19). Cod is a fixed
+  - 74 `licQ(l, H, len)`
+  - 86 `sellerCod(id, H)`
+  - 93 `openUsedSave(q)`
+  - 95 `openUsedLoad()`
+  - 96 `freshQuota()`
+  - 97 `licStart(lic)`
+- **98** the stocks and the total quotas year by year. History and the advice for 2027 from the Institute of Marine Research (hi.no,
+  - 140 `kystAt(T, y)`
+  - 141 `kystF(lat, H)`
+  - 149 `stockYear(sp, y, sd)`
+  - 166 `ssbAt(sp, H)`
+  - 167 `stockF(sp, H)`
+- **169** the open group's season. About 2 100 boats fish the group quota down a day at a time (more in the skrei season and on days
+  - 180 `qyOf(y)`
+  - 187 `qyBoats(Y, y)`
+  - 188 `qyStep(Y, y, d)`
+  - 206 `quotaNewYear(y)`
+  - 210 `qyAt(H)`
+  - 212 `codStopDoy(y)`
+  - 213 `openMaxAdd(H)`
+- **214** the open group's two additions to the cod quota (KV1, steg 148, 25.11.2026; J-161-2026 §§ 22 and 23, read on fiskeridir.no
+  - 233 `portKom(pt)`
+  - 242 `kystOrd(pid)`
+  - 244 `openAdd(H)`
+  - 248 `codGroupKg(before, codQ, lim, kyst)`
+  - 251 `openAddNews(H)`
+  - 262 `ffPlan(y)`
+  - 270 `ffPct(H)`
+- **272** the closed group's register: a fixed number of rights (1 622 in the cod fishery north of 62° N on 17.10.2025, case document
+  - 290 `npcReg()`
+  - 292 `regSend(fn, id)`
+  - 297 `regTake(id)`
+  - 299 `regFree(id)`
+  - 301 `regSeller(id, H)`
+- **303** structure quotas (forskrift om spesielle kvoteordninger for kystfiskeflåten, J-244-2025): quota lengths 11–27.99 m may buy a
+  - 311 `structFits(l, add)`
+  - 312 `structRoom(l, id)`
+  - 313 `structPrice(id, H)`
+  - 315 `structIn(l, id, H)`
+  - 316 `licExtra(l)`
+  - 318 `structExpire(l, y)`
+- **319** the special scheme for quota lengths under 11 m (kap. 2, from 2025): an owner with two such boats, both owned since the year
+  - 321 `twoOK(la, lb, y)`
+- **322** quota cooperation (J-187-2026 § 31): two closed-group boats under 11 m with different owners; both owners aboard, the passive
+  - 326 `coopOffer(H)`
+  - 327 `coopOK(l, y)`
+- **329** the ocean permits (H1 of docs/planer/havsteget.md, 03.11.2026). Jonas' choices the same day: V1 A (the autoliner first), V2 B
+- **351** the snow crab's regulation year by year, as data (V4 of docs/planer/havsteget-h3-snokrabbe.md, Jonas 06.11.2026: «Gjør det som blir
+  - 370 `snoQuota(H)`
+  - 372 `snoRoom(H)`
+  - 375 `snoFlexNewYear(q, y)`
+  - 381 `snoYear(y)`
+- **396** the quota price that lives (KM5 of docs/planer/kvotemarkedet.md, steg 64; Jonas 07.11.2026, V4 B: «V4, anbefalt»)
+  - 418 `kpkOut(H, y)`
+  - 426 `kpkCodIx(H)`
+  - 429 `kpkAt(H)`
+  - 439 `havLicFor(type)`
+  - 441 `havF(id, sp, y)`
+  - 452 `havGroup(id, y)`
+  - 455 `havQ(l, H)`
+  - 463 `havLicWhy(type)`
+  - 470 `havOffer(id, H)`
+  - 473 `havValue(l, H)`
+  - 487 `snoLicValue(y)`
+  - 493 `havPrice(type, H)`
+  - 495 `havLicTake(type, H)`
+- **499** ling and tusk for vessels of 28 m and over (H2a of docs/planer/havsteget-h2-autoline.md, 05.11.2026). J-128-2026 (2026) and the
+  - 507 `lbStop(y)`
+  - 511 `lbShare(sp, H)`
+  - 513 `lbNews(H)`
+- **519** Greenland halibut (blåkveite) for vessels under 28 m (J-241-2025, the regulation for 2026; docs/blakveite.md 2-3, 07.10.2026)
+  - 527 `bkSeason(y)`
+  - 530 `bkOpen(H)`
+  - 536 `bkDirect(H, len)`
+  - 538 `bkState(H)`
+  - 541 `bkAllow(H, bk, all)`
+  - 546 `bkLanded(H, bk, all)`
+  - 548 `bkNews(H)`
+- **554** cod south of 62° N (Ø10c, steg 68, 11.11.2026; docs/systemer/kvoter-og-regler.md 5.28e). Forskrift 19. desember 2025 nr. 2805 om
+  - 588 `sorOpenId()`
+  - 589 `sorAcc()`
+  - 592 `sorCodAboard()`
+  - 595 `sorRoom(k, q, acc)`
+  - 597 `sorLeft(k)`
+  - 604 `sorConf(byc, codHold, q, acc)`
+  - 613 `sorLanded(q, ok)`
 
 ## `src/js/core/03e-rules.js` (601 linjer)
 
@@ -3082,15 +3088,16 @@ the Regler app (R3 of the rules plan, 05.10.2026): «Her og nå» answers «can 
   - 46 `ruLearn()`
   - 57 `regler()`
 
-## `src/js/ui/phone/04-kvote.js` (89 linjer)
+## `src/js/ui/phone/04-kvote.js` (106 linjer)
 
 the Kvote app: your quotas, the open group's season, the stocks, and the market for rights (core/03d-quota.js)
 
   - 5 `kvote()`
-  - 13 `kvSor()`
-  - 26 `kvOpen(H)`
-  - 43 `kvStock(H)`
-  - 61 `kvReg(H)`
+  - 13 `kvFull(H)`
+  - 29 `kvSor()`
+  - 42 `kvOpen(H)`
+  - 60 `kvStock(H)`
+  - 78 `kvReg(H)`
 
 ## `src/js/ui/phone/04b-kvotemarked.js` (213 linjer)
 
@@ -3145,12 +3152,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1799 linjer)
+## `src/js/ui/phone/07-patch.js` (1804 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1787 `patch()`
+  - 1792 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (133 linjer)
 
@@ -3171,7 +3178,7 @@ the home screen (UI 2, U2-6; Jonas 06.11.2026, V6 A and V2 A in docs/planer/ui-2
   - 113 `merker()`
   - 125 `lore()`
 
-## `src/js/ui/phone/09-vaer-post-salg-redning.js` (210 linjer)
+## `src/js/ui/phone/09-vaer-post-salg-redning.js` (213 linjer)
 
 --- weather
 
@@ -3182,9 +3189,9 @@ the home screen (UI 2, U2-6; Jonas 06.11.2026, V6 A and V2 A in docs/planer/ui-2
   - 28 `post()`
 - **34** sales organisation
   - 38 `salg(s)`
-- **188** rescue
-  - 189 `redning()`
-- **209** vessels: my vessel overview and the market
+- **191** rescue
+  - 192 `redning()`
+- **212** vessels: my vessel overview and the market
 
 ## `src/js/ui/phone/10-fartoy.js` (346 linjer)
 
@@ -3581,7 +3588,7 @@ Garderoben: the player changes how his figure looks (Jonas 10.10.2026)
 - **22** the right-hand side: what the current tab offers
 - **63** the little renderer
 
-## `src/js/ui/08-actions.js` (567 linjer)
+## `src/js/ui/08-actions.js` (570 linjer)
 
 actions
 
@@ -3592,28 +3599,28 @@ actions
   - 114 `panelChange(e)`
   - 144 `landConf(H, q, acc)`
   - 186 `sell()`
-- **334** modal
-  - 336 `modal(html)`
-  - 345 `boatUnnamed()`
-  - 346 `boatChristen(nm)`
-  - 348 `showIntro(namesOnly)`
-- **366** «Mens du var borte» (Jonas 07.10.2026: «en følelse av instant-belønning»)
-  - 376 `awayStart(mins, realMs)`
-  - 381 `awayEnd()`
-  - 382 `showAway(A)`
-- **444** time
-  - 453 `playMinutes(n, away, ms)`
-  - 457 `catchUp(realMs, ms)`
-  - 469 `tick()`
-  - 506 `deliverOrder()`
-- **516** chrome
-  - 517 `applyLang()`
-- **530** screens: full-screen 3D, or the chart plotter for route planning
-  - 531 `setBodyView(v3d)`
-  - 537 `openPlotter()`
-  - 542 `plotSetRender()`
-  - 546 `plotSetOpen(on)`
-  - 559 `kinoUi()`
+- **337** modal
+  - 339 `modal(html)`
+  - 348 `boatUnnamed()`
+  - 349 `boatChristen(nm)`
+  - 351 `showIntro(namesOnly)`
+- **369** «Mens du var borte» (Jonas 07.10.2026: «en følelse av instant-belønning»)
+  - 379 `awayStart(mins, realMs)`
+  - 384 `awayEnd()`
+  - 385 `showAway(A)`
+- **447** time
+  - 456 `playMinutes(n, away, ms)`
+  - 460 `catchUp(realMs, ms)`
+  - 472 `tick()`
+  - 509 `deliverOrder()`
+- **519** chrome
+  - 520 `applyLang()`
+- **533** screens: full-screen 3D, or the chart plotter for route planning
+  - 534 `setBodyView(v3d)`
+  - 540 `openPlotter()`
+  - 545 `plotSetRender()`
+  - 549 `plotSetOpen(on)`
+  - 562 `kinoUi()`
 
 ## `src/js/ui/08b-letter.js` (127 linjer)
 
