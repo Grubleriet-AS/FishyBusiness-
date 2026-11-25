@@ -217,6 +217,9 @@ for _f, _t in (('src/js/view3d/21-rescue-anchor.js', 'mobshot'), ('src/js/deckcr
 # Kvotemarkedet, the core (KM1, 08.11.2026): pure functions tested in tests/unit/kvotemarked.test.mjs (run first by changed); in the game only
 # the free right's two years at the new year (quotaNewYear) and the cap in Kvote → Marked, which quotatest sees. On lines of their own
 COVER['src/js/core/03i-kvotemarked.js'] = ['quotatest', 'kvotemarkedtest']
+# Handlingsrommet (steg 149, K1): the layer the screen asks, and landConf, which sell() and the quay's warning use
+COVER['src/js/core/03l-room.js'] = ['quotatest', 'r4test', 'selltest']
+COVER['tests/unit/room.test.mjs'] = []
 # KM3 (the quota market in the Kvote app): the pages, the calls and the test
 COVER['src/js/ui/phone/04b-kvotemarked.js'] = ['kvotemarkedtest', 'quotatest']
 COVER['src/js/ui/10t-kvotemarked.js'] = ['kvotemarkedtest']
