@@ -79,6 +79,26 @@ const HICON = {fuel:'<svg viewBox="0 0 24 24"><path d="M5 20V5.5A1.5 1.5 0 0 1 6
   // the bleeding tub (Tony 06.11.2026): a tub with its water line
   kar:'<svg viewBox="0 0 24 24"><path d="M3 7h18l-2 13H5z"/><path d="M6 13c2-1 4-1 6 0s4 1 6 0"/></svg>'};
 // the wind's arrow: it points the way the wind blows (from d, degrees, so to d + 180), north up
+// ---- the cod meter (steg 150, K2 of docs/planer/regler-i-klartekst.md; Jonas 25.11.2026, V2 A: shown when it matters). The row is
+// rmMeters' (core/03l-room.js): the cod quota of the boat you follow, or the bycatch cap of a boat without access. Worked out once a
+// game minute and when the hold or the landings change (rmCod), never per frame. It matters from half the quota with what is aboard, or when
+// something aboard would be confiscated
+const hudQuota = () => rmCod();   // (kept for the game minute in the core, 03l-room.js)
+const quotaShow = r => !!r && (r.conf > 0.5 || (r.kind !== 'by' && isFinite(r.limit) && r.limit > 0 && (r.used + r.aboard) / r.limit >= RM.half));
+const quotaCls = r => r.conf > 0.5 || r.state === 'full' ? 'r2' : r.state === 'near' ? 'r1' : '';
+// the bar: landed, then what is aboard, against the limit
+function quotaBar(r){ const lim = Math.max(1, r.limit), a = clamp(r.used / lim, 0, 1), b = clamp(r.aboard / lim, 0, 1 - a);
+  return '<span class="qm ' + quotaCls(r) + '"><i style="width:' + (a * 100).toFixed(1) + '%"></i><i class="ab" style="width:' + (b * 100).toFixed(1) + '%"></i></span>'; }
+// what it says: what is left once the hold is landed, or what would be confiscated
+// the row's name: her cod quota, or just the cod for a boat that has none (her cod is bycatch, at most a tenth of a landing)
+const quotaName = r => r.kind === 'by' ? (S.lang === 'no' ? 'Torsk' : 'Cod') : (S.lang === 'no' ? 'Torskekvote' : 'Cod quota');
+function quotaTxt(r){ const no = S.lang === 'no', L = (a, c) => no ? a : c, t1 = kg => fmt(kg / 1000, 1) + ' t';
+  if (r.conf > 0.5) return fmt(r.conf, 0) + (r.kind === 'by' ? L(' kg over 10 %', ' kg over 10%') : L(' kg over', ' kg over'));
+  if (r.kind === 'by') return L('bare bifangst', 'bycatch only');
+  return t1(Math.max(0, r.limit - r.used - r.aboard)) + L(' igjen', ' left'); }
+// the rules for the status box: rmNow without «the cod quota is full», which the quota's own row or mark says, in its own colour
+function hudRules(){ const r = rmNow(), items = r.items.filter(i => i.k !== 'rmfull'), v = items.some(i => i.v === 'no') ? 'no' : items.some(i => i.v === 'warn') ? 'warn' : 'ok';
+  return {v, items, top:r.top && r.top.k !== 'rmfull' ? r.top : items.find(i => i.v === v && i.v !== 'ok') || null}; }
 const hudWindIcon = d => HICON.wind.replace('<svg ', '<svg class="wdir" style="transform:rotate(' + Math.round(((d || 0) + 180) % 360) + 'deg)" ');
 // the four figures the gauges and the strip show: the share 0–1, the text, and the class that colours a warning (yellow r1, red r2)
 function hudFigures(){
@@ -123,7 +143,9 @@ function hudLine3(how){
   // the fairway (Ø11.8, core/05e-sjovei.js): over the speed limit, or on the wrong side of a cardinal mark, when she steers herself (after the hull: water in the boat comes first)
   if (!h && atSea){ const fw = farvWarn(); if (fw){ cls = 'r1'; h = farvSay(fw, strip ? 'tiny' : 'strip'); } }
   if (strip && atSea){
-    if (!h && RU.ok){ const r = ruNow(); if (r.v !== 'ok'){ const it = r.items.find(i => i.v === r.v); cls = r.v === 'no' ? 'r2' : 'r1'; h = (r.v === 'no' ? '✕ ' : '! ') + (it ? ruShort(it) : L('Regler', 'Rules')); } }
+    if (!h && RU.ok){ const r = hudRules(); if (r.v !== 'ok'){ const it = r.top || r.items.find(i => i.v === r.v); cls = r.v === 'no' ? 'r2' : 'r1'; h = (r.v === 'no' ? '✕ ' : '! ') + (it ? ruShort(it) : L('Regler', 'Rules')); } }   // (rmNow: the rules with the boat's group and quota on top, steg 150)
+    // the cod quota on the strip (V2 A): a mark on line 3 when it is yellow or red, and nothing else is to be said there
+    if (!h){ const qr = hudQuota(); if (quotaShow(qr) && quotaCls(qr)){ cls = quotaCls(qr); go = 'kvote'; h = quotaName(qr) + ': ' + quotaTxt(qr); } }
     if (!h){ const M = motionHere(H, b), z = M.state; if (z.lvl){ cls = 'r' + z.lvl; h = {gm:L('Rank båt', 'Tender boat'), res:stabStill(b) ? L('Synkronrulling · rull ', 'Synchronous roll · rolls ') + Math.round((M.M.roll + M.M.heel) * 180 / Math.PI) + '°' : L('Synkronrulling · endre kurs eller fart', 'Synchronous roll · change course or speed'), roll:L('Kraftig rulling · ta det rolig', 'Heavy rolling · ease off')}[z.why] || ''; } }
     if (!h && b.status !== 'sailing' && typeof gearBuoyNear === 'function'){ const nb = gearBuoyNear(b.pos); if (nb && nb.d > GEARLIE.alarm){ cls = 'r2'; go = String(nb.s.id); h = L('Blåsa ', 'Buoy ') + fmt(nb.d / NM, 1) + L(' nm unna · Kjør dit ›', ' nm off · Go there ›'); } }
   }
@@ -209,7 +231,8 @@ function renderHud(){
         (far ? '<button type="button" class="hgo" data-hgo="' + nb.s.id + '">' + L('Kjør dit', 'Go there') + '</button>' : '') + '</div>'); } }
   if (atSea){ const z = motionHere(H, b).state; if (z.lvl) now.push('<div class="row warn"><span>' + L('Stabilitet', 'Stability') + '</span><b class="r' + z.lvl + '">' + {gm:L('rank', 'tender'), res:stabStill(b) ? L('synkronrulling · rull ', 'synchronous roll · rolls ') + Math.round((motionHere(H, b).M.roll + motionHere(H, b).M.heel) * 180 / Math.PI) + '°' : L('synkronrulling · endre kurs eller fart', 'synchronous roll · change course or speed'), roll:L('kraftig rulling · ta det rolig', 'heavy rolling · ease off')}[z.why] + '</b></div>'); }
   // the rules where you are (03e-rules.js ruNow): a tap opens the Regler app
-  if (atSea && RU.ok){ const r = ruNow(), it = r.items.find(i => i.v === r.v && i.v !== 'ok'); now.push('<div class="row rlink"><span>' + L('Regler', 'Rules') + '</span><b class="' + (r.v === 'no' ? 'r2' : r.v === 'warn' ? 'r1' : 'r0') + '">' + (r.v === 'no' ? '✕ ' : r.v === 'warn' ? '! ' : '✓ ') + (it ? ruShort(it) : L('Lov her', 'Allowed here')) + ' ›</b></div>'); }
+  if (atSea){ const qr = hudQuota(); if (quotaShow(qr)) now.push('<div class="row qlink' + (quotaCls(qr) ? ' warn' : '') + '"><span>' + quotaName(qr) + '</span><b class="' + quotaCls(qr) + '">' + quotaBar(qr) + quotaTxt(qr) + ' ›</b></div>'); }
+  if (atSea && RU.ok){ const r = hudRules(), it = r.top || r.items.find(i => i.v === r.v && i.v !== 'ok'); now.push('<div class="row rlink"><span>' + L('Regler', 'Rules') + '</span><b class="' + (r.v === 'no' ? 'r2' : r.v === 'warn' ? 'r1' : 'r0') + '">' + (r.v === 'no' ? '✕ ' : r.v === 'warn' ? '! ' : '✓ ') + (it ? ruShort(it) : L('Lov her', 'Allowed here')) + ' ›</b></div>'); }
   // the bunk (UI 2, U2-2, plan 4.3): «Hvil i køya» is in the dock row only when the energy warns or she lies at anchor; else, at sea with a
   // berth and a watch, it is this row in the box behind the strip (10c-dock.js restShow has the rule)
   if (atSea && !resting() && !asleep() && !b.anch && S.energy >= ENERGY.warn && restWhere(b) === 'koye') now.push('<div class="row"><span>' + L('Køya', 'The bunk') + '</span><b>' + Math.round(S.energy) + ' %</b><button type="button" class="hgo" data-hrest>' + L('Hvil i køya', 'Rest in the bunk') + '</button></div>');
@@ -343,11 +366,12 @@ const INSTR = (() => {
 // bare ved å trykke på stripa», and of the box's «–»: «Du har ikke fjernet dette minustegnet»), but not in the first trip, where a tap on
 // the box does nothing as before (the guide's rings stand round its third line)
 hud.addEventListener('click', e => {
-  const go = e.target.closest('[data-hgo]'); if (go){ e.stopPropagation(); if (go.dataset.hgo === 'yard'){ hudGoYard(); return; } const s = mySets().find(x => String(x.id) === go.dataset.hgo); if (s) DOCK.goTo(s); return; }
+  const go = e.target.closest('[data-hgo]'); if (go){ e.stopPropagation(); if (go.dataset.hgo === 'yard'){ hudGoYard(); return; } if (go.dataset.hgo === 'kvote'){ PHONE.open('kvote'); return; } const s = mySets().find(x => String(x.id) === go.dataset.hgo); if (s) DOCK.goTo(s); return; }
   if (e.target.closest('[data-hrest]')){ e.stopPropagation(); hudCardOpen(false); doAct({dataset:{act:'rest'}, disabled:false}); return; }   // the bunk from the box (U2-2)
   if (e.target.closest('[data-hcard]')){ e.stopPropagation(); hudCardOpen(false); return; }
   if (e.target.closest('[data-hfull]')){ e.stopPropagation(); S.settings.hudFull = !S.settings.hudFull; save(); renderHud(); return; }
   if (e.target.closest('.rlink')){ PHONE.open('regler'); return; }
+  if (e.target.closest('.qlink')){ PHONE.open('kvote'); return; }
   if (document.body.classList.contains('hudcard')){ e.stopPropagation(); hudCardOpen(false); return; }   // a tap on the card itself closes it, as the ✕ does
   if (document.body.classList.contains('hudstrip')){ e.stopPropagation(); if (!hudPortrait() && !hudSheet() && S.settings.hudMin) hudFold('hud'); else hudCardOpen(true); return; }
   if (!hudPortrait() && document.body.classList.contains('v3d') && !tutOn() && !e.target.closest('button,a,input,select,label')){ e.stopPropagation(); hudFold('hud'); }

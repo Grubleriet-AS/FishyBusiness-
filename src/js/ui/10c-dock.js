@@ -559,7 +559,7 @@ const DOCK = (() => {
       // and down round the limit does not break the calm each time
       const W = windAt(H, b.pos), red = sea && riskLevel(W, hsAt(b.pos, H)) >= 2;
       CALM.gale = W >= 13.9 || red || (CALM.gale && W >= 12.5); if (CALM.gale) out.push('gale');
-      if (sea && RU.ok){ const r = ruNow(); if (r.v !== 'ok') out.push('rules:' + r.v); }
+      if (sea && RU.ok){ const r = rmNow(); if (r.v !== 'ok') out.push('rules:' + r.v + (r.top ? ':' + r.top.k : '')); }   // (rmNow, steg 150: the group and the quota too, so a full quota breaks the calm once)
       if (sea && holdFull()) out.push('full');
       if (sea && sjvWarn()) out.push('sjv');
       const hw = sea ? hullWarn(b) : null; if (hw) out.push('hull:' + hw.cls);

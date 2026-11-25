@@ -78,6 +78,27 @@ export default function (t){
     n++; if (Math.abs(got + extra - want) > 0.5) bad++; }
   t.eq([n, bad], [60, 0], 'trukne laster i de fire gruppene og tre årstider: målernes inndragning er landConf sin');
 
+  // ---- the warnings at sea (steg 150): 80 % once a year, full once a game day, also while the fresh-fish scheme runs
+  { const rmWarn = K.rmWarn; S = mk(H3); const L3 = codLimitNow(H3);
+    t.eq(rmWarn(H3), [], 'tom båt, ingenting fisket: ingen varsler');
+    quotaState().torsk = L3 * 0.5; S.hold = [fish('torsk', L3 * 0.35)]; let w = rmWarn(H3);
+    t.ok(w.length === 1 && w[0].sp === 'torsk' && w[0].lvl === 1 && /igjen av/.test(w[0].t[0]), '85 % med det som er om bord: ett varsel («' + (w[0] && w[0].t[0]) + '»)');
+    t.eq(rmWarn(H3 + 30), [], 'og ikke en gang til dagen etter');
+    S.hold = [fish('torsk', L3 * 0.7)]; w = rmWarn(H3 + 30); t.ok(w.length === 1 && w[0].lvl === 2 && /bare 20 %/.test(w[0].t[0]) && /inndratt/.test(w[0].t[0]), 'over kvoten: «' + (w[0] && w[0].t[0]) + '»');
+    t.eq(rmWarn(H3 + 31), [], 'ikke igjen samme døgn'); t.eq(rmWarn(H3 + 60).length, 1, 'men igjen neste døgn');
+    t.ok(typeof S.codWarn === 'object' && S.codWarn.y === yearH(H3), 'tilstanden står i båtens S.codWarn');
+    // October, the quota full, the fresh-fish scheme running: the old line never came then
+    S = mk(H10); S.codWarn = 123456; quotaState().torsk = codLimitNow(H10); S.hold = [fish('torsk', 50), fish('sei', 2000)]; w = rmWarn(H10);
+    t.ok(w.length === 1 && w[0].lvl === 1, 'oktober, torsken går på ferskfisktillegget: bare «nærmer seg», ikke «full» (og en gammel lagrings tall i S.codWarn tåles)');
+    S.hold = [fish('torsk', 3000)]; w = rmWarn(H10); t.ok(w.length === 1 && w[0].lvl === 2 && /kg torsk om bord/.test(w[0].t[0]), 'oktober, torsk utover tillegget: varselet kommer («' + (w[0] && w[0].t[0]) + '»)');
+    // the closed group's haddock over its maximum quota
+    S = mk(H3); S.boat.type = 'kyst15'; K.applyVessel(); S.lic = {id:'h14', hl:HJ.h14.hl, since:2026}; freshQuota(); quotaState().hyse = licQ(S.lic, H3).hyse[0]; S.hold = [fish('torsk', 1000), fish('hyse', 2000)];
+    w = rmWarn(H3); t.ok(w.some(x => x.sp === 'hyse' && x.lvl === 2 && /Hysekvoten/.test(x.t[0])), 'hyse over maksimalkvoten i lukket gruppe varsles');
+    // no access: no quota of hers, so no quota warning (the status line says «bare bifangst»)
+    S = mk(H3); S.boat.type = 'kyst15'; K.applyVessel(); S.hold = [fish('torsk', 800)]; t.eq(rmWarn(H3), [], 'uten adgang: ingen kvotevarsler'); }
+  // the cod row kept for the minute is the meters' own
+  S = mk(H3); quotaState().torsk = 1000; t.eq(K.rmCod().used, 1000, 'rmCod er torskeraden'); quotaState().torsk = 2000; t.eq(K.rmCod().used, 2000, 'og følger landingene');
+
   // ---- the rules with the group on top
   S = mk(H3); S.boat.type = 'kyst15'; K.applyVessel(); let N = same(() => rmNow(H3));
   t.ok(N.v !== 'ok' && N.items.some(i => i.k === 'rmacc') && N.top, 'uten adgang er ikke svaret «✓»: «' + (N.top && N.top.no) + '»');

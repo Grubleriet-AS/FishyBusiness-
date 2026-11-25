@@ -2206,3 +2206,14 @@ body.vplot #hud{background:rgba(11,23,32,.78)!important}
 .acc-ref{margin:10px 0;padding:8px 0;border-top:1px solid var(--m-line,#9aa9b4)}
 .acc-ref input{width:100%;box-sizing:border-box;min-height:40px;font-size:15px;padding:6px 10px;border:1px solid var(--m-line,#9aa9b4);border-radius:8px;margin:4px 0 6px}
 .acc-ref .ph-btn{min-height:44px;width:100%;margin:0}
+
+/* ---- steg 150 (K2 of docs/planer/regler-i-klartekst.md): the quota meter. Landed (solid), aboard (lighter), against the limit; yellow
+   from 80 %, red when what is aboard does not fit. In the status box, at the quay, on the landing note */
+.qm{display:inline-block;position:relative;width:56px;height:6px;border-radius:3px;background:rgba(127,140,150,.35);overflow:hidden;vertical-align:middle;margin-right:6px;font-size:0;white-space:nowrap}
+.qm i{display:inline-block;height:100%;background:#4fb3e8;vertical-align:top}.qm i.ab{opacity:.5}
+.qm.r1 i{background:#ffcf7a}.qm.r2 i{background:#ff9b91}
+#hud .row.qlink{pointer-events:auto;cursor:pointer}#hud .row.qlink b{display:inline-flex;align-items:center;white-space:nowrap;min-width:0}#hud .row.qlink .qm{width:40px;flex:none}
+#hud .row.qlink b.r1{color:#ffcf7a}#hud .row.qlink b.r2{color:#ff9b91}
+.landq{display:flex;align-items:center;gap:8px;margin:6px 0 2px;font-variant-numeric:tabular-nums}.landq .qm{flex:1;max-width:160px;height:8px;margin:0}
+.slipq{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.slipq .qm{width:90px;height:7px;margin:0}
+

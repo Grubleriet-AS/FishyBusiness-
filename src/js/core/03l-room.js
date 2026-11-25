@@ -115,6 +115,14 @@ function rmMeters(H){
 // ---- the rules where the boat is (ruNow), with her group and her cod quota laid on top. ruNow is not changed: it knows the place, the
 // gear and the length, not the group north of 62° N, so a boat without access got «✓ Lov her». {v, items, top}: top is what the
 // status line says first. «Full» is said when cod taken now would be confiscated: not while the fresh-fish allowance still takes it
+// the bound boat's cod row (her quota, or the bycatch cap without access), kept for the game minute and until the hold, the landings, the
+// right or who is aboard changes: the status box and the rules line ask it at every drawing
+let RM_COD = {k:'', r:null};
+function rmCod(H){
+  const q = S.quota || {}, hold = S.hold || [], k = [S.cur, Math.floor(S.t), hold.length, Math.round(hold.reduce((a, x) => a + x.kg, 0)), Math.round(q.torsk || 0), Math.round(q.byCod || 0), S.lic ? S.lic.id : '', S.tripOwner, (S.boat || {}).type].join('|');
+  if (RM_COD.k !== k || H != null){ let r = null; try { r = rmMeters(H).find(x => x.sp === 'torsk' && (x.kind === 'by' || x.kind === 'open' || x.kind === 'vessel')) || null; } catch (e){ r = null; } if (H != null) return r; RM_COD = {k, r}; }
+  return RM_COD.r;
+}
 const RM_NOW = {
   acc:{k:'rmacc', v:'warn', no:'Bare bifangst: båten har ingen kvote', en:'Bycatch only: the boat has no quota'},
   owner:{k:'rmowner', v:'warn', no:'Bare bifangst: du er ikke om bord', en:'Bycatch only: you are not aboard'},
@@ -122,11 +130,30 @@ const RM_NOW = {
 function rmNow(H){
   let r = {v:'ok', items:[]}; try { r = ruNow() || r; } catch (e){}
   const extra = [];
-  try { const m = rmMeters(H).find(x => x.sp === 'torsk' && (x.kind === 'by' || x.kind === 'open' || x.kind === 'vessel'));
+  try { const m = rmCod(H);
     if (m && m.kind === 'by') extra.push(m.why === 'owner' ? RM_NOW.owner : RM_NOW.acc);
     else if (m && m.state === 'full' && (!m.ff || m.conf > 0.5)) extra.push(RM_NOW.full); } catch (e){}
   const items = (r.items || []).concat(extra), rank = {no:2, warn:1, ok:0}, v = extra.length && rank[r.v] < 1 ? 'warn' : r.v;
   return {v, items, top:items.find(i => i.v === 'no') || extra[0] || items.find(i => i.v === v && i.v !== 'ok') || null};
+}
+
+// ---- the warnings at sea (steg 150, K2): what is new to say about the quotas now, each once. A species' quota at 80 % (once a year),
+// and full (once a game day): «full» is said when what is aboard would be confiscated, or when nothing is left and no fresh-fish
+// allowance runs; a maximum quota for haddock or saithe that is fished is «near» until something would be confiscated (30 % and 20 % of
+// a landing may still be bycatch). Kept in S.codWarn, the vessel's own (before, the minute of the last warning: one log line a day for
+// cod alone, and none at all while the fresh-fish scheme ran). Returns [{sp, lvl (1 near, 2 full), t:[no, en]}] and marks them said
+function rmWarn(H){
+  H = H == null ? S.t / 60 : H; const y = yearH(H), day = Math.floor(H / 24), out = [];
+  let W = S.codWarn; if (!W || typeof W !== 'object' || W.y !== y) W = S.codWarn = {y, near:{}, full:{}};
+  const t1 = kg => fmtC(kg / 1000, 1) + ' t', nm = sp => [SPECIES[sp].no + 'kvoten', 'The ' + SPECIES[sp].en.toLowerCase() + ' quota'];
+  for (const r of rmMeters(H)){ if (!['open', 'vessel', 'max'].includes(r.kind) || r.state === 'none' || !isFinite(r.limit)) continue;
+    const lvl = r.conf > 0.5 ? 2 : r.state === 'full' && r.kind !== 'max' && !r.ff ? 2 : r.state === 'near' || r.state === 'full' ? 1 : 0, n = nm(r.sp), lc = [SPECIES[r.sp].no.toLowerCase(), SPECIES[r.sp].en.toLowerCase()];
+    if (lvl === 2 && W.full[r.sp] !== day){ W.full[r.sp] = day; W.near[r.sp] = 1;
+      out.push({sp:r.sp, lvl, t:r.conf > 0.5 ? [n[0] + ' er full. ' + fmtC(r.conf, 0) + ' kg ' + lc[0] + ' om bord får du bare 20 % for (inndratt).', n[1] + ' is full. For ' + fmtC(r.conf, 0) + ' kg of the ' + lc[1] + ' aboard you get only 20% (confiscated).']
+        : [n[0] + ' er full. ' + SPECIES[r.sp].no + ' du tar nå, får du bare 20 % for (inndratt).', n[1] + ' is full. For ' + lc[1] + ' you take now you get only 20% (confiscated).']}); }
+    else if (lvl === 1 && !W.near[r.sp]){ W.near[r.sp] = 1;
+      out.push({sp:r.sp, lvl, t:[n[0] + ': ' + t1(Math.max(0, r.limit - r.used - r.aboard)) + ' igjen av ' + t1(r.limit) + ' når det som er om bord, er levert.', n[1] + ': ' + t1(Math.max(0, r.limit - r.used - r.aboard)) + ' left of ' + t1(r.limit) + ' once what is aboard is landed.']}); } }
+  return out;
 }
 
 // ---- what a purchase changes, worked out without changing anything (no vessel is bound: it reads the boats' own fields). offer:

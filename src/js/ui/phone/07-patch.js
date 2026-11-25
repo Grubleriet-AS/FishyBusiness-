@@ -1,5 +1,10 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['kvotemaaler-251126', '25.11.2026', 'Torskekvoten på skjermen', 'The cod quota on the screen', [
+       ['Statusboksen viser torskekvoten når du har brukt halvparten: det som er levert, det som er om bord, og hvor mye som er igjen. Den blir gul fra 80 % og rød når det som er om bord, ikke får plass.', 'The status box shows the cod quota once half of it is used: what is landed, what is aboard, and how much is left. It turns yellow from 80% and red when what is aboard does not fit.'],
+       ['Varselet om full kvote kommer nå også om høsten, og for hyse, sei og blåkveite.', 'The warning of a full quota now comes in the autumn too, and for haddock, saithe and Greenland halibut.'],
+       ['En båt uten kvote får «Bare bifangst» på Regler-linja, ikke «Lov her».', 'A boat without a quota gets «Bycatch only» on the rules line, not «Allowed here».'],
+       ['Sluttseddelen sier hvor mye som er igjen av torskekvoten, og hjemskjermen har kortet «Torsk i år».', 'The landing note says how much is left of the cod quota, and the home screen has the card «Cod this year».']]],
     ['innbytte-251126', '25.11.2026', 'Innbytte og Båthandel', 'Trade-in and the boat market', [
        ['Fangsten må leveres før du bytter inn båten. Før fulgte det som lå i rommet, med til den nye.', 'The catch must be landed before you trade in the boat. Before, what lay in the hold went with you to the new one.'],
        ['Bytter du inn en båt med hjemmel mot en ny båt med hjemmel, går den gamle hjemmelen tilbake til registeret.', 'When a boat with a right is traded in for a new boat with a right, the old right goes back to the register.'],
