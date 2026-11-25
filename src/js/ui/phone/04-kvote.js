@@ -26,7 +26,7 @@
     if (t === 'pris' || t === 'land') return top + salg(t);
     // Mine kvoter: the quota first (it stood under the papers), then blad B, the next thing to reach; the other papers and, before stage 3,
     // the tabs not shown yet, under «Mer»
-    if (t === 'mine'){ const kvRem = !!((S.kv || {}).log || [])[0] && !S.kv.log[0].ok, pap = papPermit() + papZlic() + (kvRem ? '' : papKv()) + (rederiOpen() ? '' : papBiz()),   // (a remark from the coast guard is never folded) go = later.map(x => '<button class="ph-btn alt" data-pa="sub" data-s="' + x[0] + '">' + L(x[1], x[2]) + ' ›</button>').join('');
+    if (t === 'mine'){ const kvRem = !!((S.kv || {}).log || [])[0] && !S.kv.log[0].ok, pap = papPermit() + papZlic() + (kvRem ? '' : papKv()) + (rederiOpen() ? '' : papBiz()),   /* (a remark from the coast guard is never folded) */ go = later.map(x => '<button class="ph-btn alt" data-pa="sub" data-s="' + x[0] + '">' + L(x[1], x[2]) + ' ›</button>').join('');
       return top + salg('kvote') + '<div class="ph-c">' + kvSor() + '<h4 style="margin:4px 2px 6px">' + L('Papirer', 'Papers') + '</h4>' + papBladB() + (kvRem ? papKv() : '') + (stShow(3) ? pap : stMer('papirer', L('Mer: de andre papirene', 'More: the other papers'), pap)) + (go ? stMer('faner', L('Mer: sesongen, bestanden og markedet', 'More: the season, the stocks and the market'), '<div class="ph-btncol">' + go + '</div>') : '') + '</div>'; }
     return top + '<div class="ph-c">' + (t === 'open' ? kvOpen(H) : t === 'stock' ? kvStock(H) : kvMkt(H)) + '</div>'; }
   // Ø10c: the caps south of 62° N (core/03d-quota.js SORQ): the open group's 3 tonnes of cod in the North Sea and the jig exception's 3 tonnes

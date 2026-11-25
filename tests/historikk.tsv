@@ -6417,3 +6417,37 @@
 2026-11-25 12:52	ccr-e101e6f0-y7fg6x	c9aaf41	kvotemarkedtest	OK	28	lite	samtidig	
 2026-11-25 12:52	ccr-e101e6f0-y7fg6x	c9aaf41	shoptest	OK	14	lite	samtidig	
 2026-11-25 12:52	ccr-e101e6f0-y7fg6x	c9aaf41	hbtest	OK	16	lite	samtidig	
+2026-11-25 12:53	ccr-e101e6f0-y7fg6x	d78fbde	docktest	OK	65	lite	samtidig	
+2026-11-25 12:53	ccr-e101e6f0-y7fg6x	d78fbde	uishots	OK	92	lite	samtidig	
+2026-11-25 12:53	ccr-e101e6f0-y7fg6x	d78fbde	fleet3test	OK	6	lite	samtidig	
+2026-11-25 12:53	ccr-e101e6f0-y7fg6x	d78fbde	r4test	OK	7	lite	samtidig	
+2026-11-25 12:53	ccr-e101e6f0-y7fg6x	d78fbde	kystvakttest	FEIL	7	lite	samtidig	FEIL havsjekken trenger hele kysten i tools/map/out/game (release.py og game.py)
+2026-11-25 13:21	ccr-e101e6f0-y7fg6x	d78fbde	tut	OK	1647	lite	alene	
+2026-11-25 13:21	ccr-e101e6f0-y7fg6x	d78fbde	trinntest	FEIL	17	lite	samtidig	FEIL staaende: the yard's sheet for a boat with a quota right has none of the old lone terms  ["Hjemmelslengde", "Torsk, fartøykvote", "maks / garantert", "lukk
+2026-11-25 13:21	ccr-e101e6f0-y7fg6x	d78fbde	romtest	OK	21	lite	samtidig	
+2026-11-25 13:22	ccr-e101e6f0-y7fg6x	d78fbde	kvotemaal	OK	27	lite	samtidig	
+2026-11-25 13:22	ccr-e101e6f0-y7fg6x	d78fbde	quotatest	OK	6	lite	samtidig	
+2026-11-25 13:22	ccr-e101e6f0-y7fg6x	d78fbde	vesseltest	OK	10	lite	samtidig	
+2026-11-25 13:22	ccr-e101e6f0-y7fg6x	d78fbde	megletest	OK	25	lite	samtidig	
+2026-11-25 13:22	ccr-e101e6f0-y7fg6x	d78fbde	kvotemarkedtest	OK	27	lite	samtidig	
+2026-11-25 13:22	ccr-e101e6f0-y7fg6x	d78fbde	shoptest	OK	14	lite	samtidig	
+2026-11-25 13:22	ccr-e101e6f0-y7fg6x	d78fbde	hbtest	OK	16	lite	samtidig	
+2026-11-25 13:23	ccr-e101e6f0-y7fg6x	d78fbde	docktest	OK	63	lite	samtidig	
+2026-11-25 13:24	ccr-e101e6f0-y7fg6x	d78fbde	uishots	OK	87	lite	samtidig	
+2026-11-25 13:24	ccr-e101e6f0-y7fg6x	d78fbde	fleet3test	OK	6	lite	samtidig	
+2026-11-25 13:24	ccr-e101e6f0-y7fg6x	d78fbde	r4test	OK	6	lite	samtidig	
+2026-11-25 13:24	ccr-e101e6f0-y7fg6x	d78fbde+	trinntest	FEIL	17	lite	samtidig	FEIL staaende: the season opened from «Mer» is a tab while it is open  ["Mine kvoter", "Priser", "Landinger"]
+2026-11-25 13:24	ccr-e101e6f0-y7fg6x	d78fbde+	romtest	OK	22	lite	samtidig	
+2026-11-25 13:25	ccr-e101e6f0-y7fg6x	d78fbde+	kvotemaal	OK	26	lite	samtidig	
+2026-11-25 13:25	ccr-e101e6f0-y7fg6x	d78fbde+	quotatest	OK	6	lite	samtidig	
+2026-11-25 13:25	ccr-e101e6f0-y7fg6x	d78fbde+	vesseltest	FEIL	9	lite	samtidig	FEIL liggende: a boat with a right shows the right and both ways to buy
+2026-11-25 13:25	ccr-e101e6f0-y7fg6x	d78fbde+	megletest	OK	24	lite	samtidig	
+2026-11-25 13:25	ccr-e101e6f0-y7fg6x	d78fbde+	kvotemarkedtest	OK	27	lite	samtidig	
+2026-11-25 13:25	ccr-e101e6f0-y7fg6x	d78fbde+	shoptest	OK	14	lite	samtidig	
+2026-11-25 13:25	ccr-e101e6f0-y7fg6x	d78fbde+	hbtest	OK	16	lite	samtidig	
+2026-11-25 13:26	ccr-e101e6f0-y7fg6x	d78fbde+	docktest	OK	63	lite	samtidig	
+2026-11-25 13:27	ccr-e101e6f0-y7fg6x	d78fbde+	uishots	OK	86	lite	samtidig	
+2026-11-25 13:27	ccr-e101e6f0-y7fg6x	d78fbde+	fleet3test	OK	6	lite	samtidig	
+2026-11-25 13:27	ccr-e101e6f0-y7fg6x	d78fbde+	r4test	OK	6	lite	samtidig	
+2026-11-25 13:27	ccr-e101e6f0-y7fg6x	d78fbde+	trinntest	OK	17	lite	samtidig	
+2026-11-25 13:27	ccr-e101e6f0-y7fg6x	d78fbde+	vesseltest	OK	10	lite	samtidig	

@@ -145,7 +145,7 @@ async def main():
             print(ok(len(t['open']) == 8 and len(t['lic']) == 9 and len(t['kyst']) == 2 and len(t['hav']) == 5 and all(c[2] for v in t.values() for c in v)), tag + ': four tabs with every boat as a card with its side view')
             print(ok(u['havText'] and not u['havBuy'] and len(u['havSecs']) >= 3), tag + ': the ocean vessel has a full spec sheet (length, beam, draft, weight) and no buy button')
             print(ok(u['tiBtn'] and u['tiOk'] and not u['fleetBtn']), tag + ': an open-group boat is bought by trading in, not for the fleet, before the company has a closed-group vessel')
-            print(ok('Hjemmel' in u['licSecs'] and u['licBtns'] == 2), tag + ': a boat with a right shows the right and both ways to buy')
+            print(ok(any('hjemmel' in x.lower() for x in u['licSecs']) and u['licBtns'] == 2), tag + ': a boat with a right shows the right («Kvoterett (hjemmel)», steg 152) and both ways to buy', u['licSecs'])
             print(ok(not u['overflow'] and not u['small']), tag + ': no sideways scroll and every button at least 44 px', u['small'][:4])
             await pg.evaluate("DOCK.close()")
         # trading the skiff in for the 7.9 m snekke
