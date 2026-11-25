@@ -60,6 +60,12 @@ async def main():
         await pg.screenshot(path=os.path.join(OUT, 'kvfull_vangshamn_liggende.png')); fits.append(await pg.evaluate(FIT))
         ld = await pg.evaluate(LAND + "(500)")
         check(ld['room'] == ya and ld['codQ'] == ya and ld['conf'] == 500 and ld['grp'] == ya, 'leveringen: alderstillegget går på kvoten (alt på gruppekvota utenfor ordningen) og 500 kg over blir inndratt', ld)
+        # 2b. the cod aboard counts as in the log's warning: 1 000 kg left on the quota and 1 200 kg aboard shows the card, with what is left
+        ab = await pg.evaluate("(() => { const q = quotaState(), lim = codLimitNow(S.t / 60); q.torsk = lim - 1000; S.hold = [{sp:'torsk', kg:1200, t:S.t, q:1}]; PHONE.render(); const a = (document.querySelector('#kvFull') || {}).textContent || ''; S.hold = [{sp:'torsk', kg:400, t:S.t, q:1}]; PHONE.render(); const b = !!document.querySelector('#kvFull'); S.hold = []; return {a, b}; })()")
+        check('Torsken om bord fyller kvoten' in ab['a'] and 'Torsk om bord1 200 kg' in ab['a'].replace('\u00a0', ' ') and not ab['b'], 'torsken om bord teller: 1 000 kg igjen og 1 200 kg om bord viser kortet «Torsken om bord fyller kvoten», 400 kg om bord gjør det ikke', ab['a'][:160])
+        # 2c. the fresh-fish scheme on (after 29 June): the card says what goes outside the quota, not that all cod is confiscated
+        ff = await pg.evaluate("(() => { const t0 = S.t, y = yearH(S.t / 60); S.t = Math.round(hOfDoy(y, doyOf(y, 8, 1)) * 60); const q = freshQuota(), H = S.t / 60, pct = ffPct(H); q.torsk = codLimitNow(H); PHONE.render(); const a = (document.querySelector('#kvFull') || {}).textContent || ''; const fin = isFinite(codLimitNow(H)); S.t = t0; S.quota = null; PHONE.render(); return {a, pct, fin}; })()")
+        check((not ff['fin']) or (ff['pct'] > 0 and 'går utenom kvoten' in ff['a'] and 'Når ferskfiskordningen starter' not in ff['a'] and 'Fisk hyse, sei og andre arter til torsken åpner igjen' not in ff['a']), '1. august med full kvote: kortet sier at torsk innenfor ferskfiskordningen går utenom kvoten, ikke at all torsk inndras', {'pct': ff['pct'], 'fin': ff['fin'], 'a': ff['a'][:260]})
         # 3. the coast, three more homes: north (Honningsvåg, in), middle (Henningsvær, out), south of 62° N (Egersund, out)
         for name, inn in [('Honningsvåg', True), ('Skjervøy', True), ('Henningsvær', False), ('Egersund', False)]:
             s = await pg.evaluate(SETUP + "(%s, 0.2)" % json.dumps(name))

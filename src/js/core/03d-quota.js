@@ -239,7 +239,9 @@ function portKom(pt){
   // a plant with a place name for a municipality: the nearest plant's municipality within the same town, else the place name itself
   return bd < 3 || !own ? best : String(own).toLowerCase();
 }
-function kystOrd(pid){ const pt = pid && typeof portById === 'function' ? portById(pid) : null; if (!pt) return false; const w = portKom(pt).split(' '); return KYSTORD.some(k => w.includes(k)); }
+// (kept per harbour: codLimitNow asks every fishing minute, and a home without a municipality of its own looks through every plant)
+const KYSTC = {};
+function kystOrd(pid){ if (pid && KYSTC[pid] != null) return KYSTC[pid]; const pt = pid && typeof portById === 'function' ? portById(pid) : null; if (!pt) return false; const w = portKom(pt).split(' '); return KYSTC[pid] = KYSTORD.some(k => w.includes(k)); }
 // this save's additions now, kg: {kyst, alder, sum} (the open group only: codLimits asks)
 function openAdd(H){ if (H == null) H = S.t / 60; const O = yearQuota(yearH(H)).open, kyst = kystOrd(S.home || HOME0) ? Math.round(O.kyst * 1000) : 0, alder = Math.round(O.alder * 1000); return {kyst, alder, sum:kyst + alder}; }
 // the part of a landing's quota cod that is taken from the open group's quota: the coastal scheme has its own set-aside (0.9 % of
@@ -249,9 +251,10 @@ function codGroupKg(before, codQ, lim, kyst){ if (!(kyst > 0) || !isFinite(lim))
 // the Directorate's letter about the vessel's cod quota in the open group, once a year when over half of it is landed (and so at once,
 // the day the additions came, for those who had filled § 21's quota): what the quota is made of and what is left
 function openAddNews(H){
-  if (S.lic || access() !== 'open') return; const q = quotaState(); if (q.addSaid) return;
-  const lim = codLimitNow(H); if (!isFinite(lim) || q.torsk < 0.5 * lim) return; q.addSaid = 1;
-  const l = codLimits(H), y = yearH(H), en = kg => (kg / 1000).toFixed(1), t1 = kg => en(kg).replace('.', ','), b = (codOpen(H) ? l.base.max : l.base.guar), left = Math.max(0, lim - q.torsk);
+  // (S.addSaidY, the year, on the save and not on the vessel's quota: a boat traded for another in the open group starts a new S.quota)
+  if (S.lic || access() !== 'open') return; const q = quotaState(), y = yearH(H); if (S.addSaidY === y) return;
+  const lim = codLimitNow(H); if (!isFinite(lim) || q.torsk < 0.5 * lim) return; S.addSaidY = y;
+  const l = codLimits(H), en = kg => (kg / 1000).toFixed(1), t1 = kg => en(kg).replace('.', ','), b = (codOpen(H) ? l.base.max : l.base.guar), left = Math.max(0, lim - q.torsk);
   msg('Fiskeridirektoratet', 'Du har landet over halvparten av torskekvoten din i åpen gruppe. Kvoten din i ' + y + ' er ' + t1(lim) + ' tonn: ' + t1(b) + ' tonn etter båtens lengde' + (l.add.kyst ? ', ' + t1(l.add.kyst) + ' tonn fra kystfiskeordningen' : '') + ' og ' + t1(l.add.alder) + ' tonn i alderstillegg. Igjen nå: ' + t1(left) + ' tonn.',
     'You have landed over half of your cod quota in the open group. Your quota in ' + y + ' is ' + en(lim) + ' tonnes: ' + en(b) + ' tonnes by the vessel\'s length' + (l.add.kyst ? ', ' + en(l.add.kyst) + ' tonnes from the coastal-fishing scheme' : '') + ' and ' + en(l.add.alder) + ' tonnes as the age addition. Left now: ' + en(left) + ' tonnes.');
 }

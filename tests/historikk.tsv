@@ -6335,3 +6335,6 @@
 2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	trip2	OK	13	lite	samtidig	
 2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	kvfulltest	OK	10	lite	samtidig	
 2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	worldtest	OK	20	lite	samtidig	
+2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	kvfulltest	OK	11	lite	samtidig	
+2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	quotatest	OK	8	lite	samtidig	
+2026-11-25 12:01	ccr-b7b2f394-jdf54x	be7779a+	trip2	OK	13	lite	samtidig	

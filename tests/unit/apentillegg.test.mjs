@@ -54,7 +54,10 @@ export default function (t){
     q.torsk = 0.4 * lim; K.openAddNews(S.t / 60); t.eq(S.msgs.length, n0, 'under halve kvoten: ikke noe brev');
     q.torsk = 0.6 * lim; K.openAddNews(S.t / 60); const m = S.msgs[S.msgs.length - 1];
     t.ok(S.msgs.length === n0 + 1 && m.from === 'Fiskeridirektoratet' && /kystfiskeordningen/.test(m.no) && /alderstillegg/.test(m.no) && m.no.includes((lim / 1000).toFixed(1).replace('.', ',')), 'over halve: ett brev fra Fiskeridirektoratet med kystfiskeordningen, alderstillegget og kvoten (' + (lim / 1000).toFixed(1) + ' t)');
-    K.openAddNews(S.t / 60); t.eq(S.msgs.length, n0 + 1, 'og bare én gang i året'); }
+    K.openAddNews(S.t / 60); t.eq(S.msgs.length, n0 + 1, 'og bare én gang i året');
+    // a boat traded for another in the open group starts a new quota state with the owner's cod (§ 29): no second letter
+    K.openUsedSave(q); const q2 = K.freshQuota(); K.openUsedLoad(); K.openAddNews(S.t / 60); t.ok(q2.torsk >= 0.5 * lim && S.msgs.length === n0 + 1, 'heller ikke etter et båtbytte i åpen gruppe samme år (kontrollen 25.11.2026: da kom det to)');
+    t.ok(kystOrd(S.home) && kystOrd(S.home), 'og svaret for hjemstedet er det samme andre gang (holdt per havn)'); }
   { const S = mk('vangshamn'), q = quotaState(); q.torsk = codLimitNow(S.t / 60); K.openAddNews(S.t / 60); const m = S.msgs[S.msgs.length - 1];
     t.ok(m && !/kystfiskeordningen/.test(m.no) && /alderstillegg/.test(m.no), 'utenfor ordningen nevner brevet bare alderstillegget'); }
   // ---- what is taken from the group quota: the coastal scheme's part is the top 3.5 t of the vessel's limit and has its own set-aside

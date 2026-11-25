@@ -223,7 +223,7 @@ COVER['src/js/ui/phone/04b-kvotemarked.js'] = ['kvotemarkedtest', 'quotatest']
 COVER['src/js/ui/10t-kvotemarked.js'] = ['kvotemarkedtest']
 COVER['tests/kvotemarkedtest.py'] = ['kvotemarkedtest']
 COVER['src/js/ui/phone/04-kvote.js'] = COVER['src/js/ui/phone/04-kvote.js'] + ['kvotemarkedtest']
-for _f in ('src/js/ui/phone/04-kvote.js', 'src/js/core/03d-quota.js', 'tests/kvfulltest.py'): COVER.setdefault(_f, []).append('kvfulltest')   # KV1, steg 148
+for _f in ('src/js/ui/phone/04-kvote.js', 'src/js/core/03d-quota.js', 'src/js/ui/phone/09-vaer-post-salg-redning.js', 'src/js/core/03-simulation.js', 'tests/kvfulltest.py'): COVER.setdefault(_f, []).append('kvfulltest')   # KV1, steg 148
 COVER['tests/unit/market3.test.mjs'] = []
 # KM4 (the boat with or without her right, 11.11.2026): megletest plays the choice, the move and the yard's trade-in
 for _f in ('src/js/ui/phone/14-act.js', 'src/js/ui/phone/10-fartoy.js'):

@@ -517,7 +517,7 @@ STABILITY: hydrostatics, the boat's motions in a sea, and what they do to the wo
   - 276 `hullX(R)`
   - 291 `hullStep(H, R, X, eta, deta, dt, o)`
 
-## `src/js/core/03d-quota.js` (614 linjer)
+## `src/js/core/03d-quota.js` (617 linjer)
 
 Quotas for cod, haddock and saithe north of 62° N. The regulation as it stood from 1 October 2026 (J-187-2026, fiskeridir.no)
 
@@ -549,70 +549,70 @@ Quotas for cod, haddock and saithe north of 62° N. The regulation as it stood f
   - 213 `openMaxAdd(H)`
 - **214** the open group's two additions to the cod quota (KV1, steg 148, 25.11.2026; J-161-2026 §§ 22 and 23, read on fiskeridir.no
   - 233 `portKom(pt)`
-  - 242 `kystOrd(pid)`
-  - 244 `openAdd(H)`
-  - 248 `codGroupKg(before, codQ, lim, kyst)`
-  - 251 `openAddNews(H)`
-  - 262 `ffPlan(y)`
-  - 270 `ffPct(H)`
-- **272** the closed group's register: a fixed number of rights (1 622 in the cod fishery north of 62° N on 17.10.2025, case document
-  - 290 `npcReg()`
-  - 292 `regSend(fn, id)`
-  - 297 `regTake(id)`
-  - 299 `regFree(id)`
-  - 301 `regSeller(id, H)`
-- **303** structure quotas (forskrift om spesielle kvoteordninger for kystfiskeflåten, J-244-2025): quota lengths 11–27.99 m may buy a
-  - 311 `structFits(l, add)`
-  - 312 `structRoom(l, id)`
-  - 313 `structPrice(id, H)`
-  - 315 `structIn(l, id, H)`
-  - 316 `licExtra(l)`
-  - 318 `structExpire(l, y)`
-- **319** the special scheme for quota lengths under 11 m (kap. 2, from 2025): an owner with two such boats, both owned since the year
-  - 321 `twoOK(la, lb, y)`
-- **322** quota cooperation (J-187-2026 § 31): two closed-group boats under 11 m with different owners; both owners aboard, the passive
-  - 326 `coopOffer(H)`
-  - 327 `coopOK(l, y)`
-- **329** the ocean permits (H1 of docs/planer/havsteget.md, 03.11.2026). Jonas' choices the same day: V1 A (the autoliner first), V2 B
-- **351** the snow crab's regulation year by year, as data (V4 of docs/planer/havsteget-h3-snokrabbe.md, Jonas 06.11.2026: «Gjør det som blir
-  - 370 `snoQuota(H)`
-  - 372 `snoRoom(H)`
-  - 375 `snoFlexNewYear(q, y)`
-  - 381 `snoYear(y)`
-- **396** the quota price that lives (KM5 of docs/planer/kvotemarkedet.md, steg 64; Jonas 07.11.2026, V4 B: «V4, anbefalt»)
-  - 418 `kpkOut(H, y)`
-  - 426 `kpkCodIx(H)`
-  - 429 `kpkAt(H)`
-  - 439 `havLicFor(type)`
-  - 441 `havF(id, sp, y)`
-  - 452 `havGroup(id, y)`
-  - 455 `havQ(l, H)`
-  - 463 `havLicWhy(type)`
-  - 470 `havOffer(id, H)`
-  - 473 `havValue(l, H)`
-  - 487 `snoLicValue(y)`
-  - 493 `havPrice(type, H)`
-  - 495 `havLicTake(type, H)`
-- **499** ling and tusk for vessels of 28 m and over (H2a of docs/planer/havsteget-h2-autoline.md, 05.11.2026). J-128-2026 (2026) and the
-  - 507 `lbStop(y)`
-  - 511 `lbShare(sp, H)`
-  - 513 `lbNews(H)`
-- **519** Greenland halibut (blåkveite) for vessels under 28 m (J-241-2025, the regulation for 2026; docs/blakveite.md 2-3, 07.10.2026)
-  - 527 `bkSeason(y)`
-  - 530 `bkOpen(H)`
-  - 536 `bkDirect(H, len)`
-  - 538 `bkState(H)`
-  - 541 `bkAllow(H, bk, all)`
-  - 546 `bkLanded(H, bk, all)`
-  - 548 `bkNews(H)`
-- **554** cod south of 62° N (Ø10c, steg 68, 11.11.2026; docs/systemer/kvoter-og-regler.md 5.28e). Forskrift 19. desember 2025 nr. 2805 om
-  - 588 `sorOpenId()`
-  - 589 `sorAcc()`
-  - 592 `sorCodAboard()`
-  - 595 `sorRoom(k, q, acc)`
-  - 597 `sorLeft(k)`
-  - 604 `sorConf(byc, codHold, q, acc)`
-  - 613 `sorLanded(q, ok)`
+  - 244 `kystOrd(pid)`
+  - 246 `openAdd(H)`
+  - 250 `codGroupKg(before, codQ, lim, kyst)`
+  - 253 `openAddNews(H)`
+  - 265 `ffPlan(y)`
+  - 273 `ffPct(H)`
+- **275** the closed group's register: a fixed number of rights (1 622 in the cod fishery north of 62° N on 17.10.2025, case document
+  - 293 `npcReg()`
+  - 295 `regSend(fn, id)`
+  - 300 `regTake(id)`
+  - 302 `regFree(id)`
+  - 304 `regSeller(id, H)`
+- **306** structure quotas (forskrift om spesielle kvoteordninger for kystfiskeflåten, J-244-2025): quota lengths 11–27.99 m may buy a
+  - 314 `structFits(l, add)`
+  - 315 `structRoom(l, id)`
+  - 316 `structPrice(id, H)`
+  - 318 `structIn(l, id, H)`
+  - 319 `licExtra(l)`
+  - 321 `structExpire(l, y)`
+- **322** the special scheme for quota lengths under 11 m (kap. 2, from 2025): an owner with two such boats, both owned since the year
+  - 324 `twoOK(la, lb, y)`
+- **325** quota cooperation (J-187-2026 § 31): two closed-group boats under 11 m with different owners; both owners aboard, the passive
+  - 329 `coopOffer(H)`
+  - 330 `coopOK(l, y)`
+- **332** the ocean permits (H1 of docs/planer/havsteget.md, 03.11.2026). Jonas' choices the same day: V1 A (the autoliner first), V2 B
+- **354** the snow crab's regulation year by year, as data (V4 of docs/planer/havsteget-h3-snokrabbe.md, Jonas 06.11.2026: «Gjør det som blir
+  - 373 `snoQuota(H)`
+  - 375 `snoRoom(H)`
+  - 378 `snoFlexNewYear(q, y)`
+  - 384 `snoYear(y)`
+- **399** the quota price that lives (KM5 of docs/planer/kvotemarkedet.md, steg 64; Jonas 07.11.2026, V4 B: «V4, anbefalt»)
+  - 421 `kpkOut(H, y)`
+  - 429 `kpkCodIx(H)`
+  - 432 `kpkAt(H)`
+  - 442 `havLicFor(type)`
+  - 444 `havF(id, sp, y)`
+  - 455 `havGroup(id, y)`
+  - 458 `havQ(l, H)`
+  - 466 `havLicWhy(type)`
+  - 473 `havOffer(id, H)`
+  - 476 `havValue(l, H)`
+  - 490 `snoLicValue(y)`
+  - 496 `havPrice(type, H)`
+  - 498 `havLicTake(type, H)`
+- **502** ling and tusk for vessels of 28 m and over (H2a of docs/planer/havsteget-h2-autoline.md, 05.11.2026). J-128-2026 (2026) and the
+  - 510 `lbStop(y)`
+  - 514 `lbShare(sp, H)`
+  - 516 `lbNews(H)`
+- **522** Greenland halibut (blåkveite) for vessels under 28 m (J-241-2025, the regulation for 2026; docs/blakveite.md 2-3, 07.10.2026)
+  - 530 `bkSeason(y)`
+  - 533 `bkOpen(H)`
+  - 539 `bkDirect(H, len)`
+  - 541 `bkState(H)`
+  - 544 `bkAllow(H, bk, all)`
+  - 549 `bkLanded(H, bk, all)`
+  - 551 `bkNews(H)`
+- **557** cod south of 62° N (Ø10c, steg 68, 11.11.2026; docs/systemer/kvoter-og-regler.md 5.28e). Forskrift 19. desember 2025 nr. 2805 om
+  - 591 `sorOpenId()`
+  - 592 `sorAcc()`
+  - 595 `sorCodAboard()`
+  - 598 `sorRoom(k, q, acc)`
+  - 600 `sorLeft(k)`
+  - 607 `sorConf(byc, codHold, q, acc)`
+  - 616 `sorLanded(q, ok)`
 
 ## `src/js/core/03e-rules.js` (601 linjer)
 
@@ -3088,16 +3088,16 @@ the Regler app (R3 of the rules plan, 05.10.2026): «Her og nå» answers «can 
   - 46 `ruLearn()`
   - 57 `regler()`
 
-## `src/js/ui/phone/04-kvote.js` (106 linjer)
+## `src/js/ui/phone/04-kvote.js` (113 linjer)
 
 the Kvote app: your quotas, the open group's season, the stocks, and the market for rights (core/03d-quota.js)
 
   - 5 `kvote()`
   - 13 `kvFull(H)`
-  - 29 `kvSor()`
-  - 42 `kvOpen(H)`
-  - 60 `kvStock(H)`
-  - 78 `kvReg(H)`
+  - 36 `kvSor()`
+  - 49 `kvOpen(H)`
+  - 67 `kvStock(H)`
+  - 85 `kvReg(H)`
 
 ## `src/js/ui/phone/04b-kvotemarked.js` (213 linjer)
 
