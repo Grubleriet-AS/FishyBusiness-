@@ -171,7 +171,7 @@ async def main():
           S.loan = {bal:200000, rate:0.069, pay:2300, next:S.t + 1e5}; R.loophole = deal(1e6, 66500); S.loan = null;
           // the sheet of the entry boat without and with blad B
           const sheetOf = () => { DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=trebat][data-o=u7]'); const sh = dr().querySelector('.vsheet'), x = {btns:sh.querySelectorAll('[data-pa=buylic]').length, txt:sh.textContent}; tap('[data-pa=mksel]:not([data-k])'); DOCK.close(); return x; };
-          S.fm.b = false; const s0 = sheetOf(); R.noB = {btns:s0.btns, note:/Krever blad B/.test(s0.txt)}; S.fm.b = true; const s1 = sheetOf(); R.withB = {btns:s1.btns, inn:/Kystfondet/.test(s1.txt)};
+          S.fm.b = false; const s0 = sheetOf(); R.noB = {btns:s0.btns, note:/yrkesfisker \(blad B\)/.test(s0.txt)}; S.fm.b = true; const s1 = sheetOf(); R.withB = {btns:s1.btns, inn:/Kystfondet/.test(s1.txt)};
           R.goals1 = goalTxt();
           // the entry: the skiff traded in and NOK 200 000 in the bank buys the boat with a right under 7 m
           const O = LIC_OFFERS[0], price = VESSELS[O.ves].price + licValue(O); R.price = price; S.cash = 200000; R.noInn = deal(price, vesselValue(curVessel()), false).why;

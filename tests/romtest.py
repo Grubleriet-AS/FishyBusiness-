@@ -71,6 +71,9 @@ async def main():
         # the fleet app says each boat's group
         await pg.evaluate(BASE); fl = await pg.evaluate("(() => { newVesselObj('kyst15', S.boat.port); PHONE.open('rederi'); const t = document.getElementById('phone').textContent; PHONE.show(false); return t; })()")
         check('felleskvoten for småbåter (åpen gruppe)' in fl and 'ingen kvote: bare bifangst' in fl, 'Rederi says each boat\'s group', fl[:0])
+        # a right that goes with the boat traded in for a small boat without one: the card is red, and the purchase asks first
+        await pg.evaluate(BASE); lo = await pg.evaluate("(() => { S.lic = {id:'u7', hl:HJ.u7.hl, since:yearH(S.t / 60) - 1}; freshQuota(); const P = rmBuy({kind:'hull', type:'snekke', ti:true}); const r = (" + SHEET + ")('open', '[data-pa=mksel][data-k=snekke]:not([data-o])'); DOCK.close(); ASK.length = 0; PHONE.dact('rederi', 'buy', {k:'snekke', ti:'1'}); return {lost:P.lost, bad:r.bad, txt:r.txt, ask:ASK.length, lic:!!S.lic, type:S.boat.type}; })()")
+        check(lo['lost'] and lo['bad'][0] and 'følger innbyttebåten' in lo['txt'] and lo['ask'] == 1 and lo['type'] == 'snekke' and not lo['lic'], 'a right that goes with the boat traded in: the card is red, and the purchase asks first', {k: lo[k] for k in ('lost', 'bad', 'ask', 'lic', 'type')})
         print('errors:', errs[:5]); await br.close()
 
 asyncio.run(main())

@@ -3,7 +3,7 @@
     ['kjopskort-251126', '25.11.2026', 'Båtkjøpet sier hva som endrer seg', 'The boat purchase says what changes', [
        ['Over kjøpsknappen står kortet «Dette endrer seg»: kvoten før og etter, hvor mye torsk du kan levere i år, og hvor mye selgeren alt har fisket av årets kvote.', 'Over the buy button stands the card «This changes»: the quota before and after, how much cod you can land this year, and how much of the year\'s quota the seller has already fished.'],
        ['En båt uten kvoterett (hjemmel) har et rødt kort som sier at torsk, hyse og sei bare kan være bifangst, og kjøpet spør før det tar kvoten fra båten din.', 'A boat without a quota right has a red card saying that cod, haddock and saithe can only be bycatch, and the purchase asks before it takes the quota from your boat.'],
-       ['En grå kjøpsknapp sier hvorfor, og hva du kan gjøre med det.', 'A grey buy button says why, and what you can do about it.'],
+       ['En grå kjøpsknapp på verftet sier hvorfor, og hva du kan gjøre med det.', 'A grey buy button at the yard says why, and what you can do about it.'],
        ['Rederi viser hvilken kvote hver båt fisker på.', 'The company app shows which quota each boat fishes on.']]],
     ['kvotemaaler-251126', '25.11.2026', 'Torskekvoten på skjermen', 'The cod quota on the screen', [
        ['Statusboksen viser torskekvoten når du har brukt halvparten: det som er levert, det som er om bord, og hvor mye som er igjen. Den blir gul fra 80 % og rød når det som er om bord, ikke får plass.', 'The status box shows the cod quota once half of it is used: what is landed, what is aboard, and how much is left. It turns yellow from 80% and red when what is aboard does not fit.'],

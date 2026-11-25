@@ -6364,3 +6364,20 @@
 2026-11-25 11:13	ccr-e101e6f0-y7fg6x	dc40baf+	romtest	FEIL	8	lite	alene	FEIL verftet, hjemmel med innbytte: the card and the purchase agree on the group, the limit and the cod fished  {"P": {"acc": "lukket", "limit": 12015, "used": 
 2026-11-25 11:13	ccr-e101e6f0-y7fg6x	dc40baf+	romtest	OK	8	lite	alene	
 2026-11-25 11:13	ccr-e101e6f0-y7fg6x	dc40baf+	romtest	OK	16	lite	alene	
+2026-11-25 11:14	ccr-e101e6f0-y7fg6x	dea3865	romtest	OK	20	lite	samtidig	
+2026-11-25 11:14	ccr-e101e6f0-y7fg6x	dea3865	megletest	OK	26	lite	samtidig	
+2026-11-25 11:15	ccr-e101e6f0-y7fg6x	dea3865	kvotemarkedtest	OK	29	lite	samtidig	
+2026-11-25 11:15	ccr-e101e6f0-y7fg6x	dea3865	shoptest	OK	16	lite	samtidig	
+2026-11-25 11:15	ccr-e101e6f0-y7fg6x	dea3865	quotatest	OK	7	lite	samtidig	
+2026-11-25 11:15	ccr-e101e6f0-y7fg6x	dea3865	vesseltest	OK	11	lite	samtidig	
+2026-11-25 11:15	ccr-e101e6f0-y7fg6x	dea3865	fleet3test	OK	7	lite	samtidig	
+2026-11-25 11:17	ccr-e101e6f0-y7fg6x	dea3865	uishots	OK	96	lite	samtidig	
+2026-11-25 11:17	ccr-e101e6f0-y7fg6x	dea3865	docktest	OK	66	lite	samtidig	
+2026-11-25 11:19	ccr-e101e6f0-y7fg6x	dea3865+	romtest	OK	22	lite	samtidig	
+2026-11-25 11:19	ccr-e101e6f0-y7fg6x	dea3865+	megletest	OK	27	lite	samtidig	
+2026-11-25 11:19	ccr-e101e6f0-y7fg6x	dea3865+	kvotemarkedtest	OK	30	lite	samtidig	
+2026-11-25 11:19	ccr-e101e6f0-y7fg6x	dea3865+	vesseltest	FEIL	12	lite	samtidig	FEIL a boat with a right needs blad B; with it, both buttons and the top-up from Kystfondet
+2026-11-25 11:19	ccr-e101e6f0-y7fg6x	dea3865+	quotatest	OK	8	lite	samtidig	
+2026-11-25 11:19	ccr-e101e6f0-y7fg6x	dea3865+	fleet3test	OK	8	lite	samtidig	
+2026-11-25 11:19	ccr-e101e6f0-y7fg6x	dea3865+	shoptest	OK	16	lite	samtidig	
+2026-11-25 11:20	ccr-e101e6f0-y7fg6x	dea3865+	vesseltest	OK	10	lite	alene	

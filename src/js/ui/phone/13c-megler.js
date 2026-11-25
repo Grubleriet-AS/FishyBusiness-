@@ -144,6 +144,9 @@
     h.push('<div class="ph-c"><button class="ph-btn alt mkback" data-pa="mgsel">‹ ' + L('Tilbake til listen', 'Back to the list') + '</button>');
     h.push('<div class="ph-card vsheet mg-sheet"><h4>«' + mgEsc(Q.name) + '» · ' + V.name[S.lang] + '</h4><p class="ph-note mg-nr">' + L('Oppføring nr. ', 'Listing no. ') + Q.id + '</p><div class="vbig">' + vesselSVG(Q.type) + '</div>');
     h.push('<p class="mg-strip">' + mgYear(Q) + ' · ' + fmt(V.len, 2) + ' m · ' + fmt(P.engH || 0, 0) + L(' timer', ' hours') + ' · ' + kr(mgNow(Q)) + '</p>' + mgLicTag(Q));
+    // (steg 151) what buying her changes, over the bid and «Kjøp nå»: her group and this year's cod, and the company's open-group boat when
+    // she comes with a right. Not on your own listing, nor to one who cannot buy her (the reason stands in the auction's card then)
+    if (!Q.mine && !MBC.guest() && !mbBuyWhy(Q, null)) h.push(buyCard({kind:'boat', type:Q.type, lic:P.lic || null, quota:P.quota || null}, L('Dette endrer seg om du kjøper henne', 'This changes if you buy her')));
     // the auction: the time left, the highest bid, buy-now, and your bid
     { const n = mbNext(Q), fee = mbFee(n, to, Q.port), bnFee = Q.buynow ? mbFee(Q.buynow, to, Q.port) : 0, why = Q.mine ? 'own' : MBC.guest() ? 'guest' : mbBuyWhy(Q, null), cash = spendable() < n + fee ? 'cash' : null;
       const a = ['<div class="ph-card mb-auc"><h4>' + L('Auksjonen', 'The auction') + '</h4>', kv(L('Slutter om', 'Ends in'), '<b>' + mgLeft(Q) + '</b>'),
@@ -160,13 +163,11 @@
         a.push('<p class="ph-note">' + L('Budet binder pengene hos megleren. Blir du overbydd, får du dem tilbake med en gang. Neste bud må være minst 2 % over.', 'The bid holds the money at the broker. Outbid, you get it back at once. The next bid must be at least 2 % over.') + '</p>');
       }
       h.push(a.join('') + '</div>'); }
-    // (steg 151) what buying her changes: her group and this year's cod, and the company's open-group boat when she comes with a right
-    if (!Q.mine) h.push(buyCard({kind:'boat', type:Q.type, lic:P.lic || null, quota:P.quota || null}, L('Dette endrer seg om du kjøper henne', 'This changes if you buy her')));
     h.push('<div class="ph-card mg-seller"><h4>' + (Q.seller ? mgEsc(Q.seller) : L('En fisker', 'A fisherman')) + ' <small>' + L('selger', 'sells') + '</small></h4><p class="ph-note">' + L('Kystmegleren formidler mellom spillere og tar 5 % av prisen fra selgeren. Det som står her, er det båten har.', 'Kystmegleren brokers between players and takes 5 % of the price from the seller. What stands here is what the boat has.') + '</p></div>');
     if (lic) h.push(sec(L('Hjemmel', 'Right'), [kv(L('Hjemmelslengde', 'Quota length'), mgEsc(lic.hl || lic.id)), kv(L('Følger med', 'Comes with her'), L('ja, med årets fangst på den', 'yes, with this year\'s catch on it')),
       '<p class="ph-note">' + L('I virkeligheten følger ikke deltakeradgangen automatisk med båten (deltakerloven § 4); i spillet gjør den det, og kjøperen må stå på blad B.', 'In life the right does not follow the boat by itself (deltakerloven § 4); in the game it does, and the buyer must be on blad B.') + '</p>']));
     else h.push(sec(L('Hjemmel', 'Right'), [kv(L('Følger med', 'Comes with her'), L('nei, hun selges uten hjemmel', 'no, she is sold without a right')),
-      '<p class="ph-note">' + (V.len < 11 ? L('Uten hjemmel fisker hun i åpen gruppe, eller du setter en hjemmel på henne fra Kvotemarkedet.', 'Without a right she fishes in the open group, or you put a right on her from the quota market.') : L('Uten hjemmel kan hun bare ta torsk, hyse og sei som bifangst. En hjemmel kan kjøpes i Kvotemarkedet og settes på henne.', 'Without a right she can only take cod, haddock and saithe as bycatch. A right can be bought in the quota market and put on her.')) + '</p>']));
+      '<p class="ph-note">' + L('En hjemmel kan kjøpes i Kvotemarkedet og settes på henne.', 'A right can be bought in the quota market and put on her.') + '</p>']));
     h.push(sec(L('Tilstand', 'Condition'), [kv(L('Skrog', 'Hull'), mgPct(c.hull)), mgBar(c.hull), kv(L('Motor', 'Engine'), mgPct(c.motor)), mgBar(c.motor), kv(L('Motortimer', 'Engine hours'), fmt(P.engH || 0, 0)), kv(L('Siste service', 'Last service'), L('ved ', 'at ') + fmt(P.svcAt || 0, 0) + L(' timer', ' hours'))]));
     const std = (V.std || []).map(q => EQUIP[q] ? EQUIP[q].name[S.lang] : q), ex = Object.entries(P.equip || {}).filter(([q, n]) => EQUIP[q] && n && !(V.std || []).includes(q)).map(([q, n]) => EQUIP[q].name[S.lang] + (EQUIP[q].multi ? ' × ' + n : ''));
     h.push(sec(L('Følger med', 'Comes with'), [kv(L('Utstyr', 'Equipment'), std.concat(ex).join(', ') || L('ingenting utover båten', 'nothing besides the boat')), P.gear ? kv(L('Håndjuksa', 'Hand jig'), L('om bord', 'aboard')) : '']));
