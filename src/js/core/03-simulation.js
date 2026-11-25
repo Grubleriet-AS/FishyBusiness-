@@ -1295,7 +1295,7 @@ function fmInit(){ const F = {n:0, last:-1, kr:0, b:false}; for (const s of S.sa
   F.b = !!(S.lic || (S.fleet || []).some(v => v.lic)) || (F.n >= BLADB.days && F.kr >= BLADB.kr); return F; }
 function fmLand(total){ const F = S.fm || (S.fm = fmInit()), d = Math.floor(S.t / 1440); if (d !== F.last){ F.n++; F.last = d; } F.kr += total;
   if (!F.b && F.n >= BLADB.days && F.kr >= BLADB.kr){ F.b = true;
-    msg('Fiskeridirektoratet', 'Du er ført på blad B i fiskermanntallet: fiske er hovedyrket ditt. Nå kan du kjøpe en båt med deltakeradgang i lukket gruppe, og Kystfondet kan toppfinansiere det første kjøpet. Se Båthandel under Verft.', 'You are on blad B of the fishermen\'s register: fishing is your main occupation. You can now buy a boat with a closed-group right, and Kystfondet can top up the financing of the first one. See the boat market in the yard.'); } }
+    if (typeof cloudEv === 'function') cloudEv('bladb', {});   /* (steg 153, the funnel: the day blad B is reached, against the first right) */ msg('Fiskeridirektoratet', 'Du er ført på blad B i fiskermanntallet: fiske er hovedyrket ditt. Nå kan du kjøpe en båt med deltakeradgang i lukket gruppe, og Kystfondet kan toppfinansiere det første kjøpet. Se Båthandel under Verft.', 'You are on blad B of the fishermen\'s register: fishing is your main occupation. You can now buy a boat with a closed-group right, and Kystfondet can top up the financing of the first one. See the boat market in the yard.'); } }
 const bladB = () => !!(S.fm && S.fm.b);
 // loans: Kystbanken lends against the fleet; Innovasjon Norge tops up the first closed-group purchase with a risk loan at a higher rate
 // (the share and the rate are estimates, not checked against their terms)

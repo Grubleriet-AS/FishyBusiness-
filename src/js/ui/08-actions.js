@@ -268,6 +268,9 @@ function sell(){
   if (crabDead > 0.05) msg(port.name, vt + fmt(crabDead, 1) + ' kg av kongekrabben var død og er vraket. Død krabbe betales ikke. Et krabbekar med sjøvann holder den levende i flere døgn.', vt + fmt(crabDead, 1) + ' kg of the king crab was dead and has been discarded. Dead crab is not paid for. A live crab tank keeps it alive for days.');
   // confKg and confKr count all that was confiscated (crab too); codKg and codKr are the cod, haddock and saithe rows on the note
   S.lastSale = {qcod:acc !== 'none' && isFinite(codLimitNow(H)) ? [Math.round(q.torsk), Math.round(codLimitNow(H)), ffPct(H) > 0 ? 1 : 0] : null, port:port.id, t:S.t, lines:arr, total, ex, confKg:confKg + crabSmall, confKr:confKr + crabKr, codKg:confKg, codKr:confKr, vedKr, confRows, crabKg:crabSmall, crabKr, crabDead, ordKr, gutKr, gutKg:Math.round(gutKg), ffKg:codFF, field, lott, tk, mva, fk, ls:{D:LS.D, M:LS.M, n:LS.n, own:LS.own, tot:LS.tot, f:LS.f, ref:LS.ref, pot:LS.pot, mask:(S.equip && S.equip.jukse) || 0, per:LS.per.map(p => ({name:p.c.name, lots:p.lots, kr:p.kr, sk:p.sk, x:p.x, appr:p.appr}))}, coopKr, ord:ordLines, acc, crabFine, roeCut, streak:{pct:stPct, kr:stKr}, gear:Object.keys(b.tripGear || {}), sno:snoQ ? {tq:snoQ.tq, ord:snoQ.ord, live:snoQ.live} : null, why}; b.tripGear = {};
+  // (steg 153, the funnel: a landing with something confiscated, in three sizes and by the group; never the place or the boat. The share
+  // of landings is this against the «sale» event every landing sends)
+  if (confKg > 0.5 && typeof cloudEv === 'function') cloudEv('land_conf', {kg:confKg < 100 ? 'u100' : confKg < 500 ? 'u500' : 'o500', acc});
   tatLanding(port.id); checkTattoos();
   if (S.tut && S.tut.catch) S.tut.catch = false;   // the first-trip guarantee ends with the first landing
   for (const x of S.hold) delete x._used;
