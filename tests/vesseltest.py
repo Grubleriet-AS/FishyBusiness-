@@ -191,7 +191,7 @@ async def main():
         print(ok(r['noInn'] == 'eq' and r['after']['lic'] == 'u7' and r['after']['type'] == 'trebat' and r['after']['cash'] >= 0 and r['after']['loanIN'] and r['after']['loanIN'] <= r['price'] * 0.15 + 1
                  and r['after']['loan'] <= r['price'] * 0.8 + 1 and r['after']['inUsed'] and not r['after']['innNow']), 'the entry: the skiff and NOK 200 000 buy the boat with a right under 7 m with the top-up, not without it')
         g0, g1, g2 = r['goals0'], r['goals1'], r['goals2']
-        print(ok(len(g0) == 2 and 'Blad B' in g0[0] and 'under 7 m' in g0[1] and 'under 7 m' in g1[0] and '7–7,9 m' in g2[0] and '14,99' in g2[1]), 'Neste mål follows the ladder: blad B, the entry right, the next right, the 14.99 m coastal vessel', [g0, g1, g2])
+        print(ok(len(g0) == 2 and 'Blad B' in g0[0] and 'under 7 m' in g0[1] and 'under 7 m' in g1[0] and '7–7,9 m' in g2[0] and not any('14,99' in x for x in g0 + g1 + g2)), 'Neste mål follows the ladder: blad B, the entry right, the next right, and never the 14.99 m coastal vessel without a right (steg 148)', [g0, g1, g2])
         print(ok(r['bank'] and r['papers']), 'the bank shows the risk loan, and the papers show blad B')
         print(ok(r['sell']['loanDown'] == r['sell']['val'] and r['sell']['cash'] == 0), 'selling a vessel (now to Kystmegleren for 90 %, B4) pays the loan off first')
         # «Neste mål» is the fleet's (Jonas 07.11.2026): an ocean vessel without a jigging machine and a sjark without a right, with 93 million
@@ -213,7 +213,7 @@ async def main():
         print('goals, ocean:', json.dumps(r, ensure_ascii=False))
         print(ok(r['hav'] == ['Stift Rederi AS'] and r['havHome'] and r['havAS'] == [] and not r['havASHome']),
               'Neste mål with an ocean vessel in the fleet: no jigging machine and no right under 7 m, only the AS, and no goal on the home screen with it', r)
-        print(ok(len(r['top']) == 2 and '14,99' in r['top'][0] and r['top'][1] == r['cheap']), 'Neste mål ends with the cheapest ocean vessel that can be bought, not «Havfiske, kommer»', r['top'])
+        print(ok(len(r['top']) >= 1 and r['top'][-1] == r['cheap'] and not any('14,99' in x for x in r['top'])), 'Neste mål ends with the cheapest ocean vessel that can be bought, not «Havfiske, kommer» (and without the 14.99 m hull alone, steg 148)', r['top'])
         # one tier between the boats (OPP4 of docs/planer/oppgraderinger.md): with one boat, the cheapest tier not bought that costs under a
         # tenth of the next boat in the ladder comes before her. A wooden boat with NOK 40 000 and the gaff at tier 2 gets the knives at tier
         # 2 (1 500 kr), not the old wooden snekke with a right; with nothing bought the gaff comes first (900 kr); with everything at the top,

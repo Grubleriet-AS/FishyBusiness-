@@ -1,6 +1,6 @@
 # Regelverket i klartekst: trinn, målere og «hvorfor kan jeg ikke» (plan 25.11.2026)
 
-**Status: valgene er tatt 25.11.2026 (V1 A, V2 A, V3 A; V3 var først B og ble endret samme dag). Fasene er steg 148–153 i køen. K0 (steg 148) venter på «kjør på». Ingenting er bygd.**
+**Status: valgene er tatt 25.11.2026 (V1 A, V2 A, V3 A). K0 (steg 148) er bygd og testet på grenen `ccr-e101e6f0-y7fg6x` samme dag, ikke flettet til arbeidsgrenen. K1 (steg 149) er neste, startmeldingen står i `start/149.md`.**
 
 ## Hva Jonas ba om
 
@@ -251,3 +251,4 @@ Jonas 25.11.2026: «V1A V2A V3B», og senere samme dag V3 endret til A.
 
 - 25.11.2026: planen skrevet i Jonas' økt (grenen `ccr-e101e6f0-y7fg6x`).
 - 25.11.2026: valgene tatt («V1A V2A V3B»), og V3 endret til A samme dag (4.5). 4.1–4.5, K1 og K4 følger V3 A. K0–K5 er steg 148–153 i `docs/planer/koen.md`, startmeldingen for K0 står i `docs/planer/start/148.md`. K0 venter på «kjør på»; Jonas ba om gjennomgang før noe bygges.
+- 25.11.2026: «Kjør på». **K0 bygd** (steg 148): T1–T4 og T7 rettet, hver med en test sett rød først (`tests/unit/tilstand.test.mjs`, seks sjekker i `quotatest`). Den uavhengige kontrollen fant åtte ting; rettet: samme hjemmelslengde sender verken `reg_free` eller `reg_take`, saldoen følger ikke med ved innbytte, testen i `COVER`, systemdokumentet. Nytt felt i lagringen: `S.vseq` (venter på Jonas' ja). T5 og T6 står (backloggen).

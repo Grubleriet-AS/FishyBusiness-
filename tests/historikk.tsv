@@ -6276,3 +6276,43 @@
 2026-11-25 06:24	ccr-e101e6f0-y7fg6x	7d7441c+	quotatest	FEIL	6	lite	alene	FEIL steg 148: «Neste mål» does not point at the 14.99 m coastal vessel without a right {'goal': True, 'goalKyst': True, 'goalTxt': 'Neste målPlastsnekke med hj
 2026-11-25 06:24	ccr-e101e6f0-y7fg6x	7d7441c+	quotatest	FEIL	5	lite	alene	FEIL steg 148: the same quota length traded for another boat leaves the register where it was {'type': 'breisjark', 'h10': [162, 161]}
 2026-11-25 06:24	ccr-e101e6f0-y7fg6x	7d7441c+	quotatest	OK	5	lite	alene	
+2026-11-25 06:33	ccr-e101e6f0-y7fg6x	bc3ff29	tutfull	OK	8	lite	samtidig	
+2026-11-25 06:33	ccr-e101e6f0-y7fg6x	bc3ff29	skattetest	OK	8	lite	samtidig	
+2026-11-25 06:33	ccr-e101e6f0-y7fg6x	bc3ff29	lotttest	OK	10	lite	samtidig	
+2026-11-25 06:33	ccr-e101e6f0-y7fg6x	bc3ff29	boktest	OK	10	lite	samtidig	
+2026-11-25 06:33	ccr-e101e6f0-y7fg6x	bc3ff29	keeptest	OK	7	lite	samtidig	
+2026-11-25 06:33	ccr-e101e6f0-y7fg6x	bc3ff29	decktest	OK	7	lite	samtidig	
+2026-11-25 06:33	ccr-e101e6f0-y7fg6x	bc3ff29	simday	LES	7	lite	samtidig	
+2026-11-25 06:33	ccr-e101e6f0-y7fg6x	bc3ff29	calib	LES	7	lite	samtidig	
+2026-11-25 06:33	ccr-e101e6f0-y7fg6x	bc3ff29	vesseltest	FEIL	10	lite	samtidig	FEIL Neste mål follows the ladder: blad B, the entry right, the next right, the 14.99 m coastal vessel [['Blad B i fiskermanntallet', 'Gammel tresnekke med hjem
+2026-11-25 06:33	ccr-e101e6f0-y7fg6x	bc3ff29	fuelcal	OK	6	lite	samtidig	
+2026-11-25 06:34	ccr-e101e6f0-y7fg6x	bc3ff29	tidetest	OK	25	lite	samtidig	
+2026-11-25 06:34	ccr-e101e6f0-y7fg6x	bc3ff29	climtest	OK	7	lite	samtidig	
+2026-11-25 06:34	ccr-e101e6f0-y7fg6x	bc3ff29	bktest	OK	17	lite	samtidig	
+2026-11-25 06:34	ccr-e101e6f0-y7fg6x	bc3ff29	yardupgtest	FEIL	6	lite	samtidig	FEIL the Trim app promises the top speed each trim gives, on the speed sjark with propeller 3 and engine 2 [[], [52.7, 52.7, 52.7, 52.7, 41.7, 47.2, 52.7]]
+2026-11-25 06:34	ccr-e101e6f0-y7fg6x	bc3ff29	autolinetest	OK	11	lite	samtidig	
+2026-11-25 06:34	ccr-e101e6f0-y7fg6x	bc3ff29	quotatest	FEIL	7	lite	samtidig	FEIL steg 148: after a trade-in the tax value is the new boat's own [45000, 245000]
+2026-11-25 06:34	ccr-e101e6f0-y7fg6x	bc3ff29	fleet2test	FEIL	21	lite	samtidig	FEIL follow: the HUD shows the followed vessel, no anchor
+2026-11-25 06:34	ccr-e101e6f0-y7fg6x	bc3ff29	selltest	LES	12	lite	samtidig	
+2026-11-25 06:35	ccr-e101e6f0-y7fg6x	bc3ff29	progweek	LES	33	lite	samtidig	
+2026-11-25 06:35	ccr-e101e6f0-y7fg6x	bc3ff29	megletest	OK	25	lite	samtidig	
+2026-11-25 06:35	ccr-e101e6f0-y7fg6x	bc3ff29	kvotemarkedtest	OK	28	lite	samtidig	
+2026-11-25 06:36	ccr-e101e6f0-y7fg6x	bc3ff29	docktest	OK	65	lite	samtidig	
+2026-11-25 06:36	ccr-e101e6f0-y7fg6x	bc3ff29	krabbefabrikktest	OK	20	lite	samtidig	
+2026-11-25 06:36	ccr-e101e6f0-y7fg6x	bc3ff29	fabrikktest	OK	14	lite	samtidig	
+2026-11-25 06:36	ccr-e101e6f0-y7fg6x	bc3ff29	fleet3test	OK	6	lite	samtidig	
+2026-11-25 06:36	ccr-e101e6f0-y7fg6x	bc3ff29	adminbuytest	OK	10	lite	samtidig	
+2026-11-25 06:36	ccr-e101e6f0-y7fg6x	bc3ff29	havtur	FEIL	0	lite	samtidig	FEIL hele kysten mangler i tools/map/out/game (release.py og game.py)
+2026-11-25 06:36	ccr-e101e6f0-y7fg6x	bc3ff29	opptest	OK	43	lite	samtidig	
+2026-11-25 06:36	ccr-e101e6f0-y7fg6x	bc3ff29	turtest	OK	7	lite	samtidig	
+2026-11-25 06:36	ccr-e101e6f0-y7fg6x	bc3ff29	aerendshot	OK	14	lite	samtidig	
+2026-11-25 06:36	ccr-e101e6f0-y7fg6x	bc3ff29	laerlingshot	OK	15	lite	samtidig	
+2026-11-25 06:37	ccr-e101e6f0-y7fg6x	bc3ff29	avtaleshot	OK	13	lite	samtidig	
+2026-11-25 06:38	ccr-e101e6f0-y7fg6x	bc3ff29	quotatest	OK	7	lite	samtidig	
+2026-11-25 06:39	ccr-e101e6f0-y7fg6x	bc3ff29	vesseltest	FEIL	10	lite	samtidig	FEIL Neste mål follows the ladder: blad B, the entry right, the next right, the 14.99 m coastal vessel [['Blad B i fiskermanntallet', 'Gammel tresnekke med hjem
+2026-11-25 06:39	ccr-e101e6f0-y7fg6x	6fa56e2	megletest	OK	24	lite	samtidig	
+2026-11-25 06:39	ccr-e101e6f0-y7fg6x	6fa56e2	kvotemarkedtest	OK	27	lite	samtidig	
+2026-11-25 06:39	ccr-e101e6f0-y7fg6x	6fa56e2	shoptest	OK	13	lite	samtidig	
+2026-11-25 06:39	ccr-e101e6f0-y7fg6x	6fa56e2	fleet3test	OK	5	lite	samtidig	
+2026-11-25 06:53	ccr-e101e6f0-y7fg6x	6fa56e2	markettest	FEIL	826	lite	alene	FEIL 3D, liggende: kjøpsøyeblikket på båten du er om bord i tegner i modellen, kameraet går rundt henne, og kortet har typen, året og kaia  [{"card": true, "in3
+2026-11-25 06:53	ccr-e101e6f0-y7fg6x	6fa56e2+	vesseltest	OK	9	lite	alene	
