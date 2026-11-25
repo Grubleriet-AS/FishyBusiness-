@@ -6357,3 +6357,10 @@
 2026-11-25 09:49	ccr-e101e6f0-y7fg6x	7cedbe5	r4test	OK	6	lite	samtidig	
 2026-11-25 09:50	ccr-e101e6f0-y7fg6x	7cedbe5	docktest	OK	62	lite	samtidig	
 2026-11-25 09:51	ccr-e101e6f0-y7fg6x	7cedbe5	uishots	OK	85	lite	samtidig	
+2026-11-25 11:12	ccr-e101e6f0-y7fg6x	dc40baf+	romtest	FEIL	13	lite	alene	FEIL verftet, hjemmel med innbytte: and on whether the open-group boat loses her place  {"loses": null, "ov": null}
+2026-11-25 11:12	ccr-e101e6f0-y7fg6x	dc40baf+	romtest	FEIL	5	lite	alene	avsluttet med kode 1
+2026-11-25 11:12	ccr-e101e6f0-y7fg6x	dc40baf+	romtest	FEIL	5	lite	alene	avsluttet med kode 1
+2026-11-25 11:12	ccr-e101e6f0-y7fg6x	dc40baf+	romtest	FEIL	5	lite	alene	avsluttet med kode 1
+2026-11-25 11:13	ccr-e101e6f0-y7fg6x	dc40baf+	romtest	FEIL	8	lite	alene	FEIL verftet, hjemmel med innbytte: the card and the purchase agree on the group, the limit and the cod fished  {"P": {"acc": "lukket", "limit": 12015, "used": 
+2026-11-25 11:13	ccr-e101e6f0-y7fg6x	dc40baf+	romtest	OK	8	lite	alene	
+2026-11-25 11:13	ccr-e101e6f0-y7fg6x	dc40baf+	romtest	OK	16	lite	alene	
