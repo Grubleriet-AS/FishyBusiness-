@@ -1,5 +1,10 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['rettinger-251126', '25.11.2026', 'Rettinger fra spillerne', 'Fixes from the players', [
+       ['Gjesteboka åpner seg igjen når du trykker på den i Bygd og ved rorbua.', 'The guest book opens again when you tap it in the village and at the rorbu.'],
+       ['En rute som ble stående fast mens båten lå til kai, tas nå bort av seg selv, så du kan legge en ny.', 'A route that got stuck while the boat lay at the quay is now taken away by itself, so you can lay a new one.'],
+       ['Bytter du enhet, fortsetter spillet fra enheten du spilte på sist. En enhet som har stått åpen, legger ikke lenger et eldre spill over det nye.', 'When you change device, the game goes on from the device you played on last. A device left open no longer puts an older game over the newer one.'],
+       ['Du får ikke lenger montert flere juksamaskiner enn båten har plass til.', 'You can no longer have more jigging machines fitted than the boat has room for.']]],
     ['marina-231126', '23.11.2026', 'Småbåthavnene', 'The small-boat harbours', [
        ['Småbåtene i småbåthavnene ligger ikke lenger i veien inn til kaia ved butikker, mottak og verft, og ikke under bryggene.', 'The small boats in the small-boat harbours no longer lie in the way in to the quay at shops, fish plants and yards, nor under the piers.']]],
     ['planlaas-211126', '21.11.2026', 'Driftsplanen låser seg ikke', 'The plan no longer locks', [

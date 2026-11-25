@@ -257,6 +257,8 @@ function finishJob(j){
     // the boat may have been traded for one the equipment does not suit while it waited: the yard pays back
     // (j.kr: what was paid for it, OPP2: a reel bought at a tier costs more than EQUIP's price; an older job has only the price)
     if (!equipFits(j.k, b.type)){ const back = j.kr || E.price; book('redskap', back, 'Tilbakebetalt: ' + E.name.no, 'Paid back: ' + E.name.en); log(E.name.no + ' passer ikke denne båten. Verkstedet betalte tilbake ' + kr(back) + '.', E.name.en + ' does not suit this vessel. The yard paid back ' + kr(back) + '.'); }
+    // (a reel more than she has places for, bought before buyGate counted the ones being fitted, tilbakemelding 377: paid back)
+    else if (E.multi && (S.equip[j.k] || 0) >= ((VESSELS[b.type] || {}).jukseMax || 0)){ const back = j.kr || E.price; book('redskap', back, 'Tilbakebetalt: ' + E.name.no, 'Paid back: ' + E.name.en); log('Båten har ikke plass til flere. ' + E.name.no + ' er betalt tilbake med ' + Math.round(back) + ' kr.', 'The boat has no room for more. The ' + E.name.en + ' was paid back, NOK ' + Math.round(back) + '.'); }
     else { if (E.multi) S.equip[j.k] = (S.equip[j.k] || 0) + 1; else S.equip[j.k] = true; applyVessel(); log('Montert: ' + E.name.no + '.', 'Fitted: ' + E.name.en + '.'); if (hooks.onEquip) hooks.onEquip(); } }
   else if (j.kind === 'repair'){ if (typeof hullMended === 'function') hullMended(j); else b.damage = 0; log('Skroget er reparert.', 'The hull is repaired.'); }
   else if (j.kind === 'eng'){ b.engLv = j.lv; applyVessel(); log('Ny motor montert: ' + BOAT.hp + ' hk, ' + fmt(BOAT.vmax, 1) + ' knop.', 'New engine fitted: ' + BOAT.hp + ' hp, ' + fmt(BOAT.vmax, 1) + ' knots.'); }

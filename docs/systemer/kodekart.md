@@ -861,7 +861,7 @@ crew: people with skills, habits and moods
   - 722 `flyOut(c)`
   - 730 `flyTick()`
 
-## `src/js/core/05-vessels.js` (1514 linjer)
+## `src/js/core/05-vessels.js` (1532 linjer)
 
 ---------- other vessels (deterministic, so every player sees the same traffic) ----------
 
@@ -923,55 +923,57 @@ crew: people with skills, habits and moods
   - 691 `step()`
   - 712 `holdMinute(H, p)`
   - 721 `vesselStep(H)`
-  - 816 `plantFuel(b)`
-  - 819 `sailV(H, hs)`
-  - 835 `sail(H, W, hs)`
-  - 873 `sailWaiting()`
-  - 874 `sailReplan(pl, b, gp)`
-  - 930 `iceWhy(p, tried)`
-  - 932 `sailStop(pl, b, why)`
-  - 940 `haltPlan(need)`
-  - 950 `arrive(w)`
-  - 971 `unstuckWhy()`
-  - 977 `unstuckSpot()`
-  - 990 `agFree()`
-  - 1001 `unstuck()`
-- **1015** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
-  - 1023 `moorPhase(b)`
-  - 1038 `dock(pid, berth)`
-  - 1066 `catchFactors(H, W, hs)`
-  - 1079 `stockDev(p, sp)`
-  - 1085 `fish(H, W, hs)`
-  - 1191 `endFishing(why)`
-  - 1212 `bycHere(how)`
-  - 1216 `bycAdd(sp, kg, how)`
-  - 1220 `bycConf()`
-  - 1223 `addCatch(sp, kg, cls, hook, opt)`
-- **1245** work on deck: gutting and icing take hands and time
-  - 1261 `deckHands()`
-  - 1264 `deckPending()`
-  - 1265 `deckEta(hands)`
-  - 1270 `moveKg(x, kg, patch)`
-  - 1278 `iceMinute()`
-  - 1285 `iceOut(out)`
-  - 1291 `deckMinute()`
-- **1316** lying to in a storm (H1b R8, 05.11.2026)
-  - 1338 `quayFar(b)`
-  - 1342 `lieTo(W, hs)`
-  - 1349 `lieToStep(W, hs)`
-  - 1359 `risk(W, hs)`
-  - 1387 `hullRepair()`
-  - 1390 `svcOverdue()`
-- **1391** the rescue boat (plan E3, 05.10.2026)
-  - 1417 `rescueBases()`
-  - 1426 `rescueBase(p)`
-  - 1433 `rescueAis(H)`
-  - 1437 `rescue(keepCatch)`
-  - 1465 `towSea(p)`
-  - 1470 `towRoutes(b)`
-  - 1481 `towStep(H)`
-  - 1494 `towDone(t)`
-  - 1503 `towPose(frac)`
+  - 817 `plantFuel(b)`
+  - 820 `sailV(H, hs)`
+  - 836 `sail(H, W, hs)`
+  - 874 `sailWaiting()`
+  - 875 `sailReplan(pl, b, gp)`
+  - 931 `iceWhy(p, tried)`
+  - 933 `sailStop(pl, b, why)`
+  - 946 `planPortStuck()`
+  - 947 `planPortFree()`
+  - 958 `haltPlan(need)`
+  - 968 `arrive(w)`
+  - 989 `unstuckWhy()`
+  - 995 `unstuckSpot()`
+  - 1008 `agFree()`
+  - 1019 `unstuck()`
+- **1033** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
+  - 1041 `moorPhase(b)`
+  - 1056 `dock(pid, berth)`
+  - 1084 `catchFactors(H, W, hs)`
+  - 1097 `stockDev(p, sp)`
+  - 1103 `fish(H, W, hs)`
+  - 1209 `endFishing(why)`
+  - 1230 `bycHere(how)`
+  - 1234 `bycAdd(sp, kg, how)`
+  - 1238 `bycConf()`
+  - 1241 `addCatch(sp, kg, cls, hook, opt)`
+- **1263** work on deck: gutting and icing take hands and time
+  - 1279 `deckHands()`
+  - 1282 `deckPending()`
+  - 1283 `deckEta(hands)`
+  - 1288 `moveKg(x, kg, patch)`
+  - 1296 `iceMinute()`
+  - 1303 `iceOut(out)`
+  - 1309 `deckMinute()`
+- **1334** lying to in a storm (H1b R8, 05.11.2026)
+  - 1356 `quayFar(b)`
+  - 1360 `lieTo(W, hs)`
+  - 1367 `lieToStep(W, hs)`
+  - 1377 `risk(W, hs)`
+  - 1405 `hullRepair()`
+  - 1408 `svcOverdue()`
+- **1409** the rescue boat (plan E3, 05.10.2026)
+  - 1435 `rescueBases()`
+  - 1444 `rescueBase(p)`
+  - 1451 `rescueAis(H)`
+  - 1455 `rescue(keepCatch)`
+  - 1483 `towSea(p)`
+  - 1488 `towRoutes(b)`
+  - 1499 `towStep(H)`
+  - 1512 `towDone(t)`
+  - 1521 `towPose(frac)`
 
 ## `src/js/core/05b-ferje.js` (197 linjer)
 
@@ -1129,7 +1131,7 @@ The ocean fleet as NPCs (H1 of docs/planer/bestand-og-flaate.md, 02.11.2026)
   - 1239 `farvWarn()`
   - 1240 `farvSay(w, how)`
 
-## `src/js/core/06-services.js` (349 linjer)
+## `src/js/core/06-services.js` (351 linjer)
 
 ---------- services behind the phone ----------
 
@@ -1155,13 +1157,13 @@ The ocean fleet as NPCs (H1 of docs/planer/bestand-og-flaate.md, 02.11.2026)
   - 210 `depart()`
   - 243 `yardStale(j, b)`
   - 251 `finishJob(j)`
-  - 283 `fitHours(k)`
-  - 286 `jobOk(j)`
-  - 291 `queueJob(j)`
-  - 295 `jobsDone()`
-  - 301 `shelterReturn(W, hsOver)`
-  - 327 `startReturn(auto, W, home, hsOver, opsKeep)`
-- **347** CORE END
+  - 285 `fitHours(k)`
+  - 288 `jobOk(j)`
+  - 293 `queueJob(j)`
+  - 297 `jobsDone()`
+  - 303 `shelterReturn(W, hsOver)`
+  - 329 `startReturn(auto, W, home, hsOver, opsKeep)`
+- **349** CORE END
 
 ## `src/js/core/06b-coastports.js` (199 linjer)
 
@@ -1856,7 +1858,7 @@ Kystvakta: the inspection at the quay or on the field (Oppdrag 2 V1, 30.10.2026;
   - 314 `kvWhatSno(r)`
   - 333 `kvFinish()`
 
-## `src/js/core/10-gear.js` (958 linjer)
+## `src/js/core/10-gear.js` (964 linjer)
 
 passive gear: nets, line and pots that stand in the sea while the boat is away
 
@@ -1892,63 +1894,64 @@ passive gear: nets, line and pots that stand in the sea while the boat is away
   - 240 `ownedUnits(kind)`
   - 247 `gearRoom(kind)`
 - **249** buying (in port)
-  - 252 `buyGate(what, spec, lv)`
-  - 276 `tierGate(k, lv)`
-  - 297 `jigTierBack(type, n0, lv)`
-  - 304 `tierBuy(k, lv)`
-  - 314 `buyGear(what, spec, n)`
-  - 349 `joinNets(id1, id2)`
-  - 350 `splitNets(id, n)`
-- **352** rules for setting at a place
-  - 354 `segDist(p, a, b)`
-  - 355 `nearSet(p, km)`
-  - 356 `gearRules(kind, spec, p)`
-  - 390 `setGeom(p, hdg, km)`
-  - 397 `setGeomExact(p, hdg, km)`
-- **399** the work at sea: status stays 'fishing' with b.gop, so deck work, rest rules, auto-return and the tub pause work as before
-  - 400 `gopUnitMin(g, H, hs)`
-  - 425 `startSet(kind, spec, fishAfter, hdg)`
-  - 448 `startHaul(sid, reset, fishAfter)`
-  - 467 `endLines(op, kind, d)`
-  - 470 `thiefOf(s)`
-  - 480 `haulSlow(g)`
-  - 485 `gearOpMinute(H, W, hs)`
-  - 510 `finishSet(g, H)`
-  - 522 `gopEnd(g)`
-  - 524 `gopAfter(b = S.boat)`
-  - 528 `gearUnset(s, n)`
-  - 538 `gopAbort(why)`
-  - 558 `gearBack(s, n, cond, W)`
-  - 565 `wearNets(s, g)`
-  - 574 `haulUnit(g, H, SL)`
-  - 592 `landFish(sp, kg, key, mesh, p, H, hook, fresh, g)`
-  - 608 `netLen(w)`
-  - 609 `retain(sp, key, mesh, w)`
-  - 616 `sampleSel(sp, key, mesh, p, H)`
-  - 619 `landCrabs(g, n, kg)`
-  - 630 `finishHaul(g, H)`
-- **670** a station on a route or the standing plan: haul what stands here and set it again, or set new gear if nothing stands here.
-  - 674 `cycleSpec(kind, want, n)`
-  - 688 `gearCycle(w, fishAfter)`
-  - 706 `opsGearNeeds(o)`
-  - 716 `opsGearAfter()`
-- **722** in the sea, every hour: catch, losses, weather and deadlines (company level)
-  - 723 `soakHour(s, H)`
-  - 770 `potsOver(type = S.boat && S.boat.type, pg = S.pgear, sets = mySets()`
-  - 773 `potsUnfit()`
-  - 795 `gearHour(H)`
-  - 833 `reportLost(sid)`
-  - 841 `netMended(l)`
-- **842** in port: baiting at the shed or by the crew, mending by the crew or at the net loft in Finnsnes
-  - 848 `egnOrder(lk, n, bait)`
-  - 862 `egnHands()`
-  - 871 `egnSelf(lk, n, bait)`
-  - 892 `stripSelf(lk, bait, n, then)`
-  - 906 `mendSelf(nid)`
-  - 917 `botOrder(nid)`
-  - 928 `gearJob(j)`
-  - 940 `gearJobCancel(j)`
-  - 947 `shoreTick()`
+  - 253 `equipCount(k)`
+  - 254 `buyGate(what, spec, lv)`
+  - 282 `tierGate(k, lv)`
+  - 303 `jigTierBack(type, n0, lv)`
+  - 310 `tierBuy(k, lv)`
+  - 320 `buyGear(what, spec, n)`
+  - 355 `joinNets(id1, id2)`
+  - 356 `splitNets(id, n)`
+- **358** rules for setting at a place
+  - 360 `segDist(p, a, b)`
+  - 361 `nearSet(p, km)`
+  - 362 `gearRules(kind, spec, p)`
+  - 396 `setGeom(p, hdg, km)`
+  - 403 `setGeomExact(p, hdg, km)`
+- **405** the work at sea: status stays 'fishing' with b.gop, so deck work, rest rules, auto-return and the tub pause work as before
+  - 406 `gopUnitMin(g, H, hs)`
+  - 431 `startSet(kind, spec, fishAfter, hdg)`
+  - 454 `startHaul(sid, reset, fishAfter)`
+  - 473 `endLines(op, kind, d)`
+  - 476 `thiefOf(s)`
+  - 486 `haulSlow(g)`
+  - 491 `gearOpMinute(H, W, hs)`
+  - 516 `finishSet(g, H)`
+  - 528 `gopEnd(g)`
+  - 530 `gopAfter(b = S.boat)`
+  - 534 `gearUnset(s, n)`
+  - 544 `gopAbort(why)`
+  - 564 `gearBack(s, n, cond, W)`
+  - 571 `wearNets(s, g)`
+  - 580 `haulUnit(g, H, SL)`
+  - 598 `landFish(sp, kg, key, mesh, p, H, hook, fresh, g)`
+  - 614 `netLen(w)`
+  - 615 `retain(sp, key, mesh, w)`
+  - 622 `sampleSel(sp, key, mesh, p, H)`
+  - 625 `landCrabs(g, n, kg)`
+  - 636 `finishHaul(g, H)`
+- **676** a station on a route or the standing plan: haul what stands here and set it again, or set new gear if nothing stands here.
+  - 680 `cycleSpec(kind, want, n)`
+  - 694 `gearCycle(w, fishAfter)`
+  - 712 `opsGearNeeds(o)`
+  - 722 `opsGearAfter()`
+- **728** in the sea, every hour: catch, losses, weather and deadlines (company level)
+  - 729 `soakHour(s, H)`
+  - 776 `potsOver(type = S.boat && S.boat.type, pg = S.pgear, sets = mySets()`
+  - 779 `potsUnfit()`
+  - 801 `gearHour(H)`
+  - 839 `reportLost(sid)`
+  - 847 `netMended(l)`
+- **848** in port: baiting at the shed or by the crew, mending by the crew or at the net loft in Finnsnes
+  - 854 `egnOrder(lk, n, bait)`
+  - 868 `egnHands()`
+  - 877 `egnSelf(lk, n, bait)`
+  - 898 `stripSelf(lk, bait, n, then)`
+  - 912 `mendSelf(nid)`
+  - 923 `botOrder(nid)`
+  - 934 `gearJob(j)`
+  - 946 `gearJobCancel(j)`
+  - 953 `shoreTick()`
 
 ## `src/js/core/10b-gearcare.js` (274 linjer)
 
@@ -3142,12 +3145,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1794 linjer)
+## `src/js/ui/phone/07-patch.js` (1799 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1782 `patch()`
+  - 1787 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (133 linjer)
 
@@ -3717,15 +3720,15 @@ passive gear on screen: the action bar, the fish panel, the chart and the route
   - 224 `wpActCycle(w)`
   - 229 `gearDoAct(act, el)`
 
-## `src/js/ui/10c-dock.js` (617 linjer)
+## `src/js/ui/10c-dock.js` (619 linjer)
 
 ---------- the dock: round buttons along the bottom that follow what the boat is doing, and the drawer at the side ----------
 
 - **1** the dock: round buttons along the bottom that follow what the boat is doing, and the drawer at the side
-- **415** the drawer
-- **523** the calm (UI 2, U2-4, 07.11.2026; docs/planer/ui-2-staaende.md 4.5, Jonas' V8 A 06.11.2026)
-  - 590 `renderActs()`
-  - 603 `showroomTick()`
+- **417** the drawer
+- **525** the calm (UI 2, U2-4, 07.11.2026; docs/planer/ui-2-staaende.md 4.5, Jonas' V8 A 06.11.2026)
+  - 592 `renderActs()`
+  - 605 `showroomTick()`
 
 ## `src/js/ui/10d-helm.js` (51 linjer)
 
@@ -3742,7 +3745,7 @@ SOUND (the user's wish 03.10.2026)
 - **144** the music (Jonas 05.10.2026: «rolig ambient instrumentaler som svak stemning i bakgrunnen. Må kunne skrus av i innstillinger»)
 - **312** the whistle and the bell (Ø11.2; sjøveisreglene FOR-1975-12-01-5 rules 32-35 and vedlegg III, read 06.11.2026)
 
-## `src/js/ui/10f-cloud.js` (1111 linjer)
+## `src/js/ui/10f-cloud.js` (1128 linjer)
 
 THE CLOUD (04.10.2026; docs/lansering.md E and F)
 
@@ -3779,76 +3782,78 @@ THE CLOUD (04.10.2026; docs/lansering.md E and F)
   - 295 `cloudAsk()`
   - 305 `cloudConsent(yes, by)`
   - 311 `cloudBegin()`
-  - 321 `cloudEv(k, d)`
-  - 322 `cloudFlush(end)`
-- **331** the errors (04.10.2026; caught everywhere since 02.11.2026, js/errtrap.js)
-  - 342 `srcMapStr(s)`
-  - 355 `errNoise(msg)`
-  - 363 `errSporOf(kind, msg)`
-  - 369 `errWithSpor(stack, spor)`
-  - 381 `cloudErr(msg, src, stack, kind, opt)`
-  - 394 `errSend(e)`
-  - 398 `errQueue()`
-  - 399 `errKeep(list)`
-  - 403 `errFlush()`
-  - 427 `errStart()`
-- **439** a page that stops or stands still while it is on the screen
-  - 446 `aliveRead()`
-  - 447 `aliveBeat(gone)`
-  - 460 `aliveCheck()`
-  - 485 `hangWatch()`
-- **502** the save between devices (05.10.2026; supabase/migrations/20261005200000_save_sync.sql)
-  - 509 `syncGet()`
-  - 510 `syncSet(rev, at, rv, sq)`
-  - 516 `deviceId()`
-  - 520 `deviceName()`
-  - 525 `cloudStatus(s)`
-  - 526 `cloudStatusText()`
-  - 535 `saveSum(o)`
-  - 539 `sumText(m)`
-  - 546 `cloudChoose(here, cloud, when, box)`
-  - 561 `cloudKeptNote(where)`
-  - 566 `cloudTake(cs)`
-  - 572 `cloudSync(cs)`
-  - 603 `cloudSaveSoon(closing, manual)`
-  - 652 `cloudSoon(ms)`
-- **653** one device at a time (13.10.2026, supabase/migrations/20261013120000_active.sql)
-  - 663 `cloudFp()`
-  - 664 `cloudClaim(wait)`
-  - 678 `cloudBeat(now)`
-  - 694 `cloudWake()`
-  - 700 `cloudPassed(h)`
-  - 715 `cloudHeldShow(h)`
-  - 724 `cloudPlayHere()`
-  - 734 `cloudCheckHead()`
-  - 743 `cloudConflict(cl, moved)`
-  - 773 `cloudHist()`
-  - 778 `cloudRestore(id)`
-- **789** what is measured: the game's own functions, wrapped once they are all defined
-  - 790 `cloudHooks()`
-- **821** the account card in Settings
-  - 822 `cloudCard()`
-  - 846 `histRows()`
-  - 858 `cloudAccountDel()`
-  - 869 `cloudMediaDel()`
-  - 875 `cloudAct(a, d)`
-- **911** registering, for a guest: in the game's own words, never a wall before the third landing
-  - 920 `guestHave()`
-  - 926 `guestAsk(why)`
-  - 952 `nameWhy(v)`
-  - 969 `namesKept()`
-  - 970 `namesKeep(o)`
-  - 972 `namesApply()`
-  - 980 `nameTake(n, quiet)`
-  - 990 `nameCheck()`
-  - 1011 `nameSuggest()`
-  - 1020 `nameAsk(why, reason)`
-  - 1045 `guestOpenAsk()`
-  - 1057 `nameNudge(force)`
-  - 1072 `guestNudge(step)`
-  - 1084 `guestLogin(src)`
-  - 1090 `guestRegister(signIn)`
-  - 1105 `guestGift()`
+  - 322 `cloudEv(k, d)`
+  - 323 `cloudFlush(end)`
+- **332** the errors (04.10.2026; caught everywhere since 02.11.2026, js/errtrap.js)
+  - 343 `srcMapStr(s)`
+  - 356 `errNoise(msg)`
+  - 364 `errSporOf(kind, msg)`
+  - 370 `errWithSpor(stack, spor)`
+  - 382 `cloudErr(msg, src, stack, kind, opt)`
+  - 395 `errSend(e)`
+  - 399 `errQueue()`
+  - 400 `errKeep(list)`
+  - 404 `errFlush()`
+  - 428 `errStart()`
+- **440** a page that stops or stands still while it is on the screen
+  - 447 `aliveRead()`
+  - 448 `aliveBeat(gone)`
+  - 461 `aliveCheck()`
+  - 486 `hangWatch()`
+- **503** the save between devices (05.10.2026; supabase/migrations/20261005200000_save_sync.sql)
+  - 510 `syncGet()`
+  - 514 `passSet(on)`
+  - 517 `cloudEvLater(k, d)`
+  - 518 `syncSet(rev, at, rv, sq)`
+  - 524 `deviceId()`
+  - 528 `deviceName()`
+  - 533 `cloudStatus(s)`
+  - 534 `cloudStatusText()`
+  - 543 `saveSum(o)`
+  - 547 `sumText(m)`
+  - 554 `cloudChoose(here, cloud, when, box)`
+  - 569 `cloudKeptNote(where)`
+  - 574 `cloudTake(cs, kept)`
+  - 581 `cloudSync(cs)`
+  - 620 `cloudSaveSoon(closing, manual)`
+  - 669 `cloudSoon(ms)`
+- **670** one device at a time (13.10.2026, supabase/migrations/20261013120000_active.sql)
+  - 680 `cloudFp()`
+  - 681 `cloudClaim(wait)`
+  - 695 `cloudBeat(now)`
+  - 711 `cloudWake()`
+  - 717 `cloudPassed(h)`
+  - 732 `cloudHeldShow(h)`
+  - 741 `cloudPlayHere()`
+  - 751 `cloudCheckHead()`
+  - 760 `cloudConflict(cl, moved)`
+  - 790 `cloudHist()`
+  - 795 `cloudRestore(id)`
+- **806** what is measured: the game's own functions, wrapped once they are all defined
+  - 807 `cloudHooks()`
+- **838** the account card in Settings
+  - 839 `cloudCard()`
+  - 863 `histRows()`
+  - 875 `cloudAccountDel()`
+  - 886 `cloudMediaDel()`
+  - 892 `cloudAct(a, d)`
+- **928** registering, for a guest: in the game's own words, never a wall before the third landing
+  - 937 `guestHave()`
+  - 943 `guestAsk(why)`
+  - 969 `nameWhy(v)`
+  - 986 `namesKept()`
+  - 987 `namesKeep(o)`
+  - 989 `namesApply()`
+  - 997 `nameTake(n, quiet)`
+  - 1007 `nameCheck()`
+  - 1028 `nameSuggest()`
+  - 1037 `nameAsk(why, reason)`
+  - 1062 `guestOpenAsk()`
+  - 1074 `nameNudge(force)`
+  - 1089 `guestNudge(step)`
+  - 1101 `guestLogin(src)`
+  - 1107 `guestRegister(signIn)`
+  - 1122 `guestGift()`
 
 ## `src/js/ui/10g-push.js` (210 linjer)
 

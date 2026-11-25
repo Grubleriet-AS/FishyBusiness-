@@ -163,12 +163,27 @@ def ts(v):
     except Exception: return None
 
 
+# The page's own watch (a crash, a hang, a start that stood or was slow) is seen on every version and platform, all day: the version, the
+# platform and the hour then say nothing about a feedback, and every bug report was linked to the crash cluster (19.–25.11.2026: the
+# guest book, the standing plan, a fishing vessel mark, all «klynge:161ab007», which waited for Jonas, so none was taken: fix_fb wants a
+# feedback with no cluster). Such a cluster is linked only to a feedback whose words are about a crash or a hang.
+WATCH_MSG = re.compile(r'krasj|heng|oppstarten|treg oppstart', re.I)
+CRASH_KW = re.compile(r'krasj|kræsj|crash|fryser|frøs|frys|henger seg|hengt seg|hang|svart skjerm|hvit skjerm|laster ikke|lastet ikke|starter ikke|'
+                      r'freez|black screen|won.?t load|lagg|hakker|kastet ut|omstart|restart', re.I)
+# the game's own report of a grounding (ui/06e-feedback.js: «[Grunnstøting] Spillerens svar: …»): never about an error cluster, and not a
+# bug report to fix one by one either; they are counted (the incidents and Autonav's own lists have each of them: agent.py incidents)
+GRUNN = re.compile(r'^\s*\[Grunnstøting\]')
+def watch(c): return (c.get('src') or '') in ('crash', 'hang') or bool(WATCH_MSG.match(c.get('msg') or ''))
+
+
 def link(row, cls):
-    """The error cluster this feedback most likely is about: same version and platform, sent near the cluster's time; the most severe."""
-    m = row.get('meta') or {}; t = ts(row.get('ts'))
+    """The error cluster this feedback most likely is about: same version and platform, sent near the cluster's time; the most severe.
+    A crash or hang cluster only for a feedback that speaks of one (watch, CRASH_KW)."""
+    m = row.get('meta') or {}; t = ts(row.get('ts')); crash = bool(CRASH_KW.search(row.get('body') or ''))
     best = None
     for c in cls:
         if c['alvor'] < 3 or not t: continue
+        if watch(c) and not crash: continue
         if not m.get('version') or m.get('version') not in c['versions']: continue          # the version must be known and the same
         if m.get('platform') and c['platforms'] and str(m.get('platform')).lower() not in {k.lower() for k in c['platforms']}: continue
         a, b = ts(c['first']), ts(c['last'])
@@ -181,6 +196,10 @@ def link(row, cls):
 
 def classify_feedback(row, cls):
     body = row.get('body') or ''; topic = row.get('topic') or 'other'
+    if GRUNN.match(body):
+        m = row.get('meta') or {}
+        return {'id': row.get('id'), 'type': 'grunnstøting', 'alvor': 2, 'vekt': 1.0, 'score': 2.0, 'klynge': None, 'topic': topic, 'version': m.get('version'),
+                'platform': m.get('platform'), 'who': row.get('who')}
     c = link(row, cls) if topic in ('bug', 'perf', 'ui', 'tut', 'boat', 'world', 'other') or TECH_KW.search(body) else None
     tech, bal, wish = bool(TECH_KW.search(body)), bool(BAL_KW.search(body)), bool(WISH_KW.search(body))
     if c: typ = 'teknisk'
@@ -303,7 +322,8 @@ def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=(), reg=(), 
     fix_fb = [f for f in fb if f['type'] == 'teknisk' and not f['klynge'] and f['id'] not in hfb and f['id'] not in gfb and f['score'] >= MIN_FIX]
     blocked = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and not allowed(c)]
     return {'klynger': cls, 'tilbakemeldinger': fb, 'rett': fix_cl, 'rett_fb': fix_fb, 'sperret': blocked, 'oppgitt': sorted(gcl) + ['#%d' % n for n in sorted(gfb)],
-            'onsker': [f for f in fb if f['type'] in ('ønske', 'balanse')], 'uklare': [f for f in fb if f['type'] == 'uklar']}
+            'onsker': [f for f in fb if f['type'] in ('ønske', 'balanse')], 'uklare': [f for f in fb if f['type'] == 'uklar'],
+            'grunn': [f for f in fb if f['type'] == 'grunnstøting']}
 
 
 def opus_budget(total, steps):
@@ -319,7 +339,7 @@ def summary(d, rewards, noted_n, opus_igjen=None):
     return {'ingenting': ingenting, 'trenger_opus': want and (opus_igjen is None or opus_igjen > 0), 'opus_igjen': opus_igjen,
             'opus_taket_naadd': want and opus_igjen is not None and opus_igjen <= 0, 'nye_tilbakemeldinger': len(d['tilbakemeldinger']),
             'nye_tekniske': len(nye_tek), 'kan_rettes': [c['id'] for c in d['rett']] + ['#%s' % f['id'] for f in d['rett_fb']],
-            'sperret_av_pr_laasen': [c['id'] for c in d['sperret']], 'venter_paa_jonas': d.get('oppgitt', []), 'onsker_og_balanse': len(d['onsker']), 'uklare': len(d['uklare']),
+            'sperret_av_pr_laasen': [c['id'] for c in d['sperret']], 'venter_paa_jonas': d.get('oppgitt', []), 'onsker_og_balanse': len(d['onsker']), 'uklare': len(d['uklare']), 'grunnstotinger': len(d.get('grunn', [])),
             'belonnet': [{'tilbakemelding': f, 'pr': p} for f, p in rewards], 'notert_for': noted_n}
 
 
@@ -336,6 +356,9 @@ def draft(d, s):
         L += ['', 'Venter på PR-låsen (en middels/høy PR venter på Jonas, under 24 timer): ' + ', '.join('`klynge:%s`' % c['id'] for c in d['sperret'])]
     if s['belonnet']:
         L += ['', '## Rettet og sluppet: takk-haill sendt', ''] + ['- tilbakemelding #%s (PR #%s)' % (b['tilbakemelding'], b['pr']) for b in s['belonnet']]
+    if d.get('grunn'):
+        L += ['', 'Automatiske grunnstøtingsrapporter: %d (%s). De rettes ikke én og én; stedene står i `agent.py incidents` og hører til Autonav.' % (
+            len(d['grunn']), ', '.join('#%s' % f['id'] for f in d['grunn'][:30]))]
     L += ['', '## Til Jonas: ønsker og balanse', '']
     for f in sorted(d['onsker'], key=lambda f: -f['score']):
         L.append('- #%s %s (%s), score %s' % (f['id'], f['type'], f['topic'], f['score']))
@@ -422,8 +445,8 @@ def real_run(a):
     dump = dict(d); dump['oppsummering'] = s
     json.dump(dump, open(os.path.join(a.out, 'triage.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=1, default=list)
     open(os.path.join(a.out, 'rapport-utkast.md'), 'w', encoding='utf-8').write(draft(d, s))
-    print('%d nye tilbakemeldinger (%d tekniske, %d ønsker/balanse, %d uklare), %d klynger i feillista, %d nye tekniske å se på' % (
-        len(d['tilbakemeldinger']), sum(f['type'] == 'teknisk' for f in d['tilbakemeldinger']), len(d['onsker']), len(d['uklare']), len(d['klynger']), s['nye_tekniske']))
+    print('%d nye tilbakemeldinger (%d tekniske, %d ønsker/balanse, %d uklare, %d grunnstøtinger), %d klynger i feillista, %d nye tekniske å se på' % (
+        len(d['tilbakemeldinger']), sum(f['type'] == 'teknisk' for f in d['tilbakemeldinger']), len(d['onsker']), len(d['uklare']), len(d.get('grunn', [])), len(d['klynger']), s['nye_tekniske']))
     for c in d['rett'][:5]: print('  rett: klynge:%s score %s risiko %s  %s  (%s)' % (c['id'], c['score'], c['risiko'], c['msg'][:80], c['file'] or c['src']))
     for f in d['rett_fb'][:5]: print('  rett: tilbakemelding #%s score %s' % (f['id'], f['score']))
     for c in d['sperret'][:5]: print('  venter på PR-låsen: klynge:%s (%s)' % (c['id'], c['risiko']))
@@ -482,6 +505,20 @@ def selftest():
     eq('ønske', F[12]['type'], 'ønske'); eq('balanse', (F[13]['type'], F[13]['vekt']), ('balanse', 1.5))
     eq('ui-feil koblet til kast', (F[14]['type'], F[14]['klynge'] is not None), ('teknisk', True))
     eq('uklar', F[15]['type'], 'uklar'); eq('tapt fremdrift', (F[16]['type'], F[16]['alvor'], F[16]['klynge']), ('teknisk', 5, None))
+    # the crashes and the hangs are on every version and platform all the time, so the version, the platform and the hour link nothing
+    # to them: only a feedback that speaks of a crash or a hang. 19.–25.11.2026 every bug report (the guest book, the standing plan,
+    # the automatic grounding reports, a fishing vessel mark) was linked to the crash cluster 161ab007, which waited for Jonas, so none
+    # of them was ever taken (fix_fb wants a feedback with no cluster)
+    R2 = [{'id': 21, 'ts': iso(2), 'topic': 'bug', 'body': 'Gjesteboka virker ikke, ingenting skjer når jeg trykker', 'meta': {'version': 'v2', 'platform': 'Android'}, 'played': '5-20 t', 'who': 'g'},
+          {'id': 22, 'ts': iso(2), 'topic': 'bug', 'body': '[Grunnstøting] Spillerens svar: Ja, spillets feil. Båt: X. Styrt av: route. 4 knop.', 'meta': {'version': 'v2', 'platform': 'Android'}, 'played': '5-20 t', 'who': 'h'},
+          {'id': 23, 'ts': iso(2), 'topic': 'bug', 'body': 'Spillet fryser og henger seg hele tiden', 'meta': {'version': 'v2', 'platform': 'Android'}, 'played': '5-20 t', 'who': 'i'},
+          {'id': 24, 'ts': iso(2), 'topic': 'bug', 'body': '[Grunnstøting] Spillerens svar: Ja, spillets feil. Båt: Y. Styrt av: leia. 2 knop.', 'meta': {'version': 'v2', 'platform': 'iOS'}, 'played': '5-20 t', 'who': 'j'}]
+    F2 = {f['id']: f for f in (classify_feedback(r, cls) for r in R2)}
+    eq('en feil som ikke er en krasj, kobles ikke til krasjklyngen', (F2[21]['type'], F2[21]['klynge']), ('teknisk', None))
+    eq('en automatisk grunnstøting kobles aldri til en klynge', (F2[22]['klynge'], F2[24]['klynge'], F2[22]['type']), (None, None, 'grunnstøting'))
+    eq('en krasj i teksten kobles fortsatt', F2[23]['klynge'], krasj['id'])
+    eq('grunnstøtingene telles for seg', len(decide(R2, [], E, [], iso(6), now, {'lav': True, 'middels_hoy': True})['grunn']), 2)
+    eq('ukoblet teknisk feil kan rettes', [f['id'] for f in decide(R2, [], E, [], iso(6), now, {'lav': True, 'middels_hoy': True})['rett_fb']], [21])
     # deciding: nothing new
     open_lock = {'lav': True, 'middels_hoy': True}
     d = decide([], [], [], [], iso(0.5), now, open_lock); s = summary(d, [], 0)

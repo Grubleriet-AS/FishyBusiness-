@@ -247,5 +247,17 @@ function opp2(t, K, S, boat, shop, plant){
   t.ok(!!K.buyGate('tier', 'juksesett'), `juksasettenes trinn nektes da: «${(K.buyGate('tier', 'juksesett') || [''])[0]}»`);
   S.equip = {jukse:1}; t.eq(K.jigSetsKr(), CARE.jig.mark.kr, 'med en juksamaskin teller settet som står på');
   S.boat.gear = true; S.equip = {};
+  // the reels: those aboard and those being fitted count against the boat's places (tilbakemelding 377, 23.11.2026: the button gave no
+  // sign, so «Kjøp» was tapped three times for reel five of five, and the shop fitted 7 of 5: only the fitted ones were counted), and
+  // a reel whose fitting ends with her places full is paid back (the ones queued before the rule)
+  { boat('sjark'); const mx = K.VESSELS.sjark.jukseMax; S.jobs = []; S.equip = {jukse:mx - 1};
+    t.ok(mx >= 2 && K.buyGate('equip', 'jukse') === null, 'en ledig plass: juksamaskinen kan kjøpes (' + (mx - 1) + ' av ' + mx + ')');
+    S.jobs = [{kind:'fit', k:'jukse', kr:1234, h:1, until:S.t + 60}];
+    t.ok(!!K.buyGate('equip', 'jukse'), `den siste plassen er under montering: nektes («${(K.buyGate('equip', 'jukse') || [''])[0]}»)`);
+    S.jobs = []; S.equip = {jukse:mx}; t.ok(!!K.buyGate('equip', 'jukse'), 'alle plassene fulle: nektes');
+    const c0 = S.cash; K.finishJob({kind:'fit', k:'jukse', kr:1234, h:1});
+    t.ok(S.equip.jukse === mx && S.cash === c0 + 1234, 'en maskin som blir ferdig montert uten plass, betales tilbake (' + S.equip.jukse + ' om bord, ' + (S.cash - c0) + ' kr)');
+    S.equip = {jukse:mx - 1}; K.finishJob({kind:'fit', k:'jukse', kr:1234, h:1}); t.ok(S.equip.jukse === mx, 'med plass monteres den som før');
+    S.jobs = []; }
   boat('trebat'); S.equip = {};
 }

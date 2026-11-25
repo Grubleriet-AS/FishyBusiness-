@@ -87,7 +87,9 @@ const DOCK = (() => {
   function portItems(){
     const b = S.boat, p = port(), tot = holdTotal(), busy = portBusy(b);
     // a rorbu has a bed and a quay, nothing more (07d-rorbu.js)
-    if (p.rorbu) return [restItem(), I('gjestebok', 'oppdrag', 'Gjestebok', 'Guestbook', {page:'gbook'}), behItem()].filter(Boolean);
+    // («Gjestebok»: the book is a page of the phone, not of the drawer, and open() below takes the drawer's pages only: with page:'gbook'
+    // the tap did nothing, five players 19.–24.11.2026)
+    if (p.rorbu) return [restItem(), I('gjestebok', 'oppdrag', 'Gjestebok', 'Guestbook', {run:() => PHONE.open('gbook')}), behItem()].filter(Boolean);
     // Father's naust is a home, not a place of trade (Jonas 07.10.2026): rest, the boathouse itself and Om bord (the crew is a tab there);
     // the shop, the plant and the yard are at their own quays
     if (berthKind(b) === 'naust') return [restItem(), I('naustup', 'naust', 'Naustet', 'Boathouse', {run:() => { NAUST3D.open(); }, stay:true}), behItem()].filter(Boolean);
@@ -121,7 +123,7 @@ const DOCK = (() => {
       I('elektronikk', 'oppgr', 'Elektronikk og haler', 'Electronics and haulers', {page:'utstyrb'})];
     if (m === 'bygd') return [
       I('pub', 'pub', 'Pub', 'Pub', {act:'pub', off:tutOn() ? [L('Puben venter til etter første tur.', 'The pub waits until after the first trip.')] : !pubOpen(H) ? [L('Puben åpner klokka 15.', 'The pub opens at 15:00.')] : null, why:tutOn() ? L('Etter første tur', 'After the first trip') : L('Åpner kl. 15', 'Opens at 15:00')}),
-      I('gjestebok', 'oppdrag', 'Gjestebok', 'Guestbook', {page:'gbook'}),
+      I('gjestebok', 'oppdrag', 'Gjestebok', 'Guestbook', {run:() => PHONE.open('gbook')}),
       I('bank', 'bank', 'Bank', 'Bank', {page:'bank'}),
       I('oppdrag', 'oppdrag', 'Oppdrag', 'Orders', {page:'oppdrag'}),
       // (D4: Bygd has the crew exchange, to hire; those aboard are in Om bord)
