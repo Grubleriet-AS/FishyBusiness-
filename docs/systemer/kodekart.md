@@ -777,6 +777,28 @@ Kvotemarkedet, the core (KM1 of docs/planer/kvotemarkedet.md; Jonas 07.11.2026: 
   - 125 `hfftCapFit(o1, n1, s1, o2, n2, s2, gs, n, w2 = 1, two = false)`
   - 144 `hfftMips(out, N)`
 
+## `src/js/core/03l-room.js` (264 linjer)
+
+Handlingsrommet: one layer between the rules and the screen (steg 149, K1 of docs/planer/regler-i-klartekst.md)
+
+- **1** Handlingsrommet: one layer between the rules and the screen (steg 149, K1 of docs/planer/regler-i-klartekst.md)
+  - 21 `landConf(H, q, acc)`
+- **64** the stage (plan 4.2): 1 the open group, 2 blad B reached, 3 a right in the company, 4 a coastal vessel, several boats or a
+  - 67 `rmStage()`
+- **76** the open group's cod limit now for a boat of this length (codLimitNow for a boat that is not the bound one)
+  - 77 `rmOpenLimit(len, H)`
+- **82** the meters: a row for each quota or cap that binds the bound boat now.
+  - 93 `rmMeters(H)`
+- **115** the rules where the boat is (ruNow), with her group and her cod quota laid on top. ruNow is not changed: it knows the place, the
+  - 122 `rmNow(H)`
+- **132** what a purchase changes, worked out without changing anything (no vessel is bound: it reads the boats' own fields). offer:
+  - 142 `rmBuy(offer, H)`
+- **184** the words (plan 4.5, V3 A; Jonas 25.11.2026: «Vi må gjerne bytte ut ord til noe som er mer forståelig for brukerne … mens det
+  - 202 `rmTermL(key, first)`
+  - 203 `rmTerm(key, first)`
+- **205** why can I not? One table for the reasons a purchase or a move can give: the words deal() (notes, eq, cap), kmBuyWhy and kmWhy
+  - 258 `rmWhy(code, ctx)`
+
 ## `src/js/core/04-crew.js` (735 linjer)
 
 crew: people with skills, habits and moods
@@ -3226,7 +3248,7 @@ the yard's upgrades (hold, engine, the antifouling coat and the outboard) or the
   - 158 `careAboard(inPort, p)`
   - 185 `redskap(tab0)`
 
-## `src/js/ui/phone/13-mannskap-bank-meld.js` (226 linjer)
+## `src/js/ui/phone/13-mannskap-bank-meld.js` (227 linjer)
 
 --- crew
 
@@ -3580,7 +3602,7 @@ Garderoben: the player changes how his figure looks (Jonas 10.10.2026)
 - **22** the right-hand side: what the current tab offers
 - **63** the little renderer
 
-## `src/js/ui/08-actions.js` (567 linjer)
+## `src/js/ui/08-actions.js` (518 linjer)
 
 actions
 
@@ -3589,30 +3611,29 @@ actions
   - 16 `doAct(el)`
   - 108 `panelInput(e)`
   - 114 `panelChange(e)`
-  - 144 `landConf(H, q, acc)`
-  - 186 `sell()`
-- **334** modal
-  - 336 `modal(html)`
-  - 345 `boatUnnamed()`
-  - 346 `boatChristen(nm)`
-  - 348 `showIntro(namesOnly)`
-- **366** «Mens du var borte» (Jonas 07.10.2026: «en følelse av instant-belønning»)
-  - 376 `awayStart(mins, realMs)`
-  - 381 `awayEnd()`
-  - 382 `showAway(A)`
-- **444** time
-  - 453 `playMinutes(n, away, ms)`
-  - 457 `catchUp(realMs, ms)`
-  - 469 `tick()`
-  - 506 `deliverOrder()`
-- **516** chrome
-  - 517 `applyLang()`
-- **530** screens: full-screen 3D, or the chart plotter for route planning
-  - 531 `setBodyView(v3d)`
-  - 537 `openPlotter()`
-  - 542 `plotSetRender()`
-  - 546 `plotSetOpen(on)`
-  - 559 `kinoUi()`
+  - 137 `sell()`
+- **285** modal
+  - 287 `modal(html)`
+  - 296 `boatUnnamed()`
+  - 297 `boatChristen(nm)`
+  - 299 `showIntro(namesOnly)`
+- **317** «Mens du var borte» (Jonas 07.10.2026: «en følelse av instant-belønning»)
+  - 327 `awayStart(mins, realMs)`
+  - 332 `awayEnd()`
+  - 333 `showAway(A)`
+- **395** time
+  - 404 `playMinutes(n, away, ms)`
+  - 408 `catchUp(realMs, ms)`
+  - 420 `tick()`
+  - 457 `deliverOrder()`
+- **467** chrome
+  - 468 `applyLang()`
+- **481** screens: full-screen 3D, or the chart plotter for route planning
+  - 482 `setBodyView(v3d)`
+  - 488 `openPlotter()`
+  - 493 `plotSetRender()`
+  - 497 `plotSetOpen(on)`
+  - 510 `kinoUi()`
 
 ## `src/js/ui/08b-letter.js` (127 linjer)
 
