@@ -12,7 +12,11 @@
   const stShow = n => stAll() || stNow() >= n;
   // «Mer»: the rest of a page, folded. The fold says what is in it; opening it is told to the funnel once a page a session (K5)
   const ST_MER = new Set(), cap1 = s => s.charAt(0).toUpperCase() + s.slice(1);
-  function stMer(key, label, html){ if (!html) return ''; return '<details class="ph-mer" data-mer="' + key + '"><summary>' + label + '</summary>' + html + '</details>'; }
+  // (the pages are drawn anew at every change, so an open fold is kept open by its key until it is closed or the session ends)
+  const ST_OPEN = new Set();
+  function stMer(key, label, html){ if (!html) return ''; return '<details class="ph-mer" data-mer="' + key + '"' + (ST_OPEN.has(key) ? ' open' : '') + '><summary>' + label + '</summary>' + html + '</details>'; }
+  document.addEventListener('toggle', e => { const d = e.target, k = d && d.dataset && d.dataset.mer; if (!k || !d.classList.contains('ph-mer')) return; if (d.open) ST_OPEN.add(k); else ST_OPEN.delete(k);
+    if (d.open && !ST_MER.has(k)){ ST_MER.add(k); if (typeof cloudEv === 'function') try { cloudEv('mer_open', {k}); } catch (x){} } }, true);   // (the funnel, K5: once a page a session; the phone and the drawer)
   function kvote(){ const all = ['mine', 'pris', 'land', 'open', 'stock', 'mkt'], t = all.includes(sub.kvote) ? sub.kvote : 'mine', H = S.t / 60;
     // the tabs: the season of the shared quota and the stocks from the day the player has a quota of their own, the market from blad B; before
     // that they lie under «Mer» on Mine kvoter (and a tab that is open stays a tab)
@@ -22,8 +26,8 @@
     if (t === 'pris' || t === 'land') return top + salg(t);
     // Mine kvoter: the quota first (it stood under the papers), then blad B, the next thing to reach; the other papers and, before stage 3,
     // the tabs not shown yet, under «Mer»
-    if (t === 'mine'){ const pap = papPermit() + papZlic() + papKv() + (rederiOpen() ? '' : papBiz()), go = later.map(x => '<button class="ph-btn alt" data-pa="sub" data-s="' + x[0] + '">' + L(x[1], x[2]) + ' ›</button>').join('');
-      return top + salg('kvote') + '<div class="ph-c">' + kvSor() + '<h4 style="margin:4px 2px 6px">' + L('Papirer', 'Papers') + '</h4>' + papBladB() + (stShow(3) ? pap : stMer('papirer', L('Mer: de andre papirene', 'More: the other papers'), pap)) + (go ? stMer('faner', L('Mer: sesongen, bestanden og markedet', 'More: the season, the stocks and the market'), '<div class="ph-btncol">' + go + '</div>') : '') + '</div>'; }
+    if (t === 'mine'){ const kvRem = !!((S.kv || {}).log || [])[0] && !S.kv.log[0].ok, pap = papPermit() + papZlic() + (kvRem ? '' : papKv()) + (rederiOpen() ? '' : papBiz()),   // (a remark from the coast guard is never folded) go = later.map(x => '<button class="ph-btn alt" data-pa="sub" data-s="' + x[0] + '">' + L(x[1], x[2]) + ' ›</button>').join('');
+      return top + salg('kvote') + '<div class="ph-c">' + kvSor() + '<h4 style="margin:4px 2px 6px">' + L('Papirer', 'Papers') + '</h4>' + papBladB() + (kvRem ? papKv() : '') + (stShow(3) ? pap : stMer('papirer', L('Mer: de andre papirene', 'More: the other papers'), pap)) + (go ? stMer('faner', L('Mer: sesongen, bestanden og markedet', 'More: the season, the stocks and the market'), '<div class="ph-btncol">' + go + '</div>') : '') + '</div>'; }
     return top + '<div class="ph-c">' + (t === 'open' ? kvOpen(H) : t === 'stock' ? kvStock(H) : kvMkt(H)) + '</div>'; }
   // Ø10c: the caps south of 62° N (core/03d-quota.js SORQ): the open group's 3 tonnes of cod in the North Sea and the jig exception's 3 tonnes
   // in the Skagerrak, what is landed on them this year, what is aboard from there and what is left. Shown to the boat that lies south of
@@ -34,7 +38,7 @@
     h.push('<div class="ph-card"><h4>' + L('Torsk sør for 62° N', 'Cod south of 62° N') + '</h4><p class="ph-note"><b>' + L('Nordsjøen, ' + rmTerm('open', true), 'The North Sea, ' + rmTerm('open', true)) + '</b> ' + L('(vest for Lindesnes, fjordene også)', '(west of Lindesnes, the fjords too)') + '</p>');
     if (acc === 'none') h.push('<p class="ph-note">' + L(sorWhy(acc)[0] + '. Torsk kan bare være bifangst, høyst 15 % av fangsten.', sorWhy(acc)[1] + '. Cod may only be a bycatch, at most 15% of the catch.') + '</p>');
     else h.push(kv(cap1(rmTerm('max', true)), kg(SORQ.nsjo.max)) + kv(L('Landet', 'Landed'), kg(q.nsjo || 0)) + (ab('nsjo') > 0.5 ? kv(L('Om bord derfra', 'Aboard from there'), kg(ab('nsjo'))) : '') + kv(L('Igjen', 'Left'), kg(sorLeft('nsjo'))) +
-      '<p class="ph-note">' + L('2 tonn er garantert. Når kvoten er fisket, kan torsk bare være bifangst, høyst 15 % av fangsten derfra, og resten blir inndratt.', '2 tonnes are guaranteed. When the quota is fished, cod may only be a bycatch, at most 15% of the catch from there, and the rest is confiscated.') + '</p>');
+      '<p class="ph-note">' + L('2 tonn har du uansett. Når kvoten er fisket, kan torsk bare være bifangst, høyst 15 % av fangsten derfra, og resten får du bare 20 % for (inndratt).', '2 tonnes are guaranteed. When the quota is fished, cod may only be a bycatch, at most 15% of the catch from there, and the rest is confiscated.') + '</p>');
     if (BOAT.len < 11 && (bladB() || q.skag4 > 0)) h.push('<p class="ph-note"><b>' + L('Skagerrak utenfor grunnlinjen, juksa 1. april–30. juni', 'The Skagerrak outside the baseline, jig 1 April–30 June') + '</b></p>' + kv(L('Tak i år', 'Cap this year'), kg(SORQ.skag4.max)) + kv(L('Landet', 'Landed'), kg(q.skag4 || 0)) + (ab('skag4') > 0.5 ? kv(L('Om bord derfra', 'Aboard from there'), kg(ab('skag4'))) : '') + kv(L('Igjen', 'Left'), kg(Math.max(0, SORQ.skag4.max - (q.skag4 || 0) - ab('skag4')))) +
       '<p class="ph-note">' + L('Ellers er torsk der bare bifangst, høyst 5 %.', 'Otherwise cod there is only a bycatch, at most 5%.') + '</p>');
     h.push('<p class="ph-note">' + L('Innenfor grunnlinjen øst for Lindesnes er det ingen kvote på torsk (i Oslofjorden er torsk forbudt). Kilde: forskrift om regulering av fisket etter torsk i Nordsjøen og Skagerrak i 2026.', 'Inside the baseline east of Lindesnes there is no quota for cod (in the Oslo fjord cod is banned). Source: the regulation of the cod fishery in the North Sea and the Skagerrak in 2026.') + '</p></div>');

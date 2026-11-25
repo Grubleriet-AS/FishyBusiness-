@@ -25,7 +25,7 @@ KVOTE = """(() => { PHONE.open('kvote'); PHONE.dact('kvote', 'sub', {s:'mine'});
     alone:['Maksimalkvote', 'Garantert kvote', 'Fartøykvote'].filter(w => new RegExp('(^|[^(])' + w + '([^)]|$)').test(open)), ord:[...ph.querySelectorAll('.ordw')].filter(e => !e.closest('details')).map(e => e.textContent)}; })()"""
 BOATS = """(() => { DOCK.open('fartoy'); const e = document.querySelector('#drawerBody [data-pa=mksel]:not([data-k])'); if (e) e.click(); const d = document.getElementById('drawerBody');
   const r = {tabs:[...d.querySelectorAll('.ph-sub.mk button')].map(b => b.textContent), mer:[...d.querySelectorAll('details.ph-mer[data-mer=baater] button')].map(b => b.textContent.replace(' ›', ''))}; DOCK.close(); return r; })()"""
-RULES = """(() => { PHONE.open('regler'); PHONE.dact('regler', 'sub', {s:'laer'}); PHONE.render(); const ph = document.getElementById('phone'); const r = {out:[...ph.querySelectorAll('.ph-card')].filter(c => !c.closest('details')).map(c => c.querySelector('h4').textContent), inn:[...ph.querySelectorAll('details.ph-mer .ph-card')].length}; PHONE.show(false); return r; })()"""
+RULES = """(() => { PHONE.open('regler'); PHONE.dact('regler', 'sub', {s:'laer'}); PHONE.render(); const ph = document.getElementById('phone'); const cl = (ph.querySelector('.ph-appv') || ph).cloneNode(true); cl.querySelectorAll('details').forEach(d => d.remove()); const r = {par:(cl.textContent.match(/§/g) || []).length, out:[...ph.querySelectorAll('.ph-card')].filter(c => !c.closest('details')).map(c => c.querySelector('h4').textContent), inn:[...ph.querySelectorAll('details.ph-mer .ph-card')].length}; PHONE.show(false); return r; })()"""
 
 
 async def main():
@@ -41,17 +41,22 @@ async def main():
             check(k['par'] == 0, nm + ': no paragraph sign without opening «Mer»', k['par'])
             check(k['plain'] and k['alone'] == [], nm + ': the plain words first, the trade\'s own in brackets, none of them alone', k['alone'])
             check(set(k['mer']) == {'kvote', 'papirer', 'faner'}, nm + ': the rest lies under «Mer» on the same page', k['mer'])
-            check(any('åpen gruppe' in x for x in k['ord']) and any('maksimalkvote' in x for x in k['ord']), nm + ': the trade\'s words in the brackets have the glossary\'s line', k['ord'])
+            check(any('åpen gruppe' in x for x in k['ord']) and any('maksimalkvote' in x for x in k['ord']) and any('garantert' in x for x in k['ord']), nm + ': the trade\'s words in the brackets have the glossary\'s line', k['ord'])
+            sh = await pg.evaluate("(() => { PHONE.show(false); S.boat.status = 'port'; DOCK.open('fartoy'); const tap = q => { const e = document.querySelector('#drawerBody ' + q); if (e) e.click(); }; tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=trebat][data-o=u7]'); const c = document.getElementById('drawerBody').cloneNode(true); c.querySelectorAll('details').forEach(d => d.remove()); const t = c.textContent; DOCK.close(); return ['Hjemmelslengde', 'Torsk, fartøykvote', 'maks / garantert', 'lukket gruppe, hjemmel', 'har denne hjemmelen', 'Første båt i lukket gruppe', 'med hjemmel i lukket gruppe'].filter(w => t.includes(w)); })()")
+            check(sh == [], nm + ': the yard\'s sheet for a boat with a quota right has none of the old lone terms', sh)
             tip = await pg.evaluate("(() => { const e = [...document.querySelectorAll('#phone .ordw')].find(x => /maksimalkvote/.test(x.textContent)); e.click(); const t = document.getElementById('ordTip'); return t && !t.hidden ? t.textContent : null; })()")
             check(tip is not None and 'Det meste båten kan lande' in tip, nm + ': a tap on «maksimalkvote» gives its sentence', tip)
             await pg.evaluate("document.body.click()"); await pg.wait_for_timeout(200); await pg.screenshot(path=os.path.join(OUT, 'kvote-ny-%s.png' % nm))
             mer = await pg.evaluate("(() => { const d = document.querySelector('#phone details[data-mer=faner]'); d.open = true; const b = d.querySelector('button[data-s=open]'); b.click(); return [...document.querySelectorAll('#phone .ph-sub button')].map(x => x.textContent); })()")
             check(len(mer) == 4 and 'Felleskvoten' in mer[3], nm + ': the season opened from «Mer» is a tab while it is open', mer)
+            # an open fold stays open when the page is drawn anew
+            st = await pg.evaluate("(async () => { PHONE.dact('kvote', 'sub', {s:'mine'}); PHONE.render(); const d = document.querySelector('#phone details[data-mer=kvote]'); d.open = true; await new Promise(r => setTimeout(r, 80)); PHONE.render(); const d2 = document.querySelector('#phone details[data-mer=kvote]'); const o = d2.open; d2.open = false; await new Promise(r => setTimeout(r, 80)); PHONE.render(); return [o, document.querySelector('#phone details[data-mer=kvote]').open]; })()")
+            check(st == [True, False], nm + ': an open «Mer» stays open when the page is drawn anew, and a closed one closed', st)
             await pg.evaluate("PHONE.show(false)")
             if nm == 'telefon': await pg.close(); continue
             b = await pg.evaluate(BOATS); r = await pg.evaluate(RULES)
             check(b['tabs'] == ['Småbåter', 'Med kvoterett'] and b['mer'] == ['Kystflåten', 'Havfiske'], nm + ': Båthandel: the small boats and the boats with a quota right, the bigger ones under «Mer»', b)
-            check(len(r['out']) == 4 and r['inn'] == 5 and 'Fjordlinjene' in r['out'], nm + ': Regler › Lær mer: four cards first, five under «Mer»', r)
+            check(len(r['out']) == 4 and r['inn'] == 5 and 'Fjordlinjene' in r['out'] and r['par'] == 0, nm + ': Regler › Lær mer: four cards first, five under «Mer», and no paragraph sign without opening a fold', r)
             # blad B: the market is a tab; a quota of her own: the season and the stocks too; a coastal vessel with a structure quota: everything, nothing folded
             t2 = await pg.evaluate("(() => { S.fm.b = true; return rmStage(); })()"); k2 = await pg.evaluate(KVOTE)
             check(t2 == 2 and k2['tabs'][-1] == 'Marked' and len(k2['tabs']) == 4, nm + ': blad B: the market is a tab', k2['tabs'])

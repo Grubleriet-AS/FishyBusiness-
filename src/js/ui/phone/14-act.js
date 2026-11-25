@@ -391,8 +391,6 @@
     }
     return true;
   }
-  // (steg 152) «Mer» opened: once a page a session, for the funnel (K5)
-  view.addEventListener('toggle', e => { const d = e.target; if (d && d.open && d.dataset && d.dataset.mer && !ST_MER.has(d.dataset.mer)){ ST_MER.add(d.dataset.mer); if (typeof cloudEv === 'function') try { cloudEv('mer_open', {k:d.dataset.mer}); } catch (x){} } }, true);
   view.addEventListener('click', e => { const t0 = e.target.closest('[data-pa],[data-act]'); if (!t0 || t0.disabled) return; if (t0.dataset.pa) act(t0.dataset.pa, t0.dataset); else { doAct(t0); render(); } });
   view.addEventListener('input', e => { if (e.target.id === 'hbQ'){ HBUI.q = e.target.value; const l = view.querySelector('.hb-list'); if (l) l.innerHTML = HBUI.list(); return; } if (e.target.id === 'coName') coDraft = e.target.value; else if (e.target.id === 'fbBody') return FEEDBACK.input(e.target.value); panelInput(e); });
   view.addEventListener('change', e => { if (e.target.id === 'fbFile') return FEEDBACK.pick(e.target.files); panelChange(e); if (e.target.id === 'setAuto') render(); });
