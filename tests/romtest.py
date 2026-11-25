@@ -33,7 +33,7 @@ CASES = {
 SHEET = """((tab, sel) => { const tap = q => { const e = document.querySelector('#drawerBody ' + q); if (e) e.click(); return !!e; }; DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=' + tab + ']'); tap(sel);
   const cs = [...document.querySelectorAll('#drawerBody .ph-card.chg')], bt = document.querySelector('#drawerBody [data-ti="1"]'), wb = document.querySelector('#drawerBody .whybox');
   const c0 = cs[0], pos = c0 && bt ? c0.compareDocumentPosition(bt) & 4 : 0;
-  return {n:cs.length, txt:c0 ? c0.textContent : '', bad:cs.map(c => c.classList.contains('bad')), over:!!pos, grey:bt ? bt.disabled : null, why:wb ? wb.dataset.why + ': ' + wb.textContent : null, loses:cs.map(c => (c.querySelector('[data-loses]') || {}).textContent || '')}; })"""
+  return {n:cs.length, txt:c0 ? c0.textContent : '', bad:cs.map(c => c.classList.contains('chg-bad')), inside:cs.map(c => !!c.querySelector('[data-pa=buy],[data-pa=buylic]')), prim:bt ? bt.classList.contains('p') : null, over:!!pos, grey:bt ? bt.disabled : null, why:wb ? wb.dataset.why + ': ' + wb.textContent : null, loses:cs.map(c => (c.querySelector('[data-loses]') || {}).textContent || '')}; })"""
 
 
 async def main():
@@ -61,7 +61,7 @@ async def main():
             check(s['loses'][1] != '' and s['loses'][0] == '', nm + ': for the fleet the card says the open-group boat loses her place; traded in it does not', s['loses'])
             await pg.evaluate("(() => { const e = document.querySelector('#drawerBody .ph-card.chg'); if (e) e.scrollIntoView({block:'start'}); })()"); await pg.wait_for_timeout(250); await pg.screenshot(path=os.path.join(OUT, 'verft-hjemmel-%s.png' % nm))
             s = await pg.evaluate(SHEET + "('kyst', '[data-pa=mksel][data-k=kyst15]:not([data-o])')")
-            check(s['n'] == 2 and all(s['bad']) and 'bare ta torsk, hyse og sei som bifangst' in s['txt'], nm + ': the yard, a coastal vessel without a right: the red card says bycatch only', [s['bad'], s['txt'][:160]])
+            check(s['n'] == 2 and all(s['bad']) and all(s['inside']) and s['prim'] is False and 'bare ta torsk, hyse og sei som bifangst' in s['txt'], nm + ': the yard, a coastal vessel without a right: the red card says bycatch only, each button stands in its own card, and the trade-in is not the bright button', [s['bad'], s['inside'], s['prim'], s['txt'][:120]])
             await pg.evaluate("(() => { const e = document.querySelector('#drawerBody .ph-card.chg'); if (e) e.scrollIntoView({block:'start'}); })()"); await pg.wait_for_timeout(250); await pg.screenshot(path=os.path.join(OUT, 'verft-uten-%s.png' % nm))
             await pg.evaluate("(() => { S.sales = [{t:0, total:1}]; S.cash = 1000; })()")
             s = await pg.evaluate(SHEET + "('open', '[data-pa=mksel][data-k=snekke]:not([data-o])')")

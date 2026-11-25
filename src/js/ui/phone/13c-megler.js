@@ -153,7 +153,8 @@
         kv(Q.top != null ? L('Høyeste bud', 'Highest bid') : L('Startpris', 'Start price'), kr(mgNow(Q)) + (Q.top != null ? ' · ' + Q.bids + L(' bud', Q.bids === 1 ? ' bid' : ' bids') : '')), Q.buynow ? kv(L('Kjøp nå', 'Buy now'), kr(Q.buynow)) : ''];
       if (mgMsg[Q.id]) a.push('<p class="mb-msg"><b>' + mgMsg[Q.id] + '</b></p>');
       if (Q.mine) a.push('<p class="ph-note">' + L('Dette er din båt.', 'This is your boat.') + '</p>' + (Q.bids ? '' : '<button class="ph-btn alt" data-pa="mbcancel" data-id="' + Q.id + '">' + L('Trekk fra salg', 'Withdraw') + '</button>'));
-      else if (why) a.push('<p class="ph-note"><b>' + mbWhyTxt(why) + '</b></p>');
+      // (steg 151) why you cannot buy her, as at the yard: the sentence, what mends it and the law behind (rmWhy); the guest's reason is the broker's own
+      else if (why) a.push(whyBox('mb.' + why, {n:Math.min((S.fm || {}).n || 0, BLADB.days), of:BLADB.days}) || '<p class="ph-note"><b>' + mbWhyTxt(why) + '</b></p>');
       else {
         if (near && (!Q.top_me || Q.buynow)) a.push('<div class="net-shops mb-to"><button class="chip-b' + (to ? '' : ' on') + '" data-pa="mbto" data-s="self">' + L('Hent selv i ', 'Fetch at ') + mbPlace(pt) + '</button><button class="chip-b' + (to ? ' on' : '') + '" data-pa="mbto" data-s="near">' + L('Lever til ', 'Deliver to ') + mbPlace(near) + ' · +2 %</button></div>');
         if (Q.top_me) a.push('<p class="ph-note mb-top">' + L('Du har det høyeste budet. Du får beskjed om noen byr over, og pengene tilbake da.', 'You hold the highest bid. You are told if someone bids over, and get the money back then.') + '</p>');
