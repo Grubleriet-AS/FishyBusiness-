@@ -3098,7 +3098,7 @@ the old tabs live on as phone apps
   - 53 `ordl()`
   - 54 `ordEarlier()`
 
-## `src/js/ui/phone/03-regler.js` (63 linjer)
+## `src/js/ui/phone/03-regler.js` (67 linjer)
 
 the Regler app (R3 of the rules plan, 05.10.2026): «Her og nå» answers «can I fish here?» for your boat, gear and target where she is,
 
@@ -3109,17 +3109,19 @@ the Regler app (R3 of the rules plan, 05.10.2026): «Her og nå» answers «can 
   - 25 `ruHere()`
   - 31 `ruCheck()`
   - 46 `ruLearn()`
-  - 57 `regler()`
+  - 61 `regler()`
 
-## `src/js/ui/phone/04-kvote.js` (89 linjer)
+## `src/js/ui/phone/04-kvote.js` (111 linjer)
 
 the Kvote app: your quotas, the open group's season, the stocks, and the market for rights (core/03d-quota.js)
 
-  - 5 `kvote()`
-  - 13 `kvSor()`
-  - 26 `kvOpen(H)`
-  - 43 `kvStock(H)`
-  - 61 `kvReg(H)`
+- **5** the stages (steg 152, K4 of docs/planer/regler-i-klartekst.md; Jonas 25.11.2026, V1 A: every app stands, what is in them follows
+  - 17 `stMer(key, label, html)`
+  - 20 `kvote()`
+  - 35 `kvSor()`
+  - 48 `kvOpen(H)`
+  - 65 `kvStock(H)`
+  - 83 `kvReg(H)`
 
 ## `src/js/ui/phone/04b-kvotemarked.js` (215 linjer)
 
@@ -3143,7 +3145,7 @@ Kvotemarkedet: Kvote → Marked (KM3 of docs/planer/kvotemarkedet.md; Jonas 07.1
   - 178 `kxBoatRow(v)`
   - 185 `kmAct(a, d)`
 
-## `src/js/ui/phone/05-rigg-innst-admin.js` (153 linjer)
+## `src/js/ui/phone/05-rigg-innst-admin.js` (155 linjer)
 
 the rig: one kind of fishing at a time, chosen in Om bord › Redskap when none of the boat's gear is in the sea (D4, Jonas 13.11.2026:
 
@@ -3154,7 +3156,7 @@ the rig: one kind of fishing at a time, chosen in Om bord › Redskap when none 
   - 67 `fellesskap()`
   - 76 `innstGfx()`
   - 98 `innst()`
-  - 128 `admin()`
+  - 130 `admin()`
 
 ## `src/js/ui/phone/06-render.js` (119 linjer)
 
@@ -3174,12 +3176,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1808 linjer)
+## `src/js/ui/phone/07-patch.js` (1813 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1796 `patch()`
+  - 1801 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (136 linjer)
 
@@ -3200,7 +3202,7 @@ the home screen (UI 2, U2-6; Jonas 06.11.2026, V6 A and V2 A in docs/planer/ui-2
   - 116 `merker()`
   - 128 `lore()`
 
-## `src/js/ui/phone/09-vaer-post-salg-redning.js` (210 linjer)
+## `src/js/ui/phone/09-vaer-post-salg-redning.js` (215 linjer)
 
 --- weather
 
@@ -3211,11 +3213,11 @@ the home screen (UI 2, U2-6; Jonas 06.11.2026, V6 A and V2 A in docs/planer/ui-2
   - 28 `post()`
 - **34** sales organisation
   - 38 `salg(s)`
-- **188** rescue
-  - 189 `redning()`
-- **209** vessels: my vessel overview and the market
+- **193** rescue
+  - 194 `redning()`
+- **214** vessels: my vessel overview and the market
 
-## `src/js/ui/phone/10-fartoy.js` (403 linjer)
+## `src/js/ui/phone/10-fartoy.js` (407 linjer)
 
 - **7** «Dette endrer seg» (steg 151, K3 of docs/planer/regler-i-klartekst.md): what a purchase changes, from rmBuy (core/03l-room.js),
   - 11 `buyRes(offer)`
@@ -3236,10 +3238,10 @@ the home screen (UI 2, U2-6; Jonas 06.11.2026, V6 A and V2 A in docs/planer/ui-2
 - **245** the boat market: tabs for the open group, boats with a closed-group right, the coastal fleet over 11 m and the ocean fleet;
   - 254 `mkCard(k, O)`
   - 258 `market()`
-  - 290 `specSecs(k, O)`
-  - 314 `sheet(k, O)`
-  - 367 `fartoy(tab0)`
-- **402** the company: the fleet at a glance and what needs you. The vessel apps work on the vessel picked at the top (default: the one you follow)
+  - 294 `specSecs(k, O)`
+  - 318 `sheet(k, O)`
+  - 371 `fartoy(tab0)`
+- **406** the company: the fleet at a glance and what needs you. The vessel apps work on the vessel picked at the top (default: the one you follow)
 
 ## `src/js/ui/phone/11-rederi.js` (94 linjer)
 
@@ -3331,7 +3333,7 @@ Kystmegleren: boats players sell to each other (B1–B8 in docs/planer/etter-ton
   - 222 `mgAfter(key, okNo, okEn)`
   - 224 `mgAct(a, d)`
 
-## `src/js/ui/phone/14-act.js` (402 linjer)
+## `src/js/ui/phone/14-act.js` (403 linjer)
 
   - 2 `act(a, d)`
 - **9** the receipt after a buy for kroner (Jonas 06.11.2026, Tony's test: «Det skal ikke være tvil om et kjøp er gjennomført»): one
@@ -3452,13 +3454,13 @@ The operations plan's page (the Drift app; phone/06-render.js, 14-act.js). Drift
   - 54 `catchFeed(sp, kg)`
   - 55 `catchRec(sp, kg)`
 
-## `src/js/ui/05k-ordbok.js` (74 linjer)
+## `src/js/ui/05k-ordbok.js` (90 linjer)
 
 ---------- Ordboka: the trade's words explained where they stand (UI-redesign U10, grep 6) ----------
 
 - **1** Ordboka: the trade's words explained where they stand (UI-redesign U10, grep 6)
-  - 30 `ordbok(root)`
-  - 46 `ordTip(el, head, text)`
+  - 46 `ordbok(root)`
+  - 62 `ordTip(el, head, text)`
 
 ## `src/js/ui/05l-kapplop.js` (234 linjer)
 
@@ -3591,22 +3593,22 @@ the phone's Fiskeguide app (08.10.2026; Jonas: «en intuitiv app til telefonen d
   - 297 `tipPlace(txt, T0, o)`
   - 322 `tipToast()`
 
-## `src/js/ui/07c-handbook.js` (286 linjer)
+## `src/js/ui/07c-handbook.js` (296 linjer)
 
 Håndboka: chapters 2–6 of the on-boarding as drips, and the app that keeps every tip (docs/onboarding.md 3–4, Jonas 09–10.10.2026)
 
 - **1** Håndboka: chapters 2–6 of the on-boarding as drips, and the app that keeps every tip (docs/onboarding.md 3–4, Jonas 09–10.10.2026)
   - 10 `hbState()`
-  - 213 `hbPick()`
-  - 221 `hbEv(id, how)`
-  - 222 `hbDone(id)`
-  - 223 `hbSkip(ch, id)`
-  - 225 `hbReady()`
-- **227** what the phone shows (Onboarding 2, O5, V7 A, 27.10.2026)
-  - 236 `appShown(id)`
-  - 243 `appUnlock(id)`
-  - 245 `appSeen(id)`
-  - 246 `hbUpdate()`
+  - 223 `hbPick()`
+  - 231 `hbEv(id, how)`
+  - 232 `hbDone(id)`
+  - 233 `hbSkip(ch, id)`
+  - 235 `hbReady()`
+- **237** what the phone shows (Onboarding 2, O5, V7 A, 27.10.2026)
+  - 246 `appShown(id)`
+  - 253 `appUnlock(id)`
+  - 255 `appSeen(id)`
+  - 256 `hbUpdate()`
 
 ## `src/js/ui/10g-wardrobe.js` (205 linjer)
 

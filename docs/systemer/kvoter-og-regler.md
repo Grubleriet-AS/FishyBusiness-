@@ -617,6 +617,18 @@ Jonas 25.11.2026: spillerne skal «forstå handlingsrommet sitt uten å måtte l
 - **Jonas 25.11.2026** om grunnen skal stå åpen eller komme ved trykk: «Gjør det du mener blir mest riktig.» Den står åpen.
 - Tester: `tests/romtest.py` (kortet mot kjøpet i sju kjøpsveier, megleren og Kvotemarkedet gjennom oppgjøret `mbApply`; sett rød mot et bygg der `rmBuy` utelot selgerens del; arkene i 800×1280, 1280×800 og 390×844), og en sjekk i `megletest` at kortet står over auksjonen.
 
+**Trinnene og ordene (steg 152, K4, 25.11.2026; Jonas' valg V1 A og V3 A):**
+- **`stShow(n)`** (`ui/phone/04-kvote.js`): det som hører til trinn n, vises først når spilleren er der (`rmStage()`; det høyeste trinnet som er nådd, huskes i `S.settings.rmMax`, så ingenting som er vist, går bort), eller alltid med «Vis alt» i Innstillinger (`S.settings.rmAll`). Resten ligger under «Mer» på samme side (`stMer`, `details.ph-mer`); en åpen fold står åpen når siden tegnes på nytt. Ingen app og ingen handling er låst, og et varsel foldes aldri (det inndratte i år, en merknad fra Kystvakta).
+- **Kvote:** fanene Mine kvoter, Priser og Landinger fra start; Marked fra blad B (trinn 2); Felleskvoten (før «Åpen gruppe») og Bestand fra trinn 3. Før det står de som knapper under «Mer» på Mine kvoter, og en fane som er åpen, er en fane. Mine kvoter har kvotekortet øverst (det sto under papirene), så kortet sør for 62° N når det gjelder, blad B, og «Mer» med resten av kvotesiden, de andre papirene og fanene. Papirkortenes lovnotater er foldet til trinn 3.
+- **Regler › Lær mer:** fjordlinjene, minstemål, fredningstider og stengte felt først; de fem andre under «Mer» til trinn 4. Henvisningen med paragraf står under «Loven bak» til trinn 3.
+- **Båthandel:** fanene «Småbåter» og «Med kvoterett»; Kystflåten fra trinn 3 og Havfiske fra trinn 4, før det under «Mer».
+- **Ordene:** Mine kvoter, Båthandel, Rederi og hjemskjermen sier klartekstordet først (`rmTerm`), med fagordet i parentes: «taket ditt i år (maksimalkvote)», «det du har uansett (garantert kvote)», «kvoterett (hjemmel)», «felleskvoten for småbåter (åpen gruppe)», «egen kvote (lukket gruppe)». **Ikke byttet:** Kvotemarkedet (fane fra trinn 2) og fanen Felleskvoten (fra trinn 3) har fagordene som før, og brev fra Fiskeridirektoratet, Kystposten og Papirer beholder dem med vilje. De engelske setningene i Båthandels fanenotater er de gamle.
+- **Ordboka** (`ORDBOK`): tolv fagord med én setning hver, holdt mot 5.5 og 5.5b (fire rettet etter kontrollen). «Adgang» har ingen oppføring: ordet brukes om annet også. Ordboka merker ett ord per tekstbit og ikke i overskrifter (`ORD_SKIP`), så fagordene står i rader og løpende tekst, ikke i kortenes overskrifter.
+- **Tipsene** (`ui/07c-handbook.js`, kapittel 6): `kvhalv` (halve torskekvoten, til sjøs), `kvover` (noe om bord ville blitt inndratt), `kvstopp` (fra varselet til en uke etter stoppen, for båten på felleskvoten), `egenkvote` (blad B nådd, ingen hjemmel ennå), og `kvote` skrevet om. Tipset «første gang Med hjemmel åpnes» er ikke laget; `egenkvote` sier det samme når blad B nås.
+- **Målingen:** `mer_open` med siden og `vis_alt`.
+- **Testene spiller med `vis1`** i adressen (`tests/_env.py`: alt vist, som før trinnene), så de finner hver fane der den sto. `tut.py` spiller som en ny spiller, og `trinntest` setter `rmAll = false` selv.
+- Tester: `tests/trinntest.py` (800×1280, 1280×800 og 390×844; Regler og Båthandel bare på nettbrett; ikke engelsk, ikke en lagring uten feltene).
+
 ## 5.30 Kystvakta om bord (V1 i `docs/planer/oppdrag-2.md`, 31.10.2026)
 
 Jonas: «Ja, få inn kystvakta.» Kystvakta kommer langs siden for kontroll, ved kai eller på feltet, og spør det regelmotoren alt vet. `core/09j-kystvakt.js`.
