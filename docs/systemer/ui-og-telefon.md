@@ -265,3 +265,7 @@ Jonas 16.11.2026: «Kan du fikse innstillinger-siden slik at den har faner øver
     - `shadow`: solskyggene i `01-shaders.js` og byggenes skygger i `04-vec-packs.js`.
   - **Etter «Bruk og start 3D på nytt»** (siden lastes på nytt): `off.trees` (trær og vind), `off.life`, `off.foam` (skum, brottsjø og NPC-skum), `off.fft` (detaljerte bølger), `off.shore` (strand, skjær og marina) og `off.sun`. De er de samme bryterne som testenes `#trees0` og lignende.
   - «Egendefinert» vises når noe er endret, og «Tilbake til standard» setter alt tilbake og Auto.
+
+## «Gjestebok» i dokken åpner telefonsiden (25.11.2026)
+
+- Knappen «Gjestebok» i bygdeviften og ved rorbua hadde `page:'gbook'`, men dokkens `open()` tar bare skuffens sider (`PHONE.DRAWER`), og gjesteboka er en side på telefonen. Trykket gjorde ingenting (fem spillere 19.–24.11.2026; 17 innskrivinger på hele kysten den første uka). Nå kaller knappen `PHONE.open('gbook')`, som «Hjelp» gjør med Redning. `docktest` trykker på den.

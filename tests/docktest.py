@@ -61,6 +61,12 @@ async def run(p, w, h, tag):
         if m == 'verft': await pg.screenshot(path='dock_fan_' + tag + '.png')
         await tap_el('#dock [data-dk=' + m + ']'); await pg.wait_for_timeout(150)
     check(await pg.evaluate("document.getElementById('dockFan').hidden"), 'et nytt trykk lukker viften')
+    # «Gjestebok» in the village fan opens the guest book (tilbakemeldingene 19.–24.11.2026, five players: «det skjer ikke noe når jeg
+    # trykker på gjesteboka»: the dock's open() takes the drawer's pages only, and the book is a page of the phone, so the tap did nothing)
+    await tap_el('#dock [data-dk=bygd]'); await fan_up(); await tap_el('#dockFan [data-dk=gjestebok]'); await pg.wait_for_timeout(500)
+    g = await pg.evaluate("({open:PHONE.isOpen(), app:PHONE.app})")
+    check(g['open'] and g['app'] == 'gbook', '«Gjestebok» i bygdeviften åpner gjesteboka på telefonen', g)
+    await pg.evaluate("(() => { PHONE.show(false); })()"); await pg.wait_for_timeout(200)
 
     # pages in the yard and the village
     for m, it, title, sel in (('verft', 'oppgr', 'Oppgraderinger', '[data-pa=equip]'), ('butikk', 'fiskeutstyr', 'Utstyrsbutikken', '[data-pa=grbuy]'), ('butikk', 'elektronikk', 'Utstyrsbutikken', '[data-pa=equip]'), ('verft', 'batmarked', 'Båthandel', '[data-pa=mksel]'),
