@@ -96,6 +96,15 @@ export default function (t){
     w = rmWarn(H3); t.ok(w.some(x => x.sp === 'hyse' && x.lvl === 2 && /Hysekvoten/.test(x.t[0])), 'hyse over maksimalkvoten i lukket gruppe varsles');
     // no access: no quota of hers, so no quota warning (the status line says «bare bifangst»)
     S = mk(H3); S.boat.type = 'kyst15'; K.applyVessel(); S.hold = [fish('torsk', 800)]; t.eq(rmWarn(H3), [], 'uten adgang: ingen kvotevarsler'); }
+  // the words: «Torskekvoten», not «Torskkvoten» (the species' name plus «kvoten» is not Norwegian for cod)
+  { S = mk(H3); quotaState().torsk = codLimitNow(H3); S.hold = [fish('torsk', 300)]; const w = K.rmWarn(H3); t.ok(/^Torskekvoten er full\. 300 kg torsk om bord/.test(w[0].t[0]), 'varselet sier «Torskekvoten» («' + w[0].t[0] + '»)'); }
+  // cod confiscated as bycatch on a cap south of 62° N is not the quota's: the quota row is not red for it, and nothing says the quota is full
+  { S = mk(H3); S.hold = [fish('torsk', 400), fish('sei', 100)]; S.boat.byc = {skag:{cod:400, all:500}};
+    const C = landConf(H3, quotaState(), access()), M = rmMeters(H3), r = M.find(x => x.kind === 'open');
+    t.ok(C.zConf > 300, 'landConf inndrar torsken fra Skagerrak utenfor grunnlinjen (' + Math.round(C.zConf) + ' kg)');
+    t.eq([Math.round(r.conf), r.state], [0, 'ok'], 'men torskekvoten er ikke rød for den'); t.eq(K.rmWarn(H3), [], 'og ingen sier at kvoten er full'); }
+  // the cod row's key: a structure quota or a catch from a cap changes the row at once
+  { S = mk(H3); S.boat.type = 'kyst15'; K.applyVessel(); S.lic = {id:'h14', hl:HJ.h14.hl, since:2026}; freshQuota(); const a0 = K.rmCod().limit; S.lic.st = [{id:'h14', kf:4.7, from:2026, until:2046}]; K.licExtra(S.lic); t.ok(K.rmCod().limit > a0 * 1.5, 'rmCod følger en ny strukturkvote uten å vente på minuttet'); }
   // the cod row kept for the minute is the meters' own
   S = mk(H3); quotaState().torsk = 1000; t.eq(K.rmCod().used, 1000, 'rmCod er torskeraden'); quotaState().torsk = 2000; t.eq(K.rmCod().used, 2000, 'og følger landingene');
 

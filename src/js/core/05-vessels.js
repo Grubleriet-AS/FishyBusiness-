@@ -1185,7 +1185,7 @@ function fish(H, W, hs){
   // cod quota: warn once a day when the cod on board already fills what is left
   // (Ø10c: the cod taken south of 62° N is not on this quota, 03d-quota.js sorCodAboard; the North Sea's 3 tonnes say so themselves, once a day)
   const q = quotaState(), codHold = S.hold.filter(x => x.sp === 'torsk').reduce((a, x) => a + x.kg, 0) - sorCodAboard();
-  if (bycHere('juksa') === 'nsjo' && sorAcc() !== 'none' && sorLeft('nsjo') <= 0 && (S.sorWarn || -1e9) < S.t - 1440){ S.sorWarn = S.t; log('Maksimalkvoten på 3 tonn torsk i Nordsjøen er full. Torsk kan bare være bifangst nå, høyst 15 % av fangsten.', 'The maximum quota of 3 tonnes of cod in the North Sea is full. Cod may only be a bycatch now, at most 15% of the catch.'); }
+  if (bycHere('juksa') === 'nsjo' && sorAcc() !== 'none' && sorLeft('nsjo') <= 0 && (S.sorWarn || -1e9) < S.t - 1440){ S.sorWarn = S.t; log('Taket på 3 tonn torsk i Nordsjøen (maksimalkvoten) er nådd. Torsk kan bare være bifangst nå, høyst 15 % av fangsten.', 'The maximum quota of 3 tonnes of cod in the North Sea is full. Cod may only be a bycatch now, at most 15% of the catch.'); }
   // (steg 150: the quotas' warnings are rmWarn's, core/03l-room.js: at 80 % and when full, for each species with a quota, also while the
   // fresh-fish scheme runs. Before, one line a day for cod alone, and none from 29 June on. Not in the first trip)
   if (!S.tut) for (const w of rmWarn(H)) log(w.t[0], w.t[1]);

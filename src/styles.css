@@ -2216,4 +2216,4 @@ body.vplot #hud{background:rgba(11,23,32,.78)!important}
 #hud .row.qlink b.r1{color:#ffcf7a}#hud .row.qlink b.r2{color:#ff9b91}
 .landq{display:flex;align-items:center;gap:8px;margin:6px 0 2px;font-variant-numeric:tabular-nums}.landq .qm{flex:1;max-width:160px;height:8px;margin:0}
 .slipq{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.slipq .qm{width:90px;height:7px;margin:0}
-
+.tbl tr.holdconf td{color:#ff9b91;font-size:.92em}

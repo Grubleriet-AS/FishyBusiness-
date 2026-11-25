@@ -99,6 +99,8 @@ function quotaTxt(r){ const no = S.lang === 'no', L = (a, c) => no ? a : c, t1 =
 // the rules for the status box: rmNow without «the cod quota is full», which the quota's own row or mark says, in its own colour
 function hudRules(){ const r = rmNow(), items = r.items.filter(i => i.k !== 'rmfull'), v = items.some(i => i.v === 'no') ? 'no' : items.some(i => i.v === 'warn') ? 'warn' : 'ok';
   return {v, items, top:r.top && r.top.k !== 'rmfull' ? r.top : items.find(i => i.v === v && i.v !== 'ok') || null}; }
+// a tap on the quota opens Kvote on «Mine kvoter», whatever tab stood there last
+function hudKvote(){ PHONE.open('kvote'); PHONE.dact('kvote', 'sub', {s:'mine'}); PHONE.render(); }
 const hudWindIcon = d => HICON.wind.replace('<svg ', '<svg class="wdir" style="transform:rotate(' + Math.round(((d || 0) + 180) % 360) + 'deg)" ');
 // the four figures the gauges and the strip show: the share 0–1, the text, and the class that colours a warning (yellow r1, red r2)
 function hudFigures(){
@@ -143,12 +145,13 @@ function hudLine3(how){
   // the fairway (Ø11.8, core/05e-sjovei.js): over the speed limit, or on the wrong side of a cardinal mark, when she steers herself (after the hull: water in the boat comes first)
   if (!h && atSea){ const fw = farvWarn(); if (fw){ cls = 'r1'; h = farvSay(fw, strip ? 'tiny' : 'strip'); } }
   if (strip && atSea){
-    if (!h && RU.ok){ const r = hudRules(); if (r.v !== 'ok'){ const it = r.top || r.items.find(i => i.v === r.v); cls = r.v === 'no' ? 'r2' : 'r1'; h = (r.v === 'no' ? '✕ ' : '! ') + (it ? ruShort(it) : L('Regler', 'Rules')); } }   // (rmNow: the rules with the boat's group and quota on top, steg 150)
-    // the cod quota on the strip (V2 A): a mark on line 3 when it is yellow or red, and nothing else is to be said there
-    if (!h){ const qr = hudQuota(); if (quotaShow(qr) && quotaCls(qr)){ cls = quotaCls(qr); go = 'kvote'; h = quotaName(qr) + ': ' + quotaTxt(qr); } }
+    if (!h && RU.ok){ const r = hudRules(); if (r.v !== 'ok'){ const it = r.top || r.items.find(i => i.v === r.v); cls = r.v === 'no' ? 'r2' : 'r1'; h = (r.v === 'no' ? '✕ ' : '! ') + (it ? (it.short && window.innerWidth <= 560 ? L(it.short[0], it.short[1]) : ruShort(it)) : L('Regler', 'Rules')); } }   // (rmNow: the rules with the boat's group and quota on top, steg 150)
     if (!h){ const M = motionHere(H, b), z = M.state; if (z.lvl){ cls = 'r' + z.lvl; h = {gm:L('Rank båt', 'Tender boat'), res:stabStill(b) ? L('Synkronrulling · rull ', 'Synchronous roll · rolls ') + Math.round((M.M.roll + M.M.heel) * 180 / Math.PI) + '°' : L('Synkronrulling · endre kurs eller fart', 'Synchronous roll · change course or speed'), roll:L('Kraftig rulling · ta det rolig', 'Heavy rolling · ease off')}[z.why] || ''; } }
     if (!h && b.status !== 'sailing' && typeof gearBuoyNear === 'function'){ const nb = gearBuoyNear(b.pos); if (nb && nb.d > GEARLIE.alarm){ cls = 'r2'; go = String(nb.s.id); h = L('Blåsa ', 'Buoy ') + fmt(nb.d / NM, 1) + L(' nm unna · Kjør dit ›', ' nm off · Go there ›'); } }
   }
+  // the cod quota on the strip (V2 A): a mark on line 3, after the stability and the buoy. Red (something aboard would be confiscated) it
+  // stands before the next event; yellow it gives way to the next event and the work, so «Ferdig 19:30» is never lost for a quota at 80 %
+  if (strip && atSea && !h){ const qr = hudQuota(); if (quotaShow(qr) && (qr.conf > 0.5 || (quotaCls(qr) && !nextEvent() && !I.on))){ cls = quotaCls(qr); go = 'kvote'; h = quotaName(qr) + ': ' + quotaTxt(qr); } }
   let on = I.on || '';   // the work going on; in the box a row of its own under the event, in the strip only when there is no event
   // the next event: in the box «⏱ Fisket er ferdig 09:01 · om 27 min i ekte tid»; in the strip the real time stands in a span of its own
   // (.l3s) that gives way first when the line is short, so the event and its hour are never cut before it, and the narrow phone drops
@@ -366,12 +369,12 @@ const INSTR = (() => {
 // bare ved å trykke på stripa», and of the box's «–»: «Du har ikke fjernet dette minustegnet»), but not in the first trip, where a tap on
 // the box does nothing as before (the guide's rings stand round its third line)
 hud.addEventListener('click', e => {
-  const go = e.target.closest('[data-hgo]'); if (go){ e.stopPropagation(); if (go.dataset.hgo === 'yard'){ hudGoYard(); return; } if (go.dataset.hgo === 'kvote'){ PHONE.open('kvote'); return; } const s = mySets().find(x => String(x.id) === go.dataset.hgo); if (s) DOCK.goTo(s); return; }
+  const go = e.target.closest('[data-hgo]'); if (go){ e.stopPropagation(); if (go.dataset.hgo === 'yard'){ hudGoYard(); return; } if (go.dataset.hgo === 'kvote'){ hudKvote(); return; } const s = mySets().find(x => String(x.id) === go.dataset.hgo); if (s) DOCK.goTo(s); return; }
   if (e.target.closest('[data-hrest]')){ e.stopPropagation(); hudCardOpen(false); doAct({dataset:{act:'rest'}, disabled:false}); return; }   // the bunk from the box (U2-2)
   if (e.target.closest('[data-hcard]')){ e.stopPropagation(); hudCardOpen(false); return; }
   if (e.target.closest('[data-hfull]')){ e.stopPropagation(); S.settings.hudFull = !S.settings.hudFull; save(); renderHud(); return; }
   if (e.target.closest('.rlink')){ PHONE.open('regler'); return; }
-  if (e.target.closest('.qlink')){ PHONE.open('kvote'); return; }
+  if (e.target.closest('.qlink')){ hudKvote(); return; }
   if (document.body.classList.contains('hudcard')){ e.stopPropagation(); hudCardOpen(false); return; }   // a tap on the card itself closes it, as the ✕ does
   if (document.body.classList.contains('hudstrip')){ e.stopPropagation(); if (!hudPortrait() && !hudSheet() && S.settings.hudMin) hudFold('hud'); else hudCardOpen(true); return; }
   if (!hudPortrait() && document.body.classList.contains('v3d') && !tutOn() && !e.target.closest('button,a,input,select,label')){ e.stopPropagation(); hudFold('hud'); }

@@ -94,7 +94,9 @@ function rmMeters(H){
   H = H == null ? S.t / 60 : H;
   const q = quotaState(), acc = access(), y = yearH(H), kgOf = sp => (S.hold || []).reduce((a, x) => a + (x.sp === sp ? x.kg : 0), 0), out = [];
   let C = null; try { C = landConf(H, q, acc); } catch (e){ C = null; }
-  const conf = sp => C && C.confBy[sp] ? C.confBy[sp] * kgOf(sp) : 0;
+  // (the cod: what the quota or the bycatch share confiscates, codConf. The cod confiscated on the caps south of 62° N and as bycatch in
+  // the Skagerrak is not the quota's: it stands on the caps' own rows, so the quota is never called full for it)
+  const conf = sp => !C ? 0 : sp === 'torsk' ? C.codConf || 0 : C.confBy[sp] ? C.confBy[sp] * kgOf(sp) : 0;
   const row = (sp, kind, used, aboard, limit, extra) => { const tot = used + aboard, left = Math.max(0, limit - used);
     out.push(Object.assign({sp, kind, used, aboard, limit, left, conf:conf(sp),
       state:!isFinite(limit) ? 'ok' : tot >= limit - 0.5 ? 'full' : kind === 'by' ? 'none' : tot >= RM.near * limit ? 'near' : 'ok'}, extra || {})); };
@@ -108,7 +110,7 @@ function rmMeters(H){
   { const Q = snoQuota(H); if (Q){ row('snokrabbe', 'vessel', q.snokrabbe || 0, kgOf('snokrabbe'), Q.max); out[out.length - 1].left = snoRoom(H); } }
   // the caps south of 62° N: what is left is sorRoom's (nothing when another of the company's boats has the North Sea's open-group place)
   { const sa = sorAcc(); for (const k of ['nsjo', 'skag4']){ const ab = (((S.boat && S.boat.byc) || {})[k] || {}).cod || 0, used = q[k] || 0;
-      if (ab > 0.5 || used > 0.5){ row('torsk', k, used, ab, SORQ[k].max, {conf:0}); const r = out[out.length - 1]; r.left = sorRoom(k, q, sa); if (r.left <= 0 && r.state !== 'full') r.state = SORQ[k].open && sa === 'none' ? 'none' : 'full'; } } }   // (its confiscation is in the cod row's: landConf counts the cod as one)
+      if (ab > 0.5 || used > 0.5){ row('torsk', k, used, ab, SORQ[k].max, {conf:(C && C.sBy && C.sBy[k]) || 0}); const r = out[out.length - 1]; r.left = sorRoom(k, q, sa); if (r.left <= 0 && r.state !== 'full') r.state = SORQ[k].open && sa === 'none' ? 'none' : 'full'; } } }
   return out;
 }
 
@@ -119,13 +121,15 @@ function rmMeters(H){
 // right or who is aboard changes: the status box and the rules line ask it at every drawing
 let RM_COD = {k:'', r:null};
 function rmCod(H){
-  const q = S.quota || {}, hold = S.hold || [], k = [S.cur, Math.floor(S.t), hold.length, Math.round(hold.reduce((a, x) => a + x.kg, 0)), Math.round(q.torsk || 0), Math.round(q.byCod || 0), S.lic ? S.lic.id : '', S.tripOwner, (S.boat || {}).type].join('|');
+  const q = S.quota || {}, hold = S.hold || [], l = S.lic, byc = (S.boat || {}).byc || {};
+  const k = [S.cur, Math.floor(S.t), hold.length, Math.round(hold.reduce((a, x) => a + x.kg, 0)), Math.round(q.torsk || 0), Math.round(q.byCod || 0), l ? l.id + ':' + (l.extra || 0) + ':' + (l.coop ? l.coop.y : '') : '', (S.fleet || []).filter(v => vget(v, 'lic')).length, S.tripOwner, (S.boat || {}).type,
+    Object.keys(byc).map(z => z + Math.round((byc[z] || {}).cod || 0)).join(',')].join('|');
   if (RM_COD.k !== k || H != null){ let r = null; try { r = rmMeters(H).find(x => x.sp === 'torsk' && (x.kind === 'by' || x.kind === 'open' || x.kind === 'vessel')) || null; } catch (e){ r = null; } if (H != null) return r; RM_COD = {k, r}; }
   return RM_COD.r;
 }
 const RM_NOW = {
-  acc:{k:'rmacc', v:'warn', no:'Bare bifangst: båten har ingen kvote', en:'Bycatch only: the boat has no quota'},
-  owner:{k:'rmowner', v:'warn', no:'Bare bifangst: du er ikke om bord', en:'Bycatch only: you are not aboard'},
+  acc:{k:'rmacc', v:'warn', no:'Bare bifangst: båten har ingen kvote', en:'Bycatch only: the boat has no quota', short:['Bare bifangst', 'Bycatch only']},
+  owner:{k:'rmowner', v:'warn', no:'Bare bifangst: du er ikke om bord', en:'Bycatch only: you are not aboard', short:['Bare bifangst', 'Bycatch only']},
   full:{k:'rmfull', v:'warn', no:'Torskekvoten er full', en:'The cod quota is full'}};
 function rmNow(H){
   let r = {v:'ok', items:[]}; try { r = ruNow() || r; } catch (e){}
@@ -145,7 +149,7 @@ function rmNow(H){
 function rmWarn(H){
   H = H == null ? S.t / 60 : H; const y = yearH(H), day = Math.floor(H / 24), out = [];
   let W = S.codWarn; if (!W || typeof W !== 'object' || W.y !== y) W = S.codWarn = {y, near:{}, full:{}};
-  const t1 = kg => fmtC(kg / 1000, 1) + ' t', nm = sp => [SPECIES[sp].no + 'kvoten', 'The ' + SPECIES[sp].en.toLowerCase() + ' quota'];
+  const t1 = kg => fmtC(kg / 1000, 1) + ' t', NM_Q = {torsk:'Torskekvoten', hyse:'Hysekvoten', sei:'Seikvoten', blakveite:'Blåkveitekvoten', snokrabbe:'Snøkrabbekvoten'}, nm = sp => [NM_Q[sp] || SPECIES[sp].no + 'kvoten', 'The ' + SPECIES[sp].en.toLowerCase() + ' quota'];
   for (const r of rmMeters(H)){ if (!['open', 'vessel', 'max'].includes(r.kind) || r.state === 'none' || !isFinite(r.limit)) continue;
     const lvl = r.conf > 0.5 ? 2 : r.state === 'full' && r.kind !== 'max' && !r.ff ? 2 : r.state === 'near' || r.state === 'full' ? 1 : 0, n = nm(r.sp), lc = [SPECIES[r.sp].no.toLowerCase(), SPECIES[r.sp].en.toLowerCase()];
     if (lvl === 2 && W.full[r.sp] !== day){ W.full[r.sp] = day; W.near[r.sp] = 1;
