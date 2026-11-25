@@ -6322,3 +6322,10 @@
 2026-11-25 07:14	ccr-e101e6f0-y7fg6x	a181266	uishots	OK	87	lite	samtidig	
 2026-11-25 07:14	ccr-e101e6f0-y7fg6x	a181266	boottest	OK	11	lite	samtidig	
 2026-11-25 07:14	ccr-e101e6f0-y7fg6x	a181266	trip2	OK	11	lite	samtidig	
+2026-11-25 07:21	ccr-e101e6f0-y7fg6x	67790f2	quotatest	OK	7	lite	samtidig	
+2026-11-25 07:21	ccr-e101e6f0-y7fg6x	67790f2	r4test	OK	7	lite	samtidig	
+2026-11-25 07:21	ccr-e101e6f0-y7fg6x	67790f2	selltest	LES	11	lite	samtidig	
+2026-11-25 07:22	ccr-e101e6f0-y7fg6x	67790f2	uishots	OK	86	lite	samtidig	
+2026-11-25 07:22	ccr-e101e6f0-y7fg6x	67790f2	vesseltest	OK	9	lite	samtidig	
+2026-11-25 07:22	ccr-e101e6f0-y7fg6x	67790f2	boottest	OK	11	lite	samtidig	
+2026-11-25 07:22	ccr-e101e6f0-y7fg6x	67790f2	trip2	OK	12	lite	samtidig	
