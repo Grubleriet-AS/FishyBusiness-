@@ -777,7 +777,7 @@ Kvotemarkedet, the core (KM1 of docs/planer/kvotemarkedet.md; Jonas 07.11.2026: 
   - 125 `hfftCapFit(o1, n1, s1, o2, n2, s2, gs, n, w2 = 1, two = false)`
   - 144 `hfftMips(out, N)`
 
-## `src/js/core/03l-room.js` (264 linjer)
+## `src/js/core/03l-room.js` (295 linjer)
 
 Handlingsrommet: one layer between the rules and the screen (steg 149, K1 of docs/planer/regler-i-klartekst.md)
 
@@ -789,15 +789,18 @@ Handlingsrommet: one layer between the rules and the screen (steg 149, K1 of doc
   - 77 `rmOpenLimit(len, H)`
 - **82** the meters: a row for each quota or cap that binds the bound boat now.
   - 93 `rmMeters(H)`
-- **115** the rules where the boat is (ruNow), with her group and her cod quota laid on top. ruNow is not changed: it knows the place, the
-  - 122 `rmNow(H)`
-- **132** what a purchase changes, worked out without changing anything (no vessel is bound: it reads the boats' own fields). offer:
-  - 142 `rmBuy(offer, H)`
-- **184** the words (plan 4.5, V3 A; Jonas 25.11.2026: «Vi må gjerne bytte ut ord til noe som er mer forståelig for brukerne … mens det
-  - 202 `rmTermL(key, first)`
-  - 203 `rmTerm(key, first)`
-- **205** why can I not? One table for the reasons a purchase or a move can give: the words deal() (notes, eq, cap), kmBuyWhy and kmWhy
-  - 258 `rmWhy(code, ctx)`
+- **117** the rules where the boat is (ruNow), with her group and her cod quota laid on top. ruNow is not changed: it knows the place, the
+  - 123 `rmCod(H)`
+  - 134 `rmNow(H)`
+- **144** the warnings at sea (steg 150, K2): what is new to say about the quotas now, each once. A species' quota at 80 % (once a year),
+  - 149 `rmWarn(H)`
+- **163** what a purchase changes, worked out without changing anything (no vessel is bound: it reads the boats' own fields). offer:
+  - 173 `rmBuy(offer, H)`
+- **215** the words (plan 4.5, V3 A; Jonas 25.11.2026: «Vi må gjerne bytte ut ord til noe som er mer forståelig for brukerne … mens det
+  - 233 `rmTermL(key, first)`
+  - 234 `rmTerm(key, first)`
+- **236** why can I not? One table for the reasons a purchase or a move can give: the words deal() (notes, eq, cap), kmBuyWhy and kmWhy
+  - 289 `rmWhy(code, ctx)`
 
 ## `src/js/core/04-crew.js` (735 linjer)
 
@@ -885,7 +888,7 @@ crew: people with skills, habits and moods
   - 722 `flyOut(c)`
   - 730 `flyTick()`
 
-## `src/js/core/05-vessels.js` (1514 linjer)
+## `src/js/core/05-vessels.js` (1516 linjer)
 
 ---------- other vessels (deterministic, so every player sees the same traffic) ----------
 
@@ -966,36 +969,36 @@ crew: people with skills, habits and moods
   - 1066 `catchFactors(H, W, hs)`
   - 1079 `stockDev(p, sp)`
   - 1085 `fish(H, W, hs)`
-  - 1191 `endFishing(why)`
-  - 1212 `bycHere(how)`
-  - 1216 `bycAdd(sp, kg, how)`
-  - 1220 `bycConf()`
-  - 1223 `addCatch(sp, kg, cls, hook, opt)`
-- **1245** work on deck: gutting and icing take hands and time
-  - 1261 `deckHands()`
-  - 1264 `deckPending()`
-  - 1265 `deckEta(hands)`
-  - 1270 `moveKg(x, kg, patch)`
-  - 1278 `iceMinute()`
-  - 1285 `iceOut(out)`
-  - 1291 `deckMinute()`
-- **1316** lying to in a storm (H1b R8, 05.11.2026)
-  - 1338 `quayFar(b)`
-  - 1342 `lieTo(W, hs)`
-  - 1349 `lieToStep(W, hs)`
-  - 1359 `risk(W, hs)`
-  - 1387 `hullRepair()`
-  - 1390 `svcOverdue()`
-- **1391** the rescue boat (plan E3, 05.10.2026)
-  - 1417 `rescueBases()`
-  - 1426 `rescueBase(p)`
-  - 1433 `rescueAis(H)`
-  - 1437 `rescue(keepCatch)`
-  - 1465 `towSea(p)`
-  - 1470 `towRoutes(b)`
-  - 1481 `towStep(H)`
-  - 1494 `towDone(t)`
-  - 1503 `towPose(frac)`
+  - 1193 `endFishing(why)`
+  - 1214 `bycHere(how)`
+  - 1218 `bycAdd(sp, kg, how)`
+  - 1222 `bycConf()`
+  - 1225 `addCatch(sp, kg, cls, hook, opt)`
+- **1247** work on deck: gutting and icing take hands and time
+  - 1263 `deckHands()`
+  - 1266 `deckPending()`
+  - 1267 `deckEta(hands)`
+  - 1272 `moveKg(x, kg, patch)`
+  - 1280 `iceMinute()`
+  - 1287 `iceOut(out)`
+  - 1293 `deckMinute()`
+- **1318** lying to in a storm (H1b R8, 05.11.2026)
+  - 1340 `quayFar(b)`
+  - 1344 `lieTo(W, hs)`
+  - 1351 `lieToStep(W, hs)`
+  - 1361 `risk(W, hs)`
+  - 1389 `hullRepair()`
+  - 1392 `svcOverdue()`
+- **1393** the rescue boat (plan E3, 05.10.2026)
+  - 1419 `rescueBases()`
+  - 1428 `rescueBase(p)`
+  - 1435 `rescueAis(H)`
+  - 1439 `rescue(keepCatch)`
+  - 1467 `towSea(p)`
+  - 1472 `towRoutes(b)`
+  - 1483 `towStep(H)`
+  - 1496 `towDone(t)`
+  - 1505 `towPose(frac)`
 
 ## `src/js/core/05b-ferje.js` (197 linjer)
 
@@ -3005,7 +3008,7 @@ Search in the chart plotter (Jonas 09.10.2026: «Kan du bygge inn en søke-knapp
   - 89 `srchCard()`
   - 113 `srchSvg(u)`
 
-## `src/js/ui/04-panels-instruments.js` (375 linjer)
+## `src/js/ui/04-panels-instruments.js` (404 linjer)
 
 ---------- estimates ----------
 
@@ -3017,20 +3020,25 @@ Search in the chart plotter (Jonas 09.10.2026: «Kan du bygge inn en søke-knapp
   - 21 `statusText()`
   - 37 `nextEvent()`
   - 55 `setHtml(el, h)`
-  - 84 `hudFigures()`
-  - 111 `hudShortEv(txt)`
-  - 112 `hudLine3(how)`
-  - 148 `hullWarn(b)`
-  - 157 `hudGoYard()`
-  - 166 `renderHud()`
-  - 235 `liveFrac()`
-  - 236 `livePose(frac)`
-  - 263 `vnoise2(x, y, s)`
-  - 269 `microBottom(p, d)`
-- **271** instruments: GPS and echo sounder
-  - 357 `hudCardOpen(on)`
-  - 366 `hudClasses(stripOn, cardOn)`
-  - 370 `hudFold(which)`
+- **82** the cod meter (steg 150, K2 of docs/planer/regler-i-klartekst.md; Jonas 25.11.2026, V2 A: shown when it matters). The row is
+  - 90 `quotaBar(r)`
+  - 95 `quotaTxt(r)`
+  - 102 `hudRules()`
+  - 105 `hudKvote()`
+  - 108 `hudFigures()`
+  - 135 `hudShortEv(txt)`
+  - 136 `hudLine3(how)`
+  - 175 `hullWarn(b)`
+  - 184 `hudGoYard()`
+  - 193 `renderHud()`
+  - 263 `liveFrac()`
+  - 264 `livePose(frac)`
+  - 291 `vnoise2(x, y, s)`
+  - 297 `microBottom(p, d)`
+- **299** instruments: GPS and echo sounder
+  - 386 `hudCardOpen(on)`
+  - 395 `hudClasses(stripOn, cardOn)`
+  - 399 `hudFold(which)`
 
 ## `src/js/ui/05-tattoo-art.js` (184 linjer)
 
@@ -3166,31 +3174,31 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1798 linjer)
+## `src/js/ui/phone/07-patch.js` (1803 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1786 `patch()`
+  - 1791 `patch()`
 
-## `src/js/ui/phone/08-home-papers-merker.js` (133 linjer)
+## `src/js/ui/phone/08-home-papers-merker.js` (136 linjer)
 
 the home screen (UI 2, U2-6; Jonas 06.11.2026, V6 A and V2 A in docs/planer/ui-2-staaende.md): the clock, the weather and the cash,
 
   - 7 `home()`
   - 26 `nowCards(na)`
-  - 46 `nearHint(kind)`
-- **50** the seaman's life: the tattoos you have earned, and the old ways at sea you have heard of
-  - 51 `tattoos()`
-  - 69 `papBladB()`
-  - 74 `papPermit()`
-  - 80 `papZlic()`
-  - 85 `papKv()`
-  - 91 `papBiz()`
-  - 97 `fsChip()`
-  - 101 `fsCard()`
-  - 113 `merker()`
-  - 125 `lore()`
+  - 49 `nearHint(kind)`
+- **53** the seaman's life: the tattoos you have earned, and the old ways at sea you have heard of
+  - 54 `tattoos()`
+  - 72 `papBladB()`
+  - 77 `papPermit()`
+  - 83 `papZlic()`
+  - 88 `papKv()`
+  - 94 `papBiz()`
+  - 100 `fsChip()`
+  - 104 `fsCard()`
+  - 116 `merker()`
+  - 128 `lore()`
 
 ## `src/js/ui/phone/09-vaer-post-salg-redning.js` (210 linjer)
 
@@ -3516,7 +3524,7 @@ the phone's Fiskeguide app (08.10.2026; Jonas: «en intuitiv app til telefonen d
 - **116** the year view
 - **124** the species card
 
-## `src/js/ui/07-guide.js` (441 linjer)
+## `src/js/ui/07-guide.js` (449 linjer)
 
   - 1 `renderClock()`
   - 10 `mottakShut()`
@@ -3530,20 +3538,20 @@ the phone's Fiskeguide app (08.10.2026; Jonas: «en intuitiv app til telefonen d
   - 159 `gutToggle(b)`
   - 164 `valueEst(sp, g)`
   - 165 `panelHold()`
-  - 186 `fcChart()`
-  - 200 `panelWx()`
-  - 232 `landText(short)`
-  - 245 `deckText(short)`
-  - 265 `quayText(short)`
-  - 271 `panelPort()`
-  - 301 `portSlip()`
-  - 379 `landWarn(p)`
-  - 397 `landQText(short)`
-  - 405 `landQOthers()`
-  - 414 `landPage()`
-  - 430 `panelLog()`
-  - 435 `renderPanel()`
-  - 439 `panelBusy()`
+  - 190 `fcChart()`
+  - 204 `panelWx()`
+  - 236 `landText(short)`
+  - 249 `deckText(short)`
+  - 269 `quayText(short)`
+  - 275 `panelPort()`
+  - 305 `portSlip()`
+  - 385 `landWarn(p)`
+  - 405 `landQText(short)`
+  - 413 `landQOthers()`
+  - 422 `landPage()`
+  - 438 `panelLog()`
+  - 443 `renderPanel()`
+  - 447 `panelBusy()`
 
 ## `src/js/ui/07b-first-trip.js` (328 linjer)
 

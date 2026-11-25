@@ -265,3 +265,12 @@ Jonas 16.11.2026: «Kan du fikse innstillinger-siden slik at den har faner øver
     - `shadow`: solskyggene i `01-shaders.js` og byggenes skygger i `04-vec-packs.js`.
   - **Etter «Bruk og start 3D på nytt»** (siden lastes på nytt): `off.trees` (trær og vind), `off.life`, `off.foam` (skum, brottsjø og NPC-skum), `off.fft` (detaljerte bølger), `off.shore` (strand, skjær og marina) og `off.sun`. De er de samme bryterne som testenes `#trees0` og lignende.
   - «Egendefinert» vises når noe er endret, og «Tilbake til standard» setter alt tilbake og Auto.
+
+## Kvotemåleren i statusboksen (steg 150, 25.11.2026)
+
+Hele beskrivelsen står i 5.29c i `kvoter-og-regler.md`. Det som gjelder for den som endrer UI-et etterpå:
+
+- **Raden «Torskekvote»** (`.row.qlink` i `#hud`, `ui/04-panels-instruments.js`) står bare når den betyr noe (`quotaShow`): boksen blir én rad høyere da. Søyla er `.qm` (landet, og `i.ab` for det som er om bord), gul `r1` og rød `r2` som resten av boksen. Samme søyle står på kaia (`.landq`) og sluttseddelen (`.slipq`).
+- **Stripas linje 3** har fått én ting til å si. Rekkefølgen: sammenstøt, skrog, farled, regler, stabilitet, blåsa, kvoten i rødt, neste hendelse, arbeidet, kvoten i gult.
+- **Regler-linja** spør `rmNow()` (kjernen), ikke `ruNow()`: en ny flate som viser «Lov her», skal gjøre det samme.
+- **Testet:** `kvotemaal` i 1280×800, 800×1280 og 390×844, `hudtest`, `roetest`, `docktest`, `uishots`, `tut.py` i begge formater. Gemini vurderte sju skjermbilder etter malen for mobil-UX (ett kall): trykkflatene i statusboksen og stripa fikk 1–2 av 5 (rundt 20–30 px, som resten av boksen), tekststørrelsen på telefonstripa 2 av 5.

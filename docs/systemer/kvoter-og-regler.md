@@ -593,7 +593,18 @@ Jonas 25.11.2026: spillerne skal «forstå handlingsrommet sitt uten å måtte l
 - **`rmTerm(ord, første)`** og `RM_TERMS`: de 13 ordene i planens 4.5 med klartekst og fagord på norsk og engelsk (Jonas' valg V3 A). De engelske er forslag.
 - **`landConf` og `CONF_PAY`** er flyttet uendret fra `ui/08-actions.js`, fordi enhetstestene bare laster kjernen.
 - **Valgt uten å spørre:** `rmOpenLimit(len, H)` gjentar lengdegruppene fra `codLimits` for en båt som ikke er bundet (`codLimits` leser `BOAT`); testen holder dem like. Tersklene 80 % og 50 % (`RM`) er startverdier.
-- Tester: `tests/unit/room.test.mjs` (76 sjekker; 15 av dem røde mot laget før den uavhengige kontrollens rettinger).
+- Tester: `tests/unit/room.test.mjs` (94 sjekker etter steg 150).
+
+**Måleren og varslene (steg 150, K2, 25.11.2026; Jonas' valg V2 A: «måleren når den betyr noe»):**
+- **`rmCod()`** er båtens torskerad, holdt for spillminuttet og til lasten, landingene, hjemmelen, strukturkvotene, takene sør for 62° N eller hvem som er om bord endrer seg. Statusboksen og Regler-linja spør den hver gang de tegnes.
+- **Torskeradens `conf`** er bare det kvoten eller bifangstandelen inndrar (`codConf`). Torsk inndratt på takene sør for 62° N står på takenes egne rader, så kvoten kalles aldri full for den.
+- **Statusboksen** (`ui/04-panels-instruments.js`: `hudQuota`, `quotaShow`, `quotaBar`, `quotaTxt`): til sjøs raden «Torskekvote» med søyle (landet, om bord, taket) fra halv kvote med det som er om bord (`RM.half`), eller når noe ville blitt inndratt. Gul fra 80 %, rød med «x kg over». En båt uten adgang får raden «Torsk · x kg over 10 %» bare når noe ville blitt inndratt. Et trykk åpner Kvote på Mine kvoter. **På stripa** (telefon) er det et merke på linje 3: rødt står foran neste hendelse, gult viker for neste hendelse og arbeidet, og begge viker for sammenstøt, skrog, farled, regler, stabilitet og blåsa.
+- **Regler-linja** i boksen, hjemskjermens «Regler her» og roen spør `rmNow()`. På stripa spør den `hudRules()`, som er `rmNow` uten «torskekvoten er full», fordi merket sier det der med kiloene.
+- **Varslene til sjøs** (`rmWarn`, kalt fra `core/05-vessels.js` der den gamle logglinja sto): 80 % én gang i året og full én gang i spilldøgnet per art, for torsk, og for hyse, sei, blåkveite og snøkrabbe der de har tak; også mens ferskfiskordningen løper, og da «full» bare når noe ville blitt inndratt. Tilstanden står i båtens `S.codWarn` (`{y, near, full}`; et tall fra en eldre lagring tåles). Ikke i første tur. Linja om Nordsjø-taket står som før.
+- **Kaia** (`landWarn`): måleren over advarselen, med «levert x t, om bord y t. Taket er z t: w t over.» og `rmTerm` for hvilket tak det er. **Lasten** (`panelHold`): under summen en rad per art med det som ikke betales nå. **Sluttseddelen:** «Igjen av torskekvoten: x av y t» fra første levering (`S.lastSale.qcod` = landet, tak, og om ferskfiskordningen løp). **Hjemskjermen:** «Nå»-kortet «Torsk i år».
+- **Valgt uten å spørre:** «full» sies én gang per spilldøgn (som den gamle linja), ikke én gang i året. Snøkrabbe får varsel fordi raden er en fartøykvote.
+- **Ikke gjort:** stikkprøven tre steder langs kysten for Regler-linja (bygget i økta har bare Senja; det `rmNow` legger på, har ingen posisjon). Trykkflaten på raden er rundt 30 px, som «Regler ›» ved siden av, ikke 48.
+- Tester: `tests/kvotemaal.py` (boksen, stripa, uten adgang, kaia, lasten, sluttseddelen og hjemskjermen i 1280×800, 800×1280 og 390×844), og `rmWarn` i `room.test.mjs`.
 
 ## 5.30 Kystvakta om bord (V1 i `docs/planer/oppdrag-2.md`, 31.10.2026)
 
