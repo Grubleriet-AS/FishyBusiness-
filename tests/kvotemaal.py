@@ -47,7 +47,7 @@ async def main():
                 check(r['halv']['row'] and 'r1' not in r['halv']['cls'] and 'r2' not in r['halv']['cls'] and abs(r['halv']['w'][0] - 40) <= 1 and abs(r['halv']['w'][1] - 20) <= 1 and 'igjen' in r['halv']['txt'], nm + ': from half the quota a row with the bar: landed and aboard', r['halv'])
                 check('r1' in r['gul']['cls'], nm + ': yellow from 80 %', r['gul'])
                 check('r2' in r['rod']['cls'] and 'kg over' in r['rod']['txt'], nm + ': red with the kilos over when what is aboard does not fit', r['rod'])
-                check('✓' in r['rod']['rules'] and 'full' not in r['rod']['rules'], nm + ': the rules row leaves the full quota to the quota row (said once, in red)', r['rod']['rules'])
+                check('Torskekvoten er full' in r['rod']['rules'] and '✓' not in r['rod']['rules'], nm + ': the rules row says the quota is full too, so no two places disagree', r['rod']['rules'])
                 await pg.evaluate(SET + '(0.5, 0.35)'); await pg.wait_for_timeout(200); await pg.screenshot(path=os.path.join(OUT, 'boks-gul-%s.png' % nm))
                 await pg.evaluate(SET + '(0.5, 0.7)'); await pg.wait_for_timeout(200); await pg.screenshot(path=os.path.join(OUT, 'boks-rod-%s.png' % nm))
                 await pg.evaluate("PHONE.open('kvote'); PHONE.dact('kvote', 'sub', {s:'open'}); PHONE.show(false)")   # (another tab stood there last)

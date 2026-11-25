@@ -2217,3 +2217,5 @@ body.vplot #hud{background:rgba(11,23,32,.78)!important}
 .landq{display:flex;align-items:center;gap:8px;margin:6px 0 2px;font-variant-numeric:tabular-nums}.landq .qm{flex:1;max-width:160px;height:8px;margin:0}
 .slipq{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.slipq .qm{width:90px;height:7px;margin:0}
 .tbl tr.holdconf td{color:#ff9b91;font-size:.92em}
+#hud .row.qlink{padding:5px 0;margin:-3px 0}#hud .row.qlink .qm{height:7px}
+.slipq{color:inherit;opacity:1;font-size:1em}.landq{flex-wrap:wrap}

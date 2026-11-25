@@ -96,7 +96,9 @@ function quotaTxt(r){ const no = S.lang === 'no', L = (a, c) => no ? a : c, t1 =
   if (r.conf > 0.5) return fmt(r.conf, 0) + (r.kind === 'by' ? L(' kg over 10 %', ' kg over 10%') : L(' kg over', ' kg over'));
   if (r.kind === 'by') return L('bare bifangst', 'bycatch only');
   return t1(Math.max(0, r.limit - r.used - r.aboard)) + L(' igjen', ' left'); }
-// the rules for the status box: rmNow without «the cod quota is full», which the quota's own row or mark says, in its own colour
+// the rules for the strip's one line: rmNow without «the cod quota is full», which the quota's own mark says there, with the kilos and in
+// its own colour. The box and the home screen have room for both and say both, so no two places disagree (Gemini 25.11.2026: «✓ Du kan
+// fiske her» beside a full quota read as a contradiction)
 function hudRules(){ const r = rmNow(), items = r.items.filter(i => i.k !== 'rmfull'), v = items.some(i => i.v === 'no') ? 'no' : items.some(i => i.v === 'warn') ? 'warn' : 'ok';
   return {v, items, top:r.top && r.top.k !== 'rmfull' ? r.top : items.find(i => i.v === v && i.v !== 'ok') || null}; }
 // a tap on the quota opens Kvote on «Mine kvoter», whatever tab stood there last
@@ -151,7 +153,7 @@ function hudLine3(how){
   }
   // the cod quota on the strip (V2 A): a mark on line 3, after the stability and the buoy. Red (something aboard would be confiscated) it
   // stands before the next event; yellow it gives way to the next event and the work, so «Ferdig 19:30» is never lost for a quota at 80 %
-  if (strip && atSea && !h){ const qr = hudQuota(); if (quotaShow(qr) && (qr.conf > 0.5 || (quotaCls(qr) && !nextEvent() && !I.on))){ cls = quotaCls(qr); go = 'kvote'; h = quotaName(qr) + ': ' + quotaTxt(qr); } }
+  if (strip && atSea && !h){ const qr = hudQuota(); if (quotaShow(qr) && (qr.conf > 0.5 || (quotaCls(qr) && !nextEvent() && !I.on))){ cls = quotaCls(qr); go = 'kvote'; h = quotaName(qr) + ': ' + quotaTxt(qr) + ' ›'; } }
   let on = I.on || '';   // the work going on; in the box a row of its own under the event, in the strip only when there is no event
   // the next event: in the box «⏱ Fisket er ferdig 09:01 · om 27 min i ekte tid»; in the strip the real time stands in a span of its own
   // (.l3s) that gives way first when the line is short, so the event and its hour are never cut before it, and the narrow phone drops
@@ -235,7 +237,7 @@ function renderHud(){
   if (atSea){ const z = motionHere(H, b).state; if (z.lvl) now.push('<div class="row warn"><span>' + L('Stabilitet', 'Stability') + '</span><b class="r' + z.lvl + '">' + {gm:L('rank', 'tender'), res:stabStill(b) ? L('synkronrulling · rull ', 'synchronous roll · rolls ') + Math.round((motionHere(H, b).M.roll + motionHere(H, b).M.heel) * 180 / Math.PI) + '°' : L('synkronrulling · endre kurs eller fart', 'synchronous roll · change course or speed'), roll:L('kraftig rulling · ta det rolig', 'heavy rolling · ease off')}[z.why] + '</b></div>'); }
   // the rules where you are (03e-rules.js ruNow): a tap opens the Regler app
   if (atSea){ const qr = hudQuota(); if (quotaShow(qr)) now.push('<div class="row qlink' + (quotaCls(qr) ? ' warn' : '') + '"><span>' + quotaName(qr) + '</span><b class="' + quotaCls(qr) + '">' + quotaBar(qr) + quotaTxt(qr) + ' ›</b></div>'); }
-  if (atSea && RU.ok){ const r = hudRules(), it = r.top || r.items.find(i => i.v === r.v && i.v !== 'ok'); now.push('<div class="row rlink"><span>' + L('Regler', 'Rules') + '</span><b class="' + (r.v === 'no' ? 'r2' : r.v === 'warn' ? 'r1' : 'r0') + '">' + (r.v === 'no' ? '✕ ' : r.v === 'warn' ? '! ' : '✓ ') + (it ? ruShort(it) : L('Lov her', 'Allowed here')) + ' ›</b></div>'); }
+  if (atSea && RU.ok){ const r = rmNow(), it = r.top || r.items.find(i => i.v === r.v && i.v !== 'ok'); now.push('<div class="row rlink"><span>' + L('Regler', 'Rules') + '</span><b class="' + (r.v === 'no' ? 'r2' : r.v === 'warn' ? 'r1' : 'r0') + '">' + (r.v === 'no' ? '✕ ' : r.v === 'warn' ? '! ' : '✓ ') + (it ? ruShort(it) : L('Lov her', 'Allowed here')) + ' ›</b></div>'); }
   // the bunk (UI 2, U2-2, plan 4.3): «Hvil i køya» is in the dock row only when the energy warns or she lies at anchor; else, at sea with a
   // berth and a watch, it is this row in the box behind the strip (10c-dock.js restShow has the rule)
   if (atSea && !resting() && !asleep() && !b.anch && S.energy >= ENERGY.warn && restWhere(b) === 'koye') now.push('<div class="row"><span>' + L('Køya', 'The bunk') + '</span><b>' + Math.round(S.energy) + ' %</b><button type="button" class="hgo" data-hrest>' + L('Hvil i køya', 'Rest in the bunk') + '</button></div>');

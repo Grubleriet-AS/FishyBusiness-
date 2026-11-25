@@ -25,7 +25,7 @@
   // needs you (Rederi). Spilltest 2: the Regler and Kvote apps were never opened, though their content was what the player needed
   function nowCards(na){
     const out = [], b = S.boat;
-    try { if (b.status !== 'port' && typeof RU !== 'undefined' && RU.ok){ const r = hudRules(), it = r.top || r.items.find(i => i.v === r.v && i.v !== 'ok');   /* (as the status box: the full quota is the card beside's) */
+    try { if (b.status !== 'port' && typeof RU !== 'undefined' && RU.ok){ const r = rmNow(), it = r.top || r.items.find(i => i.v === r.v && i.v !== 'ok');
       out.push('<button class="ph-now ' + (r.v === 'no' ? 'r2' : r.v === 'warn' ? 'r1' : 'r0') + '" data-pa="open" data-a="regler"><span>' + L('Regler her', 'Rules here') + '</span><b>' + (r.v === 'no' ? '✕ ' : r.v === 'warn' ? '! ' : '✓ ') + (it ? ruShort(it) : L('Du kan fiske her', 'You may fish here')) + '</b></button>'); } } catch (e){}
     // the cod this year (steg 150; the card «Kvote: 0 av 4,3 t» of ui-redesign.md, never built): landed against the limit now, in the meter's colour
     try { const qr = hudQuota(); if (qr && qr.kind !== 'by' && isFinite(qr.limit) && qr.limit > 0) out.push('<button class="ph-now ' + (quotaCls(qr) || 'r0') + '" data-pa="open" data-a="kvote" data-s="mine"><span>' + L('Torsk i år', 'Cod this year') + '</span><b>' + fmt(qr.used / 1000, 1) + L(' av ', ' of ') + fmt(qr.limit / 1000, 1) + ' t' + (qr.aboard > 0.5 ? L(' · ' + fmt(qr.aboard, 0) + ' kg om bord', ' · ' + fmt(qr.aboard, 0) + ' kg aboard') : '') + '</b></button>');
