@@ -3618,7 +3618,7 @@ Garderoben: the player changes how his figure looks (Jonas 10.10.2026)
 - **22** the right-hand side: what the current tab offers
 - **63** the little renderer
 
-## `src/js/ui/08-actions.js` (518 linjer)
+## `src/js/ui/08-actions.js` (521 linjer)
 
 actions
 
@@ -3628,28 +3628,28 @@ actions
   - 108 `panelInput(e)`
   - 114 `panelChange(e)`
   - 137 `sell()`
-- **285** modal
-  - 287 `modal(html)`
-  - 296 `boatUnnamed()`
-  - 297 `boatChristen(nm)`
-  - 299 `showIntro(namesOnly)`
-- **317** «Mens du var borte» (Jonas 07.10.2026: «en følelse av instant-belønning»)
-  - 327 `awayStart(mins, realMs)`
-  - 332 `awayEnd()`
-  - 333 `showAway(A)`
-- **395** time
-  - 404 `playMinutes(n, away, ms)`
-  - 408 `catchUp(realMs, ms)`
-  - 420 `tick()`
-  - 457 `deliverOrder()`
-- **467** chrome
-  - 468 `applyLang()`
-- **481** screens: full-screen 3D, or the chart plotter for route planning
-  - 482 `setBodyView(v3d)`
-  - 488 `openPlotter()`
-  - 493 `plotSetRender()`
-  - 497 `plotSetOpen(on)`
-  - 510 `kinoUi()`
+- **288** modal
+  - 290 `modal(html)`
+  - 299 `boatUnnamed()`
+  - 300 `boatChristen(nm)`
+  - 302 `showIntro(namesOnly)`
+- **320** «Mens du var borte» (Jonas 07.10.2026: «en følelse av instant-belønning»)
+  - 330 `awayStart(mins, realMs)`
+  - 335 `awayEnd()`
+  - 336 `showAway(A)`
+- **398** time
+  - 407 `playMinutes(n, away, ms)`
+  - 411 `catchUp(realMs, ms)`
+  - 423 `tick()`
+  - 460 `deliverOrder()`
+- **470** chrome
+  - 471 `applyLang()`
+- **484** screens: full-screen 3D, or the chart plotter for route planning
+  - 485 `setBodyView(v3d)`
+  - 491 `openPlotter()`
+  - 496 `plotSetRender()`
+  - 500 `plotSetOpen(on)`
+  - 513 `kinoUi()`
 
 ## `src/js/ui/08b-letter.js` (127 linjer)
 

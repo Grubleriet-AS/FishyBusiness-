@@ -629,6 +629,13 @@ Jonas 25.11.2026: spillerne skal «forstå handlingsrommet sitt uten å måtte l
 - **Testene spiller med `vis1`** i adressen (`tests/_env.py`: alt vist, som før trinnene), så de finner hver fane der den sto. `tut.py` spiller som en ny spiller, og `trinntest` setter `rmAll = false` selv.
 - Tester: `tests/trinntest.py` (800×1280, 1280×800 og 390×844; Regler og Båthandel bare på nettbrett; ikke engelsk, ikke en lagring uten feltene).
 
+**Målingen (steg 153, K5, 25.11.2026):**
+- **Hendelsene** (fra spillere som deler bruksstatistikk; summer og antall spillere, aldri hvem, hvilken båt eller hvor): `land_conf {kg, acc}` (en levering med noe inndratt, i tre størrelser, etter gruppa; fra `sell()`), `why_shown {code}` (grunnen en grå knapp viste), `mer_open {k}` (en «Mer» åpnet), `vis_alt {on}`, `buy_noacc {k}` (et kjøp som tok kvoten, etter spørsmålet) og `bladb {}` (blad B nådd; fra `fmLand`). `sale` og `km_reg` fantes fra før.
+- **`admin_regler(weeks)`** (`supabase/migrations/20261125120000_regler.sql`, bare én ny funksjon; `migsjekk` «ok»): leveringer med inndragning mot alle leveringer, per gruppe og størrelse; grunnene og «Mer» per kode med antall spillere; «Vis alt» på og av; kjøp som tok kvoten; blad B, første hjemmel på verftet, og median døgn mellom dem. **Ikke kjørt** (ingen database i økta); `supabase/` og `src/admin/` er `hoy`, så den ruller ikke ut før Jonas har flettet.
+- **Admin › Trakt** har kortet «Kvoter og regler i klartekst» (`rgView` i `src/admin/index.html`), og Håndbokas liste har de fire nye tipsene (de leses med `admin_hb`, som fantes).
+- **`progweek` fra dagens start** står i `fiskerimodellen.md` («Målt på nytt fra dagens start»): blad B etter 14–15 turer, inngangen etter 19.
+- **Det planen ville lese:** andelen leveringer med inndragning skal gå ned og kjøp som tar kvoten være nær null, lest to ekte uker etter at versjonen er hos spillerne.
+
 ## 5.30 Kystvakta om bord (V1 i `docs/planer/oppdrag-2.md`, 31.10.2026)
 
 Jonas: «Ja, få inn kystvakta.» Kystvakta kommer langs siden for kontroll, ved kai eller på feltet, og spør det regelmotoren alt vet. `core/09j-kystvakt.js`.
