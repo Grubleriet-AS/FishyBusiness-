@@ -249,6 +249,8 @@ function gearRoom(kind){ if (haulerNoFit(kind)) return 0; const m = (BOAT.gearMa
 // ---- buying (in port)
 // one rule for everything sold for gear (Jonas 08.10.2026): nothing for line, nets or pots is bought before the boat has the hauler for it,
 // and what goes with them (hooks, buoy sets, anchors, bait) only once the boat owns some of that gear. Every shop button and buyGear ask this.
+// how many of a kind she has, with those being fitted (the reels)
+function equipCount(k){ return Math.max(0, Math.round(+(S.equip && S.equip[k]) || 0)) + (S.jobs || []).filter(j => j.kind === 'fit' && j.k === k).length; }
 function buyGate(what, spec, lv){
   // the knives and the gaff in tiers (OPP1): only at the tackle shop's quay, on a boat they fit, and tier by tier (spec the EQUIP key, lv
   // the tier asked for, the next one when left out)
@@ -257,6 +259,10 @@ function buyGate(what, spec, lv){
   // being fitted
   if (what === 'equip'){ const E = EQUIP[spec], nd = E && E.needs; if (nd && !(S.equip && S.equip[nd]) && !(S.jobs || []).some(j => j.kind === 'fit' && j.k === nd))
     return [gL(E.name.no + ' krever ' + lc1(EQUIP[nd].name.no) + ' om bord. Kjøp ' + lc1(EQUIP[nd].name.no) + ' først.', 'The ' + lc1(E.name.en) + ' needs a ' + lc1(EQUIP[nd].name.en) + ' aboard. Buy a ' + lc1(EQUIP[nd].name.en) + ' first.')];
+    // a kind she takes several of (the jigging reels): those aboard and those being fitted count against her places (tilbakemelding
+    // 377, 23.11.2026: «Kjøp» tapped three times for reel five of five gave 7 of 5; the phone's own check counted the fitted ones only)
+    if (E && E.multi){ const mx = (VESSELS[S.boat.type] || {}).jukseMax || 0, n = equipCount(spec);
+      if (n >= mx) return [gL('«' + S.boatName + '» har plass til ' + mx + ' ' + lc1(E.name.no) + (mx === 1 ? '' : 'er') + ', og ' + (n === 1 ? 'den' : 'alle') + ' er om bord eller under montering.', 'The «' + S.boatName + '» has room for ' + mx + ' ' + lc1(E.name.en) + (mx === 1 ? '' : 's') + ', and ' + (n === 1 ? 'it is' : 'all are') + ' aboard or being fitted.')]; }
     return null; }
   const own = k => ownedUnits(k) > 0, anyGear = own('line') || own('garn') || own('teine');
   { const k = {stamp:'line', net:'garn', pot:'teine'}[what], nf = k && haulerNoFit(k); if (nf) return nf; }   // no hauler fits: the same words as the Rig tab (F3)
