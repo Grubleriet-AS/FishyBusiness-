@@ -216,6 +216,7 @@
       log((j.no || 'Jobben') + ' var bestilt til ' + old.name.no + '. Verftet betalte tilbake ' + kr(back) + '.', (j.en || 'The job') + ' was ordered for the ' + old.name.en + '. The yard paid back ' + kr(back) + '.'); }
     if (hullJobs.length) S.jobs = S.jobs.filter(j => !hullJobs.includes(j));
     delete b.engLv; delete b.propLv; delete b.holdLv; delete b.upg;
+    if (S.saldo) delete S.saldo[S.cur];   // (steg 148: the tax value is the hull's; the new boat's is her own price, saldoOf. Before, she took over the old boat's)
     b.type = k; delete b.liv; delete b.call; for (const q of Object.keys(EQUIP)) if (!EQUIP[q].tiers && !equipFits(q, k)) S.equip[q] = EQUIP[q].multi ? Math.min(S.equip[q] || 0, VESSELS[k].jukseMax || 0) : false; applyVessel(); loreNewBoat(S.boatName);
     S.equip.jukse = Math.min(S.equip.jukse, BOAT.jukseMax); b.fuel = BOAT.fuelCap * 0.4; b.ice = 0; b.engH = 0; b.svcAt = 0; S.svcTold = false;
     while (S.crew.length > BOAT.crewMax) S.crew.pop();

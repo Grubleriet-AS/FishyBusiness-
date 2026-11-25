@@ -227,6 +227,7 @@ COVER['tests/unit/market3.test.mjs'] = []
 for _f in ('src/js/ui/phone/14-act.js', 'src/js/ui/phone/10-fartoy.js'):
     COVER[_f] = COVER.get(_f, []) + ['megletest']
 COVER['tests/unit/kvotemarked.test.mjs'] = []
+COVER['tests/unit/tilstand.test.mjs'] = []   # steg 148: the vessel ids and the fresh quota
 
 # Turens linje (Ø8b S2, 08.11.2026): the trip's sums in fish() and finishHaul (05-vessels.js, 10-gear.js), the line made by tripSum and
 # tripWhy (04-crew.js), on the landing note (07-guide.js portSlip) and in the deck log at the sale (08-actions.js sell). The pure part is in

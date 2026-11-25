@@ -11,7 +11,7 @@
   const tiHoldNote = () => { const w = tiHoldWhy(); return w ? '<p class="ph-note" data-tihold="1"><b>' + w + '</b></p>' : ''; };
   const tiLocked = v => !!(S.order && S.order.vid !== null && (S.order.vid || S.cur) === v.id) || !!mbSale(v);   // (or put out for sale at Kystmegleren, B1)
   // the ladder in «Neste mål»: the hand jig, the first jigging machine, blad B, the entry boat with a closed-group right, the next right
-  // up, the 14.99 m coastal vessel, and the ocean fleet. The two next steps are shown. The ladder is the fleet's, not the boat you
+  // up (to the 14.99 m and 21 m coastal vessels with theirs), and the ocean fleet. The two next steps are shown. The ladder is the fleet's, not the boat you
   // follow: a step is passed when the fleet has reached it or a step above it (Jonas 07.11.2026: with an ocean vessel and two sjarks the
   // home screen still asked for the first jigging machine, which an ocean vessel cannot carry, and then for the old wooden snekke with
   // a right under 7 m). The hand jig and the jigging machine are for the first boat alone; with an ocean vessel in the fleet the ladder

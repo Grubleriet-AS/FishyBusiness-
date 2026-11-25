@@ -376,8 +376,10 @@
       // (steg 148, T1) a boat with a right traded in for another with a right: the old right goes with the old boat, back to the owners
       // ashore, as in buy above. Before, it was written over and the register lost a place for each step up. Freed before the new one
       // is taken, so the same quota length ends where it began
-      if (ti && S.lic){ const two0 = S.lic.two && HJ[S.lic.two] ? S.lic.two : null; log('Kvoten i lukket gruppe fulgte med den gamle båten.' + (two0 ? ' Den andre kvoten fra den særlige ordningen falt bort.' : ''), 'The closed-group quota went with the old vessel.' + (two0 ? ' The second quota from the special scheme fell away.' : '')); regFree(S.lic.id); S.lic = null; }
-      let fished; regTake(O.id);   // the NPC owner leaves the register (03d-quota.js)
+      let sameReg = false;
+      if (ti && S.lic){ const two0 = S.lic.two && HJ[S.lic.two] ? S.lic.two : null; log('Kvoten i lukket gruppe fulgte med den gamle båten.' + (two0 ? ' Den andre kvoten fra den særlige ordningen falt bort.' : ''), 'The closed-group quota went with the old vessel.' + (two0 ? ' The second quota from the special scheme fell away.' : '')); if (S.lic.id !== O.id) regFree(S.lic.id); else sameReg = true; S.lic = null; }
+      // (the same quota length out and in: one place given back and one taken is no change, so neither is sent; two calls at once could cross on the server)
+      let fished; if (!sameReg) regTake(O.id);   // the NPC owner leaves the register (03d-quota.js)
       if (ti){ if (!S.lic && S.cur === ov) openUsedSave(S.quota); switchVessel(O.ves); S.lic = lic; fished = licStart(lic); nm = S.boatName; }
       else { if (ov) openUsedSave(vget(vesselById(ov), 'quota')); const v = newVesselObj(O.ves, S.boat.port, lic); fished = withVessel(v, () => licStart(lic)); nm = v.boatName; setTimeout(() => BUYM.show(v), 60); log('Kjøpte ' + O.no.toLowerCase() + ' til flåten. Hun heter «' + nm + '».', 'Bought a ' + O.en.toLowerCase() + ' for the fleet. She is called «' + nm + '».'); }
       pressPut('boat', {type:O.ves, lic:1});
