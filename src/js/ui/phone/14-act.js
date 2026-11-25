@@ -62,6 +62,7 @@
     else if (a === 'q3d'){ S.settings.q3d = d.v; if (typeof G3 !== 'undefined' && G3.quality) G3.quality(d.v); }
     else if (a === 'fpsShow'){ S.settings.fpsShow = d.v === '1'; }
     else if (a === 'hudShow'){ S.settings.hudOff = d.v !== '1'; hudClasses(); }
+    else if (a === 'visAlt'){ S.settings.rmAll = d.v === '1'; if (typeof cloudEv === 'function') cloudEv('vis_alt', {on:d.v === '1' ? 1 : 0}); }   // (steg 152; the funnel, K5)
     else if (a === 'move'){
       if (S.moved) return true;
       show(false); const from = (portById(S.home || S.boat.port) || PORTS[0]).name; START_HOMEONLY = true;
@@ -390,6 +391,8 @@
     }
     return true;
   }
+  // (steg 152) «Mer» opened: once a page a session, for the funnel (K5)
+  view.addEventListener('toggle', e => { const d = e.target; if (d && d.open && d.dataset && d.dataset.mer && !ST_MER.has(d.dataset.mer)){ ST_MER.add(d.dataset.mer); if (typeof cloudEv === 'function') try { cloudEv('mer_open', {k:d.dataset.mer}); } catch (x){} } }, true);
   view.addEventListener('click', e => { const t0 = e.target.closest('[data-pa],[data-act]'); if (!t0 || t0.disabled) return; if (t0.dataset.pa) act(t0.dataset.pa, t0.dataset); else { doAct(t0); render(); } });
   view.addEventListener('input', e => { if (e.target.id === 'hbQ'){ HBUI.q = e.target.value; const l = view.querySelector('.hb-list'); if (l) l.innerHTML = HBUI.list(); return; } if (e.target.id === 'coName') coDraft = e.target.value; else if (e.target.id === 'fbBody') return FEEDBACK.input(e.target.value); panelInput(e); });
   view.addEventListener('change', e => { if (e.target.id === 'fbFile') return FEEDBACK.pick(e.target.files); panelChange(e); if (e.target.id === 'setAuto') render(); });

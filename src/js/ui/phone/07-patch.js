@@ -1,5 +1,10 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['enklere-251126', '25.11.2026', 'Kvote og Båthandel med det viktigste først', 'Quota and the boat market with the essentials first', [
+       ['Kvote viser torskekvoten din øverst, med vanlige ord: «taket ditt i år» og «det du har uansett». Fagordet står i parentes, og et trykk på det forklarer det.', 'Quota shows your cod quota at the top, in plain words: «your cap this year» and «what you have in any case». The trade\'s word stands in brackets, and a tap on it explains it.'],
+       ['Det du ikke trenger ennå, ligger under «Mer» på samme side, i Kvote, Regler og Båthandel. Ingenting er låst.', 'What you do not need yet lies under «More» on the same page, in Quota, Rules and the boat market. Nothing is locked.'],
+       ['Vil du se alt med en gang: Innstillinger, «Vis alt».', 'To see everything at once: Settings, «Show all».'],
+       ['Håndboka sier fra når du har brukt halve torskekvoten, og når du kan kjøpe en båt med egen kvote.', 'The handbook tells you when half the cod quota is used, and when you can buy a boat with a quota of its own.']]],
     ['kjopskort-251126', '25.11.2026', 'Båtkjøpet sier hva som endrer seg', 'The boat purchase says what changes', [
        ['Over kjøpsknappen står kortet «Dette endrer seg»: kvoten før og etter, hvor mye torsk du kan levere i år, og hvor mye selgeren alt har fisket av årets kvote.', 'Over the buy button stands the card «This changes»: the quota before and after, how much cod you can land this year, and how much of the year\'s quota the seller has already fished.'],
        ['En båt uten kvoterett (hjemmel) har et rødt kort som sier at torsk, hyse og sei bare kan være bifangst, og kjøpet spør før det tar kvoten fra båten din.', 'A boat without a quota right has a red card saying that cod, haddock and saithe can only be bycatch, and the purchase asks before it takes the quota from your boat.'],
