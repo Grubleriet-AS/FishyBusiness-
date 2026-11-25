@@ -56,7 +56,7 @@ TRADE = """(async () => { const R = {}, y = yearH(S.t / 60), tap = q => { const 
   { S.hold = [{sp:'torsk', kg:300, fresh:90, bled:true, iced:true, c:1, g:'A'}]; const t0 = S.boat.type, l0 = S.lic.id;
     DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=snekke][data-o=h7]');
     const bt = document.querySelector('#drawerBody [data-pa=buylic][data-ti="1"]'), fl = document.querySelector('#drawerBody [data-pa=buylic][data-ti="0"]');
-    R.k0.hold = {grey:!!bt && bt.disabled, why:!!document.querySelector('#drawerBody [data-tihold]'), fleet:!!fl && !fl.disabled}; DOCK.close();
+    R.k0.hold = {grey:!!bt && bt.disabled, why:!!document.querySelector('#drawerBody .whybox[data-why=hold]'), fleet:!!fl && !fl.disabled}; DOCK.close();
     PHONE.dact('rederi', 'buylic', {id:'h7', ti:'1'}); R.k0.hold.lic = S.lic.id === l0 && S.boat.type === t0 && S.hold.length === 1;
     PHONE.dact('rederi', 'buy', {k:'skiff', ti:'1'}); R.k0.hold.buy = S.boat.type === t0 && !!S.lic && S.hold.length === 1; S.hold = []; }
   // T1: a boat with a right traded in for a boat with the next right: the old right goes back to the register, the new one is taken

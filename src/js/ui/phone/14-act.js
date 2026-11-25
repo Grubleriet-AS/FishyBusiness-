@@ -234,7 +234,9 @@
       if (!ti && V2.len < 11 && !hasLic()){ toast(L('Et rederi kan bare ha én båt i åpen gruppe.', 'A company can only have one boat in the open group.')); return; }
       // an ocean vessel comes with her permit from an NPC owner in the register (H1 of the ocean step, 03d-quota.js havLicTake)
       const hw = V2.cls === 'hav' ? havLicWhy(d.k) : null; if (hw){ toast(L(hw[0], hw[1])); return; }
-      const x = deal(V2.cls === 'hav' ? havPrice(d.k, S.t / 60) : V2.price, ti); if (!x.ok){ toast(whyText(x) || t('no_cash')); return; } finance(x, 120); achAdd('boat');
+      const x = deal(V2.cls === 'hav' ? havPrice(d.k, S.t / 60) : V2.price, ti); if (!x.ok){ toast(whyText(x) || t('no_cash')); return; }
+      // (steg 151) a purchase that takes access from the boat traded in asks first; the event for the funnel (K5), never who
+      { const q = ti ? buyAsk({kind:'hull', type:d.k, ti:true, keep:tiKeepOn()}) : null; if (q){ if (!confirm(q)) return; if (typeof cloudEv === 'function') cloudEv('buy_noacc', {k:d.k}); } } finance(x, 120); achAdd('boat');
       const hl = V2.cls === 'hav' ? havLicTake(d.k, S.t / 60) : null; let hn = '';
       // KM4 (V2 A, the same choice as at the broker): the right is kept as a free right for two game years, taken off her before she
       // is traded in (the trade-in was priced without it, tradeIn); else it follows her as before. The second quota from the special

@@ -56,7 +56,9 @@
       const sub2 = o.why ? kxWhy(o.why) : o.how === 'put' ? L('blir en båt i lukket gruppe', 'becomes a boat in the closed group')
         : L('kvotefaktor +', 'quota factor +') + fmt(kmAddKf(it), 4) + (it.kind === 'right' ? L(' (−10 %, i 20 år)', ' (−10 %, for 20 years)') : '') + (A && STRUCT.cap[A.grp] ? ' · ' + L('tak ', 'cap ') + STRUCT.cap[A.grp] + '×: ' + fmt(A.kf + (o.l.extra || 0) + kmAddKf(it), 2) + L(' av ', ' of ') + fmt(A.kf * STRUCT.cap[A.grp], 2) : '');
       return '<button class="chip-b' + (on ? ' on' : '') + '" data-pa="' + pa + '" data-k="' + key + '" data-v="' + o.v.id + '" data-how="' + o.how + '"' + (o.why ? ' disabled' : '') + '>' + (o.how === 'put' ? L('Sett på ', 'Put on ') : L('Strukturer inn på ', 'Structure onto ')) + nm + '<br><small>' + sub2 + '</small></button>'; };
-    return {c, ok:ok.length > 0, html:'<div class="net-shops kx-to">' + B.map(row).join('') + '</div>'};
+    // (steg 151) put on a boat without a right: what it changes for her, and for the company's open-group boat
+    const cv = c && c.how === 'put' ? vesselById(c.vid) : null, card = cv ? buyCard({kind:'right', id:it.id, st:it.st || [], used:it.used || null, y:it.y, v:cv}, L('Dette endrer seg for «' + mgEsc(vget(cv, 'boatName')) + '»', 'This changes for the «' + mgEsc(vget(cv, 'boatName')) + '»')) : '';
+    return {c, ok:ok.length > 0, html:'<div class="net-shops kx-to">' + B.map(row).join('') + '</div>' + card};
   }
   const kxPick = key => { const c = kxTo[key], v = c && vesselById(c.vid); return v ? {v, how:c.how} : null; };
   function kxFacts(it, H){

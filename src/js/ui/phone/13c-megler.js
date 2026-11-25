@@ -160,6 +160,8 @@
         a.push('<p class="ph-note">' + L('Budet binder pengene hos megleren. Blir du overbydd, får du dem tilbake med en gang. Neste bud må være minst 2 % over.', 'The bid holds the money at the broker. Outbid, you get it back at once. The next bid must be at least 2 % over.') + '</p>');
       }
       h.push(a.join('') + '</div>'); }
+    // (steg 151) what buying her changes: her group and this year's cod, and the company's open-group boat when she comes with a right
+    if (!Q.mine) h.push(buyCard({kind:'boat', type:Q.type, lic:P.lic || null, quota:P.quota || null}, L('Dette endrer seg om du kjøper henne', 'This changes if you buy her')));
     h.push('<div class="ph-card mg-seller"><h4>' + (Q.seller ? mgEsc(Q.seller) : L('En fisker', 'A fisherman')) + ' <small>' + L('selger', 'sells') + '</small></h4><p class="ph-note">' + L('Kystmegleren formidler mellom spillere og tar 5 % av prisen fra selgeren. Det som står her, er det båten har.', 'Kystmegleren brokers between players and takes 5 % of the price from the seller. What stands here is what the boat has.') + '</p></div>');
     if (lic) h.push(sec(L('Hjemmel', 'Right'), [kv(L('Hjemmelslengde', 'Quota length'), mgEsc(lic.hl || lic.id)), kv(L('Følger med', 'Comes with her'), L('ja, med årets fangst på den', 'yes, with this year\'s catch on it')),
       '<p class="ph-note">' + L('I virkeligheten følger ikke deltakeradgangen automatisk med båten (deltakerloven § 4); i spillet gjør den det, og kjøperen må stå på blad B.', 'In life the right does not follow the boat by itself (deltakerloven § 4); in the game it does, and the buyer must be on blad B.') + '</p>']));
