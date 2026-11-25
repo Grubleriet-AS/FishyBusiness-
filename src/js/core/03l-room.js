@@ -82,78 +82,100 @@ function rmOpenLimit(len, H){
 // ---- the meters: a row for each quota or cap that binds the bound boat now.
 //   sp      the species
 //   kind    open (the open group's maximum or guaranteed quota), vessel (a vessel quota), max (a maximum quota), by (no access: the
-//           year's cap on cod as bycatch), nsjo, skag4 (the caps south of 62° N)
-//   used    landed on it this year; aboard: in the hold now and counted on it; limit, left (limit − used; Infinity for no limit)
+//           year's cap on cod as bycatch; why says which: 'owner' when the open-group boat is out without her owner, else 'access'),
+//           nsjo, skag4 (the caps south of 62° N)
+//   used    landed on it this year; aboard: in the hold now and counted on it; limit, left (what may still be landed on it; Infinity
+//           for no limit)
 //   conf    what of the species aboard would be confiscated if she landed now (landConf: the fresh-fish allowance and the bycatch
 //           shares are in it, so it is the truth where used + aboard against the limit is only the meter)
-//   state   ok, near (from RM.near), full (what is aboard does not fit, or nothing is left), none (no access)
+//   state   ok, near (from RM.near), full (what is aboard does not fit, or nothing is left), none (not a quota of hers: bycatch only)
+// A vessel whose permit has no cod (the snow crab vessel) gets no cod row. The ocean permits' other species (herring) have no row yet
 function rmMeters(H){
   H = H == null ? S.t / 60 : H;
   const q = quotaState(), acc = access(), y = yearH(H), kgOf = sp => (S.hold || []).reduce((a, x) => a + (x.sp === sp ? x.kg : 0), 0), out = [];
   let C = null; try { C = landConf(H, q, acc); } catch (e){ C = null; }
   const conf = sp => C && C.confBy[sp] ? C.confBy[sp] * kgOf(sp) : 0;
-  const row = (sp, kind, used, aboard, limit, extra) => { const tot = used + aboard;
-    out.push(Object.assign({sp, kind, used, aboard, limit, left:Math.max(0, limit - used), conf:conf(sp),
-      state:kind === 'by' ? 'none' : !isFinite(limit) ? 'ok' : tot >= limit - 0.5 ? 'full' : tot >= RM.near * limit ? 'near' : 'ok'}, extra || {})); };
+  const row = (sp, kind, used, aboard, limit, extra) => { const tot = used + aboard, left = Math.max(0, limit - used);
+    out.push(Object.assign({sp, kind, used, aboard, limit, left, conf:conf(sp),
+      state:!isFinite(limit) ? 'ok' : tot >= limit - 0.5 ? 'full' : kind === 'by' ? 'none' : tot >= RM.near * limit ? 'near' : 'ok'}, extra || {})); };
   const codAb = C ? C.codKg : Math.max(0, kgOf('torsk') - sorCodAboard());   // (the cod from the caps south of 62° N is not on this quota)
-  if (acc === 'none') row('torsk', 'by', q.byCod || 0, codAb, BYCATCH.cod, {share:BYCATCH.share});
-  else { const l = codLimits(H); row('torsk', acc === 'open' ? 'open' : 'vessel', q.torsk || 0, codAb, codLimitNow(H), {max:l.max, guar:l.guar, stopped:!codOpen(H), ff:ffPct(H)}); }
+  if (acc === 'none') row('torsk', 'by', q.byCod || 0, codAb, BYCATCH.cod, {share:BYCATCH.share, why:!S.lic && S.cur === openVesselId() ? 'owner' : 'access'});
+  else { const l = codLimits(H), lim = codLimitNow(H); if (lim > 0) row('torsk', acc === 'open' ? 'open' : 'vessel', q.torsk || 0, codAb, lim, {max:l.max, guar:l.guar, stopped:!codOpen(H), ff:ffPct(H)}); }
   if (acc === 'lukket'){ const LQ = licQ(S.lic, H);
     for (const sp of ['hyse', 'sei']){ const lim = LQ[sp] && LQ[sp][0]; if (lim > 0 && isFinite(lim)) row(sp, 'max', q[sp] || 0, kgOf(sp), lim, {guar:LQ[sp][1]}); } }
-  { const ab = kgOf('blakveite'), used = bkUsed(H); if (ab > 0.5 || used > 0.5) row('blakveite', 'max', used, ab, bkMax(BOAT.len, y), {direct:bkDirect(H, BOAT.len)}); }
-  { const Q = snoQuota(H); if (Q) row('snokrabbe', 'vessel', q.snokrabbe || 0, kgOf('snokrabbe'), Q.max); }
-  for (const k of ['nsjo', 'skag4']){ const ab = (((S.boat && S.boat.byc) || {})[k] || {}).cod || 0, used = q[k] || 0;
-    if (ab > 0.5 || used > 0.5) row('torsk', k, used, ab, SORQ[k].max, {conf:0}); }   // (its confiscation is in the cod row's, landConf counts the cod as one)
+  // Greenland halibut: the maximum quota in the direct fishery; outside it only a bycatch (7 % of the week's landings), so not a quota of hers then
+  { const ab = kgOf('blakveite'), used = bkUsed(H); if (ab > 0.5 || used > 0.5){ const direct = bkDirect(H, BOAT.len); row('blakveite', 'max', used, ab, bkMax(BOAT.len, y), {direct}); if (!direct && out[out.length - 1].state !== 'full') out[out.length - 1].state = 'none'; } }
+  { const Q = snoQuota(H); if (Q){ row('snokrabbe', 'vessel', q.snokrabbe || 0, kgOf('snokrabbe'), Q.max); out[out.length - 1].left = snoRoom(H); } }
+  // the caps south of 62° N: what is left is sorRoom's (nothing when another of the company's boats has the North Sea's open-group place)
+  { const sa = sorAcc(); for (const k of ['nsjo', 'skag4']){ const ab = (((S.boat && S.boat.byc) || {})[k] || {}).cod || 0, used = q[k] || 0;
+      if (ab > 0.5 || used > 0.5){ row('torsk', k, used, ab, SORQ[k].max, {conf:0}); const r = out[out.length - 1]; r.left = sorRoom(k, q, sa); if (r.left <= 0 && r.state !== 'full') r.state = SORQ[k].open && sa === 'none' ? 'none' : 'full'; } } }   // (its confiscation is in the cod row's: landConf counts the cod as one)
   return out;
 }
 
 // ---- the rules where the boat is (ruNow), with her group and her cod quota laid on top. ruNow is not changed: it knows the place, the
 // gear and the length, not the group north of 62° N, so a boat without access got «✓ Lov her». {v, items, top}: top is what the
-// status line says first
+// status line says first. «Full» is said when cod taken now would be confiscated: not while the fresh-fish allowance still takes it
 const RM_NOW = {
   acc:{k:'rmacc', v:'warn', no:'Bare bifangst: båten har ingen kvote', en:'Bycatch only: the boat has no quota'},
+  owner:{k:'rmowner', v:'warn', no:'Bare bifangst: du er ikke om bord', en:'Bycatch only: you are not aboard'},
   full:{k:'rmfull', v:'warn', no:'Torskekvoten er full', en:'The cod quota is full'}};
 function rmNow(H){
   let r = {v:'ok', items:[]}; try { r = ruNow() || r; } catch (e){}
   const extra = [];
   try { const m = rmMeters(H).find(x => x.sp === 'torsk' && (x.kind === 'by' || x.kind === 'open' || x.kind === 'vessel'));
-    if (m && m.kind === 'by') extra.push(RM_NOW.acc); else if (m && m.state === 'full') extra.push(RM_NOW.full); } catch (e){}
+    if (m && m.kind === 'by') extra.push(m.why === 'owner' ? RM_NOW.owner : RM_NOW.acc);
+    else if (m && m.state === 'full' && (!m.ff || m.conf > 0.5)) extra.push(RM_NOW.full); } catch (e){}
   const items = (r.items || []).concat(extra), rank = {no:2, warn:1, ok:0}, v = extra.length && rank[r.v] < 1 ? 'warn' : r.v;
   return {v, items, top:items.find(i => i.v === 'no') || extra[0] || items.find(i => i.v === v && i.v !== 'ok') || null};
 }
 
-// ---- what a purchase changes, worked out without changing anything. offer:
-//   {kind:'lic', id (the right), type (the boat it comes with), ti}   the yard's boat with a right, traded in (ti) or for the fleet
-//   {kind:'hull', type, ti, keep}                                     the yard's boat without one (keep: the old right stays as a free right)
-//   {kind:'right', id, used, y, v}                                    a right put on the boat v (the quota market; used: landed on it in year y)
-//   {kind:'boat', type, lic}                                          a boat for the fleet from the broker, with or without a right
-// Gives {now, after, loses, seller}: now and after are {acc, limit, used, left} for the boat it is about (now is null for a boat that is
-// new to the fleet); loses is the boat that loses her place in the open group, by id; seller the kilos of this year's cod the seller
-// has fished on the right (§ 29). The same functions as the purchase itself uses (licQ, sellerCod, openVesselId)
+// ---- what a purchase changes, worked out without changing anything (no vessel is bound: it reads the boats' own fields). offer:
+//   {kind:'lic', id (the right), type (the boat it comes with), ti, keep}  the yard's boat with a right, traded in (ti) or for the fleet
+//   {kind:'hull', type, ti, keep}                                          the yard's boat without one
+//   {kind:'right', id, st, used, y, v}                                     a right put on the boat v (the quota market; st its structure quotas, used what is landed on it in year y)
+//   {kind:'boat', type, lic, quota}                                        a boat for the fleet from the broker: her right and her quota object as packed (mbPack), or none
+// keep: the right the traded-in boat has stays in the company as a free right (KM4). Gives {now, after, loses, seller, lost, why}: now
+// and after are {acc, limit, used, left} for the boat it is about (now is null for a boat new to the fleet, after is null with why when
+// it cannot be done); loses is the boat that loses her place in the open group, by id; seller the kilos of this year's cod already
+// fished on the right (§ 29); lost says the traded-in boat's right goes with her. It follows what the purchases do (14-act.js buy and
+// buylic, kmApply, the broker's settlement in 09k-market.js), also where that is not what one would wish (see the last line of noLic)
 function rmBuy(offer, H){
   H = H == null ? S.t / 60 : H; if (!offer) return null;
   const y = yearH(H), fleet = S.fleet || [], ov = openVesselId(), cur = curVessel();
+  const lenOf = v => (VESSELS[vget(v, 'boat').type] || {}).len || 0, qOf = v => { const q = vget(v, 'quota'); return q && q.y === y ? q : {}; };
   const st = (acc, limit, used) => ({acc, limit, used, left:Math.max(0, limit - used)});
-  const nowOf = v => withVessel(v, () => { const acc = access(), q = quotaState(); return acc === 'none' ? st('none', BYCATCH.cod, q.byCod || 0) : st(acc, codLimitNow(H), q.torsk || 0); });
-  const licAfter = (id, len, used) => { const lim = licQ({id}, H, len).torsk, u = used != null ? used : Math.round(lim * sellerCod(id, H)); return {after:st('lukket', lim, u), seller:u}; };
-  const others = v => fleet.some(x => x !== v && vget(x, 'lic'));   // (a right elsewhere in the company: no boat of hers is in the open group)
-  // the owner's open-group cod this year follows the owner (§ 29): what the open boat has landed, or what was kept when she left the group
-  const openUsed = v => { const q = v && v.id === ov ? vget(v, 'quota') : null, a = q && q.y === y ? q.torsk || 0 : 0, O = S.openUsed && S.openUsed.y === y ? S.openUsed.torsk || 0 : 0; return Math.max(a, O); };
-  const noLic = (type, v) => { const V = VESSELS[type] || {};
-    if (V.cls === 'hav') return {after:{acc:'lukket', hav:true, limit:null, used:0, left:null}};
-    if (V.len < 11 && !others(v)) return {after:st('open', rmOpenLimit(V.len, H), openUsed(v || vesselById(ov)))};
-    return {after:st('none', BYCATCH.cod, v ? (vget(v, 'quota') || {}).byCod || 0 : 0)}; };
+  // a boat as she is now: access() and codLimitNow for a boat that is not the bound one
+  const nowOf = v => { const l = vget(v, 'lic'), q = qOf(v);
+    if (l) return st('lukket', licQ(l, H, lenOf(v)).torsk, q.torsk || 0);
+    return v.id === ov && vget(v, 'tripOwner') !== false ? st('open', rmOpenLimit(lenOf(v), H), q.torsk || 0) : st('none', BYCATCH.cod, q.byCod || 0); };
+  // a right on a boat of this length, with its structure quotas: the vessel quota, and what is fished on it (given, or the seller's share)
+  const licAfter = (lic, len, used) => { const l = {id:lic.id, st:(lic.st || []).map(x => ({...x}))}; if (lic.two && HJ[lic.two]) l.two = lic.two; licExtra(l);
+    const lim = licQ(l, H, len).torsk, u = used != null ? used : Math.round(lim * sellerCod(lic.id, H)); return {after:st('lukket', lim, u), seller:u}; };
+  // the company's open-group boat once the purchase is done (openVesselId on the fleet as it will be): sub = {v, type, lic} the boat
+  // traded in with her new type and whether she has a right then; add = {type, lic} a boat new to the fleet, last in it
+  const openAfter = (sub, add) => { const rows = fleet.map(v => sub && v === sub.v ? {id:v.id, len:(VESSELS[sub.type] || {}).len, lic:sub.lic} : {id:v.id, len:lenOf(v), lic:!!vget(v, 'lic')});
+    if (add) rows.push({id:'+', len:(VESSELS[add.type] || {}).len, lic:add.lic}); if (rows.some(r => r.lic)) return null; const r = rows.find(x => x.len < 11); return r ? r.id : null; };
+  // the owner's open-group cod this year (§ 29): what the open boat has landed, and what was kept when she left the group
+  const kept = () => S.openUsed && S.openUsed.y === y ? S.openUsed.torsk || 0 : 0;
   let R;
-  if (offer.kind === 'lic'){ const V = VESSELS[offer.type] || {}; R = licAfter(offer.id, V.len, null);
-    R.now = offer.ti ? nowOf(cur) : null; R.loses = ov && !(offer.ti && ov === cur.id) ? ov : null; }
-  else if (offer.kind === 'hull'){ const V = VESSELS[offer.type] || {};
-    if (offer.ti){ R = noLic(offer.type, cur); R.now = nowOf(cur); R.loses = V.cls === 'hav' && ov && ov !== cur.id ? ov : null; R.lost = !!vget(cur, 'lic') && !offer.keep; }
-    else { R = V.len < 11 && V.cls !== 'hav' && !fleet.some(x => vget(x, 'lic')) ? {after:null, why:'open'} : noLic(offer.type, null); R.now = null; R.loses = V.cls === 'hav' ? ov : null; } }
+  if (offer.kind === 'lic' || (offer.kind === 'boat' && offer.lic && HJ[offer.lic.id])){
+    const V = VESSELS[offer.type] || {}, ti = offer.kind === 'lic' && !!offer.ti, bq = offer.kind === 'boat' ? (offer.quota && offer.quota.y === y ? offer.quota.torsk || 0 : 0) : null;
+    R = licAfter(offer.kind === 'lic' ? {id:offer.id} : offer.lic, V.len, bq);   // (the broker's boat comes with her own quota object, mbUnpack: what was landed on her, or nothing)
+    R.now = ti ? nowOf(cur) : null; R.loses = ov && !(ti && ov === cur.id) ? ov : null; if (ti) R.lost = !!vget(cur, 'lic') && !offer.keep; }
   else if (offer.kind === 'right'){ const v = offer.v, V = v && VESSELS[vget(v, 'boat').type]; if (!v || !V) return null;
-    R = licAfter(offer.id, V.len, offer.used && offer.y === y ? offer.used.torsk || 0 : offer.used ? 0 : null); R.now = nowOf(v); R.loses = ov && ov !== v.id ? ov : null; }
-  else if (offer.kind === 'boat'){ const V = VESSELS[offer.type] || {};
-    if (offer.lic && HJ[offer.lic.id]){ R = licAfter(offer.lic.id, V.len, null); R.now = null; R.loses = ov; }
-    else { R = V.len < 11 && V.cls !== 'hav' && !fleet.some(x => vget(x, 'lic')) ? {after:null, why:'open'} : noLic(offer.type, null); R.now = null; R.loses = null; } }
+    R = licAfter(offer, V.len, offer.used ? (offer.y === y ? offer.used.torsk || 0 : 0) : null); R.now = nowOf(v); R.loses = ov && ov !== v.id ? ov : null; }
+  else if (offer.kind === 'hull' || offer.kind === 'boat'){ const V = VESSELS[offer.type] || {}, ti = offer.kind === 'hull' && !!offer.ti, hav = V.cls === 'hav';
+    if (!ti && !hav && V.len < 11 && !fleet.some(x => vget(x, 'lic'))) R = {after:null, why:'open', now:null, loses:null};   // (one boat in the open group; the yard and mbBuyWhy say the same)
+    else if (hav){ R = {after:{acc:'lukket', hav:true, limit:null, used:0, left:null}, now:ti ? nowOf(cur) : null, loses:ov && !(ti && ov === cur.id) ? ov : null}; if (ti) R.lost = !!vget(cur, 'lic') && !offer.keep; }
+    else { const had = ti && !!vget(cur, 'lic'), oa = openAfter(ti ? {v:cur, type:offer.type, lic:false} : null, ti ? null : {type:offer.type, lic:false}), isOpen = ti ? oa === cur.id : oa === '+';
+      if (!isOpen) R = {after:st('none', BYCATCH.cod, ti ? qOf(cur).byCod || 0 : 0)};
+      else { // she is the open-group boat afterwards. Her cod this year: her own when she was it already; coming from a right, what the
+        // owner kept (buy: freshQuota and openUsedLoad), and with the right kept as a free right also what was landed on it this year
+        // (mbMove puts it with the owner's). A boat of 11 m or more whose right is kept gets nothing loaded (kmOut loads it only for the
+        // boat that is the open-group boat as she is then): the purchase does that, so the card says it
+        const u = !had ? Math.max(cur.id === ov ? qOf(cur).torsk || 0 : 0, kept()) : !offer.keep ? kept() : lenOf(cur) < 11 ? Math.max(kept(), qOf(cur).torsk || 0) : 0;
+        R = {after:st('open', rmOpenLimit(V.len, H), u)}; }
+      R.now = ti ? nowOf(cur) : null; R.loses = null; if (ti) R.lost = had && !offer.keep; } }
   else return null;
   if (R.seller == null) R.seller = null; if (R.loses == null) R.loses = null;
   return R;
@@ -183,7 +205,7 @@ function rmTerm(key, first){ const t = rmTermL(key, first); return S && S.lang =
 // ---- why can I not? One table for the reasons a purchase or a move can give: the words deal() (notes, eq, cap), kmBuyWhy and kmWhy
 // (km.*), mbMoveWhy (mv.*) and mbBuyWhy (mb.*) return, the trade-in with fish in the hold (hold), and where and when boats are bought.
 // Each: a sentence [no, en], how to mend it (fix: [no, en] and the app that has it), and the law behind it (law) where there is one.
-// ctx fills the figures in: {n, of, kr, need, boat, len}
+// ctx fills the figures in: {n, of, left, need, boat, len}; notes reads the landings itself when they are not given
 const RM_WHY = {
   notes:{t:['Banken vil se tre leveringer før den låner ut. Du har {n}.', 'The bank wants to see three landings before it lends. You have {n}.'], fix:['Lever fangst {left} ganger til.', 'Land a catch {left} more times.']},
   eq:{t:['Du har for lite egenkapital til dette kjøpet. Banken krever {need}.', 'You have too little equity for this purchase. The bank asks for {need}.'], fix:['Spar opp, eller bytt inn båten din.', 'Save up, or trade in your boat.'], app:'bank'},
@@ -212,19 +234,30 @@ const RM_WHY = {
   'km.sea':{t:['Båten må ligge i havn.', 'The boat must lie in port.']},
   'km.busy':{t:['Båten losser. Vent til hun er ferdig.', 'The boat is landing. Wait until she is done.']},
   'km.drift':{t:['Ingen fangst er levert på kvoteretten i år eller de to årene før.', 'No catch has been landed on the quota right this year or the two before.']},
-  'km.coop':{t:['Kvoteretten er i kvotesamarbeid i år.', 'The quota right is in a quota cooperation this year.'], law:'J-161-2026 § 31'},
+  'km.coop':{t:['Kvoteretten er i kvotesamarbeid i år.', 'The quota right is in a quota cooperation this year.'], law:'J-187-2026 § 31'},
+  'km.hold':{t:['Lever fangsten først. Det som ligger i rommet, må være levert før kvoteretten flyttes eller legges ut.', 'Land the catch first. What is in the hold must be landed before the quota right is moved or put out.'], fix:['Gå til et mottak og lever.', 'Go to a fish plant and land it.']},
+  'km.ops':{t:['Slå av driftsplanen på båten først.', 'Switch the boat\'s operating plan off first.'], app:'plan'},
+  'km.many':{t:['Du har alt tre ting til salgs. Vent til en av dem er solgt.', 'You already have three things for sale. Wait until one of them is sold.']},
+  'hav.none':{t:['Registeret har ingen slik tillatelse igjen å selge.', 'The register has no such permit left to sell.']},
+  'mb.aboard':{t:['Du er om bord. Gå om bord i en annen båt før hun selges.', 'You are aboard. Go aboard another boat before she is sold.'], app:'rederi'},
+  'mb.only':{t:['Rederiet må ha en båt igjen.', 'The company must keep a boat.']},
+  'mb.gear':{t:['Hun har redskap i sjøen. Ta det opp først.', 'She has gear in the sea. Take it up first.']},
+  'mb.del':{t:['Hun er underveis med en skipper fra megleren.', 'She is under way with a skipper from the broker.']},
   'km.short':{t:['Kvoten har under ett år igjen.', 'The quota has under a year left.']},
   'mv.order':{t:['Båten byttes inn. Vent til det er gjort.', 'The boat is being traded in. Wait until that is done.']},
   'mv.same':{t:['Kvoteretten står alt på den båten.', 'The quota right is already on that boat.']},
   'mv.tolisted':{t:['Båten den skulle til, ligger til salgs.', 'The boat it would go to is for sale.']},
   'mb.open':{t:['Rederiet kan bare ha én båt på felleskvoten for småbåter (åpen gruppe).', 'The company can only have one boat on the small boats\' shared quota (the open group).'], fix:['Kjøp en båt med kvoterett, eller selg båten din først.', 'Buy a boat with a quota right, or sell your boat first.'], law:'Deltakerforskriften (J-30-2026)'}};
 // mbMoveWhy and mbBuyWhy share the quota market's words where they mean the same
-for (const k of ['gone', 'none', 'hav', 'listed', 'sea', 'busy', 'coop', 'boat', 'type', 'haslic', 'len']) RM_WHY['mv.' + k] = RM_WHY['km.' + k];
+for (const k of ['gone', 'none', 'hav', 'listed', 'sea', 'busy', 'coop', 'drift', 'two', 'short', 'boat', 'type', 'haslic', 'len', 'hold', 'ops']) RM_WHY['mv.' + k] = RM_WHY['km.' + k];
+for (const k of ['listed', 'type', 'sea', 'busy', 'hold', 'ops', 'many']) RM_WHY['mb.' + k] = RM_WHY['km.' + k];
+RM_WHY['mb.order'] = RM_WHY['mv.order'];
 for (const k of ['gone', 'own']) RM_WHY['mb.' + k] = RM_WHY['km.' + k];
 RM_WHY['mb.bladb'] = RM_WHY['km.bladb'] = RM_WHY.bladb; RM_WHY['mb.cash'] = RM_WHY['km.cash'] = RM_WHY.cash;
 // {code, t:[no, en], fix:[no, en]|null, app, sub, law} with the figures filled in, or null for a code the table does not have
 function rmWhy(code, ctx){
   const W = code && RM_WHY[code]; if (!W) return null;
-  const c = ctx || {}, fill = s => s.replace(/\{(\w+)\}/g, (m, k) => c[k] != null ? c[k] : '');
+  const c = Object.assign({}, ctx); if (code === 'notes'){ if (c.n == null) c.n = (S.sales || []).length; if (c.left == null) c.left = Math.max(0, 3 - c.n); }
+  const fill = s => s.replace(/\{(\w+)\}/g, (m, k) => c[k] != null ? c[k] : '');
   return {code, t:W.t.map(fill), fix:W.fix ? W.fix.map(fill) : null, app:W.app || null, sub:W.sub || null, law:W.law || null};
 }

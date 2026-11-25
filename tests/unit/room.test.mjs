@@ -5,7 +5,7 @@ export default function (t){
   const K = t.K, {newState, ensureFleet, newVesselObj, vget, curVessel, withVessel, access, quotaState, freshQuota, codLimitNow, codLimits, licQ, sellerCod, landConf, yearH, HJ, VESSELS, BYCATCH,
     LIC_OFFERS, PORTS, portServices, EPOCH, rmStage, rmMeters, rmNow, rmBuy, rmWhy, rmTerm, rmTermL, rmOpenLimit, RM, RM_TERMS, RM_WHY, kmApply, licStart, openUsedSave, openVesselId, deal, mbBuyWhy, kmBuyWhy, h2} = K;
   const at = (y, m, d) => (Date.UTC(y, m - 1, d) - EPOCH) / 36e5;
-  const mk = (H) => { const S = newState(); K.set('S', S); ensureFleet(); S.me = S.cur; S.cash = 5e7; S.boat.status = 'port'; S.tripOwner = true; if (H != null) S.t = Math.round(H * 60); return S; };
+  const mk = (H) => { const S = newState(); K.set('S', S); ensureFleet(); K.applyVessel(); S.me = S.cur; S.cash = 5e7; S.boat.status = 'port'; S.tripOwner = true; if (H != null) S.t = Math.round(H * 60); return S; };
   const port = PORTS.find(p => portServices(p).verft).id;
   const fish = (sp, kg) => ({sp, kg, fresh:90, bled:true, iced:true, cls:1, hook:true});
   // (the lazy tables the core fills when first asked are not a change: this year's empty quota object, the open group's season worked out
@@ -52,6 +52,19 @@ export default function (t){
   t.ok(mc.kind === 'vessel' && mc.limit === LQ.torsk && mc.state === 'ok', 'lukket gruppe: torsk på fartøykvoten');
   t.ok(mh && mh.kind === 'max' && mh.state === 'full' && mh.conf > 0, 'hyse over maksimalkvoten: rød, og noe inndras (' + (mh && Math.round(mh.conf)) + ' kg)');
   t.ok(M.some(x => x.sp === 'sei' && x.kind === 'max' && x.state === 'ok'), 'sei har sin egen måler');
+  // a vessel whose permit has no cod gets no cod row, and the status line does not call a quota full
+  S = mk(H3); S.boat.type = 'snokrabbe'; K.applyVessel(); S.lic = {id:'krab', hav:true, kf:1, since:2026}; freshQuota();
+  M = rmMeters(H3); t.ok(!M.some(x => x.sp === 'torsk') && M.some(x => x.sp === 'snokrabbe' && x.kind === 'vessel'), 'snøkrabbefartøyet: ingen torskemåler, snøkrabben på fartøykvoten');
+  t.ok(!rmNow(H3).items.some(i => i.k === 'rmfull'), 'og Regler-linja sier ikke at torskekvoten er full');
+  // the open-group boat out without her owner: bycatch only, and the reason is the owner, not the quota
+  S = mk(H3); S.tripOwner = false; M = rmMeters(H3); t.eq([M[0].kind, M[0].why, rmNow(H3).items.some(i => i.k === 'rmowner')], ['by', 'owner', true], 'åpen gruppe uten eieren om bord: bifangst, og grunnen er eieren');
+  S = mk(H3); S.boat.type = 'kyst15'; K.applyVessel(); quotaState().byCod = BYCATCH.cod; t.eq(rmMeters(H3)[0].state, 'full', 'bifangsttaket på 2 t brukt: rød');
+  // the fresh-fish allowance takes the cod: the meter is red, but the status line does not say «full» while nothing would be confiscated
+  S = mk(H10); quotaState().torsk = codLimitNow(H10); S.hold = [fish('torsk', 50), fish('sei', 2000)]; M = rmMeters(H10);
+  t.ok(M[0].state === 'full' && M[0].conf < 0.5 && !rmNow(H10).items.some(i => i.k === 'rmfull'), 'oktober, torsken går på ferskfisktillegget: ingen «full» på Regler-linja');
+  S.hold = [fish('torsk', 3000)]; t.ok(rmNow(H10).items.some(i => i.k === 'rmfull'), 'men med torsk utover tillegget sier den det');
+  // the North Sea cap when another of the company's boats holds the open-group place there: nothing left for this one
+  S = mk(H3); { const o = newVesselObj('snekke', port); o.quota = {y:yearH(H3), torsk:0, hyse:0, sei:0, nsjo:500}; S.boat.byc = {nsjo:{cod:100}}; const r = rmMeters(H3).find(x => x.kind === 'nsjo'); t.eq([r.left, r.state], [0, 'none'], 'Nordsjøen: en annen av båtene har plassen, så ingenting er igjen her'); }
   // drawn holds: the sum of what the meters say is confiscated is landConf's, in each group
   let n = 0, bad = 0;
   for (let i = 0; i < 60; i++){ const u = k => h2(i * 7 + k, 4100 + k), H = [H3, H10, at(2027, 6, 5)][i % 3], g = i % 4;
@@ -99,21 +112,41 @@ export default function (t){
   t.eq([B.now.acc, B.after.acc, B.after.used, B.loses], ['none', 'lukket', 7000, S.cur], '«Sett på»: fra ingen adgang til lukket gruppe, med selgerens fangst, og startbåten mister åpen gruppe');
   { const lim2 = B.after.limit; kmApply({kind:'right', id:'h14', flen:14.9, st:[], used:{torsk:7000, hyse:0, sei:0}, y}, {v:v2, how:'put'}, H3);
     t.eq([withVessel(v2, () => access()), vget(v2, 'quota').torsk, withVessel(v2, () => codLimitNow(H3)), openVesselId()], ['lukket', 7000, lim2, null], 'kmApply gir det kortet lovet'); }
+  // a right with a structure quota put on a boat: the whole quota, as kmApply gives it
+  S = mk(H3); S.fm = {n:10, last:-1, kr:2e5, b:true}; { const v3 = newVesselObj('kyst15', port), st = [{id:'h14', kf:4.7, from:2026, until:2046}];
+    B = rmBuy({kind:'right', id:'h14', st, used:{torsk:0, hyse:0, sei:0}, y, v:v3}, H3); kmApply({kind:'right', id:'h14', flen:14.9, st, used:{torsk:0, hyse:0, sei:0}, y}, {v:v3, how:'put'}, H3);
+    t.eq(B.after.limit, withVessel(v3, () => codLimitNow(H3)), 'hjemmel med strukturkvote: taket er hele kvoten, som kmApply gir'); t.ok(B.after.limit > licQ({id:'h14'}, H3, 14.99).torsk * 1.5, 'og større enn hjemmelen alene'); }
+  // two boats under 11 m without a right: the first in the fleet is the open-group boat, so the second traded for another small boat has no access
+  S = mk(H3); { const v4 = newVesselObj('snekke', port); K.bindVessel(v4); B = rmBuy({kind:'hull', type:'plastsjark', ti:true}, H3);
+    t.eq([openVesselId() !== v4.id, B.now.acc, B.after.acc], [true, 'none', 'none'], 'to småbåter uten hjemmel: den som ikke er åpen gruppe-båten, er det ikke etter innbytte heller'); }
+  // the right kept as a free right at the trade-in: what was landed on it this year goes with the owner into the open group (mbMove)
+  S = mk(H3); S.fm = {n:10, last:-1, kr:2e5, b:true}; S.lic = {id:'u7', hl:HJ.u7.hl, since:2026}; freshQuota().torsk = 3000;
+  B = rmBuy({kind:'hull', type:'snekke', ti:true, keep:true}, H3);
+  { const r = K.mbMove({v:curVessel()}, {free:true}); t.ok(r && r.ok, 'mbMove: hjemmelen er ledig'); t.eq([B.after.acc, B.after.used], [access(), quotaState().torsk], 'beholdt hjemmel: årets fangst på den følger eieren til åpen gruppe, som mbMove gjør (' + B.after.used + ' kg)'); }
+  // nothing is bound while it reads: another boat's sheet leaves the bound boat as she was
+  S = mk(H3); { const v5 = newVesselObj('kyst15', port), a = JSON.stringify(S); rmBuy({kind:'right', id:'h14', used:null, y, v:v5}, H3); t.ok(JSON.stringify(S) === a, 'rmBuy for en annen båt binder ingen båt og endrer ingenting'); }
   // the broker: a boat with a right for the fleet
   S = mk(H3); S.fm = {n:10, last:-1, kr:2e5, b:true}; B = rmBuy({kind:'boat', type:'sjark', lic:{id:'h9'}}, H3);
-  t.eq([B.after.acc, B.loses, B.seller > 0], ['lukket', S.cur, true], 'megleren, båt med hjemmel: lukket gruppe, og startbåten mister åpen gruppe');
-  B = rmBuy({kind:'boat', type:'skiff', lic:null}, H3); t.eq(B.why, 'open', 'megleren, en småbåt til uten hjemmel: samme grunn som mbBuyWhy');
+  t.eq([B.after.acc, B.loses, B.seller], ['lukket', S.cur, 0], 'megleren, båt med hjemmel uten kvoteobjekt: lukket gruppe, ingenting fisket på den, og startbåten mister åpen gruppe');
+  { const lic = {id:'h14', st:[{id:'h14', kf:4.7, from:2026, until:2046}]}; K.licExtra(lic); const pk = {type:'kyst15', lic, quota:{y:yearH(H3), torsk:9000, hyse:0, sei:0}};
+    B = rmBuy({kind:'boat', type:pk.type, lic:pk.lic, quota:pk.quota}, H3); const v = K.mbUnpack(pk, port);
+    t.eq([B.after.used, B.after.limit], [vget(v, 'quota').torsk, licQ(vget(v, 'lic'), H3, VESSELS.kyst15.len).torsk], 'megleren, båt med hjemmel og strukturkvote: det mbUnpack gir (selgerens fangst og hele kvoten)'); }
+  S = mk(H3); B = rmBuy({kind:'boat', type:'skiff', lic:null}, H3); t.eq(B.why, 'open', 'megleren, en småbåt til uten hjemmel: samme grunn som mbBuyWhy');
   t.eq(mbBuyWhy({type:'skiff', vessel:{lic:null}}, null), 'open', '(mbBuyWhy sier «open»)');
 
   // ---- why: a text in both languages for every word the checks can give
-  const codes = ['notes', 'eq', 'cap', 'cash', 'bladb', 'hold', 'yard', 'order', 'sale', 'open']
-    .concat(['gone', 'own', 'bladb', 'how', 'boat', 'type', 'listed', 'haslic', 'len', 'nolic', 'group', 'cap', 'cash', 'none', 'hav', 'two', 'sea', 'busy', 'drift', 'coop', 'short'].map(k => 'km.' + k))
-    .concat(['gone', 'none', 'hav', 'listed', 'sea', 'busy', 'coop', 'order', 'same', 'boat', 'type', 'tolisted', 'haslic', 'len'].map(k => 'mv.' + k))
-    .concat(['gone', 'own', 'bladb', 'open', 'cash'].map(k => 'mb.' + k));
+  // the words are read from the functions themselves, so a new one without a sentence turns this red
+  const words = f => [...new Set([...String(f).matchAll(/(?:return|\?|:) '([a-z]+)'/g)].map(m => m[1]))];
+  const codes = ['notes', 'eq', 'cap', 'cash', 'bladb', 'hold', 'yard', 'order', 'sale', 'open', 'hav.none']
+    .concat([K.kmWhy, K.kmPutWhy, K.kmBuyWhy, K.kmStructWhy].flatMap(words).map(k => 'km.' + k))
+    .concat([K.mbMoveWhy, K.kmWhy].flatMap(words).map(k => 'mv.' + k))
+    .concat([K.mbBuyWhy, K.mbWhy].flatMap(words).map(k => 'mb.' + k));
+  t.ok(codes.length > 60 && codes.includes('mv.hold') && codes.includes('km.many') && codes.includes('mb.gear'), 'grunnene er lest fra funksjonene (' + codes.length + ')');
   const miss = codes.filter(c => { const w = rmWhy(c, {n:1, of:10, left:2, need:'42 000 kr', boat:'Havbris', len:11}); return !w || !w.t[0] || !w.t[1] || /\{\w+\}/.test(w.t.join('') + (w.fix || []).join('')); });
   t.eq(miss, [], 'hver grunn har en setning på norsk og engelsk, uten tomme felt');
   // the words the real checks give are in the table
-  S = mk(H3); t.ok(rmWhy(deal(5e9, 0).why), 'deal().why finnes i tabellen (' + deal(5e9, 0).why + ')');
+  S = mk(H3); S.sales = [{t:0, total:1}]; { const w0 = rmWhy(deal(5e9, 0).why); t.ok(w0 && /Du har 1\./.test(w0.t[0]) && /2 ganger/.test(w0.fix[0]), 'deal().why uten tre sluttsedler: tallene leses fra landingene (' + (w0 && w0.t[0] + ' ' + w0.fix[0]) + ')'); }
+  for (const c of ['eq', 'cap']) t.ok(/'eq'|'cap'/.test(String(deal)) && rmWhy(c), 'deal kan gi «' + c + '», og den finnes');
   t.ok(rmWhy('km.' + kmBuyWhy({kind:'right', id:'h9'}, {v:curVessel(), how:'put'}, null)), 'kmBuyWhy uten blad B finnes i tabellen');
   t.eq(rmWhy('finnes-ikke'), null, 'en ukjent grunn gir null');
   const w = rmWhy('bladb', {n:6, of:10}); t.ok(/6 av 10/.test(w.t[0]) && w.law === 'Deltakerloven § 6' && w.app === 'kvote', 'blad B: tallene fylt inn, loven bak og hvor det står');

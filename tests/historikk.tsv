@@ -6316,3 +6316,9 @@
 2026-11-25 06:39	ccr-e101e6f0-y7fg6x	6fa56e2	fleet3test	OK	5	lite	samtidig	
 2026-11-25 06:53	ccr-e101e6f0-y7fg6x	6fa56e2	markettest	FEIL	826	lite	alene	FEIL 3D, liggende: kjøpsøyeblikket på båten du er om bord i tegner i modellen, kameraet går rundt henne, og kortet har typen, året og kaia  [{"card": true, "in3
 2026-11-25 06:53	ccr-e101e6f0-y7fg6x	6fa56e2+	vesseltest	OK	9	lite	alene	
+2026-11-25 07:13	ccr-e101e6f0-y7fg6x	a181266	quotatest	OK	12	lite	samtidig	
+2026-11-25 07:13	ccr-e101e6f0-y7fg6x	a181266	r4test	OK	12	lite	samtidig	
+2026-11-25 07:13	ccr-e101e6f0-y7fg6x	a181266	selltest	LES	10	lite	samtidig	
+2026-11-25 07:14	ccr-e101e6f0-y7fg6x	a181266	uishots	OK	87	lite	samtidig	
+2026-11-25 07:14	ccr-e101e6f0-y7fg6x	a181266	boottest	OK	11	lite	samtidig	
+2026-11-25 07:14	ccr-e101e6f0-y7fg6x	a181266	trip2	OK	11	lite	samtidig	
