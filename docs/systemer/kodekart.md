@@ -3121,7 +3121,7 @@ the Kvote app: your quotas, the open group's season, the stocks, and the market 
   - 43 `kvStock(H)`
   - 61 `kvReg(H)`
 
-## `src/js/ui/phone/04b-kvotemarked.js` (213 linjer)
+## `src/js/ui/phone/04b-kvotemarked.js` (215 linjer)
 
 Kvotemarkedet: Kvote → Marked (KM3 of docs/planer/kvotemarkedet.md; Jonas 07.11.2026 V1 A–V5 A, valg 15 A 10.11.2026)
 
@@ -3131,17 +3131,17 @@ Kvotemarkedet: Kvote → Marked (KM3 of docs/planer/kvotemarkedet.md; Jonas 07.1
   - 39 `kxCard(Q)`
   - 49 `kxBoats(it)`
   - 53 `kxChoice(key, it, pa)`
-  - 62 `kxFacts(it, H)`
-  - 71 `kxSheet(Q)`
-  - 93 `kxForm(src)`
-  - 112 `kxOwn(src, H)`
-  - 121 `kxMine(H)`
-  - 141 `kxWishCard()`
-  - 151 `kxList(kind)`
-  - 159 `kxSold(H)`
-  - 165 `kvMkt(H)`
-  - 176 `kxBoatRow(v)`
-  - 183 `kmAct(a, d)`
+  - 64 `kxFacts(it, H)`
+  - 73 `kxSheet(Q)`
+  - 95 `kxForm(src)`
+  - 114 `kxOwn(src, H)`
+  - 123 `kxMine(H)`
+  - 143 `kxWishCard()`
+  - 153 `kxList(kind)`
+  - 161 `kxSold(H)`
+  - 167 `kvMkt(H)`
+  - 178 `kxBoatRow(v)`
+  - 185 `kmAct(a, d)`
 
 ## `src/js/ui/phone/05-rigg-innst-admin.js` (153 linjer)
 
@@ -3174,12 +3174,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1803 linjer)
+## `src/js/ui/phone/07-patch.js` (1808 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1791 `patch()`
+  - 1796 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (136 linjer)
 
@@ -3215,32 +3215,37 @@ the home screen (UI 2, U2-6; Jonas 06.11.2026, V6 A and V2 A in docs/planer/ui-2
   - 189 `redning()`
 - **209** vessels: my vessel overview and the market
 
-## `src/js/ui/phone/10-fartoy.js` (352 linjer)
+## `src/js/ui/phone/10-fartoy.js` (396 linjer)
 
-  - 19 `goals()`
-  - 45 `goalsCard()`
-- **50** «Båten og utstyret» (OPP4 of docs/planer/oppgraderinger.md, 07.11.2026; Jonas: «én side for båten og utstyret»: «enig»): every
-  - 64 `haulNow(kind)`
-  - 68 `haulNow0(kind)`
-  - 79 `tierLad(k, pg, fxOf)`
-  - 85 `oneLad(k, base, pg, fx, nm)`
-  - 148 `ladders()`
-  - 165 `kitCard()`
-  - 166 `kitCard0()`
-- **195** the boat market: tabs for the open group, boats with a closed-group right, the coastal fleet over 11 m and the ocean fleet;
-  - 204 `mkCard(k, O)`
-  - 208 `market()`
-  - 240 `specSecs(k, O)`
-  - 264 `sheet(k, O)`
-  - 316 `fartoy(tab0)`
-- **351** the company: the fleet at a glance and what needs you. The vessel apps work on the vessel picked at the top (default: the one you follow)
+- **7** «Dette endrer seg» (steg 151, K3 of docs/planer/regler-i-klartekst.md): what a purchase changes, from rmBuy (core/03l-room.js),
+  - 11 `buyRes(offer)`
+  - 14 `buyCard(offer, head, foot)`
+  - 35 `buyAsk(offer)`
+  - 42 `whyBox(code, ctx)`
+  - 62 `goals()`
+  - 88 `goalsCard()`
+- **93** «Båten og utstyret» (OPP4 of docs/planer/oppgraderinger.md, 07.11.2026; Jonas: «én side for båten og utstyret»: «enig»): every
+  - 107 `haulNow(kind)`
+  - 111 `haulNow0(kind)`
+  - 122 `tierLad(k, pg, fxOf)`
+  - 128 `oneLad(k, base, pg, fx, nm)`
+  - 191 `ladders()`
+  - 208 `kitCard()`
+  - 209 `kitCard0()`
+- **238** the boat market: tabs for the open group, boats with a closed-group right, the coastal fleet over 11 m and the ocean fleet;
+  - 247 `mkCard(k, O)`
+  - 251 `market()`
+  - 283 `specSecs(k, O)`
+  - 307 `sheet(k, O)`
+  - 360 `fartoy(tab0)`
+- **395** the company: the fleet at a glance and what needs you. The vessel apps work on the vessel picked at the top (default: the one you follow)
 
-## `src/js/ui/phone/11-rederi.js` (91 linjer)
+## `src/js/ui/phone/11-rederi.js` (94 linjer)
 
   - 6 `selRow()`
   - 8 `vSummary()`
   - 45 `rederi()`
-- **90** equipment
+- **93** equipment
 
 ## `src/js/ui/phone/12-utstyr-redskap.js` (261 linjer)
 
@@ -3301,7 +3306,7 @@ Nettet and the tackle shop on the quay (M2 in docs/planer/butikker-og-sponsorer.
   - 115 `nett()`
   - 127 `netShop()`
 
-## `src/js/ui/phone/13c-megler.js` (256 linjer)
+## `src/js/ui/phone/13c-megler.js` (260 linjer)
 
 Kystmegleren: boats players sell to each other (B1–B8 in docs/planer/etter-tonys-test.md, Jonas 07.11.2026; EAFC's auction house)
 
@@ -3315,17 +3320,17 @@ Kystmegleren: boats players sell to each other (B1–B8 in docs/planer/etter-ton
   - 109 `megler()`
   - 132 `mgWishCard()`
   - 141 `mgSheet(Q)`
-- **176** KM4: «Flytt hjemmelen til …» (Rederi «⋯», and the free rights under the fleet). mlSel = {vid} a boat's right or {key} a free right
-  - 178 `mlSrc()`
-  - 179 `mbLicSheet()`
-  - 197 `mbMoveBtn(v)`
-  - 199 `mbFreeCard()`
-  - 205 `tiLicRow()`
-  - 210 `mgHere()`
-  - 218 `mgAfter(key, okNo, okEn)`
-  - 220 `mgAct(a, d)`
+- **180** KM4: «Flytt hjemmelen til …» (Rederi «⋯», and the free rights under the fleet). mlSel = {vid} a boat's right or {key} a free right
+  - 182 `mlSrc()`
+  - 183 `mbLicSheet()`
+  - 201 `mbMoveBtn(v)`
+  - 203 `mbFreeCard()`
+  - 209 `tiLicRow()`
+  - 214 `mgHere()`
+  - 222 `mgAfter(key, okNo, okEn)`
+  - 224 `mgAct(a, d)`
 
-## `src/js/ui/phone/14-act.js` (400 linjer)
+## `src/js/ui/phone/14-act.js` (402 linjer)
 
   - 2 `act(a, d)`
 - **9** the receipt after a buy for kroner (Jonas 06.11.2026, Tony's test: «Det skal ikke være tvil om et kjøp er gjennomført»): one
