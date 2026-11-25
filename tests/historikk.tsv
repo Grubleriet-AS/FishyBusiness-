@@ -6271,3 +6271,21 @@
 2026-11-24 18:14	ccr-399c74e8-91vrad	c4a968bd	trip2	OK	12	lite	samtidig	
 2026-11-24 19:39	ccr-399c74e8-91vrad	9f179a43	boottest	OK	11	lite	samtidig	
 2026-11-24 19:39	ccr-399c74e8-91vrad	9f179a43	trip2	OK	11	lite	samtidig	
+2026-11-25 05:51	ccr-77518a05-fvougw	7e77311+	synctest	FEIL	75	lite	alene	FEIL a tablet that lost the game to the phone and is loaded again hours later goes on with the phone's game, and writes nothing over it {"c0": {"dev": "iPhone",
+2026-11-25 05:52	ccr-77518a05-fvougw	7e77311+	synctest	OK	75	lite	alene	
+2026-11-25 05:53	ccr-77518a05-fvougw	7e77311+	tabtest	OK	47	lite	samtidig	
+2026-11-25 05:54	ccr-77518a05-fvougw	7e77311+	synctest	OK	78	lite	samtidig	
+2026-11-25 05:54	ccr-77518a05-fvougw	7e77311+	cloudtest	OK	33	lite	samtidig	
+2026-11-25 05:54	ccr-77518a05-fvougw	7e77311+	errtest	OK	25	lite	samtidig	
+2026-11-25 05:55	ccr-77518a05-fvougw	7e77311+	guesttest	OK	72	lite	samtidig	
+2026-11-25 05:55	ccr-77518a05-fvougw	7e77311+	pwatest	OK	38	lite	samtidig	
+2026-11-25 05:55	ccr-77518a05-fvougw	7e77311+	boottest	OK	14	lite	samtidig	
+2026-11-25 05:56	ccr-77518a05-fvougw	7e77311+	pushtest	OK	27	lite	samtidig	
+2026-11-25 05:58	ccr-77518a05-fvougw	7e77311+	starttest	OK	179	lite	samtidig	
+2026-11-25 05:58	ccr-77518a05-fvougw	7e77311+	bootgtest	OK	115	lite	samtidig	
+2026-11-25 05:59	ccr-77518a05-fvougw	a07fc4e+	hengtest	OK	105	lite	samtidig	
+2026-11-25 05:59	ccr-77518a05-fvougw	a07fc4e+	vervtest	OK	8	lite	samtidig	
+2026-11-25 05:59	ccr-77518a05-fvougw	a07fc4e+	kanaltest	OK	41	lite	samtidig	
+2026-11-25 05:59	ccr-77518a05-fvougw	a07fc4e+	nedetest	OK	23	lite	samtidig	
+2026-11-25 05:59	ccr-77518a05-fvougw	a07fc4e+	lagrefeiltest	OK	7	lite	samtidig	
+2026-11-25 06:10	ccr-77518a05-fvougw	a07fc4e+	sportest	OK	665	3d	alene	
