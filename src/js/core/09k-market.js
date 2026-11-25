@@ -187,6 +187,7 @@ function mbDrop(v){
   if (v.id === S.cur){ bindVessel(vesselById(S.me)); if (typeof G3 !== 'undefined' && G3.vesselChanged) G3.vesselChanged(); }
   if (v.id === openVesselId()) openUsedSave(vget(v, 'quota'));
   const M = mktState(); if (M.del) M.del = M.del.filter(d => d.vid !== v.id);
+  vesselGone(v);   // (her id is not given again, and what was kept under it goes with her; 03-simulation.js, steg 148)
   S.fleet.splice(S.fleet.indexOf(v), 1); return true;
 }
 function mbQuickSell(vid){

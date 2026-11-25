@@ -30,9 +30,27 @@ function access(){ if (S.lic) return 'lukket'; return S.cur === openVesselId() &
 const BYCATCH = {share:0.1, cod:2000};
 function vesselValue(v){ const b = vget(v, 'boat'), eq = vget(v, 'equip') || {}; return Math.round(VESSELS[b.type].price * 0.7 + (eq.motor90 ? EQUIP.motor90.price * 0.5 : 0) + licValue(vget(v, 'lic')) * 0.95); }
 // a vessel added to the fleet: default state, in port with 40 % fuel; the bigger boats come with a plotter and VHF
+// a vessel's id is never given twice (steg 148, T3): the next number is over every id the company has had. Before, it was the highest in
+// the fleet plus one, so a boat bought after the highest was sold took her id, and with it what is kept under it: her tax value
+// (S.saldo), the Greenland halibut landed this year (S.bkq.v) and her landings (S.sales). S.vseq is the highest number given; a save
+// from before it is read from the fleet and from what is kept by id
+const vesselNo = id => +String(id).slice(1) || 0;
+function vesselSeq(){
+  let n = S.vseq || 0;
+  for (const x of S.fleet || []) n = Math.max(n, vesselNo(x.id));
+  for (const k in (S.saldo || {})) n = Math.max(n, vesselNo(k));
+  for (const k in ((S.bkq && S.bkq.v) || {})) n = Math.max(n, vesselNo(k));
+  for (const x of S.sales || []) if (x.v) n = Math.max(n, vesselNo(x.v));
+  return S.vseq = n + 1;
+}
+// a vessel leaves the company (sold): what was kept under her id goes with her. The landings (S.sales) are history and stay
+function vesselGone(v){
+  S.vseq = Math.max(S.vseq || 0, vesselNo(v.id));
+  if (S.saldo) delete S.saldo[v.id]; if (S.bkq && S.bkq.v) delete S.bkq.v[v.id]; if (S.mobScan) delete S.mobScan[v.id];
+}
 const VNAMES = ['Kystværing', 'Nordlys', 'Vestfjord', 'Nordkyn', 'Havglimt', 'Skreien', 'Fjordbris', 'Straumen', 'Hekkingen', 'Kvitskjær'];
 function newVesselObj(type, pid, lic){
-  const d = newState(), V = VESSELS[type], p = portById(pid).p, n = Math.max(0, ...S.fleet.map(x => +String(x.id).slice(1) || 0)) + 1, v = {id:'v' + n};
+  const d = newState(), V = VESSELS[type], p = portById(pid).p, n = vesselSeq(), v = {id:'v' + n};
   for (const k of VKEYS) v[k] = d[k];
   Object.assign(v.boat, {type, pos:{x:p.x, y:p.y}, port:pid, fuel:V.fuelCap * 0.4});
   v.trail = [{x:p.x, y:p.y, port:pid}]; v.lic = lic || null;

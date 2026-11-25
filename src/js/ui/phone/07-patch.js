@@ -1,5 +1,9 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['innbytte-251126', '25.11.2026', 'Innbytte og Båthandel', 'Trade-in and the boat market', [
+       ['Fangsten må leveres før du bytter inn båten. Før fulgte det som lå i rommet, med til den nye.', 'The catch must be landed before you trade in the boat. Before, what lay in the hold went with you to the new one.'],
+       ['Bytter du inn en båt med hjemmel mot en ny båt med hjemmel, går den gamle hjemmelen tilbake til registeret.', 'When a boat with a right is traded in for a new boat with a right, the old right goes back to the register.'],
+       ['Båthandel sier nå at kystbåtene fra 11 m også selges med hjemmel, og at de uten hjemmel bare kan ta torsk, hyse og sei som bifangst.', 'The boat market now says that the coastal vessels from 11 m are also sold with a right, and that without one they can only take cod, haddock and saithe as bycatch.']]],
     ['marina-231126', '23.11.2026', 'Småbåthavnene', 'The small-boat harbours', [
        ['Småbåtene i småbåthavnene ligger ikke lenger i veien inn til kaia ved butikker, mottak og verft, og ikke under bryggene.', 'The small boats in the small-boat harbours no longer lie in the way in to the quay at shops, fish plants and yards, nor under the piers.']]],
     ['planlaas-211126', '21.11.2026', 'Driftsplanen låser seg ikke', 'The plan no longer locks', [

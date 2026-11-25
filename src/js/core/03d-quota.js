@@ -90,7 +90,12 @@ for (const O of LIC_OFFERS){ O.k = O.k || O.id; O.hl = HJ[O.id].hl; const f = ()
 function openUsedSave(q){ const y = yearH(S.t / 60); if (!q || q.y !== y) return; const O = S.openUsed && S.openUsed.y === y ? S.openUsed : (S.openUsed = {y, torsk:0, hyse:0, sei:0});
   for (const sp of ['torsk', 'hyse', 'sei']) O[sp] = Math.max(O[sp], q[sp] || 0); }
 function openUsedLoad(){ const q = quotaState(), O = S.openUsed; if (O && O.y === q.y) for (const sp of ['torsk', 'hyse', 'sei']) q[sp] = Math.max(q[sp], O[sp]); }
-function freshQuota(){ S.quota = null; return quotaState(); }
+// a fresh quota for the boat (a right put on her or taken off, a boat traded in): this year's cod, haddock and saithe start anew, and the
+// callers set what follows the right or the owner (licStart, kmApply, openUsedLoad). What is not the right's stays through the year
+// (steg 148, T4): the bycatch cap of a boat without access (byCod), the caps south of 62° N (nsjo, skag4), the week's fresh-fish figures
+// and what was confiscated. Before, a right put on and taken off again, which costs nothing, gave those caps back
+const QKEEP = ['byCod', 'nsjo', 'skag4', 'ffW', 'ffTot', 'ffCod', 'conf', 'confKr'];
+function freshQuota(){ const o = S.quota; S.quota = null; const q = quotaState(); if (o && o.y === q.y) for (const k of QKEEP) if (o[k] != null) q[k] = o[k]; return q; }
 function licStart(lic){ const q = freshQuota(); q.torsk = Math.round(licQ(lic).torsk * sellerCod(lic.id, S.t / 60)); q.seller = q.torsk; return q.torsk; }
 // ---- the stocks and the total quotas year by year. History and the advice for 2027 from the Institute of Marine Research (hi.no,
 // kvoteråd, June 2026; ICES for saithe): spawning stock (SSB) and agreed total quota (TAC), t. After that a simple model per save:

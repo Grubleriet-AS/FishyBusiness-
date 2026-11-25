@@ -6271,3 +6271,8 @@
 2026-11-24 18:14	ccr-399c74e8-91vrad	c4a968bd	trip2	OK	12	lite	samtidig	
 2026-11-24 19:39	ccr-399c74e8-91vrad	9f179a43	boottest	OK	11	lite	samtidig	
 2026-11-24 19:39	ccr-399c74e8-91vrad	9f179a43	trip2	OK	11	lite	samtidig	
+2026-11-25 06:23	ccr-e101e6f0-y7fg6x	7d7441c+	quotatest	FEIL	6	lite	alene	FEIL steg 148: the coastal fleet tab and the group row say what the yard sells (no «kommer senere», no «bare lukket gruppe») {'kystLater': True, 'grp': True}
+2026-11-25 06:23	ccr-e101e6f0-y7fg6x	7d7441c+	quotatest	FEIL	6	lite	alene	FEIL steg 148: the coastal fleet tab and the group row say what the yard sells (no «kommer senere», no «bare lukket gruppe») {'kystLater': True, 'grp': True}
+2026-11-25 06:24	ccr-e101e6f0-y7fg6x	7d7441c+	quotatest	FEIL	6	lite	alene	FEIL steg 148: «Neste mål» does not point at the 14.99 m coastal vessel without a right {'goal': True, 'goalKyst': True, 'goalTxt': 'Neste målPlastsnekke med hj
+2026-11-25 06:24	ccr-e101e6f0-y7fg6x	7d7441c+	quotatest	FEIL	5	lite	alene	FEIL steg 148: the same quota length traded for another boat leaves the register where it was {'type': 'breisjark', 'h10': [162, 161]}
+2026-11-25 06:24	ccr-e101e6f0-y7fg6x	7d7441c+	quotatest	OK	5	lite	alene	
