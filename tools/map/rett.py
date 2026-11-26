@@ -68,10 +68,43 @@ def clip(P, f):
     while len(out) > 1 and out[0] == out[-1]: out.pop()
     return out
 
+# land taken away inside a convex area «rute» (game metres): the land ring cut to the area (clip against each of its sides) and put back
+# as a hole turning the other way, so the nonzero rule the game fills with (01d-coast.js) makes it sea there and nothing outside it
+# changes. (Pure Python: a ring minus an area needs a polygon library, a ring cut to a convex area does not.)
+def area2(P): return sum(P[i][0] * P[(i + 1) % len(P)][1] - P[(i + 1) % len(P)][0] * P[i][1] for i in range(len(P)))
+def cut_to(P, R):
+    s = 1 if area2(R) > 0 else -1
+    for i in range(len(R)):
+        a, b = R[i], R[(i + 1) % len(R)]
+        f = lambda p, a=a, b=b: -s * ((b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]))
+        P = clip(P, f)
+        if len(P) < 3: return []
+    return P
+
+def holes(tx, ty, rings, E, ox, oy):
+    out, n = [], 0
+    have = {tuple(P) for c, P in rings if c == 1}
+    for e in E:
+        R = [(x - ox, z - oy) for x, z in e['rute']]
+        for c, P in rings:
+            if c != 0: continue
+            xs = [p[0] for p in P]; zs = [p[1] for p in P]
+            if max(xs) < min(r[0] for r in R) or min(xs) > max(r[0] for r in R) or max(zs) < min(r[1] for r in R) or min(zs) > max(r[1] for r in R): continue
+            Q = cut_to([(round(x), round(y)) for x, y in P], R)
+            if len(Q) < 3 or abs(area2(Q)) < 2: continue
+            H = tuple(reversed(Q))
+            if H in have: continue
+            out.append((1, list(H))); n += 1
+    return out, n
+
 def apply(tx, ty, rings, T=50000):
     E = entries(tx, ty)
     if not E: return rings, 0
     ox, oy = tx * T, ty * T; n = 0; res = []
+    L = [e for e in E if e['klasse'] == 'land']
+    if L:
+        H, n = holes(tx, ty, rings, L, ox, oy); rings = list(rings) + H
+    E = [e for e in E if e['klasse'] != 'land']
     for c, P in rings:
         for e in E:
             if c not in CLS[e['klasse']]: continue

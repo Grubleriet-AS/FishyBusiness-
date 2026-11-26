@@ -1,5 +1,29 @@
-{"what": "Cuts in the fine coast (coast2) at single places, read by tools/map/rett.py from chart.py (a new kart- release) and game.py (the release in use). Steg 142, Jonas' choice 8 (26.11.2026): «Rett kartet per sted». tile: [tx, ty]; klasse: molo (classes 2, 3) or land (0, 1); box: the rings reaching into it (game metres x0, z0, x1, z1); at, ut: what lies beyond the line through at, the way of ut, is taken away.",
+{
+ "what": "Cuts in the fine coast (coast2) at single places, read by tools/map/rett.py from chart.py (a new kart- release) and game.py (the release in use). Steg 142, Jonas' choice 8 (26.11.2026): «Rett kartet per sted». tile: [tx, ty]; klasse: molo (classes 2, 3): box (the rings reaching into it, game metres x0, z0, x1, z1), at, ut (what lies beyond the line through at, the way of ut, is taken away); or land: rute (a convex area, game metres, where the land is taken away).",
  "rett": [
-  {"id": "oksfjord-molo", "navn": "Øksfjord, moloen ved mottaket (mTF4)", "tile": [20, 4], "klasse": "molo", "box": [1026500, 240500, 1026620, 240620], "at": [1026563.0, 240571.9], "ut": [0.682, 0.732],
-   "hvorfor": "OpenStreetMap's breakwater, widened to 12 m with its stone foot under the water, left too little of the inlet between its head and the land for the coastal boats (the sjark and bigger) with half her beam + 2 m to each side; its head is taken 22 m back (12 m was not enough: the foot under the water and the land's foreshore still met)"}
- ]}
+  {
+   "id": "oksfjord-molo",
+   "navn": "Øksfjord, moloen ved mottaket (mTF4)",
+   "tile": [
+    20,
+    4
+   ],
+   "klasse": "molo",
+   "box": [
+    1026500,
+    240500,
+    1026620,
+    240620
+   ],
+   "at": [
+    1026563.0,
+    240571.9
+   ],
+   "ut": [
+    0.682,
+    0.732
+   ],
+   "hvorfor": "OpenStreetMap's breakwater, widened to 12 m with its stone foot under the water, left too little of the inlet between its head and the land for the coastal boats (the sjark and bigger) with half her beam + 2 m to each side; its head is taken 22 m back (12 m was not enough: the foot under the water and the land's foreshore still met)"
+  }
+ ]
+}
