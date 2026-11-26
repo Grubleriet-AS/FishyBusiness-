@@ -11,7 +11,7 @@ def ok(c): return 'OK  ' if c else 'FEIL'
 
 STUB = """((rows) => { window.__calls = []; window.__rows = rows; CLOUD.on = true; CLOUD.user = {id:'user_x'}; CLOUD.guest = false;
   cloudRpc = async (fn, a) => { __calls.push([fn, JSON.parse(JSON.stringify(a || {}))]); if (fn === 'fix_pending') return __rows; return null; };
-  window.__saveOk = true; cloudSaveSoon = async () => { __calls.push(['save', {type:S.boat.type}]); S.lastReal = Date.now(); if (__saveOk) CLOUD.lastSave = S.lastReal; };
+  window.__saveOk = true; window.__bump = false; cloudSaveSoon = async () => { __calls.push(['save', {type:S.boat.type}]); S.lastReal = Date.now(); if (__saveOk) CLOUD.lastSave = S.lastReal; if (__bump) S.lastReal += 5; };
   S.boat.type = 'kyst21'; applyVessel(); S.cargo = []; return {type:S.boat.type, port:S.boat.port}; })"""
 
 async def main():
@@ -41,8 +41,9 @@ async def main():
         print(ok(r2['kept'] and r2['kept']['kr'] == exp and r2['cash'] - r2['debt'] == -4268 - r2['d0'] + exp), 'the refund pays the loans and the rest to the account', {k: r2[k] for k in ('cash', 'debt', 'd0', 'kept')})
         print(ok(r2['order'] == ['fix_pending', 'save'] and not r2['done']), 'the save did not reach the account: the server is not told', r2['order'])
         print(ok('angret' in r2['log'] and 'plastsjark' in r2['msg'].lower()), 'the log and the message say so', r2['msg'])
-        # the next round, the save going through: nothing done again, saved and told with what was done
-        r3 = await pg.evaluate("""(async () => { __calls.length = 0; __saveOk = true; const c0 = S.cash; await fixClaim();
+        # the next round, the save going through while the game's own autosave moves S.lastReal on (Julian 26.11.2026: the save reached
+        # the account, but the game compared S.lastReal after the wait and never told the server): nothing done again, saved and told
+        r3 = await pg.evaluate("""(async () => { __calls.length = 0; __saveOk = true; __bump = true; const c0 = S.cash; await fixClaim(); __bump = false;
           const d = __calls.find(c => c[0] === 'fix_done'); return {cash:S.cash - c0, order:__calls.map(c => c[0]), done:d && d[1].done, kr:d && d[1].res.kr}; })()""")
         print(ok(r3['cash'] == 0 and r3['order'] == ['fix_pending', 'save', 'fix_done'] and r3['done'] is True and r3['kr'] == exp), 'next round: saved, then told done, nothing twice', r3)
         # a kyst21 bought again later, the server not told yet: still never twice

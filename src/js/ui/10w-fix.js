@@ -12,10 +12,15 @@ const ADMFIX_WAIT = {
   hold:['Kystmegleren har en melding til deg om båtkjøpet: lever fangsten først, så ordnes det.', 'The broker has word about your vessel purchase: land the catch first, and it will be put right.'],
   type:['Kystmegleren har en melding til deg om båtkjøpet: ta roret på båten det gjelder, i havn, så ordnes det.', 'The broker has word about your vessel purchase: take the helm of the vessel it is about, in port, and it will be put right.']
 };
-// the save with the correction on the account: true once it is there
+// the save with the correction on the account: true once it is there. A save made at or after t0 has reached it (CLOUD.lastSave is the
+// time of the save that did); not S.lastReal after the wait, which the game's own saves move on meanwhile (Julian 26.11.2026: the
+// correction was done and saved, and the server was never told). A save that did not go (another one under way, the network) asks
+// again in half a minute rather than in ten
 async function admfixSaved(){
-  try { await cloudSaveSoon(false, true); } catch (e){ console.error(e); return false; }
-  return !!S.lastReal && CLOUD.lastSave === S.lastReal;
+  const t0 = Date.now();
+  try { await cloudSaveSoon(false, true); } catch (e){ console.error(e); }
+  if (CLOUD.lastSave >= t0) return true;
+  setTimeout(fixClaim, 30000); return false;
 }
 async function fixClaim(){
   if (ADMFIX.busy || typeof CLOUD === 'undefined' || !CLOUD.on || !CLOUD.user || CLOUD.guest || typeof S === 'undefined' || !S || !S.boat) return;
