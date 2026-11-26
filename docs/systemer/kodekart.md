@@ -2774,7 +2774,7 @@ BANEN: THE WAY AS A TRAJECTORY SHE CAN SAIL (Autonav 2.0 F2, steg 142, 24.11.202
   - 83 `baneOf(g)`
   - 90 `baneSail(pl, b, left0)`
 
-## `src/js/core/17c-plan.js` (393 linjer)
+## `src/js/core/17c-plan.js` (409 linjer)
 
 PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2, steg 142, 24.11.2026)
 
@@ -2785,14 +2785,15 @@ PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2
   - 248 `planCoarseM(ax, az, bx, bz, grow)`
   - 261 `planNeeds(boat, sq, lv, side, F, c2)`
   - 268 `planSquat(sqV, v)`
-  - 275 `planBlockOf(hit, boat, side, c2, tries, seen)`
-  - 284 `planBoat(type, x, z)`
-  - 288 `planBane(a, b, type, opt)`
-- **356** where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
-  - 360 `planDigRuns(P, sh, o)`
-  - 378 `planDig(a, b, type, opt)`
-  - 387 `planInto(pl, R, i0, i1)`
-  - 392 `planOn()`
+  - 278 `planBlockOf(hit, boat, side, c2, tries, seen)`
+  - 289 `planSkip(h, X, Z, a, b, own, L, dig)`
+  - 297 `planBoat(type, x, z)`
+  - 301 `planBane(a, b, type, opt)`
+- **372** where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
+  - 376 `planDigRuns(P, sh, o)`
+  - 394 `planDig(a, b, type, opt)`
+  - 403 `planInto(pl, R, i0, i1)`
+  - 408 `planOn()`
 
 ## `src/js/ui/01-i18n.js` (120 linjer)
 
@@ -3199,12 +3200,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1823 linjer)
+## `src/js/ui/phone/07-patch.js` (1825 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1811 `patch()`
+  - 1813 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (136 linjer)
 

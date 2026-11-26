@@ -6596,3 +6596,12 @@
 2026-11-26 10:28	ccr-6fcb2ce3-9u8cd1	2498af6	yardupgtest	FEIL	6	lite	samtidig	FEIL the Trim app promises the top speed each trim gives, on the speed sjark with propeller 3 and engine 2 [[], [52.7, 52.7, 52.7, 52.7, 41.7, 47.2, 52.7]]
 2026-11-26 12:32	ccr-5e1ba2f4-pusvyd	74bcad21+	boottest	OK	13	lite	samtidig	
 2026-11-26 12:32	ccr-5e1ba2f4-pusvyd	74bcad21+	trip2	OK	13	lite	samtidig	
+2026-11-26 15:08	ccr-5e1ba2f4-pusvyd	49bcaf7	boottest	OK	26	lite	samtidig	
+2026-11-26 15:08	ccr-5e1ba2f4-pusvyd	49bcaf7	trip2	OK	19	lite	samtidig	
+2026-11-26 15:09	ccr-5e1ba2f4-pusvyd	49bcaf7	maptest	FEIL	50	lite	samtidig	FEIL and the trip ends exactly as the one with every pack at hand (time, place, catch, cash)
+2026-11-26 15:09	ccr-5e1ba2f4-pusvyd	49bcaf7	harbourtest	OK	16	lite	samtidig	
+2026-11-26 15:10	ccr-5e1ba2f4-pusvyd	49bcaf7	docktest	OK	88	lite	samtidig	
+2026-11-26 15:11	ccr-5e1ba2f4-pusvyd	49bcaf7	routetest	FEIL	79	lite	alene	FEIL Kast loss setter ruta i gang, og kartplotteren står åpen  {'plan': False, 'plot': True, 'g3': False}
+2026-11-26 15:17	ccr-5e1ba2f4-pusvyd	49bcaf7	maptest	OK	16	lite	alene	
+2026-11-26 15:18	ccr-5e1ba2f4-pusvyd	49bcaf7	routetest	FEIL	45	lite	alene	FEIL Kast loss setter ruta i gang, og kartplotteren står åpen  {'plan': False, 'plot': True, 'g3': False}
+2026-11-26 15:18	ccr-5e1ba2f4-pusvyd	49bcaf7	maptest	OK	16	lite	alene	
