@@ -24,7 +24,7 @@ async def main():
             if t in ('status', 'oversikt', 'tid', 'penger', 'mediekort', 'kapplop'): await pg.wait_for_timeout(300 if t == 'mediekort' else 0); await pg.screenshot(path='admin_%s.png' % t, full_page=True)
         demo = await pg.evaluate("!!document.querySelector('.demo') && !document.getElementById('login')")
         # (22 tabs from 17.11.2026: Status first; Lansering, the founders' count and the profile pictures from 16.11.2026; Kappløp from KL3)
-        check(len(tabs) == 22 and tabs[0] == "status" and all(v > 40 for v in seen.values()), 'every tab of the dashboard draws in the demo', seen)
+        check(len(tabs) == 23 and tabs[0] == "status" and all(v > 40 for v in seen.values()), 'every tab of the dashboard draws in the demo', seen)
         # steg 153 (K5 of docs/planer/regler-i-klartekst.md, admin_regler): the share of landings with something confiscated, the reasons the
         # grey buttons showed, the «Mer» folds opened, the days from blad B to the first right, and the new tips in the handbook's list
         await pg.click('nav button[data-t="trakt"]'); await pg.wait_for_timeout(400); rg = await pg.evaluate("document.querySelector('main').innerText")

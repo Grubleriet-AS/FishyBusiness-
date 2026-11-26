@@ -50,6 +50,7 @@ LITE += ['planlaas_ui']   # driftsplanen låst på «Lager planen …» etter la
 # (15.11.2026, testeffektiviseringen: two tests that stood in COVER but in no list, so a full run never had them)
 LITE += ['kartkorridortest', 'legmemotest']
 LITE += ['kvfulltest']   # åpen gruppes tillegg og «Torskekvoten er full» i Kvote-appen (KV1, steg 148)
+LITE += ['korrtest']   # an admin's correction: a vessel purchase undone in the game (fixes, 26.11.2026)
 LITE += ['anvtreff']   # fangsten: det spillernes båter kommer borti (autonav-rutinen, 18.11.2026)
 # Scripts in tests/ that are tools run by hand, not tests (15.11.2026): measurements and balance runs (the regression routine runs
 # fiskeplay and the others itself), pictures of one boat model or one place for the docs, the people's clips, and tutcoast (the whole
@@ -605,5 +606,6 @@ def main():
     sys.exit(1 if bad else 0)
 
 
+COVER['src/js/ui/10w-fix.js'] = ['korrtest']; COVER['tests/korrtest.py'] = ['korrtest']; COVER['supabase/migrations/20261126120000_fixes.sql'] = ['sqltest']; COVER['tests/unit/angrekjop.test.mjs'] = []   # an admin's correction (fixes, 26.11.2026)
 if __name__ == '__main__':
     main()
