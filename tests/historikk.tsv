@@ -6338,3 +6338,5 @@
 2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	kvfulltest	OK	11	lite	samtidig	
 2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	quotatest	OK	8	lite	samtidig	
 2026-11-25 12:01	ccr-b7b2f394-jdf54x	be7779a+	trip2	OK	13	lite	samtidig	
+2026-11-26 08:22	ccr-6fcb2ce3-9u8cd1	e92ee60+	korrtest	OK	6	lite	alene	
+2026-11-26 08:22	ccr-6fcb2ce3-9u8cd1	e92ee60+	admintest	OK	14	lite	alene	
