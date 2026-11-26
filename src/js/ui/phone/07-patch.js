@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['kart-261126', '26.11.2026', 'Moloen i Øksfjord', 'The breakwater at Øksfjord', [
+       ['Moloen ved mottaket i Øksfjord er kortere i enden mot land, så innløpet er bredere for de større båtene.', 'The breakwater by the fish plant at Øksfjord is shorter at the end towards the land, so the inlet is wider for the bigger boats.']]],
     ['enklere-251126', '25.11.2026', 'Kvote og Båthandel med det viktigste først', 'Quota and the boat market with the essentials first', [
        ['Kvote viser torskekvoten din øverst, med vanlige ord: «taket ditt i år» og «det du har uansett». Fagordet står i parentes, og et trykk på det forklarer det.', 'Quota shows your cod quota at the top, in plain words: «your cap this year» and «what you have in any case». The trade\'s word stands in brackets, and a tap on it explains it.'],
        ['Det du ikke trenger ennå, ligger under «Mer» på samme side, i Kvote, Regler og Båthandel. Ingenting er låst.', 'What you do not need yet lies under «More» on the same page, in Quota, Rules and the boat market. Nothing is locked.'],
