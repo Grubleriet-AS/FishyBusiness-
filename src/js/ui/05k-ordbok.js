@@ -21,6 +21,22 @@ const ORDBOK = [
   ['leia', 'fairway', 'Den merkede ruta langs kysten der det er trygt å seile, fri for grunner og skjær.', 'The marked route along the coast where it is safe to sail, clear of shallows and rocks.'],
   ['synkronrulling\\p{L}*', 'synchronous rolling', 'Når bølgene treffer i samme takt som båten ruller, blir rullingen større og større. Endre kurs eller fart.', 'When the waves hit in step with the boat\'s roll, the roll grows and grows. Change course or speed.'],
   ['nautiske mil|nautisk mil', 'nautical miles?', 'Avstand på sjøen: én nautisk mil er 1 852 meter. Skrives nm.', 'Distance at sea: one nautical mile is 1,852 metres. Written nm.'],
+  // (steg 152, K4 of docs/planer/regler-i-klartekst.md; Jonas 25.11.2026, V3 A) the words of the regulation: the pages say the plain word first
+  // and the trade's own in brackets, and Fiskeridirektoratet's letters, Kystposten and «Loven bak» keep the trade's own. Here each is
+  // told in a sentence, so a tap on it answers. Held against 5.5 and 5.5b of docs/systemer/kvoter-og-regler.md (the independent check, 25.11.2026: four sentences corrected). «Adgang» has
+  // no entry: the word is used of other things too (the Icelandic zone, bycatch), and the pages say it in plain words
+  ['åpen gruppe', 'open group', 'Båter under 11 m uten hjemmel. De deler én gruppekvote, og hver båt har et tak (maksimalkvoten). Eieren må selv være om bord.', 'Boats under 11 m without a participation right. They share one group quota, and each boat has a cap (the maximum quota). The owner must be aboard.'],
+  ['lukket gruppe', 'closed group', 'Båter med hjemmel. Hver båt har sin egen torskekvote hele året, og den stoppes ikke.', 'Boats with a participation right. Each has a cod quota of its own all year, and it is not stopped.'],
+  ['hjemmel(?:en|slengde|slengden)?|hjemler|hjemlene|deltakeradgang\\p{L}*', 'participation rights?', 'Retten til å fiske i lukket gruppe. Den står på en båt (eller ledig i rederiet i høyst to år) og kan kjøpes og selges, og den som eier den, må stå på blad B.', 'The right to fish in the closed group. It stands on a boat (or free in the company for at most two years) and can be bought and sold, and its owner must be on blad B.'],
+  ['maksimalkvot\\p{L}*', 'maximum quotas?', 'Det meste båten kan lande av arten i år, så lenge gruppekvoten ikke er fisket.', 'The most the boat may land of the species this year, as long as the group quota is not fished.'],
+  ['garantert(?:e)? kvot\\p{L}*', 'guaranteed quotas?', 'Det båten kan lande uansett, også etter at fisket på maksimalkvotene er stoppet.', 'What the boat may land in any case, also after fishing on the maximum quotas is stopped.'],
+  ['fartøykvot\\p{L}*', 'vessel quotas?', 'Båtens egen kvote: i lukket gruppe, og for havfartøyene etter tillatelsen.', 'The boat\'s own quota: in the closed group, and for the ocean vessels by their permit.'],
+  ['kvotefaktor\\p{L}*', 'quota factors?', 'Tallet som sier hvor stor del av gruppas kvote hjemmelen eller tillatelsen gir.', 'The figure that says how large a part of the group\'s quota the right or the permit gives.'],
+  ['inndratt|inndras|inndrar', 'confiscated', 'Fisk over kvoten eller regelen betaler salgslaget ikke for. Du får 20 % av verdien for å føre den i land.', 'Fish over the quota or the rule the sales organisation does not pay for. You get 20% of its value for landing it.'],
+  ['blad B', 'blad B', 'Den delen av fiskermanntallet der de med fiske som hovedyrke står. Kreves for å kjøpe en båt med hjemmel.', 'The part of the fishermen\'s register for those with fishing as their main occupation. Needed to buy a boat with a participation right.'],
+  ['ferskfiskordning\\p{L}*', 'fresh-fish scheme', 'Et tillegg fra 29. juni og ut året: en del av ukas ferske leveringer kan være torsk utenom kvoten.', 'An allowance from 29 June to the end of the year: a part of the week\'s fresh landings may be cod beyond the quota.'],
+  ['strukturkvot\\p{L}*', 'structure quotas?', 'Kvoten fra en annen båt i samme gruppe, lagt til din i 20 år med 10 % avkorting.', 'The quota of another boat in the same group, added to yours for 20 years less 10%.'],
+  ['høvedsmann\\p{L}*', 'owner as master', 'Den som fører båten. I åpen gruppe må eieren selv være om bord.', 'The one in command of the boat. In the open group the owner must be aboard.'],
   ['knop', 'knots?', 'Fart på sjøen: én nautisk mil i timen, omtrent 1,85 km/t. Skrives kn.', 'Speed at sea: one nautical mile an hour, about 1.85 km/h. Written kn.'],
 ];
 const ORDRX = {};

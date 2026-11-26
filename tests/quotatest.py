@@ -46,6 +46,25 @@ TRADE = """(async () => { const R = {}, y = yearH(S.t / 60), tap = q => { const 
   // buying a right: one NPC owner fewer, the right dated, the seller's catch off the quota
   const r0 = npcReg().u7; DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=trebat][data-o=u7]'); tap('[data-pa=buylic][data-ti="1"]'); DOCK.close();
   R.buy = {lic:S.lic && S.lic.id, since:S.lic && S.lic.since, from:S.lic && S.lic.from, reg:[r0, npcReg().u7], seller:quotaState().seller, quota:licQ(S.lic).torsk};
+  // steg 148b (K0 of docs/planer/regler-i-klartekst.md). «Neste mål» with the first right aboard: the next right, never the 14.99 m coastal
+  // vessel at her hull's price (without a right she has no access); and the coastal fleet's tab says what the yard sells
+  // (with two boats under 11 m the ladder has no gear tier between the boats, so the two steps shown are the boats)
+  { const dtx = () => document.querySelector('#drawerBody').textContent, tmp = newVesselObj('skiff', b.port); DOCK.open('fartoy'); const g = [...document.querySelectorAll('#drawerBody .ph-card')].find(c => /Neste mål/.test(c.textContent));
+    R.k0 = {goalKyst:!!g && g.textContent.includes(VESSELS.kyst15.name.no), goal:!!g, goalTxt:g ? g.textContent.slice(0, 200) : ''}; DOCK.close(); S.fleet.splice(S.fleet.indexOf(tmp), 1);
+    tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=kyst]'); R.k0.kystLater = /kommer senere/.test(dtx()); tap('[data-pa=mksel][data-k=kyst15]:not([data-o])'); R.k0.grp = /bare lukket gruppe/.test(dtx()); DOCK.close(); }
+  // T2: nothing in the hold goes with her at a trade-in: the button is grey with the reason, and the purchase itself refuses, with and without a right
+  { S.hold = [{sp:'torsk', kg:300, fresh:90, bled:true, iced:true, c:1, g:'A'}]; const t0 = S.boat.type, l0 = S.lic.id;
+    DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=snekke][data-o=h7]');
+    const bt = document.querySelector('#drawerBody [data-pa=buylic][data-ti="1"]'), fl = document.querySelector('#drawerBody [data-pa=buylic][data-ti="0"]');
+    R.k0.hold = {grey:!!bt && bt.disabled, why:!!document.querySelector('#drawerBody .whybox[data-why=hold]'), fleet:!!fl && !fl.disabled}; DOCK.close();
+    PHONE.dact('rederi', 'buylic', {id:'h7', ti:'1'}); R.k0.hold.lic = S.lic.id === l0 && S.boat.type === t0 && S.hold.length === 1;
+    PHONE.dact('rederi', 'buy', {k:'skiff', ti:'1'}); R.k0.hold.buy = S.boat.type === t0 && !!S.lic && S.hold.length === 1; S.hold = []; }
+  // T1: a boat with a right traded in for a boat with the next right: the old right goes back to the register, the new one is taken
+  { const u0 = npcReg().u7, h0 = npcReg().h7; saldoOf(curVessel()); S.cash = 2e7; S.loan = null; S.loanIN = null; PHONE.dact('rederi', 'buylic', {id:'h7', ti:'1'});
+    R.k0.reg = {lic:S.lic && S.lic.id, type:S.boat.type, u7:[u0, npcReg().u7], h7:[h0, npcReg().h7]};
+    R.k0.saldo = [saldoOf(curVessel()), Math.round(VESSELS[S.boat.type].price * TAX.depF)];   // (the boat traded for has her own tax value, not the old hull's)
+    // and the same quota length for another boat (10–10.9 m): the register ends where it began
+    S.lic = {id:'h10', since:y - 1}; b.type = 'hurtigsjark'; applyVessel(); freshQuota(); regTake('h10'); const t0 = npcReg().h10; PHONE.dact('rederi', 'buylic', {id:'h10b', ti:'1'});   /* (her right was once taken from the register) */ R.k0.same = {type:S.boat.type, h10:[t0, npcReg().h10]}; }
   // structure quotas on a 14.99 m boat with a 14–14.9 m right: 10 % off, and the cap at five times its own quota (§ 12, a specialist; KM1
   // 08.11.2026, it was three), so the fifth is stopped; one NPC owner leaves the register for each (structIn took a second until KM1)
   S.cash = 1e8; S.loan = null; S.loanIN = null; b.type = 'kyst15'; applyVessel(); S.lic = {id:'h14', since:y - 1}; freshQuota(); const c0 = licQ(S.lic).torsk, g0 = npcReg().h14;
@@ -65,7 +84,7 @@ TRADE = """(async () => { const R = {}, y = yearH(S.t / 60), tap = q => { const 
   S.qyY = y - 1; S.lic.coop.y = y - 1; quotaNewYear(y); R.coop.after = {coop:S.lic.coop, crew:S.crew.length};
   // the app: four tabs, each rendered
   PHONE.open('kvote'); const txt = s => { PHONE.dact('kvote', 'sub', {s}); PHONE.render(); return document.querySelector('#phone').textContent; };
-  R.app = {open:/Gruppekvote/.test(txt('open')), stock:/Gytebestand|Totalkvote/.test(txt('stock')), mkt:/Deltakeradganger/.test(txt('mkt')), mine:/Fartøykvote|Maksimalkvote|Ingen adgang/.test(txt('mine'))}; PHONE.show(false);
+  R.app = {open:/Gruppekvote/.test(txt('open')), stock:/Gytebestand|Totalkvote/.test(txt('stock')), mkt:/Deltakeradganger/.test(txt('mkt')), mine:/fartøykvote|maksimalkvote|Ingen kvote/i.test(txt('mine'))}; PHONE.show(false);
   return R; })()"""
 
 
@@ -93,6 +112,14 @@ async def main():
         print(ok(se['lim']['before'] == se['lim']['max'] and se['lim']['after'] == se['lim']['guar'] < se['lim']['max']), 'the skiff fishes on its maximum quota until the stop, and on the guaranteed quota after it', se['lim'])
         tr = await pg.evaluate(TRADE); print('trade:', json.dumps(tr, ensure_ascii=False)[:1400])
         print(ok(not tr['p29']['lic'] and tr['p29']['torsk'] == 1200 and tr['p29']['type'] == 'skiff'), '§ 29: back in the open group the owner\'s cod this year follows (1.2 t), not the closed-group boat\'s', tr['p29'])
+        k0 = tr['k0']
+        print(ok(k0['goal'] and not k0['goalKyst']), 'steg 148b: «Neste mål» does not point at the 14.99 m coastal vessel without a right', {k: k0[k] for k in ('goal', 'goalKyst', 'goalTxt')})
+        print(ok(not k0['kystLater'] and not k0['grp']), 'steg 148b: the coastal fleet tab and the group row say what the yard sells (no «kommer senere», no «bare lukket gruppe»)', {k: k0[k] for k in ('kystLater', 'grp')})
+        print(ok(all(k0['hold'].values())), 'steg 148b: with fish in the hold the trade-in is grey with the reason and the purchase refuses, with and without a right; for the fleet stays open', k0['hold'])
+        print(ok(k0['saldo'][0] == k0['saldo'][1]), 'steg 148b: after a trade-in the tax value is the new boat\'s own', k0['saldo'])
+        rg = k0['reg']
+        print(ok(rg['lic'] == 'h7' and rg['type'] == 'snekke' and rg['u7'][1] == rg['u7'][0] + 1 and rg['h7'][1] == rg['h7'][0] - 1), 'steg 148b: a right traded in for the next right goes back to the register (u7 +1, h7 -1)', rg)
+        print(ok(k0['same']['type'] == 'breisjark' and k0['same']['h10'][1] == k0['same']['h10'][0]), 'steg 148b: the same quota length traded for another boat leaves the register where it was', k0['same'])
         bu = tr['buy']
         print(ok(bu['lic'] == 'u7' and bu['reg'][1] == bu['reg'][0] - 1 and bu['since'] and bu['from'] and 0 <= bu['seller'] <= 0.85 * bu['quota']), 'buying a right takes one NPC owner out of the register, and his catch this year comes off the quota', bu)
         st = tr['struct']

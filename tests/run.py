@@ -27,7 +27,7 @@ os.makedirs(LOGS, exist_ok=True)
 
 # draw 3D: they look at the 3D view itself (frames, camera, quays, cranes, pumps)
 D3 = ['sportest', 'krengtest', 'pikseltest', 'lemmer', 'folk2deck', 'sjobein', 'flaggshot', 'monster', 'fellessjo', 'fintest', 'seabedtest', 'sunshot', 'havshot', 'kaishot', 'signcoast', 'signtest', 'sp44shot', 'trytest', 'gfxtest', 'benchshot', 'profshot', 'f1test', 'havnshot', 'lifeshot', 'wetshot', 'vindshot', 'treeshot', 'wakeshot', 'anchor3d', 'skytest', 'jigshot', 'naust3dtest', 'pubtest', 'helmjit', 'anchorlight3d', 'saytest', 'yardtest', 'dbg23o', 'trackfollow', 'tral3d', 'seatrytest', 'sitetest', 'coast3d', 'ultratest', 'camtest', 'moortest', 'landtest', 'bunkertest', 'heattest', 'vessel3d', 'unittest', 'sea3d', 'teleport3d', 'lighttest', 'kinotest', 'haultest', 'vectest', 'potshot', 'aurorashot', 'skoddeshot', 'deckshot', 'workshot', 'brotest', 'svalbardtest', 'qdowntest', 'h2dshot', 'hull3d', 'h3dshot', 'skumkant', 'stromshot', 'merkeshot', 'nearedge', 'brottshot', 'sprelltest', 'dekk125d', 'stamper3d']
-LITE = ['navntest', 'vervtest', 'vakttest', 'nedetest', 'kalendertest', 'planhjem', 'havnstengt', 'd4dorer', 'jobbstripe', 'telefonflate', 'stromtest', 'skagtest', 'sor62test', 'gatetest', 'jukseboot', 'kotest', 'driftsplan2kyst', 'megletest', 'kvotemarkedtest', 'boostklokke', 'draftlooptest', 'bootgtest', 'skipdrift', 'haillplass', 'colregtest', 'rttest', 'istest', 'lybtest', 'havtur', 'snokrabbetest', 'krabbefabrikktest', 'autolinetest', 'fabrikktest', 'havplantest', 'sonetest', 'uketest', 'kystkarttest', 'havflaate', 'etikett', 'sponsor2test', 'sponsortest', 'markettest', 'nettest', 'itemcardtest', 'kystvakttest', 'lagtest', 'eventtest', 'boktest', 'lotttest', 'skattetest', 'driftsplan2test', 'driftsplan2ui', 'driftsplan2map', 'driftsplan2gui', 'slidertest', 'anchorswing', 'selfcrew', 'crewclip', 'regmarktest', 'dockrow', 'hulltest', 'dyntest', 'crewlifetest', 'crewwalk', 'walktest', 'tabtest', 'navbarshot', 'skiptest', 'synctest', 'installtest', 'looktest', 'hbtest', 'naustclear', 'rectest', 'ptowtest', 'seaworktest', 'hailtest', 'gbtest', 'sharetest', 'friendtest', 'searchtest', 'savestest', 'caretest', 'yardupgtest', 'jigalongtest', 'heatgeartest', 'anchortest', 'plantsaytest', 'cashfxtest', 'autonavtest', 'placetest', 'sidetab', 'guidetest', 'stedertest', 'icestep', 'heatpick', 'peergear', 'turtest', 'posttest', 'merketest', 'fartstidtest', 'maletest', 'climtest', 'sqltest', 'cloudtest', 'errtest', 'guesttest', 'kjoptest', 'regnrtest', 'r4test', 'tutdrift', 'tutfull', 'worldtest', 'pushtest', 'feedbacktest', 'hudtest', 'obstest', 'marktest', 'rorbutest', 'admintest', 'tut', 'starttest', 'seasontest', 'uishots', 'quotatest', 'rulestest', 'npctest', 'havntest', 'keeptest', 'tidetest', 'trip2', 'docktest', 'booktest', 'decktest', 'geartest', 'loretest', 'tattest', 'towtest', 'airtest', 'fleet2test', 'fleet3test', 'opsowntest', 'routetest', 'naustleia',
+LITE = ['trinntest', 'romtest', 'kvotemaal', 'navntest', 'vervtest', 'vakttest', 'nedetest', 'kalendertest', 'planhjem', 'havnstengt', 'd4dorer', 'jobbstripe', 'telefonflate', 'stromtest', 'skagtest', 'sor62test', 'gatetest', 'jukseboot', 'kotest', 'driftsplan2kyst', 'megletest', 'kvotemarkedtest', 'boostklokke', 'draftlooptest', 'bootgtest', 'skipdrift', 'haillplass', 'colregtest', 'rttest', 'istest', 'lybtest', 'havtur', 'snokrabbetest', 'krabbefabrikktest', 'autolinetest', 'fabrikktest', 'havplantest', 'sonetest', 'uketest', 'kystkarttest', 'havflaate', 'etikett', 'sponsor2test', 'sponsortest', 'markettest', 'nettest', 'itemcardtest', 'kystvakttest', 'lagtest', 'eventtest', 'boktest', 'lotttest', 'skattetest', 'driftsplan2test', 'driftsplan2ui', 'driftsplan2map', 'driftsplan2gui', 'slidertest', 'anchorswing', 'selfcrew', 'crewclip', 'regmarktest', 'dockrow', 'hulltest', 'dyntest', 'crewlifetest', 'crewwalk', 'walktest', 'tabtest', 'navbarshot', 'skiptest', 'synctest', 'installtest', 'looktest', 'hbtest', 'naustclear', 'rectest', 'ptowtest', 'seaworktest', 'hailtest', 'gbtest', 'sharetest', 'friendtest', 'searchtest', 'savestest', 'caretest', 'yardupgtest', 'jigalongtest', 'heatgeartest', 'anchortest', 'plantsaytest', 'cashfxtest', 'autonavtest', 'placetest', 'sidetab', 'guidetest', 'stedertest', 'icestep', 'heatpick', 'peergear', 'turtest', 'posttest', 'merketest', 'fartstidtest', 'maletest', 'climtest', 'sqltest', 'cloudtest', 'errtest', 'guesttest', 'kjoptest', 'regnrtest', 'r4test', 'tutdrift', 'tutfull', 'worldtest', 'pushtest', 'feedbacktest', 'hudtest', 'obstest', 'marktest', 'rorbutest', 'admintest', 'tut', 'starttest', 'seasontest', 'uishots', 'quotatest', 'rulestest', 'npctest', 'havntest', 'keeptest', 'tidetest', 'trip2', 'docktest', 'booktest', 'decktest', 'geartest', 'loretest', 'tattest', 'towtest', 'airtest', 'fleet2test', 'fleet3test', 'opsowntest', 'routetest', 'naustleia',
         'shoptest', 'selltest', 'timetest', 'worktest', 'vesseltest', 'adminbuytest', 'fuelcal', 'bunktest', 'lanterntest', 'streaktest', 'fixtest', 'hailltest', 'harbourtest', 'simday', 'calib', 'kvtest', 'progweek', 'seatest', 'stabtest', 'projtest', 'boottest', 'maptest', 'mig2test', 'charttest', 'helmtest', 'soundtest', 'sleeptest', 'pwatest', 'bktest', 'ordtest', 'kartlegging', 'roetest', 'mannskapshot']
 # they measure milliseconds, so they run alone at the end, when nothing else takes the CPU
 # driftsplan2test (Ø2 05.11.2026): S9 compares an open run with a closed one, and under load the sim tiles come in between other frames, so
@@ -41,6 +41,7 @@ LITE += ['profiltest']   # topplista og profilen ved lanseringen (16.11.2026)
 LITE += ['hopptest']   # hopp over resten av ruta, kjernen (HO1, steg 104)
 LITE += ['brottaar']   # brottsjøen gjennom et år på tre steder (Ø9 F7; trenger hele kysten)
 LITE += ['lagrefeiltest']   # the save to the account when the cloud fails (klynge:471787f3, PR #127, 18.11.2026)
+LITE += ['planstartkai']   # the plan started at a quay that is not its home has the ways from there (06h-plan2-engine.js plan2Make, 25.11.2026)
 # OPP1 (07.11.2026): the knives and the gaff in tiers at the tackle shop
 LITE += ['opptest']
 LITE += ['driftsplan3test']   # Driftsplan 3, ringen og redskapet (DP3-1, steg 129)
@@ -218,6 +219,20 @@ for _f, _t in (('src/js/view3d/21-rescue-anchor.js', 'mobshot'), ('src/js/deckcr
 # Kvotemarkedet, the core (KM1, 08.11.2026): pure functions tested in tests/unit/kvotemarked.test.mjs (run first by changed); in the game only
 # the free right's two years at the new year (quotaNewYear) and the cap in Kvote → Marked, which quotatest sees. On lines of their own
 COVER['src/js/core/03i-kvotemarked.js'] = ['quotatest', 'kvotemarkedtest']
+# Handlingsrommet (steg 149, K1): the layer the screen asks, and landConf, which sell() and the quay's warning use
+COVER['src/js/core/03l-room.js'] = ['quotatest', 'r4test', 'selltest']
+COVER['tests/unit/room.test.mjs'] = []
+# the quota meter and the warnings (steg 150, K2)
+COVER['src/js/core/03l-room.js'] += ['kvotemaal']
+COVER['tests/kvotemaal.py'] = ['kvotemaal']
+# the purchase card (steg 151, K3): it promises what the purchase does
+COVER['src/js/core/03l-room.js'] += ['romtest']
+COVER['tests/romtest.py'] = ['romtest']
+# the stages and the words (steg 152, K4)
+COVER['tests/trinntest.py'] = ['trinntest']
+for _f in ('src/js/ui/phone/04-kvote.js', 'src/js/ui/phone/09-vaer-post-salg-redning.js', 'src/js/ui/phone/03-regler.js', 'src/js/ui/phone/10-fartoy.js', 'src/js/ui/phone/05-rigg-innst-admin.js', 'src/js/ui/05k-ordbok.js', 'src/js/ui/07c-handbook.js', 'src/js/core/03l-room.js'): COVER.setdefault(_f, []).append('trinntest')
+for _f in ('src/js/ui/phone/10-fartoy.js', 'src/js/ui/phone/14-act.js', 'src/js/ui/phone/13c-megler.js', 'src/js/ui/phone/04b-kvotemarked.js', 'src/js/ui/phone/11-rederi.js', 'src/js/core/03i-kvotemarked.js', 'src/js/core/09k-market.js'): COVER.setdefault(_f, []).append('romtest')
+for _f in ('src/js/ui/04-panels-instruments.js', 'src/js/ui/07-guide.js', 'src/js/ui/phone/08-home-papers-merker.js'): COVER.setdefault(_f, []).append('kvotemaal')
 # KM3 (the quota market in the Kvote app): the pages, the calls and the test
 COVER['src/js/ui/phone/04b-kvotemarked.js'] = ['kvotemarkedtest', 'quotatest']
 COVER['src/js/ui/10t-kvotemarked.js'] = ['kvotemarkedtest']
@@ -229,6 +244,7 @@ COVER['tests/unit/market3.test.mjs'] = []
 for _f in ('src/js/ui/phone/14-act.js', 'src/js/ui/phone/10-fartoy.js'):
     COVER[_f] = COVER.get(_f, []) + ['megletest']
 COVER['tests/unit/kvotemarked.test.mjs'] = []
+COVER['tests/unit/tilstand.test.mjs'] = []   # steg 148b: the vessel ids and the fresh quota
 
 # Turens linje (Ø8b S2, 08.11.2026): the trip's sums in fish() and finishHaul (05-vessels.js, 10-gear.js), the line made by tripSum and
 # tripWhy (04-crew.js), on the landing note (07-guide.js portSlip) and in the deck log at the sale (08-actions.js sell). The pure part is in
@@ -402,6 +418,7 @@ for _f in ('src/js/deckcrew.js', 'src/js/view3d/08-plants.js', 'src/js/view3d/20
 # 25-controls.js lost helmjit, teleport3d, benchshot, profshot and f1test; 05-rigg-innst-admin.js lost admintest). run.py stops on it.
 # Driften billig og stabil (D1–D2, 17.11.2026): cloudRpc's wait and time limit, save_beat every 15 s, pos_put once a minute with the relay
 for _f in ('src/js/ui/10f-cloud.js', 'src/js/ui/10h-world.js', 'tests/nedetest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['nedetest']))
+for _f in ('src/js/core/06h-plan2-engine.js', 'tests/planstartkai.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['planstartkai']))
 for _f in ('src/js/ui/10f-cloud.js', 'tests/lagrefeiltest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['lagrefeiltest']))
 # The watch on the database and the server's numbers (steg 138, 17.11.2026)
 for _f in ('tools/server/vakt/vakt.sh', 'tools/server/vakt/setup.sh', 'tools/server/status.sh', 'tools/server/setup.sh', 'tests/vakttest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['vakttest']))
