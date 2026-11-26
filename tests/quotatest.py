@@ -46,7 +46,7 @@ TRADE = """(async () => { const R = {}, y = yearH(S.t / 60), tap = q => { const 
   // buying a right: one NPC owner fewer, the right dated, the seller's catch off the quota
   const r0 = npcReg().u7; DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=trebat][data-o=u7]'); tap('[data-pa=buylic][data-ti="1"]'); DOCK.close();
   R.buy = {lic:S.lic && S.lic.id, since:S.lic && S.lic.since, from:S.lic && S.lic.from, reg:[r0, npcReg().u7], seller:quotaState().seller, quota:licQ(S.lic).torsk};
-  // steg 148 (K0 of docs/planer/regler-i-klartekst.md). «Neste mål» with the first right aboard: the next right, never the 14.99 m coastal
+  // steg 148b (K0 of docs/planer/regler-i-klartekst.md). «Neste mål» with the first right aboard: the next right, never the 14.99 m coastal
   // vessel at her hull's price (without a right she has no access); and the coastal fleet's tab says what the yard sells
   // (with two boats under 11 m the ladder has no gear tier between the boats, so the two steps shown are the boats)
   { const dtx = () => document.querySelector('#drawerBody').textContent, tmp = newVesselObj('skiff', b.port); DOCK.open('fartoy'); const g = [...document.querySelectorAll('#drawerBody .ph-card')].find(c => /Neste mål/.test(c.textContent));
@@ -113,13 +113,13 @@ async def main():
         tr = await pg.evaluate(TRADE); print('trade:', json.dumps(tr, ensure_ascii=False)[:1400])
         print(ok(not tr['p29']['lic'] and tr['p29']['torsk'] == 1200 and tr['p29']['type'] == 'skiff'), '§ 29: back in the open group the owner\'s cod this year follows (1.2 t), not the closed-group boat\'s', tr['p29'])
         k0 = tr['k0']
-        print(ok(k0['goal'] and not k0['goalKyst']), 'steg 148: «Neste mål» does not point at the 14.99 m coastal vessel without a right', {k: k0[k] for k in ('goal', 'goalKyst', 'goalTxt')})
-        print(ok(not k0['kystLater'] and not k0['grp']), 'steg 148: the coastal fleet tab and the group row say what the yard sells (no «kommer senere», no «bare lukket gruppe»)', {k: k0[k] for k in ('kystLater', 'grp')})
-        print(ok(all(k0['hold'].values())), 'steg 148: with fish in the hold the trade-in is grey with the reason and the purchase refuses, with and without a right; for the fleet stays open', k0['hold'])
-        print(ok(k0['saldo'][0] == k0['saldo'][1]), 'steg 148: after a trade-in the tax value is the new boat\'s own', k0['saldo'])
+        print(ok(k0['goal'] and not k0['goalKyst']), 'steg 148b: «Neste mål» does not point at the 14.99 m coastal vessel without a right', {k: k0[k] for k in ('goal', 'goalKyst', 'goalTxt')})
+        print(ok(not k0['kystLater'] and not k0['grp']), 'steg 148b: the coastal fleet tab and the group row say what the yard sells (no «kommer senere», no «bare lukket gruppe»)', {k: k0[k] for k in ('kystLater', 'grp')})
+        print(ok(all(k0['hold'].values())), 'steg 148b: with fish in the hold the trade-in is grey with the reason and the purchase refuses, with and without a right; for the fleet stays open', k0['hold'])
+        print(ok(k0['saldo'][0] == k0['saldo'][1]), 'steg 148b: after a trade-in the tax value is the new boat\'s own', k0['saldo'])
         rg = k0['reg']
-        print(ok(rg['lic'] == 'h7' and rg['type'] == 'snekke' and rg['u7'][1] == rg['u7'][0] + 1 and rg['h7'][1] == rg['h7'][0] - 1), 'steg 148: a right traded in for the next right goes back to the register (u7 +1, h7 -1)', rg)
-        print(ok(k0['same']['type'] == 'breisjark' and k0['same']['h10'][1] == k0['same']['h10'][0]), 'steg 148: the same quota length traded for another boat leaves the register where it was', k0['same'])
+        print(ok(rg['lic'] == 'h7' and rg['type'] == 'snekke' and rg['u7'][1] == rg['u7'][0] + 1 and rg['h7'][1] == rg['h7'][0] - 1), 'steg 148b: a right traded in for the next right goes back to the register (u7 +1, h7 -1)', rg)
+        print(ok(k0['same']['type'] == 'breisjark' and k0['same']['h10'][1] == k0['same']['h10'][0]), 'steg 148b: the same quota length traded for another boat leaves the register where it was', k0['same'])
         bu = tr['buy']
         print(ok(bu['lic'] == 'u7' and bu['reg'][1] == bu['reg'][0] - 1 and bu['since'] and bu['from'] and 0 <= bu['seller'] <= 0.85 * bu['quota']), 'buying a right takes one NPC owner out of the register, and his catch this year comes off the quota', bu)
         st = tr['struct']

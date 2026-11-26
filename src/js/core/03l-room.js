@@ -76,7 +76,8 @@ function rmStage(){
 // ---- the open group's cod limit now for a boat of this length (codLimitNow for a boat that is not the bound one)
 function rmOpenLimit(len, H){
   const y = yearH(H), O = yearQuota(y).open, g = len < 8 ? 0 : len < 10 ? 1 : 2, sd = codStopDoy(y), open = sd == null || doyH(H) < sd;
-  return open ? (O.max[g] + openMaxAdd(H)) * 1000 : O.guar[g] * 1000;
+  // (with the additions every open-group boat of the company has, KV1: the coastal-fishing scheme by the home harbour and the age addition)
+  return (open ? (O.max[g] + openMaxAdd(H)) * 1000 : O.guar[g] * 1000) + openAdd(H).sum;
 }
 
 // ---- the meters: a row for each quota or cap that binds the bound boat now.

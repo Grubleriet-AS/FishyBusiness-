@@ -315,6 +315,7 @@ function cloudBegin(){
   setInterval(() => { if (!document.hidden) CLOUD.active += 5; if (typeof G3 !== 'undefined' && G3._debug && !document.hidden){ const f = G3._debug.fps; if (f > 0) CLOUD.fps.push(f); } }, 5000);
   setInterval(() => cloudFlush(false), 60000);
   cloudEv('start', {});
+  try { const q = JSON.parse(sessionStorage.getItem('dsb_evq') || '[]'); sessionStorage.removeItem('dsb_evq'); for (const e of q) cloudEv(e[0], e[1]); } catch (e){}   // (cloudEvLater)
   if (typeof BOOTW !== 'undefined' && BOOTW.res) cloudEv('boot', BOOTW.res);   // how long the start took, step by step (11-boot.js bootDone)
   if (typeof boot3dSend === 'function') boot3dSend();   // and the 3D view's first picture, if it came before the cloud (11-boot.js)
 }
@@ -507,6 +508,13 @@ function hangWatch(){
 // kept: on this device (KEY_PREV) and in the cloud's history, and both can be taken back under Settings («Tidligere lagringer»).
 const syncKey = () => 'dsb_sync_' + ((CLOUD.user && CLOUD.user.id) || '');
 function syncGet(){ try { return JSON.parse(localStorage.getItem(syncKey()) || 'null'); } catch (e){ return null; } }
+// (the game was taken by another device while this page had it, cloudPassed: kept on the device until it has the game again, so a
+// page loaded again after that takes the account's game, whatever time its own old one says, cloudSync; tilbakemelding 376, 23.11.2026)
+const passKey = () => 'dsb_passed_' + ((CLOUD.user && CLOUD.user.id) || '');
+function passSet(on){ try { if (on) localStorage.setItem(passKey(), '1'); else localStorage.removeItem(passKey()); } catch (e){} }
+// (what the start chose between two games, told when the session has begun: cloudEv has nowhere to put it before, and a game taken
+// loads the page again)
+function cloudEvLater(k, d){ try { const q = JSON.parse(sessionStorage.getItem('dsb_evq') || '[]'); if (q.length < 20) q.push([k, d || {}]); sessionStorage.setItem('dsb_evq', JSON.stringify(q)); } catch (e){} }
 function syncSet(rev, at, rv, sq){ try { localStorage.setItem(syncKey(), JSON.stringify({rev, at, rv:rv == null ? null : rv, sq:sq == null ? null : sq})); } catch (e){} }
 // (sq: the save count, S.seq, of the game sent; a game on the device with a lower count than that is older than what this device sent,
 // written back over it by a page left open since: cloudSync takes the account's then. rv is also kept by the page itself, TAB.rv, so a
@@ -563,14 +571,22 @@ function cloudKeptNote(where){ const m = where === 'cloud' ? cloudL('Vi fant en 
 // the choice is open (or its summary on the way): no save goes to the account meanwhile; another dialog over it lets the next try ask again
 const cloudChoosing = () => CLOUD.choosing || !!document.getElementById('cgHere');
 // the account's game onto this device (the one here kept), and start again with it
-async function cloudTake(cs){
-  const o = await loadCode(cs.data); syncSet(cs.saved_at, o.lastReal || Date.parse(cs.saved_at), cs.rev, o.seq); sessionStorage.setItem('dsb_pulled', cs.saved_at);
-  if (cs.device && cs.device !== deviceId()){ try { sessionStorage.setItem('dsb_note', cloudL('Fortsetter der du slapp på ' + (cs.device_name || 'en annen enhet') + '. ', 'Going on where you left off on ' + (cs.device_name || 'another device') + '. ') + sumText(cs.summary || saveSum(o)) + '.'); } catch (e){} }
+async function cloudTake(cs, kept){
+  const o = await loadCode(cs.data); passSet(false); syncSet(cs.saved_at, o.lastReal || Date.parse(cs.saved_at), cs.rev, o.seq); sessionStorage.setItem('dsb_pulled', cs.saved_at);
+  if (cs.device && cs.device !== deviceId()){ try { sessionStorage.setItem('dsb_note', cloudL('Fortsetter der du slapp på ' + (cs.device_name || 'en annen enhet') + '. ', 'Going on where you left off on ' + (cs.device_name || 'another device') + '. ') + sumText(cs.summary || saveSum(o)) + '.' +
+    (kept ? cloudL(' Spillet som var på denne enheten, er tatt vare på under Innstillinger › Tidligere lagringer.', ' The game that was on this device is kept under Settings › Earlier saves.') : '')); } catch (e){} }
   location.reload(); return new Promise(() => {});
 }
 // at the start: the account has a game; which goes on
 async function cloudSync(cs){
   const rev = cs.saved_at, localRaw = localStorage.getItem(KEY), lo = localRaw ? JSON.parse(localRaw) : null, local = lo ? (lo.lastReal || 0) : 0, sync = syncGet();
+  // this device lost the game to another one and has not had it since: the account's game goes on, and the one here is kept (Tidligere
+  // lagringer). The time of the game here says nothing then: every save on the page that was passed, the one as it is hidden or closed
+  // too, sets it to now, so a PC left open since the day before read as «played here since», was the last by the clock, and wrote its
+  // day-old game over the one played on the phone all day (tilbakemelding 376, 23.11.2026)
+  const passed = (() => { try { return !!localStorage.getItem(passKey()); } catch (e){ return false; } })(); passSet(false);
+  if (passed && lo && cs.device && cs.device !== deviceId() && sessionStorage.getItem('dsb_pulled') !== rev){
+    cloudEvLater('sync_pick', {pick:'cloud', how:'passed'}); cloudGateShow('<p>' + cloudL('Henter spillet ditt …', 'Fetching your game …') + '</p>'); return cloudTake(cs, true); }
   // the game here is older than the one this device sent (a page left open wrote its game back over it): the account's, whatever else
   // (after taking it the counts are the same, so this never goes round)
   if (lo && sync && Date.parse(sync.rev) === Date.parse(rev) && sync.sq != null && (lo.seq || 0) < sync.sq){
@@ -597,6 +613,7 @@ async function cloudSync(cs){
   // both have been played since they were last in step: the last save goes on, whatever either game has come to (Jonas 11.10.2026: «alltid den
   // siste lagringen»); the other is kept in the history
   const pick = Date.parse(cs.updated_at || rev) > local ? 'cloud' : 'here'; cloudKeptNote(pick);   // (the server's own time of the save when it tells it)
+  cloudEvLater('sync_pick', {pick, how:'start'});
   if (pick === 'cloud'){ cloudGateShow('<p>' + cloudL('Henter spillet ditt …', 'Fetching your game …') + '</p>'); return cloudTake(cs); }
   CLOUD.forceNext = true; syncSet(rev, 0, cs.rev);   // the game here goes on; its first save replaces the account's (kept in the history)
 }
@@ -633,7 +650,7 @@ async function cloudSaveSoon(closing, manual){
       if (!CLOUD.oldPut){ try { r = await cloudRpc('save_put2', {data, saved_at:iso, game_t:Math.round(S.t || 0), base:sync ? sync.rev : null, force:!!CLOUD.forceNext, summary:saveSum(S)}, keep); } catch (e){ if (!/ 404$/.test(e.message)) throw e; CLOUD.oldPut = true; } }
       if (CLOUD.oldPut) r = await cloudRpc('save_put', {data, saved_at:iso, game_t:Math.round(S.t || 0), force:!!CLOUD.forceNext}, keep);
     }
-    if (r && r.ok){ CLOUD.e401 = 0; CLOUD.lastSave = at; CLOUD.forceNext = false; TAB.rv = r.rev; CLOUD.fp0 = fp; syncSet(r.saved_at || iso, at, r.rev, S.seq); cloudStatus('ok'); }
+    if (r && r.ok){ passSet(false); CLOUD.e401 = 0; CLOUD.lastSave = at; CLOUD.forceNext = false; TAB.rv = r.rev; CLOUD.fp0 = fp; syncSet(r.saved_at || iso, at, r.rev, S.seq); cloudStatus('ok'); }
     else if (r && r.taken && r.cloud && r.cloud.active_dev && r.cloud.active_dev !== deviceId()){ CLOUD.saving = false; cloudPassed(r.cloud); }
     else if (r && r.cloud && !closing) cloudConflict(r.cloud, r.moved);
     // (the server or the network let it down: a time-out, a 5xx, a 408 or 429, a 401 a fresh token did not mend. The game stays on the
@@ -698,7 +715,7 @@ function cloudWake(){
 }
 // another device has the game: this one stops, hands over its last state if it was playing until then, and says so
 async function cloudPassed(h){
-  if (TAB.held || TAB.lost) return; TAB.held = true;
+  if (TAB.held || TAB.lost) return; TAB.held = true; passSet(true);
   cloudEv('passed', {dev:h.active_name || null});
   // the device that has it is silent (its screen off, closed): nothing runs there, so this one takes the game back by itself, the time
   // since played to the world's clock (an online game: the world, the clock and the plans go on with every screen off)
@@ -727,7 +744,7 @@ async function cloudPlayHere(){
   await cloudClaim(true);
   let cs = null; try { cs = await cloudRpc('save_get', {}); } catch (e){ console.error(e); }
   if (cs && cs.data && cs.rev !== TAB.rv){ SAVE_OFF = true; return cloudTake(cs); }
-  TAB.held = false; CLOUD.beatAt = Date.now(); CLOUD.fp0 = cloudFp(); lastWall = Date.now(); cloudGateHide();
+  TAB.held = false; passSet(false); CLOUD.beatAt = Date.now(); CLOUD.fp0 = cloudFp(); lastWall = Date.now(); cloudGateHide();
 }
 
 // back in the foreground (or online again): has another device saved meanwhile? Asked of the cloud without the game, before anything is saved

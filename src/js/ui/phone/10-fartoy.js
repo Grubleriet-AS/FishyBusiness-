@@ -55,7 +55,7 @@
   // the yard's buttons: the first thing in the way, as rmWhy's word
   const yardWhy = (x, ti) => !atKind('verft') ? 'yard' : S.order ? 'order' : ti && tiLocked(curVessel()) ? 'sale' : ti && tiHoldWhy() ? 'hold' : !x.ok ? (x.why || 'cash') : null;
   const yardCtx = x => ({n:(S.sales || []).length, need:kr(x.eqNeed), boat:S.boatName});
-  // why the boat you follow cannot be traded in now, or null (steg 148, T2): what is in her hold does not go with her to the new boat. Before,
+  // why the boat you follow cannot be traded in now, or null (steg 148b, T2): what is in her hold does not go with her to the new boat. Before,
   // the catch followed the trade-in and was landed on the new boat's access, more than the new hold takes when she is smaller. The same
   // rule as for a right that is moved or put out (mbMoveWhy, kmPutWhy). The sheets and the purchases (14-act.js buy, buylic) ask it
   const tiHoldWhy = () => (S.hold || []).some(x => x.kg > 0.5) ? L('Lever fangsten før du bytter inn «' + S.boatName + '». Det som ligger i rommet, følger ikke med til den nye båten.', 'Land the catch before you trade in the «' + S.boatName + '». What is in the hold does not go with you to the new boat.') : null;
@@ -76,7 +76,7 @@
     const ids = LIC_OFFERS.map(O => O.id).filter((x, i, a) => a.indexOf(x) === i);   // the rights in order (several boats share h10)
     const top = Math.max(-1, ...S.fleet.map(v => vget(v, 'lic')).filter(Boolean).map(l => ids.indexOf(l.id))), O = LIC_OFFERS.find(x => x.id === ids[top + 1]);
     if (O && !hav){ const pr = VESSELS[O.ves].price + licValue(O), x = deal(pr, tradeIn(), innOK()); steps.push({n:O[S.lang], need:x.eqNeed + 5000, bank:true, a:'fartoy', price:pr}); }
-    // (steg 148, T7: the 14.99 m coastal vessel at her hull's price stood here as a step of its own. Without a right she may only take cod,
+    // (steg 148b, T7: the 14.99 m coastal vessel at her hull's price stood here as a step of its own. Without a right she may only take cod,
     // haddock and saithe as bycatch, so the ladder led a newcomer to a boat without access; the rights above reach her with h14)
     // the company (Jonas 09.10.2026): the Rederi app opens with it; after the boats, so the ladder comes first
     if (S.form !== 'AS') steps.push({n:L('Stift Rederi AS', 'Found a limited company'), need:TAX.as.capital + TAX.as.fee, a:'bank', txt:L('Et AS betaler 22 % av overskuddet og fører regnskap. Som ENK betaler du personskatt, som blir høyere når overskuddet vokser. Skattekortet i banken viser begge. Aksjekapital og gebyr: ', 'A company pays 22 % of the profit and keeps books. As ENK you pay personal tax, which grows with the profit. The tax card in the bank shows both. Share capital and fee: ') + kr(TAX.as.capital + TAX.as.fee)});

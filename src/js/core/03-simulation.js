@@ -30,7 +30,7 @@ function access(){ if (S.lic) return 'lukket'; return S.cur === openVesselId() &
 const BYCATCH = {share:0.1, cod:2000};
 function vesselValue(v){ const b = vget(v, 'boat'), eq = vget(v, 'equip') || {}; return Math.round(VESSELS[b.type].price * 0.7 + (eq.motor90 ? EQUIP.motor90.price * 0.5 : 0) + licValue(vget(v, 'lic')) * 0.95); }
 // a vessel added to the fleet: default state, in port with 40 % fuel; the bigger boats come with a plotter and VHF
-// a vessel's id is never given twice (steg 148, T3): the next number is over every id the company has had. Before, it was the highest in
+// a vessel's id is never given twice (steg 148b, T3): the next number is over every id the company has had. Before, it was the highest in
 // the fleet plus one, so a boat bought after the highest was sold took her id, and with it what is kept under it: her tax value
 // (S.saldo), the Greenland halibut landed this year (S.bkq.v) and her landings (S.sales). S.vseq is the highest number given; a save
 // from before it is read from the fleet and from what is kept by id
@@ -1323,7 +1323,9 @@ function finance(x, months){ if (x.payoff) payDown(x.payoff); if (x.bankL > 0) t
   if (S.cash < x.cost && bankS().spare > 0) bankMove('spare', -(x.cost - S.cash), 'Fra sparekontoen til båtkjøpet', 'From the savings for the vessel');   // the savings are equity
   book('baat', -x.cost, 'Båtkjøp', 'Vessel bought'); }
 function lenGroup(){ const L = BOAT.len || 5.8; return L < 8 ? 0 : L < 10 ? 1 : 2; }
-function codLimits(H){ if (H == null) H = S.t / 60; if (S.lic){ const c = licQ(S.lic, H).torsk; return {max:c, guar:c}; } const O = yearQuota(yearH(H)).open, g = lenGroup(); return {max:(O.max[g] + openMaxAdd(H)) * 1000, guar:O.guar[g] * 1000}; }
+function codLimits(H){ if (H == null) H = S.t / 60; if (S.lic){ const c = licQ(S.lic, H).torsk; return {max:c, guar:c}; } const O = yearQuota(yearH(H)).open, g = lenGroup(), A = openAdd(H), base = {max:(O.max[g] + openMaxAdd(H)) * 1000, guar:O.guar[g] * 1000};
+  // the open group: § 21's quota for the vessel's length, and on top of it the coastal-fishing scheme and the age addition (J-161-2026 §§ 22 and 23; 03d-quota.js openAdd)
+  return {max:base.max + A.sum, guar:base.guar + A.sum, base, add:A}; }
 // the open group's maximum-quota fishing is stopped when the group quota is estimated fished (the stop and the raises are worked out in
 // 03d-quota.js); after the stop only the guaranteed quota is left. A closed-group vessel quota is never stopped.
 function codOpen(H){ if (S.lic) return true; const sd = codStopDoy(yearH(H)); return sd == null || doyH(H) < sd; }

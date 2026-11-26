@@ -96,6 +96,7 @@ Alle kjøpssystemer følger det spilleren eier. Regelen ligger i `buyGate(what)`
 | Kjøp | Krever |
 |---|---|
 | line | linehaler |
+| juksamaskin | ledig plass på båten (`VESSELS.jukseMax`): de som er om bord og de som er under montering, telles sammen (`equipCount`). Før 25.11.2026 talte telefonens egen sjekk bare de monterte, og tre trykk på «Kjøp» ga 7 av 5 (tilbakemelding 377). En maskin som blir ferdig montert uten ledig plass, betales tilbake (`finishJob`) |
 | garn | garnhaler (passer båter fra 7,5 m); på båter under 7,5 m med garn i databladet (trebåten, skiffen) trekkes garnet for hånd, og garn kan kjøpes uten haler (`handGear`, valg 21 B 09.11.2026) |
 | teiner | teinehaler, og teiner i båtens datablad (`VESSELS.rigs`): ikke trebåten og skiffen (OB1, Jonas 09.11.2026) |
 | kroker | at du eier line |

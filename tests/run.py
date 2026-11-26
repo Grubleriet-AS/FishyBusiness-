@@ -48,6 +48,7 @@ LITE += ['fetchsaves']   # lagringsportens henting i små biter (slippet 21.11.2
 LITE += ['planlaas_ui']   # driftsplanen låst på «Lager planen …» etter lasting (tilbakemelding 220, 21.11.2026)
 # (15.11.2026, testeffektiviseringen: two tests that stood in COVER but in no list, so a full run never had them)
 LITE += ['kartkorridortest', 'legmemotest']
+LITE += ['kvfulltest']   # åpen gruppes tillegg og «Torskekvoten er full» i Kvote-appen (KV1, steg 148)
 LITE += ['anvtreff']   # fangsten: det spillernes båter kommer borti (autonav-rutinen, 18.11.2026)
 # Scripts in tests/ that are tools run by hand, not tests (15.11.2026): measurements and balance runs (the regression routine runs
 # fiskeplay and the others itself), pictures of one boat model or one place for the docs, the people's clips, and tutcoast (the whole
@@ -236,12 +237,13 @@ COVER['src/js/ui/phone/04b-kvotemarked.js'] = ['kvotemarkedtest', 'quotatest']
 COVER['src/js/ui/10t-kvotemarked.js'] = ['kvotemarkedtest']
 COVER['tests/kvotemarkedtest.py'] = ['kvotemarkedtest']
 COVER['src/js/ui/phone/04-kvote.js'] = COVER['src/js/ui/phone/04-kvote.js'] + ['kvotemarkedtest']
+for _f in ('src/js/ui/phone/04-kvote.js', 'src/js/core/03d-quota.js', 'src/js/ui/phone/09-vaer-post-salg-redning.js', 'src/js/core/03-simulation.js', 'tests/kvfulltest.py'): COVER.setdefault(_f, []).append('kvfulltest')   # KV1, steg 148
 COVER['tests/unit/market3.test.mjs'] = []
 # KM4 (the boat with or without her right, 11.11.2026): megletest plays the choice, the move and the yard's trade-in
 for _f in ('src/js/ui/phone/14-act.js', 'src/js/ui/phone/10-fartoy.js'):
     COVER[_f] = COVER.get(_f, []) + ['megletest']
 COVER['tests/unit/kvotemarked.test.mjs'] = []
-COVER['tests/unit/tilstand.test.mjs'] = []   # steg 148: the vessel ids and the fresh quota
+COVER['tests/unit/tilstand.test.mjs'] = []   # steg 148b: the vessel ids and the fresh quota
 
 # Turens linje (Ø8b S2, 08.11.2026): the trip's sums in fish() and finishHaul (05-vessels.js, 10-gear.js), the line made by tripSum and
 # tripWhy (04-crew.js), on the landing note (07-guide.js portSlip) and in the deck log at the sale (08-actions.js sell). The pure part is in

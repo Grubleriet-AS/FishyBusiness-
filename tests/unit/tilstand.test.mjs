@@ -1,4 +1,4 @@
-// The state around a change of boat and a moved right (steg 148, K0 of docs/planer/regler-i-klartekst.md, T3 and T4): a vessel's id is
+// The state around a change of boat and a moved right (steg 148b, K0 of docs/planer/regler-i-klartekst.md, T3 and T4): a vessel's id is
 // never given twice, a vessel that leaves takes what was kept under her id with her, and a fresh quota keeps the caps that follow the
 // owner through the year (the bycatch cap, the caps south of 62° N, the week's fresh-fish figures and the confiscation statistics).
 export default function (t){

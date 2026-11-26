@@ -150,7 +150,27 @@ async def main():
             if len(DB['hist']) > n0: break
             await A[1].wait_for_timeout(250)
         check(len(DB['hist']) > n0 and DB['row']['device_name'] == 'Android-nettbrett', '«Spillet på denne enheten» writes over, and the other game is kept in the history', {'hist': len(DB['hist']), 'row': DB['row']['device_name']})
-        check(not A[2] and not B[2], 'no page errors', (A[2] + B[2])[:3])
+        # 7. a device that lost the game and is loaded again takes the account's game, never its own old one over it (tilbakemelding 376,
+        # 23.11.2026: a PC left open since the day before, the phone played all day, and the PC loaded again wrote its day-old game
+        # over the account: every save on the page that was passed, the one as it is hidden or closed too, sets the time of the game
+        # here to now, so the start read it as «played here since» and the last one by the clock went on)
+        for _ in range(80):
+            if DB['row']['device_name'] == 'Android-nettbrett' and await A[1].evaluate("!CLOUD.saving && !CLOUD.forceNext"): break
+            await A[1].wait_for_timeout(250)
+        C = await device(br, IOS); await C[1].goto(GAME); await C[1].wait_for_function(READY, timeout=180000)
+        await C[1].evaluate("(async () => { S.cash = 777777; save(); CLOUD.headT = 0; await cloudSaveSoon(false, true); })()")
+        await A[1].wait_for_selector('#cgPlay', timeout=30000)
+        c0 = {'dev': DB['row']['device_name'], 'cash': (DB['row'].get('summary') or {}).get('cash'), 'hist': len(DB['hist'])}
+        await C[0].close(); DB['row']['active_at'] -= 120
+        # hours go by on the tablet with the card up; the page is hidden and then loaded again (what visibilitychange does: save())
+        await A[1].evaluate("(() => { const k = syncKey(), o = JSON.parse(localStorage.getItem(k)); o.at -= 6 * 3600e3; localStorage.setItem(k, JSON.stringify(o)); save(); })()")
+        await A[1].reload()
+        await A[1].wait_for_function(READY, timeout=180000)
+        await A[1].wait_for_timeout(1500)
+        a7 = await A[1].evaluate("(async () => { CLOUD.headT = 0; save(); await cloudSaveSoon(false, true); return {cash:S.cash, held:TAB.held}; })()")
+        check(c0['dev'] == 'iPhone' and c0['cash'] == 777777 and a7['cash'] == 777777 and len(DB['hist']) == c0['hist'] and (DB['row'].get('summary') or {}).get('cash') == 777777,
+              'a tablet that lost the game to the phone and is loaded again hours later goes on with the phone\'s game, and writes nothing over it', {'c0': c0, 'a7': a7, 'hist': len(DB['hist']), 'row': DB['row'].get('summary'), 'rowdev': DB['row']['device_name']})
+        check(not A[2] and not B[2] and not C[2], 'no page errors', (A[2] + B[2] + C[2])[:3])
         await A[0].close(); await br.close()
     print('FEIL: ' + ', '.join(bad) if bad else 'alt OK')
 asyncio.run(main())

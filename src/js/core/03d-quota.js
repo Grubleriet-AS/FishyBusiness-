@@ -11,7 +11,9 @@ const REG26 = {
   unit:{u11:8.4172, g11:7.2662, g15:6.9986, g21:6.9982},     // § 16: cod per quota factor
   // §§ 21, 26, 27: the open group by vessel length (under 8 m, 8–9.99 m, 10 m and over); the maximum quotas are those the year
   // started with (the maximum-quota fishing was stopped on 16 April 2026), haddock and saithe have no maximum
-  openMax:[4.0, 5.6, 6.4], openGuar:[3.0, 4.2, 4.8], hyseG:[4.0, 5.6, 6.4], seiG:5
+  openMax:[4.0, 5.6, 6.4], openGuar:[3.0, 4.2, 4.8], hyseG:[4.0, 5.6, 6.4], seiG:5,
+  // §§ 22 and 23: the open group's additions to the cod quota in § 21 (KV1, 25.11.2026): the coastal-fishing scheme and the age addition
+  openKyst:3.5, openAlder:2
 };
 // Norway's quota from the agreed total quota. Cod: 21 000 t of Norwegian coastal cod are added, third countries take their share
 // (13.455 % in 2026, worked out from § 2), the rest is split in two, and Russia passes 6 000 t to Norway; this hits every year
@@ -48,7 +50,8 @@ function yearQuota(y){
   // the years without a stop, the middle stop on 13 April, raises in 18 %
   const ov = y <= 2026 ? 1 : OPENF.ov[0] + OPENF.ov[1] * h2(y * 53 + (S && S.qseed || 0) % 99991, 7100);
   return YQC[key] = {y, tac:{torsk:tacOf('torsk', y), hyse:tacOf('hyse', y), sei:tacOf('sei', y)}, nor, chain:ch, unit, fh, fs,
-    open:{Q:ch.open, ff:ch.openFF, ov, max:REG26.openMax.map(v => r1(v * fo * ov)), guar:REG26.openGuar.map((v, i) => r1(Math.min(v * fo, REG26.openMax[i] * fo * ov))), hyseG:REG26.hyseG.map(v => r1(v * fh)), seiG:r1(REG26.seiG * fs)}};
+    open:{Q:ch.open, ff:ch.openFF, ov, max:REG26.openMax.map(v => r1(v * fo * ov)), guar:REG26.openGuar.map((v, i) => r1(Math.min(v * fo, REG26.openMax[i] * fo * ov))), hyseG:REG26.hyseG.map(v => r1(v * fh)), seiG:r1(REG26.seiG * fs),
+      kyst:r1(REG26.openKyst * fo), alder:r1(REG26.openAlder * fo)}};
 }
 
 // ---- the closed group: quota lengths the game sells, with J-187-2026's quota factors and quantities (§§ 16, 18, 19). Cod is a fixed
@@ -92,7 +95,7 @@ function openUsedSave(q){ const y = yearH(S.t / 60); if (!q || q.y !== y) return
 function openUsedLoad(){ const q = quotaState(), O = S.openUsed; if (O && O.y === q.y) for (const sp of ['torsk', 'hyse', 'sei']) q[sp] = Math.max(q[sp], O[sp]); }
 // a fresh quota for the boat (a right put on her or taken off, a boat traded in): this year's cod, haddock and saithe start anew, and the
 // callers set what follows the right or the owner (licStart, kmApply, openUsedLoad). What is not the right's stays through the year
-// (steg 148, T4): the bycatch cap of a boat without access (byCod), the caps south of 62° N (nsjo, skag4), the week's fresh-fish figures
+// (steg 148b, T4): the bycatch cap of a boat without access (byCod), the caps south of 62° N (nsjo, skag4), the week's fresh-fish figures
 // and what was confiscated. Before, a right put on and taken off again, which costs nothing, gave those caps back
 const QKEEP = ['byCod', 'nsjo', 'skag4', 'ffW', 'ffTot', 'ffCod', 'conf', 'confKr'];
 function freshQuota(){ const o = S.quota; S.quota = null; const q = quotaState(); if (o && o.y === q.y) for (const k of QKEEP) if (o[k] != null) q[k] = o[k]; return q; }
@@ -213,6 +216,53 @@ function qyAt(H){ const y = yearH(H), now = S.t / 60, ny = yearH(now), Y = qyOf(
   while (Y.d < last) qyStep(Y, y, ++Y.d); if (y === ny) quotaNewYear(y); return Y; }
 function codStopDoy(y){ return qyAt(Math.max(hOfDoy(y, 0), Math.min(S.t / 60, hOfDoy(y, 364)))).stop; }
 function openMaxAdd(H){ const Y = qyAt(H), d = doyH(H); return Y.free != null && d >= Y.free ? Infinity : Y.add; }
+// ---- the open group's two additions to the cod quota (KV1, steg 148, 25.11.2026; J-161-2026 §§ 22 and 23, read on fiskeridir.no
+// 25.11.2026; Jonas the same day, after the players' wishes: «Kystfiskeordningen, Alderstillegget») ----
+// § 22, the coastal-fishing scheme: a vessel in the open group whose owner lives in one of the municipalities named may fish and land
+// 3.5 tonnes of cod «i tillegg til kvoten i § 21». The owner lives where Father's naust stands (S.home). The municipalities: all of
+// Finnmark; in Troms Balsfjord, Gratangen, Karlsøy, Kvænangen, Kåfjord, Lavangen, Lyngen, Nordreisa, Salangen, Skjervøy, Storfjord,
+// Sørreisa and Tjeldsund; in Nordland Evenes, Hamarøy and Lødingen. Tromsø is in only for ten named basic statistical units by
+// Ullsfjorden and Sørfjorden (Jøvik, Olderbakken, Lakselvbukt, Lakselvdalen, Sjøvassbotn, Stordal, Sjursnes, Reiervik, Breivika,
+// Ullsfjordmoane; Statistics Norway's units 5501 3301–3310, read 25.11.2026: Oldervik, Tromsdalen, Vengsøy, Brensholmen and Sommarøy
+// are units of their own outside them) and Narvik only for what was Narvik or Tysfjord in 2019: no home harbour of the game lies in
+// either part, so neither is in the list (a harbour added there is added here).
+// § 23, the age addition: 2 tonnes guaranteed on top of § 21 for a majority owner of 30 or younger (40 for a woman). The player has no
+// age: everyone counts as the young fisher who took over Father's boat.
+// § 24 (16 tonnes in all for a vessel given the recruitment bonus) is not in the game (Jonas' choice), and § 21's last paragraph
+// stands: «Det er ikke adgang til å ha bifangst av torsk utover de fastsatte kvotene».
+// A later year's additions follow the open group's quota like its other quotas (yearQuota): the regulation for them is not written.
+const KYSTORD = ['alta', 'berlevåg', 'båtsfjord', 'gamvik', 'hammerfest', 'hasvik', 'karasjok', 'kautokeino', 'lebesby', 'loppa', 'måsøy', 'nesseby', 'nordkapp', 'porsanger', 'sør-varanger', 'tana', 'vadsø', 'vardø',
+  'balsfjord', 'gratangen', 'karlsøy', 'kvænangen', 'kåfjord', 'lavangen', 'lyngen', 'nordreisa', 'salangen', 'skjervøy', 'storfjord', 'sørreisa', 'tjeldsund', 'evenes', 'hamarøy', 'lødingen'];
+// the municipality of a harbour, as the register of plants writes it in lower case («deatnu tana», «gáivuotna kåfjord»): a named Senja
+// harbour's (PORTK), the harbour's own plant's, else the nearest plant's that has one (a few plants carry a place name or nothing)
+function portKom(pt){
+  if (!pt) return '';
+  const okK = k => !!k && !/^(ikke angitt|utenlandsk)$/i.test(k) && k === k.toLowerCase();
+  const own = (typeof PORTK !== 'undefined' && PORTK[pt.id]) || (pt.mk && pt.mk.k) || ''; if (okK(own)) return own;
+  if (typeof MOTTAK === 'undefined' || !MOTTAK || !MOTTAK.m) return String(own).toLowerCase();
+  let best = '', bd = Infinity; for (const m of MOTTAK.m){ if (!okK(m.k)) continue; const d = Math.hypot(m.p[0] - pt.p.x, m.p[1] - pt.p.y); if (d < bd){ bd = d; best = m.k; } }
+  // a plant with a place name for a municipality: the nearest plant's municipality within the same town, else the place name itself
+  return bd < 3 || !own ? best : String(own).toLowerCase();
+}
+// (kept per harbour: codLimitNow asks every fishing minute, and a home without a municipality of its own looks through every plant)
+const KYSTC = {};
+function kystOrd(pid){ if (pid && KYSTC[pid] != null) return KYSTC[pid]; const pt = pid && typeof portById === 'function' ? portById(pid) : null; if (!pt) return false; const w = portKom(pt).split(' '); return KYSTC[pid] = KYSTORD.some(k => w.includes(k)); }
+// this save's additions now, kg: {kyst, alder, sum} (the open group only: codLimits asks)
+function openAdd(H){ if (H == null) H = S.t / 60; const O = yearQuota(yearH(H)).open, kyst = kystOrd(S.home || HOME0) ? Math.round(O.kyst * 1000) : 0, alder = Math.round(O.alder * 1000); return {kyst, alder, sum:kyst + alder}; }
+// the part of a landing's quota cod that is taken from the open group's quota: the coastal scheme has its own set-aside (0.9 % of
+// Norway's quota, codChain), so the cod that lies in the top `kyst` kg of the vessel's limit is not the group's (your own count in
+// qyAt().me and the landing sent to the shared world, wshLand)
+function codGroupKg(before, codQ, lim, kyst){ if (!(kyst > 0) || !isFinite(lim)) return codQ; return Math.max(0, codQ - Math.max(0, before + codQ - Math.max(before, lim - kyst))); }
+// the Directorate's letter about the vessel's cod quota in the open group, once a year when over half of it is landed (and so at once,
+// the day the additions came, for those who had filled § 21's quota): what the quota is made of and what is left
+function openAddNews(H){
+  // (S.addSaidY, the year, on the save and not on the vessel's quota: a boat traded for another in the open group starts a new S.quota)
+  if (S.lic || access() !== 'open') return; const q = quotaState(), y = yearH(H); if (S.addSaidY === y) return;
+  const lim = codLimitNow(H); if (!isFinite(lim) || q.torsk < 0.5 * lim) return; S.addSaidY = y;
+  const l = codLimits(H), en = kg => (kg / 1000).toFixed(1), t1 = kg => en(kg).replace('.', ','), b = (codOpen(H) ? l.base.max : l.base.guar), left = Math.max(0, lim - q.torsk);
+  msg('Fiskeridirektoratet', 'Du har landet over halvparten av torskekvoten din i åpen gruppe. Kvoten din i ' + y + ' er ' + t1(lim) + ' tonn: ' + t1(b) + ' tonn etter båtens lengde' + (l.add.kyst ? ', ' + t1(l.add.kyst) + ' tonn fra kystfiskeordningen' : '') + ' og ' + t1(l.add.alder) + ' tonn i alderstillegg. Igjen nå: ' + t1(left) + ' tonn.',
+    'You have landed over half of your cod quota in the open group. Your quota in ' + y + ' is ' + en(lim) + ' tonnes: ' + en(b) + ' tonnes by the vessel\'s length' + (l.add.kyst ? ', ' + en(l.add.kyst) + ' tonnes from the coastal-fishing scheme' : '') + ' and ' + en(l.add.alder) + ' tonnes as the age addition. Left now: ' + en(left) + ' tonnes.');
+}
 // the fresh-fish scheme (J-187-2026 § 25): 20 % of the week's fresh landings from 29 June; the share was raised in the autumn in
 // 2017, 2018, 2021, 2022, 2024 and 2025 (to 30–50 %, between 15 September and 25 November), went down in 2023, stopped in late
 // November 2019, and was often cut to 10 % before Christmas. Drawn for each year from that history.

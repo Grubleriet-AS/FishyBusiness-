@@ -6489,3 +6489,71 @@
 2026-11-26 08:18	ccr-e101e6f0-y7fg6x	0250f3a+	megletest	OK	25	lite	samtidig	
 2026-11-26 08:18	ccr-e101e6f0-y7fg6x	0250f3a+	vesseltest	OK	9	lite	samtidig	
 2026-11-26 08:18	ccr-e101e6f0-y7fg6x	0250f3a+	kvotemarkedtest	OK	27	lite	samtidig	
+2026-11-25 05:51	ccr-77518a05-fvougw	7e77311+	synctest	FEIL	75	lite	alene	FEIL a tablet that lost the game to the phone and is loaded again hours later goes on with the phone's game, and writes nothing over it {"c0": {"dev": "iPhone",
+2026-11-25 05:52	ccr-77518a05-fvougw	7e77311+	synctest	OK	75	lite	alene	
+2026-11-25 05:53	ccr-77518a05-fvougw	7e77311+	tabtest	OK	47	lite	samtidig	
+2026-11-25 05:54	ccr-77518a05-fvougw	7e77311+	synctest	OK	78	lite	samtidig	
+2026-11-25 05:54	ccr-77518a05-fvougw	7e77311+	cloudtest	OK	33	lite	samtidig	
+2026-11-25 05:54	ccr-77518a05-fvougw	7e77311+	errtest	OK	25	lite	samtidig	
+2026-11-25 05:55	ccr-77518a05-fvougw	7e77311+	guesttest	OK	72	lite	samtidig	
+2026-11-25 05:55	ccr-77518a05-fvougw	7e77311+	pwatest	OK	38	lite	samtidig	
+2026-11-25 05:55	ccr-77518a05-fvougw	7e77311+	boottest	OK	14	lite	samtidig	
+2026-11-25 05:56	ccr-77518a05-fvougw	7e77311+	pushtest	OK	27	lite	samtidig	
+2026-11-25 05:58	ccr-77518a05-fvougw	7e77311+	starttest	OK	179	lite	samtidig	
+2026-11-25 05:58	ccr-77518a05-fvougw	7e77311+	bootgtest	OK	115	lite	samtidig	
+2026-11-25 05:59	ccr-77518a05-fvougw	a07fc4e+	hengtest	OK	105	lite	samtidig	
+2026-11-25 05:59	ccr-77518a05-fvougw	a07fc4e+	vervtest	OK	8	lite	samtidig	
+2026-11-25 05:59	ccr-77518a05-fvougw	a07fc4e+	kanaltest	OK	41	lite	samtidig	
+2026-11-25 05:59	ccr-77518a05-fvougw	a07fc4e+	nedetest	OK	23	lite	samtidig	
+2026-11-25 05:59	ccr-77518a05-fvougw	a07fc4e+	lagrefeiltest	OK	7	lite	samtidig	
+2026-11-25 06:10	ccr-77518a05-fvougw	a07fc4e+	sportest	OK	665	3d	alene	
+2026-11-25 06:12	ccr-77518a05-fvougw	b704f81+	docktest	FEIL	68	lite	alene	FEIL «Gjestebok» i bygdeviften åpner gjesteboka på telefonen  {'open': False, 'app': 'home'}
+2026-11-25 06:13	ccr-77518a05-fvougw	b704f81+	docktest	OK	68	lite	alene	
+2026-11-25 06:18	ccr-77518a05-fvougw	b704f81+	tutfull	OK	8	lite	samtidig	
+2026-11-25 06:18	ccr-77518a05-fvougw	b704f81+	krabbefabrikktest	OK	23	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	colregtest	FEIL	600	lite	samtidig	FEIL TB1: hele kysten i bygget (python3 tools/map/release.py og game.py) for møtet ved Tromsø
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	keeptest	OK	7	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	autonavtest	FEIL	13	lite	samtidig	FEIL 6. Autonav Vannareid → Honningsvåg: 100 m-celler, ingen etappe grunnstøter  {'n': 25, 'nm': 167.1, 'ms': 140, 'cell': 0.2, 'maxSlice': 11.8, 'mended': 0, '
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	turtest	OK	7	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	decktest	OK	7	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	trip2	OK	12	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	worktest	OK	9	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	npctest	FEIL	0	lite	samtidig	FEIL hele kysten i tools/map/out/game (python3 tools/map/release.py og game.py)
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	towtest	OK	7	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	tattest	OK	7	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	peergear	OK	6	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	mobtest	OK	204	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	turlinjetest	OK	7	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	kaiover	FEIL	115	lite	samtidig	FEIL Vardø: ingen båt ligger innenfor kaia som er bygd ut til en annen (0 havner, 0 båter i havn, 0 kaier bygd ut)
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	posttest	OK	21	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	fixtest	OK	16	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	fleet3test	OK	6	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	opsowntest	OK	17	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	seasontest	OK	7	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	haillplass	OK	6	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	snokrabbetest	OK	12	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	autolinetest	OK	11	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	geartest	OK	29	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	booktest	OK	25	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	bktest	OK	15	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	caretest	OK	6	lite	samtidig	
+2026-11-25 06:28	ccr-77518a05-fvougw	1a52905	jigalongtest	OK	9	lite	samtidig	
+2026-11-25 06:29	ccr-77518a05-fvougw	1a52905	opptest	OK	45	lite	samtidig	
+2026-11-25 06:29	ccr-77518a05-fvougw	1a52905	docktest	OK	69	lite	samtidig	
+2026-11-25 06:29	ccr-77518a05-fvougw	1a52905	rorbutest	OK	15	lite	samtidig	
+2026-11-25 06:29	ccr-77518a05-fvougw	1a52905	bunktest	OK	6	lite	samtidig	
+2026-11-25 06:30	ccr-77518a05-fvougw	1a52905	dockrow	OK	45	lite	samtidig	
+2026-11-25 06:31	ccr-77518a05-fvougw	1a52905	roetest	OK	124	lite	samtidig	
+2026-11-25 06:31	ccr-77518a05-fvougw	1a52905	vectest	FEIL	0	3d	alene	FEIL hele kysten i tools/map/out/game (python3 tools/map/release.py og game.py)
+2026-11-25 06:50	ccr-77518a05-fvougw	1a52905	trytest	FEIL	1108	3d	alene	FEIL kjøpt: haleren heises om bord og står på dekk mens den monteres, og prisen er betalt  {"trying": "garnhaler", "hoist": null, "painting": true, "haul": "gar
+2026-11-25 06:56	ccr-77518a05-fvougw	1a52905	heattest	OK	378	3d	alene	
+2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	quotatest	OK	8	lite	samtidig	
+2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	selltest	LES	13	lite	samtidig	
+2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	kystvakttest	FEIL	8	lite	samtidig	FEIL havsjekken trenger hele kysten i tools/map/out/game (release.py og game.py)
+2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	trip2	OK	13	lite	samtidig	
+2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	kvfulltest	OK	10	lite	samtidig	
+2026-11-25 11:49	ccr-b7b2f394-jdf54x	1b3a626+	worldtest	OK	20	lite	samtidig	
+2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	kvfulltest	OK	11	lite	samtidig	
+2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	quotatest	OK	8	lite	samtidig	
+2026-11-25 12:01	ccr-b7b2f394-jdf54x	be7779a+	trip2	OK	13	lite	samtidig	
+2026-11-26 08:29	ccr-e101e6f0-y7fg6x	b54c198+	kvfulltest	FEIL	9	lite	samtidig	FEIL kvotekortet viser § 21, kystfiskeordningen, alderstillegget, summen og at ingenting er igjen

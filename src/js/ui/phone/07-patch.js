@@ -19,6 +19,16 @@
        ['Fangsten må leveres før du bytter inn båten. Før fulgte det som lå i rommet, med til den nye.', 'The catch must be landed before you trade in the boat. Before, what lay in the hold went with you to the new one.'],
        ['Bytter du inn en båt med hjemmel mot en ny båt med hjemmel, går den gamle hjemmelen tilbake til registeret.', 'When a boat with a right is traded in for a new boat with a right, the old right goes back to the register.'],
        ['Båthandel sier nå at kystbåtene fra 11 m også selges med hjemmel, og at de uten hjemmel bare kan ta torsk, hyse og sei som bifangst.', 'The boat market now says that the coastal vessels from 11 m are also sold with a right, and that without one they can only take cod, haddock and saithe as bycatch.']]],
+    ['kvote-251126', '25.11.2026', 'Mer torsk i åpen gruppe', 'More cod in the open group', [
+       ['Båter i åpen gruppe har nå alderstillegget: 2 tonn torsk i tillegg til kvoten etter båtens lengde.', 'Boats in the open group now have the age addition: 2 tonnes of cod on top of the quota by the boat\'s length.'],
+       ['Har du hjemsted i Finnmark, Nord-Troms eller en av de andre kommunene i kystfiskeordningen, får du 3,5 tonn til.', 'If your home is in Finnmark, northern Troms or one of the other municipalities in the coastal-fishing scheme, you get 3.5 tonnes more.'],
+       ['Tilleggene gjelder med en gang, også når du alt har fylt kvoten. Kvote-appen viser hva kvoten din består av.', 'The additions apply at once, also when you have already filled the quota. The Kvote app shows what your quota is made of.'],
+       ['Når torskekvoten er full, står det øverst i Kvote-appen hva du kan fiske nå, og når torsken åpner igjen.', 'When the cod quota is full, the top of the Kvote app says what you can fish now, and when the cod opens again.']]],
+    ['rettinger-251126', '25.11.2026', 'Rettinger fra spillerne', 'Fixes from the players', [
+       ['Gjesteboka åpner seg igjen når du trykker på den i Bygd og ved rorbua.', 'The guest book opens again when you tap it in the village and at the rorbu.'],
+       ['En rute som ble stående fast mens båten lå til kai, tas nå bort av seg selv, så du kan legge en ny.', 'A route that got stuck while the boat lay at the quay is now taken away by itself, so you can lay a new one.'],
+       ['Bytter du enhet, fortsetter spillet fra enheten du spilte på sist. En enhet som har stått åpen, legger ikke lenger et eldre spill over det nye.', 'When you change device, the game goes on from the device you played on last. A device left open no longer puts an older game over the newer one.'],
+       ['Du får ikke lenger montert flere juksamaskiner enn båten har plass til.', 'You can no longer have more jigging machines fitted than the boat has room for.']]],
     ['marina-231126', '23.11.2026', 'Småbåthavnene', 'The small-boat harbours', [
        ['Småbåtene i småbåthavnene ligger ikke lenger i veien inn til kaia ved butikker, mottak og verft, og ikke under bryggene.', 'The small boats in the small-boat harbours no longer lie in the way in to the quay at shops, fish plants and yards, nor under the piers.']]],
     ['planlaas-211126', '21.11.2026', 'Driftsplanen låser seg ikke', 'The plan no longer locks', [

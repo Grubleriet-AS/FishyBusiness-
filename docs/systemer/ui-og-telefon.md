@@ -283,3 +283,6 @@ Hele beskrivelsen står i 5.29c i `kvoter-og-regler.md`. Det som gjelder for den
 - **Fagord i løpende tekst skrives med `rmTerm('nøkkel', true)`** første gang på en side. Ordboka merker ikke overskrifter (`h4`), så ordet må stå i en rad eller et avsnitt for å få prikket strek.
 - **Testene ser alt** (`vis1` i adressen). En test av hva en ny spiller ser, setter `S.settings.rmAll = false`.
 
+## «Gjestebok» i dokken åpner telefonsiden (25.11.2026)
+
+- Knappen «Gjestebok» i bygdeviften og ved rorbua hadde `page:'gbook'`, men dokkens `open()` tar bare skuffens sider (`PHONE.DRAWER`), og gjesteboka er en side på telefonen. Trykket gjorde ingenting (fem spillere 19.–24.11.2026; 17 innskrivinger på hele kysten den første uka). Nå kaller knappen `PHONE.open('gbook')`, som «Hjelp» gjør med Redning. `docktest` trykker på den.

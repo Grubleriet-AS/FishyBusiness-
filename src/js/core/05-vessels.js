@@ -699,7 +699,7 @@ function step(){
   if (S.t % 60 === 0) for (const pid in S.market) for (const sp in S.market[pid]) S.market[pid][sp] *= 0.97;
   if (S.t % 60 === 0 && S.stock) stockHour(H);
   if (S.t % 60 === 0) gearHour(H);
-  if (S.t % 60 === 0){ seasonDay(H); pressDay(H); bkNews(H); lbNews(H); }   // ... and the Greenland halibut's opening and stop (03d-quota.js)   // the seasons' news and the skrei festival (09c-seasons.js), a record price (09h-press.js)
+  if (S.t % 60 === 0){ seasonDay(H); pressDay(H); bkNews(H); lbNews(H); openAddNews(H); }   // ... and the Greenland halibut's opening and stop (03d-quota.js)   // the seasons' news and the skrei festival (09c-seasons.js), a record price (09h-press.js)
   folkPort(H);                        // Edvard on the quay in the home harbour (09d-folk.js)
   eachVessel(() => vesselStep(H));
   lopTick();                          // the race Lindesnes–Nordkapp: the finish, the penalties, a tow (09o-kapplop.js)
@@ -755,6 +755,7 @@ function vesselStep(H){
     else if ((W0 > windLim() || hsAt(b.pos, H) > seaLim()) && (S.plan.delays || 0) < 12){ S.plan.depAt += 60; S.plan.delays = (S.plan.delays || 0) + 1; log(W0 > windLim() ? 'Avgangen er utsatt en time. Vinden er ' + W0.toFixed(0) + ' m/s.' : 'Avgangen er utsatt en time. Sjøen er ' + hsAt(b.pos, H).toFixed(1).replace('.', ',') + ' m.', W0 > windLim() ? 'Departure postponed an hour. The wind is ' + W0.toFixed(0) + ' m/s.' : 'Departure postponed an hour. The sea is ' + hsAt(b.pos, H).toFixed(1) + ' m.'); }
     else depart();
   }
+  if (planPortStuck()) planPortFree();   // a route left on a moored boat with no departure: taken away, so the chart is hers again
   if (b.status === 'unmooring'){ if (S.t >= b.castUntil){ const pid = b.port, q = quayPos(b), kind = berthKind(b); b.pos = {x:q.x, y:q.y}; b.status = 'sailing'; b.port = null;
       if (isBerth(pid)) havnFree(pid);   // a berth in a harbour is given up when she leaves it, unless it is her plan's home (07e-havn.js)
       // with the manoeuvring model running (the game open, 16b-dyn.js) she starts from the berth she lay at and backs out on the line
@@ -933,6 +934,23 @@ function sailStop(pl, b, why){
   S.draft = pl.wps.slice(pl.idx).map(w => ({...w})); S.draftSpeed = pl.speed || S.draftSpeed; if (pl.full != null) S.draftFull = !!pl.full; if (typeof draftForget === 'function') draftForget();
   S.plan = null; b.status = 'idle'; b.v = 0;
   log(why[0], why[1], 'nav'); if (typeof toast === 'function') toast(S.lang === 'en' ? why[1] : why[0]);
+}
+// A route left on a boat that lies moored, with no departure set (tilbakemeldingene 262, 307, 341, 375, 386, 406, 20.–24.11.2026: «får
+// ikke slettet waypoints», «hele ruta har låst seg»; five players pressed «Sitter båten fast?» with st port and plan true in the
+// telemetry). Nothing sails it (the departure block above wants depAt, and she is not under way), the chart plotter can neither
+// change nor delete it (ui/03b-route.js canEditDraft) and the dock has no «Avbryt» without a departure time, so the player could do
+// nothing but have the boat moved out to sea. Every way a route is set from the quay ends in depart(), which casts off, sets depAt
+// or takes the route away, so the state should not be; how it comes about is not found yet, and what the route was goes to the
+// telemetry (plan_port) to find it. The route is taken away and no draft is made of it: what is left of it ends where she lies.
+// The standing plan's route (ops) is the plan's own to end (06h-plan2-engine.js): told once, and left.
+function planPortStuck(){ const b = S.boat; return !!(S.plan && !S.plan.depAt && b && b.status === 'port' && !portBusy(b)); }
+function planPortFree(){
+  const pl = S.plan, b = S.boat; if (!pl || pl.stuckTold) return null;
+  const was = {idx:pl.idx == null ? null : pl.idx, n:(pl.wps || []).length, ops:!!pl.ops, k:pl.opsK || null, ret:!!pl.returning, halt:!!pl.halt, mob:!!pl.mob, p2:!!pl.p2, end:((pl.wps || [])[(pl.wps || []).length - 1] || {}).port === b.port, dep:pl.depAt === null ? 0 : pl.depAt === undefined ? -1 : 1};
+  if (pl.ops) pl.stuckTold = true;
+  else { S.plan = null; log('Ruta sto fast ved kaia og er tatt bort. Legg en ny rute i kartet.', 'The route was stuck at the quay and has been taken away. Lay a new route in the chart.', 'nav'); }
+  if (typeof cloudEv === 'function') cloudEv('plan_port', was);
+  return was;
 }
 // «Stopp» under way: the route from here to a point a little ahead on it, far enough to slack off and stop there (about a boat's
 // stopping way at the speed she has; Jonas 06.10.2026: not «bråstoppe»). The 3D boat follows it and stops exactly on the point;
