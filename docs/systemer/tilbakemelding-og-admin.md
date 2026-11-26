@@ -155,6 +155,16 @@ Jonas: «ett dashboard med noen grafer … der jeg kjapt skjønte hva statusen i
 - Under «Økonomi i spillet» står det øverst at tallene er meldt av spillet, og median og 90-persentil kasse er merket «meldt av spillet».
 - Hva et merke er, står i `docs/systemer/skyen-og-felles-verden.md`, «Kronene og landingene sjekket på serveren». Testen er `tests/admintest.py`.
 
+## Admin: fanen «Korrigering» (26.11.2026)
+
+Jonas om en spiller som hadde byttet inn plastsjarken mot en kyst21 som ikke kan fiske innenfor grunnlinja: «Gi han tilbake båten og pengene som om kjøpet aldri fant sted», og «lag et verktøy som løser dette på en ok måte for oss begge» (valg A: korrigeringen gjøres i spillet).
+
+- **Hvorfor i spillet:** serveren leser og skriver aldri lagringen. Lagringshistorikken (`save_hist`) holder bare de ti siste, så et kjøp fra to døgn før var ikke lenger der, og en lagring skrevet på serveren mens spilleren spiller, gir ham valget mellom to spill. Korrigeringen legges i tabellen `fixes` (`supabase/migrations/20261126120000_fixes.sql`), og spillet gjør den selv, som butikkens `grants`.
+- **Admin:** fanen Korrigering under Drift. Kontoen søkes med WorkOS-ID-en (`user_…`) eller den offentlige ID-en (Juks, Brukernavn). Siden viser båten og kassa nå, båtkjøpene siste 30 dager og typene seilt med Autonav siste 14 dager (for «tilbake til»). «Angre et båtkjøp» tar typen nå, typen tilbake, en valgfri sum og en valgfri melding (`admin_fix_add`); én åpen per konto, og den kan trekkes tilbake (`admin_fix_revoke`). Lista viser hva spillet svarte.
+- **Spillet** (`ui/10w-fix.js`): spør etter åpne korrigeringer (`fix_pending`) 20 s etter start, hvert tiende minutt mens det vises og når det vises igjen. `undo_buy` gjøres av `undoBuyApply` i `core/03-simulation.js`: bare i havn og med fangsten i det gamle rommet (ellers en melding fra Kystmegleren én gang og svaret «venter»), båten blir den gamle typen som levert (verftsarbeid og kniv- og håvtrinn fulgte det gamle skroget ved innbyttet og er borte), utstyr som ikke passer tas av, mannskap over det hun har plass til går i land. Tilbakebetalingen er `undoBuyKr`: prisen på typen nå minus 70 % av den gamle (det innbyttet ga, `vesselValue`), eller summen admin satte; den innfrir lånene først, og resten går til kontoen. Kasse minus gjeld blir som før kjøpet, minus rentene som er betalt siden. Spillet lagrer før det sier `fix_done`, og en rad som allerede er gjort (båten er alt den gamle typen), lukkes uten å gjøres to ganger.
+- **Juks:** kassa hopper ved tilbakebetalingen, så HS5 kan sette et merke; det fjernes i fanen Juks.
+- **Tester:** `tests/unit/angrekjop.test.mjs`, `tests/korrtest.py` (spillet med skyen byttet ut), `sqltest` (fixes: tilgangen og rekkefølgen), `admintest` (23 faner).
+
 ## Admin: Kvotemarkedet under «Økonomi i spillet» (KM5, 12.11.2026)
 
 - Fire kort fra `admin_km` (KM2) og `admin_km5` (`supabase/migrations/20261112130000_km5.sql`): salg per uke, slag og hjemmelslengde med medianprisen og medianen mot taksten; kjøpt fra spillere mot registeret per gruppe med spillernes andel av hjemlene (fra `admin_share`); timene fra oppføring til første bud; og målingen (hendelsene med median prosent av taksten).

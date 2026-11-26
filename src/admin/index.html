@@ -205,7 +205,7 @@ async function load(){
   catch (e){ if (SES){ $('#app').innerHTML = '<main><div class="card warn">' + esc(e.message) + '</div><button id="reLogin">Logg inn på nytt</button></main>';
     $('#reLogin').onclick = () => { sesClear(); TR = null; FN = null; render(); }; } }   // (no onclick in the HTML: the page's CSP allows only its own script)
 }
-const TABS = [['status', 'Status'], ['oversikt', 'Nøkkeltall'], ['trakt', 'Trakt'], ['tid', 'Spilletid'], ['frafall', 'Frafall'], ['bruk', 'Spillbruk'], ['okonomi', 'Økonomi i spillet'], ['penger', 'Penger'], ['teknikk', 'Teknikk'], ['geo', 'Geografi'], ['tilbake', 'Tilbakemeldinger'], ['agent', 'Agent'], ['lansering', 'Lansering'], ['logoer', 'Logoer'], ['navn', 'Brukernavn'], ['avis', 'Kystposten'], ['merker', 'Merker'], ['juks', 'Juks'], ['kapplop', 'Kappløp'], ['kommer', 'Kommer'], ['sponsorer', 'Sponsorer'], ['mediekort', 'Mediekort']];
+const TABS = [['status', 'Status'], ['oversikt', 'Nøkkeltall'], ['trakt', 'Trakt'], ['tid', 'Spilletid'], ['frafall', 'Frafall'], ['bruk', 'Spillbruk'], ['okonomi', 'Økonomi i spillet'], ['penger', 'Penger'], ['teknikk', 'Teknikk'], ['geo', 'Geografi'], ['tilbake', 'Tilbakemeldinger'], ['agent', 'Agent'], ['lansering', 'Lansering'], ['logoer', 'Logoer'], ['navn', 'Brukernavn'], ['avis', 'Kystposten'], ['merker', 'Merker'], ['juks', 'Juks'], ['korr', 'Korrigering'], ['kapplop', 'Kappløp'], ['kommer', 'Kommer'], ['sponsorer', 'Sponsorer'], ['mediekort', 'Mediekort']];
 function render(){
   for (const k in CH) delete CH[k];
   if (!DEMO && !SES) return loginView();
@@ -229,6 +229,7 @@ function render(){
   if (TAB === 'mediekort' && $('#mkPrint')) $('#mkPrint').onclick = () => window.print();
   if (TAB === 'navn') nmWire();
   if (TAB === 'juks') jkWire();
+  if (TAB === 'korr') krWire();
   if (TAB === 'penger') sgWire();
   if (TAB === 'avis') nwWire();
   if (TAB === 'merker' && $('#acR')) $('#acR').onclick = () => { AC = null; render(); };
@@ -273,7 +274,7 @@ const VIEW = {
 // ---------- the frame (17.11.2026): the tabs in groups, a short text on top of each saying what it shows, and the help behind each number ----------
 const LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lgo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4aa3f0"/><stop offset="1" stop-color="#1b4f8f"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lgo)"/><path d="M5 19c3 0 3-2 5.5-2s2.5 2 5.5 2 3-2 5.5-2 2.5 2 5.5 2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M5 24c3 0 3-2 5.5-2s2.5 2 5.5 2 3-2 5.5-2 2.5 2 5.5 2" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/><path d="M16 6l5 9h-10z" fill="#f2b33d"/></svg>';
 const GROUPS = [['Oversikt', ['status', 'oversikt']], ['Spillerne', ['trakt', 'tid', 'frafall', 'bruk', 'merker', 'kapplop', 'geo']], ['Økonomi', ['okonomi', 'penger']],
-  ['Drift', ['teknikk', 'tilbake', 'agent', 'juks']], ['Innhold', ['lansering', 'navn', 'logoer', 'avis']], ['Partnere', ['sponsorer', 'mediekort']], ['Annet', ['kommer']]];
+  ['Drift', ['teknikk', 'tilbake', 'agent', 'juks', 'korr']], ['Innhold', ['lansering', 'navn', 'logoer', 'avis']], ['Partnere', ['sponsorer', 'mediekort']], ['Annet', ['kommer']]];
 const INTRO = {
   status:['Status', 'Hvor spillet er på vei, på ett blikk. Hver graf viser én ting per dag i perioden du har valgt, med den grå linja for perioden før. Pilene sier om tallet har gått opp eller ned siden da.',
     [['Nye spillere', 'Folk som åpnet spillet for første gang den dagen (gjester og kontoer).'], ['Registreringer', 'Kontoer som ble laget den dagen. En gjest som registrerer seg, teller her.'], ['Aktive', 'Ulike spillere som spilte minst én økt den dagen.'], ['Spilletid', 'Timene spillerne faktisk var aktive (ikke tid med appen i bakgrunnen).'], ['Leveringer', 'Turer som endte med fisk solgt på et mottak.'], ['Kommer tilbake', 'Av dem som startet en uke: hvor mange som spilte igjen dagen etter (dag 1) og etter en uke (dag 7). Det beste tegnet på at spillet holder på folk.']]],
@@ -295,6 +296,7 @@ const INTRO = {
   tilbake:['Tilbakemeldinger', 'Det spillerne har sendt inn, med agentens forslag. Sett status og svar her; svaret går til spilleren.'],
   agent:['Agent', 'Rapportene fra tilbakemeldingsagenten: hva den fant viktigst, og PR-ene den åpnet.'],
   juks:['Juks', 'Kontoer der serveren mener tallene ikke kan være ekte. Du avgjør om merket står eller fjernes.'],
+  korr:['Korrigering', 'Rett noe i én spillers spill, for eksempel et båtkjøp som skal angres. Spillet gjør det selv neste gang det spør; lagringen røres ikke på serveren.'],
   lansering:['Lansering', 'Founders-merket og profilbildene som venter på godkjenning.'],
   navn:['Brukernavn', 'Navnene spillerne har valgt. Fjern et navn som ikke hører hjemme i spillet.'],
   logoer:['Logoer', 'Logoene spillerne har lastet opp til båtene sine.'],
@@ -900,6 +902,38 @@ function jkWire(){
     try { if (!DEMO) await rpc(fn, {fid:+b.dataset[key]}); else demo(JK.rows.find(r => r.id === +b.dataset[key])); JK = DEMO ? JK : null; render(); } catch (e){ b.disabled = false; alert(e.message); } });
   act('[data-jkkeep]', 'jkkeep', 'admin_cheat_keep', r => { r.kept = new Date().toISOString(); });
   act('[data-jkclr]', 'jkclr', 'admin_cheat_clear', r => { r.cleared = new Date().toISOString(); JK.open = new Set(JK.rows.filter(x => !x.cleared).map(x => x.who)).size; });
+}
+// ---------- Korrigering (26.11.2026, supabase/migrations/20261126120000_fixes.sql; the game's ui/10w-fix.js): a correction to one
+// player's game, done by the game itself the next time it asks (within ten minutes while it is open, else at the next start). Nothing
+// on the server reads or writes the save. The one kind now: a vessel purchase undone (core/03-simulation.js undoBuyApply)
+let KR = null, KRW = '';
+async function krLoad(w){ KRW = w; KR = {busy:true}; render(); try { KR = DEMO ? {found:true, id:'user_demo', pub:'a1b2c3d4e5', save:{summary:{type:'kyst21', cash:-4268, boat:'H H', day:311}}, types:[{type:'plastsjark', first:'2026-11-20', last:'2026-11-24T11:18:26Z'}], buys:['2026-11-24T11:19:01Z'], fixes:[]} : await rpc('admin_fix_find', {who:w}); }
+  catch (e){ KR = {err:e.message}; } render(); }
+const KR_WHY = {port:'venter: båten er ikke i havn', hold:'venter: mer fisk om bord enn det gamle rommet tar', type:'båten er ikke den typen (ferdig om den alt er den gamle)', bad:'kan ikke gjøres (ukjent type)'};
+VIEW.korr = () => {
+  const f = '<div class="card"><label>Konto (WorkOS-ID «user_…» eller den offentlige ID-en fra Juks og Brukernavn) <input id="krWho" value="' + esc(KRW) + '" style="min-width:22em"></label> <button id="krFind" class="p">Finn</button></div>';
+  if (!KR) return f; if (KR.busy) return f + '<p class="note">Henter …</p>'; if (KR.err) return f + card('Feil', '<p class="warn">' + esc(KR.err) + '</p>', 'Er migreringen supabase/migrations/20261126120000_fixes.sql kjørt?');
+  if (!KR.found) return f + '<p class="note">Ingen konto med den ID-en.</p>';
+  const sm = (KR.save || {}).summary || {}, when = v => v ? esc(new Date(v).toLocaleString('nb-NO')) : '', nkr = v => nf(+v || 0, 0) + ' kr';
+  const open = (KR.fixes || []).find(x => !x.done && !x.revoked), types = KR.types || [];
+  return f + '<div class="grid">' + kpi('Båten nå', esc(sm.type || '–'), sm.boat ? '«' + esc(sm.boat) + '»' : '') + kpi('Kassa', sm.cash != null ? nkr(sm.cash) : '–', 'dag ' + esc(sm.day || '–')) + kpi('Båtkjøp siste 30 dager', nf((KR.buys || []).length, 0), (KR.buys || []).slice(0, 3).map(when).join(', ')) + '</div>' +
+    card('Typer seilt siste 14 dager', types.length ? '<table><tr><th>Type</th><th>Første</th><th>Siste</th></tr>' + types.map(t => '<tr><td>' + esc(t.type) + '</td><td>' + when(t.first) + '</td><td>' + when(t.last) + '</td></tr>').join('') + '</table>' : '<p class="note">Ingen turer med Autonav.</p>', 'Fra turene med Autonav. Typen før kjøpet er den som slutter rett før båtkjøpet.') +
+    (open ? card('Åpen korrigering', '<p>' + esc(open.kind) + ' ' + esc(JSON.stringify(open.data)) + ', lagt inn ' + when(open.at) + (open.result ? '<br><span class="note">Spillet sa: ' + esc(KR_WHY[open.result.why] || JSON.stringify(open.result)) + ' (' + when(open.result.at) + ')</span>' : '<br><span class="note">Spillet har ikke spurt ennå.</span>') + '</p><button data-krrev="' + (+open.id) + '">Trekk tilbake</button>')
+    : card('Angre et båtkjøp', '<p><label>Båten nå (type) <input id="krTo" value="' + esc(sm.type || '') + '"></label> <label>Tilbake til (type) <input id="krFrom" list="krTypes" value="' + esc((types.find(t => t.type !== sm.type) || {}).type || '') + '"></label>' +
+        '<datalist id="krTypes">' + types.map(t => '<option value="' + esc(t.type) + '">').join('') + '</datalist></p>' +
+        '<p><label>Tilbakebetaling (kr, tomt = prisen på båten nå minus 70 % av prisen på den gamle, som innbyttet ga) <input id="krKr" inputmode="numeric" placeholder="automatisk"></label></p>' +
+        '<p><label>Melding til spilleren (tomt = spillets egen) <input id="krNote" style="min-width:30em"></label></p><button id="krAdd" class="p">Legg inn</button>',
+      'Spillet gjør det selv neste gang det spør (innen ti minutter når det er åpent, ellers ved neste start), og bare i havn. Båten blir den gamle typen som levert fra verftet: verftsarbeid og kniv- og håvtrinn fulgte det gamle skroget og er ikke i lagringen lenger. Tilbakebetalingen innfrir lånene først og resten går til kontoen, så kasse minus gjeld blir som før kjøpet, minus rentene som er betalt siden. Kassa hopper, så Juks kan sette et merke: fjern det der.')) +
+    ((KR.fixes || []).length ? card('Korrigeringer på kontoen', '<table><tr><th>Lagt inn</th><th>Hva</th><th>Status</th></tr>' + KR.fixes.map(x => '<tr><td>' + when(x.at) + '</td><td>' + esc(x.kind) + ' ' + esc(JSON.stringify(x.data)) + '</td><td>' + (x.revoked ? 'trukket ' + when(x.revoked) : x.done ? 'ferdig ' + when(x.done) + (x.result && x.result.ok ? ': ' + nkr(x.result.kr) + ' tilbake, ' + nkr(x.result.off) + ' til lånene, kassa ' + nkr(x.result.cash) : x.result ? ': ' + esc(KR_WHY[x.result.why] || '') : '') : 'åpen') + '</td></tr>').join('') + '</table>') : '');
+};
+function krWire(){
+  const go = () => { const w = ($('#krWho').value || '').trim(); if (w) krLoad(w); };
+  if ($('#krFind')) $('#krFind').onclick = go; if ($('#krWho')) $('#krWho').onkeydown = e => { if (e.key === 'Enter') go(); };
+  const add = $('#krAdd'); if (add) add.onclick = async () => { const to = $('#krTo').value.trim(), from = $('#krFrom').value.trim(), k = $('#krKr').value.replace(/\s/g, ''), note = $('#krNote').value;
+    if (!to || !from || to === from){ alert('Fyll inn to ulike typer.'); return; } if (k && !(+k >= 0)){ alert('Tilbakebetalingen må være et tall.'); return; }
+    if (!confirm('Angre kjøpet: ' + to + ' blir ' + from + (k ? ', og ' + nf(+k, 0) + ' kr betales tilbake' : ', med tilbakebetalingen regnet av spillet') + '?')) return;
+    add.disabled = true; try { if (!DEMO) await rpc('admin_fix_add', {who:KR.id, kind:'undo_buy', data:k ? {from, to, kr:+k} : {from, to}, note}); krLoad(KR.id); } catch (e){ add.disabled = false; alert(e.message); } };
+  document.querySelectorAll('[data-krrev]').forEach(b => b.onclick = async () => { b.disabled = true; try { if (!DEMO) await rpc('admin_fix_revoke', {fid:+b.dataset.krrev}); krLoad(KR.id); } catch (e){ b.disabled = false; alert(e.message); } });
 }
 // ---------- Kystposten's stories (supabase/migrations/20261007170000_news.sql; the game's core/09h-press.js) ----------
 // What the players' games have put in the shared paper: the kind, the boat's and the company's names and the numbers. The words are

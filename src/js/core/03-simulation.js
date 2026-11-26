@@ -1304,6 +1304,26 @@ function deal(price, ti, inn){
 function finance(x, months){ if (x.payoff) payDown(x.payoff); if (x.bankL > 0) takeLoan(x.bankL, months); if (x.inL > 0) takeLoan(x.inL, 120, 'loanIN');
   if (S.cash < x.cost && bankS().spare > 0) bankMove('spare', -(x.cost - S.cash), 'Fra sparekontoen til båtkjøpet', 'From the savings for the vessel');   // the savings are equity
   book('baat', -x.cost, 'Båtkjøp', 'Vessel bought'); }
+// ---- an admin's correction: a vessel bought by trade-in, taken back (26.11.2026, Jonas: «Gi han tilbake båten og pengene som om kjøpet
+// aldri fant sted»; table fixes, ui/10v-fix.js). The vessel followed is of type d.to and goes back to d.from as delivered (her yard work and
+// knife and landing-net tiers went with the hull and are not in the save any more). The refund is what the trade cost: the new type's
+// price less what the old one was taken in for (vesselValue: 70 % of her price), or d.kr when the admin gives it. The refund pays down the
+// loans first (the trade's own, as finance took them), and the rest goes to the account, so the company's worth is as before the trade
+// less the interest paid since. Returns null when done, or why not now ('type': she is not of type d.to; 'port': not in port; 'hold': more fish aboard than the old hold takes; 'bad').
+function undoBuyKr(to, from){ const A = VESSELS[to], B = VESSELS[from]; if (!A || !B || A.cls === 'hav') return null; return Math.max(0, Math.round(A.price - B.price * 0.7)); }
+function undoBuyWhy(d){ if (!d || !VESSELS[d.from] || !VESSELS[d.to] || d.from === d.to) return 'bad'; if (S.boat.type !== d.to) return 'type'; if (!S.boat.port || S.boat.sale || S.order) return 'port'; if ((S.cargo || []).reduce((a, c) => a + c.kg, 0) > VESSELS[d.from].holdCap) return 'hold'; return (d.kr != null ? d.kr >= 0 : undoBuyKr(d.to, d.from) != null) ? null : 'bad'; }
+function undoBuyApply(d){
+  const why = undoBuyWhy(d); if (why) return {ok:false, why};
+  const b = S.boat, kr = d.kr != null ? Math.round(d.kr) : undoBuyKr(d.to, d.from), debt0 = debt();
+  b.type = d.from; delete b.engLv; delete b.propLv; delete b.holdLv; delete b.upg; delete b.liv; delete b.call;
+  for (const q of Object.keys(EQUIP)) if (!EQUIP[q].tiers && !equipFits(q, d.from)) S.equip[q] = EQUIP[q].multi ? Math.min(S.equip[q] || 0, VESSELS[d.from].jukseMax || 0) : false;
+  applyVessel(); S.equip.jukse = Math.min(S.equip.jukse || 0, BOAT.jukseMax || 0);
+  b.fuel = Math.min(b.fuel || 0, BOAT.fuelCap); b.ice = Math.min(b.ice || 0, BOAT.iceCap || 0);
+  while (S.crew.length > BOAT.crewMax) S.crew.pop();
+  if (kr > 0) book('baat', kr, 'Båtkjøpet angret', 'Vessel purchase undone');
+  const paid = Math.min(debt0, Math.max(0, kr)), off = paid > 0 ? payDown(paid) : 0; if (off > 0) book('avdrag', -off, 'Lånene innfridd med tilbakebetalingen', 'Loans paid off with the refund');
+  return {ok:true, kr, off, cash:Math.round(S.cash), debt:Math.round(debt())};
+}
 function lenGroup(){ const L = BOAT.len || 5.8; return L < 8 ? 0 : L < 10 ? 1 : 2; }
 function codLimits(H){ if (H == null) H = S.t / 60; if (S.lic){ const c = licQ(S.lic, H).torsk; return {max:c, guar:c}; } const O = yearQuota(yearH(H)).open, g = lenGroup(), A = openAdd(H), base = {max:(O.max[g] + openMaxAdd(H)) * 1000, guar:O.guar[g] * 1000};
   // the open group: § 21's quota for the vessel's length, and on top of it the coastal-fishing scheme and the age addition (J-161-2026 §§ 22 and 23; 03d-quota.js openAdd)

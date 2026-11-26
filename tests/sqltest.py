@@ -57,7 +57,8 @@ def main():
         for m in mig:
             if os.environ.get('SQL_LOP') == '0' and m.endswith('_kapplop.sql'): continue   # (KL3: the race's checks seen red without the file)
             if os.environ.get('SQL_RANK') == '0' and m.endswith('_rank_fs.sql'): continue   # (RANK1-c: the tab's checks seen red without the file)
-            if os.environ.get('SQL_LANG') == '0' and m.endswith('_toplist_lang.sql'): continue   # (the long list: its checks seen red without the file)
+            if os.environ.get('SQL_LANG') == '0' and m.endswith('_toplist_lang.sql'): continue
+            if os.environ.get('SQL_FIX') == '0' and m.endswith('_fixes.sql'): continue   # (fixes: its checks seen red without the file)   # (the long list: its checks seen red without the file)
             p = run('psql', '-h', sock, '-U', user, '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q', '-f', m)
             print(ok(p.returncode == 0), 'the migration runs on PostgreSQL:', os.path.basename(m), p.stderr.strip()[-300:] if p.returncode else '')
             if p.returncode: return
@@ -2010,6 +2011,41 @@ def main():
                  and LP['admin'].get('flags') == {'fast': 2, 'trk': 1, 'hopp': 1, 'legs': 1} and LP['admin'].get('trim') is not None and LP.get('adminNo') == [True, True] and LP.get('adminNames') is False
                  and LP.get('cleared') == [None, True] and LP.get('news') == {'k': 'done', 'cls': 'sakte', 'min': 9500, 'wk': '2026-W47'} and (LP.get('rerun') or [1])[:2] == [0, True]),
               'KL3: admin_lop gives the sums without names, only to the admin with aal2; «Fjern merket» puts the attempt back on the board; Kystposten keeps a race story without trim; the file runs twice with nothing lost or doubled', LP.get('admin'), LP.get('adminNo'), LP.get('cleared'), LP.get('news'), LP.get('rerun'))
+        # the admin's correction (20261126120000_fixes.sql, 26.11.2026): only the admin with aal2 finds an account (by the WorkOS id or the
+        # public id) and adds one; one open per account; the player's game gets its own and no one else's, and closes it with what it did;
+        # a wait keeps it open; a player cannot add one, read the table or close another's. SQL_FIX=0 leaves the file out (seen red)
+        FX = {}; FP = {'sub': 'user_01FIX1', 'role': 'authenticated'}; FQ = {'sub': 'user_01FIX2', 'role': 'authenticated'}
+        for c in (FP, FQ): sql("select public.tm_hello('{}')", c, 'authenticated')
+        pub = hashlib.md5(('dsb' + FP['sub']).encode()).hexdigest()[:10]
+        try:
+            FX['find'] = json.loads(sql("select public.admin_fix_find('%s')::text" % pub, AD2, 'authenticated'))
+            FX['findAal1'] = sql("select public.admin_fix_find('%s')" % pub, AD1, 'authenticated', expect_err=True)[0]
+            FX['findPl'] = sql("select public.admin_fix_find('%s')" % pub, FQ, 'authenticated', expect_err=True)[0]
+            FX['addPl'] = sql("""select public.admin_fix_add('%s', 'undo_buy', '{"from":"plastsjark","to":"kyst21"}', '')""" % FP['sub'], FP, 'authenticated', expect_err=True)[0]
+            FX['id'] = int(sql("""select public.admin_fix_add('%s', 'undo_buy', '{"from":"plastsjark","to":"kyst21"}', ' ')""" % pub, AD2, 'authenticated'))
+            FX['second'] = sql("""select public.admin_fix_add('%s', 'undo_buy', '{"from":"a","to":"b"}', '')""" % FP['sub'], AD2, 'authenticated', expect_err=True)[0]
+            FX['badKind'] = sql("""select public.admin_fix_add('%s', 'cash', '{}', '')""" % FQ['sub'], AD2, 'authenticated', expect_err=True)[0]
+            FX['mine'] = json.loads(sql("select public.fix_pending()::text", FP, 'authenticated'))
+            FX['other'] = json.loads(sql("select public.fix_pending()::text", FQ, 'authenticated'))
+            FX['table'] = sql("select count(*) from public.fixes", FP, 'authenticated', expect_err=True)[0]
+            sql("""select public.fix_done(%d, '{"ok":true,"kr":1}', true)""" % FX['id'], FQ, 'authenticated')
+            FX['otherClose'] = len(json.loads(sql("select public.fix_pending()::text", FP, 'authenticated')))
+            sql("""select public.fix_done(%d, '{"ok":false,"why":"port"}', false)""" % FX['id'], FP, 'authenticated')
+            FX['wait'] = len(json.loads(sql("select public.fix_pending()::text", FP, 'authenticated')))
+            sql("""select public.fix_done(%d, '{"ok":true,"kr":8405000}', true)""" % FX['id'], FP, 'authenticated')
+            FX['after'] = len(json.loads(sql("select public.fix_pending()::text", FP, 'authenticated')))
+            FX['list'] = json.loads(sql("select public.admin_fix_find('%s')::text" % FP['sub'], AD2, 'authenticated'))['fixes']
+            FX['id2'] = int(sql("""select public.admin_fix_add('%s', 'undo_buy', '{"from":"sjark","to":"kyst15"}', 'Hei')""" % FQ['sub'], AD2, 'authenticated'))
+            sql("select public.admin_fix_revoke(%d)" % FX['id2'], AD2, 'authenticated')
+            FX['revoked'] = len(json.loads(sql("select public.fix_pending()::text", FQ, 'authenticated')))
+            FX['nobody'] = json.loads(sql("select public.admin_fix_find('nobody')::text", AD2, 'authenticated'))
+        except RuntimeError as e: FX['err'] = str(e)[:300]
+        m = FX.get('mine') or [{}]
+        print(ok(not FX.get('err') and FX['find'].get('found') and FX['find'].get('id') == FP['sub'] and FX['findAal1'] and FX['findPl'] and FX['addPl'] and FX['second'] and FX['badKind']
+                 and len(FX['mine']) == 1 and m[0].get('data', {}).get('to') == 'kyst21' and m[0].get('note') is None and FX['other'] == [] and FX['table']
+                 and FX['otherClose'] == 1 and FX['wait'] == 1 and FX['after'] == 0 and FX['list'][0].get('result', {}).get('kr') == 8405000 and FX['list'][0].get('done')
+                 and FX['revoked'] == 0 and FX['nobody'] == {'found': False}),
+              "fixes: the admin with aal2 finds an account by either id and adds one correction at a time; the game gets its own only, a wait keeps it open, done closes it with what it did; a player adds none, reads no table, closes no other's; a revoked one is gone", {k: FX.get(k) for k in ('err', 'mine', 'other', 'otherClose', 'wait', 'after', 'revoked')})
         # RANK1-c (20261116200000_rank_fs.sql, steg 134; Jonas 16.11.2026, V4 A): top_list kind 'fs', the tab Fartstid. The registered
         # players by players.fs, highest first, with the level in years as fsOf counts it; guests and the marked accounts (cheat_on) out,
         # a guest sees only themselves; no field about haill or the skills. SQL_RANK=0 leaves the file out, to see the checks red without it.
