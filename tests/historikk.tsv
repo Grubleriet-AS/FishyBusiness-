@@ -6589,3 +6589,8 @@
 2026-11-26 08:24	ccr-77518a05-fvougw	c5348f3+	driftsplan2test	FEIL	100	lite	alene	FEIL S9 30 h closed in the middle gives the same landings as open (kg within 2 %, kr within 3 %: the price follows the species and sizes, which vary a little be
 2026-11-26 09:42	ccr-5e1ba2f4-pusvyd	2e14fcb	boottest	OK	14	lite	samtidig	
 2026-11-26 09:42	ccr-5e1ba2f4-pusvyd	2e14fcb	trip2	OK	13	lite	samtidig	
+2026-11-26 10:27	ccr-6fcb2ce3-9u8cd1	2498af6	korrtest	OK	11	lite	samtidig	
+2026-11-26 10:27	ccr-6fcb2ce3-9u8cd1	2498af6	admintest	OK	20	lite	samtidig	
+2026-11-26 10:28	ccr-6fcb2ce3-9u8cd1	2498af6	sqltest	OK	82	lite	samtidig	
+2026-11-26 10:28	ccr-6fcb2ce3-9u8cd1	2498af6	vesseltest	OK	11	lite	samtidig	
+2026-11-26 10:28	ccr-6fcb2ce3-9u8cd1	2498af6	yardupgtest	FEIL	6	lite	samtidig	FEIL the Trim app promises the top speed each trim gives, on the speed sjark with propeller 3 and engine 2 [[], [52.7, 52.7, 52.7, 52.7, 41.7, 47.2, 52.7]]
