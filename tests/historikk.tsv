@@ -6338,3 +6338,15 @@
 2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	kvfulltest	OK	11	lite	samtidig	
 2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	quotatest	OK	8	lite	samtidig	
 2026-11-25 12:01	ccr-b7b2f394-jdf54x	be7779a+	trip2	OK	13	lite	samtidig	
+2026-11-25 18:28	ccr-77518a05-fvougw	c5348f3	planlaas_ui	OK	8	lite	samtidig	
+2026-11-25 18:28	ccr-77518a05-fvougw	c5348f3	skipdrift	FEIL	5	lite	samtidig	avsluttet med kode 1
+2026-11-25 18:28	ccr-77518a05-fvougw	c5348f3	driftsplan3test	OK	22	lite	samtidig	
+2026-11-25 18:28	ccr-77518a05-fvougw	c5348f3	fleet2test	OK	16	lite	samtidig	
+2026-11-26 08:02	ccr-77518a05-fvougw	c5348f3+	planlaas_ui	OK	38	lite	samtidig	
+2026-11-26 08:02	ccr-77518a05-fvougw	c5348f3+	skipdrift	OK	52	lite	samtidig	
+2026-11-26 08:03	ccr-77518a05-fvougw	c5348f3+	driftsplan3test	OK	29	lite	samtidig	
+2026-11-26 08:03	ccr-77518a05-fvougw	c5348f3+	fleet2test	OK	26	lite	samtidig	
+2026-11-26 08:23	ccr-77518a05-fvougw	c5348f3+	havplantest	OK	1200	lite	samtidig	
+2026-11-26 08:23	ccr-77518a05-fvougw	c5348f3+	driftsplan2kyst	OK	102	lite	samtidig	
+2026-11-26 08:23	ccr-77518a05-fvougw	c5348f3+	planstartkai	OK	10	lite	samtidig	
+2026-11-26 08:24	ccr-77518a05-fvougw	c5348f3+	driftsplan2test	FEIL	100	lite	alene	FEIL S9 30 h closed in the middle gives the same landings as open (kg within 2 %, kr within 3 %: the price follows the species and sizes, which vary a little be

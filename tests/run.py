@@ -41,6 +41,7 @@ LITE += ['profiltest']   # topplista og profilen ved lanseringen (16.11.2026)
 LITE += ['hopptest']   # hopp over resten av ruta, kjernen (HO1, steg 104)
 LITE += ['brottaar']   # brottsjøen gjennom et år på tre steder (Ø9 F7; trenger hele kysten)
 LITE += ['lagrefeiltest']   # the save to the account when the cloud fails (klynge:471787f3, PR #127, 18.11.2026)
+LITE += ['planstartkai']   # the plan started at a quay that is not its home has the ways from there (06h-plan2-engine.js plan2Make, 25.11.2026)
 # OPP1 (07.11.2026): the knives and the gaff in tiers at the tackle shop
 LITE += ['opptest']
 LITE += ['driftsplan3test']   # Driftsplan 3, ringen og redskapet (DP3-1, steg 129)
@@ -402,6 +403,7 @@ for _f in ('src/js/deckcrew.js', 'src/js/view3d/08-plants.js', 'src/js/view3d/20
 # 25-controls.js lost helmjit, teleport3d, benchshot, profshot and f1test; 05-rigg-innst-admin.js lost admintest). run.py stops on it.
 # Driften billig og stabil (D1–D2, 17.11.2026): cloudRpc's wait and time limit, save_beat every 15 s, pos_put once a minute with the relay
 for _f in ('src/js/ui/10f-cloud.js', 'src/js/ui/10h-world.js', 'tests/nedetest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['nedetest']))
+for _f in ('src/js/core/06h-plan2-engine.js', 'tests/planstartkai.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['planstartkai']))
 for _f in ('src/js/ui/10f-cloud.js', 'tests/lagrefeiltest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['lagrefeiltest']))
 # The watch on the database and the server's numbers (steg 138, 17.11.2026)
 for _f in ('tools/server/vakt/vakt.sh', 'tools/server/vakt/setup.sh', 'tools/server/status.sh', 'tools/server/setup.sh', 'tests/vakttest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['vakttest']))

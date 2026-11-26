@@ -79,6 +79,14 @@ async function plan2Make(o, cb){
       if (!L) pairs.push({a, ap, b, bp}); else if (!o.legs[k] && L.d > 0) o.legs[k] = {w:[], d:Math.round(L.d * 1000) / 1000, t:S.t}; };
     for (const k of ks){ for (const e of ends){ add(e, k); add(k, e); } for (const j of ks) if (j !== k) add(k, j); for (const p of lyC[k]){ const a = plan2P(o, k); const L = drLeg(o, a, null, p.p, p.id), kk = drLK(a, null, p.p, p.id); if (!L) pairs.push({a, ap:null, b:p.p, bp:p.id}); else if (!o.legs[kk]) o.legs[kk] = {w:[], d:Math.round(L.d * 1000) / 1000, t:S.t}; } }
     add('M', 'H'); add('H', 'M'); if (o.homeA){ add('M', 'Q'); add('Q', 'M'); add('Q', 'H'); add('H', 'Q'); }
+    // from where she lies as the plan is made, when that is not its home or its plant (Driftsplan 3 picks the home itself, and the player
+    // starts the plan where the boat is): the way to each place, the home and the plant. Before, the first trip asked for its way when
+    // it was to leave, the next morning, most often with the game closed, and the time away is played in with no pause long enough for
+    // a way to be found on a phone (drWaiting): she lay at the quay with «Finner veien …» for as long as the player was away (Adrian
+    // 24.11.2026: «Sto på i en dag på ordentlig. Han gikk ikke ut å fiska en gang»; tilbakemeldingene 367, 398). A way not found here
+    // is no error: the trip asks again as before
+    if (vid === S.cur){ const hr = plan2Here(o), hp = hr.port || null;
+      if (hp !== o.home && hp !== o.M) for (const y of ks.concat(['H', 'M'])){ const b2 = plan2P(o, y), bp = plan2Port(o, y); if (b2 && !drLeg(o, hr.p, hp, b2, bp)) pairs.push({a:{x:hr.p.x, y:hr.p.y}, ap:hp, b:b2, bp}); } }
     drLegsStale(o); await drFetch(o, pairs, vid);
     const left = pairs.filter(q => !o.legs[drLK(q.a, q.ap, q.b, q.bp)]); if (left.length) await drFetch(o, left, vid);
     if (!own()) return;
