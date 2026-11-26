@@ -502,6 +502,24 @@ Hver tur med treff er kjørt på nytt med en sonde som lister fartøyene som lig
 
 **Fasiten ser fjæra** (benk.js `fasit`): den spurte bare sjøkartet og gikk gjennom fjæra der observatøren teller treff; nå tar den vannet over fjæra som observatøren (`shoreGround`). smola-vest-ut med skiffen 1,57 → 1,00 ganger fasiten, sund-bolandet 1,21 → 1,01. Kjøringen under gikk med den gamle fasiten (den startet før rettingen).
 
+### Benken etter valg 8 og punkt 3 (26.11.2026, `docs/planer/autonav-benk/ny-steg142-punkt3/turer.jsonl`)
+
+Hele lista (93 strekninger, 321 linjer, 11 der stedet ikke tar båten), bakgrunnsturen, uten CPU-strupingen, tre deler samtidig. Bygget hadde boksen for fartøy og ordene for dem, men ikke `planSkip` og ikke fasiten som ser fjæra (de kom mens den gikk). Strekningene med treff og omveier er kjørt på nytt med dagens bygg (`ny-steg142-punkt3-treff/turer.jsonl`, 41 linjer).
+
+| | Etter punkt 2 (`punkt2b`) | Nå (hele lista) | Kravet |
+|---|---|---|---|
+| Turer seilt | 264 | 271 | |
+| Turer med treff | 12 (14 treff) | 14 (18 treff: 11 fartøy som ligger stille, 4 flytebrygge, 2 land, 1 brygge) | 0 |
+| Turer over tegnet fjære | 8 | 10 (8 i rennene 3D ikke har gravd: Træna, Ålesund verft, Lindesnes; 2 sund-urangsvag; sund-hvaler) | 0 |
+| Uten bane der fasiten har vei | 8 | 4 (Ålesund verft kyst21, reine og bru-storvalen kyst21 «for stort», Sandshamn verft vest pelagisk) | 0 |
+| Lengde mot fasiten, median | 1,4 % over | 1 % over (p90 5 %) | høyst 5 % |
+| Baner over 15 % lenger enn fasiten | 13 | 13 med den gamle fasiten; Smøla og Bolandet er 1,00–1,02 med den nye, Stamsund 1,25 | ingen |
+| Planleggingstid, ustrupet, maskinen opptatt | median 0,97 s, p90 6,7 s | median 1,2 s, p90 8,3 s, lengst 65 s | under 1 s strupet (ikke målt) |
+
+**Treffene med dagens bygg** (`punkt3-treff`): Sandshamn-inn med autolineren har ingen (`planSkip`). Det som står igjen: **Senjahopen ut** med skiff, sjark og kyst21, på banen i 5 knop, 262 m fra kaia, mot Nordglimt I (75 m) og Havtrost (60 m) ved kai, er ikke forklart (sonden på en annen klokke fant ingen treff, og planleggeren stengte fartøyet der); ellers bare klassene i «Punkt 3» som hører til havnesøket (G2: myre-sto, urangsvag-inn og breivikbotn i 0 knop ved enden) og vakta (F3: gutvik-ut, ferja har flyttet seg), og sund-hvaler (driver etter enden).
+
+**Farsjekken** langs kjøringens ruter (tre deler): 0 stillinger og 0 sveip der observatøren ser en berøring og kartet sier fritt, av 29 070 stillinger og 3 300 sveip; 7 lå i rennene 3D ikke har gravd (telles nå for seg, `renne`). Bassengene (`--basseng`): 0 av 22 944. Gammel Autonav (`tests/allesteder.py`, de tre stedene i valg 8): likt før og etter.
+
 ### Det kontrollen fant (24.11.2026)
 
 En fersk agent fikk diffen og «Ferdig når». Den fant at punkt 1 og 2 holder delvis og 3–5 ikke, og ti feil i koden. Rettet samme økt: flisene bes om der søket kommer til dem; et første søk viser hvor de fine rutene trengs (et løp på 13 m ble ellers 43 % omvei); fartsgrensen til korte stykker; minnet over frie stykker kjenner farten; egen kaiplass regnes etter der hun selv er for ting; stenging legges der hun sto; `baneSail` går videre fra planens sted, stopper for sjøis og fyller ikke sporet; workeren kaster flisene når kartet endres. Ett funn var feil lest: benken lar det observatøren ser av vannet følge samme regel som kaia (bare spillets egen grunnstøting teller alltid), og fars naust har tørt opptrekk.
