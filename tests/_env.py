@@ -33,11 +33,13 @@ SEED = os.environ.get('KYST_SEED', '1')
 GAME_RO = BASE + 'index.html#qfix' + (',seed=' + SEED if SEED != '0' else '')
 GAME_TUT = GAME_RO + ',ro0'
 # the tests play without the first-trip tutorial; tut.py uses GAME_TUT
-GAME = GAME_TUT + '#notut'
+# vis1: «Vis alt» (steg 152, ui/phone/04-kvote.js stAll): the pages show everything at once, as before the stages, so a test finds every tab
+# and card where it was. The tests of the stages themselves set S.settings.rmAll = false; tut.py plays the game as a new player has it
+GAME = GAME_TUT + ',vis1#notut'
 # KYST_LITE=1 (tests/run.py sets it for the tests that do not look at 3D): the game runs as before, but no 3D frame is drawn,
 # which is most of the time a test takes with SwiftShader
 if os.environ.get('KYST_LITE') == '1':
-    GAME = GAME_TUT + '#notut,no3d'
+    GAME = GAME_TUT + ',vis1#notut,no3d'
 # KYST_MERKE=folk2 (steg 125): one more flag in the address of every test that opens GAME, so a test written without the new
 # people can be run with them (crewclip, workshot); several with a comma
 if os.environ.get('KYST_MERKE'):

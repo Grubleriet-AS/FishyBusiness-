@@ -92,8 +92,8 @@ async def main():
         r = await pg.evaluate("""(()=>{ const R = {}, b = S.boat;
           R.ladder = Object.entries(VESSELS).map(([k, V]) => [k, V.len, V.cls, !!V.lock]);
           R.offers = LIC_OFFERS.map(O => [O.id, O.ves, VESSELS[O.ves].len, Math.round((VESSELS[O.ves].price + licValue(O)) / 1000)]);
-          // the 7.9 m snekke is in the open group's under-8 m quota group: the year's maximum quota for it (4.0 t in 2026)
-          const t0 = b.type; b.type = 'snekke'; applyVessel(); R.grp = [lenGroup(), codLimits().max, Math.round((yearQuota(yearH(S.t / 60)).open.max[0] + openMaxAdd(S.t / 60)) * 1000)]; b.type = 'kyst21'; applyVessel();
+          // the 7.9 m snekke is in the open group's under-8 m quota group: the year's maximum quota for it (with the additions of KV1)
+          const t0 = b.type; b.type = 'snekke'; applyVessel(); R.grp = [lenGroup(), codLimits().max, Math.round((yearQuota(yearH(S.t / 60)).open.max[0] + openMaxAdd(S.t / 60)) * 1000) + openAdd(S.t / 60).sum]; b.type = 'kyst21'; applyVessel();
           const inside = GROUNDS.find(g => insideFjord(g.p) && depthF(g.p) > 20).p; b.status = 'fishing'; b.port = null; b.pos = {...inside}; b.gop = null; b.rig = 'juksa'; b.gear = true; b.fishUntil = S.t + 120; S.hold = []; S.crew = [];
           for (let i = 0; i < 60; i++) step(); R.fjord = {kg:Math.round(holdTotal()), warn:S.log.slice(-40).some(e => /fjordlinj/.test(e.no))};
           b.type = t0; applyVessel(); b.status = 'idle'; return R; })()""")
@@ -145,7 +145,7 @@ async def main():
             print(ok(len(t['open']) == 8 and len(t['lic']) == 9 and len(t['kyst']) == 2 and len(t['hav']) == 5 and all(c[2] for v in t.values() for c in v)), tag + ': four tabs with every boat as a card with its side view')
             print(ok(u['havText'] and not u['havBuy'] and len(u['havSecs']) >= 3), tag + ': the ocean vessel has a full spec sheet (length, beam, draft, weight) and no buy button')
             print(ok(u['tiBtn'] and u['tiOk'] and not u['fleetBtn']), tag + ': an open-group boat is bought by trading in, not for the fleet, before the company has a closed-group vessel')
-            print(ok('Hjemmel' in u['licSecs'] and u['licBtns'] == 2), tag + ': a boat with a right shows the right and both ways to buy')
+            print(ok(any('hjemmel' in x.lower() for x in u['licSecs']) and u['licBtns'] == 2), tag + ': a boat with a right shows the right («Kvoterett (hjemmel)», steg 152) and both ways to buy', u['licSecs'])
             print(ok(not u['overflow'] and not u['small']), tag + ': no sideways scroll and every button at least 44 px', u['small'][:4])
             await pg.evaluate("DOCK.close()")
         # trading the skiff in for the 7.9 m snekke
@@ -171,7 +171,7 @@ async def main():
           S.loan = {bal:200000, rate:0.069, pay:2300, next:S.t + 1e5}; R.loophole = deal(1e6, 66500); S.loan = null;
           // the sheet of the entry boat without and with blad B
           const sheetOf = () => { DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=trebat][data-o=u7]'); const sh = dr().querySelector('.vsheet'), x = {btns:sh.querySelectorAll('[data-pa=buylic]').length, txt:sh.textContent}; tap('[data-pa=mksel]:not([data-k])'); DOCK.close(); return x; };
-          S.fm.b = false; const s0 = sheetOf(); R.noB = {btns:s0.btns, note:/Krever blad B/.test(s0.txt)}; S.fm.b = true; const s1 = sheetOf(); R.withB = {btns:s1.btns, inn:/Kystfondet/.test(s1.txt)};
+          S.fm.b = false; const s0 = sheetOf(); R.noB = {btns:s0.btns, note:/yrkesfisker \(blad B\)/.test(s0.txt)}; S.fm.b = true; const s1 = sheetOf(); R.withB = {btns:s1.btns, inn:/Kystfondet/.test(s1.txt)};
           R.goals1 = goalTxt();
           // the entry: the skiff traded in and NOK 200 000 in the bank buys the boat with a right under 7 m
           const O = LIC_OFFERS[0], price = VESSELS[O.ves].price + licValue(O); R.price = price; S.cash = 200000; R.noInn = deal(price, vesselValue(curVessel()), false).why;
@@ -191,7 +191,7 @@ async def main():
         print(ok(r['noInn'] == 'eq' and r['after']['lic'] == 'u7' and r['after']['type'] == 'trebat' and r['after']['cash'] >= 0 and r['after']['loanIN'] and r['after']['loanIN'] <= r['price'] * 0.15 + 1
                  and r['after']['loan'] <= r['price'] * 0.8 + 1 and r['after']['inUsed'] and not r['after']['innNow']), 'the entry: the skiff and NOK 200 000 buy the boat with a right under 7 m with the top-up, not without it')
         g0, g1, g2 = r['goals0'], r['goals1'], r['goals2']
-        print(ok(len(g0) == 2 and 'Blad B' in g0[0] and 'under 7 m' in g0[1] and 'under 7 m' in g1[0] and '7–7,9 m' in g2[0] and '14,99' in g2[1]), 'Neste mål follows the ladder: blad B, the entry right, the next right, the 14.99 m coastal vessel', [g0, g1, g2])
+        print(ok(len(g0) == 2 and 'Blad B' in g0[0] and 'under 7 m' in g0[1] and 'under 7 m' in g1[0] and '7–7,9 m' in g2[0] and not any('14,99' in x for x in g0 + g1 + g2)), 'Neste mål follows the ladder: blad B, the entry right, the next right, and never the 14.99 m coastal vessel without a right (steg 148b)', [g0, g1, g2])
         print(ok(r['bank'] and r['papers']), 'the bank shows the risk loan, and the papers show blad B')
         print(ok(r['sell']['loanDown'] == r['sell']['val'] and r['sell']['cash'] == 0), 'selling a vessel (now to Kystmegleren for 90 %, B4) pays the loan off first')
         # «Neste mål» is the fleet's (Jonas 07.11.2026): an ocean vessel without a jigging machine and a sjark without a right, with 93 million
@@ -213,7 +213,7 @@ async def main():
         print('goals, ocean:', json.dumps(r, ensure_ascii=False))
         print(ok(r['hav'] == ['Stift Rederi AS'] and r['havHome'] and r['havAS'] == [] and not r['havASHome']),
               'Neste mål with an ocean vessel in the fleet: no jigging machine and no right under 7 m, only the AS, and no goal on the home screen with it', r)
-        print(ok(len(r['top']) == 2 and '14,99' in r['top'][0] and r['top'][1] == r['cheap']), 'Neste mål ends with the cheapest ocean vessel that can be bought, not «Havfiske, kommer»', r['top'])
+        print(ok(len(r['top']) >= 1 and r['top'][-1] == r['cheap'] and not any('14,99' in x for x in r['top'])), 'Neste mål ends with the cheapest ocean vessel that can be bought, not «Havfiske, kommer» (and without the 14.99 m hull alone, steg 148b)', r['top'])
         # one tier between the boats (OPP4 of docs/planer/oppgraderinger.md): with one boat, the cheapest tier not bought that costs under a
         # tenth of the next boat in the ladder comes before her. A wooden boat with NOK 40 000 and the gaff at tier 2 gets the knives at tier
         # 2 (1 500 kr), not the old wooden snekke with a right; with nothing bought the gaff comes first (900 kr); with everything at the top,

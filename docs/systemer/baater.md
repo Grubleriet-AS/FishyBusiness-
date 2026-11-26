@@ -290,7 +290,7 @@ Båtene er spillets superstjerner, med Fishing: Barents Sea som inspirasjon, men
 5. **V5 Båthandel** (5.1) med `G3.showroom`.
 6. **V6:** havbåtene i 3D.
 7. **V7 Progresjonen:** blad B, lån som innfris ved salg og innbytte, toppfinansiering og stigen i «Neste mål» (5.5).
-8. **V8 Kalibreringen** med `progweek.py`: en bot spiller fra 1. mars med skiffen og spillets egne funksjoner i tre tempo (tur hver tredje dag, annenhver dag og hver dag været tillater). Den går ut når bølgene på feltet og vinden er innenfor det skiffen tåler. Blad B kommer etter 14–16 turer i alle tempo, fordi 1 G binder. Med 10 % toppfinansiering tok inngangen 24 turer, med 15 % kommer den sammen med blad B. Torskekvoten i åpen gruppe (4 t) blir full rundt dag 42 for den som fisker hver dag.
+8. **V8 Kalibreringen** med `progweek.py`: en bot spiller fra 1. mars med skiffen og spillets egne funksjoner i tre tempo (tur hver tredje dag, annenhver dag og hver dag været tillater). Den går ut når bølgene på feltet og vinden er innenfor det skiffen tåler. Blad B kommer etter 14–16 turer i alle tempo, fordi 1 G binder. Med 10 % toppfinansiering tok inngangen 24 turer, med 15 % kommer den sammen med blad B. Torskekvoten i åpen gruppe (4 t) blir full rundt dag 42 for den som fisker hver dag. **Fra dagens start (steg 153, 25.11.2026): blad B etter 14–15 turer og inngangen etter 19; se «Målt på nytt fra dagens start» i `fiskerimodellen.md`. Tallene her er fra skiffen med 15 000 kr.**
 9. **V9 NPC-modellene** (5.14).
 10. **V10** dokumentasjonen.
 

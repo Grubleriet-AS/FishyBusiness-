@@ -62,6 +62,7 @@
     else if (a === 'q3d'){ S.settings.q3d = d.v; if (typeof G3 !== 'undefined' && G3.quality) G3.quality(d.v); }
     else if (a === 'fpsShow'){ S.settings.fpsShow = d.v === '1'; }
     else if (a === 'hudShow'){ S.settings.hudOff = d.v !== '1'; hudClasses(); }
+    else if (a === 'visAlt'){ S.settings.rmAll = d.v === '1'; if (typeof cloudEv === 'function') cloudEv('vis_alt', {on:d.v === '1' ? 1 : 0}); }   // (steg 152; the funnel, K5)
     else if (a === 'move'){
       if (S.moved) return true;
       show(false); const from = (portById(S.home || S.boat.port) || PORTS[0]).name; START_HOMEONLY = true;
@@ -230,14 +231,18 @@
       const V2 = VESSELS[d.k], ti = d.ti === '0' ? 0 : tradeIn(); if (!V2 || V2.lock || !atKind('verft') || S.order || (ti && S.boat.type === d.k)) return;
       // (KM3: her right or a structure quota on her lies out in the quota market, so she cannot be traded in until that sale is over)
       if (ti && S.boat.sale){ toast(L('Hun har hjemmel eller strukturkvote til salgs i Kvotemarkedet. Vent til salget er over.', 'She has a right or a structure quota for sale in the quota market. Wait until the sale is over.')); return; }
+      { const hw = ti ? tiHoldWhy() : null; if (hw){ toast(hw); return; } }   // (steg 148b, T2: nothing in the hold goes with her to the new boat)
       if (!ti && V2.len < 11 && !hasLic()){ toast(L('Et rederi kan bare ha én båt i åpen gruppe.', 'A company can only have one boat in the open group.')); return; }
       // an ocean vessel comes with her permit from an NPC owner in the register (H1 of the ocean step, 03d-quota.js havLicTake)
       const hw = V2.cls === 'hav' ? havLicWhy(d.k) : null; if (hw){ toast(L(hw[0], hw[1])); return; }
-      const x = deal(V2.cls === 'hav' ? havPrice(d.k, S.t / 60) : V2.price, ti); if (!x.ok){ toast(whyText(x) || t('no_cash')); return; } finance(x, 120); achAdd('boat');
+      const x = deal(V2.cls === 'hav' ? havPrice(d.k, S.t / 60) : V2.price, ti); if (!x.ok){ toast(whyText(x) || t('no_cash')); return; }
+      // (steg 151) a purchase that takes access from the boat traded in asks first; the event for the funnel (K5), never who
+      { const q = ti ? buyAsk({kind:'hull', type:d.k, ti:true, keep:tiKeepOn()}) : null; if (q){ if (!confirm(q)) return; if (typeof cloudEv === 'function') cloudEv('buy_noacc', {k:d.k}); } } finance(x, 120); achAdd('boat');
       const hl = V2.cls === 'hav' ? havLicTake(d.k, S.t / 60) : null; let hn = '';
       // KM4 (V2 A, the same choice as at the broker): the right is kept as a free right for two game years, taken off her before she
       // is traded in (the trade-in was priced without it, tradeIn); else it follows her as before. The second quota from the special
       // scheme falls away either way (kap. 2 § 6)
+      const kq0 = ti && tiKeepOn() && S.quota ? {...S.quota} : null;   // (what is landed on the right this year, before it leaves her: § 29 below)
       const kept = ti && tiKeepOn() ? mbMove({v:curVessel()}, {free:true}) : null, two0 = ti && S.lic && S.lic.two && HJ[S.lic.two] ? S.lic.two : null;
       sub.tikeep = null;
       // a new build is delivered at once, at this yard, like a used vessel (Jonas 13.10.2026: «Fjern byggetiden når man bestiller nybygg»)
@@ -245,7 +250,11 @@
       else { const v = newVesselObj(d.k, S.boat.port, hl); hn = v.boatName; setTimeout(() => BUYM.show(v), 60); log('Kjøpte ' + V2.name.no + ' til flåten. Hun heter «' + v.boatName + '» og ligger i ' + portById(S.boat.port).name + '.', 'Bought the ' + V2.name.en + ' for the fleet. She is called «' + v.boatName + '» and lies at ' + portById(S.boat.port).name + '.'); }
       pressPut('boat', {type:d.k, nb:V2.isNew ? 1 : 0, price:V2.price});   // Kystposten (core/09h-press.js)
       if (ti && S.lic){ log('Kvoten i lukket gruppe fulgte med den gamle båten.' + (two0 ? ' Den andre kvoten fra den særlige ordningen falt bort.' : ''), 'The closed-group quota went with the old vessel.' + (two0 ? ' The second quota from the special scheme fell away.' : '')); regFree(S.lic.id); S.lic = null; freshQuota(); openUsedLoad(); }
-      else if (kept && kept.ok) log('Hjemmelen ble i rederiet som ledig hjemmel i høyst to spillår.', 'The right stayed in the company as a free right for at most two game years.');
+      else if (kept && kept.ok){ log('Hjemmelen ble i rederiet som ledig hjemmel i høyst to spillår.', 'The right stayed in the company as a free right for at most two game years.');
+        // (§ 29, Jonas 26.11.2026) the owner's catch this year follows the owner: the new boat, when she is the company's open-group boat,
+        // begins with what was landed on the kept right. Before, only a boat that was under 11 m already got it (mbMove and kmOut look at
+        // the boat as she is then), so a coastal vessel traded for a small boat fished the open group from nothing
+        if (!S.lic && S.cur === openVesselId()){ if (kq0) openUsedSave(kq0); openUsedLoad(); } }
       if (hl){ if (ti){ S.lic = hl; freshQuota(); }
         msg('Fiskeridirektoratet', HAVLIC[hl.id].no + ' med kvotefaktor ' + fmt(hl.kf, 2) + ' er registrert på «' + (ti ? S.boatName : hn) + '». Den er kjøpt fra ' + hl.from + '.', 'A ' + HAVLIC[hl.id].en.toLowerCase() + ' with quota factor ' + fmt(hl.kf, 2) + ' is registered to the vessel. It was bought from ' + hl.from + '.'); }
     }
@@ -351,7 +360,7 @@
       const la = vget(va, 'lic'), lb = vget(vb, 'lic'), nb = vget(vb, 'boatName'), val = Math.round(VESSELS[vget(vb, 'boat').type].price * 0.7);
       if (!confirm(L('«' + nb + '» oppgir hjemmelen og selges for ' + kr(val) + '. «' + vget(va, 'boatName') + '» fisker begge kvotene. Fortsette?', '«' + nb + '» gives up its right and is sold for ' + kr(val) + '. «' + vget(va, 'boatName') + '» fishes both quotas. Go on?'))) return;
       la.two = lb.id; licExtra(la); if (vb.id === S.cur){ bindVessel(va); if (typeof G3 !== 'undefined') G3.vesselChanged(); }
-      const paid = payDown(val); S.fleet.splice(S.fleet.indexOf(vb), 1); book('baat', val - paid, 'Båt solgt', 'Vessel sold');
+      const paid = payDown(val); vesselGone(vb); S.fleet.splice(S.fleet.indexOf(vb), 1); book('baat', val - paid, 'Båt solgt', 'Vessel sold');
       msg('Fiskeridirektoratet', '«' + vget(va, 'boatName') + '» fisker nå to kvoter etter den særlige kvoteordningen. «' + nb + '» er slettet fra merkeregisteret.', 'The «' + vget(va, 'boatName') + '» now fishes two quotas under the special scheme. The «' + nb + '» is struck off the register.'); }
     else if (a === 'coop'){
       // quota cooperation (§ 31): the NPC owner signs on, and his quota comes aboard for the year
@@ -363,6 +372,7 @@
       const O = LIC_OFFERS.find(x => x.k === d.id); if (!O || !atTrade() || S.order) return;
       const price = VESSELS[O.ves].price + licValue(O), ti = d.ti === '0' ? 0 : tradeIn(); if (ti && S.lic && S.lic.id === O.id && S.boat.type === O.ves) return;
       if (ti && S.boat.sale) return;   // (KM3: her right lies out in the quota market; the button is grey too, tiLocked)
+      { const hw = ti ? tiHoldWhy() : null; if (hw){ toast(hw); return; } }   // (steg 148b, T2)
       if (!bladB()){ toast(L('Du må stå på blad B i fiskermanntallet for å kjøpe en båt med hjemmel. Se Papirer.', 'You must be on blad B of the fishermen\'s register to buy a boat with a right. See Papers.')); return; }
       const inn = innOK(), x = deal(price, ti, inn); if (!x.ok){ toast(whyText(x) || t('no_cash')); return; }
       if (!S.company){ const el = document.getElementById('coName'); S.company = String((el && el.value) || coDraft || '').trim().slice(0, 28) || coDefault(); coDraft = null; log('Rederiet ' + S.company + ' er opprettet.', 'The company ' + S.company + ' is founded.'); }
@@ -371,7 +381,13 @@
       sub.tikeep = null;
       const sl = regSeller(O.id, S.t / 60), lic = {id:O.id, hl:O.hl, kpk:O.kpk, since:yearH(S.t / 60), from:sl.name + ', ' + sl.home}, ov = openVesselId(), lost = ov && !(ti && ov === S.cur) ? vget(vesselById(ov), 'boatName') : null;
       let nm;
-      let fished; regTake(O.id);   // the NPC owner leaves the register (03d-quota.js)
+      // (steg 148b, T1) a boat with a right traded in for another with a right: the old right goes with the old boat, back to the owners
+      // ashore, as in buy above. Before, it was written over and the register lost a place for each step up. Freed before the new one
+      // is taken, so the same quota length ends where it began
+      let sameReg = false;
+      if (ti && S.lic){ const two0 = S.lic.two && HJ[S.lic.two] ? S.lic.two : null; log('Kvoten i lukket gruppe fulgte med den gamle båten.' + (two0 ? ' Den andre kvoten fra den særlige ordningen falt bort.' : ''), 'The closed-group quota went with the old vessel.' + (two0 ? ' The second quota from the special scheme fell away.' : '')); if (S.lic.id !== O.id) regFree(S.lic.id); else sameReg = true; S.lic = null; }
+      // (the same quota length out and in: one place given back and one taken is no change, so neither is sent; two calls at once could cross on the server)
+      let fished; if (!sameReg) regTake(O.id);   // the NPC owner leaves the register (03d-quota.js)
       if (ti){ if (!S.lic && S.cur === ov) openUsedSave(S.quota); switchVessel(O.ves); S.lic = lic; fished = licStart(lic); nm = S.boatName; }
       else { if (ov) openUsedSave(vget(vesselById(ov), 'quota')); const v = newVesselObj(O.ves, S.boat.port, lic); fished = withVessel(v, () => licStart(lic)); nm = v.boatName; setTimeout(() => BUYM.show(v), 60); log('Kjøpte ' + O.no.toLowerCase() + ' til flåten. Hun heter «' + nm + '».', 'Bought a ' + O.en.toLowerCase() + ' for the fleet. She is called «' + nm + '».'); }
       pressPut('boat', {type:O.ves, lic:1});

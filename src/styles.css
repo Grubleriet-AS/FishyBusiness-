@@ -2206,3 +2206,31 @@ body.vplot #hud{background:rgba(11,23,32,.78)!important}
 .acc-ref{margin:10px 0;padding:8px 0;border-top:1px solid var(--m-line,#9aa9b4)}
 .acc-ref input{width:100%;box-sizing:border-box;min-height:40px;font-size:15px;padding:6px 10px;border:1px solid var(--m-line,#9aa9b4);border-radius:8px;margin:4px 0 6px}
 .acc-ref .ph-btn{min-height:44px;width:100%;margin:0}
+
+/* ---- steg 150 (K2 of docs/planer/regler-i-klartekst.md): the quota meter. Landed (solid), aboard (lighter), against the limit; yellow
+   from 80 %, red when what is aboard does not fit. In the status box, at the quay, on the landing note */
+.qm{display:inline-block;position:relative;width:56px;height:6px;border-radius:3px;background:rgba(127,140,150,.35);overflow:hidden;vertical-align:middle;margin-right:6px;font-size:0;white-space:nowrap}
+.qm i{display:inline-block;height:100%;background:#4fb3e8;vertical-align:top}.qm i.ab{opacity:.5}
+.qm.r1 i{background:#ffcf7a}.qm.r2 i{background:#ff9b91}
+#hud .row.qlink{pointer-events:auto;cursor:pointer}#hud .row.qlink b{display:inline-flex;align-items:center;white-space:nowrap;min-width:0}#hud .row.qlink .qm{width:40px;flex:none}
+#hud .row.qlink b.r1{color:#ffcf7a}#hud .row.qlink b.r2{color:#ff9b91}
+.landq{display:flex;align-items:center;gap:8px;margin:6px 0 2px;font-variant-numeric:tabular-nums}.landq .qm{flex:1;max-width:160px;height:8px;margin:0}
+.slipq{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.slipq .qm{width:90px;height:7px;margin:0}
+.tbl tr.holdconf td{color:#ff9b91;font-size:.92em}
+#hud .row.qlink{padding:5px 0;margin:-3px 0}#hud .row.qlink .qm{height:7px}
+.slipq{color:inherit;opacity:1;font-size:1em}.landq{flex-wrap:wrap}
+
+/* ---- steg 151 (K3): «Dette endrer seg» over the purchase, and why a grey button is grey */
+.ph-card.chg{border:1px solid rgba(79,179,232,.35)}.ph-card.chg.chg-bad{border-color:rgba(255,155,145,.7)}
+.ph-card.chg h4{margin-bottom:4px}
+.tbl.chgt{width:100%;table-layout:fixed}.tbl.chgt th,.tbl.chgt td{text-align:left;vertical-align:top;padding:5px 6px 5px 0;white-space:normal;overflow-wrap:anywhere}
+.tbl.chgt td:first-child,.tbl.chgt th:first-child{width:30%;opacity:.75}
+.chg-warn{margin:6px 0 2px;color:#ff9b91}.ph-card.chg:not(.chg-bad) .chg-warn{color:#ffcf7a}
+.whybox{margin:4px 0 10px;padding:8px 10px;border-left:3px solid #ffcf7a;background:rgba(255,207,122,.08);border-radius:0 8px 8px 0}
+.whybox p{margin:0 0 4px}.whybox .ph-btn{margin-top:2px}.whylaw summary{cursor:pointer;opacity:.8;font-size:.92em;padding:14px 0;min-height:48px;box-sizing:border-box}.whylaw p{opacity:.85;font-size:.92em}
+
+/* ---- steg 152 (K4): «Mer», the rest of a page folded until the player has come that far */
+.ph-mer{margin:8px 0}.ph-mer > summary{cursor:pointer;list-style:none;display:flex;align-items:center;min-height:48px;padding:0 12px;border-radius:10px;background:rgba(255,255,255,.06);font-weight:600}
+.ph-mer > summary::-webkit-details-marker{display:none}.ph-mer > summary::after{content:'›';margin-left:auto;transform:rotate(90deg);opacity:.7}.ph-mer[open] > summary::after{transform:rotate(-90deg)}
+.ph-mer[open] > summary{margin-bottom:8px}
+
