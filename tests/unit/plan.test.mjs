@@ -143,6 +143,14 @@ export default function (t){
     t.ok(b1.x === 100 && b1.z === 100 && b1.r > 9.75, 'første gang stenges det rundt berøringen', b1);
     t.ok(b2.x === 130 && b2.z === 104 && b2.r >= 4, 'kommer samme berøring igjen, stenges det der hun sto', b2);
     const b3 = K.planBlockOf({what:'kai', id:'kai#5', x:50, z:50, px:60, pz:50}, bt, 2, 2, 1, seen); t.ok(b3.x === 60 && b3.z === 50, 'en ting stenges der hun sto (berøringen er tingens midte)', b3); }
+  // a vessel lying still along a floating dock (Urangsvåg with the skiff, steg 142): shut as her own box widened by the margins, not as
+  // a circle round her middle as wide as she is long, which shut the only way past her
+  { const seen = new Map(), sk = {L:5.9, B:2.45, T:0.6}, h = {what:'båt', id:'båt#100,100', x:100, z:100, R:Math.hypot(8, 2.5), box:[1, 0, 8, 2.5]}, bl = K.planBlockOf(h, sk, 2, 2, 1, seen), half = sk.B / 2 + 2;
+    const L = bl.list || [[bl.x, bl.z, bl.r]], inBl = (x, z) => L.some(c => Math.hypot(x - c[0], z - c[1]) < c[2]);
+    let side = 0; for (let d = 0; d < 40; d += 0.25) if (inBl(100, 100 + d)) side = d;
+    t.ok(side <= 2.5 + half + 2 * 2 + 0.01, 'et fartøy som ligger stille, stenges til siden bare med hennes egen halve bredde og marginene (' + side + ' m)', bl);
+    let cover = true; for (let a = -8; a <= 8; a += 0.5) for (const b of [-2.5 - half, 0, 2.5 + half]) if (!inBl(100 + a, 100 + b * 0.99)) cover = false;
+    t.ok(cover, 'og hele skroget hennes med marginene er stengt, fra baug til hekk'); }
 
   // The words for it: a shoal across the whole way with a hull wide enough to ask the water a cell to the side (rb2, rb4: every boat
   // but the narrowest) is «for grunt», not «brua er for lav». Where the water under her side shut a cell, the search for the cause

@@ -232,7 +232,7 @@ function planMake(){
 }
 // the worker (false where one cannot start): the search and its tiles live there
 function planWorker(){ if (PLAN.w !== null) return PLAN.w;
-  try { const src = 'const MK = ' + planMake.toString() + '; let PL = MK();\nonmessage = e => { const m = e.data; try { if (m.op === "reset"){ PL = MK(); postMessage({id:m.id, ok:1}); return; } if (m.op === "start"){ PL.clear(); PL.start(m.J); } else if (m.op === "tiles"){ for (const t of m.tiles) PL.put(t.c, t.fx, t.fz, t.none ? null : t); } else if (m.op === "co"){ PL.co(m.co); } else if (m.op === "block"){ PL.block(m.x, m.z, m.r); PL.again(); } postMessage(Object.assign({id:m.id}, PL.run())); } catch (err){ postMessage({id:m.id, why:"feil", err:String(err)}); } };';
+  try { const src = 'const MK = ' + planMake.toString() + '; let PL = MK();\nonmessage = e => { const m = e.data; try { if (m.op === "reset"){ PL = MK(); postMessage({id:m.id, ok:1}); return; } if (m.op === "start"){ PL.clear(); PL.start(m.J); } else if (m.op === "tiles"){ for (const t of m.tiles) PL.put(t.c, t.fx, t.fz, t.none ? null : t); } else if (m.op === "co"){ PL.co(m.co); } else if (m.op === "block"){ for (const b of m.list || [[m.x, m.z, m.r]]) PL.block(b[0], b[1], b[2]); PL.again(); } postMessage(Object.assign({id:m.id}, PL.run())); } catch (err){ postMessage({id:m.id, why:"feil", err:String(err)}); } };';
     const w = new Worker(URL.createObjectURL(new Blob([src], {type:'text/javascript'})));
     w.onmessage = e => { const res = PLAN.wait.get(e.data.id); if (res){ PLAN.wait.delete(e.data.id); res(e.data); } };
     w.onerror = () => { PLAN.w = false; for (const res of PLAN.wait.values()) res({why:'feil', err:'the planner worker failed'}); PLAN.wait.clear(); };
@@ -272,8 +272,14 @@ function planSquat(sqV, v){ return v <= BANE.vSlow + 1e-6 ? 0 : sqV(v); }
 // 37 m from her middle on a 75 m ship: the touch then lies off the way itself, and shutting the cells round it changes nothing
 // (the bench, steg 142: the same touch seven times over at eight places)
 const planTouchP = h => /^-?\d+,-?\d+$/.test(h.id);
+// A vessel lying still (hit.box: her axis, half her length and half her beam) is shut as her own box widened by the margins: circles
+// along her axis (a list), not one circle round her middle as wide as she is long, which shut the only way past a boat lying along a
+// floating dock (Urangsvåg with the skiff, steg 142)
 function planBlockOf(hit, boat, side, c2, tries, seen){ const key = hit.what + ':' + hit.id, n = seen.get(key) || 0; seen.set(key, n + 1);
   const tp = (hit.R || planTouchP(hit) || hit.px == null) && !n, half = boat.B / 2 + side;
+  if (tp && hit.box){ const [ux, uz, l, w] = hit.box, r = w + half + c2 * (1 + tries), k = Math.max(1, Math.ceil(2 * l / r)), list = [];
+    for (let i = 0; i <= k; i++){ const s = -l + 2 * l * i / k; list.push([hit.x + ux * s, hit.z + uz * s, r]); }
+    return {x:hit.x, z:hit.z, r:Math.hypot(l, r), list}; }
   return tp ? {x:hit.x, z:hit.z, r:(hit.R || 0) + half + c2 * (1 + tries)} : {x:hit.px != null ? hit.px : hit.x, z:hit.pz != null ? hit.pz : hit.z, r:half / 2 + c2 * (1 + tries)}; }
 // The boat as the planner asks the map for her. Till the bridges have their real clearances (steg 141b, Jonas' choice 6) her height
 // under them is counted as the game counts it today (11b-obstacles.js obsAir and obsBridge): 0.35 of her length (2 to 16 m), held
@@ -352,7 +358,7 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     shut.push(hit.what + ':' + hit.id + '@' + Math.round(hit.x) + ',' + Math.round(hit.z) + (B.P[hit.i].k === 'a' ? ' (bue r ' + B.P[hit.i].r.toFixed(1) + ')' : ''));
     // (round the touch where that is known, the land's and the water's; round where she stood for a thing, whose touch is its middle)
     const bl = planBlockOf(hit, boat, side, c2, tries, seen);
-    r = await send({op:'block', x:bl.x, z:bl.z, r:bl.r}); } }
+    r = await send({op:'block', x:bl.x, z:bl.z, r:bl.r, list:bl.list}); } }
 // ---- where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna») ----
 // The channel along a way: P its points [[X, Z] ...] close together (2 m), sh which of them lie where the water is too shallow for
 // her. The shallow runs, joined where less than o.gap m of the way lies between two, each reaching o.ext m past its ends (never
