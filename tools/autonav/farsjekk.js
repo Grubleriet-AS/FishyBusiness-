@@ -93,11 +93,15 @@
       const tot = LN.reduce((a, l) => a + l.len, 0);
       const at = s => { let l = LN[0]; for (const q of LN){ if (s <= q.len){ l = q; break; } s -= q.len; l = q; } s = Math.max(0, Math.min(l.len, s)); let i = 1; while (i < l.P.length - 1 && l.cum[i] < s) i++;
         const a = l.P[i - 1], b = l.P[i], d = l.cum[i] - l.cum[i - 1] || 1, u = (s - l.cum[i - 1]) / d, hx = (b[0] - a[0]) / d, hz = (b[1] - a[1]) / d; return {X:a[0] + (b[0] - a[0]) * u, Z:a[1] + (b[1] - a[1]) * u, psi:Math.atan2(hx, -hz), nx:-hz, nz:hx}; };
-      const C = {n:0, fri:0, begge:0, bareKart:0, bareObs:0, ukjent:0, klaring:0, sveip:0, sveipObs:0, sveipKart:0, sveipBegge:0, kart:{}, obs:{}, av:{rute:0, stripe:0, kant:0, ting:0}, msKart:0, msObs:0}, bad = [], seen = [];
+      // (the channels the map digs (renner.json) and the 3D view does not yet: the observer sees the foreshore there as 3D draws it, so a
+      // pose there with only water touched is counted apart, «renne», not as the map's fault; steg 142)
+      const inDug = (X, Z, hs) => hs.every(h => h.what === 'fjære' || h.what === 'grunn') && farbDug().some(s => farbSegD(X, Z, s.ax, s.az, s.bx, s.bz) < s.r + L / 2);
+      const C = {n:0, fri:0, begge:0, bareKart:0, bareObs:0, renne:0, ukjent:0, klaring:0, sveip:0, sveipObs:0, sveipKart:0, sveipBegge:0, kart:{}, obs:{}, av:{rute:0, stripe:0, kant:0, ting:0}, msKart:0, msObs:0}, bad = [], seen = [];
       const ll = (X, Z) => { const q = natLL({x:X / 1000, y:Z / 1000}); return [+q.lat.toFixed(5), +q.lon.toFixed(5)]; };
       const test = (kind, X, Z, psi) => { let t0 = performance.now(); const hs = FARSJ.obs(X, Z, psi, ob, world); let t1 = performance.now(); const m = farbPose(X, Z, psi, fb, H, opt); C.msObs += t1 - t0; C.msKart += performance.now() - t1;
         C.n++; C.av[kind]++; const touch = hs.length > 0;
         if (m && m.what === 'ukjent') C.ukjent++;
+        else if (touch && !m && inDug(X, Z, hs)) C.renne++;
         else if (touch && !m){ C.bareObs++; if (bad.length < 12) bad.push({hva:'stilling', kind, ll:ll(X, Z), psi:+psi.toFixed(3), X:+X.toFixed(2), Z:+Z.toFixed(2), obs:hs.slice(0, 3).map(h => h.what + ':' + h.id + (h.keel != null ? ' ' + h.keel.toFixed(2) : ''))}); }
         else if (!touch && m){ C.bareKart++; C.kart[m.what] = (C.kart[m.what] || 0) + 1; }
         else if (touch) C.begge++; else C.fri++;
@@ -134,6 +138,7 @@
         const p0 = {X:q0.X + q0.nx * off, Z:q0.Z + q0.nz * off, psi:q0.psi + (rand() * 2 - 1) * 0.4}, p1 = {X:q1.X + q1.nx * off, Z:q1.Z + q1.nz * off, psi:q1.psi + (rand() * 2 - 1) * 0.4};
         const st = {}, hs = BKO.step(st, p0, ob, world).concat(BKO.step(st, p1, ob, world)), m = farbPose(p0.X, p0.Z, p0.psi, fb, H, opt) || farbSweep(p0, p1, fb, H, opt);
         C.sveip++; if (m && m.what === 'ukjent') C.ukjent++;
+        else if (hs.length && !m && inDug(p0.X, p0.Z, hs) && inDug(p1.X, p1.Z, hs)) C.renne++;
         else if (hs.length && !m){ C.sveipObs++; if (bad.length < 12) bad.push({hva:'sveip', ll:ll(p0.X, p0.Z), til:ll(p1.X, p1.Z), p0, p1, obs:hs.slice(0, 3).map(h => h.what + ':' + h.id)}); }
         else if (!hs.length && m){ C.sveipKart++; C.kart[m.what] = (C.kart[m.what] || 0) + 1; } else if (hs.length) C.sveipBegge++; }
       C.msKart = +C.msKart.toFixed(1); C.msObs = +C.msObs.toFixed(1); C.bad = bad; C.type = S.boat.type; C.L = L; C.m = Math.round(tot); return C; }

@@ -79,7 +79,7 @@ def rapport(rows, out=sys.stdout):
     T = collections.Counter(); kart = collections.Counter(); obs = collections.Counter(); av = collections.Counter(); ting = collections.Counter(); per = collections.defaultdict(collections.Counter); bad = []; skip = 0
     for r in rows:
         if r.get('skip') or r.get('feil'): skip += 1; continue
-        for k in ('n', 'fri', 'begge', 'bareKart', 'bareObs', 'ukjent', 'klaring', 'sveip', 'sveipObs', 'sveipKart', 'sveipBegge'): T[k] += r.get(k, 0); per[r['type']][k] += r.get(k, 0)
+        for k in ('n', 'fri', 'begge', 'bareKart', 'bareObs', 'renne', 'ukjent', 'klaring', 'sveip', 'sveipObs', 'sveipKart', 'sveipBegge'): T[k] += r.get(k, 0); per[r['type']][k] += r.get(k, 0)
         T['msKart'] += r.get('msKart', 0); T['msObs'] += r.get('msObs', 0); T['rader'] += 1
         kart.update(r.get('kart', {})); obs.update(r.get('obs', {})); av.update(r.get('av', {})); ting.update(r.get('ting', {}))
         for b in r.get('bad', []): bad.append((r['strek'], r['type'], b))
@@ -93,7 +93,7 @@ def rapport(rows, out=sys.stdout):
     p('  per båt: ' + '; '.join('%s %d stillinger, %d berøringer hos begge, %d bare kartet' % (k, v['n'], v['begge'], v['bareKart']) for k, v in sorted(per.items(), key=lambda kv: -kv[1]['n'])))
     if T['n']: p('  tid per stilling: kartet %.3f ms, observatøren %.3f ms' % (T['msKart'] / T['n'], T['msObs'] / T['n']))
     wrong = T['bareObs'] + T['klaring'] + T['sveipObs']
-    p('%s farsjekken: observatøren ser en berøring og kartet sier fritt: %d stillinger, %d sveip; klaringen for stor: %d' % ('OK' if not wrong else 'FEIL', T['bareObs'], T['sveipObs'], T['klaring']))
+    p('%s farsjekken: observatøren ser en berøring og kartet sier fritt: %d stillinger, %d sveip; klaringen for stor: %d; i rennene 3D ikke har gravd: %d' % ('OK' if not wrong else 'FEIL', T['bareObs'], T['sveipObs'], T['klaring'], T['renne']))
     for s, t, b in bad[:40]: p('   ', s, t, json.dumps(b, ensure_ascii=False))
     return wrong
 
