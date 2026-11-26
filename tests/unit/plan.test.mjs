@@ -143,6 +143,14 @@ export default function (t){
     t.ok(b1.x === 100 && b1.z === 100 && b1.r > 9.75, 'første gang stenges det rundt berøringen', b1);
     t.ok(b2.x === 130 && b2.z === 104 && b2.r >= 4, 'kommer samme berøring igjen, stenges det der hun sto', b2);
     const b3 = K.planBlockOf({what:'kai', id:'kai#5', x:50, z:50, px:60, pz:50}, bt, 2, 2, 1, seen); t.ok(b3.x === 60 && b3.z === 50, 'en ting stenges der hun sto (berøringen er tingens midte)', b3); }
+  // her own berth (planSkip, the bench's rule): a vessel lying still counts by her middle, as the observer counts her (Sandshamn with
+  // the autoliner, steg 142: a ship of 75 m whose middle lay 97 m from the quay, outside a length and a half of 45 m, was let pass
+  // by her nearest point and touched); a mooring buoy's circle by its edge; the water by where it is
+  { const a = [0, 0], b = [1000, 0], own = 1.5 * 45.4, ship = {what:'båt', id:'båt#1080,57', x:1080, z:57, R:Math.hypot(37.5, 7), box:[1, 0, 37.5, 7]};
+    t.ok(!K.planSkip(ship, 1050, 20, a, b, own, 45.4, false), 'et fartøy som ligger stille med midten utenfor halvannen båtlengde fra kaia, er ikke egen kaiplass');
+    t.ok(K.planSkip(Object.assign({}, ship, {x:1040, z:30}), 1030, 10, a, b, own, 45.4, false), 'med midten innenfor er hun det');
+    t.ok(K.planSkip({what:'båt', id:'båt#1080,0', x:1080, z:0, R:20}, 1050, 0, a, b, own, 45.4, false), 'en bøye regnes etter kanten av sirkelen hun svinger på');
+    t.ok(!K.planSkip({what:'grunn', id:'1,2', x:500, z:0}, 500, 0, a, b, own, 45.4, false) && K.planSkip({what:'grunn', id:'1,2', x:500, z:0}, 500, 0, a, b, own, 45.4, true), 'grunt vann midt på veien teller, unntatt når det graves'); }
   // a vessel lying still along a floating dock (Urangsvåg with the skiff, steg 142): shut as her own box widened by the margins, not as
   // a circle round her middle as wide as she is long, which shut the only way past her
   { const seen = new Map(), sk = {L:5.9, B:2.45, T:0.6}, h = {what:'båt', id:'båt#100,100', x:100, z:100, R:Math.hypot(8, 2.5), box:[1, 0, 8, 2.5]}, bl = K.planBlockOf(h, sk, 2, 2, 1, seen), half = sk.B / 2 + 2;

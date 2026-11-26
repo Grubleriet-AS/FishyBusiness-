@@ -281,6 +281,13 @@ function planBlockOf(hit, boat, side, c2, tries, seen){ const key = hit.what + '
     for (let i = 0; i <= k; i++){ const s = -l + 2 * l * i / k; list.push([hit.x + ux * s, hit.z + uz * s, r]); }
     return {x:hit.x, z:hit.z, r:Math.hypot(l, r), list}; }
   return tp ? {x:hit.x, z:hit.z, r:(hit.R || 0) + half + c2 * (1 + tries)} : {x:hit.px != null ? hit.px : hit.x, z:hit.pz != null ? hit.pz : hit.z, r:half / 2 + c2 * (1 + tries)}; }
+// Whether a touch at X, Z (her middle) is her own berth (the bench's rule, tools/autonav/benk.js), a and b the ends ([x, z] m), own
+// how far from them (m), L her length, dig: the water does not count (a channel is looked for). The water by where it is; a vessel
+// lying still (her box) by her middle, as the observer counts her (Sandshamn with the autoliner, steg 142: a ship of 75 m whose middle
+// lay 97 m from the quay was let pass by her nearest point, and touched); a boat on a mooring buoy by the edge of the circle she swings
+// on; a touch with a place of its own (the land's, by its id) where it is; a thing, whose touch is its middle, by where she is
+function planSkip(h, X, Z, a, b, own, L, dig){ const nearE = (x, z, r) => Math.hypot(x - a[0], z - a[1]) < r || Math.hypot(x - b[0], z - b[1]) < r;
+  return h.what === 'grunn' ? dig || nearE(h.x, h.z, own) : h.box ? nearE(h.x, h.z, own) : h.R ? nearE(h.x, h.z, own + h.R) : planTouchP(h) ? nearE(h.x, h.z, own) : nearE(X, Z, 0.9 * L); }
 // The boat as the planner asks the map for her. Till the bridges have their real clearances (steg 141b, Jonas' choice 6) her height
 // under them is counted as the game counts it today (11b-obstacles.js obsAir and obsBridge): 0.35 of her length (2 to 16 m), held
 // against the deck's height by the old rule with no tide. The map has two things ahead of that: the model's own height with its
@@ -312,11 +319,11 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
   const send = msg => new Promise(res => { const id = ++PLAN.id; PLAN.wait.set(id, res); w.postMessage(Object.assign({id}, msg)); });
   // Her own berth (the bench's rule, tools/autonav/benk.js: a touch within a length and a half of the ends is the quay she lies at). The land's touch is where it is; a thing's is the thing's middle, which says nothing of where along a
   // long quay she is, so a thing counts by where she herself is (within 0.9 of her length: her far end then within 1.4), and a vessel
-  // lying there by her nearest point
-  const touchP = planTouchP, seen = new Map(), nearE = (x, z, r) => Math.hypot(x - ax, z - az) < r || Math.hypot(x - bx, z - bz) < r;
+  // lying there by her middle (planSkip)
+  const seen = new Map();
   // (the water under her counts the same way, by where it is: a naust's slip is dry under her for some metres. The bench has the same
   // rule for what its observer sees of the water; what the game itself calls a grounding always counts there)
-  const skip = (h, X, Z) => h.what === 'grunn' ? !!(opt && opt.dig) || nearE(h.x, h.z, own) : h.R ? nearE(h.x, h.z, own + h.R) : touchP(h) ? nearE(h.x, h.z, own) : nearE(X, Z, 0.9 * boat.L);
+  const skip = (h, X, Z) => planSkip(h, X, Z, [ax, az], [bx, bz], own, boat.L, !!(opt && opt.dig));
   // (the worker keeps the tiles it was given: thrown when the map has changed since, more of it come in or a channel dug, and when they are many)
   { const fv = farbFieldVer(); if (PLAN.ver !== fv || PLAN.sent > 300){ await send({op:'reset'}); PLAN.ver = fv; PLAN.sent = 0; } }
   let r = await send({op:'start', J}), tiles = 0, tries = 0, exp = 0, boatShut = null; const shut = [];   // (shut: what the check on the geometry found and shut, for the answer)
