@@ -92,8 +92,8 @@ async def main():
         r = await pg.evaluate("""(()=>{ const R = {}, b = S.boat;
           R.ladder = Object.entries(VESSELS).map(([k, V]) => [k, V.len, V.cls, !!V.lock]);
           R.offers = LIC_OFFERS.map(O => [O.id, O.ves, VESSELS[O.ves].len, Math.round((VESSELS[O.ves].price + licValue(O)) / 1000)]);
-          // the 7.9 m snekke is in the open group's under-8 m quota group: the year's maximum quota for it (4.0 t in 2026)
-          const t0 = b.type; b.type = 'snekke'; applyVessel(); R.grp = [lenGroup(), codLimits().max, Math.round((yearQuota(yearH(S.t / 60)).open.max[0] + openMaxAdd(S.t / 60)) * 1000)]; b.type = 'kyst21'; applyVessel();
+          // the 7.9 m snekke is in the open group's under-8 m quota group: the year's maximum quota for it (with the additions of KV1)
+          const t0 = b.type; b.type = 'snekke'; applyVessel(); R.grp = [lenGroup(), codLimits().max, Math.round((yearQuota(yearH(S.t / 60)).open.max[0] + openMaxAdd(S.t / 60)) * 1000) + openAdd(S.t / 60).sum]; b.type = 'kyst21'; applyVessel();
           const inside = GROUNDS.find(g => insideFjord(g.p) && depthF(g.p) > 20).p; b.status = 'fishing'; b.port = null; b.pos = {...inside}; b.gop = null; b.rig = 'juksa'; b.gear = true; b.fishUntil = S.t + 120; S.hold = []; S.crew = [];
           for (let i = 0; i < 60; i++) step(); R.fjord = {kg:Math.round(holdTotal()), warn:S.log.slice(-40).some(e => /fjordlinj/.test(e.no))};
           b.type = t0; applyVessel(); b.status = 'idle'; return R; })()""")

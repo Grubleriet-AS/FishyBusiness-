@@ -6557,3 +6557,17 @@
 2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	quotatest	OK	8	lite	samtidig	
 2026-11-25 12:01	ccr-b7b2f394-jdf54x	be7779a+	trip2	OK	13	lite	samtidig	
 2026-11-26 08:29	ccr-e101e6f0-y7fg6x	b54c198+	kvfulltest	FEIL	9	lite	samtidig	FEIL kvotekortet viser § 21, kystfiskeordningen, alderstillegget, summen og at ingenting er igjen
+2026-11-26 08:29	ccr-e101e6f0-y7fg6x	9225a99	trinntest	OK	19	lite	samtidig	
+2026-11-26 08:30	ccr-e101e6f0-y7fg6x	9225a99	romtest	OK	23	lite	samtidig	
+2026-11-26 08:30	ccr-e101e6f0-y7fg6x	9225a99	kvotemaal	OK	28	lite	samtidig	
+2026-11-26 08:30	ccr-e101e6f0-y7fg6x	9225a99	quotatest	OK	7	lite	samtidig	
+2026-11-26 08:30	ccr-e101e6f0-y7fg6x	9225a99	vesseltest	FEIL	10	lite	samtidig	FEIL the 7.9 m snekke fishes in the open group under 8 m, with the year's maximum quota for that group [0, 7300, 5100]
+2026-11-26 08:30	ccr-e101e6f0-y7fg6x	9225a99	megletest	OK	26	lite	samtidig	
+2026-11-26 08:30	ccr-e101e6f0-y7fg6x	9225a99	kvotemarkedtest	OK	29	lite	samtidig	
+2026-11-26 08:31	ccr-e101e6f0-y7fg6x	9225a99	shoptest	OK	15	lite	samtidig	
+2026-11-26 08:31	ccr-e101e6f0-y7fg6x	9225a99	hbtest	OK	17	lite	samtidig	
+2026-11-26 08:32	ccr-e101e6f0-y7fg6x	9225a99	docktest	OK	68	lite	samtidig	
+2026-11-26 08:32	ccr-e101e6f0-y7fg6x	9225a99	uishots	OK	90	lite	samtidig	
+2026-11-26 08:32	ccr-e101e6f0-y7fg6x	9225a99	admintest	OK	15	lite	samtidig	
+2026-11-26 08:33	ccr-e101e6f0-y7fg6x	9225a99+	kvfulltest	OK	9	lite	samtidig	
+2026-11-26 08:33	ccr-e101e6f0-y7fg6x	9225a99+	vesseltest	OK	9	lite	samtidig	
