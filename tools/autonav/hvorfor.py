@@ -31,7 +31,7 @@ WALK = r"""async (pts) => { const ty = S.boat.type, a = BK.from, boat = planBoat
   const optM = {m:side, keel:FARB.keel, squat:0, boats:true}, opt0 = {m:0, keel:0, squat:0, boats:true};
   for (let i = 0; i + 1 < P.length; i++){ const dx = P[i + 1][0] - P[i][0], dz = P[i + 1][1] - P[i][1], L = Math.hypot(dx, dz), psi = Math.atan2(dx, -dz), st = Math.max(1, Math.ceil(L / 2));
     for (let k = 0; k < st; k++){ const x = P[i][0] + dx * k / st, z = P[i][1] + dz * k / st, sAt = s + L * k / st, f = farbFieldAt(x, z, 2), end = Math.min(Math.hypot(x - e0[0], z - e0[1]), Math.hypot(x - e1[0], z - e1[1]));
-      const fs = !f ? 'ingen flis' : f.z !== f.z ? 'ukjent' : f.z * 10 < J.needZ ? (f.d > 0 ? 'grunt' : 'land') : f.u * 4 < J.needU ? 'bru' : f.d / F.q < J.needD2 ? (f.d === 0 ? 'land' : 'trangt') : 'ok';
+      const fs = !f ? 'ingen flis' : f.z !== f.z ? 'ukjent' : f.z * F.zs < J.needZ ? (f.d > 0 ? 'grunt' : 'land') : f.u * 4 < J.needU ? 'bru' : f.d / F.q < J.needD2 ? (f.d === 0 ? 'land' : 'trangt') : 'ok';
       let g = null, g0 = null; try { g = farbPose(x, z, psi, boat, H, optM); if (g) g0 = farbPose(x, z, psi, boat, H, opt0); } catch (e){ g = {what:'feil', id:String(e).slice(0, 40)}; }
       const gs = g ? g.what + ':' + g.id + (g0 ? ' (rører)' : ' (margin)') : 'fri', key = fs + ' | ' + gs; n++;
       if (fs === 'ok' && !g){ cur = null; continue; }
@@ -40,7 +40,7 @@ WALK = r"""async (pts) => { const ty = S.boat.type, a = BK.from, boat = planBoat
       cur.s1 = sAt; cur.n++; cur.end = Math.min(cur.end, Math.round(end)); if (f){ if (f.d < cur.fd) cur.fd = f.d; if (f.z < cur.fz) cur.fz = f.z; if (f.u < cur.fu) cur.fu = f.u; } if (raw < cur.raw) cur.raw = raw; if (dep < cur.dep) cur.dep = dep; if (g && g.keel != null) cur.keel = Math.min(cur.keel == null ? 9 : cur.keel, g.keel); }
     s += L; }
   const fx = v => v === Infinity ? null : +v.toFixed(2);
-  return {len:Math.round(s), n, boat:{L:boat.L, B:boat.B, T:boat.T, air:+boat.air.toFixed(2)}, need:{clr:+J.clr.toFixed(2), d2:+(J.needD2 * F.q).toFixed(2), z:J.needZ / 10, zf:J.needZf / 10, u:J.needU * 0.25, endR:+J.endR.toFixed(1), own:+own.toFixed(1)},
+  return {len:Math.round(s), n, boat:{L:boat.L, B:boat.B, T:boat.T, air:+boat.air.toFixed(2)}, need:{clr:+J.clr.toFixed(2), d2:+(J.needD2 * F.q).toFixed(2), z:J.needZ / F.zs, zf:J.needZf / F.zs, u:J.needU * 0.25, endR:+J.endR.toFixed(1), own:+own.toFixed(1)},
     runs:runs.map(r => ({key:r.key, s0:r.s0, s1:Math.round(r.s1), at:r.at, end:r.end, fd:fx(r.fd), fz:fx(r.fz), fu:fx(r.fu), raw:fx(r.raw), dep:fx(r.dep), keel:r.keel == null ? null : +r.keel.toFixed(2)}))}; }"""
 
 # a picture of the field round a place ([X, Z] m, R m to each side) as the planner's last search saw it for her: each 2 m cell open
@@ -52,7 +52,7 @@ PIC = r"""async ([at, R, pts, shut, path]) => { const J = PLAN.J, F = FARB.F, c 
   await farbNeed([{x:at[0] / 1000, y:at[1] / 1000}], R / 1000 + 0.2); await farbFieldNeed(x0, z0, x0 + n * c, z0 + n * c, 2);
   const cv = document.createElement('canvas'); cv.width = cv.height = n * px; const g = cv.getContext('2d');
   for (let j = 0; j < n; j++) for (let i = 0; i < n; i++){ const x = x0 + (i + 0.5) * c, z = z0 + (j + 0.5) * c, f = farbFieldAt(x, z, 2); let col = '#f00';
-    if (f && f.z === f.z){ if (f.d === 0) col = '#333'; else if (f.z * 10 < J.needZ){ let raw = 0; try { raw = farbDepthRaw(x, z); } catch (e){} col = raw * 10 >= J.needZ ? '#e8d44d' : '#9a6a2f'; } else if (f.u * 4 < J.needU) col = '#a050d0'; else if (f.d / F.q < J.needD2) col = '#f09030'; else col = f.z * 10 < J.needZf ? '#bfe3f5' : '#6ab7e6'; }
+    if (f && f.z === f.z){ if (f.d === 0) col = '#333'; else if (f.z * F.zs < J.needZ){ let raw = 0; try { raw = farbDepthRaw(x, z); } catch (e){} col = raw * F.zs >= J.needZ ? '#e8d44d' : '#9a6a2f'; } else if (f.u * 4 < J.needU) col = '#a050d0'; else if (f.d / F.q < J.needD2) col = '#f09030'; else col = f.z * F.zs < J.needZf ? '#bfe3f5' : '#6ab7e6'; }
     g.fillStyle = col; g.fillRect(i * px, j * px, px, px); }
   const X = x => (x - x0) / c * px, Z = z => (z - z0) / c * px;
   if (pts){ g.strokeStyle = '#0a0'; g.lineWidth = 2; g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(X(p[0] * 1000), Z(p[1] * 1000)) : g.moveTo(X(p[0] * 1000), Z(p[1] * 1000))); g.stroke(); }
@@ -61,7 +61,7 @@ PIC = r"""async ([at, R, pts, shut, path]) => { const J = PLAN.J, F = FARB.F, c 
   try { g.strokeStyle = '#f0f'; for (const o of fixBoats(at[0], at[1])){ g.beginPath(); g.arc(X(o.x), Z(o.z), Math.max(2, (o.r || Math.hypot(o.l || 3, o.w || 1)) / c * px), 0, 7); g.stroke(); } } catch (e){}
   g.fillStyle = '#f00'; for (const s of shut || []){ const m = /@(-?\d+),(-?\d+)/.exec(s); if (m){ g.beginPath(); g.arc(X(+m[1]), Z(+m[2]), 3, 0, 7); g.fill(); } }
   g.strokeStyle = '#f00'; g.lineWidth = 2; g.beginPath(); g.moveTo(X(at[0]) - 8, Z(at[1]) - 8); g.lineTo(X(at[0]) + 8, Z(at[1]) + 8); g.moveTo(X(at[0]) + 8, Z(at[1]) - 8); g.lineTo(X(at[0]) - 8, Z(at[1]) + 8); g.stroke();
-  g.fillStyle = '#000'; g.font = '13px sans-serif'; g.fillText(S.boat.type + '  ' + (2 * R) + ' m  trenger z ' + J.needZ / 10 + ' d ' + (J.needD2 * F.q) + ' u ' + J.needU * 0.25, 6, 14);
+  g.fillStyle = '#000'; g.font = '13px sans-serif'; g.fillText(S.boat.type + '  ' + (2 * R) + ' m  trenger z ' + J.needZ / F.zs + ' d ' + (J.needD2 * F.q) + ' u ' + J.needU * 0.25, 6, 14);
   return cv.toDataURL('image/png'); }"""
 
 
