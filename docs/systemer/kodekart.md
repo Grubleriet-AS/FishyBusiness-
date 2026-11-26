@@ -1284,7 +1284,7 @@ Driftsplan 2: the day is the plan (26.10.2026, docs/planer/driftsplan-2/02-desig
   - 429 `p2Kits()`
   - 430 `plan2Check(o, st)`
 
-## `src/js/core/06h-plan2-engine.js` (627 linjer)
+## `src/js/core/06h-plan2-engine.js` (635 linjer)
 
 Driftsplan 2, part 2: the engine (26.10.2026, docs/planer/driftsplan-2/02-design.md chapter 2). It follows the day that planDay
 
@@ -1297,48 +1297,48 @@ Driftsplan 2, part 2: the engine (26.10.2026, docs/planer/driftsplan-2/02-design
   - 37 `plan2Building(o)`
 - **42** making the plan: the plant, the anchorages, the legs and the shelter ports. Async; cb(err) when done
   - 43 `plan2Make(o, cb)`
-- **94** what the plan says, waits for and stops at
-  - 99 `plan2ActWhy(w, why)`
-  - 101 `plan2Abort(o)`
-  - 104 `plan2Wait(o, k, no, en, until, open)`
-  - 110 `plan2Stop(o, k, no, en, fix)`
-  - 120 `plan2Pause(o)`
-  - 129 `plan2Start(o)`
-  - 134 `plan2Resume(o)`
-  - 136 `plan2CrewWhy(o, work)`
-  - 149 `plan2Wx()`
-  - 154 `plan2WxAhead(o, H, dur, pts, L)`
-  - 163 `plan2WxWait(o, wx, H)`
-  - 170 `plan2WxFirstOk(o, H, dur, pts)`
-- **171** shelter without a search (part 3): back the way she came to the last place or port she passed, and from a place the kept leg to its
-  - 174 `plan2Shelter(W, hsOver)`
-  - 201 `plan2WxHome(o, H, wx)`
-  - 217 `plan2Cut(o, why)`
-  - 229 `plan2RulesWhy(o, H, placesOnly)`
-  - 236 `plan2RulesOpenAt(o, H)`
-- **237** the engine: each minute, on each vessel (05-vessels.js calls it)
-  - 239 `plan2Step(H)`
-  - 255 `plan2Decide(o, H)`
-  - 286 `plan2MeRest(o, H)`
-  - 298 `plan2SkipGiven()`
-  - 308 `p2DayEnd(d)`
-  - 310 `plan2Boundary(o, H)`
-  - 329 `plan2Spent(o, H)`
-  - 338 `plan2NewDay(o, H)`
-  - 355 `plan2CostDay(o, r)`
-  - 358 `plan2Caught(o, tr)`
-  - 359 `plan2StatDay(o, d)`
-- **360** a trip: the steps from i0 to the next port call, as waypoints on the kept legs
-  - 361 `plan2Trip(o, D, i0)`
-  - 448 `plan2Go(o, H, i0)`
-  - 497 `plan2Sea(o, H)`
-  - 546 `plan2WorkStop(o, H, W, hs)`
-  - 557 `plan2WorkWait(o, H, wx, pts, port)`
-  - 568 `plan2Landed(pid, k)`
-  - 577 `plan2Report(pid, kg, total, landed)`
-  - 589 `plan2Bait(o, s)`
-  - 607 `plan2Egn(o, s)`
-  - 614 `plan2WatchTick(H)`
+- **102** what the plan says, waits for and stops at
+  - 107 `plan2ActWhy(w, why)`
+  - 109 `plan2Abort(o)`
+  - 112 `plan2Wait(o, k, no, en, until, open)`
+  - 118 `plan2Stop(o, k, no, en, fix)`
+  - 128 `plan2Pause(o)`
+  - 137 `plan2Start(o)`
+  - 142 `plan2Resume(o)`
+  - 144 `plan2CrewWhy(o, work)`
+  - 157 `plan2Wx()`
+  - 162 `plan2WxAhead(o, H, dur, pts, L)`
+  - 171 `plan2WxWait(o, wx, H)`
+  - 178 `plan2WxFirstOk(o, H, dur, pts)`
+- **179** shelter without a search (part 3): back the way she came to the last place or port she passed, and from a place the kept leg to its
+  - 182 `plan2Shelter(W, hsOver)`
+  - 209 `plan2WxHome(o, H, wx)`
+  - 225 `plan2Cut(o, why)`
+  - 237 `plan2RulesWhy(o, H, placesOnly)`
+  - 244 `plan2RulesOpenAt(o, H)`
+- **245** the engine: each minute, on each vessel (05-vessels.js calls it)
+  - 247 `plan2Step(H)`
+  - 263 `plan2Decide(o, H)`
+  - 294 `plan2MeRest(o, H)`
+  - 306 `plan2SkipGiven()`
+  - 316 `p2DayEnd(d)`
+  - 318 `plan2Boundary(o, H)`
+  - 337 `plan2Spent(o, H)`
+  - 346 `plan2NewDay(o, H)`
+  - 363 `plan2CostDay(o, r)`
+  - 366 `plan2Caught(o, tr)`
+  - 367 `plan2StatDay(o, d)`
+- **368** a trip: the steps from i0 to the next port call, as waypoints on the kept legs
+  - 369 `plan2Trip(o, D, i0)`
+  - 456 `plan2Go(o, H, i0)`
+  - 505 `plan2Sea(o, H)`
+  - 554 `plan2WorkStop(o, H, W, hs)`
+  - 565 `plan2WorkWait(o, H, wx, pts, port)`
+  - 576 `plan2Landed(pid, k)`
+  - 585 `plan2Report(pid, kg, total, landed)`
+  - 597 `plan2Bait(o, s)`
+  - 615 `plan2Egn(o, s)`
+  - 622 `plan2WatchTick(H)`
 
 ## `src/js/core/06i-plan2-sno.js` (235 linjer)
 
