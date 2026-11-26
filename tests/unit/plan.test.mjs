@@ -144,6 +144,32 @@ export default function (t){
     t.ok(b2.x === 130 && b2.z === 104 && b2.r >= 4, 'kommer samme berøring igjen, stenges det der hun sto', b2);
     const b3 = K.planBlockOf({what:'kai', id:'kai#5', x:50, z:50, px:60, pz:50}, bt, 2, 2, 1, seen); t.ok(b3.x === 60 && b3.z === 50, 'en ting stenges der hun sto (berøringen er tingens midte)', b3); }
 
+  // The words for it: a shoal across the whole way with a hull wide enough to ask the water a cell to the side (rb2, rb4: every boat
+  // but the narrowest) is «for grunt», not «brua er for lav». Where the water under her side shut a cell, the search for the cause
+  // took it for a deck (it was the one thing it did not ask), and Træna, Lindesnes and Øksfjord were told of a bridge that is not there
+  // (a slot of deep water 10 m wide through the shoal: deep enough along its middle, too shallow under her side)
+  { W = world(box(), (x, z) => Math.abs(x - 250) < 20 && Math.abs(z - 100) >= 5 ? 15 : 200); r = solve(W, {a:[100, 100], b:[400, 100], rb2:1, rb4:1, fineR:400});
+    t.eq(r.cause, 'grunt', 'ei renne som er dyp nok i midten, men for grunn under siden hennes: grunnen er at det er for grunt, ikke en bru', [r.why, r.cause]); }
+  // ---- the dredged channels (Jonas' choice 5, «Tilpass havna»): where to dig ----
+  // The search with J.dig: water too shallow for her does not shut a cell, it costs J.dig times as much, so the way goes where the
+  // least is to be dug: through a deep gap where there is one near, and straight over the shoal where there is none
+  { const band = hull => (x, z) => Math.abs(x - 250) < 20 && !(hull && Math.abs(z - 220) < 30) ? 15 : 200;
+    W = world(box(), band(false)); r = solve(W, {a:[100, 100], b:[400, 100]}); t.eq(r.cause, 'grunt', 'ei grunne på tvers av hele veien: ingen vei');
+    r = solve(W, {a:[100, 100], b:[400, 100], dig:8}); t.ok(r.path && len(r.path) < 305, 'med J.dig går veien rett over grunna (der skal det graves)', r.path ? len(r.path) : [r.why, r.cause]);
+    W = world(box(), band(true)); r = solve(W, {a:[100, 100], b:[400, 100], dig:8});
+    t.ok(r.path && r.path.some(p => Math.abs(p[0] - 250) < 60 && Math.abs(p[1] - 220) < 30), 'og gjennom det dype løpet der det finnes et like ved: det graves ikke mer enn det må', r.path && r.path.map(p => p.map(Math.round)));
+    W = world(box((x, z) => Math.abs(x - 250) < 4), () => 200); r = solve(W, {a:[100, 100], b:[400, 100], dig:8}); t.eq(r.cause, 'land', 'land graves det ikke gjennom'); }
+  // The channel from a way and where along it the water is too shallow (planDigRuns): the shallow runs, joined where they lie
+  // close, reaching a little past each end, as straight pieces with the channel's half width and depth
+  { const line = []; for (let x = 0; x <= 200; x += 2) line.push([x, 50]); const sh = line.map(p => (p[0] >= 80 && p[0] <= 120 ? 1 : 0));
+    let G = K.planDigRuns(line, sh, {ext:10, gap:12, r:8, d:4.1});
+    t.ok(G.length === 1 && Math.abs(G[0][0] - 70) < 0.01 && Math.abs(G[0][2] - 130) < 0.01 && G[0][1] === 50 && G[0][4] === 8 && G[0][5] === 4.1, 'ei grunne fra 80 til 120 m langs en rett vei: én renne fra 70 til 130 m, med bredden og dybden', G);
+    const sh2 = line.map(p => ((p[0] >= 40 && p[0] <= 60) || (p[0] >= 70 && p[0] <= 90) || p[0] >= 190 ? 1 : 0)); G = K.planDigRuns(line, sh2, {ext:10, gap:12, r:8, d:4.1});
+    t.ok(G.length === 2 && Math.abs(G[0][0] - 30) < 0.01 && Math.abs(G[0][2] - 100) < 0.01 && Math.abs(G[1][0] - 180) < 0.01 && Math.abs(G[1][2] - 200) < 0.01, 'to grunner 10 m fra hverandre blir én renne, og en ved veiens ende stopper der', G);
+    const bend = []; for (let x = 0; x <= 100; x += 2) bend.push([x, 0]); for (let z = 2; z <= 100; z += 2) bend.push([100, z]);
+    G = K.planDigRuns(bend, bend.map(() => 1), {ext:10, gap:12, r:8, d:4.1}); t.ok(G.length === 2 && G[0][2] === 100 && G[0][3] === 0 && G[1][0] === 100 && G[1][3] === 100, 'rundt et hjørne: to rette stykker som møtes i hjørnet', G);
+    t.eq(K.planDigRuns(line, line.map(() => 0), {ext:10, gap:12, r:8, d:4.1}).length, 0, 'ingen grunne: ingen renne'); }
+
   // the words
   const S0 = K.get('S'); K.set('S', K.newState());
   try { const w = K.planWhy({why:'ingen vei', cause:'bru', at:[500000, 900000]});

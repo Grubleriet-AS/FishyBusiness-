@@ -290,5 +290,10 @@ export default function (t){
     t.ok(zS < 254 && fr.z[5 * 60 + 25] === zS, 'feltet: 20 m til siden for naustet er fjæra som før', [zS, fr.z[5 * 60 + 25]]);
     FARB.w = Object.assign(shore(0, 0), {site:(x, z) => Math.abs(z - far.z) < 12}); t.near(K.farbDepth(far.x + 9, far.z), 30, 1e-9, 'geometrien: i naustets grop gjelder kartets dybde, ikke fjæra');
     t.near(K.farbDepth(far.x + 9, far.z + 20), 1, 1e-9, 'og utenfor gropa er fjæra som før');
+    // the dredged channels by the place: two keys far from each other, each found where it lies and nowhere else, and one taken away
+    FARB.w = shore(0, 0); K.farbDig('a', [{ax:far.x + 2, az:far.z - 50, bx:far.x + 2, bz:far.z + 50, r:6, d:4}]); K.farbDig('b', [{ax:far.x + 2, az:far.z + 5000, bx:far.x + 2, bz:far.z + 5600, r:6, d:5}]);
+    t.eq(K.farbDepth(far.x + 3, far.z) + '|' + K.farbDepth(far.x + 3, far.z + 5300) + '|' + K.farbDepth(far.x + 3, far.z + 2000), '4|5|-1', 'to renner langt fra hverandre: hver gir sin dybde der den ligger, og fjæra står imellom');
+    K.farbDig('a', null); t.eq(K.farbDepth(far.x + 3, far.z) + '|' + K.farbDepth(far.x + 3, far.z + 5590), '-1|5', 'den ene tatt bort: den andre står, også ved enden 590 m fra starten');
+    K.farbDig('b', null); t.ok(K.farbDug().length === K.get('RENNER_N'), 'og tatt bort begge: bare rennene fra datafila er igjen', [K.farbDug().length, K.get('RENNER_N')]);
   } finally { FARB.w = null; FARB.test = null; K.farbDig('test', null); }
 }

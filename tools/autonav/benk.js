@@ -281,15 +281,18 @@
       for (const o of things) BK.raster(G, hard, o);
       const d2 = BK.edt(hard, W, Hh), need = ((BOAT.beam || 3) / 2 + BK.FAS.side + cell / 2) / cell, need2 = need * need, deep = new Uint8Array(N), lim = BOAT.draft + BK.FAS.keel;
       const cellOf = p => { const i = Math.floor((p.x * 1000 - X0) / cell), j = Math.floor((p.y * 1000 - Z0) / cell); return i >= 0 && j >= 0 && i < W && j < Hh ? j * W + i : -1; };
-      const re = Math.max(1.5 * L, 25) / cell, ends = [a, z].map(p => [(p.x * 1000 - X0) / cell - 0.5, (p.y * 1000 - Z0) / cell - 0.5]);
+      // (an end that is a point at sea has no berth: she must float where she is put, with her clearance. Till steg 142 the water was
+      // not asked within a length and a half of such an end either, and a 75 m ship «had a way» out of a sound 3 m deep: sund-seloy)
+      const sea = [BK.A && BK.A.kind === 'll', BK.Z && BK.Z.kind === 'll' && !(BK.R && BK.R.nt)];
+      const re = Math.max(1.5 * L, 25) / cell, ends = [a, z].map(p => [(p.x * 1000 - X0) / cell - 0.5, (p.y * 1000 - Z0) / cell - 0.5]).filter((e, i) => !sea[i]);
       const pass = k => { if (hard[k]) return false; const i = k % W, j = (k - i) / W;
         for (const e of ends) if ((i - e[0]) * (i - e[0]) + (j - e[1]) * (j - e[1]) < re * re) return true;   // (by her berth: the quay beside her is hers)
         if (d2[k] < need2) return false;
         let v = deep[k]; if (!v){ const p = km(X0 + (i + 0.5) * cell, Z0 + (j + 0.5) * cell); let dd = 0; try { dd = depthNav(p) + tideCD(H, p); } catch (e){} v = deep[k] = dd >= lim ? 1 : 2; } return v === 1; };
       // each end's cell, or the nearest one she may be in within her berth's reach
-      const snap = p => { const k0 = cellOf(p); if (k0 < 0) return -1; if (pass(k0)) return k0; const i0 = k0 % W, j0 = (k0 - i0) / W, R = Math.ceil(re); let best = -1, bd = 1e9;
+      const snap = (p, atSea) => { const k0 = cellOf(p); if (k0 < 0) return -1; if (pass(k0)) return k0; const i0 = k0 % W, j0 = (k0 - i0) / W, R = atSea ? 2 : Math.ceil(re); let best = -1, bd = 1e9;
         for (let j = Math.max(0, j0 - R); j <= Math.min(Hh - 1, j0 + R); j++) for (let i = Math.max(0, i0 - R); i <= Math.min(W - 1, i0 + R); i++){ const dd = (i - i0) * (i - i0) + (j - j0) * (j - j0); if (dd < bd && pass(j * W + i)){ bd = dd; best = j * W + i; } } return best; };
-      const s = snap(a), t = snap(z); if (s < 0 || t < 0) return {why:(s < 0 ? 'the start' : 'the end') + ' is not on water she may be in', cell};
+      const s = snap(a, sea[0]), t = snap(z, sea[1]); if (s < 0 || t < 0) return {why:(s < 0 ? 'the start' : 'the end') + ' is not on water she may be in', cell};
       const g = new Float32Array(N).fill(Infinity), par = new Int32Array(N).fill(-1), done = new Uint8Array(N), ti = t % W, tj = (t - ti) / W, SQ = Math.SQRT2;
       const h = k => { const dx = Math.abs(k % W - ti), dz = Math.abs(Math.floor(k / W) - tj); return dx > dz ? dx + (SQ - 1) * dz : dz + (SQ - 1) * dx; };
       // (a binary heap of [f, cell])

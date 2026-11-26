@@ -26,7 +26,7 @@ const FARB = {C:250, cap:100, airOver:1, keel:0.5, side:2, eps:0.03, step:0.3, s
   molo:{half:8, run:1.4, foot:6},
   // her waterline, the starboard half from the bow aft: fractions of L forward and of B abeam (a rounded bow, a square stern)
   hullF:[[0.5, 0], [0.44, 0.27], [0.33, 0.45], [0.2, 0.5], [-0.5, 0.5]],
-  lay:{stat:null, statN:-1, unit:null, unitN:-1, site:null, siteKey:null}, til:new WeakMap(), nTil:0, mk:new Map(), rk:new Map(), dug:new Map(), dugL:[], keelP:new Map(),
+  lay:{stat:null, statN:-1, unit:null, unitN:-1, site:null, siteKey:null}, til:new WeakMap(), nTil:0, mk:new Map(), rk:new Map(), dug:new Map(), dugL:[], dugM:new Map(), keelP:new Map(),
   kn:new Map(), knV:'', buf:[], cs:[], pk:new WeakMap(), tp:new Map(), rkm:new Map(), rkV:-1, ovr:new Map(), ovd:new Set(), pz:null, q:0, mole:0, test:null, w:null, n:{pose:0, near:0, ms:0}};
 const FARB_UNK = {d:NaN, what:'ukjent', id:'', x:0, z:0, o:null}, FARB_NONE = [];
 // (the 3D view's own generator for a rock's shape, view3d/00-head.js rng)
@@ -365,7 +365,11 @@ const farbTide = (H, x, z) => FARB.w ? FARB.w.tide(H, x, z) : tideCD(H, {x:x / 1
 // A channel dredged for the boats a place takes (Jonas' choice 5, 23.11.2026: «Tilpass havna»): pieces {ax, az, bx, bz, r (half its
 // width), d (its depth at chart datum)} under a key (the place's id); null takes the key's away. Inside one the water is at least
 // that deep, the foreshore too. (What the map digs, the 3D view must dig: 141b and F2.)
-function farbDig(key, segs){ if (segs && segs.length) FARB.dug.set(key, segs); else FARB.dug.delete(key); FARB.dugL = [].concat(...FARB.dug.values()); if (FARB.F) FARB.F.dugV++; }
+// (kept by the cell of FARB.C m each piece reaches, FARB.dugM: the depth is asked at every point of her keel, and the coast's
+// channels are some hundreds of pieces. farbDug: all of them, for the field's job and the bench)
+function farbDig(key, segs){ if (segs && segs.length) FARB.dug.set(key, segs); else FARB.dug.delete(key); FARB.dugL = [].concat(...FARB.dug.values()); if (FARB.F) FARB.F.dugV++;
+  const M = FARB.dugM = new Map(), C = FARB.C; for (const s of FARB.dugL) for (let j = Math.floor((Math.min(s.az, s.bz) - s.r) / C); j <= Math.floor((Math.max(s.az, s.bz) + s.r) / C); j++) for (let i = Math.floor((Math.min(s.ax, s.bx) - s.r) / C); i <= Math.floor((Math.max(s.ax, s.bx) + s.r) / C); i++){ const k = i * 1048576 + j, a = M.get(k); if (a) a.push(s); else M.set(k, [s]); } }
+const farbDug = () => FARB.dugL;
 // Whether x, z lies in the pit the 3D view digs in front of Father's naust's or a rorbu's quay (view3d/03-berths-naust.js siteTerr:
 // the bank in front of the face cut down to the berth's depth, «also where the 3D shore stood over the sea there»): the pocket the
 // simulation dredges (07-harbours.js sitePockE: 12 m each way along the face, 14 m out and as far as the quay is built to her),
@@ -380,7 +384,8 @@ function farbSitePit(x, z){ if (FARB.w) return FARB.w.site ? !!FARB.w.site(x, z)
 function farbDepth(x, z, off){ if (FARB.w && FARB.w.depth) return FARB.w.depth(x, z);
   let d = farbDepthRaw(x, z); if (d !== d) return NaN;
   if (!off && !(FARB.w ? FARB.w.pocket(x, z) : inHarbourPocket({x:x / 1000, y:z / 1000}))){ const g = farbShoreG(x, z); if (g !== g) return NaN; if (g != null && !farbSitePit(x, z)) d = Math.min(d, -g - farbZC(x, z)); }
-  for (const s of FARB.dugL) if (s.d > d && farbSegD(x, z, s.ax, s.az, s.bx, s.bz) < s.r) d = s.d;
+  const G = FARB.dugM.size ? FARB.dugM.get(Math.floor(x / FARB.C) * 1048576 + Math.floor(z / FARB.C)) : null;
+  if (G) for (const s of G) if (s.d > d && farbSegD(x, z, s.ax, s.az, s.bx, s.bz) < s.r) d = s.d;
   return d; }
 // the water under her keel at x, z now (m; under 0 she is on the bottom): squat is hers at the speed she has, when the caller knows it
 function farbKeel(x, z, boat, H, squat, off){ return farbDepth(x, z, off) + farbTide(H, x, z) - boat.T - (squat || 0); }
@@ -759,3 +764,10 @@ async function farbFieldNeed(x0, z0, x1, z1, cell = 2, opt){ const F = FARB.F, T
 // the cell; NaN not known), u (m, the lowest deck's underside near; Infinity none)}; null where the tile is not built or has no answer
 function farbFieldAt(x, z, cell = 2){ const F = FARB.F, Tf = F.N * cell, Y = farbFieldTile(cell, Math.floor(x / Tf), Math.floor(z / Tf)); if (!Y || Y.none) return null;
   const k = Math.floor((z - Y.z0) / cell) * F.N + Math.floor((x - Y.x0) / cell), zz = Y.z[k], uu = Y.u[k]; return {d:Y.d[k] * F.q, z:zz === 255 ? NaN : zz / F.zs, u:uu === 255 ? Infinity : uu * 0.25}; }
+// ---- the channels dredged along the coast (Jonas' choice 5, 23.11.2026: «Tilpass havna») ----
+// src/data/renner.json, made by tools/autonav/renner.py from the planner's own way with the water left out (17c-plan.js planDig):
+// {v, renner:{key:{for (the boat it is dug for), navn, segs:[[ax, az, bx, bz, r, d] ...]}}}, metres on the grid, d at chart datum.
+// Dug into the map as it is read. The 3D view does not dig them yet (docs/spill-dette/142.md): nothing of the game sails by this map
+const RENNER = /*@include(data/renner.json)*/null;
+if (RENNER && RENNER.renner) for (const k of Object.keys(RENNER.renner)) farbDig('renne:' + k, RENNER.renner[k].segs.map(q => ({ax:q[0], az:q[1], bx:q[2], bz:q[3], r:q[4], d:q[5]})));
+const RENNER_N = FARB.dugL.length;
