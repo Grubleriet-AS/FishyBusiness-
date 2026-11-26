@@ -240,7 +240,7 @@
     // A grid of 5 m cells over the window round the stretch (10 m and more when the window is big). A cell is hard when its middle is
     // land or inside a thing (her own rocks and low decks with them); she may be where the nearest hard cell is at least half her
     // beam and FAS.side m away, with FAS.keel m under her keel at chart datum, but for the cells by her own berth at each end. The
-    // shortest way over those cells (A* with eight neighbours, no corner cut), pulled tight where the straight line is clear. Not a
+    // (the water: the chart's, and over the foreshore what the 3D view draws, as the observer has it) shortest way over those cells (A* with eight neighbours, no corner cut), pulled tight where the straight line is clear. Not a
     // route to sail (no turning circle, no speed): the length no route can beat by much, to measure the detours against.
     FAS:{side:2, keel:0.5, cells:5e6, cell:5},
     async landGrid(pts, widen = 1, cell0 = 0){ let x0 = Math.min(...pts.map(p => p.x)), x1 = Math.max(...pts.map(p => p.x)), y0 = Math.min(...pts.map(p => p.y)), y1 = Math.max(...pts.map(p => p.y));
@@ -288,7 +288,10 @@
       const pass = k => { if (hard[k]) return false; const i = k % W, j = (k - i) / W;
         for (const e of ends) if ((i - e[0]) * (i - e[0]) + (j - e[1]) * (j - e[1]) < re * re) return true;   // (by her berth: the quay beside her is hers)
         if (d2[k] < need2) return false;
-        let v = deep[k]; if (!v){ const p = km(X0 + (i + 0.5) * cell, Z0 + (j + 0.5) * cell); let dd = 0; try { dd = depthNav(p) + tideCD(H, p); } catch (e){} v = deep[k] = dd >= lim ? 1 : 2; } return v === 1; };
+        // (the water over the foreshore as the 3D view draws it and the observer judges it, beach above; till steg 142 punkt 3 the
+        // reference asked the chart's depth only and went through the foreshore by the shore, so the planner's banes, which keep out
+        // of it, read as detours: smola-vest-ut and stamsund with the skiff 1.3-1.6 times the reference)
+        let v = deep[k]; if (!v){ const x = X0 + (i + 0.5) * cell, zz = Z0 + (j + 0.5) * cell, p = km(x, zz); let dd = 0; try { dd = depthNav(p) + tideCD(H, p); if (!inHarbourPocket(p) && !BK.pit(x, zz)){ const gr = shoreGround(p); if (gr != null && gr < COAST3.top) dd = Math.min(dd, tideH(H, p) - gr); } } catch (e){} v = deep[k] = dd >= lim ? 1 : 2; } return v === 1; };
       // each end's cell, or the nearest one she may be in within her berth's reach
       const snap = (p, atSea) => { const k0 = cellOf(p); if (k0 < 0) return -1; if (pass(k0)) return k0; const i0 = k0 % W, j0 = (k0 - i0) / W, R = atSea ? 2 : Math.ceil(re); let best = -1, bd = 1e9;
         for (let j = Math.max(0, j0 - R); j <= Math.min(Hh - 1, j0 + R); j++) for (let i = Math.max(0, i0 - R); i <= Math.min(W - 1, i0 + R); i++){ const dd = (i - i0) * (i - i0) + (j - j0) * (j - j0); if (dd < bd && pass(j * W + i)){ bd = dd; best = j * W + i; } } return best; };
