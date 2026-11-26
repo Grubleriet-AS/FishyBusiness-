@@ -159,6 +159,11 @@ export default function (t){
     W = world(box(), band(true)); r = solve(W, {a:[100, 100], b:[400, 100], dig:8});
     t.ok(r.path && r.path.some(p => Math.abs(p[0] - 250) < 60 && Math.abs(p[1] - 220) < 30), 'og gjennom det dype løpet der det finnes et like ved: det graves ikke mer enn det må', r.path && r.path.map(p => p.map(Math.round)));
     W = world(box((x, z) => Math.abs(x - 250) < 4), () => 200); r = solve(W, {a:[100, 100], b:[400, 100], dig:8}); t.eq(r.cause, 'land', 'land graves det ikke gjennom'); }
+  // A breakwater's foot is not dug through: the tiles' layer m (the water over the slope) shuts a cell when digging as the water does otherwise
+  { const foot = (x, z) => Math.abs(x - 250) < 20 && Math.abs(z - 100) < 150; const W0 = world(box(), (x, z) => Math.abs(x - 250) < 20 ? 15 : 200);
+    const Wm = {tile:(c, fx, fz) => { const Y = W0.tile(c, fx, fz); if (!Y.m){ Y.m = new Uint8Array(N * N).fill(255); for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) if (foot((fx * N + i + 0.5) * c, (fz * N + j + 0.5) * c)) Y.m[j * N + i] = 10; } return Y; }};
+    r = solve(Wm, {a:[100, 100], b:[400, 100], dig:8}); console.log('plan: graving rundt moloens fot: ' + JSON.stringify(r.path ? r.path.map(p => p.map(Math.round)) : [r.why, r.cause]));
+    t.ok(r.path && r.path.some(p => Math.abs(p[0] - 250) < 40 && Math.abs(p[1] - 100) >= 148) && !r.path.some(p => Math.abs(p[0] - 250) < 18 && Math.abs(p[1] - 100) < 140), 'gravingen går rundt moloens fot, og over grunna der foten slutter', r.path ? JSON.stringify(r.path.map(p => p.map(Math.round))) : [r.why, r.cause]); }
   // The channel from a way and where along it the water is too shallow (planDigRuns): the shallow runs, joined where they lie
   // close, reaching a little past each end, as straight pieces with the channel's half width and depth
   { const line = []; for (let x = 0; x <= 200; x += 2) line.push([x, 50]); const sh = line.map(p => (p[0] >= 80 && p[0] <= 120 ? 1 : 0));

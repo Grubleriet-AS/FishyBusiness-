@@ -74,7 +74,7 @@ function planMake(){
   // whether the cell last looked up is open to her (-1 its tile is not in, 0 shut, 1 open); why: counts what shut it
   const openC = why => { const t = cT; if (!t) return -1; if (t.none){ if (why) why.ukjent++; return 0; } const zz = t.z[cK], u = t.u[cK], d = t.d[cK], x = cX, z = cZ;
     if (pre === 1){ if (zz === 255 || d < 1 || (u !== 255 && u < J.needU && !nearEnd(x, z))) return 0; for (const b of blocks) if ((x - b[0]) * (x - b[0]) + (z - b[1]) * (z - b[1]) < b[2] * b[2]) return 0; return 1; }
-    if (zz === 255){ if (why) why.ukjent++; return 0; } if (zz < zNeed(x, z) && !(J.dig && d > 0)){ if (why && d > 0) why.grunt++; else if (why) why.land++; return 0; }   // (J.dig: where to dredge is what is asked, and water too shallow costs instead of shutting)
+    if (zz === 255){ if (why) why.ukjent++; return 0; } if (zz < zNeed(x, z) && !(J.dig && d > 0 && !(t.m && t.m[cK] < zNeed(x, z)))){ if (why && d > 0) why.grunt++; else if (why) why.land++; return 0; }   // (J.dig: where to dredge is what is asked, and water too shallow costs instead of shutting; but for a breakwater's foot, the tile's m, which is stone)
     const ne = nearEnd(x, z);   // (at her own berth a quay's deck over her is the quay she lies at: the check on the geometry has the rule)
     if (u !== 255 && u < J.needU && !ne){ if (why) why.bru++; return 0; }
     if (d < (ne ? 1 : cS === 1 ? J.needD2 : J.needD4)){ if (why){ if (d === 0) why.land++; else why.trangt++; } return 0; }
@@ -97,7 +97,7 @@ function planMake(){
   const reset = () => { for (const M of [T2, T4]) for (const t of M.values()) if (t.g){ t.g.fill(Infinity); t.st.fill(0); t.op.fill(0); } hn = 0; best = null; far = false; J.ready = false; };
   const fineAt = (x, z, r) => { const Tb = N * c2; for (let bz = Math.floor((z - r) / Tb); bz <= Math.floor((z + r) / Tb); bz++) for (let bx = Math.floor((x - r) / Tb); bx <= Math.floor((x + r) / Tb); bx++) fine.add(key(bx, bz)); };
   function start(job){ J = job; N = J.N; c2 = J.c2; fine = new Set(); fineAt(J.a[0], J.a[1], J.fineR); fineAt(J.b[0], J.b[1], J.fineR); for (const f of J.fine || []) fineAt(f[0], f[1], f[2]); exp = 0; refined = 0; fineN = 0; decks = 0; LT = null; LC = null; pre = J.pre === false ? 2 : 1; coarse(); reset(); }
-  function put(c, fx, fz, t){ const Y = t && !t.none ? {d:t.d, z:t.z, u:t.u, g:new Float32Array(N * N).fill(Infinity), par:new Int8Array(N * N), st:new Uint8Array(N * N), op:new Uint8Array(N * N)} : {none:true}; (c === c2 ? T2 : T4).set(key(fx, fz), Y); }
+  function put(c, fx, fz, t){ const Y = t && !t.none ? {d:t.d, z:t.z, u:t.u, m:t.m || null, g:new Float32Array(N * N).fill(Infinity), par:new Int8Array(N * N), st:new Uint8Array(N * N), op:new Uint8Array(N * N)} : {none:true}; (c === c2 ? T2 : T4).set(key(fx, fz), Y); }
   function block(x, z, r){ blocks.push([x, z, r]); }
   // What the search has seen, for the chart's cells: LT a cell of theirs the search has been in (one of its own cells there was come
   // to), LC one it is done with (been in, and nothing there left to look at). From a cell it is done with there is no way into a
@@ -294,7 +294,9 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
   const side = opt && opt.side != null ? opt.side : FARB.side, own = BANE.own * boat.L;
   const J = Object.assign({c2, N:F.N, q:F.q, a:[ax, az], b:[bx, bz], turnR:bb.R, slow:Math.max(1.5, Math.min(4, bb.vmax / BANE.vSlow)), needU:Math.ceil((boat.air + FARB.airOver) / 0.25),
     pref:Math.min(F.cap - 1, Math.max(25, boat.B * 3)), k:PLAN.k, w:PLAN.w8, endR:own + c2 * 2, fineR:PLAN.fineR, maxExp:PLAN.maxExp}, planNeeds(boat, sq, lv, side, F, c2));
-  if (opt && opt.dig) J.dig = PLAN.digK;
+  if (opt && (opt.dig || opt.soft)) J.dig = PLAN.digK;
+  // (and the distance on the fine cells without the half cell the field's rounding is given: a mouth of 15 m is open to a hull that needs 11.2 with her margins, and shut where 13.5 is asked. The check has the last word)
+  if (opt && opt.soft){ J.needD2 = Math.ceil(J.clr / F.q); J.rb2 = 0; }
   // (the chart's cells for the way round: the packs over the box are waited for as a tap in the chart waits for them, the blocks warmed)
   const chart = async grow => { try { const M = planCoarseM(ax, az, bx, bz, grow), x0 = Math.min(ax, bx) - M, x1 = Math.max(ax, bx) + M, z0 = Math.min(az, bz) - M, z1 = Math.max(az, bz) + M;
       for (let z = z0; z < z1 + 6000; z += 6000) for (let x = x0; x < x1 + 6000; x += 6000) await mapNeed({x:Math.min(x, x1) / 1000, y:Math.min(z, z1) / 1000}, 4.5);
@@ -317,11 +319,17 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     if (r.need){ const out = [], tr = [];
       for (const [cell, fx, fz] of r.need){ const Tf = F.N * cell; let Y = farbFieldTile(cell, fx, fz); tiles++;
         for (let k = 0; k < 5 && !Y; k++){ await farbFieldNeed(fx * Tf + 1, fz * Tf + 1, (fx + 1) * Tf - 1, (fz + 1) * Tf - 1, cell); Y = farbFieldTile(cell, fx, fz); }   // (a tile is asked for again where the map changed under it: more of it came in)
-        if (Y && !Y.none){ const d = Y.d.slice(), z = Y.z.slice(), u = Y.u.slice(); out.push({c:cell, fx, fz, d, z, u}); tr.push(d.buffer, z.buffer, u.buffer); } else out.push({c:cell, fx, fz, none:true}); }
+        if (Y && !Y.none){ const d = Y.d.slice(), z = Y.z.slice(), u = Y.u.slice(), m = Y.m ? Y.m.slice() : null; out.push({c:cell, fx, fz, d, z, u, m}); tr.push(d.buffer, z.buffer, u.buffer); if (m) tr.push(m.buffer); } else out.push({c:cell, fx, fz, none:true}); }
       PLAN.sent += out.length; r = await new Promise(res => { const id = ++PLAN.id; PLAN.wait.set(id, res); w.postMessage({id, op:'tiles', tiles:out}, tr); }); continue; }
     // (the way round a bridge too low for her was not within the chart's cells it was given: wider ones, twice at most)
     if (r.needCo){ const co = grow < 2 ? await chart(++grow) : null; r = await send({op:'co', co}); continue; }
-    if (r.why){ PLAN.n.plans++; return fail(r, {tiles, tries, exp:exp + (r.exp || 0), shut}); }
+    // (the field's water is the least within a cell and a half, and a wide hull asks the cells to her side too: a way with water
+    // enough for her on the geometry can be shut on the field. So where the search says «too shallow», it goes once more with the
+    // water costing instead of shutting (as when a channel is looked for, but for a breakwater's foot), and the check on the
+    // geometry, which asks her keel's own points, says whether she floats there. The same where it says «too narrow»: the
+    // distance then without the half cell of rounding. The bench, steg 142: the skiff out of Øksfjord)
+    if (r.why){ if ((r.cause === 'grunt' || r.cause === 'trangt') && !(opt && (opt.dig || opt.soft))){ const R2 = await planBane(a, b, type, Object.assign({}, opt || {}, {soft:true})); if (R2.bane){ R2.soft = true; return R2; } }
+      PLAN.n.plans++; return fail(r, {tiles, tries, exp:exp + (r.exp || 0), shut}); }
     exp += r.exp || 0;
     // The way as a bane she can sail, her hull swept along it on the geometry at the lowest water. An arc that touches is made
     // tighter (she goes slower round it) till it is free or as tight as she can be turned; what touches then shuts the place

@@ -556,7 +556,8 @@ function farbSweep(p0, p1, boat, H, opt){ const dx = p1.X - p0.X, dz = p1.Z - p0
 //   z: the least water (steps of 1 / FARB.F.zs m, 5 cm, at chart datum; the foreshore and the dredged channels in it) at the middles
 //      of the cell and its eight neighbours: 0 dry, 254 (12.7 m) that or more, 255 not known. (In dm till steg 142: a harbour dredged
 //      to 4.35 m was 4.3 in the field, and shut to the boats it is dredged for);
-//   u: the lowest underside (steps of 0.25 m) of a bridge's deck within FARB.F.deck m of the cell's middle; 255 none.
+//   u: the lowest underside (steps of 0.25 m) of a bridge's deck within FARB.F.deck m of the cell's middle; 255 none;
+//   m (only where the tile has a breakwater): the water over the breakwater's foot, as z; 255 off it.
 // The search goes on the field; the way it finds is checked on the geometry (farbSweep) before she is sent along it.
 // farbFieldJob gathers what a tile needs as plain numbers on the main thread, in slices; farbFieldBuild works the tile out from them
 // in a worker (it is self-contained, and runs in Node for the unit tests); farbFieldNeed asks for the tiles over a box, and
@@ -658,7 +659,13 @@ function farbFieldBuild(J){
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){ const k = j * N + i; d[k] = Math.min(dmax, Math.floor(D[k] / J.q + 1e-6)); let m = Infinity;
     for (let b = j > 0 ? j - 1 : 0; b <= j + 1 && b < N; b++) for (let a = i > 0 ? i - 1 : 0; a <= i + 1 && a < N; a++){ const v = Z[b * N + a]; if (v !== v){ m = NaN; break; } if (v < m) m = v; }
     z[k] = m !== m ? 255 : m <= 0 ? 0 : Math.min(254, Math.floor(m * zs + 1e-3)); }   // (1e-3 of a step: the lattice is kept as 32-bit numbers, where 4.35 is 4.3499999)
-  return {d, z, u:U, ms:Date.now() - t0}; }
+  // (a breakwater's foot as a layer of its own, m: the water over its slope in the same steps, the least at the cell and its eight
+  // neighbours, 255 off it; null where the tile has none. Its stone is in z as depth, where the foreshore is too: a search for
+  // where to dredge, 17c-plan.js planDig, digs through the one and never the other)
+  let mo = null; if (ML){ const run = J.molo.run; for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){ let m = Infinity;
+      for (let b = j > 0 ? j - 1 : 0; b <= j + 1 && b < N; b++) for (let a = i > 0 ? i - 1 : 0; a <= i + 1 && a < N; a++){ const v = ML[b * N + a]; if (v < mreach && D[b * N + a] > 0){ const dm = v / run - J.zc; if (dm < m) m = dm; } }
+      if (m < Infinity){ if (!mo) mo = new Uint8Array(NN).fill(255); mo[j * N + i] = m <= 0 ? 0 : Math.min(254, Math.floor(m * zs + 1e-3)); } } }
+  return {d, z, u:U, m:mo, ms:Date.now() - t0}; }
 // the outside pieces of the line a-b: [t0, t1] along it, where it does not lie in a box of PK
 function farbSegOutParts(PK, ax, az, bx, bz){ const dx = bx - ax, dz = bz - az, ins = [];
   for (const b of PK){ const s0 = (ax - b.x) * b.ux + (az - b.z) * b.uz, ds = dx * b.ux + dz * b.uz, n0 = (ax - b.x) * b.nx + (az - b.z) * b.nz, dn = dx * b.nx + dz * b.nz; let t0 = 0, t1 = 1, ok = true;
@@ -738,7 +745,7 @@ function* farbFieldJob(cell, fx, fz){ const F = FARB.F, N = F.N, Tf = N * cell, 
   return {N, cell, cap, q:F.q, zs:F.zs, deck:F.deck, shore:FARB.shore, molo:FARB.molo, zc:farbZC(cx, cz), co, eo:eoA, ec:ecA, pk:Float32Array.from(pkA), th:thA, dep, dr, dug:Float32Array.from(dug), sit:Float32Array.from(sit), sitP:{a:SITE_POCK.a, w:SITE_POCK.w}}; }
 // the worker (false where one cannot start: then no field is built, and what asks goes to the geometry)
 function farbFieldWorker(){ const F = FARB.F; if (F.worker !== null) return F.worker;
-  try { const src = farbFieldBuild.toString() + '\nonmessage = e => { try { const r = farbFieldBuild(e.data.J); postMessage({id:e.data.id, r}, [r.d.buffer, r.z.buffer, r.u.buffer]); } catch (err){ postMessage({id:e.data.id, err:String(err)}); } };';
+  try { const src = farbFieldBuild.toString() + '\nonmessage = e => { try { const r = farbFieldBuild(e.data.J); postMessage({id:e.data.id, r}, r.m ? [r.d.buffer, r.z.buffer, r.u.buffer, r.m.buffer] : [r.d.buffer, r.z.buffer, r.u.buffer]); } catch (err){ postMessage({id:e.data.id, err:String(err)}); } };';
     const w = new Worker(URL.createObjectURL(new Blob([src], {type:'text/javascript'})));
     w.onmessage = e => { const q = F.wait.get(e.data.id); if (!q) return; F.wait.delete(e.data.id); if (e.data.err) q.rej(new Error(e.data.err)); else q.res(e.data.r); };
     w.onerror = () => { F.worker = false; for (const q of F.wait.values()) q.rej(new Error('the field worker failed')); F.wait.clear(); };
@@ -757,7 +764,7 @@ async function farbFieldNeed(x0, z0, x1, z1, cell = 2, opt){ const F = FARB.F, T
     if (farbFieldVer() !== ver){ all = false; continue; }   // (the map changed under it: asked for again)
     if (!J){ F.fld.set(key, {none:true, v:ver, use:++F.use, cell, fx, fz}); continue; }
     F.at = 'vent:worker'; let r; try { r = here ? farbFieldBuild(J) : await new Promise((res, rej) => { const id = ++F.id; F.wait.set(id, {res, rej}); w.postMessage({id, J}, [J.eo.buffer, J.th.buffer, (J.dr || J.dep).v.buffer]); }); } catch (e){ all = false; continue; }
-    F.fld.set(key, {d:r.d, z:r.z, u:r.u, v:ver, use:++F.use, cell, fx, fz, x0:fx * Tf, z0:fz * Tf}); F.n.built++; F.n.ms += r.ms; F.n.bytes = r.d.byteLength + r.z.byteLength + r.u.byteLength;
+    F.fld.set(key, {d:r.d, z:r.z, u:r.u, m:r.m || null, v:ver, use:++F.use, cell, fx, fz, x0:fx * Tf, z0:fz * Tf}); F.n.built++; F.n.ms += r.ms; F.n.bytes = r.d.byteLength + r.z.byteLength + r.u.byteLength;
     if (F.fld.size > F.max){ let old = null, ou = Infinity; for (const [k2, y] of F.fld) if (y.use < ou){ ou = y.use; old = k2; } F.fld.delete(old); } }
   return all; }
 // one cell read: {d (m to the nearest thing nobody can pass, from the cell's middle), z (m of water at chart datum, the least round

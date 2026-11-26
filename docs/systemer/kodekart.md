@@ -203,7 +203,7 @@ Placeholder prices (NOK/kg, grade A) – to be tuned
   - 439 `reqFill(eq, type)`
   - 457 `lsaOf(V)`
 
-## `src/js/core/03-simulation.js` (1517 linjer)
+## `src/js/core/03-simulation.js` (1555 linjer)
 
 fleet: each vessel keeps its own state; the company holds the rest. The simulation steps through the vessels one at a
 
@@ -403,48 +403,52 @@ fleet: each vessel keeps its own state; the company holds the rest. The simulati
   - 1309 `payDown(x)`
   - 1315 `deal(price, ti, inn)`
   - 1322 `finance(x, months)`
-  - 1325 `lenGroup()`
-  - 1326 `codLimits(H)`
-  - 1331 `codOpen(H)`
-  - 1332 `codLimitNow(H)`
-- **1333** haill: luck from the quay. Fresh goods: full effect for two days, fading to nothing on day seven. Sold for real money only (test mode now) or won at the pub.
-  - 1357 `haillBoost()`
-  - 1358 `haillLeft()`
-  - 1359 `haillStage()`
-  - 1361 `haillF()`
-  - 1362 `luck(sp)`
-  - 1366 `haillCap()`
-  - 1375 `haillInit()`
-  - 1383 `haillFromSrv(loc, srv, wait)`
-  - 1390 `srvToT(m, srvNow, t, world)`
-  - 1391 `tToSrv(m, srvNow, t, world)`
-  - 1394 `boostSrv(list, stack, now)`
-  - 1396 `haillMirror(list, used)`
-  - 1400 `haillStock(inv, srv, used)`
-  - 1405 `giveHaill(type, how, id)`
-  - 1410 `useHaill(type)`
-  - 1424 `pubEvening(H)`
-  - 1425 `pubOpen(H)`
-  - 1428 `capHold()`
-  - 1430 `cargoRoom()`
-  - 1432 `cargoMin(kg)`
-- **1433** the daily login bonus: each real calendar day you open the game adds a point to a bonus on the fish price; each day
-  - 1436 `streakState()`
-  - 1437 `streakPct()`
-  - 1438 `streakTouch()`
-- **1449** cold: effective temperature from air temperature and wind, plus wet from rain, snow and spray. Cold, wet hands fish worse;
-  - 1453 `effTemp(H)`
-  - 1454 `coldPen(H, hs)`
-- **1461** orders from buyers and customers: species, amount, quality, deadline and a price premium; reputation builds with each buyer
-  - 1476 `gradeOk(g, q)`
-  - 1477 `ordState()`
-  - 1480 `custNear(c)`
-  - 1485 `repOf(id)`
-  - 1487 `bkOrderable(H)`
-  - 1489 `bkPlant(id)`
-  - 1490 `custSp(c)`
-  - 1491 `spCatchable(sp, H)`
-  - 1493 `ordersTick(H)`
+- **1325** an admin's correction: a vessel bought by trade-in, taken back (26.11.2026, Jonas: «Gi han tilbake båten og pengene som om kjøpet
+  - 1335 `undoBuyKr(to, from)`
+  - 1336 `undoBuyWhy(d)`
+  - 1343 `undoBuyApply(d)`
+  - 1363 `lenGroup()`
+  - 1364 `codLimits(H)`
+  - 1369 `codOpen(H)`
+  - 1370 `codLimitNow(H)`
+- **1371** haill: luck from the quay. Fresh goods: full effect for two days, fading to nothing on day seven. Sold for real money only (test mode now) or won at the pub.
+  - 1395 `haillBoost()`
+  - 1396 `haillLeft()`
+  - 1397 `haillStage()`
+  - 1399 `haillF()`
+  - 1400 `luck(sp)`
+  - 1404 `haillCap()`
+  - 1413 `haillInit()`
+  - 1421 `haillFromSrv(loc, srv, wait)`
+  - 1428 `srvToT(m, srvNow, t, world)`
+  - 1429 `tToSrv(m, srvNow, t, world)`
+  - 1432 `boostSrv(list, stack, now)`
+  - 1434 `haillMirror(list, used)`
+  - 1438 `haillStock(inv, srv, used)`
+  - 1443 `giveHaill(type, how, id)`
+  - 1448 `useHaill(type)`
+  - 1462 `pubEvening(H)`
+  - 1463 `pubOpen(H)`
+  - 1466 `capHold()`
+  - 1468 `cargoRoom()`
+  - 1470 `cargoMin(kg)`
+- **1471** the daily login bonus: each real calendar day you open the game adds a point to a bonus on the fish price; each day
+  - 1474 `streakState()`
+  - 1475 `streakPct()`
+  - 1476 `streakTouch()`
+- **1487** cold: effective temperature from air temperature and wind, plus wet from rain, snow and spray. Cold, wet hands fish worse;
+  - 1491 `effTemp(H)`
+  - 1492 `coldPen(H, hs)`
+- **1499** orders from buyers and customers: species, amount, quality, deadline and a price premium; reputation builds with each buyer
+  - 1514 `gradeOk(g, q)`
+  - 1515 `ordState()`
+  - 1518 `custNear(c)`
+  - 1523 `repOf(id)`
+  - 1525 `bkOrderable(H)`
+  - 1527 `bkPlant(id)`
+  - 1528 `custSp(c)`
+  - 1529 `spCatchable(sp, H)`
+  - 1531 `ordersTick(H)`
 
 ## `src/js/core/03b-sea.js` (313 linjer)
 
@@ -2678,7 +2682,7 @@ THE CATCH: WHERE THE PLAYERS' BOATS TOUCH WHAT IS NOT CLEAN WATER (the autonav r
   - 167 `slamRate(b = S.boat, H = S.t / 60, hard = 1)`
   - 199 `slamMinute()`
 
-## `src/js/core/17-farbar.js` (774 linjer)
+## `src/js/core/17-farbar.js` (781 linjer)
 
 FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2.0 F1, steg 141, 23.11.2026)
 
@@ -2744,13 +2748,13 @@ FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2
   - 496 `farbPose(X, Z, psi, boat, H, opt)`
   - 537 `farbSweep(p0, p1, boat, H, opt)`
 - **550** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
-  - 565 `farbFieldBuild(J)`
-  - 663 `farbSegOutParts(PK, ax, az, bx, bz)`
-  - 740 `farbFieldWorker()`
-  - 748 `farbFieldTile(cell, fx, fz)`
-  - 751 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
-  - 765 `farbFieldAt(x, z, cell = 2)`
-- **767** the channels dredged along the coast (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
+  - 566 `farbFieldBuild(J)`
+  - 670 `farbSegOutParts(PK, ax, az, bx, bz)`
+  - 747 `farbFieldWorker()`
+  - 755 `farbFieldTile(cell, fx, fz)`
+  - 758 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
+  - 772 `farbFieldAt(x, z, cell = 2)`
+- **774** the channels dredged along the coast (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
 
 ## `src/js/core/17b-bane.js` (104 linjer)
 
@@ -2770,7 +2774,7 @@ BANEN: THE WAY AS A TRAJECTORY SHE CAN SAIL (Autonav 2.0 F2, steg 142, 24.11.202
   - 83 `baneOf(g)`
   - 90 `baneSail(pl, b, left0)`
 
-## `src/js/core/17c-plan.js` (385 linjer)
+## `src/js/core/17c-plan.js` (393 linjer)
 
 PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2, steg 142, 24.11.2026)
 
@@ -2784,11 +2788,11 @@ PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2
   - 275 `planBlockOf(hit, boat, side, c2, tries, seen)`
   - 284 `planBoat(type, x, z)`
   - 288 `planBane(a, b, type, opt)`
-- **348** where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
-  - 352 `planDigRuns(P, sh, o)`
-  - 370 `planDig(a, b, type, opt)`
-  - 379 `planInto(pl, R, i0, i1)`
-  - 384 `planOn()`
+- **356** where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
+  - 360 `planDigRuns(P, sh, o)`
+  - 378 `planDig(a, b, type, opt)`
+  - 387 `planInto(pl, R, i0, i1)`
+  - 392 `planOn()`
 
 ## `src/js/ui/01-i18n.js` (120 linjer)
 
@@ -4109,6 +4113,14 @@ put the game on the home screen (Jonas 11.10.2026: «Det er viktig at brukerne l
 The profile and the founders' badge (Jonas 16.11.2026, before the launch: «profil-side med brukernavn, fartstid, ferdigheter,
 
 - **1** The profile and the founders' badge (Jonas 16.11.2026, before the launch: «profil-side med brukernavn, fartstid, ferdigheter,
+
+## `src/js/ui/10w-fix.js` (55 linjer)
+
+---- an admin's correction, delivered to this game (26.11.2026; supabase/migrations/20261126120000_fixes.sql, the tab «Korrigering» in
+
+- **1** an admin's correction, delivered to this game (26.11.2026; supabase/migrations/20261126120000_fixes.sql, the tab «Korrigering» in
+  - 16 `admfixSaved()`
+  - 20 `fixClaim()`
 
 ## `src/js/ui/11-boot.js` (448 linjer)
 

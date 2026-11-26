@@ -295,5 +295,9 @@ export default function (t){
     t.eq(K.farbDepth(far.x + 3, far.z) + '|' + K.farbDepth(far.x + 3, far.z + 5300) + '|' + K.farbDepth(far.x + 3, far.z + 2000), '4|5|-1', 'to renner langt fra hverandre: hver gir sin dybde der den ligger, og fjæra står imellom');
     K.farbDig('a', null); t.eq(K.farbDepth(far.x + 3, far.z) + '|' + K.farbDepth(far.x + 3, far.z + 5590), '-1|5', 'den ene tatt bort: den andre står, også ved enden 590 m fra starten');
     K.farbDig('b', null); t.ok(K.farbDug().length === K.get('RENNER_N'), 'og tatt bort begge: bare rennene fra datafila er igjen', [K.farbDug().length, K.get('RENNER_N')]);
+    // a breakwater's foot as a layer of its own (m, the water over the slope in the field's steps): what a channel is never dug through
+    fr = K.farbFieldBuild(job({co:null, eo:new Float32Array(0), molo:FARB.molo, th:Float32Array.from([7, 8, 5.9, 2, 20, 60, 100, 60])}));
+    t.ok(fr.m && fr.m[35 * 60 + 30] < 30 && fr.m[45 * 60 + 30] === 255 && fr.m[5 * 60 + 30] === 255, 'feltet: moloens fot står i et eget lag (11 m fra linja under 3 m vann, 31 m fra ingenting)', fr.m && [fr.m[35 * 60 + 30], fr.m[45 * 60 + 30]]);
+    t.eq(K.farbFieldBuild(job()).m, null, 'feltet: ingen molo i flisa, intet lag');
   } finally { FARB.w = null; FARB.test = null; K.farbDig('test', null); }
 }
