@@ -602,6 +602,7 @@ Jonas 16.11.2026, før lanseringen 17.11. Migreringen er `supabase/migrations/20
   - Jonas: «de 100 første som leverer fisk får merket».
   - Tellingen går fra du slår den på i admin (fanen Lansering, `admin_founders_set`).
   - Kontoer laget før det, gjester og admin teller aldri. Nummeret beholdes.
+  - **Testerne fra før lanseringen** (Jonas 25.–26.11.2026: «Testere skal jo i allefall ha founder-merke, de var jo tross alt med å skapte spillet før lanseringen»): de seks kontoene laget før tellingen startet, med minst én time spilt, fikk merket for hånd 26.11.2026. Tabellen tillater bare 1–100, og Jonas valgte de ledige numrene etter slettede kontoer framfor 101–106: 11, 22, 30, 36, 40 og 66 (84 står ledig). Det er et unntak fra at et ledig nummer ikke gis ut igjen; `founder_take` gir fortsatt ingen nye.
   - Starten står i en egen tabell, fordi eldre filer setter `world_cfg`-nøklene på nytt.
 - **Profilen** (`ui/10v-profil.js`, Profil-appen, «Se profilen» på AIS-kortet):
   - `profile_get(hid | 'me')` gir navn, fartstid, Founder-nummer, plass på totallista, kg og kr i alt, og antall mottak.

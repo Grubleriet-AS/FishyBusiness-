@@ -2,10 +2,32 @@
   // (KM3: Marked is Kvotemarkedet, kvMkt in 04b-kvotemarked.js; what stood here is its first tab, Registeret, kvReg below)
   // (Jonas 16.11.2026: «Legg prisene fra salgslaget og landingene inn i en annen app» → «Kvote»: Priser and Landinger are tabs here,
   // drawn by salg('pris') and salg('land') in 09-vaer-post-salg-redning.js; the app 'salg' is Toppliste)
-  function kvote(){ const t = ['mine', 'pris', 'land', 'open', 'stock', 'mkt'].includes(sub.kvote) ? sub.kvote : 'mine', H = S.t / 60;
-    const top = subs('kvote', [['mine', 'Mine kvoter', 'My quotas'], ['pris', 'Priser', 'Prices'], ['land', 'Landinger', 'Landings'], ['open', 'Åpen gruppe', 'Open group'], ['stock', 'Bestand', 'Stock'], ['mkt', 'Marked', 'Market']]);
+  // ---- the stages (steg 152, K4 of docs/planer/regler-i-klartekst.md; Jonas 25.11.2026, V1 A: every app stands, what is in them follows
+  // the stage). stShow(n): what belongs to stage n is shown first once the player is there (rmStage, core/03l-room.js; the highest
+  // reached is kept in S.settings.rmMax, so nothing shown once goes away), or always with «Vis alt» in the settings. What is not shown
+  // first lies under «Mer» on the same page: nothing is hidden for good, no app and no action is locked, and a warning is never staged.
+  // (the tests play with vis1 in the address, as with «Vis alt» on: tests/_env.py)
+  const stNow = () => { const st = S.settings || (S.settings = {}), n = Math.max(rmStage(), st.rmMax || 0); if (n !== st.rmMax) st.rmMax = n; return n; };
+  const stAll = () => S.settings && S.settings.rmAll != null ? !!S.settings.rmAll : /vis1/.test(location.hash);
+  const stShow = n => stAll() || stNow() >= n;
+  // «Mer»: the rest of a page, folded. The fold says what is in it; opening it is told to the funnel once a page a session (K5)
+  const ST_MER = new Set(), cap1 = s => s.charAt(0).toUpperCase() + s.slice(1);
+  // (the pages are drawn anew at every change, so an open fold is kept open by its key until it is closed or the session ends)
+  const ST_OPEN = new Set();
+  function stMer(key, label, html){ if (!html) return ''; return '<details class="ph-mer" data-mer="' + key + '"' + (ST_OPEN.has(key) ? ' open' : '') + '><summary>' + label + '</summary>' + html + '</details>'; }
+  document.addEventListener('toggle', e => { const d = e.target, k = d && d.dataset && d.dataset.mer; if (!k || !d.classList.contains('ph-mer')) return; if (d.open) ST_OPEN.add(k); else ST_OPEN.delete(k);
+    if (d.open && !ST_MER.has(k)){ ST_MER.add(k); if (typeof cloudEv === 'function') try { cloudEv('mer_open', {k}); } catch (x){} } }, true);   // (the funnel, K5: once a page a session; the phone and the drawer)
+  function kvote(){ const all = ['mine', 'pris', 'land', 'open', 'stock', 'mkt'], t = all.includes(sub.kvote) ? sub.kvote : 'mine', H = S.t / 60;
+    // the tabs: the season of the shared quota and the stocks from the day the player has a quota of their own, the market from blad B; before
+    // that they lie under «Mer» on Mine kvoter (and a tab that is open stays a tab)
+    const need = {open:3, stock:3, mkt:2}, tabs = [['mine', 'Mine kvoter', 'My quotas'], ['pris', 'Priser', 'Prices'], ['land', 'Landinger', 'Landings'], ['open', rmTermL('open')[0].replace(/^./, c => c.toUpperCase()).replace(' for småbåter', ''), 'The shared quota'], ['stock', 'Bestand', 'Stock'], ['mkt', 'Marked', 'Market']];
+    const top = subs('kvote', tabs.filter(x => !need[x[0]] || stShow(need[x[0]]) || x[0] === t));
+    const later = tabs.filter(x => need[x[0]] && !stShow(need[x[0]]) && x[0] !== t);
     if (t === 'pris' || t === 'land') return top + salg(t);
-    if (t === 'mine') return top + '<div class="ph-c">' + kvFull(H) + '<h4 style="margin:4px 2px 6px">' + L('Papirer', 'Papers') + '</h4>' + papBladB() + papPermit() + papZlic() + kvSor() + papKv() + (rederiOpen() ? '' : papBiz()) + '</div>' + salg('kvote');
+    // Mine kvoter: the quota first (it stood under the papers), then blad B, the next thing to reach; the other papers and, before stage 3,
+    // the tabs not shown yet, under «Mer»
+    if (t === 'mine'){ const kvRem = !!((S.kv || {}).log || [])[0] && !S.kv.log[0].ok, pap = papPermit() + papZlic() + (kvRem ? '' : papKv()) + (rederiOpen() ? '' : papBiz()),   /* (a remark from the coast guard is never folded) */ go = later.map(x => '<button class="ph-btn alt" data-pa="sub" data-s="' + x[0] + '">' + L(x[1], x[2]) + ' ›</button>').join('');
+      return top + '<div class="ph-c">' + kvFull(H) + '</div>' + salg('kvote') + '<div class="ph-c">' + kvSor() +   /* (KV1's card when the cod quota is full stands first, never folded) */ '<h4 style="margin:4px 2px 6px">' + L('Papirer', 'Papers') + '</h4>' + papBladB() + (kvRem ? papKv() : '') + (stShow(3) ? pap : stMer('papirer', L('Mer: de andre papirene', 'More: the other papers'), pap)) + (go ? stMer('faner', L('Mer: sesongen, bestanden og markedet', 'More: the season, the stocks and the market'), '<div class="ph-btncol">' + go + '</div>') : '') + '</div>'; }
     return top + '<div class="ph-c">' + (t === 'open' ? kvOpen(H) : t === 'stock' ? kvStock(H) : kvMkt(H)) + '</div>'; }
   // KV1 (steg 148, 25.11.2026): the open group's cod quota is full. Most of the first week's wishes were about this («må vente», «kjøpe
   // mer kvote»): the card says what is open now and when the next things come, with the dates, at the top of Mine kvoter. Nothing here is
@@ -36,10 +58,10 @@
   function kvSor(){ let p = null; try { p = ruCtx().p; } catch (e){} const q = quotaState(), south = !!p && LL(p).lat < 62;
     if (!south && !(q.nsjo > 0) && !(q.skag4 > 0)) return '';
     const kg = v => fmt(Math.round(v), 0) + ' kg', ab = k => ((S.boat.byc || {})[k] || {}).cod || 0, acc = sorAcc(), h = [];
-    h.push('<div class="ph-card"><h4>' + L('Torsk sør for 62° N', 'Cod south of 62° N') + '</h4><p class="ph-note"><b>' + L('Nordsjøen, åpen gruppe', 'The North Sea, the open group') + '</b> ' + L('(vest for Lindesnes, fjordene også)', '(west of Lindesnes, the fjords too)') + '</p>');
+    h.push('<div class="ph-card"><h4>' + L('Torsk sør for 62° N', 'Cod south of 62° N') + '</h4><p class="ph-note"><b>' + L('Nordsjøen, ' + rmTerm('open', true), 'The North Sea, ' + rmTerm('open', true)) + '</b> ' + L('(vest for Lindesnes, fjordene også)', '(west of Lindesnes, the fjords too)') + '</p>');
     if (acc === 'none') h.push('<p class="ph-note">' + L(sorWhy(acc)[0] + '. Torsk kan bare være bifangst, høyst 15 % av fangsten.', sorWhy(acc)[1] + '. Cod may only be a bycatch, at most 15% of the catch.') + '</p>');
-    else h.push(kv(L('Maksimalkvote i år', 'Maximum quota this year'), kg(SORQ.nsjo.max)) + kv(L('Landet', 'Landed'), kg(q.nsjo || 0)) + (ab('nsjo') > 0.5 ? kv(L('Om bord derfra', 'Aboard from there'), kg(ab('nsjo'))) : '') + kv(L('Igjen', 'Left'), kg(sorLeft('nsjo'))) +
-      '<p class="ph-note">' + L('2 tonn er garantert. Når kvoten er fisket, kan torsk bare være bifangst, høyst 15 % av fangsten derfra, og resten blir inndratt.', '2 tonnes are guaranteed. When the quota is fished, cod may only be a bycatch, at most 15% of the catch from there, and the rest is confiscated.') + '</p>');
+    else h.push(kv(cap1(rmTerm('max', true)), kg(SORQ.nsjo.max)) + kv(L('Landet', 'Landed'), kg(q.nsjo || 0)) + (ab('nsjo') > 0.5 ? kv(L('Om bord derfra', 'Aboard from there'), kg(ab('nsjo'))) : '') + kv(L('Igjen', 'Left'), kg(sorLeft('nsjo'))) +
+      '<p class="ph-note">' + L('2 tonn har du uansett. Når kvoten er fisket, kan torsk bare være bifangst, høyst 15 % av fangsten derfra, og resten får du bare 20 % for (inndratt).', '2 tonnes are guaranteed. When the quota is fished, cod may only be a bycatch, at most 15% of the catch from there, and the rest is confiscated.') + '</p>');
     if (BOAT.len < 11 && (bladB() || q.skag4 > 0)) h.push('<p class="ph-note"><b>' + L('Skagerrak utenfor grunnlinjen, juksa 1. april–30. juni', 'The Skagerrak outside the baseline, jig 1 April–30 June') + '</b></p>' + kv(L('Tak i år', 'Cap this year'), kg(SORQ.skag4.max)) + kv(L('Landet', 'Landed'), kg(q.skag4 || 0)) + (ab('skag4') > 0.5 ? kv(L('Om bord derfra', 'Aboard from there'), kg(ab('skag4'))) : '') + kv(L('Igjen', 'Left'), kg(Math.max(0, SORQ.skag4.max - (q.skag4 || 0) - ab('skag4')))) +
       '<p class="ph-note">' + L('Ellers er torsk der bare bifangst, høyst 5 %.', 'Otherwise cod there is only a bycatch, at most 5%.') + '</p>');
     h.push('<p class="ph-note">' + L('Innenfor grunnlinjen øst for Lindesnes er det ingen kvote på torsk (i Oslofjorden er torsk forbudt). Kilde: forskrift om regulering av fisket etter torsk i Nordsjøen og Skagerrak i 2026.', 'Inside the baseline east of Lindesnes there is no quota for cod (in the Oslo fjord cod is banned). Source: the regulation of the cod fishery in the North Sea and the Skagerrak in 2026.') + '</p></div>');

@@ -179,7 +179,11 @@ function panelHold(){
   let sum = 0;
   h.push('<table class="tbl"><thead><tr><th>' + t('species') + '</th><th>' + t('quality') + '</th><th>' + t('kg') + '</th><th>' + t('value') + '</th></tr></thead><tbody>');
   rows.forEach(r => { const v = r.f ? r.v : r.kg * valueEst(r.sp, r.g); sum += v; h.push('<tr><td>' + spName(r.sp) + '</td><td>' + (r.f ? SFN[r.f] : t('grade_' + r.g)) + '</td><td>' + fmt(r.kg, 0) + '</td><td>' + kr(v) + '</td></tr>'); });
-  h.push('<tr class="sum"><td>' + t('total') + '</td><td></td><td>' + fmt(tot, 0) + '</td><td>' + kr(sum) + '</td></tr></tbody></table>');
+  h.push('<tr class="sum"><td>' + t('total') + '</td><td></td><td>' + fmt(tot, 0) + '</td><td>' + kr(sum) + '</td></tr>');
+  // (steg 150) what of the hold would be confiscated if it were landed now, per species, under the sum: the hold says it before the quay does
+  try { const C = landConf(S.t / 60, quotaState(), access()); for (const sp of ALLSP){ const cs = C.confBy[sp] || 0; if (!cs) continue; const kg = rows.filter(r => r.sp === sp).reduce((a, r) => a + r.kg, 0) * cs, v = rows.filter(r => r.sp === sp).reduce((a, r) => a + (r.f ? r.v : r.kg * valueEst(r.sp, r.g)), 0) * cs;
+      if (kg > 0.5) h.push('<tr class="holdconf"><td colspan="2">' + spName(sp) + L(' du ikke får betalt for nå (inndras; du får 20 %)', ' you are not paid for now (confiscated; you get 20%)') + '</td><td>' + fmt(kg, 0) + '</td><td>−' + kr(v * (1 - CONF_PAY)) + '</td></tr>'); } } catch (e){}
+  h.push('</tbody></table>');
   h.push('<p class="note">' + t('hold_n') + '</p>');
   return h.join('');
 }
@@ -370,6 +374,8 @@ function portSlip(){
     if (S2 && F && F.sum > 0) h.push('<p class="note">' + LN('Felleskostnadene ble betalt fra kontoen da de oppsto. Her trekkes de bare fra før fangsten deles, slik oppgjørsavtalene sier, og ikke fra kassa en gang til.', 'The common costs were paid from the account when they came. Here they only come off before the catch is shared, as the settlement agreements say, not from the cash box again.') + '</p>');
     if (ls.crabFine) h.push('<p class="note">' + LN('Overtredelsesgebyr fra Fiskeridirektoratet for krabbe under minstemålet: ', 'Fine from the Directorate of Fisheries for undersized crab: ') + kr(ls.crabFine) + LN('. Det står ikke på sluttseddelen, men er trukket fra kassa.', '. It is not on the landing note, but has been taken from the cash box.') + '</p>');
     for (const o of (ls.ord || [])) h.push('<p class="note">' + LN('Bestilling fra ' + o.cust + ': ' + fmt(o.kg, 0) + ' kg ' + SPECIES[o.sp].no.toLowerCase() + ', tillegg ' + kr(Math.round(o.kr)) + (o.done ? ', ferdig levert, bonus ' + kr(o.bonus) : ', ' + fmt(o.left, 0) + ' kg igjen') + '.', 'Order from ' + o.cust + ': ' + fmt(o.kg, 0) + ' kg ' + SPECIES[o.sp].en.toLowerCase() + ', premium ' + kr(Math.round(o.kr)) + (o.done ? ', fully delivered, bonus ' + kr(o.bonus) : ', ' + fmt(o.left, 0) + ' kg left') + '.') + '</p>');
+    // (steg 150) what is left of the cod quota after this landing, from the first note: the quota is met here before it is ever full
+    if (ls.qcod && ls.qcod[1] > 0) h.push('<p class="note slipq">' + LN('Igjen av torskekvoten: ', 'Left of the cod quota: ') + '<b>' + fmt(Math.max(0, ls.qcod[1] - ls.qcod[0]) / 1000, 1) + LN(' av ', ' of ') + fmt(ls.qcod[1] / 1000, 1) + ' t</b><span class="qm ' + (ls.qcod[0] >= ls.qcod[1] - 0.5 ? (ls.qcod[2] ? 'r1' : 'r2') : ls.qcod[0] >= RM.near * ls.qcod[1] ? 'r1' : '') + '"><i style="width:' + (clamp(ls.qcod[0] / ls.qcod[1], 0, 1) * 100).toFixed(1) + '%"></i></span>' + (ls.qcod[2] && ls.qcod[0] >= ls.qcod[1] - 0.5 ? LN(' Med ' + rmTerm('fresh', true) + ' kan en del av hver ferske levering fortsatt være torsk.', ' With ' + rmTerm('fresh', true) + ' a part of each fresh landing may still be cod.') : '') + '</p>');
     if (ls.ffKg > 0.5) h.push('<p class="note">' + LN(fmt(ls.ffKg, 0) + ' kg torsk gikk på ferskfiskordningen og belastes ikke kvoten.', fmt(ls.ffKg, 0) + ' kg of cod went on the fresh-fish scheme and does not count against the quota.') + '</p>');
   }
   return h.join('');
@@ -390,7 +396,9 @@ function landWarn(p){
     : acc === 'none' ? LN('Båten har ikke adgang til å fiske torsk, hyse og sei, så bare 10 % av landingen kan være bifangst.', 'The vessel has no access to fish cod, haddock and saithe, so only 10% of the landing may be bycatch.')
     : C.codConf > 0.5 ? LN('Du har ikke torskekvote igjen for ' + fmt(C.codConf, 0) + ' kg av torsken.', 'You have no cod quota left for ' + fmt(C.codConf, 0) + ' kg of the cod.')
     : LN('Maksimalkvoten for hyse eller sei er fisket, så bare 30 % hyse og 20 % sei kan være bifangst.', 'The maximum quota for haddock or saithe is fished, so only 30% haddock and 20% saithe may be bycatch.');
-  return '<p class="bad landwarn">' + LN('Leverer du nå, blir ca. ' + fmt(kg, 0) + ' kg inndratt, verdi ca. ' + kr(Math.round(sum)) + '. ', 'If you land now, about ' + fmt(kg, 0) + ' kg is confiscated, worth about ' + kr(Math.round(sum)) + '. ') + why +
+  // (steg 150: the cod meter beside it, so the player sees where on the quota the hold lands)
+  const qr = hudQuota(), qm = qr && qr.kind !== 'by' && isFinite(qr.limit) ? '<p class="landq"><span>' + LN('Torsk, ', 'Cod, ') + rmTerm(qr.kind === 'vessel' ? 'vessel' : qr.stopped ? 'guar' : 'max', true) + '</span>' + quotaBar(qr) + '<b>' + LN('levert ' + fmt(qr.used / 1000, 1) + ' t, om bord ' + fmt(qr.aboard / 1000, 1) + ' t. Taket er ' + fmt(qr.limit / 1000, 1) + ' t' + (qr.used + qr.aboard > qr.limit + 0.5 ? ': ' + fmt((qr.used + qr.aboard - qr.limit) / 1000, 1) + ' t over.' : '.'), 'landed ' + fmt(qr.used / 1000, 1) + ' t, aboard ' + fmt(qr.aboard / 1000, 1) + ' t. The limit is ' + fmt(qr.limit / 1000, 1) + ' t' + (qr.used + qr.aboard > qr.limit + 0.5 ? ': ' + fmt((qr.used + qr.aboard - qr.limit) / 1000, 1) + ' t over.' : '.')) + '</b></p>' : '';
+  return qm + '<p class="bad landwarn">' + LN('Leverer du nå, blir ca. ' + fmt(kg, 0) + ' kg inndratt, verdi ca. ' + kr(Math.round(sum)) + '. ', 'If you land now, about ' + fmt(kg, 0) + ' kg is confiscated, worth about ' + kr(Math.round(sum)) + '. ') + why +
     LN(' Du får 20 % av verdien, ca. ' + kr(Math.round(sum * CONF_PAY)) + ', i vederlag for å føre den i land.', ' You get 20% of the value, about ' + kr(Math.round(sum * CONF_PAY)) + ', as compensation for landing it.') + (C.sConf > 0.5 && C.sConf >= kg / 2 ? LN(' Se Kvote-appen.', ' See the Kvote app.') : LN(' Se Kvote-appen.', ' See the Kvote app.')) + '</p>';
 }
 // the queue at the plant (core/07-harbours.js LANDQ, K3): [the line, the short word]

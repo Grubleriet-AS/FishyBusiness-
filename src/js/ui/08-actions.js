@@ -133,56 +133,7 @@ let rangeTouch = null;
 document.addEventListener('pointerdown', e => { const r = e.target; rangeTouch = e.pointerType === 'touch' && r && r.type === 'range' ? {r, v:r.value, id:e.pointerId} : null; }, true);
 document.addEventListener('pointercancel', e => { const q = rangeTouch; rangeTouch = null; if (!q || e.pointerId !== q.id) return;
   const r = q.r.isConnected ? q.r : q.r.id && document.getElementById(q.r.id); if (!r || r.value === q.v) return; r.value = q.v; r.dispatchEvent(new Event('input', {bubbles:true})); }, true);
-// what the sales organisation confiscates of the hold if it is landed now (cod beyond the fresh-fish allowance and the quota, bycatch
-// over its limits): the share of each species. Apart from sell() so the quay can show it before you land (R4); q is not changed
-// the compensation for landing what is confiscated (Jonas 11.11.2026: «Dette må inn. Jeg vet at fiskere utnytter seg av slikt regelverk
-// bevist, så det er realistisk»): forskrift om inndraging av fangst og bruk av inndregne midlar (FOR-2010-03-12-390) § 3, «Vederlaget
-// skal setjast til 20 % av verdien av meirfangsten eller den ulovlege fangsten», given when the catch «ikkje var tilsikta». The game
-// cannot tell intent, so every confiscation of fish and snow crab gets it (the regulation leaves out king crab over quota and the
-// pelagic species; the game confiscates neither). On the landing note as a row of its own, and in the total
-const CONF_PAY = 0.2;
-function landConf(H, q, acc){
-  const kgOf = sp => S.hold.filter(x => x.sp === sp).reduce((a, x) => a + x.kg, 0), wk = weekOfH(H), ffTot = q.ffW === wk ? q.ffTot : 0, ffCod = q.ffW === wk ? q.ffCod : 0;
-  // the fresh-fish allowance counts fish only (assumed: shellfish do not count), and fresh fish only (J-187-2026 § 25: the fresh landings;
-  // fish frozen aboard is not fresh)
-  const saleKg = S.hold.reduce((a, x) => a + (SPECIES[x.sp].shell || x.frozen || (x.sp === 'hyse' && x.cls === 2) ? 0 : grade(x.fresh) === 'V' ? 0 : x.kg), 0);
-  // Ø10b: the cod taken where it may only be a bycatch (the Skagerrak outside the baseline, 5 % of what was taken there; 05-vessels.js
-  // bycConf) is confiscated first, whatever the quota says; the rest of the cod goes on as before
-  // Ø10c: the cod taken where it goes on a cap south of 62° N (the North Sea's open group, the jig exception in the Skagerrak: 3 tonnes
-  // each, 03d-quota.js sorConf) is counted against that cap and not against the quota north of 62° N; over the cap it may be a bycatch
-  // (15 % and 5 % of the catch from there), and the rest is confiscated
-  const codAll = kgOf('torsk'), Z = bycConf(), SQ = sorConf(S.boat.byc, codAll - Z.kg, q, sorAcc()), codKg = Math.max(0, codAll - Z.kg - SQ.cod), confBy = {};   // share of each species that is confiscated
-  let codFF = 0, codQ = 0, codConf = 0, byCod = 0;
-  if (acc === 'none'){
-    // no access (J-30-2026 § 35): cod, haddock and saithe together at most 10 % of the landing, cut back evenly, and at most 2 t of cod a year
-    const ths = codKg + kgOf('hyse') + kgOf('sei'), f = ths > 0 ? Math.min(1, BYCATCH.share * holdTotal() / ths) : 1;
-    byCod = Math.min(codKg * f, Math.max(0, BYCATCH.cod - (q.byCod || 0))); codConf = codKg - byCod;
-    if (f < 1){ confBy.hyse = 1 - f; confBy.sei = 1 - f; }
-  } else {
-    // cod: the fresh-fish allowance first, then the quota; the rest is confiscated by the sales organisation
-    const pct = ffPct(H), ffAllow = pct ? Math.max(0, pct * (ffTot + saleKg) - ffCod) : 0, codFresh = S.hold.reduce((a, x) => a + (x.sp === 'torsk' && !x.frozen ? x.kg : 0), 0) * (codAll > 0 ? codKg / codAll : 1);
-    codFF = Math.min(codFresh, ffAllow); codQ = Math.min(codKg - codFF, codRoom(H)); codConf = codKg - codFF - codQ;
-    // the closed group's haddock and saithe: the maximum quota, then up to 30 % haddock and 20 % saithe as bycatch in each landing
-    // (J-187-2026 §§ 18 and 19); the rest is confiscated
-    // an ocean permit (H2a): no bycatch of cod or haddock beyond the vessel quota, and saithe without a gillnet-saithe permit only as
-    // bycatch, 25 % of the landing (J-187-2026 § 14; the 50 % while the gillnet-saithe fishery is open is not in the game)
-    if (acc === 'lukket' && S.lic.hav){ const LQ = licQ(S.lic, H), all = holdTotal();
-      for (const [sp, share] of [['hyse', 0], ['sei', HAVBY.sei]]){ const k = kgOf(sp), cap = LQ[sp] && isFinite(LQ[sp][0]) ? Math.max(0, LQ[sp][0] - q[sp]) : 0, ok = Math.min(k, Math.max(cap, share * all)); if (k > 0 && ok < k - 0.01) confBy[sp] = 1 - Math.max(0, ok) / k; } }
-    else if (acc === 'lukket'){ const LQ = licQ(S.lic, H), all = holdTotal();
-      for (const [sp, share] of [['hyse', 0.3], ['sei', 0.2]]){ const k = kgOf(sp), ok = Math.min(k, Math.max(LQ[sp][0] - q[sp], share * all)); if (k > 0 && ok < k - 0.01) confBy[sp] = 1 - Math.max(0, ok) / k; } }
-  }
-  if (codAll > 0 && codConf + Z.kg + SQ.kg > 0.001) confBy.torsk = Math.min(1, (codConf + Z.kg + SQ.kg) / codAll);
-  // ling and tusk for vessels of 28 m and over (J-128-2026 and the proposal for 2027, 03d-quota.js lbShare): ling at most 35 % of the
-  // landing all year, tusk free until the group quota is taken and then at most 15 %
-  if (BOAT.len >= 28 && acc !== 'none') for (const sp of ['lange', 'brosme']){ const k = kgOf(sp), sh = lbShare(sp, H); if (k > 0 && sh < 1){ const ok = Math.min(k, sh * holdTotal()); if (ok < k - 0.01) confBy[sp] = 1 - ok / k; } }
-  // snow crab (H3a, H3b): the live crab first on the extra quota, then everything on the vessel quota with the flexibility (round weight,
-  // 10e-krabbefabrikk.js snoLandQ); the rest is confiscated
-  { const k = kgOf('snokrabbe'); if (k > 0){ const conf = acc === 'lukket' && S.lic && S.lic.id === 'krab' ? snoLandQ(H, q).conf : k; if (conf > 0.01) confBy.snokrabbe = Math.min(1, conf / k); } }
-  // Greenland halibut: the maximum quota in the direct fishery, otherwise at most 7 % of the week's landings (03d-quota.js bkAllow)
-  const bkKg = kgOf('blakveite'), bkOk = bkKg > 0 ? bkAllow(H, bkKg, holdTotal()) : 0;
-  if (bkKg > 0 && bkOk < bkKg - 0.01) confBy.blakveite = 1 - bkOk / bkKg;
-  return {saleKg, codKg, confBy, codFF, codQ, codConf, byCod, bkOk, zConf:Z.kg, zBy:Z.by, sConf:SQ.kg, sBy:SQ.by, sOk:SQ.ok};
-}
+// (landConf and CONF_PAY, what is confiscated if the hold is landed now, are in core/03l-room.js since steg 149: the unit tests reach the core only)
 function sell(){
   const b = S.boat, port = portById(b.port); if (!port || !(port.mottak || port.havOnly)) return;
   { const why = portWhy(port, b.type); if (why){ toast(S.lang === 'en' ? why[1] : why[0]); return; } }   // an ocean vessel: a plant that takes her (havsteget H0)
@@ -319,7 +270,10 @@ function sell(){
   const crabFine = 0;
   if (crabDead > 0.05) msg(port.name, vt + fmt(crabDead, 1) + ' kg av kongekrabben var død og er vraket. Død krabbe betales ikke. Et krabbekar med sjøvann holder den levende i flere døgn.', vt + fmt(crabDead, 1) + ' kg of the king crab was dead and has been discarded. Dead crab is not paid for. A live crab tank keeps it alive for days.');
   // confKg and confKr count all that was confiscated (crab too); codKg and codKr are the cod, haddock and saithe rows on the note
-  S.lastSale = {port:port.id, t:S.t, lines:arr, total, ex, confKg:confKg + crabSmall, confKr:confKr + crabKr, codKg:confKg, codKr:confKr, vedKr, confRows, crabKg:crabSmall, crabKr, crabDead, ordKr, gutKr, gutKg:Math.round(gutKg), ffKg:codFF, field, lott, tk, mva, fk, ls:{D:LS.D, M:LS.M, n:LS.n, own:LS.own, tot:LS.tot, f:LS.f, ref:LS.ref, pot:LS.pot, mask:(S.equip && S.equip.jukse) || 0, per:LS.per.map(p => ({name:p.c.name, lots:p.lots, kr:p.kr, sk:p.sk, x:p.x, appr:p.appr}))}, coopKr, ord:ordLines, acc, crabFine, roeCut, streak:{pct:stPct, kr:stKr}, gear:Object.keys(b.tripGear || {}), sno:snoQ ? {tq:snoQ.tq, ord:snoQ.ord, live:snoQ.live} : null, why}; b.tripGear = {};
+  S.lastSale = {qcod:acc !== 'none' && isFinite(codLimitNow(H)) ? [Math.round(q.torsk), Math.round(codLimitNow(H)), ffPct(H) > 0 ? 1 : 0] : null, port:port.id, t:S.t, lines:arr, total, ex, confKg:confKg + crabSmall, confKr:confKr + crabKr, codKg:confKg, codKr:confKr, vedKr, confRows, crabKg:crabSmall, crabKr, crabDead, ordKr, gutKr, gutKg:Math.round(gutKg), ffKg:codFF, field, lott, tk, mva, fk, ls:{D:LS.D, M:LS.M, n:LS.n, own:LS.own, tot:LS.tot, f:LS.f, ref:LS.ref, pot:LS.pot, mask:(S.equip && S.equip.jukse) || 0, per:LS.per.map(p => ({name:p.c.name, lots:p.lots, kr:p.kr, sk:p.sk, x:p.x, appr:p.appr}))}, coopKr, ord:ordLines, acc, crabFine, roeCut, streak:{pct:stPct, kr:stKr}, gear:Object.keys(b.tripGear || {}), sno:snoQ ? {tq:snoQ.tq, ord:snoQ.ord, live:snoQ.live} : null, why}; b.tripGear = {};
+  // (steg 153, the funnel: a landing with something confiscated, in three sizes and by the group; never the place or the boat. The share
+  // of landings is this against the «sale» event every landing sends)
+  { const ck = confKg + crabSmall; if (ck > 0.5 && typeof cloudEv === 'function') cloudEv('land_conf', {kg:ck < 100 ? 'u100' : ck < 500 ? 'u500' : 'o500', acc}); }   // (with the crab under the minimum size, as the note's own sum)
   tatLanding(port.id); checkTattoos();
   if (S.tut && S.tut.catch) S.tut.catch = false;   // the first-trip guarantee ends with the first landing
   for (const x of S.hold) delete x._used;

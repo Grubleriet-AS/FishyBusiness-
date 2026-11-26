@@ -266,6 +266,23 @@ Jonas 16.11.2026: «Kan du fikse innstillinger-siden slik at den har faner øver
   - **Etter «Bruk og start 3D på nytt»** (siden lastes på nytt): `off.trees` (trær og vind), `off.life`, `off.foam` (skum, brottsjø og NPC-skum), `off.fft` (detaljerte bølger), `off.shore` (strand, skjær og marina) og `off.sun`. De er de samme bryterne som testenes `#trees0` og lignende.
   - «Egendefinert» vises når noe er endret, og «Tilbake til standard» setter alt tilbake og Auto.
 
+## Kvotemåleren i statusboksen (steg 150, 25.11.2026)
+
+Hele beskrivelsen står i 5.29c i `kvoter-og-regler.md`. Det som gjelder for den som endrer UI-et etterpå:
+
+- **Raden «Torskekvote»** (`.row.qlink` i `#hud`, `ui/04-panels-instruments.js`) står bare når den betyr noe (`quotaShow`): boksen blir én rad høyere da. Søyla er `.qm` (landet, og `i.ab` for det som er om bord), gul `r1` og rød `r2` som resten av boksen. Samme søyle står på kaia (`.landq`) og sluttseddelen (`.slipq`).
+- **Stripas linje 3** har fått én ting til å si. Rekkefølgen: sammenstøt, skrog, farled, regler, stabilitet, blåsa, kvoten i rødt, neste hendelse, arbeidet, kvoten i gult.
+- **Regler-linja** spør `rmNow()` (kjernen), ikke `ruNow()`: en ny flate som viser «Lov her», skal gjøre det samme.
+- **Testet:** `kvotemaal` i 1280×800, 800×1280 og 390×844, `hudtest`, `roetest`, `docktest`, `uishots`, `tut.py` i begge formater. Gemini vurderte sju skjermbilder etter malen for mobil-UX (ett kall): trykkflatene i statusboksen og stripa fikk 1–2 av 5 (rundt 20–30 px, som resten av boksen), tekststørrelsen på telefonstripa 2 av 5.
+
+## «Mer» og «Vis alt» (steg 152, 25.11.2026)
+
+Hele beskrivelsen står i 5.29c i `kvoter-og-regler.md`. Det som gjelder for den som endrer telefonens sider etterpå:
+
+- **Noe som bare er for viderekomne, legges under `stMer(nøkkel, etikett, html)`** når `stShow(trinn)` er usann (`ui/phone/04-kvote.js`), ikke skjult med et eget flagg. Etiketten sier hva som ligger der. Et varsel foldes aldri.
+- **Fagord i løpende tekst skrives med `rmTerm('nøkkel', true)`** første gang på en side. Ordboka merker ikke overskrifter (`h4`), så ordet må stå i en rad eller et avsnitt for å få prikket strek.
+- **Testene ser alt** (`vis1` i adressen). En test av hva en ny spiller ser, setter `S.settings.rmAll = false`.
+
 ## «Gjestebok» i dokken åpner telefonsiden (25.11.2026)
 
 - Knappen «Gjestebok» i bygdeviften og ved rorbua hadde `page:'gbook'`, men dokkens `open()` tar bare skuffens sider (`PHONE.DRAWER`), og gjesteboka er en side på telefonen. Trykket gjorde ingenting (fem spillere 19.–24.11.2026; 17 innskrivinger på hele kysten den første uka). Nå kaller knappen `PHONE.open('gbook')`, som «Hjelp» gjør med Redning. `docktest` trykker på den.

@@ -1,10 +1,12 @@
 """The way to the first closed-group boat, played by a bot with the game's own functions: a new company at Husøy on 1 March with the
-skiff, trips on the plan's route out to the ground north of Husøy, the landing at the plant, and the hand jig and the jigging reels
+boat and the money a new game starts with (newState and START_KR: Father's wooden boat with the hand jig and 2 000 kr since 09.11.2026;
+until steg 153, 25.11.2026, the bot began in the skiff with 15 000 kr, so the documents' weeks were not today's start), trips on the plan's route out to the ground north of Husøy, the landing at the plant, and the hand jig and the jigging reels
 bought when the money is there. Three paces: a trip every third day, every other day, and every day the weather allows (as the
 standing plan with you aboard). Prints, week by week, the cash, the net worth, cod against the quota and blad B, and the first day
-and trip the entry boat (the right under 7 m, with Kystfondet's top-up) is within reach. A test to be read (LES): the aim is
-about 13 trips, a week of ordinary play. The calibration (October 2026): blad B, that is 1 G, comes after 14-16 trips at every
-pace, and Kystfondet's top-up of 15 % (5 % equity) puts the entry there too; with 10 % it took 24 trips."""
+and trip the entry boat (the right under 7 m, with Kystfondet's top-up) is within reach. A test to be read (LES). The aim was
+about 13 trips, a week of ordinary play, and the calibration (October 2026, from the skiff with 15 000 kr) put blad B at 14-16 trips
+and, with Kystfondet's top-up of 15 % (5 % equity), the entry there too. From today's start (25.11.2026): blad B after 14-15 trips
+at every pace, the entry after 19 (day 30 with a trip every day, day 51 every other day, not within 56 days every third day)."""
 import asyncio, json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _env import boot
@@ -16,8 +18,8 @@ PLAY = r"""(async ([every, days, hours]) => {
   // after each landing and is rested for the next morning
   S.home = 'husoy'; S.naust = null; S.rest = null;
   const b = S.boat, HP = portById('husoy'), Y = 2027;
-  S.t = Math.round((Date.UTC(Y, 2, 1, 4) - EPOCH) / 6e4); S.cash = 15000; S.sales = []; S.fm = {n:0, last:-1, kr:0, b:false}; S.loan = S.loanIN = null; S.inUsed = false; S.lic = null;
-  b.type = 'skiff'; applyVessel(); b.status = 'port'; b.port = 'husoy'; b.pos = {...HP.p}; b.gear = false; b.fuel = BOAT.fuelCap; b.ice = 0; S.hold = []; S.equip.jukse = 0; S.target = 'mix';
+  S.t = Math.round((Date.UTC(Y, 2, 1, 4) - EPOCH) / 6e4); S.cash = START_KR; S.sales = []; S.fm = {n:0, last:-1, kr:0, b:false}; S.loan = S.loanIN = null; S.inUsed = false; S.lic = null;
+  b.type = newState().boat.type; applyVessel(); b.status = 'port'; b.port = 'husoy'; b.pos = {...HP.p}; b.gear = !!newState().boat.gear; b.fuel = BOAT.fuelCap; b.ice = 0; S.hold = []; S.equip.jukse = 0; S.target = 'mix';
   const W = q => ({x:q.x, y:q.y, port:null, fish:0}), rt = FLEET.find(f => f.home === 'husoy' && f.L < 15).rt[0].slice(1).map(q => ({x:q[0], y:q[1]})), G = rt[rt.length - 1];
   const route = () => { const w = exitWps(HP, rt[0]).map(W).concat(rt.map((q, i) => ({x:q.x, y:q.y, port:null, fish:i === rt.length - 1 ? hours : 0}))); rt.slice(0, -1).reverse().forEach(q => w.push(W(q)));
     entryWps(HP, rt[0]).forEach(q => w.push(W(q))); w.push({x:HP.p.x, y:HP.p.y, port:'husoy', fish:0}); return w; };

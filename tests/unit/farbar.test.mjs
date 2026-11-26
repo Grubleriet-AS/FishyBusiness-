@@ -265,5 +265,35 @@ export default function (t){
     t.eq(K.farbMarina(far.x, far.z, sqm, [{w:2, p:[at(0, 0), at(3, 0)]}], () => false).length, 0, 'marina: ingen bøyer der det ikke er vann eller veien til en kai går');
     FARB.w = sea(); FARB.test = K.farbMarina(far.x, far.z, sqm, [{w:2.4, p:[at(-20, 0), at(0, 0)]}], () => true);
     t.ok(K.farbPose(far.x - 10, far.z + 10.8 + 0.3 + sk.B / 2, E, sk, 0) === null && K.farbPose(far.x - 10, far.z + 10.8 - 0.3 + sk.B / 2, E, sk, 0), 'marina: en båt går klar utenfor sonen og berører inne i den');
+    // ---- 13. what the bench found where the planner had no bane (steg 142, punkt 2, 26.11.2026) ----
+    // a sweep over open water takes the caller's own-berth rule (opt.skip) for the water too: a start that lies on a shoal far from
+    // any coast was a grounding at her own berth seven times over (sund-bolandet, sund-hvaler)
+    FARB.test = []; FARB.w = sea({depth:(x, z) => (Math.hypot(x - far.x, z - far.z) < 30 ? 1.0 : 50)});
+    const own = h => h.what === 'grunn' && Math.hypot(h.x - far.x, h.z - far.z) < 40;
+    p = K.farbSweep({X:far.x, Z:far.z, psi:0}, {X:far.x, Z:far.z - 200, psi:0}, boat, 0); t.ok(p && p.what === 'grunn', 'et sveip ut fra ei grunne over åpent vann: en grunnberøring', p && p.what);
+    t.eq(K.farbSweep({X:far.x, Z:far.z, psi:0}, {X:far.x, Z:far.z - 200, psi:0}, boat, 0, {skip:own}), null, 'og med regelen for egen plass (opt.skip) teller ikke grunna hun ligger på, heller ikke over åpent vann');
+    FARB.w = sea({depth:(x, z) => (Math.hypot(x - far.x, z - far.z) < 30 || Math.abs(z - far.z + 120) < 3 ? 1.0 : 50)});
+    p = K.farbSweep({X:far.x, Z:far.z, psi:0}, {X:far.x, Z:far.z - 200, psi:0}, boat, 0, {skip:own}); t.ok(p && p.what === 'grunn' && Math.abs(p.z - far.z + 120) < 12, 'ei grunne lenger ute på veien teller fortsatt', p && [p.what, Math.round(p.z - far.z)]);
+    // a pocket's wall is touched where she is, not at the wall's far end (senjahopen-ut, sandshamn-verft: the touch was reported
+    // 35 and 59 m from her, so the own-berth rule did not take it and shutting round it changed nothing)
+    FARB.w = sea(); const hullP = K.farbHull(far.x, far.z, 0, boat), wt = K.farbWallTouch(hullP, far.x, far.z, [[far.x + 2, far.z - 40, far.x + 2, far.z + 60]], 1, [far.x - 3, far.z - 7, far.x + 3, far.z + 7]);
+    t.ok(wt && Math.abs(wt.x - far.x - 2) < 0.01 && Math.abs(wt.z - far.z) < 0.01, 'en lommevegg berøres der hun er, ikke i veggens ende', wt && [wt.x - far.x, wt.z - far.z]);
+    t.eq(K.farbWallTouch(hullP, far.x, far.z, [[far.x + 9, far.z - 40, far.x + 9, far.z + 60]], 1, [far.x - 3, far.z - 7, far.x + 3, far.z + 7]), null, 'og en vegg 9 m til siden berøres ikke');
+    // the field's water in steps of 5 cm where the job says so (J.zs 20): a harbour dredged to 4.35 m is 4.35, not 4.3
+    const flat = new Float32Array(49).fill(4.35); fr = K.farbFieldBuild(job({co:null, eo:new Float32Array(0), dep:{n:7, step:20, v:flat}, zs:20}));
+    t.eq(fr.z[30 * 60 + 30], 87, 'feltets vann i trinn på 5 cm: 4,35 m er 87 trinn (i dm ble det 4,3, og en båt som trenger 4,35, var stengt ute av havna)');
+    // a naust's or a rorbu's berth: the 3D view digs its pit through the foreshore (view3d/03-berths-naust.js siteTerr), so the
+    // foreshore is not there from a metre off the quay's face out through the pocket (12 m each way along it, 14 m out)
+    fr = K.farbFieldBuild(job()); const zF = fr.z[15 * 60 + 25], zS = fr.z[5 * 60 + 25];
+    fr = K.farbFieldBuild(job({sit:Float32Array.from([41, 30, 0, -1, 0]), sitP:{a:12, w:14}}));
+    t.eq(zF + '|' + fr.z[15 * 60 + 25], '10|254', 'feltet: i gropa foran et naust er det ikke fjære (3D graver den ut): kartets dybde gjelder');
+    t.ok(zS < 254 && fr.z[5 * 60 + 25] === zS, 'feltet: 20 m til siden for naustet er fjæra som før', [zS, fr.z[5 * 60 + 25]]);
+    FARB.w = Object.assign(shore(0, 0), {site:(x, z) => Math.abs(z - far.z) < 12}); t.near(K.farbDepth(far.x + 9, far.z), 30, 1e-9, 'geometrien: i naustets grop gjelder kartets dybde, ikke fjæra');
+    t.near(K.farbDepth(far.x + 9, far.z + 20), 1, 1e-9, 'og utenfor gropa er fjæra som før');
+    // the dredged channels by the place: two keys far from each other, each found where it lies and nowhere else, and one taken away
+    FARB.w = shore(0, 0); K.farbDig('a', [{ax:far.x + 2, az:far.z - 50, bx:far.x + 2, bz:far.z + 50, r:6, d:4}]); K.farbDig('b', [{ax:far.x + 2, az:far.z + 5000, bx:far.x + 2, bz:far.z + 5600, r:6, d:5}]);
+    t.eq(K.farbDepth(far.x + 3, far.z) + '|' + K.farbDepth(far.x + 3, far.z + 5300) + '|' + K.farbDepth(far.x + 3, far.z + 2000), '4|5|-1', 'to renner langt fra hverandre: hver gir sin dybde der den ligger, og fjæra står imellom');
+    K.farbDig('a', null); t.eq(K.farbDepth(far.x + 3, far.z) + '|' + K.farbDepth(far.x + 3, far.z + 5590), '-1|5', 'den ene tatt bort: den andre står, også ved enden 590 m fra starten');
+    K.farbDig('b', null); t.ok(K.farbDug().length === K.get('RENNER_N'), 'og tatt bort begge: bare rennene fra datafila er igjen', [K.farbDug().length, K.get('RENNER_N')]);
   } finally { FARB.w = null; FARB.test = null; K.farbDig('test', null); }
 }

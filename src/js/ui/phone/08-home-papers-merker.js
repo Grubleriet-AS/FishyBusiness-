@@ -25,8 +25,11 @@
   // needs you (Rederi). Spilltest 2: the Regler and Kvote apps were never opened, though their content was what the player needed
   function nowCards(na){
     const out = [], b = S.boat;
-    try { if (b.status !== 'port' && typeof RU !== 'undefined' && RU.ok){ const r = ruNow(), it = r.items.find(i => i.v === r.v && i.v !== 'ok');
+    try { if (b.status !== 'port' && typeof RU !== 'undefined' && RU.ok){ const r = rmNow(), it = r.top || r.items.find(i => i.v === r.v && i.v !== 'ok');
       out.push('<button class="ph-now ' + (r.v === 'no' ? 'r2' : r.v === 'warn' ? 'r1' : 'r0') + '" data-pa="open" data-a="regler"><span>' + L('Regler her', 'Rules here') + '</span><b>' + (r.v === 'no' ? '✕ ' : r.v === 'warn' ? '! ' : '✓ ') + (it ? ruShort(it) : L('Du kan fiske her', 'You may fish here')) + '</b></button>'); } } catch (e){}
+    // the cod this year (steg 150; the card «Kvote: 0 av 4,3 t» of ui-redesign.md, never built): landed against the limit now, in the meter's colour
+    try { const qr = hudQuota(); if (qr && qr.kind !== 'by' && isFinite(qr.limit) && qr.limit > 0) out.push('<button class="ph-now ' + (quotaCls(qr) || 'r0') + '" data-pa="open" data-a="kvote" data-s="mine"><span>' + L('Torsk i år', 'Cod this year') + '</span><b>' + fmt(qr.used / 1000, 1) + L(' av ', ' of ') + fmt(qr.limit / 1000, 1) + ' t' + (qr.aboard > 0.5 ? L(' · ' + fmt(qr.aboard, 0) + ' kg om bord', ' · ' + fmt(qr.aboard, 0) + ' kg aboard') : '') + '</b></button>');
+      else if (qr && qr.kind === 'by') out.push('<button class="ph-now r1" data-pa="open" data-a="kvote" data-s="mine"><span>' + L('Torsk i år', 'Cod this year') + '</span><b>' + (qr.why === 'owner' ? L('Bare bifangst: du er ikke om bord', 'Bycatch only: you are not aboard') : L('Bare bifangst: båten har ingen kvote', 'Bycatch only: the boat has no quota')) + '</b></button>'); } catch (e){}
     try { const H = S.t / 60, best = plantsNear(b.pos, 4).map(x => ({pt:x.pt, v:price(x.pt, 'torsk', H)})).sort((a, c) => c.v - a.v)[0];
       if (best) out.push('<button class="ph-now" data-pa="open" data-a="kvote" data-s="pris"><span>' + L('Best betalt torsk', 'Best price for cod') + '</span><b>' + fmt(best.v, 2) + ' kr/kg · ' + best.pt.name + '</b></button>'); } catch (e){}
     if (na > 0 && rederiOpen()) out.push('<button class="ph-now r1" data-pa="open" data-a="rederi"><span>' + L('Rederiet', 'The company') + '</span><b>' + L('Trenger deg (' + na + ')', 'Needs you (' + na + ')') + '</b></button>');
@@ -65,7 +68,7 @@
   // the papers a fisher carries, shown where they matter (Jonas 09.10.2026: the Sjømann app is gone): blad B and the permit in the Kvote
   // app, the business there too until the Rederi app opens (rederiOpen), then in Rederi. The made-up certificates (health, safety course, skipper, SRC) are no longer shown.
   const papWho = () => S.company ? L('Skipper i ', 'Skipper of ') + S.company : L('Skipper på «', 'Skipper of the «') + (S.boatName || 'Havbris') + '»';
-  const papCard = (col, title, rows, note) => '<div class="ph-card papc"><div class="pap-h" style="background:' + col + '">' + title + '</div>' + rows.map(([a, b]) => kv(a, b)).join('') + (note ? '<p class="ph-note">' + note + '</p>' : '') + '</div>';
+  const papCard = (col, title, rows, note) => '<div class="ph-card papc"><div class="pap-h" style="background:' + col + '">' + title + '</div>' + rows.map(([a, b]) => kv(a, b)).join('') + (!note ? '' : stShow(3) ? '<p class="ph-note">' + note + '</p>' : '<details class="whylaw"><summary>' + (/§/.test(note) ? L('Loven bak', 'The law behind') : L('Mer om dette', 'More on this')) + '</summary><p class="ph-note">' + note + '</p></details>') + '</div>';   // (steg 152: the paper's note, with its paragraph, is folded until the player has a quota of their own)
   function papBladB(){ const who = papWho(), card = papCard;
     return (F => card('#7a5a2c', L('Fiskermanntallet, blad B', 'Fishermen\'s register, blad B'), [[L('Navn', 'Name'), who], [L('Landingsdager med deg om bord', 'Landing days with you aboard'), fmt(F.n, 0) + ' / ' + BLADB.days], [L('Førstehåndsverdi', 'First-hand value'), kr(F.kr) + ' / ' + kr(BLADB.kr) + ' (1 G)'],
         ['Status', F.b ? '<span class="r0">' + L('Ført på blad B', 'On blad B') + '</span>' : L('Blad A: fiske er ikke hovedyrket ennå', 'Blad A: fishing is not your main occupation yet')]],
