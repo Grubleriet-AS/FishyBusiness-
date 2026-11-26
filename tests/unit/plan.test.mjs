@@ -186,5 +186,8 @@ export default function (t){
   // the words
   const S0 = K.get('S'); K.set('S', K.newState());
   try { const w = K.planWhy({why:'ingen vei', cause:'bru', at:[500000, 900000]});
-    t.ok(/brua er for lav/.test(w[0]) && /bridge is too low/.test(w[1]) && /° N/.test(w[0]), 'svaret sier hvorfor og hvor, på norsk og engelsk', w); } finally { K.set('S', S0); }
+    t.ok(/brua er for lav/.test(w[0]) && /bridge is too low/.test(w[1]) && /° N/.test(w[0]), 'svaret sier hvorfor og hvor, på norsk og engelsk', w);
+    // (a vessel lying still that was shut, and then no way: it is the vessel, not «the search grew too large» or a bridge; Urangsvåg)
+    const wb = K.planWhy({why:'for langt', cause:'båt', at:[500000, 900000]});
+    t.ok(/fartøy som ligger stille/.test(wb[0]) && /vessel lying still/.test(wb[1]) && /° N/.test(wb[0]), 'et fartøy som ligger stille og stenger, sies som det', wb); } finally { K.set('S', S0); }
 }

@@ -239,9 +239,9 @@ function planWorker(){ if (PLAN.w !== null) return PLAN.w;
     PLAN.w = w; } catch (e){ PLAN.w = false; }
   return PLAN.w; }
 // why there is no way, in words (Norwegian, English)
-function planWhy(r){ const c = {grunt:['for grunt for båten', 'too shallow for the boat'], bru:['brua er for lav for båten', 'the bridge is too low for the boat'], trangt:['for trangt for båten', 'too narrow for the boat'], land:['land i veien', 'land in the way'], ukjent:['kartet er ikke lastet der', 'the chart is not loaded there']}[r.cause] || ['ingen vei', 'no way'];
+function planWhy(r){ const c = {grunt:['for grunt for båten', 'too shallow for the boat'], bru:['brua er for lav for båten', 'the bridge is too low for the boat'], trangt:['for trangt for båten', 'too narrow for the boat'], land:['land i veien', 'land in the way'], båt:['et fartøy som ligger stille, stenger veien', 'a vessel lying still blocks the way'], ukjent:['kartet er ikke lastet der', 'the chart is not loaded there']}[r.cause] || ['ingen vei', 'no way'];
   const p = r.at ? natLL({x:r.at[0] / 1000, y:r.at[1] / 1000}) : null, at = p ? ' (' + p.lat.toFixed(4) + '° N, ' + p.lon.toFixed(4) + '° Ø)' : '', atE = at.replace('Ø', 'E');
-  return r.why === 'for langt' ? ['Fant ingen bane: søket ble for stort' + at, 'Found no way: the search grew too large' + atE] : ['Fant ingen bane: ' + c[0] + at, 'Found no way: ' + c[1] + atE]; }
+  return r.why === 'for langt' && r.cause !== 'båt' ? ['Fant ingen bane: søket ble for stort' + at, 'Found no way: the search grew too large' + atE] : ['Fant ingen bane: ' + c[0] + at, 'Found no way: ' + c[1] + atE]; }
 // The chart's own cells over the water between the two ends and a way round them, for the search's sense of how far it is (planMake,
 // J.co): cells of PLAN.co m, each 1 where one of the depth layer's cells in it is water, 0 land, 2 where the chart is not in.
 // null where it would be too big, or the layer is not there. In slices
@@ -319,7 +319,7 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
   const skip = (h, X, Z) => h.what === 'grunn' ? !!(opt && opt.dig) || nearE(h.x, h.z, own) : h.R ? nearE(h.x, h.z, own + h.R) : touchP(h) ? nearE(h.x, h.z, own) : nearE(X, Z, 0.9 * boat.L);
   // (the worker keeps the tiles it was given: thrown when the map has changed since, more of it come in or a channel dug, and when they are many)
   { const fv = farbFieldVer(); if (PLAN.ver !== fv || PLAN.sent > 300){ await send({op:'reset'}); PLAN.ver = fv; PLAN.sent = 0; } }
-  let r = await send({op:'start', J}), tiles = 0, tries = 0, exp = 0; const shut = [];   // (shut: what the check on the geometry found and shut, for the answer)
+  let r = await send({op:'start', J}), tiles = 0, tries = 0, exp = 0, boatShut = null; const shut = [];   // (shut: what the check on the geometry found and shut, for the answer)
   const o = Object.assign({}, bb, {end:!(opt && opt.end === false)}), sw = {m:side, keel:planKeel(), squat:sq, sqV:P ? v => planSquat(u => dynSquat(P, u, false), v) : null, boats:true, skip}, memo = new Map(), rMin = Math.max(boat.B / 2, bb.R / 16);
   for (;;){
     if (r.need){ const out = [], tr = [];
@@ -335,6 +335,9 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     // geometry, which asks her keel's own points, says whether she floats there. The same where it says «too narrow»: the
     // distance then without the half cell of rounding. The bench, steg 142: the skiff out of Øksfjord)
     if (r.why){ if ((r.cause === 'grunt' || r.cause === 'trangt') && !(opt && (opt.dig || opt.soft))){ const R2 = await planBane(a, b, type, Object.assign({}, opt || {}, {soft:true})); if (R2.bane){ R2.soft = true; return R2; } }
+      // (a vessel lying still was shut on the way and then there was none: she is what stands in the way, not the place the search
+      // gave up at. Urangsvåg with the skiff, steg 142: «the bridge is too low» where a boat lay along a floating dock)
+      if (boatShut) r = Object.assign({}, r, {cause:'båt', at:boatShut});
       PLAN.n.plans++; return fail(r, {tiles, tries, exp:exp + (r.exp || 0), shut}); }
     exp += r.exp || 0;
     // The way as a bane she can sail, her hull swept along it on the geometry at the lowest water. An arc that touches is made
@@ -357,7 +360,7 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     // shut round what she touched, a cell wider for each time, and search again
     shut.push(hit.what + ':' + hit.id + '@' + Math.round(hit.x) + ',' + Math.round(hit.z) + (B.P[hit.i].k === 'a' ? ' (bue r ' + B.P[hit.i].r.toFixed(1) + ')' : ''));
     // (round the touch where that is known, the land's and the water's; round where she stood for a thing, whose touch is its middle)
-    const bl = planBlockOf(hit, boat, side, c2, tries, seen);
+    const bl = planBlockOf(hit, boat, side, c2, tries, seen); if (hit.what === 'båt') boatShut = [hit.x, hit.z];
     r = await send({op:'block', x:bl.x, z:bl.z, r:bl.r, list:bl.list}); } }
 // ---- where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna») ----
 // The channel along a way: P its points [[X, Z] ...] close together (2 m), sh which of them lie where the water is too shallow for
