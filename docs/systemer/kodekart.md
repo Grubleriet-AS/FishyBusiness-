@@ -777,7 +777,7 @@ Kvotemarkedet, the core (KM1 of docs/planer/kvotemarkedet.md; Jonas 07.11.2026: 
   - 125 `hfftCapFit(o1, n1, s1, o2, n2, s2, gs, n, w2 = 1, two = false)`
   - 144 `hfftMips(out, N)`
 
-## `src/js/core/03l-room.js` (295 linjer)
+## `src/js/core/03l-room.js` (294 linjer)
 
 Handlingsrommet: one layer between the rules and the screen (steg 149, K1 of docs/planer/regler-i-klartekst.md)
 
@@ -796,11 +796,11 @@ Handlingsrommet: one layer between the rules and the screen (steg 149, K1 of doc
   - 149 `rmWarn(H)`
 - **163** what a purchase changes, worked out without changing anything (no vessel is bound: it reads the boats' own fields). offer:
   - 173 `rmBuy(offer, H)`
-- **215** the words (plan 4.5, V3 A; Jonas 25.11.2026: «Vi må gjerne bytte ut ord til noe som er mer forståelig for brukerne … mens det
-  - 233 `rmTermL(key, first)`
-  - 234 `rmTerm(key, first)`
-- **236** why can I not? One table for the reasons a purchase or a move can give: the words deal() (notes, eq, cap), kmBuyWhy and kmWhy
-  - 289 `rmWhy(code, ctx)`
+- **214** the words (plan 4.5, V3 A; Jonas 25.11.2026: «Vi må gjerne bytte ut ord til noe som er mer forståelig for brukerne … mens det
+  - 232 `rmTermL(key, first)`
+  - 233 `rmTerm(key, first)`
+- **235** why can I not? One table for the reasons a purchase or a move can give: the words deal() (notes, eq, cap), kmBuyWhy and kmWhy
+  - 288 `rmWhy(code, ctx)`
 
 ## `src/js/core/04-crew.js` (735 linjer)
 
@@ -3333,7 +3333,7 @@ Kystmegleren: boats players sell to each other (B1–B8 in docs/planer/etter-ton
   - 222 `mgAfter(key, okNo, okEn)`
   - 224 `mgAct(a, d)`
 
-## `src/js/ui/phone/14-act.js` (403 linjer)
+## `src/js/ui/phone/14-act.js` (408 linjer)
 
   - 2 `act(a, d)`
 - **9** the receipt after a buy for kroner (Jonas 06.11.2026, Tony's test: «Det skal ikke være tvil om et kjøp er gjennomført»): one

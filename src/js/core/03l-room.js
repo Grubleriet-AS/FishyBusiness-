@@ -202,9 +202,8 @@ function rmBuy(offer, H){
       if (!isOpen) R = {after:st('none', BYCATCH.cod, ti ? qOf(cur).byCod || 0 : 0)};
       else { // she is the open-group boat afterwards. Her cod this year: her own when she was it already; coming from a right, what the
         // owner kept (buy: freshQuota and openUsedLoad), and with the right kept as a free right also what was landed on it this year
-        // (mbMove puts it with the owner's). A boat of 11 m or more whose right is kept gets nothing loaded (kmOut loads it only for the
-        // boat that is the open-group boat as she is then): the purchase does that, so the card says it
-        const u = !had ? Math.max(cur.id === ov ? qOf(cur).torsk || 0 : 0, kept()) : !offer.keep ? kept() : lenOf(cur) < 11 ? Math.max(kept(), qOf(cur).torsk || 0) : 0;
+        // (mbMove puts it with the owner's; § 29, also from a boat of 11 m or more since 26.11.2026)
+        const u = !had ? Math.max(cur.id === ov ? qOf(cur).torsk || 0 : 0, kept()) : !offer.keep ? kept() : Math.max(kept(), qOf(cur).torsk || 0);
         R = {after:st('open', rmOpenLimit(V.len, H), u)}; }
       R.now = ti ? nowOf(cur) : null; R.loses = null; if (ti) R.lost = had && !offer.keep; } }
   else return null;

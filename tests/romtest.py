@@ -81,6 +81,10 @@ async def main():
         # a right that goes with the boat traded in for a small boat without one: the card is red, and the purchase asks first
         await pg.evaluate(BASE); lo = await pg.evaluate("(() => { S.lic = {id:'u7', hl:HJ.u7.hl, since:yearH(S.t / 60) - 1}; freshQuota(); const P = rmBuy({kind:'hull', type:'snekke', ti:true}); const r = (" + SHEET + ")('open', '[data-pa=mksel][data-k=snekke]:not([data-o])'); DOCK.close(); ASK.length = 0; PHONE.dact('rederi', 'buy', {k:'snekke', ti:'1'}); return {lost:P.lost, bad:r.bad, txt:r.txt, ask:ASK.length, lic:!!S.lic, type:S.boat.type}; })()")
         check(lo['lost'] and lo['bad'][0] and 'følger innbyttebåten' in lo['txt'] and lo['ask'] == 1 and lo['type'] == 'snekke' and not lo['lic'], 'a right that goes with the boat traded in: the card is red, and the purchase asks first', {k: lo[k] for k in ('lost', 'bad', 'ask', 'lic', 'type')})
+        # § 29 (Jonas 26.11.2026): a coastal vessel with a right traded in for a small boat, the right kept as a free right. What was landed
+        # on the right this year follows the owner into the open group, also when the old boat was 11 m or more (before, the new boat began at 0)
+        await pg.evaluate(BASE); kp = await pg.evaluate("(() => { S.boat.type = 'kyst15'; applyVessel(); S.lic = {id:'h14', hl:HJ.h14.hl, since:yearH(S.t / 60) - 1}; licExtra(S.lic); freshQuota().torsk = 3000; PHONE.dact('rederi', 'mbti', {s:'keep'}); const P = " + PRED + "(rmBuy({kind:'hull', type:'snekke', ti:true, keep:true})); ASK.length = 0; PHONE.dact('rederi', 'mbti', {s:'keep'}); PHONE.dact('rederi', 'buy', {k:'snekke', ti:'1'}); return {P, G:" + STATE + "(curVessel()), free:(S.licFree || []).length}; })()")
+        check(kp['G']['acc'] == 'open' and kp['G']['used'] == 3000 and kp['P']['used'] == 3000 and kp['free'] == 1, '§ 29: the catch on a kept right follows the owner into the open group, also from a boat of 11 m or more, and the card says so', kp)
         print('errors:', errs[:5]); await br.close()
 
 asyncio.run(main())

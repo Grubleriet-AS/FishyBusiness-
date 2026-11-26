@@ -242,6 +242,7 @@
       // KM4 (V2 A, the same choice as at the broker): the right is kept as a free right for two game years, taken off her before she
       // is traded in (the trade-in was priced without it, tradeIn); else it follows her as before. The second quota from the special
       // scheme falls away either way (kap. 2 § 6)
+      const kq0 = ti && tiKeepOn() && S.quota ? {...S.quota} : null;   // (what is landed on the right this year, before it leaves her: § 29 below)
       const kept = ti && tiKeepOn() ? mbMove({v:curVessel()}, {free:true}) : null, two0 = ti && S.lic && S.lic.two && HJ[S.lic.two] ? S.lic.two : null;
       sub.tikeep = null;
       // a new build is delivered at once, at this yard, like a used vessel (Jonas 13.10.2026: «Fjern byggetiden når man bestiller nybygg»)
@@ -249,7 +250,11 @@
       else { const v = newVesselObj(d.k, S.boat.port, hl); hn = v.boatName; setTimeout(() => BUYM.show(v), 60); log('Kjøpte ' + V2.name.no + ' til flåten. Hun heter «' + v.boatName + '» og ligger i ' + portById(S.boat.port).name + '.', 'Bought the ' + V2.name.en + ' for the fleet. She is called «' + v.boatName + '» and lies at ' + portById(S.boat.port).name + '.'); }
       pressPut('boat', {type:d.k, nb:V2.isNew ? 1 : 0, price:V2.price});   // Kystposten (core/09h-press.js)
       if (ti && S.lic){ log('Kvoten i lukket gruppe fulgte med den gamle båten.' + (two0 ? ' Den andre kvoten fra den særlige ordningen falt bort.' : ''), 'The closed-group quota went with the old vessel.' + (two0 ? ' The second quota from the special scheme fell away.' : '')); regFree(S.lic.id); S.lic = null; freshQuota(); openUsedLoad(); }
-      else if (kept && kept.ok) log('Hjemmelen ble i rederiet som ledig hjemmel i høyst to spillår.', 'The right stayed in the company as a free right for at most two game years.');
+      else if (kept && kept.ok){ log('Hjemmelen ble i rederiet som ledig hjemmel i høyst to spillår.', 'The right stayed in the company as a free right for at most two game years.');
+        // (§ 29, Jonas 26.11.2026) the owner's catch this year follows the owner: the new boat, when she is the company's open-group boat,
+        // begins with what was landed on the kept right. Before, only a boat that was under 11 m already got it (mbMove and kmOut look at
+        // the boat as she is then), so a coastal vessel traded for a small boat fished the open group from nothing
+        if (!S.lic && S.cur === openVesselId()){ if (kq0) openUsedSave(kq0); openUsedLoad(); } }
       if (hl){ if (ti){ S.lic = hl; freshQuota(); }
         msg('Fiskeridirektoratet', HAVLIC[hl.id].no + ' med kvotefaktor ' + fmt(hl.kf, 2) + ' er registrert på «' + (ti ? S.boatName : hn) + '». Den er kjøpt fra ' + hl.from + '.', 'A ' + HAVLIC[hl.id].en.toLowerCase() + ' with quota factor ' + fmt(hl.kf, 2) + ' is registered to the vessel. It was bought from ' + hl.from + '.'); }
     }

@@ -6479,3 +6479,13 @@
 2026-11-25 17:09	ccr-e101e6f0-y7fg6x	6b6826a+	r4test	OK	6	lite	samtidig	
 2026-11-25 17:09	ccr-e101e6f0-y7fg6x	6b6826a+	admintest	OK	14	lite	samtidig	
 2026-11-25 17:09	ccr-e101e6f0-y7fg6x	6b6826a+	kvotemaal	OK	25	lite	samtidig	
+2026-11-26 08:16	ccr-e101e6f0-y7fg6x	0250f3a+	romtest	FEIL	33	lite	alene	FEIL § 29: the catch on a kept right follows the owner into the open group, also from a boat of 11 m or more, and the card says so  {"P": {"acc": "open", "limit
+2026-11-26 08:17	ccr-e101e6f0-y7fg6x	0250f3a+	romtest	FEIL	22	lite	samtidig	FEIL § 29: the catch on a kept right follows the owner into the open group, also from a boat of 11 m or more, and the card says so  {"P": {"acc": "open", "limit
+2026-11-26 08:17	ccr-e101e6f0-y7fg6x	0250f3a+	quotatest	OK	7	lite	samtidig	
+2026-11-26 08:17	ccr-e101e6f0-y7fg6x	0250f3a+	megletest	OK	25	lite	samtidig	
+2026-11-26 08:17	ccr-e101e6f0-y7fg6x	0250f3a+	vesseltest	OK	9	lite	samtidig	
+2026-11-26 08:18	ccr-e101e6f0-y7fg6x	0250f3a+	romtest	OK	22	lite	samtidig	
+2026-11-26 08:18	ccr-e101e6f0-y7fg6x	0250f3a+	quotatest	OK	7	lite	samtidig	
+2026-11-26 08:18	ccr-e101e6f0-y7fg6x	0250f3a+	megletest	OK	25	lite	samtidig	
+2026-11-26 08:18	ccr-e101e6f0-y7fg6x	0250f3a+	vesseltest	OK	9	lite	samtidig	
+2026-11-26 08:18	ccr-e101e6f0-y7fg6x	0250f3a+	kvotemarkedtest	OK	27	lite	samtidig	
