@@ -1,10 +1,13 @@
-// An admin's correction (26.11.2026, table fixes, ui/10v-fix.js): a vessel bought by trade-in taken back, «as if the purchase never took
+// An admin's correction (26.11.2026, table fixes, ui/10w-fix.js): a vessel bought by trade-in taken back, «as if the purchase never took
 // place»: the old type as delivered, the refund (the new price less the 70 % the old one was taken in for), the loans paid down first.
 export default function (t){
   const K = t.K;
   const setup = () => { const S = K.newState(); K.set('S', S); K.applyVessel(); return S; };
   t.eq(K.undoBuyKr('kyst21', 'plastsjark'), 9000000 - 595000, 'kyst21 mot plastsjark: 9 000 000 − 70 % av 850 000');
   t.eq(K.undoBuyKr('kyst21', 'nope'), null, 'en ukjent type gir ingen sum');
+  const hav = Object.keys(K.VESSELS).find(k => K.VESSELS[k].cls === 'hav');
+  t.eq(K.undoBuyKr(hav, 'plastsjark'), null, 'ikke fra havflåten');
+  t.eq(K.undoBuyKr('kyst21', hav), null, 'ikke tilbake til havflåten');
 
   // the trade as the game does it: plastsjark in port, traded in for kyst21 with loans
   let S = setup(); S.boat.type = 'plastsjark'; K.applyVessel(); S.boat.port = S.boat.port || 'x'; S.cash = 2000000; S.sales = [{}, {}, {}]; S.fleet = S.fleet || []; S.crew = S.crew || [];
@@ -30,6 +33,16 @@ export default function (t){
   t.ok(S.crew.length <= K.VESSELS.plastsjark.crewMax, 'mannskapet får plass');
   t.ok(S.boat.fuel <= K.VESSELS.plastsjark.fuelCap, 'drivstoffet får plass');
   t.eq(K.undoBuyApply({to:'kyst21', from:'plastsjark'}).why, 'type', 'to ganger gjør ingenting');
+  t.eq(K.undoBuyWhy({to:'kyst21', from:hav, kr:1}), 'bad', 'heller ikke med admins sum tilbake til havflåten');
+
+  // the row is kept in the save: the same id is never done twice, also with a kyst21 bought again
+  S = setup(); S.boat.type = 'kyst21'; K.applyVessel(); S.boat.port = 'x'; S.cash = 0; S.fleet = S.fleet || []; S.crew = S.crew || [];
+  S.jobs = [{kind:'hold', lv:1, kr:40000, no:'Større lasterom', en:'Bigger hold', until:S.t + 600}, {kind:'paint', kr:5}];
+  const r3 = K.undoBuyApply({id:41, to:'kyst21', from:'plastsjark', kr:0});
+  t.ok(r3.ok && r3.jobs === 40000 && S.jobs.length === 1 && Math.round(S.cash) === 40000, 'verftsjobben på det nye skroget betales tilbake og tas av køen', r3);
+  t.ok(S.fixDone && S.fixDone[41] && S.fixDone[41].ok, 'raden huskes i lagringen');
+  S.boat.type = 'kyst21'; K.applyVessel();
+  t.eq(K.undoBuyApply({id:41, to:'kyst21', from:'plastsjark', kr:0}).why, 'done', 'samme rad gjøres aldri to ganger, heller ikke med en ny kyst21');
 
   // with the admin's sum
   S = setup(); S.boat.type = 'kyst21'; K.applyVessel(); S.boat.port = 'x'; S.cash = -4268; S.fleet = S.fleet || []; S.crew = S.crew || [];

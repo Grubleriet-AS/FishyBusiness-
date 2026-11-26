@@ -1305,24 +1305,42 @@ function finance(x, months){ if (x.payoff) payDown(x.payoff); if (x.bankL > 0) t
   if (S.cash < x.cost && bankS().spare > 0) bankMove('spare', -(x.cost - S.cash), 'Fra sparekontoen til båtkjøpet', 'From the savings for the vessel');   // the savings are equity
   book('baat', -x.cost, 'Båtkjøp', 'Vessel bought'); }
 // ---- an admin's correction: a vessel bought by trade-in, taken back (26.11.2026, Jonas: «Gi han tilbake båten og pengene som om kjøpet
-// aldri fant sted»; table fixes, ui/10v-fix.js). The vessel followed is of type d.to and goes back to d.from as delivered (her yard work and
+// aldri fant sted»; table fixes, ui/10w-fix.js). The vessel followed is of type d.to and goes back to d.from as delivered (her yard work and
 // knife and landing-net tiers went with the hull and are not in the save any more). The refund is what the trade cost: the new type's
-// price less what the old one was taken in for (vesselValue: 70 % of her price), or d.kr when the admin gives it. The refund pays down the
-// loans first (the trade's own, as finance took them), and the rest goes to the account, so the company's worth is as before the trade
-// less the interest paid since. Returns null when done, or why not now ('type': she is not of type d.to; 'port': not in port; 'hold': more fish aboard than the old hold takes; 'bad').
-function undoBuyKr(to, from){ const A = VESSELS[to], B = VESSELS[from]; if (!A || !B || A.cls === 'hav') return null; return Math.max(0, Math.round(A.price - B.price * 0.7)); }
-function undoBuyWhy(d){ if (!d || !VESSELS[d.from] || !VESSELS[d.to] || d.from === d.to) return 'bad'; if (S.boat.type !== d.to) return 'type'; if (!S.boat.port || S.boat.sale || S.order) return 'port'; if ((S.cargo || []).reduce((a, c) => a + c.kg, 0) > VESSELS[d.from].holdCap) return 'hold'; return (d.kr != null ? d.kr >= 0 : undoBuyKr(d.to, d.from) != null) ? null : 'bad'; }
+// price less what the old hull was taken in for (70 % of her price, as vesselValue), or d.kr when the admin gives it. A right or a motor
+// the trade-in also paid for stays sold, and what it was paid stays in the account, so the company is worth what it was before the
+// trade, less the interest paid since. The refund pays down the loans first and the rest goes to the account. The yard's jobs ordered
+// for the new hull are paid back and taken off the queue, as switchVessel does for the old one. Not for the ocean fleet either way (its
+// permit and price are its own). A row done is kept in S.fixDone (id -> what was done), so it is never done twice, also when the
+// server was not told. Returns {ok:false, why} when not now: 'done' (this row is done), 'type' (the vessel followed is not of type d.to),
+// 'port' (not in port), 'hold' (more fish aboard than the old hold takes), 'bad' (cannot be done).
+function undoBuyKr(to, from){ const A = VESSELS[to], B = VESSELS[from]; if (!A || !B || A.cls === 'hav' || B.cls === 'hav') return null; return Math.max(0, Math.round(A.price - B.price * 0.7)); }
+function undoBuyWhy(d){
+  if (!d || !VESSELS[d.from] || !VESSELS[d.to] || d.from === d.to || VESSELS[d.from].cls === 'hav' || VESSELS[d.to].cls === 'hav') return 'bad';
+  if (d.id != null && S.fixDone && S.fixDone[d.id]) return 'done';
+  if (S.boat.type !== d.to) return 'type'; if (!S.boat.port || S.boat.sale || S.order) return 'port';
+  if ((S.cargo || []).reduce((a, c) => a + c.kg, 0) > VESSELS[d.from].holdCap) return 'hold';
+  return (d.kr != null ? d.kr >= 0 : undoBuyKr(d.to, d.from) != null) ? null : 'bad';
+}
 function undoBuyApply(d){
   const why = undoBuyWhy(d); if (why) return {ok:false, why};
-  const b = S.boat, kr = d.kr != null ? Math.round(d.kr) : undoBuyKr(d.to, d.from), debt0 = debt();
+  const b = S.boat, kr = d.kr != null ? Math.round(d.kr) : undoBuyKr(d.to, d.from);
+  // the yard's jobs on this hull, paid back as switchVessel pays back the old hull's
+  const hullJobs = (S.jobs || []).filter(j => ['eng', 'hold', 'upg', 'prop'].includes(j.kind)); let jobs = 0;
+  for (const j of hullJobs){ const st = j.kind === 'eng' ? ENGUP[j.lv - 1] : j.kind === 'hold' ? HOLDUP[j.lv - 1] : j.kind === 'prop' ? PROPUP[j.lv - 1] : UPGS[j.u] && UPGS[j.u].steps[j.lv - 1];
+    const back = j.kr > 0 ? j.kr : st ? upPrice(st.pc, st.min) : 0; if (back > 0){ book('verft', back, 'Tilbakebetalt: ' + (j.no || ''), 'Paid back: ' + (j.en || '')); jobs += back; } }
+  if (hullJobs.length) S.jobs = S.jobs.filter(j => !hullJobs.includes(j));
   b.type = d.from; delete b.engLv; delete b.propLv; delete b.holdLv; delete b.upg; delete b.liv; delete b.call;
   for (const q of Object.keys(EQUIP)) if (!EQUIP[q].tiers && !equipFits(q, d.from)) S.equip[q] = EQUIP[q].multi ? Math.min(S.equip[q] || 0, VESSELS[d.from].jukseMax || 0) : false;
   applyVessel(); S.equip.jukse = Math.min(S.equip.jukse || 0, BOAT.jukseMax || 0);
   b.fuel = Math.min(b.fuel || 0, BOAT.fuelCap); b.ice = Math.min(b.ice || 0, BOAT.iceCap || 0);
   while (S.crew.length > BOAT.crewMax) S.crew.pop();
+  const debt0 = debt();
   if (kr > 0) book('baat', kr, 'Båtkjøpet angret', 'Vessel purchase undone');
   const paid = Math.min(debt0, Math.max(0, kr)), off = paid > 0 ? payDown(paid) : 0; if (off > 0) book('avdrag', -off, 'Lånene innfridd med tilbakebetalingen', 'Loans paid off with the refund');
-  return {ok:true, kr, off, cash:Math.round(S.cash), debt:Math.round(debt())};
+  const r = {ok:true, kr, off, jobs, cash:Math.round(S.cash), debt:Math.round(debt())};
+  if (d.id != null){ S.fixDone = S.fixDone || {}; S.fixDone[d.id] = {...r, t:S.t}; }
+  return r;
 }
 function lenGroup(){ const L = BOAT.len || 5.8; return L < 8 ? 0 : L < 10 ? 1 : 2; }
 function codLimits(H){ if (H == null) H = S.t / 60; if (S.lic){ const c = licQ(S.lic, H).torsk; return {max:c, guar:c}; } const O = yearQuota(yearH(H)).open, g = lenGroup(), A = openAdd(H), base = {max:(O.max[g] + openMaxAdd(H)) * 1000, guar:O.guar[g] * 1000};

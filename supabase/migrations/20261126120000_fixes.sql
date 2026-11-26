@@ -2,7 +2,7 @@
 -- cannot fish inside the baseline and asked to have the purchase undone: «Gi han tilbake båten og pengene som om kjøpet aldri fant sted»,
 -- and «lag et verktøy som løser dette på en ok måte for oss begge»).
 -- The game holds the save, so the correction is done there, as the shop's grants are: the admin writes a row here (admin_fix_add, the
--- tab «Korrigering» in /admin), the player's game asks for its open rows at start and every ten minutes (fix_pending, ui/10v-fix.js),
+-- tab «Korrigering» in /admin), the player's game asks for its open rows at start and every ten minutes (fix_pending, ui/10w-fix.js),
 -- does what the row says in its own state (core/03-simulation.js undoBuyApply) and answers with what it did (fix_done). Nothing reads or
 -- writes a save on the server, so a player who is playing gets it at once, and no save is written over.
 -- Kinds: 'undo_buy' {from, to, kr?}: the vessel followed, of type `to`, goes back to type `from` as delivered; the refund (kr, or the

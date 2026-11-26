@@ -57,8 +57,8 @@ def main():
         for m in mig:
             if os.environ.get('SQL_LOP') == '0' and m.endswith('_kapplop.sql'): continue   # (KL3: the race's checks seen red without the file)
             if os.environ.get('SQL_RANK') == '0' and m.endswith('_rank_fs.sql'): continue   # (RANK1-c: the tab's checks seen red without the file)
-            if os.environ.get('SQL_LANG') == '0' and m.endswith('_toplist_lang.sql'): continue
-            if os.environ.get('SQL_FIX') == '0' and m.endswith('_fixes.sql'): continue   # (fixes: its checks seen red without the file)   # (the long list: its checks seen red without the file)
+            if os.environ.get('SQL_LANG') == '0' and m.endswith('_toplist_lang.sql'): continue   # (the long list: its checks seen red without the file)
+            if os.environ.get('SQL_FIX') == '0' and m.endswith('_fixes.sql'): continue   # (fixes: its checks seen red without the file)
             p = run('psql', '-h', sock, '-U', user, '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q', '-f', m)
             print(ok(p.returncode == 0), 'the migration runs on PostgreSQL:', os.path.basename(m), p.stderr.strip()[-300:] if p.returncode else '')
             if p.returncode: return
