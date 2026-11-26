@@ -1,4 +1,4 @@
-# Fraktebåt for små båter (plan 25.11.2026, ikke låst)
+# Fraktebåt for små båter (plan 25.11.2026, låst 26.11.2026)
 
 ## Hva Jonas ba om
 
@@ -75,6 +75,19 @@ En spiller som ligger ved kai, velger «Bestill frakt» og et sted i kartet. Spi
 - Ingen frakt av havbåter, og ingen frakt fra åpen sjø (det er slepet).
 - Ingen frakt for ekte penger.
 
+## Jonas' svar (26.11.2026)
+
+1. **C, når båten ligger fortøyd ved en kai:** «1C, Når båten ligger i en fortøyd i en eller annen kai.» Frakt kan altså alltid bestilles fra kai, og koster mer i godvær enn når været holder båten inne.
+2. **A:** båter under 11 m.
+3. **A, og dynamisk:** «jeg tenker at prisen fraktebåten tar må være dynamisk og basert på båtens størrelse, rutens lengde og tidsbruk på samme måte som hopp-funksjonen. Forhåpentligvis vil dette stimulere til kjøp av med ekte penger fordi prisen ser lavere og dermed billigere ut i ekte kroner enn prisen som fraktebåten tar. Vi må samtidig ikke sette prisen så høyt at det er umulig for spillerne å benytte seg av båtfrakten.» Prisen regnes derfor av tre ledd: båtens lengde, rutas lengde og tida frakten tar, med 2 000 kr pluss 150 kr per nautisk mil som utgangspunkt for den minste båten. Tallene settes i FR1 mot det en småbåt tjener på en tur, og vises ved siden av Hopp-prisen i FR3.
+4. **A, med animasjoner:** «husk at vi må ha animasjoner for hele operasjonen.» 10 knop og en halv time i hver ende. Det gir en egen fase for modellen og bevegelsen (FR2b under).
+
+### FR2b Fraktebåten i 3D (egne økter, `/blender`)
+- Modellen av fraktebåten (lasteskip med kran, bare utsiden), og operasjonen: hun legger til, spillerens båt løftes om bord, turen med båten på dekk, og hun settes på sjøen ved kaia i andre enden.
+- Følger reglene for animasjon i `CLAUDE.md`: høyst to forsøk på samme bevegelse, bildeklipp med låst klokke til `ask_gemini` med ja/nei-spørsmål, og Jonas ser flyten på nettbrettet.
+- Filer: nytt skript i `tools/`, `src/data/*.b64`, `src/js/view3d/` (tegningen), kontrollbilder og `teleport3d`-lignende test.
+- FR1 og FR2 går ut først, med fraktebåten på kartet og spillerens båt skjult underveis; FR2b legger på det som ses.
+
 ## Status
 
-Ikke låst. Venter på valgene 1–4.
+Låst 26.11.2026. Ingen fase er bygd. Rekkefølgen: FR1, FR2, FR3, FR2b.
