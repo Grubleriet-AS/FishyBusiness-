@@ -2651,7 +2651,7 @@ THE CATCH: WHERE THE PLAYERS' BOATS TOUCH WHAT IS NOT CLEAN WATER (the autonav r
   - 167 `slamRate(b = S.boat, H = S.t / 60, hard = 1)`
   - 199 `slamMinute()`
 
-## `src/js/core/17-farbar.js` (741 linjer)
+## `src/js/core/17-farbar.js` (774 linjer)
 
 FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2.0 F1, steg 141, 23.11.2026)
 
@@ -2699,28 +2699,31 @@ FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2
   - 338 `farbCoast(x, z, cap, raw)`
   - 354 `farbDepthRaw(x, z)`
   - 357 `farbTideP(x, z)`
-  - 368 `farbDig(key, segs)`
-  - 372 `farbDepth(x, z, off)`
-  - 378 `farbKeel(x, z, boat, H, squat, off)`
-- **380** what is known
-  - 383 `farbKnown(x, z, R)`
-  - 393 `farbBlocks(x0, z0, x1, z1)`
-  - 399 `farbNeed(pts, padKm = 1.5, ms = 60000)`
-- **420** the questions
-  - 422 `farbGather(x, z, R)`
-  - 443 `farbGone(o, n, buf = FARB.buf)`
-  - 450 `farbNearest(x, z, cap, boat, opt)`
-  - 461 `farbClear(x, z, boat, cap, opt)`
-  - 464 `farbCoastSegs(x0, z0, x1, z1)`
-  - 476 `farbPose(X, Z, psi, boat, H, opt)`
-  - 517 `farbSweep(p0, p1, boat, H, opt)`
-- **530** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
-  - 544 `farbFieldBuild(J)`
-  - 639 `farbSegOutParts(PK, ax, az, bx, bz)`
-  - 714 `farbFieldWorker()`
-  - 722 `farbFieldTile(cell, fx, fz)`
-  - 725 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
-  - 739 `farbFieldAt(x, z, cell = 2)`
+  - 370 `farbDig(key, segs)`
+  - 378 `farbSitePit(x, z)`
+  - 384 `farbDepth(x, z, off)`
+  - 391 `farbKeel(x, z, boat, H, squat, off)`
+- **393** what is known
+  - 396 `farbKnown(x, z, R)`
+  - 406 `farbBlocks(x0, z0, x1, z1)`
+  - 412 `farbNeed(pts, padKm = 1.5, ms = 60000)`
+- **433** the questions
+  - 435 `farbGather(x, z, R)`
+  - 456 `farbGone(o, n, buf = FARB.buf)`
+  - 463 `farbNearest(x, z, cap, boat, opt)`
+  - 474 `farbClear(x, z, boat, cap, opt)`
+  - 477 `farbCoastSegs(x0, z0, x1, z1)`
+  - 493 `farbWallTouch(P, X, Z, W, m, bb)`
+  - 496 `farbPose(X, Z, psi, boat, H, opt)`
+  - 537 `farbSweep(p0, p1, boat, H, opt)`
+- **550** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
+  - 565 `farbFieldBuild(J)`
+  - 663 `farbSegOutParts(PK, ax, az, bx, bz)`
+  - 740 `farbFieldWorker()`
+  - 748 `farbFieldTile(cell, fx, fz)`
+  - 751 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
+  - 765 `farbFieldAt(x, z, cell = 2)`
+- **767** the channels dredged along the coast (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
 
 ## `src/js/core/17b-bane.js` (104 linjer)
 
@@ -2740,19 +2743,25 @@ BANEN: THE WAY AS A TRAJECTORY SHE CAN SAIL (Autonav 2.0 F2, steg 142, 24.11.202
   - 83 `baneOf(g)`
   - 90 `baneSail(pl, b, left0)`
 
-## `src/js/core/17c-plan.js` (312 linjer)
+## `src/js/core/17c-plan.js` (385 linjer)
 
 PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2, steg 142, 24.11.2026)
 
 - **1** PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2, steg 142, 24.11.2026)
-  - 28 `planMake()`
-  - 212 `planWorker()`
-  - 220 `planWhy(r)`
-  - 226 `planCoarseM(ax, az, bx, bz, grow)`
-  - 239 `planBoat(type, x, z)`
-  - 243 `planBane(a, b, type, opt)`
-  - 306 `planInto(pl, R, i0, i1)`
-  - 311 `planOn()`
+  - 30 `planMake()`
+  - 234 `planWorker()`
+  - 242 `planWhy(r)`
+  - 248 `planCoarseM(ax, az, bx, bz, grow)`
+  - 261 `planNeeds(boat, sq, lv, side, F, c2)`
+  - 268 `planSquat(sqV, v)`
+  - 275 `planBlockOf(hit, boat, side, c2, tries, seen)`
+  - 284 `planBoat(type, x, z)`
+  - 288 `planBane(a, b, type, opt)`
+- **348** where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
+  - 352 `planDigRuns(P, sh, o)`
+  - 370 `planDig(a, b, type, opt)`
+  - 379 `planInto(pl, R, i0, i1)`
+  - 384 `planOn()`
 
 ## `src/js/ui/01-i18n.js` (120 linjer)
 
@@ -4062,7 +4071,7 @@ The profile and the founders' badge (Jonas 16.11.2026, before the launch: «prof
 
 - **1** The profile and the founders' badge (Jonas 16.11.2026, before the launch: «profil-side med brukernavn, fartstid, ferdigheter,
 
-## `src/js/ui/11-boot.js` (447 linjer)
+## `src/js/ui/11-boot.js` (448 linjer)
 
 ---------- boot ----------
 
@@ -4091,13 +4100,13 @@ The profile and the founders' badge (Jonas 16.11.2026, before the launch: «prof
   - 158 `dataEls()`
   - 159 `dataEarly()`
   - 171 `dataGet(el, opt)`
-  - 185 `bootData()`
-  - 193 `bootDataLate()`
-  - 208 `modelsLabel()`
-  - 215 `bootMapLoad()`
-  - 246 `chart0Load()`
-  - 247 `bootGame()`
-  - 429 `bootFail(e)`
+  - 186 `bootData()`
+  - 194 `bootDataLate()`
+  - 209 `modelsLabel()`
+  - 216 `bootMapLoad()`
+  - 247 `chart0Load()`
+  - 248 `bootGame()`
+  - 430 `bootFail(e)`
 
 ## `src/js/ui/11b-watchdog.js` (91 linjer)
 
