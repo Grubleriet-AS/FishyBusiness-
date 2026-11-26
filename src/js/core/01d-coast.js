@@ -57,7 +57,7 @@ function coastQuery(I, x, y){
     const x0 = COAST.COX + (i - 1) * CC, y0 = COAST.COY + (j - 1) * CC, ed = I.ed, K = I.K, ce = I.ce;
     for (let q = s0; q < s1; q++){
       const e = ce[q], o = e * 4, ax = ed[o], ay = ed[o + 1], bx = ed[o + 2], by = ed[o + 3]; let d = 0;
-      if ((ax < x0) !== (bx < x0)){ const yc = ay + (x0 - ax) * (by - ay) / (bx - ax); if (yc >= y0 && yc < y) d += bx > ax ? 1 : -1; }   // down the left side
+      if ((ax < x0) !== (bx < x0)){ const yc = ay + (x0 - ax) * (by - ay) / (bx - ax); if (yc >= y0 && yc <= y) d += bx > ax ? 1 : -1; }   // down the left side (to the row itself: the way across counts the row's own points as passed, so an edge met on the row is crossed; steg 142)
       if ((ay <= y) !== (by <= y)){ const xc = ax + (y - ay) * (bx - ax) / (by - ay); if (xc >= x0 && xc < x) d += by > ay ? -1 : 1; }   // then across
       if (d){ if (K[e]) wb += d; else wl += d; }
     }

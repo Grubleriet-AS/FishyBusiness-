@@ -607,7 +607,7 @@ function farbFieldBuild(J){
     const c = j * C.n + i, s0 = C.cs[c], s1 = C.cs[c + 1]; let wl = C.wl[c], wb = C.wb[c];
     if (s0 < s1){ const x0 = C.cx0 + i * C.CC, y0 = C.cz0 + j * C.CC, ed = C.ed;
       for (let q = s0; q < s1; q++){ const e = C.ce[q], o = e * 4, ax = ed[o], ay = ed[o + 1], bx = ed[o + 2], by = ed[o + 3]; let d = 0;
-        if ((ax < x0) !== (bx < x0)){ const yc = ay + (x0 - ax) * (by - ay) / (bx - ax); if (yc >= y0 && yc < z) d += bx > ax ? 1 : -1; }
+        if ((ax < x0) !== (bx < x0)){ const yc = ay + (x0 - ax) * (by - ay) / (bx - ax); if (yc >= y0 && yc <= z) d += bx > ax ? 1 : -1; }   // to the row itself, as coastQuery
         if ((ay <= z) !== (by <= z)){ const xc = ax + (z - ay) * (bx - ax) / (by - ay); if (xc >= x0 && xc < x) d += by > ay ? -1 : 1; }
         if (d){ if (C.K[e]) wb += d; else wl += d; } } }
     return !!(wl || wb); };
