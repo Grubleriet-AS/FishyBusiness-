@@ -1,0 +1,4 @@
+{"what": "Places moved along their own quay face by hand-picked metres, where the planner of Autonav 2.0 finds no way out for a boat the place takes (tools/steder/rett.py; steg 142, Jonas' choice 8, 26.11.2026: «Rett kartet per sted»). fra: where the place stood (x, y km, as steder.json has it); langs: metres along the face (+ the way of u = (sin a, -cos a)); the id saves hold stays (steder.json «was»).",
+ "rett": [
+  {"id": "sv292732_1091800", "navn": "Ålesund verft", "fra": [292.732, 1091.8], "langs": -25, "hvorfor": "the yard's 120 m block stood with its end in the mouth of the basin, and the older coastal vessel (kyst21) had no way out with half her beam + 2 m to each side; 25 m in along the face she has (12 m was not enough)"}
+ ]}
