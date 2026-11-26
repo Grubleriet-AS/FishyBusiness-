@@ -366,12 +366,20 @@ const farbTide = (H, x, z) => FARB.w ? FARB.w.tide(H, x, z) : tideCD(H, {x:x / 1
 // width), d (its depth at chart datum)} under a key (the place's id); null takes the key's away. Inside one the water is at least
 // that deep, the foreshore too. (What the map digs, the 3D view must dig: 141b and F2.)
 function farbDig(key, segs){ if (segs && segs.length) FARB.dug.set(key, segs); else FARB.dug.delete(key); FARB.dugL = [].concat(...FARB.dug.values()); if (FARB.F) FARB.F.dugV++; }
+// Whether x, z lies in the pit the 3D view digs in front of Father's naust's or a rorbu's quay (view3d/03-berths-naust.js siteTerr:
+// the bank in front of the face cut down to the berth's depth, «also where the 3D shore stood over the sea there»): the pocket the
+// simulation dredges (07-harbours.js sitePockE: 12 m each way along the face, 14 m out and as far as the quay is built to her),
+// from a metre off the face, where the view's bank under the deck begins. The foreshore is not there. (The bench, steg 142: the
+// skiff had no bane to the naust at Tufjord and Vallersund, for the map had the foreshore across the berth the view digs out.)
+function farbSitePit(x, z){ if (FARB.w) return FARB.w.site ? !!FARB.w.site(x, z) : false;
+  const one = s => { if (!s || !s.o || !s.u || Math.abs(x - s.o[0]) > 80 || Math.abs(z - s.o[1]) > 80) return false; return -(x - s.o[0]) * s.u[1] + (z - s.o[1]) * s.u[0] >= 1 && sitePockE(s, x, z) === 0; };
+  try { if (typeof S !== 'undefined' && S && S.naust && one(S.naust)) return true; for (const Rb of rorbuIn(x / 1000 - 0.1, z / 1000 - 0.1, x / 1000 + 0.1, z / 1000 + 0.1)) if (one(Rb.site)) return true; } catch (e){} return false; }
 // The depth at chart datum for navigation at x, z (m; under 0: dry at chart datum): the chart's, the foreshore's ramp where that is
 // shallower, and a dredged channel's where that is deeper. NaN where it is not known
 // (off: the caller knows the foreshore is not there, the coast being farther off than it reaches)
 function farbDepth(x, z, off){ if (FARB.w && FARB.w.depth) return FARB.w.depth(x, z);
   let d = farbDepthRaw(x, z); if (d !== d) return NaN;
-  if (!off && !(FARB.w ? FARB.w.pocket(x, z) : inHarbourPocket({x:x / 1000, y:z / 1000}))){ const g = farbShoreG(x, z); if (g !== g) return NaN; if (g != null) d = Math.min(d, -g - farbZC(x, z)); }
+  if (!off && !(FARB.w ? FARB.w.pocket(x, z) : inHarbourPocket({x:x / 1000, y:z / 1000}))){ const g = farbShoreG(x, z); if (g !== g) return NaN; if (g != null && !farbSitePit(x, z)) d = Math.min(d, -g - farbZC(x, z)); }
   for (const s of FARB.dugL) if (s.d > d && farbSegD(x, z, s.ax, s.az, s.bx, s.bz) < s.r) d = s.d;
   return d; }
 // the water under her keel at x, z now (m; under 0 she is on the bottom): squat is hers at the speed she has, when the caller knows it
@@ -473,6 +481,13 @@ function farbCoastSegs(x0, z0, x1, z1){ const out = FARB.cs; let n = 0;
 // coast's line or a thing within opt.m of the outline (0: touching it), or less water under the outline than she draws ('grunn';
 // opt.squat hers at the speed she has, opt.keel a margin under her keel); 'ukjent' where the map is not in
 // (opt.skip(touch, X, Z): true for a touch that does not count, such as the quay she lies at: the planner's rule for her own berth)
+// The first of a pocket's walls ([[ax, az, bx, bz] ...]) her outline P touches within the margin m, and where: the wall's point
+// nearest her middle (X, Z), not its end. bb: her outline's box with the margin [x0, z0, x1, z1]. null when none. (The bench, steg
+// 142: a wall's touch was reported at the wall's own first end, 35 and 59 m from her at senjahopen and Sandshamn verft, so the
+// planner's rule for her own berth did not take it, and shutting the cells round it changed nothing.)
+function farbWallTouch(P, X, Z, W, m, bb){ for (const w of W){ if (Math.max(w[0], w[2]) < bb[0] || Math.min(w[0], w[2]) > bb[2] || Math.max(w[1], w[3]) < bb[1] || Math.min(w[1], w[3]) > bb[3]) continue;
+    if (farbSegPoly(P, w[0], w[1], w[2], w[3]) > m) continue; const dx = w[2] - w[0], dz = w[3] - w[1], L2 = dx * dx + dz * dz, u = L2 ? Math.max(0, Math.min(1, ((X - w[0]) * dx + (Z - w[1]) * dz) / L2)) : 0; return {x:w[0] + dx * u, z:w[1] + dz * u}; }
+  return null; }
 function farbPose(X, Z, psi, boat, H, opt){ FARB.n.pose++; const m = opt && opt.m || 0, sk = opt && opt.skip, out = h => (sk && sk(h, X, Z) ? null : h), P = farbHull(X, Z, psi, boat), R = Math.hypot(boat.L, boat.B) / 2 + m + 4;
   if (!farbKnown(X, Z, R)) return {what:'ukjent', id:'', x:X, z:Z};
   let x0 = Infinity, z0 = Infinity, x1 = -Infinity, z1 = -Infinity;
@@ -489,7 +504,7 @@ function farbPose(X, Z, psi, boat, H, opt){ FARB.n.pose++; const m = opt && opt.
     if (!crossed){ const dx = bx - ax, dz = bz - az, L2 = dx * dx + dz * dz, u = L2 ? Math.max(0, Math.min(1, ((X - ax) * dx + (Z - az) * dz) / L2)) : 0; hx = ax + dx * u; hz = az + dz * u; hit = !!FARB.w || !inHarbourPocket({x:hx / 1000, y:hz / 1000}); }
     if (hit) { const h_ = out({what:'land', id:Math.round(hx / 50) + ',' + Math.round(hz / 50), x:hx, z:hz}); if (h_) return h_; } }
   // (and a pocket's wall: the land outside a basin's side, where it runs in between her corners)
-  if (!FARB.w){ const PK = farbPockets(X, Z); if (PK) try { for (const b of PK) for (const w of farbWalls(b)) if (!(Math.max(w[0], w[2]) < x0 || Math.min(w[0], w[2]) > x1 || Math.max(w[1], w[3]) < z0 || Math.min(w[1], w[3]) > z1) && farbSegPoly(P, w[0], w[1], w[2], w[3]) <= m) { const h_ = out({what:'land', id:Math.round(w[0] / 50) + ',' + Math.round(w[1] / 50), x:w[0], z:w[1]}); if (h_) return h_; } } catch (e){ return {what:'ukjent', id:'', x:X, z:Z}; } }
+  if (!FARB.w){ const PK = farbPockets(X, Z); if (PK) try { for (const b of PK){ const w = farbWallTouch(P, X, Z, farbWalls(b), m, [x0, z0, x1, z1]); if (w){ const h_ = out({what:'land', id:Math.round(w.x / 50) + ',' + Math.round(w.z / 50), x:w.x, z:w.z}); if (h_) return h_; } } } catch (e){ return {what:'ukjent', id:'', x:X, z:Z}; } }
   // (a test's world without the coast's edges: the distance at her corners)
   if (FARB.w && !FARB.w.segs) for (const [x, z] of P){ const c = farbCoast(x, z, m + 1); if (c !== c) return {what:'ukjent', id:'', x, z}; if (m > 0 && c <= m) { const h_ = out({what:'land', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z}); if (h_) return h_; } }
   // the things
@@ -515,14 +530,14 @@ function farbPose(X, Z, psi, boat, H, opt){ FARB.n.pose++; const m = opt && opt.
 //  - a jump is never longer than her waterline reaches along her way where she stands (her length ahead, her beam sideways, the
 //    lesser of them in a turn), so the water is asked under every metre she passes (a 7.9 m boat stepped 12.5 m over a bar).
 function farbSweep(p0, p1, boat, H, opt){ const dx = p1.X - p0.X, dz = p1.Z - p0.Z; let dpsi = p1.psi - p0.psi; while (dpsi > Math.PI) dpsi -= 2 * Math.PI; while (dpsi < -Math.PI) dpsi += 2 * Math.PI;
-  const m = opt && opt.m || 0, tr = Math.hypot(dx, dz), move = tr + Math.abs(dpsi) * boat.L / 2, R = Math.hypot(boat.L, boat.B) / 2 + m + FARB.step + FARB.shore.reach + 2, o2 = Object.assign({}, opt, {m:m + FARB.step / 2}), sq = opt && opt.squat || 0, kl = opt && opt.keel || 0; let u = 0;
+  const m = opt && opt.m || 0, tr = Math.hypot(dx, dz), move = tr + Math.abs(dpsi) * boat.L / 2, R = Math.hypot(boat.L, boat.B) / 2 + m + FARB.step + FARB.shore.reach + 2, o2 = Object.assign({}, opt, {m:m + FARB.step / 2}), sq = opt && opt.squat || 0, kl = opt && opt.keel || 0, sk = opt && opt.skip; let u = 0;
   for (let guard = 0; guard < 4e5; guard++){ const X = p0.X + dx * u, Z = p0.Z + dz * u, psi = p0.psi + dpsi * u; let adv = FARB.step;
     let c = farbClear(X, Z, boat, R + FARB.skip, opt); if (c !== c) return {what:'ukjent', id:'', x:X, z:Z};
     if (c > R){ const cr = farbCoast(X, Z, R + FARB.skip, true); if (cr !== cr) return {what:'ukjent', id:'', x:X, z:Z}; if (cr < c) c = cr; }
     if (c > R){ const s = Math.sin(psi), cs = Math.cos(psi), lvl = farbTide(H, X, Z) - boat.T - sq, al = tr > 1e-6 ? Math.min(1, Math.abs((dx * s - dz * cs) / tr)) : 0;
       const ext = Math.abs(dpsi) > 0.02 || tr <= 1e-6 ? Math.min(boat.L, boat.B) : al * boat.L + Math.sqrt(1 - al * al) * boat.B;
       adv = Math.min(c - R, 12.5, Math.max(FARB.step, ext));
-      for (const [f, g] of farbKeelPts(boat)){ const x = X + f * s + g * cs, z = Z - f * cs + g * s, k = farbDepth(x, z, true) + lvl; if (!(k >= kl + FARB.eps)) return {what:k !== k ? 'ukjent' : 'grunn', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z, keel:k, px:X, pz:Z}; } }
+      for (const [f, g] of farbKeelPts(boat)){ const x = X + f * s + g * cs, z = Z - f * cs + g * s, k = farbDepth(x, z, true) + lvl; if (!(k >= kl + FARB.eps)){ const h_ = {what:k !== k ? 'ukjent' : 'grunn', id:Math.round(x / 50) + ',' + Math.round(z / 50), x, z, keel:k, px:X, pz:Z}; if (h_.what === 'ukjent' || !(sk && sk(h_, X, Z))) return h_; } } }   // (the caller's rule for her own berth, as farbPose has it: a start on a shoal far from any coast)
     else { const t = farbPose(X, Z, psi, boat, H, o2); if (t){ t.px = X; t.pz = Z; return t; } }   // (px, pz: where she stood when she touched)
     if (u >= 1) return null; u = move > 0 ? Math.min(1, u + Math.max(adv, FARB.step) / move) : 1; }
   return {what:'ukjent', id:'', x:p1.X, z:p1.Z}; }   // (a way too long to be swept in one go is not known to be free)
@@ -533,14 +548,15 @@ function farbSweep(p0, p1, boat, H, opt){ const dx = p1.X - p0.X, dz = p1.Z - p0
 //   d: metres from the cell's middle to the nearest thing nobody can pass (the land, the coast's line outside the harbours' pockets
 //      and the pockets' walls, everything fixed in the sea but the bridges' decks), in steps of FARB.F.q rounded down, FARB.F.cap at
 //      most. Never more than the geometry's answer at the middle; anywhere else in the cell up to 0.71 x cell less is true;
-//   z: the least water (dm at chart datum; the foreshore and the dredged channels in it) at the middles of the cell and its eight
-//      neighbours: 0 dry, 254 that or more, 255 not known;
+//   z: the least water (steps of 1 / FARB.F.zs m, 5 cm, at chart datum; the foreshore and the dredged channels in it) at the middles
+//      of the cell and its eight neighbours: 0 dry, 254 (12.7 m) that or more, 255 not known. (In dm till steg 142: a harbour dredged
+//      to 4.35 m was 4.3 in the field, and shut to the boats it is dredged for);
 //   u: the lowest underside (steps of 0.25 m) of a bridge's deck within FARB.F.deck m of the cell's middle; 255 none.
 // The search goes on the field; the way it finds is checked on the geometry (farbSweep) before she is sent along it.
 // farbFieldJob gathers what a tile needs as plain numbers on the main thread, in slices; farbFieldBuild works the tile out from them
 // in a worker (it is self-contained, and runs in Node for the unit tests); farbFieldNeed asks for the tiles over a box, and
 // farbFieldAt reads a cell. The vessels lying still are not in it (they come and go): the geometry has them.
-FARB.F = {N:250, cap:60, q:0.25, deck:8, lat:40, pad:3.5, max:96, fld:new Map(), use:0, worker:null, id:0, wait:new Map(), dugV:0, at:'', steps:false, n:{built:0, ms:0, job:0, slice:0, step:0, bytes:0, long:[], h:[0, 0, 0, 0, 0, 0, 0, 0, 0]}};   // (h: the slices by their length, whole ms, 8 and over last)
+FARB.F = {N:250, cap:60, q:0.25, zs:20, deck:8, lat:40, pad:3.5, max:96, fld:new Map(), use:0, worker:null, id:0, wait:new Map(), dugV:0, at:'', steps:false, n:{built:0, ms:0, job:0, slice:0, step:0, bytes:0, long:[], h:[0, 0, 0, 0, 0, 0, 0, 0, 0]}};   // (h: the slices by their length, whole ms, 8 and over last)
 function farbFieldBuild(J){
   const N = J.N, cell = J.cell, cap = J.cap, NN = N * N, S = J.shore, reach = S.reach + 2, t0 = Date.now();
   const D = new Float32Array(NN).fill(cap), SH = new Float32Array(NN).fill(reach), MO = new Uint8Array(NN), U = new Uint8Array(NN).fill(255), Z = new Float32Array(NN);
@@ -615,6 +631,9 @@ function farbFieldBuild(J){
       const al = Math.abs(dx * ST[p + 2] + dz * ST[p + 3]), n = -dx * ST[p + 3] + dz * ST[p + 2]; if (n < 0) continue; const v = SP.want - SP.slope * Math.max(0, al - SP.a, n - SP.w - ST[p + 4]); if (v > d) d = v; }
     if (d > 0 && d < DR.harb) for (let p = 0; p < HB.length; p += 3) if (Math.hypot(x - HB[p], z - HB[p + 1]) < HB[p + 2]){ d = DR.harb; break; }
     return d; };
+  // (the pit the 3D view digs in front of a naust's or a rorbu's quay, farbSitePit: no foreshore there. J.sit: [x, z of the face's middle, ux, uz along it, how far the quay is built out] ...)
+  const ST2 = J.sit || [], SA = J.sitP ? J.sitP.a : 12, SW = J.sitP ? J.sitP.w : 14;
+  const inSite = (x, z) => { for (let p = 0; p < ST2.length; p += 5){ const dx = x - ST2[p], dz = z - ST2[p + 1]; if (Math.abs(dx) > 80 || Math.abs(dz) > 80) continue; const n = -dx * ST2[p + 3] + dz * ST2[p + 2]; if (n >= 1 && n <= SW + ST2[p + 4] && Math.abs(dx * ST2[p + 2] + dz * ST2[p + 3]) <= SA) return true; } return false; };
   const dep = J.dep || {n:2, step:1, v:[]}, ln = dep.n, V = dep.v;
   const rawAt = DR ? navAt : (x, z) => { let gi = Math.floor(x / dep.step), gj = Math.floor(z / dep.step); gi = gi < 0 ? 0 : gi > ln - 2 ? ln - 2 : gi; gj = gj < 0 ? 0 : gj > ln - 2 ? ln - 2 : gj; let m = Infinity;
     for (let b = 0; b < 2; b++) for (let a = 0; a < 2; a++){ const v = V[(gj + b) * ln + gi + a]; if (v !== v) return NaN; if (v >= 0 && v < m) m = v; }
@@ -624,16 +643,16 @@ function farbFieldBuild(J){
   for (let j = 0; j < N; j++){ const z = (j + 0.5) * cell; for (let i = 0; i < N; i++){ const k = j * N + i, x = (i + 0.5) * cell, pk = PK.length ? inPk(x, z) : false, ld = !pk && land(x, z);
       if (ld){ D[k] = 0; Z[k] = -S.top - J.zc; continue; }
       let d = rawAt(x, z); if (d !== d){ Z[k] = NaN; continue; }
-      if (!pk && SH[k] < reach){ const g = S.top - SH[k] * (MO[k] ? S.gMole : S.g); if (g > S.deep) d = Math.min(d, -g - J.zc); }
+      if (!pk && SH[k] < reach && !inSite(x, z)){ const g = S.top - SH[k] * (MO[k] ? S.gMole : S.g); if (g > S.deep) d = Math.min(d, -g - J.zc); }
       if (ML && ML[k] < mreach){ const dm = ML[k] / J.molo.run - J.zc; if (dm < d) d = dm; }   // (a breakwater's slope)
       Z[k] = d; } }
   // the dredged channels
   const G = J.dug; for (let q = 0; q < G.length; q += 6){ const ax = G[q], az = G[q + 1], bx = G[q + 2], bz = G[q + 3], r = G[q + 4], dd = G[q + 5];
     for (let j = lo(Math.min(az, bz), r); j <= hi(Math.max(az, bz), r); j++) for (let i = lo(Math.min(ax, bx), r); i <= hi(Math.max(ax, bx), r); i++){ const k = j * N + i; if (dd > Z[k] && segD2((i + 0.5) * cell, (j + 0.5) * cell, ax, az, bx, bz) < r * r) Z[k] = dd; } }
-  const d = new Uint8Array(NN), z = new Uint8Array(NN), dmax = Math.round(cap / J.q);
+  const d = new Uint8Array(NN), z = new Uint8Array(NN), dmax = Math.round(cap / J.q), zs = J.zs || 10;   // (zs: the water's steps to the metre; the game's field has 20)
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++){ const k = j * N + i; d[k] = Math.min(dmax, Math.floor(D[k] / J.q + 1e-6)); let m = Infinity;
     for (let b = j > 0 ? j - 1 : 0; b <= j + 1 && b < N; b++) for (let a = i > 0 ? i - 1 : 0; a <= i + 1 && a < N; a++){ const v = Z[b * N + a]; if (v !== v){ m = NaN; break; } if (v < m) m = v; }
-    z[k] = m !== m ? 255 : m <= 0 ? 0 : Math.min(254, Math.floor(m * 10 + 1e-6)); }
+    z[k] = m !== m ? 255 : m <= 0 ? 0 : Math.min(254, Math.floor(m * zs + 1e-3)); }   // (1e-3 of a step: the lattice is kept as 32-bit numbers, where 4.35 is 4.3499999)
   return {d, z, u:U, ms:Date.now() - t0}; }
 // the outside pieces of the line a-b: [t0, t1] along it, where it does not lie in a box of PK
 function farbSegOutParts(PK, ax, az, bx, bz){ const dx = bx - ax, dz = bz - az, ins = [];
@@ -709,7 +728,9 @@ function* farbFieldJob(cell, fx, fz){ const F = FARB.F, N = F.N, Tf = N * cell, 
     dep = {n:ln, step, v}; }
   const dug = []; for (const s of FARB.dugL) if (Math.max(s.ax, s.bx) + s.r > x0 && Math.min(s.ax, s.bx) - s.r < x0 + Tf && Math.max(s.az, s.bz) + s.r > z0 && Math.min(s.az, s.bz) - s.r < z0 + Tf) dug.push(s.ax - x0, s.az - z0, s.bx - x0, s.bz - z0, s.r, s.d);
   F.at = 'pakking'; yield; const eoA = yield* farbPackG(eo), ecA = ec ? yield* farbPackG(ec) : null, thA = yield* farbPackG(th);
-  return {N, cell, cap, q:F.q, deck:F.deck, shore:FARB.shore, molo:FARB.molo, zc:farbZC(cx, cz), co, eo:eoA, ec:ecA, pk:Float32Array.from(pkA), th:thA, dep, dr, dug:Float32Array.from(dug)}; }
+  // (the naust's and the rorbuer's pits, farbSitePit: where the foreshore is dug out)
+  const sit = []; try { const ss = []; if (S && S.naust) ss.push(S.naust); for (const Rb of rorbuIn((x0 - 100) / 1000, (z0 - 100) / 1000, (x0 + Tf + 100) / 1000, (z0 + Tf + 100) / 1000)) ss.push(Rb.site); for (const q of ss){ if (!q || !q.o || !q.u) continue; yield 1; const o = siteOut(q); sit.push(q.o[0] - x0, q.o[1] - z0, q.u[0], q.u[1], o === o ? o : 0); } } catch (e){}
+  return {N, cell, cap, q:F.q, zs:F.zs, deck:F.deck, shore:FARB.shore, molo:FARB.molo, zc:farbZC(cx, cz), co, eo:eoA, ec:ecA, pk:Float32Array.from(pkA), th:thA, dep, dr, dug:Float32Array.from(dug), sit:Float32Array.from(sit), sitP:{a:SITE_POCK.a, w:SITE_POCK.w}}; }
 // the worker (false where one cannot start: then no field is built, and what asks goes to the geometry)
 function farbFieldWorker(){ const F = FARB.F; if (F.worker !== null) return F.worker;
   try { const src = farbFieldBuild.toString() + '\nonmessage = e => { try { const r = farbFieldBuild(e.data.J); postMessage({id:e.data.id, r}, [r.d.buffer, r.z.buffer, r.u.buffer]); } catch (err){ postMessage({id:e.data.id, err:String(err)}); } };';
@@ -737,4 +758,4 @@ async function farbFieldNeed(x0, z0, x1, z1, cell = 2, opt){ const F = FARB.F, T
 // one cell read: {d (m to the nearest thing nobody can pass, from the cell's middle), z (m of water at chart datum, the least round
 // the cell; NaN not known), u (m, the lowest deck's underside near; Infinity none)}; null where the tile is not built or has no answer
 function farbFieldAt(x, z, cell = 2){ const F = FARB.F, Tf = F.N * cell, Y = farbFieldTile(cell, Math.floor(x / Tf), Math.floor(z / Tf)); if (!Y || Y.none) return null;
-  const k = Math.floor((z - Y.z0) / cell) * F.N + Math.floor((x - Y.x0) / cell), zz = Y.z[k], uu = Y.u[k]; return {d:Y.d[k] * F.q, z:zz === 255 ? NaN : zz / 10, u:uu === 255 ? Infinity : uu * 0.25}; }
+  const k = Math.floor((z - Y.z0) / cell) * F.N + Math.floor((x - Y.x0) / cell), zz = Y.z[k], uu = Y.u[k]; return {d:Y.d[k] * F.q, z:zz === 255 ? NaN : zz / F.zs, u:uu === 255 ? Infinity : uu * 0.25}; }

@@ -23,6 +23,7 @@ const PLAN = {on:null, realAir:false, ver:'', sent:0, cell:2, co:100, fineR:350,
 // needD4 (steps of q: clr and half a cell), rb2, rb4 (cells to the side a wide hull asks the water of), needZ (dm: the water she
 // needs to float over a place slowly), needZf (with her squat at full speed), slow (how much longer the way takes where she must go
 // slowly), needU (steps of 0.25 m),
+// turnR (her turning radius, m: finish's gentle; left out, a jog is left as it is),
 // pref (metres off the land she keeps where there is room), k (how much longer a way she takes for that), w (the weight on what is
 // left), endR (metres round the ends where only what is solid shuts a cell), fineR, maxExp}
 function planMake(){
@@ -202,11 +203,27 @@ function planMake(){
     // (the ends as they were given: the first and the last cell's middle give way to them where they are in the same cell)
     if (Math.hypot(path[0][0] - J.a[0], path[0][1] - J.a[1]) < c2 * 1.5) path[0] = J.a.slice(); else path.unshift(J.a.slice());
     const e = path.length - 1; if (Math.hypot(path[e][0] - J.b[0], path[e][1] - J.b[1]) < c2 * 1.5 && e > 0) path[e] = J.b.slice(); else path.push(J.b.slice());
-    return {path, exp, cells:n, refined, fineN, decks}; }
+    return {path:gentle(path), exp, cells:n, refined, fineN, decks}; }
+  // A jog she cannot sail (her turning radius given, J.turnR): a leg between two corners that is shorter than the two turns need
+  // (the radius times the tangents of the half angles). The way stepped a few metres to the side past a bridge's pier over a leg
+  // of 8 m, and a 75 m ship turned 45 degrees on the spot there, her bow sweeping 26 m to the side (the bench, steg 142,
+  // bru-karmsund). The two corners are slid apart along the legs before and after them, by half the radius and then double that
+  // each time, till the straight way between them is open; the cost is not asked, for the leg is no way at all as it is. The first
+  // and the last leg are left: by her berth she manoeuvres
+  const gentle = path => { const R = J.turnR; if (!(R > 0)) return path; const D = (p, q) => Math.hypot(q[0] - p[0], q[1] - p[1]);
+    const tn = (P, i) => { const a = Math.atan2(P[i][1] - P[i - 1][1], P[i][0] - P[i - 1][0]), b = Math.atan2(P[i + 1][1] - P[i][1], P[i + 1][0] - P[i][0]); let d = Math.abs(b - a); if (d > Math.PI) d = 2 * Math.PI - d; return Math.tan(Math.min(d, 3) / 2); };
+    for (let round = 0; round < 60; round++){ let moved = false;
+      for (let i = 1; i + 2 < path.length && !moved; i++){ const A1 = path[i], B1 = path[i + 1]; if (D(A1, B1) >= R * (tn(path, i) + tn(path, i + 1))) continue;
+        const A0 = path[i - 1], B0 = path[i + 2], la = D(A0, A1), lb = D(B1, B0);
+        for (let s = R / 2; ; s *= 2){ const sa = Math.min(s, la), sb = Math.min(s, lb), A = sa > la - 1 ? A0 : [A1[0] + (A0[0] - A1[0]) * sa / la, A1[1] + (A0[1] - A1[1]) * sa / la], B = sb > lb - 1 ? B0 : [B1[0] + (B0[0] - B1[0]) * sb / lb, B1[1] + (B0[1] - B1[1]) * sb / lb];
+          if (los(A[0], A[1], B[0], B[1]) >= 0){ const mid = []; if (A !== A0) mid.push(A); if (B !== B0) mid.push(B); path.splice(i, 2, ...mid); moved = true; break; }
+          if (sa >= la && sb >= lb) break; } }
+      if (!moved) break; }
+    return path; };
   // (for the bench's pictures and the tests: whether the cell at a place is open to her, whether the search has been there, and its size)
   const peek = (x, z) => { const ix = Math.floor(x / c2), iz = Math.floor(z / c2); if (!at(ix, iz)) return null; const st = cT.st ? cT.st[cK] : 0, s = cS; return [okAt(ix, iz), st, s]; };
   const left = (x, z) => hh(Math.floor(x / c2), Math.floor(z / c2));   // (what the search takes to be left to the goal from a place, metres)
-  return {start, put, run, block, again, co, clear, peek, left};
+  return {start, put, run, block, again, co, clear, peek, left, gentle:p => gentle(p)};
 }
 // the worker (false where one cannot start): the search and its tiles live there
 function planWorker(){ if (PLAN.w !== null) return PLAN.w;
@@ -230,6 +247,29 @@ function* planCoarseG(ax, az, bx, bz, grow){ const L = MAPD.L && MAPD.L.depth; i
   for (let j = 0; j < H; j++){ for (let i = 0; i < W; i++){ let o = 0; for (let b = 0; b < m && o !== 1; b++) for (let a = 0; a < m; a++){ const ri = (i0 + i) * m + a, rj = (j0 + j) * m + b; if (ri < r0 || ri > r1 || rj < s0 || rj > s1 || !mapPackOf(L, Math.floor(ri / L.n), Math.floor(rj / L.n))){ o = 2; continue; }
         let q; try { q = rcell(L, ri, rj); } catch (e){ o = 2; continue; } if (q > 0){ o = 1; break; } } v[j * W + i] = o; if (!(i & 63)) yield; } yield; }
   return {x0:i0 * C, z0:j0 * C, c:C, W, H, v}; }
+// What the search needs of the field for her (planMake's J): clr (m to the side: half her beam and the margin), needD2, needD4 (the
+// same and half a cell, in the field's steps of F.q), rb2, rb4 (cells to the side a wide hull asks the water of), needZ (the water
+// she needs to float over a place slowly, in the field's steps of 1 / F.zs m: her draught and FARB.keel, less the lowest tide lv) and
+// needZf (with her squat sq at full speed). Half a metre under her keel is what a harbour is dredged to for the deepest boat it
+// takes (07-harbours.js HARB_DRAFT, SITE_DRAFT, a unit's basin), so nothing is put on top of it here: FARB.eps is the map's own
+// tolerance where the question is whether she touches, and the check asks with planKeel(), which takes it off again
+function planNeeds(boat, sq, lv, side, F, c2){ const clr = boat.B / 2 + side, nd = c => Math.ceil((clr + c * 0.5) / F.q), rb = c => clr > c * 1.5 ? Math.ceil((clr - c * 1.5) / c) : 0, nz = m => Math.max(1, Math.min(254, Math.ceil(m * F.zs - 1e-6)));
+  return {clr, needD2:nd(c2), needD4:nd(c2 * 2), rb2:rb(c2), rb4:rb(c2 * 2), needZ:nz(boat.T + FARB.keel - lv), needZf:nz(boat.T + sq + FARB.keel - lv)}; }
+const planKeel = () => FARB.keel - FARB.eps - 1e-6;
+// Her squat at the speed v for the check (sqV: hers by the speed). At BANE.vSlow and under it is counted as nothing: it is under
+// 7 cm for every boat at 3 knots (16b-dyn.js dynSquat: Cb v² / 100, v in knots), and a harbour dredged to her draught and half a
+// metre is water she is to pass slowly, not water that is shut. (Jonas' choice 4 says «dypgang + squat + 0,5 m»: this is the one
+// place less is asked, and one line turns it.)
+function planSquat(sqV, v){ return v <= BANE.vSlow + 1e-6 ? 0 : sqV(v); }
+// What is shut after the check on the geometry found a touch, {x, z, r}: round the touch where that is known (the land's and the
+// water's, and a vessel lying still), a cell wider for each time; round where she stood for a thing, whose touch is its middle;
+// and round where she stood when the same touch comes again (seen: a Map kept through one planning). Her bow or her stern reaches
+// 37 m from her middle on a 75 m ship: the touch then lies off the way itself, and shutting the cells round it changes nothing
+// (the bench, steg 142: the same touch seven times over at eight places)
+const planTouchP = h => /^-?\d+,-?\d+$/.test(h.id);
+function planBlockOf(hit, boat, side, c2, tries, seen){ const key = hit.what + ':' + hit.id, n = seen.get(key) || 0; seen.set(key, n + 1);
+  const tp = (hit.R || planTouchP(hit) || hit.px == null) && !n, half = boat.B / 2 + side;
+  return tp ? {x:hit.x, z:hit.z, r:(hit.R || 0) + half + c2 * (1 + tries)} : {x:hit.px != null ? hit.px : hit.x, z:hit.pz != null ? hit.pz : hit.z, r:half / 2 + c2 * (1 + tries)}; }
 // The boat as the planner asks the map for her. Till the bridges have their real clearances (steg 141b, Jonas' choice 6) her height
 // under them is counted as the game counts it today (11b-obstacles.js obsAir and obsBridge): 0.35 of her length (2 to 16 m), held
 // against the deck's height by the old rule with no tide. The map has two things ahead of that: the model's own height with its
@@ -247,9 +287,8 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
   const hrs = Math.hypot(bx - ax, bz - az) / bb.vmax / 3600 * 1.5 + 0.25; let Hmin = H0, lv = Infinity; for (let h = 0; h <= hrs + 1e-9; h += 1 / 6){ const v = farbTide(H0 + h, ax, az); if (v < lv){ lv = v; Hmin = H0 + h; } }
   let sq = 0, P = null; try { P = dynCal(ty).P; sq = dynSquat(P, bb.vmax, false); } catch (e){}
   const side = opt && opt.side != null ? opt.side : FARB.side, own = BANE.own * boat.L;
-  const nd = c => Math.ceil((boat.B / 2 + side + c * 0.5) / F.q), rb = c => boat.B / 2 + side > c * 1.5 ? Math.ceil((boat.B / 2 + side - c * 1.5) / c) : 0;
-  const J = {c2, N:F.N, q:F.q, a:[ax, az], b:[bx, bz], clr:boat.B / 2 + side, needD2:nd(c2), needD4:nd(c2 * 2), rb2:rb(c2), rb4:rb(c2 * 2), needZ:Math.ceil((boat.T + FARB.keel - lv + FARB.eps) * 10), needZf:Math.ceil((boat.T + sq + FARB.keel - lv + FARB.eps) * 10), slow:Math.max(1.5, Math.min(4, bb.vmax / BANE.vSlow)), needU:Math.ceil((boat.air + FARB.airOver) / 0.25),
-    pref:Math.min(F.cap - 1, Math.max(25, boat.B * 3)), k:PLAN.k, w:PLAN.w8, endR:own + c2 * 2, fineR:PLAN.fineR, maxExp:PLAN.maxExp};
+  const J = Object.assign({c2, N:F.N, q:F.q, a:[ax, az], b:[bx, bz], turnR:bb.R, slow:Math.max(1.5, Math.min(4, bb.vmax / BANE.vSlow)), needU:Math.ceil((boat.air + FARB.airOver) / 0.25),
+    pref:Math.min(F.cap - 1, Math.max(25, boat.B * 3)), k:PLAN.k, w:PLAN.w8, endR:own + c2 * 2, fineR:PLAN.fineR, maxExp:PLAN.maxExp}, planNeeds(boat, sq, lv, side, F, c2));
   // (the chart's cells for the way round: the packs over the box are waited for as a tap in the chart waits for them, the blocks warmed)
   const chart = async grow => { try { const M = planCoarseM(ax, az, bx, bz, grow), x0 = Math.min(ax, bx) - M, x1 = Math.max(ax, bx) + M, z0 = Math.min(az, bz) - M, z1 = Math.max(az, bz) + M;
       for (let z = z0; z < z1 + 6000; z += 6000) for (let x = x0; x < x1 + 6000; x += 6000) await mapNeed({x:Math.min(x, x1) / 1000, y:Math.min(z, z1) / 1000}, 4.5);
@@ -260,14 +299,14 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
   // Her own berth (the bench's rule, tools/autonav/benk.js: a touch within a length and a half of the ends is the quay she lies at). The land's touch is where it is; a thing's is the thing's middle, which says nothing of where along a
   // long quay she is, so a thing counts by where she herself is (within 0.9 of her length: her far end then within 1.4), and a vessel
   // lying there by her nearest point
-  const touchP = h => /^-?\d+,-?\d+$/.test(h.id), nearE = (x, z, r) => Math.hypot(x - ax, z - az) < r || Math.hypot(x - bx, z - bz) < r;
+  const touchP = planTouchP, seen = new Map(), nearE = (x, z, r) => Math.hypot(x - ax, z - az) < r || Math.hypot(x - bx, z - bz) < r;
   // (the water under her counts the same way, by where it is: a naust's slip is dry under her for some metres. The bench has the same
   // rule for what its observer sees of the water; what the game itself calls a grounding always counts there)
   const skip = (h, X, Z) => h.what === 'grunn' ? nearE(h.x, h.z, own) : h.R ? nearE(h.x, h.z, own + h.R) : touchP(h) ? nearE(h.x, h.z, own) : nearE(X, Z, 0.9 * boat.L);
   // (the worker keeps the tiles it was given: thrown when the map has changed since, more of it come in or a channel dug, and when they are many)
   { const fv = farbFieldVer(); if (PLAN.ver !== fv || PLAN.sent > 300){ await send({op:'reset'}); PLAN.ver = fv; PLAN.sent = 0; } }
   let r = await send({op:'start', J}), tiles = 0, tries = 0, exp = 0; const shut = [];   // (shut: what the check on the geometry found and shut, for the answer)
-  const o = Object.assign({}, bb, {end:!(opt && opt.end === false)}), sw = {m:side, keel:FARB.keel, squat:sq, sqV:P ? v => dynSquat(P, v, false) : null, boats:true, skip}, memo = new Map(), rMin = Math.max(boat.B / 2, bb.R / 16);
+  const o = Object.assign({}, bb, {end:!(opt && opt.end === false)}), sw = {m:side, keel:planKeel(), squat:sq, sqV:P ? v => planSquat(u => dynSquat(P, u, false), v) : null, boats:true, skip}, memo = new Map(), rMin = Math.max(boat.B / 2, bb.R / 16);
   for (;;){
     if (r.need){ const out = [], tr = [];
       for (const [cell, fx, fz] of r.need){ const Tf = F.N * cell; let Y = farbFieldTile(cell, fx, fz); tiles++;
@@ -294,12 +333,12 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
       if (p.k !== 'a' || p.r / 2 < rMin) break; Q[p.c][2] = p.r / 2; }
     if (!hit){ PLAN.n.plans++; PLAN.n.tiles += tiles; const ms = Math.round(performance.now() - t0); PLAN.n.ms += ms; return {bane:B, pts:banePts(B), nm:B.len / 1852, ms, tiles, tries, exp, Hmin, need:J, shut}; }
     const cs = hit.what === 'ukjent' ? 'ukjent' : hit.what === 'grunn' ? 'grunt' : hit.what === 'brudekke' ? 'bru' : 'trangt';
-    if (hit.what === 'ukjent' || ++tries > PLAN.tries){ PLAN.n.plans++; return fail({why:'ingen vei', cause:cs, at:[hit.x, hit.z]}, {tiles, tries, exp, hit:hit.what + ':' + hit.id}); }
+    if (hit.what === 'ukjent' || ++tries > PLAN.tries){ PLAN.n.plans++; return fail({why:'ingen vei', cause:cs, at:[hit.x, hit.z]}, {tiles, tries, exp, hit:hit.what + ':' + hit.id, shut, path:r.path}); }   // (path: the last way the search gave, for the bench's pictures)
     // shut round what she touched, a cell wider for each time, and search again
     shut.push(hit.what + ':' + hit.id + '@' + Math.round(hit.x) + ',' + Math.round(hit.z) + (B.P[hit.i].k === 'a' ? ' (bue r ' + B.P[hit.i].r.toFixed(1) + ')' : ''));
     // (round the touch where that is known, the land's and the water's; round where she stood for a thing, whose touch is its middle)
-    const tp = hit.R || touchP(hit) || hit.px == null;
-    r = await send({op:'block', x:tp ? hit.x : hit.px, z:tp ? hit.z : hit.pz, r:tp ? (hit.R || 0) + boat.B / 2 + side + c2 * (1 + tries) : (boat.B / 2 + side) / 2 + c2 * (1 + tries)}); } }
+    const bl = planBlockOf(hit, boat, side, c2, tries, seen);
+    r = await send({op:'block', x:bl.x, z:bl.z, r:bl.r}); } }
 // A bane into a plan (the bench, and the flag): the plan's points i0 .. i1 - 1 (the way to the stop at i1 - 1, which is kept as it is:
 // the harbour she docks in, the fishing there) replaced by the bane's own, and the leg written in pl.b2 (17b-bane.js baneLeg).
 // A plan's legs are put in from the last to the first, so the places of those before stand

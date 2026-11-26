@@ -87,7 +87,7 @@
         // (a point of her keel over land is the land's own touch, not shallow water: the depth there is 0 by definition)
         keel(x, z){ const p = km(x, z); try { return isLand(p) ? 9 : depthNav(p) + tideCD(H, p) - BOAT.draft - BK.squat; } catch (e){ return 9; } },
         // the foreshore as drawn: the ground over her keel there (not in a harbour unit's basin, which is dug out)
-        beach(x, z){ const p = km(x, z); try { if (inHarbourPocket(p)) return false; const g = shoreGround(p); return g != null && g < COAST3.top && g > tideH(H, p) - BOAT.draft; } catch (e){ return false; } },
+        beach(x, z){ const p = km(x, z); try { if (inHarbourPocket(p) || BK.pit(x, z)) return false; const g = shoreGround(p); return g != null && g < COAST3.top && g > tideH(H, p) - BOAT.draft; } catch (e){ return false; } },
         things(x0, z0, x1, z1){ return BK.thingsIn(x0, z0, x1, z1); },
         // clear water beyond R round the point: the fine coast, the harbour units and the things' boxes; 0 when not known
         free(x, z, R){ const p = km(x, z), cap = R + 60; let d; try { if (isLand(p)) return 0; d = coastDistM(p, cap); } catch (e){ return 0; } if (!(d > R)) return 0;
@@ -96,6 +96,11 @@
           for (const U of UNITA) if (Math.hypot(U.o[0] - x, U.o[1] - z) < cap + 160) return 0;
           for (const o of BK.thingsIn(x - cap, z - cap, x + cap, z + cap)){ const dd = BKO.boxDist(o, x, z); if (dd < d){ d = dd; if (!(d > R)) return 0; } }
           return d - R; } }; },
+    // the pit the 3D view digs in front of Father's naust's or a rorbu's quay (view3d/03-berths-naust.js siteTerr: the bank in front of
+    // the face cut down to the berth's depth, the 3D shore too): no foreshore there, from a metre off the face out through the pocket
+    // the simulation dredges (sitePockE). The observer drew the foreshore across it till steg 142 (26.11.2026)
+    pit(x, z){ const one = s => !!(s && s.o && s.u) && Math.abs(x - s.o[0]) < 80 && Math.abs(z - s.o[1]) < 80 && -(x - s.o[0]) * s.u[1] + (z - s.o[1]) * s.u[0] >= 1 && sitePockE(s, x, z) === 0;
+      try { if (S.naust && one(S.naust)) return true; for (const Rb of rorbuIn(x / 1000 - 0.1, z / 1000 - 0.1, x / 1000 + 0.1, z / 1000 + 0.1)) if (one(Rb.site)) return true; } catch (e){} return false; },
     // ---- a trip's log ----
     begin(to, from, r, strek){ const pl = S.plan, endP = to && to.p ? to.p : (pl && pl.wps.length ? pl.wps[pl.wps.length - 1] : from);
       BK.cur = {to:to ? to.name : null, toPort:!!(to && to.id), from:{x:from.x, y:from.y}, endP:{x:endP.x, y:endP.y}, seen:new Map(), hits:[], left:false, rpAt:-1e9, st:{}, own:0, jumps:0, m:0, tN:0, tSum:0, tMax:0, fuel0:S.boat.fuel, bg:null, berth:new Set()}; },

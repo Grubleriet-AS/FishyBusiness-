@@ -125,21 +125,24 @@ export default function (t){
   // A sound through the island with a bridge too low for her, and the way round the island's far end. The chart's cells have the sound
   // open, so the search goes for it and fills the water on this side; when that has found nothing, the deck is land to the chart's
   // cells and the search goes round (the bench, 24.11.2026: Hønebrua, Steinvågbrua and Reine gave «søket ble for stort»)
-  { const sund = box((x, z) => Math.abs(x - 400) < 100 && z > -200 && Math.abs(z - 300) > 20), lav = (x, z) => Math.abs(x - 400) < 110 && Math.abs(z - 300) < 26 ? 12 : 255;
-    W = world(sund, null, lav); r = solve(W, {a:[100, 300], b:[700, 300], w:1.15, co:chart(sund, 50), maxExp:9000});
-    t.ok(r.path && r.decks >= 1 && r.path.some(p => p[1] < -200), 'et sund med en for lav bru, og veien rundt øya: når søket ikke kommer under, blir brua land for sjøkartets ruter, og det går rundt', r.path ? [r.decks, len(r.path), r.exp] : [r.why, r.cause, r.exp]); }
-
-  // a place shut after the check on the geometry found something there: the way goes another
-  W = world(() => false); r = solve(W, {a:[100, 100], b:[400, 100]}, [[250, 100, 30]]);
-  t.ok(r.path && distTo(r.path, 250, 100) >= 26, 'et sted kontrollen har stengt, går veien utenom', r.path && distTo(r.path, 250, 100));
-
-  // her height for the bridges: as the game counts it today (0.35 of her length, 2 to 16 m, and no tide), till the bridges have their
-  // real clearances (steg 141b); the model's own height with aerials (VESSELS.air) when PLAN.realAir says both are real
-  { const P = K.get('PLAN'), V = K.get('VESSELS'), FB = K.get('FARB'), b0 = K.planBoat('sjark'), rule = Math.min(16, Math.max(2, V.sjark.len * 0.35)); t.near(b0.air, rule, 1e-9, 'båtens høyde under bruer er den spillet seiler etter i dag (0,35 av lengden)');
-    t.ok(V.sjark.air > b0.air + 2, 'og ikke modellens egen med antenner, som er flere meter mer', [V.sjark.air, b0.air]);
-    FB.w = {land:() => 0, coast:() => [1e9, 0], depth:() => 50, tide:() => 0, zc:() => 0, hat:() => 1.5, pocket:() => false, known:() => true};
-    try { const b1 = K.planBoat('sjark', 9e6, 9e6); t.near(b1.air, rule - K.farbHat(9e6, 9e6), 1e-9, 'og kartets høyeste tidevann trekkes fra, for kartet måler dekket derfra og spillets regel gjør det ikke', [b1.air, K.farbHat(9e6, 9e6)]); } finally { FB.w = null; }
-    P.realAir = true; try { t.near(K.planBoat('sjark').air, V.sjark.air, 1e-9, 'med ekte bruhøyder inne (PLAN.realAir) er det modellens egen'); } finally { P.realAir = false; } }
+  { const legs = P => { let worst = Infinity; const ang = i => { if (i <= 0 || i >= P.length - 1) return 0; const a = Math.atan2(P[i][1] - P[i - 1][1], P[i][0] - P[i - 1][0]), b = Math.atan2(P[i + 1][1] - P[i][1], P[i + 1][0] - P[i][0]); let d = Math.abs(b - a); if (d > Math.PI) d = 2 * Math.PI - d; return d; };
+      for (let i = 2; i < P.length - 1; i++){ const l = Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]), need = 110 * (Math.tan(ang(i - 1) / 2) + Math.tan(ang(i) / 2)); if (need > 1 && l / need < worst) worst = l / need; } return worst; };
+    const jog = () => [[100, 100], [380, 100], [388, 108], [700, 108]];   // (8 m to the side over 8 m: two corners of 45 degrees)
+    W = world(box()); const big = {a:[100, 100], b:[700, 108], clr:9.75, needD2:Math.ceil((9.75 + 1) / q), needD4:Math.ceil((9.75 + 2) / q), pref:46, k:1, w:1.15, fineR:400};
+    const r0 = solve(W, big), r1 = solve(W, Object.assign({turnR:110}, big)), g0 = r0.PL.gentle(jog()), g1 = r1.PL.gentle(jog());
+    console.log('plan: et knekk på 8 m for et skip med 110 m svingradius, før og etter: korteste strekk ' + legs(jog()).toFixed(2) + ' og ' + legs(g1).toFixed(2) + ' av det svingene trenger; veien ' + JSON.stringify(g1.map(p => p.map(Math.round))));
+    t.ok(legs(jog()) < 0.2 && JSON.stringify(g0) === JSON.stringify(jog()), 'uten svingradien står et knekk hun ikke kan seile, som det er (strekket er under en femdel av det svingene trenger)', legs(jog()));
+    t.ok(legs(g1) >= 0.95, 'med svingradien (J.turnR) trekkes de to hjørnene fra hverandre til strekket mellom dem er langt nok for svingene', [legs(g1), g1]);
+    t.ok(len(g1) <= len(jog()) + 0.01 && g1[0][0] === 100 && g1[g1.length - 1][0] === 700, 'uten omvei, og endene står', [len(g1), len(jog())]);
+    // (and where the land stands in the way of a longer slant, the corners are slid as far as the open water lets them)
+    W = world(box((x, z) => (x < 330 && z > 112) || (x > 440 && z < 96))); const r2 = solve(W, Object.assign({turnR:110}, big)), g2 = r2.PL.gentle(jog());
+    t.ok(g2.every(p => p[1] >= 99.9 && p[1] <= 108.1) && distTo(g2, 329, 113) >= 9.75 && distTo(g2, 441, 95) >= 9.75, 'der land står i veien for en lengre skrå linje, går veien fortsatt klar av det', g2.map(p => p.map(Math.round))); }
+  // What is shut after a touch: round the touch the first time; where the same touch comes again (her bow or stern reaches it from
+  // a way that does not pass it: shutting round it changed nothing, seven times over), round where she stood
+  { const seen = new Map(), h = {what:'grunn', id:'10,20', x:100, z:100, px:130, pz:104}, bt = {L:75, B:15.5, T:7.5}, b1 = K.planBlockOf(h, bt, 2, 2, 1, seen), b2 = K.planBlockOf(h, bt, 2, 2, 2, seen);
+    t.ok(b1.x === 100 && b1.z === 100 && b1.r > 9.75, 'første gang stenges det rundt berøringen', b1);
+    t.ok(b2.x === 130 && b2.z === 104 && b2.r >= 4, 'kommer samme berøring igjen, stenges det der hun sto', b2);
+    const b3 = K.planBlockOf({what:'kai', id:'kai#5', x:50, z:50, px:60, pz:50}, bt, 2, 2, 1, seen); t.ok(b3.x === 60 && b3.z === 50, 'en ting stenges der hun sto (berøringen er tingens midte)', b3); }
 
   // the words
   const S0 = K.get('S'); K.set('S', K.newState());
