@@ -179,7 +179,7 @@
   // - The picture: every fifteen seconds nine points of it (a 3 x 3 grid) are read back. In daylight, black twice running, or one
   //   colour three times running in clear weather, is a picture that is not there (night, fog and the transitions are left out).
   // - A canvas of 0 px while the 3D view is on.
-  const GFX = {probeAt:0, pixAt:0, black:0, flat:0, nan:false, px:new Uint8Array(4), tags:[], k:0, prev:"starten av rammen", pend:null, pbo:null, buf:null};
+  const GFX = {probeAt:0, pixAt:0, black:0, flat:0, nan:false, px:new Uint8Array(4), tags:[], k:0, prev:"starten av rammen", pend:null, pbo:null, buf:null, gap:0, sweep:false, sweeps:0, found:0};
   const GLNAME = {1280:'INVALID_ENUM', 1281:'INVALID_VALUE', 1282:'INVALID_OPERATION', 1285:'OUT_OF_MEMORY', 1286:'INVALID_FRAMEBUFFER_OPERATION'};
   function gfxErr(msg, ctx){
     if (typeof cloudErr !== 'function') return;
@@ -188,19 +188,25 @@
   }
   function glReport(e, tag){ GLPROBE = false; gfxErr('3D GL-feil ' + (GLNAME[e] || e) + ' ' + tag, {code:e, tag}); }
   // the step asked about this round (the steps are learnt from the frame itself, so a new step is asked about too)
+  // (klynge:477c8dd0, 26.11.2026: an error a step makes in every frame is already there when the asked frame starts, from the frame
+  // before, and was sent as «mellom rammene» with no step. So an error found at the start (GFX.gap) has that frame asked after every
+  // step (GFX.sweep, three times a session at most): if it comes again, it is sent with the step it came after, and that code is not
+  // sent again; if not, it came between the frames, and is sent so at the frame's end, gfxEnd)
   function glProbe(tag){
     if (!GFX.tags.includes(tag)) GFX.tags.push(tag);
-    const want = GFX.tags[GFX.k % GFX.tags.length];
-    if (tag !== want){ GFX.prev = tag; return; }
-    GLPROBE = false; GFX.k++;
-    const e = gl.getError(); if (e && e !== gl.CONTEXT_LOST_WEBGL) glReport(e, 'mellom ' + GFX.prev + ' og ' + tag);
+    if (!GFX.sweep){ const want = GFX.tags[GFX.k % GFX.tags.length];
+      if (tag !== want){ GFX.prev = tag; return; }
+      GLPROBE = false; GFX.k++; }
+    const e = gl.getError(); if (e && e !== gl.CONTEXT_LOST_WEBGL && e !== GFX.found){ if (GFX.sweep && e === GFX.gap){ GFX.gap = 0; GFX.found = e; } glReport(e, 'mellom ' + GFX.prev + ' og ' + tag); }
+    GFX.prev = tag;
   }
   function gfxStart(now){
     GLPROBE = false;
     if (GFX.soft === undefined && GPU) GFX.soft = /SwiftShader|llvmpipe|softpipe|Software|Basic Render/i.test(GPU);
     if (GLCHK || (GFX.soft && !GFX.force) || now - GFX.probeAt < 5000 || gl.isContextLost()) return;
-    GFX.probeAt = now; GLPROBE = true; GFX.prev = 'starten av rammen';
-    const e = gl.getError(); if (e && e !== gl.CONTEXT_LOST_WEBGL) glReport(e, 'mellom rammene');
+    GFX.probeAt = now; GLPROBE = true; GFX.prev = 'starten av rammen'; GFX.sweep = false;
+    const e = gl.getError(); if (!e || e === gl.CONTEXT_LOST_WEBGL || e === GFX.found) return;
+    if (GFX.sweeps < 3){ GFX.gap = e; GFX.sweep = true; GFX.sweeps++; } else glReport(e, 'mellom rammene');
   }
   // what nine points of the picture say (also for the test): 'black' in daylight, 'flat' in daylight and clear weather, or ''
   function gfxJudge(px, day, vis){
@@ -229,6 +235,7 @@
   }
   function gfxEnd(now, eye, VPn, W, Hh){
     if (GLPROBE){ glChk('slutten av rammen'); GLPROBE = false; }
+    if (GFX.gap) glReport(GFX.gap, 'mellom rammene'); GFX.gap = 0; GFX.sweep = false;
     gfxNaN(eye, VPn);
     if (gl.isContextLost()){ GFX.pend = null; GFX.pbo = null; return; }
     // the nine points are read without waiting for the GPU where it can (WebGL 2): into a buffer, with a fence, and taken out a few frames
