@@ -24,6 +24,7 @@ Spillet er live. Porten for de første brukerne og lanseringslinja er arkivert (
 ## Øktene som kjører
 
 - `ccr-013bxxie-121` (Jonas' økt 16.11.2026): steg 121 FB3, føttene i gange. Eier `src/js/deckcrew.js`, `src/js/view3d/08-plants.js` (`drawWorker` og sjøbein-hjelperne over den), i `src/js/view3d/20-trawl-seine.js` bare `drawDeckCrew` og `npcCrewDraw`, `tests/crewwalk.py`, `tests/sjobein.py`, ny `tests/unit/fotgli.test.mjs` og ny `tests/fotgli.py`. Ikke `ui/phone/07-patch.js` (118 eier den; patchnotatet står i raden).
+- `ccr-5e1ba2f4-pusvyd` (Jonas' økt 26.11.2026, tredje): steg 142 AN2-F2, valg 8 (kartet rettet ved Lindesnes, Øksfjord og Ålesund verft) og punkt 3 (treffene). Eier `core/17-farbar.js`, `17b-bane.js`, `17c-plan.js`, `tools/autonav/`, havnedataene for mVA2, mTF4 og Ålesund verft i `tools/harbour/`, rettingslista i `tools/map/` og `tests/unit/{plan,farbar,bane}.test.mjs`.
 - `ccr-b7b2f394-jdf54x` (Jonas' økt 25.11.2026): steg 148 KV1, åpen gruppes tillegg og «kvota er full». Eier `codLimits` og det nye om tilleggene i `core/03-simulation.js` og `core/03d-quota.js`, torskevarselet i `core/05-vessels.js`, `codGrp` i `sell` i `ui/08-actions.js`, `ui/phone/04-kvote.js` og kvotekortet i `ui/phone/09-vaer-post-salg-redning.js`.
 
 
