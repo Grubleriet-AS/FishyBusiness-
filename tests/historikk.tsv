@@ -6621,3 +6621,11 @@
 2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	vervtest	OK	10	lite	samtidig	
 2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	skiptest	OK	21	lite	samtidig	
 2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	hopptest	OK	12	lite	samtidig	
+2026-11-27 11:51	ccr-1a8b7d9a-89hfb6	7a94d3c	bwtest	OK	73	lite	samtidig	
+2026-11-27 11:51	ccr-1a8b7d9a-89hfb6	7a94d3c	sqltest	OK	90	lite	samtidig	
+2026-11-27 11:55	ccr-1a8b7d9a-89hfb6	7a94d3c	kjoptest	OK	223	lite	samtidig	
+2026-11-27 11:55	ccr-1a8b7d9a-89hfb6	7a94d3c	fasittest	OK	44	lite	samtidig	
+2026-11-27 11:55	ccr-1a8b7d9a-89hfb6	7a94d3c	skiptest	OK	22	lite	samtidig	
+2026-11-27 11:55	ccr-1a8b7d9a-89hfb6	7a94d3c	vervtest	OK	11	lite	samtidig	
+2026-11-27 11:55	ccr-1a8b7d9a-89hfb6	7a94d3c	hopptest	OK	12	lite	samtidig	
+2026-11-27 11:57	ccr-1a8b7d9a-89hfb6	7a94d3c+	bwtest	OK	71	lite	alene	

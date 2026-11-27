@@ -106,19 +106,22 @@ Leses i `purchases` og `grants`, bare summer: pakkens kjøp per døgn og hvor ma
 
 ## Bygd (steg 154, 27.11.2026)
 
+**Endret under byggingen:** pakken har **10 haill**, ikke 8, og verdien regnes mot den billigste veien butikken selger det samme (8-pakken til 229 kr og to enkle): 905 kr, «Spar 45 %», «Du sparer 406 kr». Kontrollen fant at 910 kr og 411 kr regnet åtte haill til enkeltpris mens 8-pakken sto ved siden av (da er det reelle 827 kr, 328 kr og 40 %). Jonas, spurt om tallet: «Velg en pris som treffer psykologiske kjøps-triggere.» Valgt: prisen 499 kr står (under 500, og det dobbelte av Sjøværspakken), og to haill til gjør at 45 % er sant også ved strengeste utregning. Tallene 910, 411 og «8 haill» lenger opp i planen er de fra før dette. Sjøværspakken sier med samme regel «Spar 43 %» (før 45).
+
 SF1 og SF2 ble én leveranse og én PR, fordi veien fra kvitteringen til pakken er felles for begge. Hva som er bygd, står i `docs/systemer/haill-pub-og-bonus.md`, «Black Week-pakken».
 
 **Det som skal få pakken solgt, og hvorfor det er med:**
 
 | Virkemiddel | Hvor | Hvorfor det er ærlig |
 |---|---|---|
-| Anker: «Kjøpt hver for seg: 910 kr» | kortet og kvitteringen | delene selges til de prisene i dag |
-| Gevinsten i kroner: «Du sparer 411 kr» ved siden av «Spar 45 %» | kortet | samme regnestykke, i det tallet som veier mest over 100 kr |
+| Anker: «Koster ellers: 905 kr» | kortet og kvitteringen | det samme innholdet koster det i butikken i dag, den billigste veien |
+| Gevinsten i kroner: «Du sparer 406 kr» ved siden av «Spar 45 %» | kortet | samme regnestykke, i det tallet som veier mest over 100 kr |
 | Tidsvindu: «Selges til og med mandag 30.11» | kortet og kvitteringen | datoen holder: serveren nekter pakken etterpå, og den forlenges ikke |
 | Gjengjeld og smaksprøve: gaven Turbotrim 2 timer | alle kontoer med innlogging | en ekte gave uten vilkår; den som har kjent dobbel fart, vet hva pakken gir |
 | Øyeblikket etter et kjøp: linja og «Se pakken» | kvitteringsvinduet | den som nettopp har betalt 19 kr, ser hva 499 kr gir; ett trykk, ingen sperre |
 | Plassering og kontrast: øverst, mørkt med gull, eget bilde | Kaiboden | pakken er den største varen butikken har |
-| Lokkevare ved siden av: 3 døgn av én sort koster 299 kr | radene under | prisene sto der fra før; pakken gir begge sortene og haill for 200 kr mer |
+| Lokkevare ved siden av: 3 døgn av én sort koster 299 kr | radene under | prisene sto der fra før; pakken gir begge sortene og 10 haill for 200 kr mer |
+| Prisen 499 kr | kortet | under 500-grensen, og det dobbelte av Sjøværspakken for tre ganger så lang virkning |
 | Oppdagelse: gullprikk på Kaiboden-knappen | 3D-skjermen | sier at noe er nytt, til butikken er åpnet én gang |
 
 **Ikke med, og hvorfor:** gjennomstreket pris (ville vært en førpris, og prisene ble hevet 16.11), klokke som teller ned og «bare N igjen» (ikke sant for en digital vare, og mot «ingen nedtelling»), push om tilbudet (push er bare om egen båt og eget redskap), vindu som spretter opp under spilling, antall kjøpere (med 15 store kjøpere ville tallet virket mot sin hensikt, og kjøpte fordeler skal ikke synes), pris etter hvem som kjøper.
