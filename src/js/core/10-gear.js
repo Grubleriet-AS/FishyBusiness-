@@ -457,7 +457,6 @@ function startHaul(sid, reset, fishAfter){
   const from = da <= db ? s.a : s.b, to = da <= db ? s.b : s.a;
   b.status = 'fishing'; b.fishUntil = null; b.deckStop = false; b.deckEnd = null;
   b.gop = {op:'haul', kind:s.kind, sid, n:s.n, done:0, prog:0, auto:s.kind === 'line' && isAuto(s.lk), sno:s.kind === 'teine' && !!(POTS[s.pot] || {}).sno, a:{...from}, b:{...to}, reset:!!reset, fishAfter:fishAfter || 0, kg:0, rel:0, dead:0, hooksPer:s.kind === 'line' ? s.hooks / s.n : 0, soak:(S.t - s.tSet) / 60, sub:0, sl:HAUL_SLICES(s.kind, s.kind === 'line' ? s.hooks / s.n : 0), lead:endLines('haul', s.kind, s.depth || depthF(from)), thief:thiefOf(s)};
-  S.gacc = {}; S.gnext = {};
   log('Trekker ' + GEAR[s.kind].no.toLowerCase() + ': ' + s.n + ' ' + unitName(s.kind, s.n, s.lk) + ', sto ' + fmt(b.gop.soak, 0) + ' t.', 'Hauling ' + GEAR[s.kind].en.toLowerCase() + ': ' + s.n + ' ' + unitName(s.kind, s.n, s.lk) + ', soaked ' + fmt(b.gop.soak, 0) + ' h.');
   return null;
 }
@@ -484,7 +483,7 @@ function haulSlow(g){
 function gearOpMinute(H, W, hs){
   const b = S.boat, g = b.gop;
   if (handsAboard() < GEAR[g.kind].crewMin){ gopAbort('crew'); return; }
-  if (g.op === 'haul' && holdLoad() >= capHold() - 0.01){ log('Lasten er full. Resten av redskapet står igjen.', 'The hold is full. The rest of the gear stays in the sea.'); if (typeof toast === 'function' && !VTAG) toast(gL('Lasten er full. Lever fangsten, og trekk resten av redskapet etterpå.', 'The hold is full. Land the catch, then haul the rest of the gear.')); gopAbort('full'); return; }
+  if (g.op === 'haul' && (holdLoad() >= capHold() - 0.01 || (holdLoad() >= capHold() - 0.06 && haulWaits(g) > 1))){ log('Lasten er full. Resten av redskapet står igjen.', 'The hold is full. The rest of the gear stays in the sea.'); if (typeof toast === 'function' && !VTAG) toast(gL('Lasten er full. Lever fangsten, og trekk resten av redskapet etterpå.', 'The hold is full. Land the catch, then haul the rest of the gear.')); gopAbort('full'); return; }
   // the catch of one unit comes aboard in slices as the string comes over the rail, not all at the end (tilbakemelding #30: «fisken
   // kommer om bord etter hvert, så man kan sløye underveis»): per 100 hooks on a line, in thirds on a net, a pot at once
   if (g.lead > 0){ g.lead--; b.v = 0.3; g.mv = null; return; }   // the end lines first
@@ -495,6 +494,9 @@ function gearOpMinute(H, W, hs){
     // a hold that filled in this minute takes no more slices off the string: they stay in the sea with their fish (the next minute stops the haul)
     if (g.op === 'haul' && holdLoad() >= capHold() - 0.01){ g.prog = Math.min(g.prog, (g.sub + 1) / SL); break; }
     if (g.op === 'haul') haulUnit(g, H, SL);
+    // the slice that filled the hold, with fish or crab still waiting for room, is not hauled yet: it stays in the sea with what waits
+    // (also the last slice of the last unit, which else ended the haul and lost it)
+    if (g.op === 'haul' && holdLoad() >= capHold() - 0.06 && haulWaits(g) > 1){ g.prog = Math.min(g.prog, (g.sub + 1) / SL); break; }
     g.sub++; if (g.sub >= SL){ g.sub = 0; g.prog -= 1; g.done++; }
   }
   const f = Math.min(1, (g.done + g.prog) / g.n); b.pos = {x:g.a.x + (g.b.x - g.a.x) * f, y:g.a.y + (g.b.y - g.a.y) * f};
@@ -520,7 +522,7 @@ function finishSet(g, H){
 }
 // (the minute after the gear work stays: fish() ends it, or a plan turns it into jigging while it waits for the next haul, plan2Sea.
 // Ending it at once sent the plan on too early, driftsplan2test S1. The screen does not call that minute jigging: gopAfter)
-function gopEnd(g){ const b = S.boat; b.gop = null; b.v = 0; b.gopQuiet = true; b.fishUntil = S.t + (g.fishAfter || 0) * 60; S.gacc = null; S.gnext = null; }
+function gopEnd(g){ const b = S.boat; b.gop = null; b.v = 0; b.gopQuiet = true; b.fishUntil = S.t + (g.fishAfter || 0) * 60; }
 // the minute after setting or hauling, before fish() ends it or a plan makes it jigging: not «Fisker»/«Jukser» (spilltest 3, F4)
 function gopAfter(b = S.boat){ return b.status === 'fishing' && !!b.gopQuiet && !b.gop && b.fishUntil != null && b.fishUntil - S.t <= 1; }
 // stop halfway: what is set stays in the sea as a shorter string, what is hauled is aboard
@@ -546,17 +548,14 @@ function gopAbort(why){
       log('Setting avbrutt. Redskapet er tatt om bord igjen.', 'Setting stopped. The gear is back aboard.'); b.gop = null; }
   } else {
     const s = S.sets.find(x => x.id === g.sid);
-    // the fish of the last slice that found no room in the hold stays on the gear (S.gacc: taken off the string, not yet aboard), so a
-    // haul stopped by a full hold loses nothing: it is hauled with the rest after the landing
-    if (s && why === 'full' && S.gacc) for (const sp in S.gacc){ const kg = S.gacc[sp], P = SPECIES[sp]; if (!P || P.shell || !(kg > 0.01)) continue;
-      const A = s.acc[sp] || (s.acc[sp] = {kg:0, n:0, ts:0}), per = A.kg > 0.01 ? A.n / A.kg : 0, tsk = A.kg > 0.01 ? A.ts / A.kg : S.t / 60; A.kg += kg; A.n += kg * per; A.ts += kg * tsk; }
+    if (s) haulRest(g, s);   // what was off the string and not aboard goes back on it
     if (s && (g.done > 0 || g.sub > 0)) kvHaulKeep(g, s);   // what came aboard is a catch of its own (the coast guard's sample)
     if (s && g.done > 0 && g.done < s.n){ gearBack(s, g.done, wearNets(s, g), wearOf(s, g)); s.n -= g.done; if (s.kind === 'line') s.hooks = s.n * g.hooksPer; s.a = {x:b.pos.x, y:b.pos.y}; s.b = {...g.b}; }
     if (s) s.hauling = false;
     log('Trekkingen stoppet. ' + (s ? s.n + ' ' + unitName(s.kind, s.n, s.lk) + ' står igjen i sjøen.' : ''), 'Hauling stopped. ' + (s ? s.n + ' ' + unitName(s.kind, s.n, s.lk) + ' remain in the sea.' : ''));
     b.gop = null;
   }
-  b.v = 0; S.gacc = null; S.gnext = null;
+  b.v = 0;
   if (why !== 'return' && why !== 'dock' && b.status === 'fishing'){ b.gopQuiet = true; b.fishUntil = S.t; }
 }
 // gear back on deck after hauling (or a stopped set); nets with their condition
@@ -593,9 +592,20 @@ function haulUnit(g, H, SL){
   }
   if (s.dead > 0){ const d = s.dead * f; s.dead -= d; g.dead += d; }
 }
+// What a haul has taken off the string and not yet got aboard lies on the haul itself (g.fa: kg a species, and the crabs counted in
+// crabN and snoN; g.fn: the next fish's weight), the vessel's own, so two vessels hauling at once do not share it. When the haul stops
+// (a full hold, the way home, the crew), haulRest puts it back on the gear: nothing is lost, and it comes up with the rest after the landing
+function haulRest(g, s){
+  const F = g.fa; if (!F || !s || !s.acc) return; g.fa = null; g.fn = null;
+  const put = (sp, kg, n) => { const A = s.acc[sp] || (s.acc[sp] = {kg:0, n:0, ts:0}), tsk = A.kg > 0.01 ? A.ts / A.kg : S.t / 60; A.kg += kg; A.n += n; A.ts += kg * tsk; };
+  for (const sp in F){ const kg = F[sp], P = SPECIES[sp]; if (!P || P.shell || !(kg > 0.001)) continue; const A = s.acc[sp]; put(sp, kg, A && A.kg > 0.01 ? kg * A.n / A.kg : 0); }
+  for (const [k, sp] of [['crabN', 'krabbe'], ['snoN', 'snokrabbe']]){ const n = F[k]; if (!(n > 0.001)) continue; const A = s.acc[sp]; put(sp, n * (A && A.n > 0.01 && A.kg > 0 ? A.kg / A.n : 1), n); }   // (a kilo a crab when the string has none left to tell: haulUnit lands by the count)
+}
+// what waits on the haul for room: kg of fish, and the crabs still to be sorted
+function haulWaits(g){ const F = g.fa; if (!F) return 0; let v = 0; for (const k in F) v += F[k] || 0; return v; }
 // kg of one species from the gear becomes single fish of the sizes this gear takes; undersized and closed-season fish go back
 function landFish(sp, kg, key, mesh, p, H, hook, fresh, g){
-  const acc = S.gacc || (S.gacc = {}), nx = S.gnext || (S.gnext = {}); let got = 0, room = capHold() - holdLoad();
+  const G = g || S, acc = G.fa || (G.fa = {}), nx = G.fn || (G.fn = {}); let got = 0, room = capHold() - holdLoad();
   acc[sp] = (acc[sp] || 0) + kg;
   while (room > 0.01){
     if (!nx[sp]) nx[sp] = sampleSel(sp, key, mesh, p, H);
@@ -623,9 +633,9 @@ function sampleSel(sp, key, mesh, p, H){ let w = 0; for (let i = 0; i < 24; i++)
 // king crab: sex, weight and damage are drawn as each comes up, and all of it is kept (west of 26° E it is forbidden to put king crab
 // back, J-138-2026 § 5), in Råfisklaget's classes (SPECIES.krabbe.cls)
 function landCrabs(g, n, kg){
-  S.gacc = S.gacc || {}; S.gacc.crabN = (S.gacc.crabN || 0) + n; let room = capHold() - holdLoad();
-  while (S.gacc.crabN >= 1 && room > 0.05){
-    S.gacc.crabN -= 1;
+  const F = g.fa || (g.fa = {}); F.crabN = (F.crabN || 0) + n; let room = capHold() - holdLoad();
+  while (F.crabN >= 1 && room > 0.05){
+    F.crabN -= 1;
     const fem = Math.random() < KC.fem, W = fem ? KC.wf : KC.wm, w = Math.max(0.3, Math.round(W[0] * Math.exp(W[1] * gauss(Math.random(), Math.random())) * 100) / 100);
     const hurt = !fem && Math.random() < KC.hurt, cls = fem ? 4 : hurt ? 5 : w >= 3.2 ? 0 : w >= 2.2 ? 1 : w >= 1.6 ? 2 : w >= 0.8 ? 3 : 6;
     const k = Math.min(w, room); room -= k; addCatch('krabbe', k, cls, false, {fresh:100, how:'teine'}); g.kg += k;

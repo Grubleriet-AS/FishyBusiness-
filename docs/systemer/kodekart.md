@@ -1895,7 +1895,7 @@ Kystvakta: the inspection at the quay or on the field (Oppdrag 2 V1, 30.10.2026;
   - 314 `kvWhatSno(r)`
   - 333 `kvFinish()`
 
-## `src/js/core/10-gear.js` (964 linjer)
+## `src/js/core/10-gear.js` (974 linjer)
 
 passive gear: nets, line and pots that stand in the sea while the boat is away
 
@@ -1948,46 +1948,48 @@ passive gear: nets, line and pots that stand in the sea while the boat is away
   - 399 `gopUnitMin(g, H, hs)`
   - 424 `startSet(kind, spec, fishAfter, hdg)`
   - 447 `startHaul(sid, reset, fishAfter)`
-  - 466 `endLines(op, kind, d)`
-  - 469 `thiefOf(s)`
-  - 479 `haulSlow(g)`
-  - 484 `gearOpMinute(H, W, hs)`
-  - 511 `finishSet(g, H)`
-  - 523 `gopEnd(g)`
-  - 525 `gopAfter(b = S.boat)`
-  - 529 `gearUnset(s, n)`
-  - 539 `gopAbort(why)`
-  - 563 `gearBack(s, n, cond, W)`
-  - 570 `wearNets(s, g)`
-  - 579 `haulUnit(g, H, SL)`
-  - 597 `landFish(sp, kg, key, mesh, p, H, hook, fresh, g)`
-  - 614 `netLen(w)`
-  - 615 `retain(sp, key, mesh, w)`
-  - 622 `sampleSel(sp, key, mesh, p, H)`
-  - 625 `landCrabs(g, n, kg)`
-  - 636 `finishHaul(g, H)`
-- **676** a station on a route or the standing plan: haul what stands here and set it again, or set new gear if nothing stands here.
-  - 680 `cycleSpec(kind, want, n)`
-  - 694 `gearCycle(w, fishAfter)`
-  - 712 `opsGearNeeds(o)`
-  - 722 `opsGearAfter()`
-- **728** in the sea, every hour: catch, losses, weather and deadlines (company level)
-  - 729 `soakHour(s, H)`
-  - 776 `potsOver(type = S.boat && S.boat.type, pg = S.pgear, sets = mySets()`
-  - 779 `potsUnfit()`
-  - 801 `gearHour(H)`
-  - 839 `reportLost(sid)`
-  - 847 `netMended(l)`
-- **848** in port: baiting at the shed or by the crew, mending by the crew or at the net loft in Finnsnes
-  - 854 `egnOrder(lk, n, bait)`
-  - 868 `egnHands()`
-  - 877 `egnSelf(lk, n, bait)`
-  - 898 `stripSelf(lk, bait, n, then)`
-  - 912 `mendSelf(nid)`
-  - 923 `botOrder(nid)`
-  - 934 `gearJob(j)`
-  - 946 `gearJobCancel(j)`
-  - 953 `shoreTick()`
+  - 465 `endLines(op, kind, d)`
+  - 468 `thiefOf(s)`
+  - 478 `haulSlow(g)`
+  - 483 `gearOpMinute(H, W, hs)`
+  - 513 `finishSet(g, H)`
+  - 525 `gopEnd(g)`
+  - 527 `gopAfter(b = S.boat)`
+  - 531 `gearUnset(s, n)`
+  - 541 `gopAbort(why)`
+  - 562 `gearBack(s, n, cond, W)`
+  - 569 `wearNets(s, g)`
+  - 578 `haulUnit(g, H, SL)`
+  - 598 `haulRest(g, s)`
+  - 605 `haulWaits(g)`
+  - 607 `landFish(sp, kg, key, mesh, p, H, hook, fresh, g)`
+  - 624 `netLen(w)`
+  - 625 `retain(sp, key, mesh, w)`
+  - 632 `sampleSel(sp, key, mesh, p, H)`
+  - 635 `landCrabs(g, n, kg)`
+  - 646 `finishHaul(g, H)`
+- **686** a station on a route or the standing plan: haul what stands here and set it again, or set new gear if nothing stands here.
+  - 690 `cycleSpec(kind, want, n)`
+  - 704 `gearCycle(w, fishAfter)`
+  - 722 `opsGearNeeds(o)`
+  - 732 `opsGearAfter()`
+- **738** in the sea, every hour: catch, losses, weather and deadlines (company level)
+  - 739 `soakHour(s, H)`
+  - 786 `potsOver(type = S.boat && S.boat.type, pg = S.pgear, sets = mySets()`
+  - 789 `potsUnfit()`
+  - 811 `gearHour(H)`
+  - 849 `reportLost(sid)`
+  - 857 `netMended(l)`
+- **858** in port: baiting at the shed or by the crew, mending by the crew or at the net loft in Finnsnes
+  - 864 `egnOrder(lk, n, bait)`
+  - 878 `egnHands()`
+  - 887 `egnSelf(lk, n, bait)`
+  - 908 `stripSelf(lk, bait, n, then)`
+  - 922 `mendSelf(nid)`
+  - 933 `botOrder(nid)`
+  - 944 `gearJob(j)`
+  - 956 `gearJobCancel(j)`
+  - 963 `shoreTick()`
 
 ## `src/js/core/10b-gearcare.js` (274 linjer)
 
