@@ -2327,7 +2327,7 @@ WHAT A ROUTE MUST NOT SAIL THROUGH (Jonas 05.10.2026: «autoruter aldri skal gå
   - 124 `heatAt(p)`
   - 127 `schoolDrift(sp, p, H)`
 
-## `src/js/core/13-work.js` (468 linjer)
+## `src/js/core/13-work.js` (485 linjer)
 
 work aboard: stations, and how the crew share them
 
@@ -2358,23 +2358,23 @@ work aboard: stations, and how the crew share them
   - 195 `jobMinute(j, A)`
   - 205 `jobWait(j)`
   - 210 `workAssign(as)`
-- **307** the boat's own hands at the quay (OB4, 11.11.2026, docs/planer/om-bord.md F10, F11, F23; Jonas 09.11.2026: «at arbeidet ombord
-  - 315 `quayRoles(P, ctx)`
-- **328** the deck washed down, the packed lunch and the cold, as roles on those on a break (OB14, 11.11.2026, docs/planer/om-bord.md F12,
-  - 342 `washMin()`
-  - 344 `deckWash()`
-  - 346 `lunchNow()`
-  - 347 `deckRoles(P, ctx)`
-  - 364 `deckDoing(p)`
-- **366** what a person does on a break (Jonas 23.10.2026: «La det også stå hva de gjør når de ikke har en aktiv arbeidsoppgave som feks: lener
-  - 382 `crewVice(c)`
-  - 384 `idleEnv()`
-  - 392 `idleWeights(p, ctx, E, mates)`
-  - 415 `idleAssign(P, ctx)`
-  - 429 `idleText(p)`
-  - 437 `workDoing(p)`
-  - 447 `workTeam(st, g, as)`
-  - 454 `workMinute()`
+- **324** the boat's own hands at the quay (OB4, 11.11.2026, docs/planer/om-bord.md F10, F11, F23; Jonas 09.11.2026: «at arbeidet ombord
+  - 332 `quayRoles(P, ctx)`
+- **345** the deck washed down, the packed lunch and the cold, as roles on those on a break (OB14, 11.11.2026, docs/planer/om-bord.md F12,
+  - 359 `washMin()`
+  - 361 `deckWash()`
+  - 363 `lunchNow()`
+  - 364 `deckRoles(P, ctx)`
+  - 381 `deckDoing(p)`
+- **383** what a person does on a break (Jonas 23.10.2026: «La det også stå hva de gjør når de ikke har en aktiv arbeidsoppgave som feks: lener
+  - 399 `crewVice(c)`
+  - 401 `idleEnv()`
+  - 409 `idleWeights(p, ctx, E, mates)`
+  - 432 `idleAssign(P, ctx)`
+  - 446 `idleText(p)`
+  - 454 `workDoing(p)`
+  - 464 `workTeam(st, g, as)`
+  - 471 `workMinute()`
 
 ## `src/js/core/14-crewlife.js` (741 linjer)
 
@@ -3204,12 +3204,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1828 linjer)
+## `src/js/ui/phone/07-patch.js` (1830 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1816 `patch()`
+  - 1818 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (136 linjer)
 
