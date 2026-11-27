@@ -6556,6 +6556,12 @@
 2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	kvfulltest	OK	11	lite	samtidig	
 2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	quotatest	OK	8	lite	samtidig	
 2026-11-25 12:01	ccr-b7b2f394-jdf54x	be7779a+	trip2	OK	13	lite	samtidig	
+2026-11-27 13:58	ccr-b7b2f394-jdf54x	2f8406b	worktest	FEIL	10	lite	samtidig	FEIL the same answer every time within a minute, and no reshuffle every minute (changes in 40 minutes) 10
+2026-11-27 13:59	ccr-b7b2f394-jdf54x	2f8406b	trip2	OK	13	lite	samtidig	
+2026-11-27 14:01	ccr-b7b2f394-jdf54x	2f8406b+	worktest	OK	9	lite	alene	
+2026-11-27 14:10	ccr-b7b2f394-jdf54x	0b82db4	worktest	OK	10	lite	samtidig	
+2026-11-27 14:10	ccr-b7b2f394-jdf54x	0b82db4	trip2	OK	13	lite	samtidig	
+2026-11-27 14:11	ccr-b7b2f394-jdf54x	0b82db4	docktest	OK	67	lite	samtidig	
 2026-11-26 08:22	ccr-6fcb2ce3-9u8cd1	e92ee60+	korrtest	OK	6	lite	alene	
 2026-11-26 08:22	ccr-6fcb2ce3-9u8cd1	e92ee60+	admintest	OK	14	lite	alene	
 2026-11-26 09:32	ccr-5e1ba2f4-pusvyd	e03e1aa+	boottest	OK	12	lite	samtidig	
@@ -6639,6 +6645,11 @@
 2026-11-27 12:01	ccr-1a8b7d9a-89hfb6	6d730954+	bwtest	OK	71	lite	samtidig	
 2026-11-27 12:32	ccr-1a8b7d9a-89hfb6	a2304bf4+	kjoptest	OK	197	lite	samtidig	
 2026-11-27 12:32	ccr-1a8b7d9a-89hfb6	a2304bf4+	fasittest	OK	48	lite	samtidig	
+2026-11-27 14:14	ccr-b7b2f394-jdf54x	46aad05+	worktest	OK	11	lite	samtidig	
+2026-11-27 14:14	ccr-b7b2f394-jdf54x	46aad05+	trip2	OK	14	lite	samtidig	
+2026-11-27 14:15	ccr-b7b2f394-jdf54x	46aad05+	docktest	OK	68	lite	samtidig	
 2026-11-27 14:16	ccr-5e1ba2f4-pusvyd	7aa02fe+	dbg23o	OK	116	3d	alene	
 2026-11-27 14:50	ccr-5e1ba2f4-pusvyd	17e452a+	npctest	OK	11	lite	samtidig	
 2026-11-27 14:52	ccr-5e1ba2f4-pusvyd	17e452a+	kaiover	OK	129	lite	samtidig	
+2026-11-27 16:59	ccr-b7b2f394-jdf54x	f05556a	worktest	OK	14	lite	samtidig	
+2026-11-27 16:59	ccr-b7b2f394-jdf54x	f05556a	trip2	OK	17	lite	samtidig	

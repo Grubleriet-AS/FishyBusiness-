@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['juksabord-271126', '27.11.2026', 'Mannskapet sløyer mens det jukses', 'The crew gut while you jig', [
+       ['Med juksamaskiner og flere om bord enn maskinene trenger, går de ledige til sløyebordet og isen når det ligger fisk i karet. Før ble de stående ved rekka, karet ble fullt, og fisket stoppet.', 'With jigging reels and more hands aboard than the reels need, those free go to the gutting table and the ice when fish lies in the tub. Before, they stayed at the rail, the tub filled, and the fishing stopped.']]],
     ['kart-271126', '27.11.2026', 'Ålesund verft', 'The yard at Ålesund', [
        ['Verftet i Ålesund ligger 25 m lenger inn langs kaia si, så utløpet fra bassenget er bredere for de større båtene.', 'The yard at Ålesund lies 25 m further in along its quay, so the way out of the basin is wider for the bigger boats.'],
        ['Sjøen tegner ikke lenger brenning midt i et basseng foran en kai.', 'The sea no longer draws surf in the middle of a basin in front of a quay.'],
