@@ -208,6 +208,11 @@ export default function (t){
     // A boat on a mooring buoy counts as she lies (her hull, in the list as any vessel at a quay), not by the whole circle she
     // swings on: the circle of a buoy in the mouth of Værøy verft's basin shut the yard to every boat (steg 142), where the observer,
     // which sees her hull as the 3D view draws it, counted no touch. FARB.swing turns it
+    // Where a bane to a place ends: at her berth there (berthPose: where her middle lies by the quay), not at the harbour's point,
+    // from which arrive() set her at the berth across whatever lay between (Stø with the purse seiner, Urangsvåg: steg 142, G2)
+    const bp0 = K.get('berthPose'); try { K.set('berthPose', (pid, ty, kind) => pid === 'a' ? {x:500.01, y:900.02, hd:1.2, kind} : pid === 'b' ? null : (() => { throw new Error('no map'); })());
+      const e1 = K.planEnd('a', 'sjark'), e2 = K.planEnd('b', 'sjark'), e3 = K.planEnd('c', 'sjark'), e4 = K.planEnd(null, 'sjark');
+      t.ok(e1 && e1.x === 500.01 && e1.y === 900.02 && e1.hd === 1.2 && e2 === null && e3 === null && e4 === null, 'banen ender ved kaiplassen der stedet har en, ellers i havnas punkt (planEnd gir da ingenting)', [e1, e2, e3, e4]); } finally { K.set('berthPose', bp0); }
     const fb0 = K.get('fixBoats'), FB = K.get('FARB'); try { K.set('fixBoats', () => [{t:1, x:0, z:0, l:4, w:1.5, ux:1, uz:0}, {t:0, x:10, z:0, r:11}]);
       const n1 = K.farbBoats(0, 0).length; FB.swing = true; const n2 = K.farbBoats(0, 0).length; FB.swing = false;
       t.ok(n1 === 1 && K.farbBoats(0, 0)[0].t === 1 && n2 === 2, 'en bøyebåt regnes som skroget der hun ligger, ikke hele sirkelen hun svinger på (FARB.swing snur det)', [n1, n2]); } finally { K.set('fixBoats', fb0); FB.swing = false; } } finally { K.set('S', S0); }

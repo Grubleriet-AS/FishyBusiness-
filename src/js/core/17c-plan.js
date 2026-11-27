@@ -436,6 +436,13 @@ async function planDig(a, b, type, opt){ const R = await planBane(a, b, type, Ob
   for (let s = 0; ; s += 2){ const q = baneAt(B, Math.min(s, B.len)); P.push([q.X, q.Z]); let h = null; try { h = farbPose(q.X, q.Z, q.psi, boat, R.Hmin, o); } catch (e){} sh.push(h && h.what === 'grunn' ? 1 : 0); if (s >= B.len) break; if (!(P.length & 63)) await farbBreath(); }
   const segs = planDigRuns(P, sh, {ext:boat.L / 2 + 5, gap:boat.L, r:+(boat.B / 2 + side + PLAN.digSide).toFixed(1), d:+(boat.T + FARB.keel + PLAN.digDeep).toFixed(2)});
   return {segs, nm:R.nm, dug:Math.round(segs.reduce((t, g) => t + Math.hypot(g[2] - g[0], g[3] - g[1]), 0)), ms:R.ms}; }
+// Where a bane to or from a place ends: at her berth there (07-harbours.js berthPose: where her middle lies by the quay, {x, y} km and
+// her heading hd), not at the harbour's point. The simulation keeps her at the harbour's point while she is in port and the views
+// draw her at the berth, so a bane to the point ended some tens of metres from where she lies, and the last of the way was a jump
+// across whatever stood between (the bench's observer: a floating dock at Stø, a vessel at Urangsvåg, steg 142). null where the
+// place has no berth to find (the map not in, a point at sea): the harbour's point then. The search with her heading at the berth
+// (G2: back out, turn, go) is not here yet: the bane comes to the berth from the way it came
+function planEnd(pid, type, kind){ if (!pid) return null; try { const bp = berthPose(pid, type || S.boat.type, kind || 'main'); return bp ? {x:bp.x, y:bp.y, hd:bp.hd} : null; } catch (e){ return null; } }
 // A bane into a plan (the bench, and the flag): the plan's points i0 .. i1 - 1 (the way to the stop at i1 - 1, which is kept as it is:
 // the harbour she docks in, the fishing there) replaced by the bane's own, and the leg written in pl.b2 (17b-bane.js baneLeg).
 // A plan's legs are put in from the last to the first, so the places of those before stand
