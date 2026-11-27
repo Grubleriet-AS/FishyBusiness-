@@ -105,7 +105,11 @@
       const j = J.j++;
       // (a sim tile far out at sea can lack its mask block: «map: mask block 94,18 has no pack» north of Loppa, found by h2dshot
       // 05.11.2026; then the rest of the job takes the land fraction, as where the tile has no sim pack)
-      for (let i = 0; i < S2; i++){ const x = x0 + (i + 0.5) * st, z = z0 + (j + 0.5) * st, m = dok ? (mapSimAt({x:x / 1000, y:z / 1000}) && !J.nom ? maskOr(J, x, z) : landFracM(x, z)) : landFracM(x, z), o = (j * S2 + i) * 4, dd = m > 0.5 ? 0 : dok ? depthF({x:x / 1000, y:z / 1000}) : 50; shoalCell(J, j * S2 + i, m > 0.5, dd); dat[o + 3] = Math.round(m * 255); }
+      // (a cell in a harbour unit's basin or a quay's pocket is water, as the simulation has it (inHarbourPocket) and as the shore
+      // texture and the ground are cut: the 25 m mask knows nothing of them, and where it has land inside a basin the sea drew
+      // white water there, a pale patch of surf in the middle of the yard's basin; Ålesund verft moved 25 m, steg 142, 27.11.2026)
+      for (let i = 0; i < S2; i++){ const x = x0 + (i + 0.5) * st, z = z0 + (j + 0.5) * st, p = {x:x / 1000, y:z / 1000}; let m = dok ? (mapSimAt(p) && !J.nom ? maskOr(J, x, z) : landFracM(x, z)) : landFracM(x, z); if (m > 0.5 && inHarbourPocket(p)) m = 0;
+        const o = (j * S2 + i) * 4, dd = m > 0.5 ? 0 : dok ? depthF(p) : 50; shoalCell(J, j * S2 + i, m > 0.5, dd); dat[o + 3] = Math.round(m * 255); }
       if (J.j < S2 && performance.now() > end) return;
     }
     // the travel time from the shore, a pass at a time (shoalSweep), then into R and G

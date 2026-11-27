@@ -22,7 +22,7 @@
   if (typeof ResizeObserver === 'function'){ const ro = new ResizeObserver(() => { if (isOpen) place(); }); for (const id of ['hud', 'miniPlot', 'gps3d']) if ($(id)) ro.observe($(id)); }
   if (typeof MutationObserver === 'function') new MutationObserver(() => { if (isOpen) place(); }).observe(document.body, {attributes:true, attributeFilter:['class']});
   let PSPOR = null;   // (steg 139: the page last put in the trace, errtrap.js DSB_ERRTRAP.spor)
-  function show(on, a){ const was = isOpen; isOpen = on; if (!on && was){ PSPOR = null; try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('telefon-lukk'); } catch (e){} } if (a === 'kaiboden') a = kbLast;
+  function show(on, a){ const was = isOpen; isOpen = on; if (!on && was){ PSPOR = null; try { if (window.DSB_ERRTRAP) DSB_ERRTRAP.spor('telefon-lukk'); } catch (e){} } if (a === 'kaiboden') a = kbFirst();
     if (KBT.includes(a)){ const iv = haillStock(S.haillInv, S.haillSrv, S.haillUsed); sub.kaiboden = a === 'haill' && (iv.haill || iv.luksus || iv.takk) ? 'mine' : 'boost'; }   /* (Kaiboden in one window: «Bruk haill» opens what is in store) */ if (a) app = a === 'admin' && !adminOk() ? 'home' : a; else if (on && !was) app = 'home'; /* a closed phone opens on the home screen, not on the last app */ document.body.classList.toggle('ph-on', !!on); if (on) place();   /* (D5: the big phone on a tablet is a surface of its own, and the dock is hidden under it; the stylesheet reads this) */ if (on){ el.hidden = false; void el.offsetWidth; el.classList.remove('off'); render(); } else { el.classList.add('off'); setTimeout(() => { if (!isOpen) el.hidden = true; }, 300); } }
   function status(){
     const H = (S.t + liveFrac()) / 60, bars = S.boat.status === 'port' ? 4 : coverage(S.boat.pos);
