@@ -595,7 +595,9 @@ async function cloudSync(cs){
   // the game here locked the page twice in a row as it was built (11-boot.js BOOTG; Adrian 06.11.2026: Autonav set just before the app
   // was closed, the route never sent): the account's copy of this device's game, from before what was played here since, goes on, and
   // the one here is kept (Tidligere lagringer). Once: the start after it tries that game, and the safe start comes after that
-  if (lo && sync && Date.parse(sync.rev) === Date.parse(rev) && local > (sync.at || 0) + 1000 && typeof bootgRescue === 'function' && bootgRescue()){
+  // (own: the account's game is this device's own and no later than the game here, a save whose answer never came back; see below)
+  const own = !!(lo && sync && cs.device && cs.device === deviceId() && Date.parse(sync.rev) !== Date.parse(rev) && local >= Date.parse(rev));
+  if (lo && sync && (Date.parse(sync.rev) === Date.parse(rev) && local > (sync.at || 0) + 1000 || own && local > Date.parse(rev) + 1000) && typeof bootgRescue === 'function' && bootgRescue()){
     try { sessionStorage.setItem('dsb_note', cloudL('Spillet stoppet under oppstarten. Vi fortsetter fra den siste lagringen på kontoen din, litt før. Det nyeste fra denne enheten er tatt vare på under Innstillinger › Tidligere lagringer.',
       'The game stopped while starting. We go on from the last save on your account, a little earlier. The newest from this device is kept under Settings › Earlier saves.')); } catch (e){}
     cloudGateShow('<p>' + cloudL('Henter spillet ditt …', 'Fetching your game …') + '</p>'); return cloudTake(cs); }
@@ -603,6 +605,13 @@ async function cloudSync(cs){
   if (sync && Date.parse(sync.rev) === Date.parse(rev)){
     // the account has this device's game: on with it
     if (cs.rev != null && sync.rv !== cs.rev) syncSet(sync.rev, sync.at, cs.rev, sync.sq); return; }
+  // the account's game is this device's own, and the game here is that one or later: a save that reached the account as the page went
+  // (to the payment, the app closed, the tab ended) and whose answer never came back, so this device still counts from the save before
+  // it. The game here goes on, counted from the account's revision. Before, it was taken for «the newer one from elsewhere» just below
+  // and the game here was swapped for the older one: a boat held for a hop paid for was held no more when the page came back from
+  // Stripe, and the hop was marked for a refund (ten of 276 paid hops, Jonas 27.11.2026; tests/hoppskytest.py). saved_at is this
+  // device's own clock (S.lastReal of the save sent), as `local` is, so the two are compared on one clock
+  if (own){ syncSet(rev, Date.parse(rev), cs.rev, sync.sq); cloudEvLater('sync_pick', {pick:'here', how:'own'}); return; }
   // (not played here since it was last in step, but for the last minute that may not have reached the account as the page closed)
   if (sync && local <= sync.at + 150000){ cloudGateShow('<p>' + cloudL('Henter spillet ditt …', 'Fetching your game …') + '</p>'); return cloudTake(cs); }   // not played here since: the newer one from elsewhere
   if (!sync && Math.abs(local - Date.parse(rev)) < 3000){ syncSet(rev, local, cs.rev); return; }            // the same save, from before devices kept count
@@ -767,7 +776,11 @@ async function cloudConflict(cl, moved){
   const take = async () => { cs = cs || await cloudRpc('save_get', {}); if (cs && cs.data){ save(); await cloudTake(cs); } };
   if (!other){
     // (a second tab, or a page with older code: no other device to ask about) the last save goes on, and the other is kept
-    const pick = Date.parse(cl.updated_at || cl.saved_at) > (S.lastReal || 0) ? 'cloud' : 'here'; cloudKeptNote(pick);
+    // (the account's save is this device's own, one whose answer never came back: its saved_at and the game's time here are one clock,
+    // the device's. The server's time of it against the device's clock made a device whose clock is behind take its own older game
+    // back; 27.11.2026, tests/hoppskytest.py)
+    const mine = !!(cl.device && cl.device === deviceId() && cl.saved_at);
+    const pick = Date.parse(mine ? cl.saved_at : cl.updated_at || cl.saved_at) > (S.lastReal || 0) ? 'cloud' : 'here'; cloudKeptNote(pick);
     cloudEv('sync_pick', {pick, how:'auto'});
     if (pick === 'cloud') await take(); else { CLOUD.forceNext = true; CLOUD.lastSave = 0; setTimeout(cloudSaveSoon, 50); }
     return;
