@@ -239,7 +239,7 @@ function workAssign(as){
   // unpacked: the ice is wanted as much as the table; before, a second hand went to the table and nobody packed, crewwalk.py on the new
   // sjark. Jigging with one at the table, the one gutting packs their own after, and the others jig)
   // the rail while she jigs (27.11.2026, a player with four reels on the havsjark: «når det fiskes kan det ikke sløyes»): the hands the
-  // reels need (tend: one a person's worth of reels, jigPer) are worth the reels, and stay with them; a hand more jigs by hand beside
+  // reels need (tend: one a person's worth of reels, jigPer) are worth the reels, and stay with them as before (the rule below); a hand more jigs by hand beside
   // them, which is little against the reels (JIG.hand against a tender's reels), so he wants the rail that much less and goes to the
   // table while fish lies in the tub. Before, the rail drew every hand alike (0.55), and with four aboard 2.3 stood at it and 0.8 at a
   // table for two: the tub filled, and the fishing stopped a quarter of the time. With hand jigs only, every hand is worth the same
@@ -263,15 +263,11 @@ function workAssign(as){
   const alone = P.length < 2 && ctx.stop && (ctx.sloy || ctx.is);
   if (ctx.haling && !alone){ const need = Math.min(ctx.hands, stPlaces('haling', ctx), P.filter(p => p.st !== 'ror').length);
     while (cnt('haling') < need){ const L = free(); if (!L.length) break; put(bestOf(L, 'haling'), 'haling'); } }
-  // the reels have their hands before anything else on deck (not while stopped to gut: ctx.fiske is off then): those who tended them
-  // the minute before, else the best at the jig among those rested; the one aboard alone tends them until the tub is full (fish())
-  if (tend){ const fit = p => !pBreak(p) && pTired(p) <= 0.8;
-    while (cnt('fiske') < tend){ const L = free(); if (!L.length) break; const was = L.filter(p => pPrev(p) === 'fiske'), ok = (was.length ? was : L).filter(fit), pool = ok.length ? ok : was.length ? was : L; put(bestOf(pool, 'fiske'), 'fiske'); } }
   // (the deck calls louder than the rail does for one who would only jig by hand: he is not held at the rail by having stood there)
   const deckCalls = () => ['sloy', 'is'].some(q => workOpen(q) && needOf(q) > railNeed());
   // the rest stay at what they do while it has work, and look around at their break
   for (const p of free()){ const k = pPrev(p); if (!k || k === 'pause' || k === 'ror' || k === 'kokk' || pBreak(p) || pTired(p) > 0.8) continue;
-    if (k === 'fiske' && cnt('fiske') >= tend && deckCalls()) continue;
+    if (k === 'fiske' && tend && cnt('fiske') >= tend && deckCalls()) continue;
     if (workOpen(k)){ put(p, k, p.c && p.c.why || null); continue; }
     const j = jobs.find(x => JOB_ST[x.kind] === k && (jn.get(x) || 0) < jobPlaces(x)); if (j){ put(p, k, p.c && p.c.why || null); p.jw = j; jn.set(j, jn.get(j) + 1); } }
   // the fish coming over the rail are bled by one who does nothing else, when someone is free

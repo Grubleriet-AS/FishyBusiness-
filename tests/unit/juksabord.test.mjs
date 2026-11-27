@@ -3,7 +3,8 @@
 // ten hours with four aboard: 2.3 stood at the rail and 0.8 at the table on average, the tub filled eight times and the fishing stopped
 // for 154 minutes, while the catch (380 kg an hour) was well under what two at the table gut (600). The rail drew every hand alike,
 // whether he tended the reels or jigged by hand beside them (2 in effort against the reels' 16), and one who fished stayed at it.
-// Now those the reels need stay with them, and the others go where they are most use: the table while fish lies in the tub.
+// Now those the reels need stay with them as before, and the others go where they are most use: the table while fish lies in the tub.
+// (Forcing a hand to the reels whatever lay in the tub was tried and measured the same day: more stops with two and three aboard, so not kept.)
 export default function (t){
   const K = t.K; K.set('S', K.newState()); const S = K.get('S'), W = K.get('window'), {applyVessel, workAssign, fishEffort} = K, b = S.boat;
   K.set('hsWork', () => 0.3); K.set('hsAt', () => 0.3);
@@ -26,16 +27,10 @@ export default function (t){
   // the tub empty: the hands with no reel to tend jig by hand, as before
   sea('sjark', 3, 4, 2, 0);
   { const M = mins(5); t.ok(all(M, A => cnt(A, 'fiske') >= 3 && cnt(A, 'sloy') === 0), 'tomt kar: de som ikke passer maskiner, jukser for hånd', M[4]); }
-  // two aboard: one tends the reels whatever lies in the tub, the other guts (before, both went to the table and nobody fished)
-  sea('sjark', 1, 4, 2, 250);
-  { const M = mins(30); t.ok(all(M, A => cnt(A, 'fiske') === 1 && cnt(A, 'sloy') === 1), 'to om bord med 250 kg i karet: én passer maskinene, én sløyer', M[5]); }
   // three reels as bought (one hand tends three) and five reels: two tend them
   sea('sjark', 3, 5, 1, 150);
-  { const M = mins(20); t.ok(all(M.slice(1), A => cnt(A, 'fiske') === 2 && cnt(A, 'sloy') === 2), 'fem maskiner uten autostopp trenger to mann, og de to andre sløyer', M[1]); }
-  // no reels (hand jigs only): every hand at the rail is worth the same, so they share the rail and the table by the work waiting, and
-  // nobody is held at the rail by the reels
-  sea('snekke', 1, 0, 1, 60);
-  { const M = mins(10); t.ok(all(M.slice(1), A => cnt(A, 'sloy') === 1 && cnt(A, 'fiske') === 1), 'uten maskiner, to om bord og 60 kg i karet: én sløyer og én jukser', M[1]); }
+  { const M = mins(20); t.ok(all(M.slice(0, 4), A => cnt(A, 'fiske') === 2) && all(M, A => cnt(A, 'fiske') >= 1 && cnt(A, 'sloy') === 2), 'fem maskiner uten autostopp trenger to mann: to står ved dem, og de to andre sløyer (en av passerne kan gå til isen i pausen sin)', M[1]); }
+  // (with hand jigs only, every hand at the rail is worth the same, and nothing is changed: tests/worktest.py)
   // alone with reels: at the reels until the tub is full and the fishing stops (05-vessels.js fish), as the Handbook says
   sea('plastsjark', 0, 4, 1, 100);
   { const M = mins(5); t.ok(all(M, A => A.length === 1 && A[0] === 'fiske'), 'alene med maskiner: ved maskinene til karet er fullt', M[0]);

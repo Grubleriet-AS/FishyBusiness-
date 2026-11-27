@@ -6338,3 +6338,6 @@
 2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	kvfulltest	OK	11	lite	samtidig	
 2026-11-25 12:00	ccr-b7b2f394-jdf54x	be7779a+	quotatest	OK	8	lite	samtidig	
 2026-11-25 12:01	ccr-b7b2f394-jdf54x	be7779a+	trip2	OK	13	lite	samtidig	
+2026-11-27 13:58	ccr-b7b2f394-jdf54x	2f8406b	worktest	FEIL	10	lite	samtidig	FEIL the same answer every time within a minute, and no reshuffle every minute (changes in 40 minutes) 10
+2026-11-27 13:59	ccr-b7b2f394-jdf54x	2f8406b	trip2	OK	13	lite	samtidig	
+2026-11-27 14:01	ccr-b7b2f394-jdf54x	2f8406b+	worktest	OK	9	lite	alene	
