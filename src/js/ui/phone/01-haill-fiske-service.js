@@ -52,7 +52,7 @@
       const hero = (key, txt) => { const P = PACKS[key], worth = packWorth(P), save = Math.round((1 - P.nok / worth) * 100), bw = P.until != null;
         return '<div class="kbs-hero' + (bw ? ' bw' : '') + '"><span class="kbs-hpic">' + kbPic(KB_PIC['pk_' + key]) + '</span><div>' + (bw ? '<span class="kbs-tag hero bwk">Black Week</span> ' : '') +
           '<span class="kbs-tag hero">' + L('Spar ' + save + ' %', 'Save ' + save + ' %') + '</span><h4>' + L(P.no, P.en) + '</h4><p>' + txt + '</p>' +
-          '<p class="ph-note">' + L('Kjøpt hver for seg: ', 'Bought one by one: ') + fmt(worth, 0) + ' kr' + (bw ? ' · <b class="kbs-save">' + L('Du sparer ', 'You save ') + fmt(worth - P.nok, 0) + ' kr</b>' : '') + '</p>' +
+          '<p class="ph-note">' + L('Koster ellers: ', 'Costs otherwise: ') + fmt(worth, 0) + ' kr' + (bw ? ' · <b class="kbs-save">' + L('Du sparer ', 'You save ') + fmt(worth - P.nok, 0) + ' kr</b>' : '') + '</p>' +
           (bw ? '<p class="kbs-til">' + L('Selges til og med ' + P.day[0], 'On sale through ' + P.day[1]) + '</p>' : '') +
           '</div><button class="ph-btn p kbs-buy" data-pa="kbbuy" data-k="pk_' + key + '">' + (live ? L('Kjøp · ', 'Buy · ') + realKr(P.nok) : shopLabel(P.nok)) + '</button></div>' + (trimPend === 'pk_' + key ? pend : ''); };
       // (not where the shop is closed, «Snart i salg»: a last day of sale beside a thing that cannot be bought)

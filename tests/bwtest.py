@@ -1,6 +1,6 @@
 """The Black Week pack and the gift (27.11.2026, docs/planer/svart-fredag.md; core/03-simulation.js PACKS.blackweek and packOn,
 ui/phone/01-haill-fiske-service.js kbShop, ui/10i-shop.js shopThanks): while it is sold its card stands first in Kaiboden with what it
-saves from the real prices, the saving in kroner and its last day in words; a purchase gives 8 haill, Turbotrim and Skippertak for 3
+saves against the cheapest way to buy the same, the saving in kroner and its last day in words; a purchase gives 10 haill, Turbotrim and Skippertak for 3
 days; the confirmation of another purchase, and of the gift (a Turbotrim that is no product of the shop), has one line about the pack
 and a button that opens Kaiboden; and from the end of the sale the card and the line are gone, and a card that stood open sells nothing.
 The pack's end is a date (unit test butikk.test.mjs); here it is moved round the test's own «now», so the test says the same after it.
@@ -36,7 +36,7 @@ async def one(br, name, w, h):
     check(d0['w'] == '11px' and d0['p'] != 'static' and not d1 and bool(await pg.evaluate("document.querySelector('.kbs-hero.bw')")), name + ': Kaiboden-knappen har en gullprikk mens pakken selges, og trykket åpner Kaiboden på pakken og tar prikken bort', [d0, d1])
     r = json.loads(await J(HERO)); t = r['txt']
     check(r['on'] and r['first'] and r['n'] == 2, name + ': Black Week-pakken står først i Kaiboden, over Sjøværspakken', {k: r[k] for k in ('on', 'first', 'n')})
-    check(all(x in t for x in ('Black Week-pakken', 'Spar 45 %', '910 kr', 'Du sparer 411 kr', 'Selges til og med mandag 30.11', '8 haill', '3 døgn')), name + ': kortet sier innholdet, hva delene koster, hva du sparer og siste dag', t[:260])
+    check(all(x in t for x in ('Black Week-pakken', 'Spar 45 %', 'Koster ellers: 905 kr', 'Du sparer 406 kr', 'Selges til og med mandag 30.11', '10 haill', '3 døgn')), name + ': kortet sier innholdet, hva delene koster, hva du sparer og siste dag', t[:260])
     check(r['btnH'] >= 48 and r['inside'], name + ': kjøpsknappen er minst 48 px høy, og kortet er innenfor skjermen', {k: r[k] for k in ('btnH', 'btnW', 'w', 'vw', 'inside')})
     await pg.wait_for_timeout(1200)
     await pg.screenshot(path=os.path.join(OUT, 'bw-kaiboden-%s.png' % name))
@@ -47,12 +47,12 @@ async def one(br, name, w, h):
     b0 = json.loads(await J("{h:(S.haillInv || {}).haill || 0, trim:!!trimOn(S.boat), skip:skipOn()}"))
     await pg.evaluate("document.querySelector('.kbs-hero.bw .kbs-buy').click()"); await pg.wait_for_timeout(400)
     b1 = json.loads(await J("{h:(S.haillInv || {}).haill || 0, k:(trimRec(S.boat) || {}).k, left:Math.round(trimLeft(S.boat) / GAME_RATE), skip:skipOn(), sk:Math.round(skipLeft() / GAME_RATE)}"))
-    check(b1['h'] - b0['h'] == 8 and b1['k'] == 't72' and b1['left'] == 72 and b1['skip'] and b1['sk'] == 72, name + ': kjøpet gir 8 haill, Turbotrim i 72 timer og Skippertak i 72 timer', [b0, b1])
+    check(b1['h'] - b0['h'] == 10 and b1['k'] == 't72' and b1['left'] == 72 and b1['skip'] and b1['sk'] == 72, name + ': kjøpet gir 10 haill, Turbotrim i 72 timer og Skippertak i 72 timer', [b0, b1])
     # the gift's confirmation: named by what it gives, no price, and the way to the pack
     await pg.evaluate("PHONE.show(false); document.getElementById('modal').hidden = true; shopThanks(%s)" % GIFT); await pg.wait_for_timeout(900)
     m = json.loads(await J("(() => { const m = document.getElementById('modal'), l = m.querySelector('.shoprc-bw'), b = m.querySelector('[data-bw]'), r = b && b.getBoundingClientRect(); return {open:!m.hidden, txt:m.textContent, line:l ? l.textContent : '', btn:b ? b.textContent : '', btnH:r ? Math.round(r.height) : 0}; })()"))
     check(m['open'] and 'En gave fra Det Store Blå' in m['txt'] and 'Turbotrim' in m['txt'] and '29 kr' not in m['txt'], name + ': gaven kvitteres som en gave med navnet Turbotrim og uten pris', m['txt'][:200])
-    check(all(x in m['line'] for x in ('Black Week-pakken', '499 kr', '910 kr', 'Selges til og med mandag 30.11')) and m['btn'] == 'Se pakken' and m['btnH'] >= 48, name + ': kvitteringen har én linje om pakken og knappen «Se pakken»', {'line': m['line'], 'btn': m['btn'], 'h': m['btnH']})
+    check(all(x in m['line'] for x in ('Black Week-pakken', '499 kr', '10 haill', 'Koster ellers 905 kr', 'Selges til og med mandag 30.11')) and m['btn'] == 'Se pakken' and m['btnH'] >= 48, name + ': kvitteringen har én linje om pakken og knappen «Se pakken»', {'line': m['line'], 'btn': m['btn'], 'h': m['btnH']})
     await pg.screenshot(path=os.path.join(OUT, 'bw-gave-%s.png' % name))
     # a window opened over the confirmation before it is answered (the report of the time away at the start does that) does not take
     # it away: it comes again when that window is closed
@@ -67,7 +67,7 @@ async def one(br, name, w, h):
     en = await pg.evaluate("(document.querySelector('.kbs-hero.bw') || {}).textContent || ''")
     await pg.evaluate("PHONE.show(false); shopThanks(%s)" % GIFT); await pg.wait_for_timeout(900)
     en2 = await pg.evaluate("(document.querySelector('#modal .shoprc-bw') || {}).textContent || ''")
-    check(all(x in en for x in ('The Black Week pack', 'Save 45 %', 'You save 411 kr', 'On sale through Monday 30 Nov')) and 'On sale through Monday 30 Nov' in en2, name + ': kortet og linja i kvitteringen på engelsk', [en[:200], en2])
+    check(all(x in en for x in ('The Black Week pack', 'Save 45 %', 'Costs otherwise: 905 kr', 'You save 406 kr', 'On sale through Monday 30 Nov')) and 'On sale through Monday 30 Nov' in en2, name + ': kortet og linja i kvitteringen på engelsk', [en[:200], en2])
     await pg.evaluate("document.getElementById('modal').hidden = true; S.lang = 'no'"); await pg.wait_for_timeout(1300)   # (the English one's own watch has seen it closed)
     await pg.evaluate("shopThanks(%s)" % GIFT); await pg.wait_for_timeout(900)
     await pg.evaluate("document.querySelector('#modal [data-bw]').click()"); await pg.wait_for_timeout(600)

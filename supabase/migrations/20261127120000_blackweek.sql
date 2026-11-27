@@ -1,7 +1,8 @@
 -- Black Week (Jonas 27.11.2026, docs/planer/svart-fredag.md: «Vi må lage et Black Friday tilbud på spillet!»; the choices: a bigger
--- pack and a gift, no price put down, «Bare Black Week», 499 kr, Turbotrim 2 hours as the gift). Only additions, and safe to run again.
+-- pack and a gift, no price put down, «Bare Black Week», 499 kr, Turbotrim 2 hours as the gift; 10 haill, so what the card says is
+-- saved holds against the cheapest way to buy the same). Only additions, and safe to run again.
 --
---   products            pakke_blackweek: Turbotrim and Skippertak for 3 days and 8 haill, 499 kr (910 kr one by one, core/03-simulation.js
+--   products            pakke_blackweek: Turbotrim and Skippertak for 3 days and 10 haill, 499 kr (905 kr the cheapest way otherwise, core/03-simulation.js
 --                       PACKS.blackweek). data.until is the end of Monday 30.11.2026 Norwegian time: the game takes the card away then
 --   shop_quote(product) as in 20261110170000_shop_gate.sql, and a product whose data.until has passed is not sold: the end of the
 --                       offer holds with nobody there to switch it off, and it is never prolonged (the card names the last day)
@@ -18,8 +19,8 @@
 -- confirmation say it is a gift from us.
 
 insert into public.products (id, kind, name_no, name_en, price_nok, data) values
-  ('pakke_blackweek', 'booster', 'Black Week-pakken: 8 haill, Turbotrim og Skippertak i 3 døgn', 'The Black Week pack: 8 luck, Turbo tune and Skippertak for 3 days', 499,
-    '{"items":[{"give":"haill","type":"haill","n":8},{"give":"trim","k":"t72"},{"give":"skip","k":"s72"}],"until":"2026-11-30T23:00:00Z"}')
+  ('pakke_blackweek', 'booster', 'Black Week-pakken: 10 haill, Turbotrim og Skippertak i 3 døgn', 'The Black Week pack: 10 luck, Turbo tune and Skippertak for 3 days', 499,
+    '{"items":[{"give":"haill","type":"haill","n":10},{"give":"trim","k":"t72"},{"give":"skip","k":"s72"}],"until":"2026-11-30T23:00:00Z"}')
 on conflict (id) do update set kind = excluded.kind, name_no = excluded.name_no, name_en = excluded.name_en, price_nok = excluded.price_nok, active = true, data = excluded.data;
 
 create or replace function public.shop_quote(product text) returns jsonb

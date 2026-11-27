@@ -59,14 +59,14 @@ def main():
             if os.environ.get('SQL_RANK') == '0' and m.endswith('_rank_fs.sql'): continue   # (RANK1-c: the tab's checks seen red without the file)
             if os.environ.get('SQL_LANG') == '0' and m.endswith('_toplist_lang.sql'): continue   # (the long list: its checks seen red without the file)
             if os.environ.get('SQL_FIX') == '0' and m.endswith('_fixes.sql'): continue   # (fixes: its checks seen red without the file)
-            if os.environ.get('SQL_BW') == '0' and (m.endswith('_blackweek.sql') or m.endswith('_lop_trim.sql')): continue   # (Black Week: its checks seen red without the file)
+            if (os.environ.get('SQL_BW') == '0' and m.endswith('_blackweek.sql')) or (os.environ.get('SQL_BW') in ('0', 'lop') and m.endswith('_lop_trim.sql')): continue   # (Black Week: its checks seen red without the file; SQL_BW=lop leaves out only the race's trim)
             p = run('psql', '-h', sock, '-U', user, '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q', '-f', m)
             print(ok(p.returncode == 0), 'the migration runs on PostgreSQL:', os.path.basename(m), p.stderr.strip()[-300:] if p.returncode else '')
             if p.returncode: return
         # Black Week (27.11.2026, 20261127120000_blackweek.sql, docs/planer/svart-fredag.md): the pack is sold till its end and refused from
         # it with nobody there to switch it off; every account here when the file runs gets the gift once, a second run gives no more, an
         # account that registers while the offer lasts gets it with its welcome gift, a guest and one that comes after the end do not;
-        # the gift cannot be bought; a purchase of the pack gives 8 haill, a trim and a Skippertak. The end is a date in the file: the
+        # the gift cannot be bought; a purchase of the pack gives 10 haill, a trim and a Skippertak. The end is a date in the file: the
         # checks move it round their own «now» (the file run with its date in the future, the product's end put in the past), and leave
         # the offer over, so nothing here or below depends on the day the test runs
         BWF = os.path.join(ROOT, 'supabase', 'migrations', '20261127120000_blackweek.sql'); BWS = open(BWF, encoding='utf-8').read() if os.path.exists(BWF) and os.environ.get('SQL_BW') != '0' else ''
@@ -101,8 +101,8 @@ def main():
         print(ok(BW['here'] == '1'), 'Black Week: the file gives every account that is here one gift, and a second run gives no more', BW['here'])
         print(ok(BW['reg'][:2] == ['1', '0'] and json.loads(BW['reg'][2] or '{}') == {'give': 'trim', 'k': 't2', 'comp': True, 'bw': True} and BW['reg'][3:] == ['trim_2'] and len(BW['pend']) == 1 and BW['lop'] == '2/1'),
               'Black Week: an account that registers while the offer lasts gets the gift once with its welcome gift (two hellos, one gift), a guest none, and the game gets it from shop_pending as a Turbotrim of 2 hours (the product trim_2) marked as a gift, and the race counts it as a trim', BW['reg'], BW['pend'], BW['lop'])
-        print(ok(BW['quote'].get('price_nok') == 499 and BW['quote'].get('id') == 'pakke_blackweek' and BW['paid'] == 'haillx8,skip:s72x1,trim:t72x1'),
-              'Black Week: the pack is quoted at 499 kr while it lasts, and a paid pack gives 8 haill, Turbotrim t72 and Skippertak s72', {k: BW['quote'].get(k) for k in ('id', 'price_nok', 'err')}, BW['paid'])
+        print(ok(BW['quote'].get('price_nok') == 499 and BW['quote'].get('id') == 'pakke_blackweek' and BW['paid'] == 'haillx10,skip:s72x1,trim:t72x1'),
+              'Black Week: the pack is quoted at 499 kr while it lasts, and a paid pack gives 10 haill, Turbotrim t72 and Skippertak s72', {k: BW['quote'].get(k) for k in ('id', 'price_nok', 'err')}, BW['paid'])
         print(ok(BW['bad'] is False and BW['badN'] == '1/0'), 'Black Week: an end that cannot be read gives no gift and does not stop a new account from coming in', BW['bad'], BW['badN'])
         print(ok(BW['after'] == ['0', True, False, '1', '1']), 'Black Week: from the end a new account gets no gift and the pack is refused, the other products are sold, and the gifts given stay', BW['after'])
         A = {'sub': 'user_01AAA', 'role': 'authenticated'}; B = {'sub': 'user_01BBB', 'role': 'authenticated'}

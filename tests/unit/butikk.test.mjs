@@ -47,7 +47,10 @@ export default function (t){
     t.eq(D && D.data.until != null ? Date.parse(D.data.until) : null, P.until == null ? null : P.until, 'pk_' + k + ': serverens slutt er spillets slutt');
     t.ok(P.nok < K.packWorth(P), 'pk_' + k + ': pakken koster mindre enn delene hver for seg (' + P.nok + ' mot ' + K.packWorth(P) + ' kr)'); }
   { const B = K.PACKS.blackweek;
-    t.eq(K.packWorth(B), 910, 'Black Week: delene koster 910 kr hver for seg');
+    t.eq([0, 1, 2, 3, 4, 8, 10, 11].map(K.haillCheapest).join(), '0,39,78,99,138,229,307,328', 'haill den billigste veien butikken selger dem: pakkene på 1, 3 og 8');
+    t.eq(K.packWorth(K.PACKS.sesong), 436, 'Sjøværspakken: innholdet koster ellers 436 kr (4 haill som 3 + 1)');
+    t.eq(K.packWorth(B), 905, 'Black Week: innholdet koster ellers 905 kr (10 haill som 8 + 1 + 1)');
+    t.eq(K.packWorth(B) - B.nok, 406, 'Black Week: «Du sparer 406 kr»');
     t.eq(Math.round((1 - B.nok / K.packWorth(B)) * 100), 45, 'Black Week: «Spar 45 %» er regnet fra de ekte prisene');
     t.eq(new Date(B.until).toLocaleString('sv-SE', {timeZone:'Europe/Oslo'}), '2026-12-01 00:00:00', 'Black Week: slutten er midnatt etter mandag 30.11 i norsk tid');
     t.ok(K.packOn(B, B.until - 1) && !K.packOn(B, B.until) && !K.packOn(B, B.until + 864e5), 'Black Week: i salg til slutten, ikke fra og med den');
