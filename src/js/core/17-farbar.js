@@ -461,7 +461,9 @@ function farbGone(o, n, buf = FARB.buf){ if (o.mk){ if (o.hung === undefined){ l
 // is what counts here: the observer sees her hull as the 3D view draws it, and the whole circle of a buoy laid in the mouth of a
 // basin shut the place to every boat (Værøy verft, steg 142, 27.11.2026). That she swings when the wind turns is the watch's to see
 // (F3), as a vessel that comes in after the plan was made. FARB.swing true: the circles too
-FARB.swing = false;
+// (true again from the fifth session the same day: a buoy now lies with a free lane round its circle, 05-vessels.js moorBuoyRoom,
+// Jonas' choice 9, so the circle no longer shuts a passage, and it is the careful answer when the wind turns)
+FARB.swing = true;
 function farbBoats(x, z){ const L = fixBoats(x, z); return FARB.swing ? L : L.filter(o => o.t !== 0); }
 // The nearest thing she cannot pass within cap of x, z: {d (metres to it, 0 on it), what, id, x, z, o}; null where there is none;
 // FARB_UNK (d NaN) where the map is not in. The land, the coast line, the things, a bridge's deck lower than boat.air and
