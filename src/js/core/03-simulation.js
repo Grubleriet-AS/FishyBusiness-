@@ -1341,10 +1341,15 @@ function undoBuyKr(to, from){ const A = VESSELS[to], B = VESSELS[from]; if (!A |
 // world's stock as the game has it), or else what it is worth now. A row may hold the boat (from, to), the right (lic) or both.
 // d.inn (27.11.2026, Julian: the boat with the right had used Innovasjon Norge's top-up, S.inUsed, which is given once, on the first
 // closed-group boat; with the purchase undone the next one asked for 20 % equity instead of 5 %): the top-up is his to use again.
+// d.upg {key: level} (27.11.2026, Julian: the yard's rebuilds on the old hull, a drying room and better bunks, went with her in the
+// trade-in and did not come back with the type): put back on the boat, never lower than she has. d.gearKr: gear bought for the new boat
+// that she no longer has or he already had, paid back (book 'redskap'), the loans first like the rest.
 const undoLicH = at => { const ms = Date.parse(at); return isFinite(ms) ? Math.max(0, (ms - WORLD_T0) * GAME_RATE / 60000) / 60 : null; };
 function undoBuyWhy(d){
-  const boat = !!(d && (d.from || d.to)), lic = !!(d && d.lic), inn = !!(d && d.inn);
-  if (!d || (!boat && !lic && !inn)) return 'bad';
+  const boat = !!(d && (d.from || d.to)), lic = !!(d && d.lic), inn = !!(d && d.inn), upg = !!(d && d.upg && Object.keys(d.upg).length), gear = !!(d && d.gearKr);
+  if (!d || (!boat && !lic && !inn && !upg && !gear)) return 'bad';
+  if (upg && Object.keys(d.upg).some(k => !UPGS[k] || !(d.upg[k] >= 1) || d.upg[k] > UPGS[k].steps.length)) return 'bad';
+  if (gear && !(d.gearKr > 0)) return 'bad';
   if (boat && (!VESSELS[d.from] || !VESSELS[d.to] || d.from === d.to || VESSELS[d.from].cls === 'hav' || VESSELS[d.to].cls === 'hav')) return 'bad';
   if (d.id != null && S.fixDone && S.fixDone[d.id]) return 'done';
   if (boat && S.boat.type !== d.to) return 'type';
@@ -1373,14 +1378,17 @@ function undoBuyApply(d){
     regFree(S.lic.id); S.lic = null; freshQuota(); openUsedLoad();
   }
   const inn = !!(d.inn && S.inUsed); if (d.inn) delete S.inUsed;
+  const upgs = []; if (d.upg) for (const k in d.upg){ b.upg = b.upg || {}; if ((b.upg[k] || 0) < d.upg[k]){ b.upg[k] = d.upg[k]; upgs.push(k); } }
+  const gearKr = d.gearKr > 0 ? Math.round(d.gearKr) : 0;
   applyVessel(); S.equip.jukse = Math.min(S.equip.jukse || 0, BOAT.jukseMax || 0);
   b.fuel = Math.min(b.fuel || 0, BOAT.fuelCap); b.ice = Math.min(b.ice || 0, BOAT.iceCap || 0);
   while (S.crew.length > BOAT.crewMax) S.crew.pop();
-  const debt0 = debt(), all = kr + licKr;
+  const debt0 = debt(), all = kr + licKr + gearKr;
   if (kr > 0) book('baat', kr, 'Båtkjøpet angret', 'Vessel purchase undone');
   if (licKr > 0) book('baat', licKr, 'Hjemmelen fra båtkjøpet tilbake til registeret', 'The right from the vessel purchase back to the register');
+  if (gearKr > 0) book('redskap', gearKr, 'Utstyr fra båtkjøpet tilbakebetalt', 'Gear from the vessel purchase paid back');
   const paid = Math.min(debt0, Math.max(0, all)), off = paid > 0 ? payDown(paid) : 0; if (off > 0) book('avdrag', -off, 'Lånene innfridd med tilbakebetalingen', 'Loans paid off with the refund');
-  const r = {ok:true, kr:all, boatKr:kr, licKr, lic:d.lic || null, inn, off, jobs, cash:Math.round(S.cash), debt:Math.round(debt())};
+  const r = {ok:true, kr:all, boatKr:kr, licKr, gearKr, upgs, lic:d.lic || null, inn, off, jobs, cash:Math.round(S.cash), debt:Math.round(debt())};
   if (d.id != null){ S.fixDone = S.fixDone || {}; S.fixDone[d.id] = {...r, t:S.t}; }
   return r;
 }
