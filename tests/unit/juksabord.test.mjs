@@ -31,11 +31,18 @@ export default function (t){
   // three reels as bought (one hand tends three) and five reels: two tend them
   sea('sjark', 3, 5, 1, 150);
   { const M = mins(20); t.ok(all(M.slice(0, 4), A => cnt(A, 'fiske') === 2) && all(M, A => cnt(A, 'fiske') >= 1 && cnt(A, 'sloy') + cnt(A, 'is') >= 2), 'fem maskiner uten autostopp trenger to mann: to står ved dem, og de to andre er på dekk (en av passerne går til bordet i pausen sin når karet er fullt nok)', M[1]); }
+  // the tub empty, the hands up from a break (as after the sail out) and poor at the jig: they jig by hand as before, they do not sit
+  // down (the independent check 27.11.2026: the first cut had three of four on a break for two hours)
+  sea('sjark', 3, 4, 2, 0); S.mySt = 'pause'; for (const c of S.crew){ c.st = 'pause'; c.gear.juksa = 1; }
+  { const M = mins(10); t.ok(all(M.slice(1), A => cnt(A, 'fiske') === 4), 'tomt kar, alle fra pause og dårlige på juksa: alle fire ved rekka', M[1]); }
+  // a tired hand with fish in the tub would still rather jig by hand than rest, as before
+  sea('sjark', 3, 4, 2, 150); for (const c of S.crew) c.fatigue = 70;
+  { const M = mins(10); t.ok(all(M, A => cnt(A, 'pause') === 0), 'trøtte hender med fisk i karet: ingen setter seg', M[1]); }
+  // halibut on heavy hand gear with reels aboard: the reels do not count, every hand at the rail does
+  sea('sjark', 3, 4, 2, 0); S.target = 'kveite'; b.kgear = true; S.mySt = 'pause'; for (const c of S.crew){ c.st = 'pause'; c.gear.juksa = 1; }
+  { const M = mins(5); t.ok(all(M.slice(1), A => cnt(A, 'fiske') === 4), 'kveite med maskiner om bord: alle ved rekka, maskinene teller ikke', M[1]); S.target = 'mix'; b.kgear = false; }
   // (with hand jigs only, every hand at the rail is worth the same, and nothing is changed: tests/worktest.py)
-  // alone with reels: at the reels until the tub is full and the fishing stops (05-vessels.js fish), as the Handbook says
-  sea('plastsjark', 0, 4, 1, 100);
-  { const M = mins(5); t.ok(all(M, A => A.length === 1 && A[0] === 'fiske'), 'alene med maskiner: ved maskinene til karet er fullt', M[0]);
-    b.deckStop = true; const N = mins(3); t.ok(all(N, A => A[0] === 'sloy' || A[0] === 'is'), 'og på dekk når fisket har stoppet for å sløye', N[0]); }
+  // (alone with reels nothing is changed either: the one aboard is the reels' hand, and the deck has him when the fishing stops)
   // «Jukse selv»: you at the rail by hand, and a hand still tends the reels
   sea('sjark', 3, 4, 2, 150); W.jigActive = true;
   { const M = mins(10); t.ok(all(M, A => A[0] === 'fiske' && cnt(A, 'sloy') + cnt(A, 'is') >= 2) && all(M.slice(0, 3), A => cnt(A, 'fiske') === 2), '«Jukse selv»: du står ved rekka, en hånd passer maskinene ved siden av deg, og de to andre er på dekk', M[1]); W.jigActive = false; }

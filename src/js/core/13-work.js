@@ -243,11 +243,16 @@ function workAssign(as){
   // them, which is little against the reels (JIG.hand against a tender's reels), so he wants the rail that much less and goes to the
   // table while fish lies in the tub. Before, the rail drew every hand alike (0.55), and with four aboard 2.3 stood at it and 0.8 at a
   // table for two: the tub filled, and the fishing stopped a quarter of the time. With hand jigs only, every hand is worth the same
-  const reels = ctx.fiske ? Math.max(0, (S.equip && +S.equip.jukse) || 0) : 0, jigMe = P.some(p => !p.c && p.st === 'fiske' && p.why === 'jig') ? 1 : 0, tend = reels ? Math.ceil(reels / jigPer()) + jigMe : 0, handE = S.boat.gear ? JIG.hand : 0;
+  // (halibut is jigged by hand on heavy gear and the reels do not count, 05-vessels.js catchFactors keff: every hand is worth the same then)
+  const reels = ctx.fiske && !(S.target === 'kveite' && S.boat.kgear) ? Math.max(0, (S.equip && +S.equip.jukse) || 0) : 0, jigMe = P.some(p => !p.c && p.st === 'fiske' && p.why === 'jig') ? 1 : 0, tend = reels ? Math.ceil(reels / jigPer()) + jigMe : 0, handE = S.boat.gear ? JIG.hand : 0;
   // (jigMe: with «Jukse selv» you jig by hand at the rail and tend no reel, so the reels' hands come besides you)
   const railMore = !tend ? 0.55 : 0.55 * clamp(handE / (reels * JIG.machine / (tend - jigMe)), 0, 1);
   const railNeed = () => cnt('fiske') < tend ? 0.55 : railMore;
-  const needOf = k => k === 'fiske' ? railNeed() : k === 'is' && !cnt('is') && cnt('sloy') && (ctx.haling || cnt('sloy') > 1) ? Math.max(left.is, left.sloy / cnt('sloy')) / 10 : (left[k] || 0) / (cnt(k) + 1) / 10;
+  // the rail itself is wanted as before (0.55: with the tub empty the hands with no reel jig by hand, and a tired one would still rather
+  // jig than rest); what a hand more loses at the rail is laid on the table and the ice instead, for one who would work there anyway
+  // (the independent check 27.11.2026: with the rail wanted less, the hands from a break sat down with the tub empty, and stayed)
+  const deckLift = (p, k, v) => tend && cnt('fiske') >= tend && (k === 'sloy' || k === 'is') && v >= restScore(p) ? v + 0.55 - railMore : v;
+  const needOf = k => k === 'fiske' ? 0.55 : k === 'is' && !cnt('is') && cnt('sloy') && (ctx.haling || cnt('sloy') > 1) ? Math.max(left.is, left.sloy / cnt('sloy')) / 10 : (left[k] || 0) / (cnt(k) + 1) / 10;
   const jobNeed = j => 0.7 * jobLeft(j) / ((jn.get(j) || 0) + 1) / 60;
   // (the icing station waits on the table: with nothing gutted yet and nobody gutting, there is nothing to pack, so it holds nobody;
   // before, the one aboard alone stayed at the ice from the minute before while the round fish lay ungutted, and nothing got done)
@@ -277,7 +282,7 @@ function workAssign(as){
     const L = free(); if (!L.length) break;
     let bp = null, bk = null, bj = null, bv = -1e9;
     for (const p of L){
-      for (const k of ['haling', 'blogg', 'sloy', 'is', 'sort', 'fiske']){ if (!workOpen(k)) continue; const v = workScore(p, k, ctx, needOf(k)) + (k === 'is' && iceFirst() ? 0.3 : 0); if (v > bv){ bv = v; bp = p; bk = k; bj = null; } }
+      for (const k of ['haling', 'blogg', 'sloy', 'is', 'sort', 'fiske']){ if (!workOpen(k)) continue; const v = deckLift(p, k, workScore(p, k, ctx, needOf(k))) + (k === 'is' && iceFirst() ? 0.3 : 0); if (v > bv){ bv = v; bp = p; bk = k; bj = null; } }
       for (const j of jobs){ if ((jn.get(j) || 0) >= jobPlaces(j)) continue; const k = JOB_ST[j.kind], v = workScore(p, k, ctx, jobNeed(j), JOB_SKILL[j.kind]); if (v > bv){ bv = v; bp = p; bk = k; bj = j; } }
     }
     if (!bp) break;

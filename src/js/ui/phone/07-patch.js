@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['juksabord-271126', '27.11.2026', 'Mannskapet sløyer mens det jukses', 'The crew gut while you jig', [
+       ['Med juksamaskiner og flere om bord enn maskinene trenger, går de ledige til sløyebordet og isen når det ligger fisk i karet. Før ble de stående ved rekka, karet ble fullt, og fisket stoppet.', 'With jigging reels and more hands aboard than the reels need, those free go to the gutting table and the ice when fish lies in the tub. Before, they stayed at the rail, the tub filled, and the fishing stopped.']]],
     ['kvote-251126', '25.11.2026', 'Mer torsk i åpen gruppe', 'More cod in the open group', [
        ['Båter i åpen gruppe har nå alderstillegget: 2 tonn torsk i tillegg til kvoten etter båtens lengde.', 'Boats in the open group now have the age addition: 2 tonnes of cod on top of the quota by the boat\'s length.'],
        ['Har du hjemsted i Finnmark, Nord-Troms eller en av de andre kommunene i kystfiskeordningen, får du 3,5 tonn til.', 'If your home is in Finnmark, northern Troms or one of the other municipalities in the coastal-fishing scheme, you get 3.5 tonnes more.'],
