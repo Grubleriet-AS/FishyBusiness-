@@ -1302,6 +1302,18 @@ const bladB = () => !!(S.fm && S.fm.b);
 const LOANS = {loan:{who:'Kystbanken', rate:0.069}, loanIN:{who:'Kystfondet', rate:0.089}};
 const debt = () => (S.loan ? S.loan.bal : 0) + (S.loanIN ? S.loanIN.bal : 0);
 const innOK = () => bladB() && !S.inUsed && !S.fleet.some(v => vget(v, 'lic'));
+// what the server's check of the kroner reads from a save's summary (HS5b, 27.11.2026; ui/10f-cloud.js saveSum,
+// supabase/migrations/20261127120000_cheat_worth.sql): the savings and the tax account together, the loans, every vessel's type and what
+// the rights are worth now (each with its structure quotas in full, as vesselValue counts them, and the free ones). The twelve marks of
+// 27.11.2026 were all money moved between the accounts, loans paid out and the boat stood in changing: the check saw only S.cash and one
+// type. o is S, or a save as it is stored (there the bound vessel's fields are in her row of the fleet, here in S: VKEYS)
+function saveWorth(o){
+  const F = o.fleet || [], own = (v, k) => v.id === o.cur && o[k] !== undefined ? o[k] : v[k], B = o.bank || {}, H = (o.t || 0) / 60;
+  const lv = l => !l ? 0 : licValue(l.extra == null && l.st ? Object.assign({}, l, {extra:l.st.reduce((a, s) => a + (s.kf || 0), 0)}) : l, H);
+  let licv = 0; for (const v of F) licv += lv(own(v, 'lic')); for (const f of o.licFree || []) licv += lv(f);
+  return {bank:Math.round((B.skatt || 0) + (B.spare || 0)), debt:Math.round((o.loan ? o.loan.bal : 0) + (o.loanIN ? o.loanIN.bal : 0)),
+    types:F.slice(0, 40).map(v => String((own(v, 'boat') || {}).type || '')), licv:Math.round(licv)};
+}
 function takeLoan(amount, months, k){ k = k || 'loan'; const C = LOANS[k], r = C.rate / 12, n = months || 120, O = S[k], bal = (O ? O.bal : 0) + amount;
   S[k] = {bal, rate:C.rate, pay:Math.round(bal * r / (1 - Math.pow(1 + r, -n))), next:O ? O.next : S.t + 30 * 24 * 60}; book('laan', amount, 'Lån fra ' + C.who, 'Loan from ' + C.who);
   msg(C.who, (k === 'loanIN' ? 'Toppfinansieringen er innvilget: risikolån på ' : 'Lånet på ') + Math.round(amount) + ' kr er utbetalt, over ' + Math.round(n / 12) + ' år. Terminbeløp ' + S[k].pay + ' kr.', (k === 'loanIN' ? 'The top-up is granted: a risk loan of NOK ' : 'The loan of NOK ') + Math.round(amount) + ' has been paid out, over ' + Math.round(n / 12) + ' years. Monthly payment NOK ' + S[k].pay + '.'); }

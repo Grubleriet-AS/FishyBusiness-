@@ -542,7 +542,11 @@ function cloudStatusText(){
 // what a game is: its day, money and boat (sent with every save, shown when two games meet)
 function saveSum(o){
   if (!o) return null; const b = o.boat || (((o.fleet || [])[0] || {}).boat) || {};
-  return {t:Math.round(o.t || 0), day:Math.floor((o.t || 0) / 1440) + 1, cash:Math.round(o.cash || 0), boat:o.boatName || '', type:b.type || '', tut:!!(o.tut && o.tut.v), fleet:(o.fleet || []).length || 1};
+  const m = {t:Math.round(o.t || 0), day:Math.floor((o.t || 0) / 1440) + 1, cash:Math.round(o.cash || 0), boat:o.boatName || '', type:b.type || '', tut:!!(o.tut && o.tut.v), fleet:(o.fleet || []).length || 1};
+  // (HS5b, 27.11.2026: the accounts beside the cash, the loans, every vessel's type and the rights' value, for the server's check of the
+  // kroner, core/03-simulation.js saveWorth. A summary without them is one the check cannot read, and it marks nothing on it)
+  try { if (typeof saveWorth === 'function' && (o.fleet || []).length) Object.assign(m, saveWorth(o)); } catch (e){}
+  return m;
 }
 function sumText(m){
   if (!m) return cloudL('ukjent', 'unknown');

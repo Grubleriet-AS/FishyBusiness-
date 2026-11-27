@@ -203,7 +203,7 @@ Placeholder prices (NOK/kg, grade A) – to be tuned
   - 439 `reqFill(eq, type)`
   - 457 `lsaOf(V)`
 
-## `src/js/core/03-simulation.js` (1555 linjer)
+## `src/js/core/03-simulation.js` (1588 linjer)
 
 fleet: each vessel keeps its own state; the company holds the rest. The simulation steps through the vessels one at a
 
@@ -399,56 +399,57 @@ fleet: each vessel keeps its own state; the company holds the rest. The simulati
   - 1289 `trekkOf(total, len)`
   - 1294 `fmInit()`
   - 1296 `fmLand(total)`
-  - 1305 `takeLoan(amount, months, k)`
-  - 1309 `payDown(x)`
-  - 1315 `deal(price, ti, inn)`
-  - 1322 `finance(x, months)`
-- **1325** an admin's correction: a vessel bought by trade-in, taken back (26.11.2026, Jonas: «Gi han tilbake båten og pengene som om kjøpet
-  - 1335 `undoBuyKr(to, from)`
-  - 1336 `undoBuyWhy(d)`
-  - 1343 `undoBuyApply(d)`
-  - 1363 `lenGroup()`
-  - 1364 `codLimits(H)`
-  - 1369 `codOpen(H)`
-  - 1370 `codLimitNow(H)`
-- **1371** haill: luck from the quay. Fresh goods: full effect for two days, fading to nothing on day seven. Sold for real money only (test mode now) or won at the pub.
-  - 1395 `haillBoost()`
-  - 1396 `haillLeft()`
-  - 1397 `haillStage()`
-  - 1399 `haillF()`
-  - 1400 `luck(sp)`
-  - 1404 `haillCap()`
-  - 1413 `haillInit()`
-  - 1421 `haillFromSrv(loc, srv, wait)`
-  - 1428 `srvToT(m, srvNow, t, world)`
-  - 1429 `tToSrv(m, srvNow, t, world)`
-  - 1432 `boostSrv(list, stack, now)`
-  - 1434 `haillMirror(list, used)`
-  - 1438 `haillStock(inv, srv, used)`
-  - 1443 `giveHaill(type, how, id)`
-  - 1448 `useHaill(type)`
-  - 1462 `pubEvening(H)`
-  - 1463 `pubOpen(H)`
-  - 1466 `capHold()`
-  - 1468 `cargoRoom()`
-  - 1470 `cargoMin(kg)`
-- **1471** the daily login bonus: each real calendar day you open the game adds a point to a bonus on the fish price; each day
-  - 1474 `streakState()`
-  - 1475 `streakPct()`
-  - 1476 `streakTouch()`
-- **1487** cold: effective temperature from air temperature and wind, plus wet from rain, snow and spray. Cold, wet hands fish worse;
-  - 1491 `effTemp(H)`
-  - 1492 `coldPen(H, hs)`
-- **1499** orders from buyers and customers: species, amount, quality, deadline and a price premium; reputation builds with each buyer
-  - 1514 `gradeOk(g, q)`
-  - 1515 `ordState()`
-  - 1518 `custNear(c)`
-  - 1523 `repOf(id)`
-  - 1525 `bkOrderable(H)`
-  - 1527 `bkPlant(id)`
-  - 1528 `custSp(c)`
-  - 1529 `spCatchable(sp, H)`
-  - 1531 `ordersTick(H)`
+  - 1310 `saveWorth(o)`
+  - 1317 `takeLoan(amount, months, k)`
+  - 1321 `payDown(x)`
+  - 1327 `deal(price, ti, inn)`
+  - 1334 `finance(x, months)`
+- **1337** an admin's correction: a vessel bought by trade-in, taken back (26.11.2026, Jonas: «Gi han tilbake båten og pengene som om kjøpet
+  - 1348 `undoBuyKr(to, from)`
+  - 1355 `undoBuyWhy(d)`
+  - 1367 `undoBuyApply(d)`
+  - 1396 `lenGroup()`
+  - 1397 `codLimits(H)`
+  - 1402 `codOpen(H)`
+  - 1403 `codLimitNow(H)`
+- **1404** haill: luck from the quay. Fresh goods: full effect for two days, fading to nothing on day seven. Sold for real money only (test mode now) or won at the pub.
+  - 1428 `haillBoost()`
+  - 1429 `haillLeft()`
+  - 1430 `haillStage()`
+  - 1432 `haillF()`
+  - 1433 `luck(sp)`
+  - 1437 `haillCap()`
+  - 1446 `haillInit()`
+  - 1454 `haillFromSrv(loc, srv, wait)`
+  - 1461 `srvToT(m, srvNow, t, world)`
+  - 1462 `tToSrv(m, srvNow, t, world)`
+  - 1465 `boostSrv(list, stack, now)`
+  - 1467 `haillMirror(list, used)`
+  - 1471 `haillStock(inv, srv, used)`
+  - 1476 `giveHaill(type, how, id)`
+  - 1481 `useHaill(type)`
+  - 1495 `pubEvening(H)`
+  - 1496 `pubOpen(H)`
+  - 1499 `capHold()`
+  - 1501 `cargoRoom()`
+  - 1503 `cargoMin(kg)`
+- **1504** the daily login bonus: each real calendar day you open the game adds a point to a bonus on the fish price; each day
+  - 1507 `streakState()`
+  - 1508 `streakPct()`
+  - 1509 `streakTouch()`
+- **1520** cold: effective temperature from air temperature and wind, plus wet from rain, snow and spray. Cold, wet hands fish worse;
+  - 1524 `effTemp(H)`
+  - 1525 `coldPen(H, hs)`
+- **1532** orders from buyers and customers: species, amount, quality, deadline and a price premium; reputation builds with each buyer
+  - 1547 `gradeOk(g, q)`
+  - 1548 `ordState()`
+  - 1551 `custNear(c)`
+  - 1556 `repOf(id)`
+  - 1558 `bkOrderable(H)`
+  - 1560 `bkPlant(id)`
+  - 1561 `custSp(c)`
+  - 1562 `spCatchable(sp, H)`
+  - 1564 `ordersTick(H)`
 
 ## `src/js/core/03b-sea.js` (313 linjer)
 
@@ -3805,7 +3806,7 @@ SOUND (the user's wish 03.10.2026)
 - **144** the music (Jonas 05.10.2026: «rolig ambient instrumentaler som svak stemning i bakgrunnen. Må kunne skrus av i innstillinger»)
 - **312** the whistle and the bell (Ø11.2; sjøveisreglene FOR-1975-12-01-5 rules 32-35 and vedlegg III, read 06.11.2026)
 
-## `src/js/ui/10f-cloud.js` (1128 linjer)
+## `src/js/ui/10f-cloud.js` (1132 linjer)
 
 THE CLOUD (04.10.2026; docs/lansering.md E and F)
 
@@ -3870,50 +3871,50 @@ THE CLOUD (04.10.2026; docs/lansering.md E and F)
   - 533 `cloudStatus(s)`
   - 534 `cloudStatusText()`
   - 543 `saveSum(o)`
-  - 547 `sumText(m)`
-  - 554 `cloudChoose(here, cloud, when, box)`
-  - 569 `cloudKeptNote(where)`
-  - 574 `cloudTake(cs, kept)`
-  - 581 `cloudSync(cs)`
-  - 620 `cloudSaveSoon(closing, manual)`
-  - 669 `cloudSoon(ms)`
-- **670** one device at a time (13.10.2026, supabase/migrations/20261013120000_active.sql)
-  - 680 `cloudFp()`
-  - 681 `cloudClaim(wait)`
-  - 695 `cloudBeat(now)`
-  - 711 `cloudWake()`
-  - 717 `cloudPassed(h)`
-  - 732 `cloudHeldShow(h)`
-  - 741 `cloudPlayHere()`
-  - 751 `cloudCheckHead()`
-  - 760 `cloudConflict(cl, moved)`
-  - 790 `cloudHist()`
-  - 795 `cloudRestore(id)`
-- **806** what is measured: the game's own functions, wrapped once they are all defined
-  - 807 `cloudHooks()`
-- **838** the account card in Settings
-  - 839 `cloudCard()`
-  - 863 `histRows()`
-  - 875 `cloudAccountDel()`
-  - 886 `cloudMediaDel()`
-  - 892 `cloudAct(a, d)`
-- **928** registering, for a guest: in the game's own words, never a wall before the third landing
-  - 937 `guestHave()`
-  - 943 `guestAsk(why)`
-  - 969 `nameWhy(v)`
-  - 986 `namesKept()`
-  - 987 `namesKeep(o)`
-  - 989 `namesApply()`
-  - 997 `nameTake(n, quiet)`
-  - 1007 `nameCheck()`
-  - 1028 `nameSuggest()`
-  - 1037 `nameAsk(why, reason)`
-  - 1062 `guestOpenAsk()`
-  - 1074 `nameNudge(force)`
-  - 1089 `guestNudge(step)`
-  - 1101 `guestLogin(src)`
-  - 1107 `guestRegister(signIn)`
-  - 1122 `guestGift()`
+  - 551 `sumText(m)`
+  - 558 `cloudChoose(here, cloud, when, box)`
+  - 573 `cloudKeptNote(where)`
+  - 578 `cloudTake(cs, kept)`
+  - 585 `cloudSync(cs)`
+  - 624 `cloudSaveSoon(closing, manual)`
+  - 673 `cloudSoon(ms)`
+- **674** one device at a time (13.10.2026, supabase/migrations/20261013120000_active.sql)
+  - 684 `cloudFp()`
+  - 685 `cloudClaim(wait)`
+  - 699 `cloudBeat(now)`
+  - 715 `cloudWake()`
+  - 721 `cloudPassed(h)`
+  - 736 `cloudHeldShow(h)`
+  - 745 `cloudPlayHere()`
+  - 755 `cloudCheckHead()`
+  - 764 `cloudConflict(cl, moved)`
+  - 794 `cloudHist()`
+  - 799 `cloudRestore(id)`
+- **810** what is measured: the game's own functions, wrapped once they are all defined
+  - 811 `cloudHooks()`
+- **842** the account card in Settings
+  - 843 `cloudCard()`
+  - 867 `histRows()`
+  - 879 `cloudAccountDel()`
+  - 890 `cloudMediaDel()`
+  - 896 `cloudAct(a, d)`
+- **932** registering, for a guest: in the game's own words, never a wall before the third landing
+  - 941 `guestHave()`
+  - 947 `guestAsk(why)`
+  - 973 `nameWhy(v)`
+  - 990 `namesKept()`
+  - 991 `namesKeep(o)`
+  - 993 `namesApply()`
+  - 1001 `nameTake(n, quiet)`
+  - 1011 `nameCheck()`
+  - 1032 `nameSuggest()`
+  - 1041 `nameAsk(why, reason)`
+  - 1066 `guestOpenAsk()`
+  - 1078 `nameNudge(force)`
+  - 1093 `guestNudge(step)`
+  - 1105 `guestLogin(src)`
+  - 1111 `guestRegister(signIn)`
+  - 1126 `guestGift()`
 
 ## `src/js/ui/10g-push.js` (210 linjer)
 
@@ -4115,13 +4116,13 @@ The profile and the founders' badge (Jonas 16.11.2026, before the launch: «prof
 
 - **1** The profile and the founders' badge (Jonas 16.11.2026, before the launch: «profil-side med brukernavn, fartstid, ferdigheter,
 
-## `src/js/ui/10w-fix.js` (55 linjer)
+## `src/js/ui/10w-fix.js` (63 linjer)
 
 ---- an admin's correction, delivered to this game (26.11.2026; supabase/migrations/20261126120000_fixes.sql, the tab «Korrigering» in
 
 - **1** an admin's correction, delivered to this game (26.11.2026; supabase/migrations/20261126120000_fixes.sql, the tab «Korrigering» in
-  - 16 `admfixSaved()`
-  - 20 `fixClaim()`
+  - 19 `admfixSaved()`
+  - 25 `fixClaim()`
 
 ## `src/js/ui/11-boot.js` (448 linjer)
 
@@ -5288,7 +5289,7 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
 - **94** frame
   - 98 `fpsEl()`
 
-## `src/js/view3d/24-cinema.js` (813 linjer)
+## `src/js/view3d/24-cinema.js` (820 linjer)
 
 ---------- cinema (the user's wish 03.10.2026; a director of fourteen shots 01.11.2026) ----------
 
@@ -5304,23 +5305,23 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
 - **165** the picture watched (02.11.2026; Jonas: «Det er viktig at vi fanger opp så mye potensielle feil som oppstår så fort som
   - 184 `gfxErr(msg, ctx)`
   - 189 `glReport(e, tag)`
-  - 191 `glProbe(tag)`
-  - 198 `gfxStart(now)`
-  - 206 `gfxJudge(px, day, vis)`
-  - 213 `gfxPix(j)`
-  - 220 `gfxNaN(eye, VPn)`
-  - 230 `gfxEnd(now, eye, VPn, W, Hh)`
-  - 272 `frameClock(raw)`
-  - 288 `frame()`
-  - 295 `frame0()`
-  - 525 `snapTake()`
-  - 530 `drawRoute(VP, eye)`
-  - 553 `driftSpray(VP, eye, dt, t, col)`
-  - 580 `drawSmoke(VP, eye, BM, dt)`
-  - 621 `scupperWater(VP, eye, BM, dt, t, col)`
-  - 655 `splashFoam(x, z, r, a)`
-  - 657 `drawEffects(VP, eye, BM, dt, t)`
-  - 795 `updateLabels(VP, eye, W, Hh)`
+  - 195 `glProbe(tag)`
+  - 203 `gfxStart(now)`
+  - 212 `gfxJudge(px, day, vis)`
+  - 219 `gfxPix(j)`
+  - 226 `gfxNaN(eye, VPn)`
+  - 236 `gfxEnd(now, eye, VPn, W, Hh)`
+  - 279 `frameClock(raw)`
+  - 295 `frame()`
+  - 302 `frame0()`
+  - 532 `snapTake()`
+  - 537 `drawRoute(VP, eye)`
+  - 560 `driftSpray(VP, eye, dt, t, col)`
+  - 587 `drawSmoke(VP, eye, BM, dt)`
+  - 628 `scupperWater(VP, eye, BM, dt, t, col)`
+  - 662 `splashFoam(x, z, r, a)`
+  - 664 `drawEffects(VP, eye, BM, dt, t)`
+  - 802 `updateLabels(VP, eye, W, Hh)`
 
 ## `src/js/view3d/25-controls.js` (289 linjer)
 

@@ -6605,3 +6605,10 @@
 2026-11-26 15:17	ccr-5e1ba2f4-pusvyd	49bcaf7	maptest	OK	16	lite	alene	
 2026-11-26 15:18	ccr-5e1ba2f4-pusvyd	49bcaf7	routetest	FEIL	45	lite	alene	FEIL Kast loss setter ruta i gang, og kartplotteren står åpen  {'plan': False, 'plot': True, 'g3': False}
 2026-11-26 15:18	ccr-5e1ba2f4-pusvyd	49bcaf7	maptest	OK	16	lite	alene	
+2026-11-27 11:36	ccr-26223d0c-yhvnxv	4585f5d+	cloudtest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-27 11:36	ccr-26223d0c-yhvnxv	4585f5d+	admintest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-27 11:36	ccr-26223d0c-yhvnxv	4585f5d+	synctest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-27 11:37	ccr-26223d0c-yhvnxv	4585f5d+	cloudtest	OK	31	lite	samtidig	
+2026-11-27 11:37	ccr-26223d0c-yhvnxv	4585f5d+	admintest	OK	15	lite	samtidig	
+2026-11-27 11:38	ccr-26223d0c-yhvnxv	4585f5d+	synctest	OK	73	lite	samtidig	
+2026-11-27 11:41	ccr-26223d0c-yhvnxv	4585f5d+	cloudtest	FEIL	27	lite	alene	FEIL the summary has the accounts, the loans, the vessel types and the value of the rights  {"cash": 2000, "bank": null, "debt": null, "types": null, "licv": nu

@@ -35,6 +35,14 @@ async def main():
               'Kappløp: påmeldt, i mål, brutt og hvorfor, snittida per klasse, andelen med trim og med hopp til startstreken, og forsøkene med merke, som summer', lp[:200])
         jw = await pg.evaluate("jkWhy({kind:'lop', data:{rid:'lnk-1-30', vtype:'trebat', k:'fast', leg:0, h:16.17, min_h:20.54, vmax:8.5, trim:1}})")
         check('Kappløpet' in jw and 'For rask etappe' in jw and 'etappe 1' in jw and 'Fjern merket' in jw, 'Juks: et merke fra kappløpet sier sjekken, etappen og tallene', jw)
+        # HS5b (27.11.2026, 20261127120000_cheat_worth.sql): a mark on the kroner says what the company was worth before and after (the cash,
+        # the two accounts and the loans), what a new boat counts and a sold one explains; a mark from before it reads as it did
+        jc = await pg.evaluate("jkWhy({kind:'cash', data:{v:2, base:'hist', cash0:50000, cash1:50000, bank0:120000, bank1:120000, debt0:5000000, debt1:4000000, w0:-4830000, w1:-3830000, 'in':850000, out:1150000, rise:700000, hours:0.01, land:0, ledger:0, cap:2, bucket:195000, unexplained:504998, day:804998, first:false, market:true, types0:'sjark', types1:'plastsjark'}})")
+        jo = await pg.evaluate("jkWhy({kind:'cash', data:{cash0:15000, cash1:1400000, hours:0.02, land:0, ledger:0, cap:300, sale:0, equity:0, unexplained:1384700, day:1385000, first:false, type0:'trebat', type1:'trebat', fleet0:1, fleet1:1}})")
+        nb = lambda v: v.replace('\u00a0', ' ').replace('\u202f', ' ')
+        check(all(x in nb(jc) for x in ('Kasse og konti minus lån', 'kassa 50 000 kr', 'lån 5 000 000 kr → 4 000 000 kr', 'Ny båt teller 850 000 kr', 'Solgt båt eller hjemmel forklarer 1 150 000 kr', 'Uforklart 504 998 kr', 'Mot en bevart lagring', 'Kjøp hos megleren', 'sjark → plastsjark'))
+              and 'Kassa 15 000 kr → 1 400 000 kr' in nb(jo) and 'Kasse og konti' not in jo,
+              'Juks: et merke på kronene sier kassa, kontiene og lånene før og etter, hva en ny båt teller og en solgt forklarer; et merke fra før leses som før', {'ny': jc, 'gammel': jo})
         # the feedback agent: its report in the Agent tab, and under a feedback its suggestion, which «Bruk forslaget» only fills in
         await pg.click('nav button[data-t="agent"]'); await pg.wait_for_timeout(150); ag = await pg.evaluate("document.querySelector('main').innerText")
         await pg.click('nav button[data-t="tilbake"]'); await pg.wait_for_selector('[data-fbai]', timeout=5000)

@@ -606,6 +606,7 @@ def main():
     sys.exit(1 if bad else 0)
 
 
+COVER['supabase/migrations/20261127120000_cheat_worth.sql'] = ['sqltest', 'admintest']; COVER['tests/unit/lagringsverdi.test.mjs'] = []   # HS5b: the check of the kroner on what the company is worth
 COVER['src/js/ui/10w-fix.js'] = ['korrtest']; COVER['tests/korrtest.py'] = ['korrtest']; COVER['supabase/migrations/20261126120000_fixes.sql'] = ['sqltest']; COVER['tests/unit/angrekjop.test.mjs'] = []   # an admin's correction (fixes, 26.11.2026)
 if __name__ == '__main__':
     main()
