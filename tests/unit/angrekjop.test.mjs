@@ -48,4 +48,30 @@ export default function (t){
   S = setup(); S.boat.type = 'kyst21'; K.applyVessel(); S.boat.port = 'x'; S.cash = -4268; S.fleet = S.fleet || []; S.crew = S.crew || [];
   const r2 = K.undoBuyApply({to:'kyst21', from:'plastsjark', kr:100000});
   t.eq(r2.kr, 100000, 'admins sum brukes'); t.eq(Math.round(S.cash), 95732, 'og går til kontoen uten lån');
+
+  // the right bought with her (Julian 27.11.2026: kyst21 with h20, the boat taken back and the right and its loan left)
+  S = setup(); S.boat.type = 'sjark'; K.applyVessel(); S.boat.port = 'x'; S.cash = -211065; S.fleet = S.fleet || []; S.crew = S.crew || [];
+  const O = K.LIC_OFFERS.find(o => o.id === 'h20' || o.hl === 20 || o.k === 'h20') || K.LIC_OFFERS[K.LIC_OFFERS.length - 1];
+  S.lic = {id:O.id, hl:O.hl, kpk:O.kpk, since:K.yearH(S.t / 60), from:'X'}; const lv = K.licValue(S.lic), reg0 = K.npcReg()[O.id];
+  K.takeLoan(lv + 500000, 180);
+  const d0 = K.debt(), wl0 = S.cash - d0;
+  t.eq(K.undoBuyWhy({id:51, lic:'nope'}), 'lic', 'ikke en hjemmel båten ikke har');
+  const r5 = K.undoBuyApply({id:51, lic:O.id});
+  t.ok(r5.ok && r5.licKr === lv && !S.lic, 'hjemmelen går tilbake, og verdien betales (' + lv + ' kr)', r5);
+  t.eq(K.npcReg()[O.id], Math.min(reg0 + 1, K.REGN[O.id] || reg0 + 1), 'registeret får plassen tilbake');
+  t.eq(Math.round(K.debt()), Math.round(d0 - lv), 'lånene innfris med verdien');
+  t.eq(Math.round(S.cash - K.debt()), Math.round(wl0 + lv), 'kasse minus gjeld går opp med hjemmelens verdi');
+  t.eq(S.boat.type, 'sjark', 'båten står');
+  t.eq(K.undoBuyApply({id:51, lic:O.id}).why, 'done', 'og aldri to ganger');
+  // the boat and the right in one row
+  S = setup(); S.boat.type = 'kyst21'; K.applyVessel(); S.boat.port = 'x'; S.cash = 0; S.fleet = S.fleet || []; S.crew = S.crew || [];
+  S.lic = {id:O.id, hl:O.hl, kpk:O.kpk, since:K.yearH(S.t / 60), from:'X'};
+  const r6 = K.undoBuyApply({id:52, from:'sjark', to:'kyst21', lic:O.id});
+  t.ok(r6.ok && S.boat.type === 'sjark' && !S.lic && r6.kr === K.undoBuyKr('kyst21', 'sjark') + K.licValue({id:O.id, hl:O.hl, kpk:O.kpk, since:K.yearH(S.t / 60)}), 'båten og hjemmelen i samme rad', r6);
+  // the right's price at the hour of the purchase (licAt), not its value now
+  S = setup(); S.boat.type = 'sjark'; K.applyVessel(); S.boat.port = 'x'; S.cash = 0; S.fleet = S.fleet || []; S.crew = S.crew || [];
+  S.lic = {id:O.id, hl:O.hl, kpk:O.kpk, since:K.yearH(S.t / 60), from:'X'};
+  const at = '2026-11-24T21:46:26Z', Hb = (Date.parse(at) - K.WORLD_T0) * K.GAME_RATE / 60000 / 60, want = K.licValue(S.lic, Hb);
+  const r7 = K.undoBuyApply({id:53, lic:O.id, licAt:at});
+  t.ok(r7.ok && r7.licKr === want && want !== lv, 'hjemmelen betales med prisen da den ble kjøpt (' + want + ' kr, ikke ' + lv + ')', r7);
 }
