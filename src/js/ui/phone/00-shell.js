@@ -60,6 +60,9 @@ const PHONE = (() => {
   // Haill or the Trim app (the first trip's guide, the handbook, the tests) opens Kaiboden on that tab
   const KBT = ['haill', 'trim', 'skip'];
   let kbLast = 'haill';
+  // (Black Week, 27.11.2026: while the pack is sold, Kaiboden opened as Kaiboden (its icon, the button in 3D) shows the shop's first tab,
+  // where the pack stands, also for one with haill in store; «Bruk haill» opens the store as before. After the pack's end: as before)
+  const kbFirst = () => { if (!packOn(PACKS.blackweek, worldNow())) return kbLast; sub.kaiboden = 'boost'; return 'trim'; };
   const kbTabs = () => '';   // (Kaiboden is one window with its own tabs since 16.11.2026: kbShop in 01-haill-fiske-service.js)
   // the most for the money (Jonas 12.10.2026): the biggest of each, and it is true of each (tests/skiptest.py checks it)
   const kbBest = () => ' <span class="kb-best">' + L('Mest for pengene', 'Best value') + '</span>';

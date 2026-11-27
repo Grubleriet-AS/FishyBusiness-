@@ -59,9 +59,52 @@ def main():
             if os.environ.get('SQL_RANK') == '0' and m.endswith('_rank_fs.sql'): continue   # (RANK1-c: the tab's checks seen red without the file)
             if os.environ.get('SQL_LANG') == '0' and m.endswith('_toplist_lang.sql'): continue   # (the long list: its checks seen red without the file)
             if os.environ.get('SQL_FIX') == '0' and m.endswith('_fixes.sql'): continue   # (fixes: its checks seen red without the file)
+            if (os.environ.get('SQL_BW') == '0' and m.endswith('_blackweek.sql')) or (os.environ.get('SQL_BW') in ('0', 'lop') and m.endswith('_lop_trim.sql')): continue   # (Black Week: its checks seen red without the file; SQL_BW=lop leaves out only the race's trim)
             p = run('psql', '-h', sock, '-U', user, '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q', '-f', m)
             print(ok(p.returncode == 0), 'the migration runs on PostgreSQL:', os.path.basename(m), p.stderr.strip()[-300:] if p.returncode else '')
             if p.returncode: return
+        # Black Week (27.11.2026, 20261127130000_blackweek.sql, docs/planer/svart-fredag.md): the pack is sold till its end and refused from
+        # it with nobody there to switch it off; every account here when the file runs gets the gift once, a second run gives no more, an
+        # account that registers while the offer lasts gets it with its welcome gift, a guest and one that comes after the end do not;
+        # the gift cannot be bought; a purchase of the pack gives 10 haill, a trim and a Skippertak. The end is a date in the file: the
+        # checks move it round their own «now» (the file run with its date in the future, the product's end put in the past), and leave
+        # the offer over, so nothing here or below depends on the day the test runs
+        BWF = os.path.join(ROOT, 'supabase', 'migrations', '20261127130000_blackweek.sql'); BWS = open(BWF, encoding='utf-8').read() if os.path.exists(BWF) and os.environ.get('SQL_BW') != '0' else ''
+        bwEnd = lambda iso: sql("update public.products set data = jsonb_set(data, '{until}', to_jsonb('%s'::text)) where id = 'pakke_blackweek'" % iso)
+        bwN = lambda who: sql("select count(*) from public.grants where player_id = '%s' and data ? 'bw'" % who)
+        bwQ = lambda prod, who: sql("select public.shop_quote('%s')" % prod, who, 'authenticated', expect_err=True)
+        W0 = {'sub': 'user_01BW0', 'role': 'authenticated'}; W1 = {'sub': 'user_01BW1', 'role': 'authenticated'}; W2 = {'sub': 'user_01BW2', 'role': 'authenticated'}
+        WG = {'sub': '9a1c2a3e-0000-4000-8000-0000000000b7', 'role': 'authenticated', 'is_anonymous': True}
+        BW = {'date': BWS.count('2026-11-30T23:00:00Z')}
+        bwEnd('2000-01-01T00:00:00Z'); sql("select public.tm_hello('{}')", W0, 'authenticated')
+        BW['over'] = [bwN('user_01BW0'), bwQ('pakke_blackweek', W0)[0], bwQ('trim_24', W0)[0]]
+        if BWS:
+            for _ in (1, 2): sql(BWS.replace('2026-11-30T23:00:00Z', '2099-01-01T00:00:00Z'))
+        BW['here'] = bwN('user_01BW0')
+        for _ in (1, 2): sql("select public.tm_hello('{}')", W1, 'authenticated')
+        sql("select public.tm_hello('{}')", WG, 'authenticated')
+        BW['reg'] = [bwN('user_01BW1'), bwN(WG['sub'])] + sql("select coalesce((select data::text from public.grants where player_id = 'user_01BW1' and data ? 'bw'), '') || '|' || coalesce((select product_id from public.grants where player_id = 'user_01BW1' and data ? 'bw'), '')").split('|')
+        BW['pend'] = [g['data'] for g in json.loads(sql("select public.shop_pending()", W1, 'authenticated')) if g['data'].get('bw')]
+        q = bwQ('pakke_blackweek', W1); BW['quote'] = json.loads(sql("select public.shop_quote('pakke_blackweek')", W1, 'authenticated')) if not q[0] else {'err': q[1]}
+        BW['lop'] = sql("select public.lop_trim('user_01BW1') || '/' || public.lop_trim('user_01BW2')")   # (the race's speed guard knows the Turbotrim the gift is, 20261127131000_lop_trim.sql)
+        sql("insert into public.purchases (id, player_id, product_id, amount_nok, status, data) values ('cs_bw1', 'user_01BW1', 'pakke_blackweek', 499, 'open', '{\"boat\":\"v1\"}') on conflict do nothing", expect_err=True)
+        sql("select public.shop_paid('cs_bw1', 'pi_bw1')", expect_err=True)
+        BW['paid'] = sql("select coalesce(string_agg(x, ',' order by x), '') from (select (data ->> 'give') || coalesce(':' || (data ->> 'k'), '') || 'x' || count(*) x from public.grants where purchase_id = 'cs_bw1' group by data ->> 'give', data ->> 'k') y")
+        bwEnd('ikke en dato'); BW['bad'] = sql("select public.tm_hello('{}')", {'sub': 'user_01BW3', 'role': 'authenticated'}, 'authenticated', expect_err=True)[0]   # (an end that cannot be read must not stop a new account)
+        BW['badN'] = sql("select count(*) from public.players where id = 'user_01BW3'") + '/' + bwN('user_01BW3')
+        bwEnd('2000-01-01T00:00:00Z'); sql("select public.tm_hello('{}')", W2, 'authenticated')
+        BW['after'] = [bwN('user_01BW2'), bwQ('pakke_blackweek', W1)[0], bwQ('trim_24', W1)[0], bwN('user_01BW0'), bwN('user_01BW1')]
+        # (these players, their grants and the purchase are taken away again: the checks below count the players and the purchases)
+        bwIds = "('user_01BW0', 'user_01BW1', 'user_01BW2', 'user_01BW3', '%s')" % WG['sub']
+        sql("delete from public.grants where player_id in %s; delete from public.purchases where id = 'cs_bw1'; delete from public.players where id in %s" % (bwIds, bwIds))
+        print(ok(BW['date'] == 1 and BW['over'] == ['0', True, False]), 'Black Week: with the end passed an account that says hello gets no gift and the pack is refused, while the other products are sold', BW['over'])
+        print(ok(BW['here'] == '1'), 'Black Week: the file gives every account that is here one gift, and a second run gives no more', BW['here'])
+        print(ok(BW['reg'][:2] == ['1', '0'] and json.loads(BW['reg'][2] or '{}') == {'give': 'trim', 'k': 't2', 'comp': True, 'bw': True} and BW['reg'][3:] == ['trim_2'] and len(BW['pend']) == 1 and BW['lop'] == '2/1'),
+              'Black Week: an account that registers while the offer lasts gets the gift once with its welcome gift (two hellos, one gift), a guest none, and the game gets it from shop_pending as a Turbotrim of 2 hours (the product trim_2) marked as a gift, and the race counts it as a trim', BW['reg'], BW['pend'], BW['lop'])
+        print(ok(BW['quote'].get('price_nok') == 499 and BW['quote'].get('id') == 'pakke_blackweek' and BW['paid'] == 'haillx10,skip:s72x1,trim:t72x1'),
+              'Black Week: the pack is quoted at 499 kr while it lasts, and a paid pack gives 10 haill, Turbotrim t72 and Skippertak s72', {k: BW['quote'].get(k) for k in ('id', 'price_nok', 'err')}, BW['paid'])
+        print(ok(BW['bad'] is False and BW['badN'] == '1/0'), 'Black Week: an end that cannot be read gives no gift and does not stop a new account from coming in', BW['bad'], BW['badN'])
+        print(ok(BW['after'] == ['0', True, False, '1', '1']), 'Black Week: from the end a new account gets no gift and the pack is refused, the other products are sold, and the gifts given stay', BW['after'])
         A = {'sub': 'user_01AAA', 'role': 'authenticated'}; B = {'sub': 'user_01BBB', 'role': 'authenticated'}
         ADMIN_ID = '7f1c2a3e-0000-4000-8000-000000000001'
         sql("insert into public.admins values ('%s', 'Jonas')" % ADMIN_ID)
