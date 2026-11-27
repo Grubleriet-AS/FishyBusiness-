@@ -30,7 +30,7 @@ async function fixClaim(){
     let list; try { list = await cloudRpc('fix_pending', {}); } catch (e){ return; }   // (a server without the migration answers 404: nothing to do)
     for (const f of list || []){
       if (f.kind !== 'undo_buy') continue;   // a kind this game does not know waits for a game that does
-      const d = f.data || {}, r = undoBuyApply({id:f.id, from:d.from, to:d.to, kr:d.kr == null ? null : +d.kr});
+      const d = f.data || {}, r = undoBuyApply({id:f.id, from:d.from, to:d.to, kr:d.kr == null ? null : +d.kr, lic:d.lic || null, licKr:d.licKr == null ? null : +d.licKr, licAt:d.licAt || null});
       if (!r.ok && r.why === 'done'){
         // done here before, the server not told (the save had not reached the account, or the answer was lost): save and tell now
         if (await admfixSaved()) await cloudRpc('fix_done', {fid:f.id, res:{...S.fixDone[f.id], from:d.from, to:d.to, at:new Date().toISOString()}, done:true}).catch(e => console.error(e));
@@ -38,17 +38,20 @@ async function fixClaim(){
       }
       if (!r.ok){
         const told = S.fixTold || (S.fixTold = {});
-        if (ADMFIX_WAIT[r.why] && !told[f.id]){ told[f.id] = 1; msg('Kystmegleren', ADMFIX_WAIT[r.why][0], ADMFIX_WAIT[r.why][1]); }
+        const w = ADMFIX_WAIT[r.why === 'lic' ? 'type' : r.why];
+        if (w && !told[f.id]){ told[f.id] = 1; msg('Kystmegleren', w[0], w[1]); }
         cloudRpc('fix_done', {fid:f.id, res:{ok:false, why:r.why, type:S.boat.type, at:new Date().toISOString()}, done:r.why === 'bad'}).catch(e => console.error(e));
         continue;
       }
-      const V = VESSELS[d.from], back = r.off > 0 ? [' (' + kr(r.off) + ' av det gikk til lånene)', ' (' + kr(r.off) + ' of it paid off the loans)'] : ['', ''];
-      const no = f.note || ('Båtkjøpet er angret. ' + V.name.no + ' er din igjen, og ' + kr(r.kr) + ' er betalt tilbake' + back[0] + '.'),
-        en = 'The vessel purchase is undone. The ' + V.name.en + ' is yours again, and ' + kr(r.kr) + ' has been paid back' + back[1] + '.';
+      const V = d.from ? VESSELS[d.from] : null, back = r.off > 0 ? [' (' + kr(r.off) + ' av det gikk til lånene)', ' (' + kr(r.off) + ' of it paid off the loans)'] : ['', ''];
+      const what = [V ? V.name.no + ' er din igjen' : '', r.licKr > 0 ? 'hjemmelen er gitt tilbake til registeret' : ''].filter(Boolean).join(', '),
+        whatEn = [V ? 'the ' + V.name.en + ' is yours again' : '', r.licKr > 0 ? 'the right has gone back to the register' : ''].filter(Boolean).join(', ');
+      const no = f.note || ('Båtkjøpet er angret: ' + what + ', og ' + kr(r.kr) + ' er betalt tilbake' + back[0] + '.'),
+        en = 'The vessel purchase is undone: ' + whatEn + ', and ' + kr(r.kr) + ' has been paid back' + back[1] + '.';
       log(no, en); msg('Kystmegleren', no, en);
       if (typeof G3 !== 'undefined') try { G3.vesselChanged(); } catch (e){ console.error(e); }
       try { refreshAll(); } catch (e){}
-      toast(S.lang === 'no' ? 'Båtkjøpet er angret: ' + V.name.no + ' er din igjen.' : 'The vessel purchase is undone: the ' + V.name.en + ' is yours again.');
+      toast(S.lang === 'no' ? 'Båtkjøpet er angret: ' + what + '.' : 'The vessel purchase is undone: ' + whatEn + '.');
       if (typeof cloudEv === 'function') cloudEv('fix_done', {k:f.kind, kr:r.kr});
       if (await admfixSaved()) await cloudRpc('fix_done', {fid:f.id, res:{...r, from:d.from, to:d.to, at:new Date().toISOString()}, done:true}).catch(e => console.error(e));
     }
