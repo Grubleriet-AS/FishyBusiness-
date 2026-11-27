@@ -193,13 +193,6 @@ const rigJig = () => rigOf() === 'juksa';
 // whether a boat can fish with the jig at all (Jonas 03.11.2026: «En havfiskebåt skal ikke kunne fiske med juksa»): only a boat whose
 // VESSELS rigs has juksa; the ocean vessels (trawl, seine, autoline, snow crab) have none. The dock, the start and the minute ask it.
 const vesselJigs = t => ((VESSELS[t || (S.boat && S.boat.type)] || {}).rigs || []).includes('juksa');
-// room kept free in the hold for what my gear in the sea is likely to bring up: what it has caught so far, at least a typical haul per unit
-// (kg: line a tub, net a net, pots a pot). Jigging stops when the hold is full but for this.
-const TYPKG = {line:70, garn:40, teine:7};
-function gearReserve(){
-  // on a plan the room is only kept when the gear is hauled on this trip, before the landing; else the jig may fill the hold
-  if (S.plan && S.plan.ops){ const rest = S.plan.wps.slice(S.plan.idx), pi = rest.findIndex(w => w.port); if (!(pi < 0 ? rest : rest.slice(0, pi)).some(w => w.act)) return 0; }
-  let r = 0; for (const s of mySets()){ let got = 0; for (const sp in (s.acc || {})) got += s.acc[sp].kg || 0; r += Math.max(got * 1.2, s.n * (s.kind === 'line' && isAuto(s.lk) ? 1000 : TYPKG[s.kind] || 0)); } return Math.round(r); }
 // gear the boat draws by hand (valg 21 B in docs/planer/om-bord.md, Jonas 09.11.2026): nets on a boat whose rigs has them but that no net
 // hauler fits (the wooden boat and the skiff, under 7.5 m), drawn over the rail and picked by hand at GEAR.garn.hand the time (gopUnitMin).
 // Line and pots always need their hauler (a pot cannot be lifted by hand from 30 m; F16 in om-bord.md)
@@ -491,7 +484,7 @@ function haulSlow(g){
 function gearOpMinute(H, W, hs){
   const b = S.boat, g = b.gop;
   if (handsAboard() < GEAR[g.kind].crewMin){ gopAbort('crew'); return; }
-  if (g.op === 'haul' && holdLoad() >= capHold() - 0.01){ log('Lasten er full. Resten av redskapet står igjen.', 'The hold is full. The rest of the gear stays in the sea.'); gopAbort('full'); return; }
+  if (g.op === 'haul' && holdLoad() >= capHold() - 0.01){ log('Lasten er full. Resten av redskapet står igjen.', 'The hold is full. The rest of the gear stays in the sea.'); if (typeof toast === 'function' && !VTAG) toast(gL('Lasten er full. Lever fangsten, og trekk resten av redskapet etterpå.', 'The hold is full. Land the catch, then haul the rest of the gear.')); gopAbort('full'); return; }
   // the catch of one unit comes aboard in slices as the string comes over the rail, not all at the end (tilbakemelding #30: «fisken
   // kommer om bord etter hvert, så man kan sløye underveis»): per 100 hooks on a line, in thirds on a net, a pot at once
   if (g.lead > 0){ g.lead--; b.v = 0.3; g.mv = null; return; }   // the end lines first
@@ -499,6 +492,8 @@ function gearOpMinute(H, W, hs){
   const step = haulSlow(g) / gopUnitMin(g, H, hs); g.prog += step;
   const SL = g.op === 'haul' ? g.sl || 1 : 1; g.sub = g.sub || 0;
   while (g.done < g.n && g.prog >= (g.sub + 1) / SL){
+    // a hold that filled in this minute takes no more slices off the string: they stay in the sea with their fish (the next minute stops the haul)
+    if (g.op === 'haul' && holdLoad() >= capHold() - 0.01){ g.prog = Math.min(g.prog, (g.sub + 1) / SL); break; }
     if (g.op === 'haul') haulUnit(g, H, SL);
     g.sub++; if (g.sub >= SL){ g.sub = 0; g.prog -= 1; g.done++; }
   }
@@ -551,7 +546,11 @@ function gopAbort(why){
       log('Setting avbrutt. Redskapet er tatt om bord igjen.', 'Setting stopped. The gear is back aboard.'); b.gop = null; }
   } else {
     const s = S.sets.find(x => x.id === g.sid);
-    if (s && g.done > 0) kvHaulKeep(g, s);   // what came aboard is a catch of its own (the coast guard's sample)
+    // the fish of the last slice that found no room in the hold stays on the gear (S.gacc: taken off the string, not yet aboard), so a
+    // haul stopped by a full hold loses nothing: it is hauled with the rest after the landing
+    if (s && why === 'full' && S.gacc) for (const sp in S.gacc){ const kg = S.gacc[sp], P = SPECIES[sp]; if (!P || P.shell || !(kg > 0.01)) continue;
+      const A = s.acc[sp] || (s.acc[sp] = {kg:0, n:0, ts:0}), per = A.kg > 0.01 ? A.n / A.kg : 0, tsk = A.kg > 0.01 ? A.ts / A.kg : S.t / 60; A.kg += kg; A.n += kg * per; A.ts += kg * tsk; }
+    if (s && (g.done > 0 || g.sub > 0)) kvHaulKeep(g, s);   // what came aboard is a catch of its own (the coast guard's sample)
     if (s && g.done > 0 && g.done < s.n){ gearBack(s, g.done, wearNets(s, g), wearOf(s, g)); s.n -= g.done; if (s.kind === 'line') s.hooks = s.n * g.hooksPer; s.a = {x:b.pos.x, y:b.pos.y}; s.b = {...g.b}; }
     if (s) s.hauling = false;
     log('Trekkingen stoppet. ' + (s ? s.n + ' ' + unitName(s.kind, s.n, s.lk) + ' står igjen i sjøen.' : ''), 'Hauling stopped. ' + (s ? s.n + ' ' + unitName(s.kind, s.n, s.lk) + ' remain in the sea.' : ''));
@@ -605,6 +604,7 @@ function landFish(sp, kg, key, mesh, p, H, hook, fresh, g){
     if (g && KV47[sp]) kvSampleFish(g, sp, w, p);   // the coast guard's sample of the catch as it comes up: every fish, kept or let go (09j-kystvakt.js)
     if (letGo(sp, w, p, H)){ S.stats.released = (S.stats.released || 0) + 1; if (g) g.rel++; continue; }   // § 47 where the gear stood (02-species-gear.js)
     const k = Math.min(w, room); room -= k; addCatch(sp, k, clsOf(sp, w), hook, {fresh, how:String(key).split(':')[0]}); got += k;
+    if (k < w) acc[sp] += w - k;   // the part of the last fish the hold had no room for is not aboard: it goes back with the rest (gopAbort)
     if (g){ const q = g.spKg || (g.spKg = {}); q[sp] = (q[sp] || 0) + k; }   // the haul's catch by species (the bycatch share in each catch, 09j-kystvakt.js)
     if (typeof window !== 'undefined'){ const cq = window.CATCHQ || (window.CATCHQ = []); if (cq.length < 30) cq.push({sp, kg:k, t:performance.now()}); }
   }

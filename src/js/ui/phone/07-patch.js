@@ -1,5 +1,8 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['juksalast-271126', '27.11.2026', 'Juksa fyller lasterommet', 'The jig fills the hold', [
+       ['Båten holder ikke lenger av plass i lasterommet til line, garn og teiner som står i sjøen: du kan jukse til rommet er fullt. Før stoppet juksa uten at det var lett å se hvorfor.', 'The boat no longer keeps room in the hold for line, nets and pots standing in the sea: you can jig until the hold is full. Before, the jig stopped without it being easy to see why.'],
+       ['Blir rommet fullt mens du trekker, stopper trekkingen, og resten står igjen i sjøen med fisken sin. Lever fangsten, og trekk resten etterpå.', 'If the hold fills while you haul, the hauling stops, and the rest stays in the sea with its fish. Land the catch, then haul the rest.']]],
     ['juksabord-271126', '27.11.2026', 'Mannskapet sløyer mens det jukses', 'The crew gut while you jig', [
        ['Med juksamaskiner og flere om bord enn maskinene trenger, går de ledige til sløyebordet og isen når det ligger fisk i karet. Før ble de stående ved rekka, karet ble fullt, og fisket stoppet.', 'With jigging reels and more hands aboard than the reels need, those free go to the gutting table and the ice when fish lies in the tub. Before, they stayed at the rail, the tub filled, and the fishing stopped.']]],
     ['kart-271126', '27.11.2026', 'Ålesund verft', 'The yard at Ålesund', [

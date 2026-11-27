@@ -898,7 +898,7 @@ crew: people with skills, habits and moods
   - 722 `flyOut(c)`
   - 730 `flyTick()`
 
-## `src/js/core/05-vessels.js` (1541 linjer)
+## `src/js/core/05-vessels.js` (1542 linjer)
 
 ---------- other vessels (deterministic, so every player sees the same traffic) ----------
 
@@ -981,36 +981,36 @@ crew: people with skills, habits and moods
   - 1091 `catchFactors(H, W, hs)`
   - 1104 `stockDev(p, sp)`
   - 1110 `fish(H, W, hs)`
-  - 1218 `endFishing(why)`
-  - 1239 `bycHere(how)`
-  - 1243 `bycAdd(sp, kg, how)`
-  - 1247 `bycConf()`
-  - 1250 `addCatch(sp, kg, cls, hook, opt)`
-- **1272** work on deck: gutting and icing take hands and time
-  - 1288 `deckHands()`
-  - 1291 `deckPending()`
-  - 1292 `deckEta(hands)`
-  - 1297 `moveKg(x, kg, patch)`
-  - 1305 `iceMinute()`
-  - 1312 `iceOut(out)`
-  - 1318 `deckMinute()`
-- **1343** lying to in a storm (H1b R8, 05.11.2026)
-  - 1365 `quayFar(b)`
-  - 1369 `lieTo(W, hs)`
-  - 1376 `lieToStep(W, hs)`
-  - 1386 `risk(W, hs)`
-  - 1414 `hullRepair()`
-  - 1417 `svcOverdue()`
-- **1418** the rescue boat (plan E3, 05.10.2026)
-  - 1444 `rescueBases()`
-  - 1453 `rescueBase(p)`
-  - 1460 `rescueAis(H)`
-  - 1464 `rescue(keepCatch)`
-  - 1492 `towSea(p)`
-  - 1497 `towRoutes(b)`
-  - 1508 `towStep(H)`
-  - 1521 `towDone(t)`
-  - 1530 `towPose(frac)`
+  - 1219 `endFishing(why)`
+  - 1240 `bycHere(how)`
+  - 1244 `bycAdd(sp, kg, how)`
+  - 1248 `bycConf()`
+  - 1251 `addCatch(sp, kg, cls, hook, opt)`
+- **1273** work on deck: gutting and icing take hands and time
+  - 1289 `deckHands()`
+  - 1292 `deckPending()`
+  - 1293 `deckEta(hands)`
+  - 1298 `moveKg(x, kg, patch)`
+  - 1306 `iceMinute()`
+  - 1313 `iceOut(out)`
+  - 1319 `deckMinute()`
+- **1344** lying to in a storm (H1b R8, 05.11.2026)
+  - 1366 `quayFar(b)`
+  - 1370 `lieTo(W, hs)`
+  - 1377 `lieToStep(W, hs)`
+  - 1387 `risk(W, hs)`
+  - 1415 `hullRepair()`
+  - 1418 `svcOverdue()`
+- **1419** the rescue boat (plan E3, 05.10.2026)
+  - 1445 `rescueBases()`
+  - 1454 `rescueBase(p)`
+  - 1461 `rescueAis(H)`
+  - 1465 `rescue(keepCatch)`
+  - 1493 `towSea(p)`
+  - 1498 `towRoutes(b)`
+  - 1509 `towStep(H)`
+  - 1522 `towDone(t)`
+  - 1531 `towPose(frac)`
 
 ## `src/js/core/05b-ferje.js` (197 linjer)
 
@@ -1919,49 +1919,48 @@ passive gear: nets, line and pots that stand in the sea while the boat is away
 - **178** the rig: a boat is rigged for one kind of fishing at a time. Jigging needs a hand jig or reels; line and pots
   - 184 `rigGuess()`
   - 190 `rigOf()`
-  - 199 `gearReserve()`
-  - 206 `handGear(kind, type = S.boat && S.boat.type)`
-  - 209 `rigNoRoom(kind, type = S.boat && S.boat.type)`
-  - 210 `rigHas(r)`
-  - 213 `rigWrong(kind)`
-  - 215 `haulerNoFit(kind)`
-  - 225 `rigBlock(r)`
-  - 237 `rigSet(r)`
-- **239** what the vessel owns: aboard, ashore (baiting, mending) and in the sea
-  - 240 `ownedUnits(kind)`
-  - 247 `gearRoom(kind)`
-- **249** buying (in port)
-  - 253 `equipCount(k)`
-  - 254 `buyGate(what, spec, lv)`
-  - 282 `tierGate(k, lv)`
-  - 303 `jigTierBack(type, n0, lv)`
-  - 310 `tierBuy(k, lv)`
-  - 320 `buyGear(what, spec, n)`
-  - 355 `joinNets(id1, id2)`
-  - 356 `splitNets(id, n)`
-- **358** rules for setting at a place
-  - 360 `segDist(p, a, b)`
-  - 361 `nearSet(p, km)`
-  - 362 `gearRules(kind, spec, p)`
-  - 396 `setGeom(p, hdg, km)`
-  - 403 `setGeomExact(p, hdg, km)`
-- **405** the work at sea: status stays 'fishing' with b.gop, so deck work, rest rules, auto-return and the tub pause work as before
-  - 406 `gopUnitMin(g, H, hs)`
-  - 431 `startSet(kind, spec, fishAfter, hdg)`
-  - 454 `startHaul(sid, reset, fishAfter)`
-  - 473 `endLines(op, kind, d)`
-  - 476 `thiefOf(s)`
-  - 486 `haulSlow(g)`
-  - 491 `gearOpMinute(H, W, hs)`
-  - 516 `finishSet(g, H)`
-  - 528 `gopEnd(g)`
-  - 530 `gopAfter(b = S.boat)`
-  - 534 `gearUnset(s, n)`
-  - 544 `gopAbort(why)`
-  - 564 `gearBack(s, n, cond, W)`
-  - 571 `wearNets(s, g)`
-  - 580 `haulUnit(g, H, SL)`
-  - 598 `landFish(sp, kg, key, mesh, p, H, hook, fresh, g)`
+  - 199 `handGear(kind, type = S.boat && S.boat.type)`
+  - 202 `rigNoRoom(kind, type = S.boat && S.boat.type)`
+  - 203 `rigHas(r)`
+  - 206 `rigWrong(kind)`
+  - 208 `haulerNoFit(kind)`
+  - 218 `rigBlock(r)`
+  - 230 `rigSet(r)`
+- **232** what the vessel owns: aboard, ashore (baiting, mending) and in the sea
+  - 233 `ownedUnits(kind)`
+  - 240 `gearRoom(kind)`
+- **242** buying (in port)
+  - 246 `equipCount(k)`
+  - 247 `buyGate(what, spec, lv)`
+  - 275 `tierGate(k, lv)`
+  - 296 `jigTierBack(type, n0, lv)`
+  - 303 `tierBuy(k, lv)`
+  - 313 `buyGear(what, spec, n)`
+  - 348 `joinNets(id1, id2)`
+  - 349 `splitNets(id, n)`
+- **351** rules for setting at a place
+  - 353 `segDist(p, a, b)`
+  - 354 `nearSet(p, km)`
+  - 355 `gearRules(kind, spec, p)`
+  - 389 `setGeom(p, hdg, km)`
+  - 396 `setGeomExact(p, hdg, km)`
+- **398** the work at sea: status stays 'fishing' with b.gop, so deck work, rest rules, auto-return and the tub pause work as before
+  - 399 `gopUnitMin(g, H, hs)`
+  - 424 `startSet(kind, spec, fishAfter, hdg)`
+  - 447 `startHaul(sid, reset, fishAfter)`
+  - 466 `endLines(op, kind, d)`
+  - 469 `thiefOf(s)`
+  - 479 `haulSlow(g)`
+  - 484 `gearOpMinute(H, W, hs)`
+  - 511 `finishSet(g, H)`
+  - 523 `gopEnd(g)`
+  - 525 `gopAfter(b = S.boat)`
+  - 529 `gearUnset(s, n)`
+  - 539 `gopAbort(why)`
+  - 563 `gearBack(s, n, cond, W)`
+  - 570 `wearNets(s, g)`
+  - 579 `haulUnit(g, H, SL)`
+  - 597 `landFish(sp, kg, key, mesh, p, H, hook, fresh, g)`
   - 614 `netLen(w)`
   - 615 `retain(sp, key, mesh, w)`
   - 622 `sampleSel(sp, key, mesh, p, H)`
@@ -2682,7 +2681,7 @@ THE CATCH: WHERE THE PLAYERS' BOATS TOUCH WHAT IS NOT CLEAN WATER (the autonav r
   - 167 `slamRate(b = S.boat, H = S.t / 60, hard = 1)`
   - 199 `slamMinute()`
 
-## `src/js/core/17-farbar.js` (788 linjer)
+## `src/js/core/17-farbar.js` (790 linjer)
 
 FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2.0 F1, steg 141, 23.11.2026)
 
@@ -2741,21 +2740,21 @@ FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2
 - **433** the questions
   - 435 `farbGather(x, z, R)`
   - 456 `farbGone(o, n, buf = FARB.buf)`
-  - 465 `farbBoats(x, z)`
-  - 470 `farbNearest(x, z, cap, boat, opt)`
-  - 481 `farbClear(x, z, boat, cap, opt)`
-  - 484 `farbCoastSegs(x0, z0, x1, z1)`
-  - 500 `farbWallTouch(P, X, Z, W, m, bb)`
-  - 503 `farbPose(X, Z, psi, boat, H, opt)`
-  - 544 `farbSweep(p0, p1, boat, H, opt)`
-- **557** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
-  - 573 `farbFieldBuild(J)`
-  - 677 `farbSegOutParts(PK, ax, az, bx, bz)`
-  - 754 `farbFieldWorker()`
-  - 762 `farbFieldTile(cell, fx, fz)`
-  - 765 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
-  - 779 `farbFieldAt(x, z, cell = 2)`
-- **781** the channels dredged along the coast (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
+  - 467 `farbBoats(x, z)`
+  - 472 `farbNearest(x, z, cap, boat, opt)`
+  - 483 `farbClear(x, z, boat, cap, opt)`
+  - 486 `farbCoastSegs(x0, z0, x1, z1)`
+  - 502 `farbWallTouch(P, X, Z, W, m, bb)`
+  - 505 `farbPose(X, Z, psi, boat, H, opt)`
+  - 546 `farbSweep(p0, p1, boat, H, opt)`
+- **559** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
+  - 575 `farbFieldBuild(J)`
+  - 679 `farbSegOutParts(PK, ax, az, bx, bz)`
+  - 756 `farbFieldWorker()`
+  - 764 `farbFieldTile(cell, fx, fz)`
+  - 767 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
+  - 781 `farbFieldAt(x, z, cell = 2)`
+- **783** the channels dredged along the coast (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
 
 ## `src/js/core/17b-bane.js` (104 linjer)
 
@@ -3204,12 +3203,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1830 linjer)
+## `src/js/ui/phone/07-patch.js` (1834 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1818 `patch()`
+  - 1822 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (136 linjer)
 
