@@ -1,5 +1,9 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['frakt-271126', '27.11.2026', 'Oppdrag: frakt og slep', 'Missions: freight and tows', [
+       ['Fraktoppdrag betales etter hvor mye som fraktes. For båter under 11 m er alt som før.', 'Freight missions are paid by how much is carried. For boats under 11 m everything is as before.'],
+       ['Båtene over 11 m får tilbud om større last: fiskekar og paller til et mottak, og fôrsekker til et oppdrettsanlegg.', 'The vessels over 11 m are offered bigger cargo: fish tubs and pallets for a landing station, and sacks of feed for a fish farm.'],
+       ['Slep: tida betales etter størrelsen på båten som slepes. Oppdrag du alt har tatt, betales som lovet.', 'Tows: the time is paid by the size of the boat towed. Missions you have taken already are paid as promised.']]],
     ['kart-271126', '27.11.2026', 'Ålesund verft', 'The yard at Ålesund', [
        ['Verftet i Ålesund ligger 25 m lenger inn langs kaia si, så utløpet fra bassenget er bredere for de større båtene.', 'The yard at Ålesund lies 25 m further in along its quay, so the way out of the basin is wider for the bigger boats.'],
        ['Sjøen tegner ikke lenger brenning midt i et basseng foran en kai.', 'The sea no longer draws surf in the middle of a basin in front of a quay.'],

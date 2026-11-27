@@ -2,6 +2,10 @@
 
 Flyttet hit fra `docs/BACKLOG.md` 12.11.2026, så backloggen bare har det som er åpent. Nye «Strøket»-avsnitt skrives øverst her (dato, steg, gren, commit). Les med `grep`; fila leses aldri hel.
 
+## Strøket 27.11.2026 (steg 155, Jonas' økt, gren `ccr-26223d0c-yhvnxv`)
+
+- **Oppdragene betalte etter båtens kapasitet, uansett last** (funnet 27.11.2026 i steg 154: en 21-meter fikk 908 600 og 787 800 kr for fraktoppdrag, det siste 400 kg tomme fiskekasser). Jonas valgte «Frakt betaler etter lasten»: `turFraktPay` og `turTowHold` i `core/09g-turer.js`, to større varer i `TUR_GOODS`, og tavla omprises ved oppdatering (`turReprice`). `tests/unit/fraktpris.test.mjs`. Foto og ekkolinje følger fortsatt båtens egen kurve; det står som eget valg i backloggen.
+
 ## Strøket 16.11.2026 (steg 132, Jonas' økt, gren `claude/blissful-cannon-ctb8e9`)
 
 - **`havplantest` «the hold at 95 %»** (rød siden 07.11.2026, i regresjonen 11., 13., 14. og 15.11.2026): meldingen om å trekke lenkene inn på magasinene kom bare når lasten passerte 95 % midt i en tur. Nå sier `plan2NewDay` den også når lasten er full når dagen legges, én gang per full last (`o.fullSaid`, `core/06h-plan2-engine.js`). Grønn i steg 132.

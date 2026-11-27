@@ -6654,3 +6654,5 @@
 2026-11-27 14:52	ccr-5e1ba2f4-pusvyd	17e452a+	kaiover	OK	129	lite	samtidig	
 2026-11-27 16:22	ccr-26223d0c-yhvnxv	5dc9b93+	admintest	OK	18	lite	samtidig	
 2026-11-27 16:22	ccr-26223d0c-yhvnxv	5dc9b93+	cloudtest	FEIL	30	lite	samtidig	avsluttet med kode 1
+2026-11-27 16:37	ccr-26223d0c-yhvnxv	5f65c4e+	turtest	FEIL	6	lite	alene	FEIL moving far makes a new board once a game day, not twice; a season's move from the oldest saves is brought down to two holds; the save comes over to the new
+2026-11-27 16:37	ccr-26223d0c-yhvnxv	5f65c4e+	turtest	OK	6	lite	alene	
