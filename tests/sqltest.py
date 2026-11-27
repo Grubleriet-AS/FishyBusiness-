@@ -1721,7 +1721,7 @@ def main():
         # back from the kept ones (f) are no marks; a million written in and paid on the loan (g) or spent on a boat (h) before the save
         # is one, a boat bought from another player is not (i), a summary from a game not yet updated marks nothing and hides nothing
         # (j), and a correction from the admin is no rise (k)
-        for k in 'abcdefghijkl':
+        for k in 'abcdefghijklmnopq':
             H['W' + k] = {'sub': hid('W' + k), 'role': 'authenticated'}; sql("select public.tm_hello('{}')", H['W' + k], 'authenticated')
         kinds = lambda k: [f['kind'] for f in flags('W' + k)]; HW = {}
         hsave('Wa', 132073, 'sjark', bank=620000, debt=700000); hsave('Wa', 551832, 'sjark', bank=200241, debt=700000); HW['a'] = kinds('a')   # (the loan keeps the account's first save near a new game's 15 000 kr)
@@ -1732,18 +1732,32 @@ def main():
         hsave('We', 1504, 'kyst21', debt=7000000); hsave('We', 910104, 'kyst21', debt=7000000); HW['e'] = kinds('e')
         hsave('Wf', 2000000, 'sjark'); sql("delete from public.cheat_flags where player_id = '%s'; delete from public.cheat_cash where player_id = '%s'" % (hid('Wf'), hid('Wf')))   # (two million from the start is a mark of its own: taken away, the kept save stays)
         hsave('Wf', 100000, 'sjark'); hsave('Wf', 2000000, 'sjark'); HW['f'] = kinds('f')
-        hsave('Wg', 50000, 'sjark', debt=5000000); hsave('Wg', 50000, 'sjark', debt=4000000); HW['g'] = flags('Wg')
+        hsave('Wg', 50000, 'sjark', debt=5000000, licv=4800000); hsave('Wg', 50000, 'sjark', debt=4000000, licv=4800000); HW['g'] = flags('Wg')   # (a sjark with the right 9–9,9 m, bought on loans)
         hsave('Wh', 20000, 'trebat'); hsave('Wh', 20000, 'trebat', 2, types=['trebat', 'plastsjark']); HW['h'] = flags('Wh')
-        hsave('Wi', 20000, 'trebat'); sql("insert into public.broker_ledger (player_id, kind, kr) values ('%s', 'boat', 0)" % hid('Wi'))
+        hsave('Wi', 20000, 'trebat'); sql("insert into public.broker_ledger (player_id, kind, kr, data) values ('%s', 'boat', 0, '{\"type\":\"plastsjark\"}')" % hid('Wi'))
         hsave('Wi', 20000, 'trebat', 2, types=['trebat', 'plastsjark']); HW['i'] = kinds('i')
         hsave('Wj', 15000); hsave('Wj', 2000000, old=True); HW['jOld'] = kinds('j'); hsave('Wj', 2000000); HW['j'] = kinds('j')
         HW['jData'] = sql("select (data ->> 'base') || ':' || (data ->> 'v') from public.cheat_flags where player_id = '%s'" % hid('Wj'))
-        hsave('Wk', 15000); sql("insert into public.fixes (player_id, kind, done_at) values ('%s', 'undo_buy', now())" % hid('Wk')); hsave('Wk', 900000); HW['k'] = kinds('k')
+        # (the game saves first and answers fix_done after, ui/10w-fix.js: the row is still open when the save with the refund comes)
+        hsave('Wk', 15000); sql("insert into public.fixes (player_id, kind) values ('%s', 'undo_buy')" % hid('Wk')); hsave('Wk', 900000); HW['k'] = kinds('k')
+        sql("update public.fixes set done_at = now() where player_id = '%s'" % hid('Wk')); hsave('Wk', 1800000); HW['k'] += kinds('k')
+        # found by the independent check of the step: «Start på nytt» from a company with more debt than its boat is worth is no rise (m),
+        # but the same debt gone with the boat still there is (n); a game not yet updated on a second device, six hours of fishing
+        # there, and back (o); and a purchase at the broker's lets that type in, not another one written in beside it (p)
+        hsave('Wm', 20000, 'kyst21', debt=13036016); hsave('Wm', 2000, 'trebat'); HW['m'] = kinds('m')
+        hsave('Wn', 20000, 'kyst21', debt=13036016); hsave('Wn', 20000, 'kyst21', debt=0); HW['n'] = kinds('n')
+        hsave('Wo', 100000, 'sjark', debt=90000); sql("update public.saves set updated_at = now() - interval '6 hours' where player_id = '%s'" % hid('Wo'))
+        hsave('Wo', 400000, 'sjark', old=True); hsave('Wo', 700000, 'sjark', debt=90000); HW['o'] = kinds('o')
+        hsave('Wp', 20000, 'trebat'); sql("insert into public.broker_ledger (player_id, kind, kr, data) values ('%s', 'boat', 0, '{\"type\":\"plastsjark\"}')" % hid('Wp'))
+        hsave('Wp', 20000, 'trebat', 3, types=['trebat', 'plastsjark', 'sjark']); HW['p'] = flags('Wp')
+        HW['pIn'] = sql("select data ->> 'in' from public.cheat_flags where player_id = '%s'" % hid('Wp'))
+        # an account that has saved before with a game not updated: its first save that can be read stands against nothing (q)
+        hsave('Wq', 15000, 'sjark', old=True); hsave('Wq', 900000, 'sjark'); HW['q'] = kinds('q')
         # … and the older list under Økonomi (cash_flags, for accounts with consent) reads the same sum: 500 000 kr from the savings is no jump, 1.5 million more is
         sql("update public.players set consent = true where id = '%s'" % hid('Wl')); nfl = lambda: int(sql("select count(*) from public.cash_flags where player_id = '%s'" % hid('Wl')))
         hsave('Wl', 20000, 'sjark', bank=600000, debt=600000); hsave('Wl', 520000, 'sjark', bank=100000, debt=600000); HW['lMove'] = nfl()
         hsave('Wl', 2020000, 'sjark', bank=100000, debt=600000); HW['lRise'] = nfl()
-        HW['priv'] = [sql(q, H['Wa'], 'authenticated', expect_err=True)[0] for q in ("select public.cheat_w('{}')", "select public.cheat_sum_ok('{}')", "select public.cheat_num('{}', 'cash')", "select * from public.cheat_step('{}', '{}', false)")]
+        HW['priv'] = [sql(q, H['Wa'], 'authenticated', expect_err=True)[0] for q in ("select public.cheat_w('{}')", "select public.cheat_sum_ok('{}')", "select public.cheat_num('{}', 'cash')", "select * from public.cheat_step('{}', '{}', '[]', false)")]
         # crab is never reported as catch, so crab landed is not held against the catch
         for i in range(7): sql("""select public.land_put(%d, 2025, 'hs5ekte', 'none', '[{"sp":"krabbe","kg":500,"kgq":0}]', 'Krabbe')""" % (3000 + i), H['8'], 'authenticated')
         sql("update public.landings set at = now() - interval '2 hours' where player_id = '%s'; update public.cheat_bucket set at = now() - interval '2 hours' where player_id = '%s'" % (hid('8'), hid('8')))
@@ -1801,6 +1815,9 @@ def main():
         print(ok([(f['kind'], f['n']) for f in HW['g']] == [('cash', 1)] and 500000 <= HW['g'][0]['over'] <= 510000 and [(f['kind'], f['n']) for f in HW['h']] == [('cash', 1)] and 530000 <= HW['h'][0]['over'] <= 540000),
               'HS5b: a million written in and paid on the loan, or spent on a boat, before the save is marked (the loans and the vessels are in the summary)', {k: HW[k] for k in 'gh'})
         print(ok(HW['jOld'] == [] and HW['j'] == ['cash'] and HW['jData'] == 'kept:2'), 'HS5b: a summary from a game not yet updated marks nothing, and the next that can be read stands against the last that could', {k: HW[k] for k in ('jOld', 'j', 'jData')})
+        print(ok(HW['m'] == [] and HW['n'] == ['cash'] and HW['o'] == [] and HW['q'] == []), 'HS5b: a new game from a company in debt is no rise (the debt gone with the boat still there is), nor is a second device with a game '
+              'not yet updated and six hours of fishing, nor the first save that can be read of an account that has saved before', {k: HW[k] for k in 'mnoq'})
+        print(ok([f['kind'] for f in HW['p']] == ['cash'] and HW['pIn'] == '1150000'), "HS5b: a purchase at the broker's lets the type bought in, and another boat written in beside it counts", {k: HW[k] for k in ('p', 'pIn')})
         print(ok(all(HW['priv'])), 'HS5b: a player cannot call the new helpers', HW['priv'])
         print(ok(HW['lMove'] == 0 and HW['lRise'] == 1), 'HS5b: the older list of jumps in the cash (cash_flags) does not count money moved from the savings, and still has a real jump', {k: HW[k] for k in ('lMove', 'lRise')})
         print(ok(all(HS['off'][k] for k in ex) and not any(HS['on'][k] for k in ex) and HS['off']['open'] - HS['on']['open'] >= w3 and HS['off']['evKg'] - HS['on']['evKg'] == w3

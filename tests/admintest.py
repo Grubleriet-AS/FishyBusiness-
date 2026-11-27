@@ -40,7 +40,7 @@ async def main():
         jc = await pg.evaluate("jkWhy({kind:'cash', data:{v:2, base:'hist', cash0:50000, cash1:50000, bank0:120000, bank1:120000, debt0:5000000, debt1:4000000, w0:-4830000, w1:-3830000, 'in':850000, out:1150000, rise:700000, hours:0.01, land:0, ledger:0, cap:2, bucket:195000, unexplained:504998, day:804998, first:false, market:true, types0:'sjark', types1:'plastsjark'}})")
         jo = await pg.evaluate("jkWhy({kind:'cash', data:{cash0:15000, cash1:1400000, hours:0.02, land:0, ledger:0, cap:300, sale:0, equity:0, unexplained:1384700, day:1385000, first:false, type0:'trebat', type1:'trebat', fleet0:1, fleet1:1}})")
         nb = lambda v: v.replace('\u00a0', ' ').replace('\u202f', ' ')
-        check(all(x in nb(jc) for x in ('Kasse og konti minus lån', 'kassa 50 000 kr', 'lån 5 000 000 kr → 4 000 000 kr', 'Ny båt teller 850 000 kr', 'Solgt båt eller hjemmel forklarer 1 150 000 kr', 'Uforklart 504 998 kr', 'Mot en bevart lagring', 'Kjøp hos megleren', 'sjark → plastsjark'))
+        check(all(x in nb(jc) for x in ('Kasse og konti minus lån', 'kassa 50 000 kr', 'lån 5 000 000 kr → 4 000 000 kr', 'Ny båt teller 850 000 kr', 'Solgt båt eller hjemmel forklarer 1 150 000 kr', 'Uforklart 504 998 kr', 'Mot en bevart lagring', 'Båt fra megleren', 'sjark → plastsjark'))
               and 'Kassa 15 000 kr → 1 400 000 kr' in nb(jo) and 'Kasse og konti' not in jo,
               'Juks: et merke på kronene sier kassa, kontiene og lånene før og etter, hva en ny båt teller og en solgt forklarer; et merke fra før leses som før', {'ny': jc, 'gammel': jo})
         # the feedback agent: its report in the Agent tab, and under a feedback its suggestion, which «Bruk forslaget» only fills in

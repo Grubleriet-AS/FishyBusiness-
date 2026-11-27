@@ -164,11 +164,16 @@ Jonas 27.11.2026: «Sjekk juksemerkingen på detstorebla.no/admin. Finn ut hva s
 | Båt kjøpt med lån og innbytte («5 % må ha vært der» kjente ikke innbyttet) | 1 | sjark mot breisjark med 13 mill. i lån |
 | Typen til båten spilleren står i, i en flåte på to | 1 (42 merker) | sjark og hurtigsjark: 375 000 kr «større flåte» ved hvert bytte |
 
-**Løsningen** står i `docs/systemer/skyen-og-felles-verden.md`, «Kronene og landingene sjekket på serveren»: sammendraget får `bank`, `debt`, `types` og `licv`, og sjekken regner på kasse + konti − lån med båtene som kom og gikk, hjemmelverdien, hver bevarte lagring som grunnlag og en bøtte for det som kommer i ett stykke. Migreringen `20261127120000_cheat_worth.sql` er «ok» i `tools/ci/migsjekk.py` (bare tillegg: tre kolonner i `cheat_cash`, fire små funksjoner, og kroppen i triggerfunksjonen).
+**Løsningen** står i `docs/systemer/skyen-og-felles-verden.md`, «Kronene og landingene sjekket på serveren»: sammendraget får `bank`, `debt`, `types` og `licv`, og sjekken regner på kasse + konti − lån med båtene som kom og gikk, hjemmelverdien, hver bevarte lagring som grunnlag og en bøtte for det som kommer i ett stykke. Migreringen `20261127120000_cheat_worth.sql` er «ok» i `tools/ci/migsjekk.py` (bare tillegg: tre kolonner i `cheat_cash`, fire små funksjoner, og kroppen i de to triggerfunksjonene `saves_cheat_check` og `saves_cash_check`).
 
-**Det som er svakt, og som står:**
-- En lagring fra et spill uten de nye feltene sjekkes ikke for kroner. Når ingen slike versjoner er i bruk, kan en slik lagring i stedet gi merke; det er en egen, liten endring.
-- Regnskapene til de tolv kontoene er kjørt gjennom regelen med flåten kontoene har nå, ikke den de hadde da hver postering ble ført. Med alle regnet som trebåt (det strengeste) gir bare kontoen med oppdrag på 150 000 til 908 600 kr merker.
+**Den uavhengige kontrollen (`/kontroll`, 27.11.2026)** sjekket de fem punktene og fant fire feil, som er rettet og står i `tests/sqltest.py`, sett røde først: vernet for admin-korrigeringer virket ikke i spillets rekkefølge (spillet lagrer før `fix_done`; 1 019 996 kr over for en sjarkny tilbake til hurtigsjark), «Start på nytt» fra et rederi med gjeld ga merke (3 768 016 kr over fra en kyst21 med 13 mill. i gjeld), en annen enhet med et eldre spill ga merke når man kom tilbake (timene ble regnet fra den uleselige lagringen), og én rad hos megleren slapp inn alle båter (en pelagisk skrevet inn).
+
+**Det som er svakt, og som står** (de to første er punkter i `docs/BACKLOG.md`):
+- En lagring fra et spill uten de nye feltene sjekkes ikke for kroner.
+- Den eldste av de ti bevarte lagringene tatt tilbake gir merke (`save_keep` sletter den før sjekken kjører). Slik var det også før HS5b.
+- En million skrevet inn går gjennom for en flåte over rundt 23 tonn last (kyst15 og større): bøtta som slipper oppdraget på 908 600 kr gjennom, slipper også det. Funksjonen fra 10.11.2026 merket det.
+- En hjemmel som kommer til, telles ikke, så penger skrevet inn og brukt på en hjemmel vises ikke (hjemmelverdien følger kvoteprisen, og en økning kan ikke skilles fra den).
+- Regnskapene til de tolv kontoene er kjørt gjennom regelen med flåten kontoene har nå, ikke den de hadde da hver postering ble ført, og uten båt- og landingsposteringene. Med alle regnet som trebåt (det strengeste) gir bare kontoen med oppdrag på 150 000 til 908 600 kr merker.
 - Bøtta og taket per time følger lasten i `cheat_vt`, ikke et ombygd lasterom.
 
 **Det undersøkelsen fant som ikke er juks i lagringen, men et hull i reglene:** vederlaget på 20 % for inndratt fangst (`CONF_PAY` i `core/03l-room.js`, `fine:0` i sluttseddelen). Én konto fisket med en 21-meter uten hjemmel og fikk 5,38 mill. kr i vederlag for 26,9 mill. kr inndratt på de siste 60 sluttsedlene. Det står som eget punkt i `docs/BACKLOG.md`; valget er Jonas'.

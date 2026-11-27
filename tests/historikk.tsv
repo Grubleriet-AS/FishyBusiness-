@@ -6612,3 +6612,5 @@
 2026-11-27 11:37	ccr-26223d0c-yhvnxv	4585f5d+	admintest	OK	15	lite	samtidig	
 2026-11-27 11:38	ccr-26223d0c-yhvnxv	4585f5d+	synctest	OK	73	lite	samtidig	
 2026-11-27 11:41	ccr-26223d0c-yhvnxv	4585f5d+	cloudtest	FEIL	27	lite	alene	FEIL the summary has the accounts, the loans, the vessel types and the value of the rights  {"cash": 2000, "bank": null, "debt": null, "types": null, "licv": nu
+2026-11-27 12:04	ccr-26223d0c-yhvnxv	0d55863+	admintest	OK	16	lite	samtidig	
+2026-11-27 12:04	ccr-26223d0c-yhvnxv	0d55863+	cloudtest	OK	32	lite	samtidig	
