@@ -112,6 +112,35 @@ try: _no_live()
 except ImportError: pass
 
 
+# A screenshot gets at least SHOT_MIN, times KYST_TIDSFAKTOR (27.11.2026). In the regression on GitHub's machines (regresjon.yml, the
+# night to Monday 23.11.2026) nine tests ended the same way, twice each, «Page.screenshot: Timeout … exceeded», the call log ending in
+# «fonts loaded»: aurorashot, skoddeshot, deckshot, workshot, brotest, h2dshot and camtest on the page's default of 120 s (boot),
+# vessel3d on its own default of 120 s and ultratest on the 120 s it gives each picture. The tests that give their pictures 300 s
+# themselves (sunshot, kaishot, wetshot, havnshot and more) were green on the same machines that night. SwiftShader draws on the CPU, a
+# picture waits for a frame, and those machines draw slower than the sessions' (KYST_TIDSFAKTOR, which until now only tests/run.py read,
+# for the limit of a whole test). A picture's limit is no check: a limit a test sets higher stands, 0 (no limit) stays 0, and a picture
+# that hangs is still stopped, by this limit and by run.py's for the whole test.
+SHOT_MIN = 300000
+TIDSFAKTOR = float(os.environ.get('KYST_TIDSFAKTOR') or 1)
+def shot_limit(given, default, factor=TIDSFAKTOR):
+    """The time-out in ms of a screenshot: what the test gave (None: the page's default), but at least SHOT_MIN × factor."""
+    t = default if given is None else given
+    return 0 if t == 0 else max(t, SHOT_MIN * factor)
+def _shot_time():
+    from playwright.async_api import Page
+    if getattr(Page.screenshot, '_dsb', False): return
+    shot0 = Page.screenshot
+    async def screenshot(self, **kw):
+        try: d = self._impl_obj._timeout_settings.timeout()
+        except Exception: d = 30000
+        kw['timeout'] = shot_limit(kw.get('timeout'), d)
+        return await shot0(self, **kw)
+    screenshot._dsb = True
+    Page.screenshot = screenshot
+try: _shot_time()
+except ImportError: pass
+
+
 async def boot(pg, url=None):
     """Open the game and press «Start» on the first screen. It waits for the page and the start, not for fixed pauses."""
     # the software GPU of the test machine draws only a few 3D frames a second (05.10.2026): a screenshot or a wait without its own
