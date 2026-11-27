@@ -63,13 +63,13 @@ def main():
             p = run('psql', '-h', sock, '-U', user, '-d', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q', '-f', m)
             print(ok(p.returncode == 0), 'the migration runs on PostgreSQL:', os.path.basename(m), p.stderr.strip()[-300:] if p.returncode else '')
             if p.returncode: return
-        # Black Week (27.11.2026, 20261127120000_blackweek.sql, docs/planer/svart-fredag.md): the pack is sold till its end and refused from
+        # Black Week (27.11.2026, 20261127130000_blackweek.sql, docs/planer/svart-fredag.md): the pack is sold till its end and refused from
         # it with nobody there to switch it off; every account here when the file runs gets the gift once, a second run gives no more, an
         # account that registers while the offer lasts gets it with its welcome gift, a guest and one that comes after the end do not;
         # the gift cannot be bought; a purchase of the pack gives 10 haill, a trim and a Skippertak. The end is a date in the file: the
         # checks move it round their own «now» (the file run with its date in the future, the product's end put in the past), and leave
         # the offer over, so nothing here or below depends on the day the test runs
-        BWF = os.path.join(ROOT, 'supabase', 'migrations', '20261127120000_blackweek.sql'); BWS = open(BWF, encoding='utf-8').read() if os.path.exists(BWF) and os.environ.get('SQL_BW') != '0' else ''
+        BWF = os.path.join(ROOT, 'supabase', 'migrations', '20261127130000_blackweek.sql'); BWS = open(BWF, encoding='utf-8').read() if os.path.exists(BWF) and os.environ.get('SQL_BW') != '0' else ''
         bwEnd = lambda iso: sql("update public.products set data = jsonb_set(data, '{until}', to_jsonb('%s'::text)) where id = 'pakke_blackweek'" % iso)
         bwN = lambda who: sql("select count(*) from public.grants where player_id = '%s' and data ? 'bw'" % who)
         bwQ = lambda prod, who: sql("select public.shop_quote('%s')" % prod, who, 'authenticated', expect_err=True)
@@ -86,7 +86,7 @@ def main():
         BW['reg'] = [bwN('user_01BW1'), bwN(WG['sub'])] + sql("select coalesce((select data::text from public.grants where player_id = 'user_01BW1' and data ? 'bw'), '') || '|' || coalesce((select product_id from public.grants where player_id = 'user_01BW1' and data ? 'bw'), '')").split('|')
         BW['pend'] = [g['data'] for g in json.loads(sql("select public.shop_pending()", W1, 'authenticated')) if g['data'].get('bw')]
         q = bwQ('pakke_blackweek', W1); BW['quote'] = json.loads(sql("select public.shop_quote('pakke_blackweek')", W1, 'authenticated')) if not q[0] else {'err': q[1]}
-        BW['lop'] = sql("select public.lop_trim('user_01BW1') || '/' || public.lop_trim('user_01BW2')")   # (the race's speed guard knows the Turbotrim the gift is, 20261127121000_lop_trim.sql)
+        BW['lop'] = sql("select public.lop_trim('user_01BW1') || '/' || public.lop_trim('user_01BW2')")   # (the race's speed guard knows the Turbotrim the gift is, 20261127131000_lop_trim.sql)
         sql("insert into public.purchases (id, player_id, product_id, amount_nok, status, data) values ('cs_bw1', 'user_01BW1', 'pakke_blackweek', 499, 'open', '{\"boat\":\"v1\"}') on conflict do nothing", expect_err=True)
         sql("select public.shop_paid('cs_bw1', 'pi_bw1')", expect_err=True)
         BW['paid'] = sql("select coalesce(string_agg(x, ',' order by x), '') from (select (data ->> 'give') || coalesce(':' || (data ->> 'k'), '') || 'x' || count(*) x from public.grants where purchase_id = 'cs_bw1' group by data ->> 'give', data ->> 'k') y")

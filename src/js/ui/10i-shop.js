@@ -37,7 +37,7 @@ const SHOP_PRODUCT = {haill:'haill', luksus:'luksus', pump:'trim_pump', ic:'trim
   // lengths, the season pack
   hp_h1:'haill', hp_h3:'haill_3', hp_h8:'haill_8', t2:'trim_2', t8:'trim_8', t24:'trim_24', t72:'trim_72',
   sk_s2:'skip_2', sk_s8:'skip_8', sk_s24:'skip_24', sk_s72:'skip_72', pk_sesong:'pakke_sesong',
-  pk_blackweek:'pakke_blackweek'};   // (Black Week, 27.11.2026, supabase/migrations/20261127120000_blackweek.sql: sold till PACKS.blackweek.until)
+  pk_blackweek:'pakke_blackweek'};   // (Black Week, 27.11.2026, supabase/migrations/20261127130000_blackweek.sql: sold till PACKS.blackweek.until)
   // (the hop over the rest of a route, HO3, ui/10u-hopp.js: the price is the server's for the minutes, shop_quote_hop)
 const shopFn = () => CLOUD_CFG.supabaseUrl.replace(/\/$/, '') + '/functions/v1/shop-checkout';
 const shopL = (no, en) => S.lang === 'en' ? en : no;

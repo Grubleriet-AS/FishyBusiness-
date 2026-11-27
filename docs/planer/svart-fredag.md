@@ -1,6 +1,6 @@
 # Black Week: tilbudet i Kaiboden (plan 27.11.2026)
 
-Status: **plan, ingenting bygd. Valgene er tatt** (Jonas 27.11.2026): V1 A, ny pakke og gave; V2 B, bare Black Week, til og med mandag 30.11, med datoen på kortet; V3 A, 499 kr; V4 A, Turbotrim 2 timer. **SF1 og SF2 er bygd** (steg 154, 27.11.2026, Jonas: «Kjør på. Husk at vi må selge, og at vi må bruke alle psykologiske triggere og faktorer i hvordan vi utløser mer-salg!»), som én PR til Jonas. Se «Bygd» nederst.
+Status: **plan, ingenting bygd. Valgene er tatt** (Jonas 27.11.2026): V1 A, ny pakke og gave; V2 B, bare Black Week, til og med mandag 30.11, med datoen på kortet; V3 A, 499 kr; V4 A, Turbotrim 2 timer. **SF1 og SF2 er bygd** (steg 156, 27.11.2026, Jonas: «Kjør på. Husk at vi må selge, og at vi må bruke alle psykologiske triggere og faktorer i hvordan vi utløser mer-salg!»), som én PR til Jonas. Se «Bygd» nederst.
 
 ## Hva Jonas ba om
 
@@ -104,7 +104,7 @@ Leses i `purchases` og `grants`, bare summer: pakkens kjøp per døgn og hvor ma
 - Retter ikke betalingene som løper ut, og samler ikke små hopp i klipp: det er egne avgjørelser.
 - Ingen e-post eller annonsering utenfor spillet.
 
-## Bygd (steg 154, 27.11.2026)
+## Bygd (steg 156, 27.11.2026)
 
 **Endret under byggingen:** pakken har **10 haill**, ikke 8, og verdien regnes mot den billigste veien butikken selger det samme (8-pakken til 229 kr og to enkle): 905 kr, «Spar 45 %», «Du sparer 406 kr». Kontrollen fant at 910 kr og 411 kr regnet åtte haill til enkeltpris mens 8-pakken sto ved siden av (da er det reelle 827 kr, 328 kr og 40 %). Jonas, spurt om tallet: «Velg en pris som treffer psykologiske kjøps-triggere.» Valgt: prisen 499 kr står (under 500, og det dobbelte av Sjøværspakken), og to haill til gjør at 45 % er sant også ved strengeste utregning. Tallene 910, 411 og «8 haill» lenger opp i planen er de fra før dette. Sjøværspakken sier med samme regel «Spar 43 %» (før 45).
 
