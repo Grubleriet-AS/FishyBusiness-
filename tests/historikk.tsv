@@ -6611,6 +6611,16 @@
 2026-11-26 15:17	ccr-5e1ba2f4-pusvyd	49bcaf7	maptest	OK	16	lite	alene	
 2026-11-26 15:18	ccr-5e1ba2f4-pusvyd	49bcaf7	routetest	FEIL	45	lite	alene	FEIL Kast loss setter ruta i gang, og kartplotteren står åpen  {'plan': False, 'plot': True, 'g3': False}
 2026-11-26 15:18	ccr-5e1ba2f4-pusvyd	49bcaf7	maptest	OK	16	lite	alene	
+2026-11-27 11:36	ccr-26223d0c-yhvnxv	4585f5d+	cloudtest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-27 11:36	ccr-26223d0c-yhvnxv	4585f5d+	admintest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-27 11:36	ccr-26223d0c-yhvnxv	4585f5d+	synctest	FEIL	0	lite	samtidig	avsluttet med kode 1
+2026-11-27 11:37	ccr-26223d0c-yhvnxv	4585f5d+	cloudtest	OK	31	lite	samtidig	
+2026-11-27 11:37	ccr-26223d0c-yhvnxv	4585f5d+	admintest	OK	15	lite	samtidig	
+2026-11-27 11:38	ccr-26223d0c-yhvnxv	4585f5d+	synctest	OK	73	lite	samtidig	
+2026-11-27 11:41	ccr-26223d0c-yhvnxv	4585f5d+	cloudtest	FEIL	27	lite	alene	FEIL the summary has the accounts, the loans, the vessel types and the value of the rights  {"cash": 2000, "bank": null, "debt": null, "types": null, "licv": nu
+2026-11-27 12:04	ccr-26223d0c-yhvnxv	0d55863+	admintest	OK	16	lite	samtidig	
+2026-11-27 12:04	ccr-26223d0c-yhvnxv	0d55863+	cloudtest	OK	32	lite	samtidig	
+2026-11-27 12:05	ccr-26223d0c-yhvnxv	f3a5d6a	admintest	OK	14	lite	alene	
 2026-11-27 13:15	ccr-5e1ba2f4-pusvyd	111d7cc	admintest	OK	15	lite	alene	
 2026-11-27 13:16	ccr-5e1ba2f4-pusvyd	111d7cc+	dbg23o	FEIL	33	3d	alene	avsluttet med kode 1
 2026-11-27 13:30	ccr-5e1ba2f4-pusvyd	111d7cc+	seabedtest	OK	845	3d	alene	
@@ -6645,6 +6655,60 @@
 2026-11-27 12:01	ccr-1a8b7d9a-89hfb6	6d730954+	bwtest	OK	71	lite	samtidig	
 2026-11-27 12:32	ccr-1a8b7d9a-89hfb6	a2304bf4+	kjoptest	OK	197	lite	samtidig	
 2026-11-27 12:32	ccr-1a8b7d9a-89hfb6	a2304bf4+	fasittest	OK	48	lite	samtidig	
+2026-11-27 13:53	ccr-fad26a43-94u8ir	cb21d6c+	tabtest	OK	39	lite	samtidig	
+2026-11-27 13:54	ccr-fad26a43-94u8ir	cb21d6c+	synctest	OK	75	lite	samtidig	
+2026-11-27 13:54	ccr-fad26a43-94u8ir	cb21d6c+	cloudtest	OK	32	lite	samtidig	
+2026-11-27 13:54	ccr-fad26a43-94u8ir	cb21d6c+	errtest	OK	23	lite	samtidig	
+2026-11-27 13:55	ccr-fad26a43-94u8ir	cb21d6c+	guesttest	OK	66	lite	samtidig	
+2026-11-27 13:55	ccr-fad26a43-94u8ir	cb21d6c+	pwatest	OK	33	lite	samtidig	
+2026-11-27 13:55	ccr-fad26a43-94u8ir	cb21d6c+	boottest	OK	11	lite	samtidig	
+2026-11-27 13:55	ccr-fad26a43-94u8ir	cb21d6c+	pushtest	OK	23	lite	samtidig	
+2026-11-27 13:57	ccr-fad26a43-94u8ir	cb21d6c+	starttest	OK	144	lite	samtidig	
+2026-11-27 13:57	ccr-fad26a43-94u8ir	cb21d6c+	bootgtest	OK	99	lite	samtidig	
+2026-11-27 13:58	ccr-fad26a43-94u8ir	cb21d6c+	hengtest	OK	102	lite	samtidig	
+2026-11-27 13:58	ccr-fad26a43-94u8ir	cb21d6c+	vervtest	OK	7	lite	samtidig	
+2026-11-27 13:58	ccr-fad26a43-94u8ir	cb21d6c+	kanaltest	OK	35	lite	samtidig	
+2026-11-27 13:58	ccr-fad26a43-94u8ir	cb21d6c+	nedetest	OK	22	lite	samtidig	
+2026-11-27 13:58	ccr-fad26a43-94u8ir	cb21d6c+	lagrefeiltest	OK	7	lite	samtidig	
+2026-11-27 13:58	ccr-fad26a43-94u8ir	cb21d6c+	hoppskytest	OK	15	lite	samtidig	
+2026-11-27 14:07	ccr-fad26a43-94u8ir	cb21d6c+	sportest	OK	529	3d	alene	
+2026-11-27 15:01	ccr-fad26a43-94u8ir	cb21d6c+	boottest	OK	12	lite	samtidig	
+2026-11-27 15:03	ccr-fad26a43-94u8ir	cb21d6c+	starttest	OK	128	lite	samtidig	
+2026-11-27 15:03	ccr-fad26a43-94u8ir	cb21d6c+	bootgtest	OK	102	lite	samtidig	
+2026-11-27 15:03	ccr-fad26a43-94u8ir	cb21d6c+	jukseboot	OK	11	lite	samtidig	
+2026-11-27 15:03	ccr-fad26a43-94u8ir	cb21d6c+	savestest	OK	8	lite	samtidig	
+2026-11-27 15:03	ccr-fad26a43-94u8ir	cb21d6c+	trip2	OK	12	lite	samtidig	
+2026-11-27 15:03	ccr-fad26a43-94u8ir	cb21d6c+	worldtest	OK	19	lite	samtidig	
+2026-11-27 15:03	ccr-fad26a43-94u8ir	cb21d6c+	havnstengt	OK	11	lite	samtidig	
+2026-11-27 15:04	ccr-fad26a43-94u8ir	cb21d6c+	planhjem	OK	16	lite	samtidig	
+2026-11-27 15:04	ccr-fad26a43-94u8ir	cb21d6c+	kalendertest	OK	14	lite	samtidig	
+2026-11-27 15:04	ccr-fad26a43-94u8ir	cb21d6c+	hopptest	OK	8	lite	samtidig	
+2026-11-27 15:04	ccr-fad26a43-94u8ir	cb21d6c+	fasittest	OK	45	lite	samtidig	
+2026-11-27 15:04	ccr-fad26a43-94u8ir	cb21d6c+	hoppskytest	OK	24	lite	samtidig	
+2026-11-27 14:16	ccr-5e1ba2f4-pusvyd	7aa02fe+	dbg23o	OK	116	3d	alene	
+2026-11-27 14:50	ccr-5e1ba2f4-pusvyd	17e452a+	npctest	OK	11	lite	samtidig	
+2026-11-27 14:52	ccr-5e1ba2f4-pusvyd	17e452a+	kaiover	OK	129	lite	samtidig	
+2026-11-27 16:22	ccr-26223d0c-yhvnxv	5dc9b93+	admintest	OK	18	lite	samtidig	
+2026-11-27 16:22	ccr-26223d0c-yhvnxv	5dc9b93+	cloudtest	FEIL	30	lite	samtidig	avsluttet med kode 1
+2026-11-27 16:37	ccr-26223d0c-yhvnxv	5f65c4e+	turtest	FEIL	6	lite	alene	FEIL moving far makes a new board once a game day, not twice; a season's move from the oldest saves is brought down to two holds; the save comes over to the new
+2026-11-27 16:37	ccr-26223d0c-yhvnxv	5f65c4e+	turtest	OK	6	lite	alene	
+2026-11-27 16:52	ccr-26223d0c-yhvnxv	063d756+	turtest	OK	6	lite	alene	
+2026-11-27 16:41	ccr-fad26a43-94u8ir	355cf44+	boottest	OK	13	lite	samtidig	
+2026-11-27 16:43	ccr-fad26a43-94u8ir	355cf44+	starttest	OK	136	lite	samtidig	
+2026-11-27 16:43	ccr-fad26a43-94u8ir	355cf44+	bootgtest	OK	105	lite	samtidig	
+2026-11-27 16:43	ccr-fad26a43-94u8ir	355cf44+	jukseboot	OK	12	lite	samtidig	
+2026-11-27 16:43	ccr-fad26a43-94u8ir	355cf44+	savestest	OK	8	lite	samtidig	
+2026-11-27 16:43	ccr-fad26a43-94u8ir	355cf44+	trip2	OK	12	lite	samtidig	
+2026-11-27 16:43	ccr-fad26a43-94u8ir	355cf44+	worldtest	OK	20	lite	samtidig	
+2026-11-27 16:43	ccr-fad26a43-94u8ir	355cf44+	havnstengt	OK	12	lite	samtidig	
+2026-11-27 16:43	ccr-fad26a43-94u8ir	355cf44+	planhjem	OK	17	lite	samtidig	
+2026-11-27 16:43	ccr-fad26a43-94u8ir	355cf44+	kalendertest	OK	16	lite	samtidig	
+2026-11-27 16:45	ccr-fad26a43-94u8ir	355cf44+	synctest	OK	77	lite	samtidig	
+2026-11-27 16:45	ccr-fad26a43-94u8ir	355cf44+	cloudtest	OK	34	lite	samtidig	
+2026-11-27 16:45	ccr-fad26a43-94u8ir	355cf44+	tabtest	OK	42	lite	samtidig	
+2026-11-27 16:46	ccr-fad26a43-94u8ir	355cf44+	guesttest	OK	70	lite	samtidig	
+2026-11-27 16:46	ccr-fad26a43-94u8ir	355cf44+	lagrefeiltest	OK	8	lite	samtidig	
+2026-11-27 16:46	ccr-fad26a43-94u8ir	355cf44+	hoppskytest	OK	34	lite	samtidig	
 2026-11-27 14:14	ccr-b7b2f394-jdf54x	46aad05+	worktest	OK	11	lite	samtidig	
 2026-11-27 14:14	ccr-b7b2f394-jdf54x	46aad05+	trip2	OK	14	lite	samtidig	
 2026-11-27 14:15	ccr-b7b2f394-jdf54x	46aad05+	docktest	OK	68	lite	samtidig	
@@ -6653,3 +6717,6 @@
 2026-11-27 14:52	ccr-5e1ba2f4-pusvyd	17e452a+	kaiover	OK	129	lite	samtidig	
 2026-11-27 16:59	ccr-b7b2f394-jdf54x	f05556a	worktest	OK	14	lite	samtidig	
 2026-11-27 16:59	ccr-b7b2f394-jdf54x	f05556a	trip2	OK	17	lite	samtidig	
+2026-11-27 17:13	ccr-26223d0c-yhvnxv	d0761e2+	turtest	OK	6	lite	samtidig	
+2026-11-27 17:13	ccr-26223d0c-yhvnxv	d0761e2+	admintest	OK	15	lite	samtidig	
+2026-11-27 17:13	ccr-26223d0c-yhvnxv	d0761e2+	cloudtest	FEIL	26	lite	samtidig	avsluttet med kode 1

@@ -203,7 +203,7 @@ Placeholder prices (NOK/kg, grade A) – to be tuned
   - 439 `reqFill(eq, type)`
   - 457 `lsaOf(V)`
 
-## `src/js/core/03-simulation.js` (1599 linjer)
+## `src/js/core/03-simulation.js` (1611 linjer)
 
 fleet: each vessel keeps its own state; the company holds the rest. The simulation steps through the vessels one at a
 
@@ -399,56 +399,57 @@ fleet: each vessel keeps its own state; the company holds the rest. The simulati
   - 1289 `trekkOf(total, len)`
   - 1294 `fmInit()`
   - 1296 `fmLand(total)`
-  - 1305 `takeLoan(amount, months, k)`
-  - 1309 `payDown(x)`
-  - 1315 `deal(price, ti, inn)`
-  - 1322 `finance(x, months)`
-- **1325** an admin's correction: a vessel bought by trade-in, taken back (26.11.2026, Jonas: «Gi han tilbake båten og pengene som om kjøpet
-  - 1336 `undoBuyKr(to, from)`
-  - 1348 `undoBuyWhy(d)`
-  - 1362 `undoBuyApply(d)`
-  - 1395 `lenGroup()`
-  - 1396 `codLimits(H)`
-  - 1401 `codOpen(H)`
-  - 1402 `codLimitNow(H)`
-- **1403** haill: luck from the quay. Fresh goods: full effect for two days, fading to nothing on day seven. Sold for real money only (test mode now) or won at the pub.
-  - 1439 `haillBoost()`
-  - 1440 `haillLeft()`
-  - 1441 `haillStage()`
-  - 1443 `haillF()`
-  - 1444 `luck(sp)`
-  - 1448 `haillCap()`
-  - 1457 `haillInit()`
-  - 1465 `haillFromSrv(loc, srv, wait)`
-  - 1472 `srvToT(m, srvNow, t, world)`
-  - 1473 `tToSrv(m, srvNow, t, world)`
-  - 1476 `boostSrv(list, stack, now)`
-  - 1478 `haillMirror(list, used)`
-  - 1482 `haillStock(inv, srv, used)`
-  - 1487 `giveHaill(type, how, id)`
-  - 1492 `useHaill(type)`
-  - 1506 `pubEvening(H)`
-  - 1507 `pubOpen(H)`
-  - 1510 `capHold()`
-  - 1512 `cargoRoom()`
-  - 1514 `cargoMin(kg)`
-- **1515** the daily login bonus: each real calendar day you open the game adds a point to a bonus on the fish price; each day
-  - 1518 `streakState()`
-  - 1519 `streakPct()`
-  - 1520 `streakTouch()`
-- **1531** cold: effective temperature from air temperature and wind, plus wet from rain, snow and spray. Cold, wet hands fish worse;
-  - 1535 `effTemp(H)`
-  - 1536 `coldPen(H, hs)`
-- **1543** orders from buyers and customers: species, amount, quality, deadline and a price premium; reputation builds with each buyer
-  - 1558 `gradeOk(g, q)`
-  - 1559 `ordState()`
-  - 1562 `custNear(c)`
-  - 1567 `repOf(id)`
-  - 1569 `bkOrderable(H)`
-  - 1571 `bkPlant(id)`
-  - 1572 `custSp(c)`
-  - 1573 `spCatchable(sp, H)`
-  - 1575 `ordersTick(H)`
+  - 1310 `saveWorth(o)`
+  - 1317 `takeLoan(amount, months, k)`
+  - 1321 `payDown(x)`
+  - 1327 `deal(price, ti, inn)`
+  - 1334 `finance(x, months)`
+- **1337** an admin's correction: a vessel bought by trade-in, taken back (26.11.2026, Jonas: «Gi han tilbake båten og pengene som om kjøpet
+  - 1348 `undoBuyKr(to, from)`
+  - 1360 `undoBuyWhy(d)`
+  - 1374 `undoBuyApply(d)`
+  - 1407 `lenGroup()`
+  - 1408 `codLimits(H)`
+  - 1413 `codOpen(H)`
+  - 1414 `codLimitNow(H)`
+- **1415** haill: luck from the quay. Fresh goods: full effect for two days, fading to nothing on day seven. Sold for real money only (test mode now) or won at the pub.
+  - 1451 `haillBoost()`
+  - 1452 `haillLeft()`
+  - 1453 `haillStage()`
+  - 1455 `haillF()`
+  - 1456 `luck(sp)`
+  - 1460 `haillCap()`
+  - 1469 `haillInit()`
+  - 1477 `haillFromSrv(loc, srv, wait)`
+  - 1484 `srvToT(m, srvNow, t, world)`
+  - 1485 `tToSrv(m, srvNow, t, world)`
+  - 1488 `boostSrv(list, stack, now)`
+  - 1490 `haillMirror(list, used)`
+  - 1494 `haillStock(inv, srv, used)`
+  - 1499 `giveHaill(type, how, id)`
+  - 1504 `useHaill(type)`
+  - 1518 `pubEvening(H)`
+  - 1519 `pubOpen(H)`
+  - 1522 `capHold()`
+  - 1524 `cargoRoom()`
+  - 1526 `cargoMin(kg)`
+- **1527** the daily login bonus: each real calendar day you open the game adds a point to a bonus on the fish price; each day
+  - 1530 `streakState()`
+  - 1531 `streakPct()`
+  - 1532 `streakTouch()`
+- **1543** cold: effective temperature from air temperature and wind, plus wet from rain, snow and spray. Cold, wet hands fish worse;
+  - 1547 `effTemp(H)`
+  - 1548 `coldPen(H, hs)`
+- **1555** orders from buyers and customers: species, amount, quality, deadline and a price premium; reputation builds with each buyer
+  - 1570 `gradeOk(g, q)`
+  - 1571 `ordState()`
+  - 1574 `custNear(c)`
+  - 1579 `repOf(id)`
+  - 1581 `bkOrderable(H)`
+  - 1583 `bkPlant(id)`
+  - 1584 `custSp(c)`
+  - 1585 `spCatchable(sp, H)`
+  - 1587 `ordersTick(H)`
 
 ## `src/js/core/03b-sea.js` (313 linjer)
 
@@ -1724,97 +1725,99 @@ Merker: «Første uke på sjøen» and the long badges (Jonas 07.10.2026; docs/e
 - **240** the first tow and the first repair are free (core/05-vessels.js rescue, hullRepair)
   - 241 `freeFirst(k)`
 
-## `src/js/core/09g-turer.js` (1038 linjer)
+## `src/js/core/09g-turer.js` (1071 linjer)
 
 Turoppdrag: missions from where the boat is (07.10.2026; docs/engasjement.md point 4)
 
 - **1** Turoppdrag: missions from where the boat is (07.10.2026; docs/engasjement.md point 4)
-  - 84 `turState()`
-  - 90 `turRebase(T)`
-  - 104 `turV()`
-  - 105 `turRange()`
-  - 110 `turCap()`
-  - 114 `turOwn()`
-  - 125 `turRate()`
-  - 127 `turWeek()`
-  - 131 `turSlow()`
-  - 133 `turFinal(m)`
-  - 135 `turSpOk(sp)`
-  - 139 `turForm()`
-  - 141 `turClass(hGame)`
-  - 146 `turFishH(kg, sp)`
-  - 162 `turCan(a, b, hGame, back, fc = true)`
-- **172** the quotas: what is left to land of a species (kg; Infinity where nothing limits it)
-  - 178 `turRoom(sp, H)`
-- **186** the offers
-  - 187 `turPlants()`
-  - 192 `turMe()`
-  - 198 `turOrder(cand, me)`
-  - 200 `turBest(o, cls, used, me = turMe()`
-  - 207 `turBestAt(o, q, h, cls, me)`
-  - 223 `turFrakt(o, cls, used, me = turMe()`
-- **239** something happens under way
-  - 242 `turEventRoll(m)`
-  - 248 `turTipAt(m)`
-  - 255 `turEventFire(m, b)`
-- **274** the search: where does the species stand
-  - 277 `turLeteSamples(c, sp, H)`
-  - 285 `turLeteQs(c, sp, samples)`
-  - 302 `turLete(o, cls, me = turMe()`
-  - 324 `turLeteMinute(m, b)`
-  - 337 `turLetePlace(p)`
-  - 345 `turLeteAnswer(id, qi, opt)`
-- **362** the people: who sends a mission, and what they remember
-  - 367 `turManagerSays(m, n)`
-  - 377 `turAsk(T = turState()`
-- **391** the chain: three links for a manager who knows the boat (docs/planer/oppdrag-2.md K1, Jonas 30.10.2026 «Ja»)
-  - 401 `turChainNext(prev)`
-  - 422 `turChainEnd(m, ok)`
-- **431** the first mission
-  - 434 `turFirst(o)`
-  - 449 `turFirstEnsure(T = turState()`
-  - 460 `turGarn(o)`
-  - 478 `turValue(L)`
-  - 485 `turSlep(o, cls, fix = null)`
-  - 507 `turSos(Q)`
-  - 531 `turNpcs()`
-  - 544 `turMinute()`
-  - 573 `turStuck(T, b)`
-  - 582 `turProveMinute(m, b)`
-  - 606 `turSesong(o)`
-  - 627 `turStages(m)`
-  - 634 `turSesongStage(m)`
-- **647** survey fishing for Havforskningsinstituttet
-  - 654 `turProve(o, cls, fix = null)`
-  - 684 `turProveFish(m)`
-  - 697 `turProveDone(m)`
-  - 704 `turEkkoSaw(m)`
-- **712** a picture of a lighthouse for Kystposten
-  - 722 `turLysNext(m, from)`
-  - 725 `turFoto(o, cls, near = null, fix = null)`
-  - 748 `turFotoAt()`
-  - 751 `turFotoTake(m, seen, img)`
-  - 771 `turMake()`
-  - 797 `turEnsure(force)`
-  - 818 `turWay()`
-  - 825 `turDetour(m, way = turWay()`
-- **837** taking, doing and finishing
-  - 838 `turTake(id)`
-  - 866 `turDrop(id)`
-  - 871 `cargoJob(kg, no, en, out)`
-  - 872 `turLoad(m)`
-  - 881 `turSpawn(m)`
-  - 900 `turEnd(m, ok, why, how)`
-  - 919 `turPayOut(m, from, no, en, part)`
-  - 928 `turDock(pid)`
-  - 945 `turSale(pid, bySp)`
-  - 958 `turHauled(s)`
-  - 962 `turHour()`
-  - 981 `turWhat(m)`
-- **993** the trip as it starts: when it will be there, and a word from the crew (or the memory of Father, alone aboard)
-  - 1007 `turSay(who, no, en, k)`
-  - 1012 `turDepart()`
-  - 1032 `turMechanic()`
+  - 87 `turState()`
+  - 94 `turReprice(T)`
+  - 104 `turRebase(T)`
+  - 119 `turV()`
+  - 120 `turRange()`
+  - 126 `turCap()`
+  - 130 `turOwn()`
+  - 141 `turRate()`
+  - 143 `turWeek()`
+  - 147 `turSlow()`
+  - 149 `turFinal(m)`
+  - 151 `turSpOk(sp)`
+  - 155 `turForm()`
+  - 172 `turTowHold(L)`
+  - 173 `turClass(hGame)`
+  - 178 `turFishH(kg, sp)`
+  - 194 `turCan(a, b, hGame, back, fc = true)`
+- **204** the quotas: what is left to land of a species (kg; Infinity where nothing limits it)
+  - 210 `turRoom(sp, H)`
+- **218** the offers
+  - 219 `turPlants()`
+  - 224 `turMe()`
+  - 230 `turOrder(cand, me)`
+  - 232 `turBest(o, cls, used, me = turMe()`
+  - 239 `turBestAt(o, q, h, cls, me)`
+  - 255 `turFrakt(o, cls, used, me = turMe()`
+- **271** something happens under way
+  - 274 `turEventRoll(m)`
+  - 280 `turTipAt(m)`
+  - 287 `turEventFire(m, b)`
+- **306** the search: where does the species stand
+  - 309 `turLeteSamples(c, sp, H)`
+  - 317 `turLeteQs(c, sp, samples)`
+  - 334 `turLete(o, cls, me = turMe()`
+  - 356 `turLeteMinute(m, b)`
+  - 369 `turLetePlace(p)`
+  - 377 `turLeteAnswer(id, qi, opt)`
+- **394** the people: who sends a mission, and what they remember
+  - 399 `turManagerSays(m, n)`
+  - 409 `turAsk(T = turState()`
+- **423** the chain: three links for a manager who knows the boat (docs/planer/oppdrag-2.md K1, Jonas 30.10.2026 «Ja»)
+  - 433 `turChainNext(prev)`
+  - 454 `turChainEnd(m, ok)`
+- **463** the first mission
+  - 466 `turFirst(o)`
+  - 481 `turFirstEnsure(T = turState()`
+  - 492 `turGarn(o)`
+  - 510 `turValue(L)`
+  - 518 `turSlep(o, cls, fix = null)`
+  - 540 `turSos(Q)`
+  - 564 `turNpcs()`
+  - 577 `turMinute()`
+  - 606 `turStuck(T, b)`
+  - 615 `turProveMinute(m, b)`
+  - 639 `turSesong(o)`
+  - 660 `turStages(m)`
+  - 667 `turSesongStage(m)`
+- **680** survey fishing for Havforskningsinstituttet
+  - 687 `turProve(o, cls, fix = null)`
+  - 717 `turProveFish(m)`
+  - 730 `turProveDone(m)`
+  - 737 `turEkkoSaw(m)`
+- **745** a picture of a lighthouse for Kystposten
+  - 755 `turLysNext(m, from)`
+  - 758 `turFoto(o, cls, near = null, fix = null)`
+  - 781 `turFotoAt()`
+  - 784 `turFotoTake(m, seen, img)`
+  - 804 `turMake()`
+  - 830 `turEnsure(force)`
+  - 851 `turWay()`
+  - 858 `turDetour(m, way = turWay()`
+- **870** taking, doing and finishing
+  - 871 `turTake(id)`
+  - 899 `turDrop(id)`
+  - 904 `cargoJob(kg, no, en, out)`
+  - 905 `turLoad(m)`
+  - 914 `turSpawn(m)`
+  - 933 `turEnd(m, ok, why, how)`
+  - 952 `turPayOut(m, from, no, en, part)`
+  - 961 `turDock(pid)`
+  - 978 `turSale(pid, bySp)`
+  - 991 `turHauled(s)`
+  - 995 `turHour()`
+  - 1014 `turWhat(m)`
+- **1026** the trip as it starts: when it will be there, and a word from the crew (or the memory of Father, alone aboard)
+  - 1040 `turSay(who, no, en, k)`
+  - 1045 `turDepart()`
+  - 1065 `turMechanic()`
 
 ## `src/js/core/09h-press.js` (262 linjer)
 
@@ -2682,7 +2685,7 @@ THE CATCH: WHERE THE PLAYERS' BOATS TOUCH WHAT IS NOT CLEAN WATER (the autonav r
   - 167 `slamRate(b = S.boat, H = S.t / 60, hard = 1)`
   - 199 `slamMinute()`
 
-## `src/js/core/17-farbar.js` (788 linjer)
+## `src/js/core/17-farbar.js` (790 linjer)
 
 FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2.0 F1, steg 141, 23.11.2026)
 
@@ -2741,21 +2744,21 @@ FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2
 - **433** the questions
   - 435 `farbGather(x, z, R)`
   - 456 `farbGone(o, n, buf = FARB.buf)`
-  - 465 `farbBoats(x, z)`
-  - 470 `farbNearest(x, z, cap, boat, opt)`
-  - 481 `farbClear(x, z, boat, cap, opt)`
-  - 484 `farbCoastSegs(x0, z0, x1, z1)`
-  - 500 `farbWallTouch(P, X, Z, W, m, bb)`
-  - 503 `farbPose(X, Z, psi, boat, H, opt)`
-  - 544 `farbSweep(p0, p1, boat, H, opt)`
-- **557** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
-  - 573 `farbFieldBuild(J)`
-  - 677 `farbSegOutParts(PK, ax, az, bx, bz)`
-  - 754 `farbFieldWorker()`
-  - 762 `farbFieldTile(cell, fx, fz)`
-  - 765 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
-  - 779 `farbFieldAt(x, z, cell = 2)`
-- **781** the channels dredged along the coast (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
+  - 467 `farbBoats(x, z)`
+  - 472 `farbNearest(x, z, cap, boat, opt)`
+  - 483 `farbClear(x, z, boat, cap, opt)`
+  - 486 `farbCoastSegs(x0, z0, x1, z1)`
+  - 502 `farbWallTouch(P, X, Z, W, m, bb)`
+  - 505 `farbPose(X, Z, psi, boat, H, opt)`
+  - 546 `farbSweep(p0, p1, boat, H, opt)`
+- **559** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
+  - 575 `farbFieldBuild(J)`
+  - 679 `farbSegOutParts(PK, ax, az, bx, bz)`
+  - 756 `farbFieldWorker()`
+  - 764 `farbFieldTile(cell, fx, fz)`
+  - 767 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
+  - 781 `farbFieldAt(x, z, cell = 2)`
+- **783** the channels dredged along the coast (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
 
 ## `src/js/core/17b-bane.js` (104 linjer)
 
@@ -3204,12 +3207,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1830 linjer)
+## `src/js/ui/phone/07-patch.js` (1838 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1818 `patch()`
+  - 1826 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (136 linjer)
 
@@ -3809,7 +3812,7 @@ SOUND (the user's wish 03.10.2026)
 - **144** the music (Jonas 05.10.2026: «rolig ambient instrumentaler som svak stemning i bakgrunnen. Må kunne skrus av i innstillinger»)
 - **312** the whistle and the bell (Ø11.2; sjøveisreglene FOR-1975-12-01-5 rules 32-35 and vedlegg III, read 06.11.2026)
 
-## `src/js/ui/10f-cloud.js` (1128 linjer)
+## `src/js/ui/10f-cloud.js` (1146 linjer)
 
 THE CLOUD (04.10.2026; docs/lansering.md E and F)
 
@@ -3874,50 +3877,50 @@ THE CLOUD (04.10.2026; docs/lansering.md E and F)
   - 533 `cloudStatus(s)`
   - 534 `cloudStatusText()`
   - 543 `saveSum(o)`
-  - 547 `sumText(m)`
-  - 554 `cloudChoose(here, cloud, when, box)`
-  - 569 `cloudKeptNote(where)`
-  - 574 `cloudTake(cs, kept)`
-  - 581 `cloudSync(cs)`
-  - 620 `cloudSaveSoon(closing, manual)`
-  - 669 `cloudSoon(ms)`
-- **670** one device at a time (13.10.2026, supabase/migrations/20261013120000_active.sql)
-  - 680 `cloudFp()`
-  - 681 `cloudClaim(wait)`
-  - 695 `cloudBeat(now)`
-  - 711 `cloudWake()`
-  - 717 `cloudPassed(h)`
-  - 732 `cloudHeldShow(h)`
-  - 741 `cloudPlayHere()`
-  - 751 `cloudCheckHead()`
-  - 760 `cloudConflict(cl, moved)`
-  - 790 `cloudHist()`
-  - 795 `cloudRestore(id)`
-- **806** what is measured: the game's own functions, wrapped once they are all defined
-  - 807 `cloudHooks()`
-- **838** the account card in Settings
-  - 839 `cloudCard()`
-  - 863 `histRows()`
-  - 875 `cloudAccountDel()`
-  - 886 `cloudMediaDel()`
-  - 892 `cloudAct(a, d)`
-- **928** registering, for a guest: in the game's own words, never a wall before the third landing
-  - 937 `guestHave()`
-  - 943 `guestAsk(why)`
-  - 969 `nameWhy(v)`
-  - 986 `namesKept()`
-  - 987 `namesKeep(o)`
-  - 989 `namesApply()`
-  - 997 `nameTake(n, quiet)`
-  - 1007 `nameCheck()`
-  - 1028 `nameSuggest()`
-  - 1037 `nameAsk(why, reason)`
-  - 1062 `guestOpenAsk()`
-  - 1074 `nameNudge(force)`
-  - 1089 `guestNudge(step)`
-  - 1101 `guestLogin(src)`
-  - 1107 `guestRegister(signIn)`
-  - 1122 `guestGift()`
+  - 551 `sumText(m)`
+  - 558 `cloudChoose(here, cloud, when, box)`
+  - 573 `cloudKeptNote(where)`
+  - 578 `cloudTake(cs, kept)`
+  - 585 `cloudSync(cs)`
+  - 634 `cloudSaveSoon(closing, manual)`
+  - 683 `cloudSoon(ms)`
+- **684** one device at a time (13.10.2026, supabase/migrations/20261013120000_active.sql)
+  - 694 `cloudFp()`
+  - 695 `cloudClaim(wait)`
+  - 709 `cloudBeat(now)`
+  - 725 `cloudWake()`
+  - 731 `cloudPassed(h)`
+  - 746 `cloudHeldShow(h)`
+  - 755 `cloudPlayHere()`
+  - 765 `cloudCheckHead()`
+  - 774 `cloudConflict(cl, moved)`
+  - 808 `cloudHist()`
+  - 813 `cloudRestore(id)`
+- **824** what is measured: the game's own functions, wrapped once they are all defined
+  - 825 `cloudHooks()`
+- **856** the account card in Settings
+  - 857 `cloudCard()`
+  - 881 `histRows()`
+  - 893 `cloudAccountDel()`
+  - 904 `cloudMediaDel()`
+  - 910 `cloudAct(a, d)`
+- **946** registering, for a guest: in the game's own words, never a wall before the third landing
+  - 955 `guestHave()`
+  - 961 `guestAsk(why)`
+  - 987 `nameWhy(v)`
+  - 1004 `namesKept()`
+  - 1005 `namesKeep(o)`
+  - 1007 `namesApply()`
+  - 1015 `nameTake(n, quiet)`
+  - 1025 `nameCheck()`
+  - 1046 `nameSuggest()`
+  - 1055 `nameAsk(why, reason)`
+  - 1080 `guestOpenAsk()`
+  - 1092 `nameNudge(force)`
+  - 1107 `guestNudge(step)`
+  - 1119 `guestLogin(src)`
+  - 1125 `guestRegister(signIn)`
+  - 1140 `guestGift()`
 
 ## `src/js/ui/10g-push.js` (210 linjer)
 
@@ -4099,7 +4102,7 @@ put the game on the home screen (Jonas 11.10.2026: «Det er viktig at brukerne l
 - **111** the test edition's label (L1a, 10.11.2026, docs/planer/lansering-plan.md)
 - **142** the browser card on the loading screen (Jonas 03.11.2026, after tilbakemelding #107-#109)
 
-## `src/js/ui/10u-hopp.js` (151 linjer)
+## `src/js/ui/10u-hopp.js` (152 linjer)
 
 ---------- Hopp over resten av ruta: the fast-forward button, the card and the purchase (HO2–HO3, steg 105–106; docs/planer/hopp.md) ----------
 
@@ -4111,7 +4114,7 @@ put the game on the home screen (Jonas 11.10.2026: «Det er viktig at brukerne l
   - 83 `hopPress(paid, id, min, quiet)`
   - 104 `hopUse(id)`
   - 116 `hopVoid(id, why)`
-  - 128 `hopDeliver(id, d)`
+  - 129 `hopDeliver(id, d)`
 
 ## `src/js/ui/10v-profil.js` (119 linjer)
 
@@ -4127,7 +4130,7 @@ The profile and the founders' badge (Jonas 16.11.2026, before the launch: «prof
   - 19 `admfixSaved()`
   - 25 `fixClaim()`
 
-## `src/js/ui/11-boot.js` (448 linjer)
+## `src/js/ui/11-boot.js` (465 linjer)
 
 ---------- boot ----------
 
@@ -4162,7 +4165,7 @@ The profile and the founders' badge (Jonas 16.11.2026, before the launch: «prof
   - 216 `bootMapLoad()`
   - 247 `chart0Load()`
   - 248 `bootGame()`
-  - 430 `bootFail(e)`
+  - 447 `bootFail(e)`
 
 ## `src/js/ui/11b-watchdog.js` (91 linjer)
 
