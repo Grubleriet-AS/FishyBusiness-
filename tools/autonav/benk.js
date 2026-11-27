@@ -164,6 +164,10 @@
     async end(e){ const kinds = [['sim', 3], ['chart', 3], ['vec', 1.5]];
       if (e.ll){ const p = natP(e.ll[0], e.ll[1]); await mapPreload([p], kinds); return {kind:'ll', id:null, p, name:e.navn || 'punkt'}; }
       if (e.port){ const pt = await ALS.place('port', e.port); return {kind:'port', id:pt.id, p:pt.p, name:pt.name, pt}; }
+      // (open water by a place, for the run over every place of the coast, benk.py --alle: the nearest point 0.5-3 km off that is
+      // deeper than 15 m and 300 m from the coast, as tests/allesteder.py takes it for the old Autonav)
+      if (e.sea){ const pt = await ALS.place('port', e.sea); let open = null; for (let rr = 0.5; rr <= 3 && !open; rr += 0.25) for (let a = 0; a < 6.28; a += 0.26){ const c = {x:pt.p.x + Math.cos(a) * rr, y:pt.p.y + Math.sin(a) * rr}; try { if (!isLand(c) && depthF(c) > 15 && coastDist(c) > 0.3){ open = c; break; } } catch (e2){} }
+        if (!open) return {skip:'no open water within 3 km'}; await mapPreload([open], kinds); return {kind:'ll', id:null, p:open, name:pt.name + ' (åpent vann)'}; }
       if (e.rorbu){ const R = await ALS.place('rorbu', e.rorbu); return R ? {kind:'rorbu', id:R.id, p:R.p, name:R.name, pt:R} : {skip:'no shore found for the rorbu'}; }
       if (e.naust){ const pt = portById(e.naust); await mapPreload([pt.p], kinds); S.home = e.naust; S.naust = null; let n = null; for (let i = 0; i < 80 && !(n = naustSite()); i++) await sleep(100);
         return n ? {kind:'naust', id:e.naust, p:pt.p, name:pt.name + ' (naustet)', pt} : {skip:'no naust found'}; }

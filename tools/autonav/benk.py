@@ -73,9 +73,9 @@ async def run(a):
     from _env import GAME, boot
     from playwright.async_api import async_playwright
     obs_js = open(os.path.join(HERE, 'benkobs.js'), encoding='utf-8').read(); bk_js = open(os.path.join(HERE, 'benk.js'), encoding='utf-8').read()
-    S = load_list()
-    if a.strek: S = [s for s in S if s['id'] in a.strek.split(',')]
-    if a.dele: i, n = (int(v) for v in a.dele.split('/')); S = [s for k, s in enumerate(S) if k % n == i - 1]
+    S = [] if a.alle else load_list()
+    if a.strek and not a.alle: S = [s for s in S if s['id'] in a.strek.split(',')]
+    if a.dele and not a.alle: i, n = (int(v) for v in a.dele.split('/')); S = [s for k, s in enumerate(S) if k % n == i - 1]
     boats = a.bat.split(',') if a.bat else BOATS; engines = [] if (a.bare_rute or a.bare_cpu) else a.motor.split(',')
     if a.bare_cpu: a.uten_fasit = True
     if a.bilde: os.makedirs(a.bilde, exist_ok=True)
@@ -101,6 +101,17 @@ async def run(a):
         async def slow(on): await st['cdp'].send('Emulation.setCPUThrottlingRate', {'rate': CPU_RATE if on else 1})
 
         await fresh(); T0 = time.time(); n_trip = 0
+        if a.alle:
+            # every place of the game a boat can lie at (PORTS: the plants, the tackle shops, the yards and Senja's own), out to open
+            # water by it and in again: «for alle hver gang» (Jonas 27.11.2026), not only the list's chosen stretches
+            P = await ev("() => PORTS.filter(q => !(typeof HAVN !== 'undefined' && HAVN.shut && typeof isBerth === 'function' && isBerth(q.id))).map(q => [q.id, q.name, +natLL(q.p).lat.toFixed(3)])")
+            for pid, name, lat in P:
+                ld = 'sør' if lat < 63 else 'midt' if lat < 67 else 'nord'
+                S.append({'id': 'ut-' + pid, 'navn': name + ', ut', 'kat': 'alle', 'landsdel': ld, 'fra': {'port': pid}, 'til': {'sea': pid}})
+                S.append({'id': 'inn-' + pid, 'navn': name + ', inn', 'kat': 'alle', 'landsdel': ld, 'fra': {'sea': pid}, 'til': {'port': pid}})
+            if a.strek: S = [s for s in S if s['id'] in a.strek.split(',') or s['id'].split('-', 1)[1] in a.strek.split(',')]
+            if a.hver > 1: S = [s for k, s in enumerate(S) if (k // 2) % a.hver == 0]
+            if a.dele: i, n = (int(v) for v in a.dele.split('/')); S = [s for k, s in enumerate(S) if (k // 2) % n == i - 1]
         print('benken: %d strekninger, båter %s, motorer %s, bygg %s' % (len(S), boats, engines, ver), flush=True)
         for s in S:
             seen = set()
@@ -307,6 +318,7 @@ def main():
     ap.add_argument('--bare-cpu', action='store_true', help='the route and the first steps of the model with the CPU slowed, nothing sailed: run alone, so the times are the machine\'s own')
     ap.add_argument('--bilde', default='', help='a folder for a picture of each stretch and boat run: the route, the reference and the touches')
     ap.add_argument('--autonav', default='gammel', help='which Autonav is sailed (gammel: the game as it is; ny: the planner of F2, 17c-plan.js, as the background trip: --motor bakgrunn)')
+    ap.add_argument('--alle', action='store_true', help='every place of the game (PORTS), out to open water by it and in again, instead of the list'); ap.add_argument('--hver', type=int, default=1, help='with --alle: every n-th place only')
     ap.add_argument('--liste', action='store_true'); ap.add_argument('--rapport', nargs='+'); ap.add_argument('--sammenlign', nargs=2, metavar=('A', 'B'))
     a = ap.parse_args()
     if a.rapport: return rapport(a.rapport)
