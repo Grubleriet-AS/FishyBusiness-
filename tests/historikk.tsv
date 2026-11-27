@@ -6651,3 +6651,5 @@
 2026-11-27 14:16	ccr-5e1ba2f4-pusvyd	7aa02fe+	dbg23o	OK	116	3d	alene	
 2026-11-27 14:50	ccr-5e1ba2f4-pusvyd	17e452a+	npctest	OK	11	lite	samtidig	
 2026-11-27 14:52	ccr-5e1ba2f4-pusvyd	17e452a+	kaiover	OK	129	lite	samtidig	
+2026-11-27 16:59	ccr-b7b2f394-jdf54x	f05556a	worktest	OK	14	lite	samtidig	
+2026-11-27 16:59	ccr-b7b2f394-jdf54x	f05556a	trip2	OK	17	lite	samtidig	
