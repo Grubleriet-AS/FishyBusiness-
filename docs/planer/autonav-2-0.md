@@ -540,7 +540,21 @@ Hele lista (93 strekninger, 321 linjer, 11 der stedet ikke tar båten), bakgrunn
 
 **Havnesøket med kurs (G2): prøvd det enkle, ikke bygd.** `planEnd` gir kaiplassen fra `berthPose`, og benken kan planlegge mellom kaiplassene (`BK.berthEnds`). Uten søket med kurs kommer banen inn mot kaia fra den veien den kom, skroget sveiper kaia, og det ble «kai»-treff i begge ender ved Sandshamn, Ålesund verft, Husøy, Træna og Breivikbotn, der det ikke var noen. Slått av; treffene i 0 knop ved endene (myre-sto med ringnoteren, sund-urangsvag) står til G2 er bygd.
 
-**Benken på hele lista** (`docs/planer/autonav-benk/ny-steg142-punkt4/`): kjøres når dette skrives; tallene føres inn her når den er ferdig.
+**Benken på hele lista** (`docs/planer/autonav-benk/ny-steg142-punkt4/turer.jsonl`; 93 strekninger, 332 linjer, 11 der stedet ikke tar båten, bakgrunnsturen, uten CPU-strupingen, tre deler samtidig; Sandshamn verft, Øksfjord og Gamvik kjørt på nytt etter den siste rettingen og slått inn):
+
+| | Etter punkt 3 | Nå | Kravet |
+|---|---|---|---|
+| Turer seilt | 271 | 266 | |
+| Turer med treff | 14 (18 treff) | 4 (4 treff: 3 land i 0 knop 17–39 m fra enden ved sund-urangsvag, 1 brygge 73 m fra kaia på Stø med ringnoteren; alle hører til havnesøket med kurs) | 0 |
+| Turer over tegnet fjære | 10 | 10 (6 i rennene 3D ikke har gravd: Træna, Lindesnes, Ålesund verft med sjarken; 3 sund-urangsvag i 0 knop ved enden; sund-hvaler, som driver etter enden) | 0 |
+| Uten bane der fasiten har vei | 4 | 6 (Gamvik sjark, kyst21 og autoliner: et fartøy ligger i havnas munning; Sandshamn verft vest pelagisk; reine og bru-storvalen kyst21 «for stort») | 0 |
+| Uten bane, fasiten heller ikke | | 48 linjer på 21 strekninger (de tre til og fra Urangsvåg utstyrsbutikk er nye der) | |
+| Lengde mot fasiten, median | 1 % over (p90 5 %) | 0,2 % over (p90 2,3 %) | høyst 5 % |
+| Baner over 15 % lenger enn fasiten | 13 med den gamle fasiten | 0 (lengst: Værøy kyst21 1,10, Smøla nord skiff og Gutvik 1,07) | ingen |
+| Det andre søket prøvd ved omvei | | 20 turer, tatt i 4 | |
+| Planleggingstid, ustrupet, maskinen opptatt | median 1,2 s, p90 8,3 s, lengst 65 s | med bane: median 1,1 s, p90 5,4 s, lengst 44 s; uten bane: median 5,4 s, lengst 51 s | under 1 s strupet (ikke målt) |
+
+Færre turer seilt enn sist fordi Urangsvåg utstyrsbutikk (9 linjer) ikke lenger har bane når fartøyene der er med. **Gamvik** er ny: en båt ligger fortøyd midt i munningen (rundt 20 m vann mellom fjærene), skiffen kommer forbi, sjarken og større ikke. Banene de hadde før, gikk forbi en båt planleggeren ikke hadde i lista. Det er samme slag som bøya i munningen ved Værøy verft: hvor kystens båter legges (`moorHarbour` i `05-vessels.js`), ikke planleggeren. **Sandshamn verft øst med pelagisk** mistet banen med ringen til siden i det andre søket og fikk den tilbake: der det andre søket med ring ikke finner vei, går det én gang til uten (`opt.bare`).
 
 ### Det kontrollen fant (24.11.2026)
 

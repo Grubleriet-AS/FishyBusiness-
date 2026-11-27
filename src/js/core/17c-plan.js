@@ -342,7 +342,7 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
   // each cell's water is the least within reach 3 m past her half beam and margin; one cell in, they reach what she needs. With no
   // ring at all a hull of 7 m was sent down a sound with her side over the foreshore, the check shut the place, and the search came
   // back with the same a few metres on: Stamsund with kyst21, steg 142)
-  if (opt && opt.soft){ J.needD2 = Math.ceil(J.clr / F.q); J.rb2 = Math.max(0, J.rb2 - 1); J.side = true; if (opt.cap) J.cap = opt.cap; }
+  if (opt && opt.soft){ J.needD2 = Math.ceil(J.clr / F.q); J.rb2 = opt.bare ? 0 : Math.max(0, J.rb2 - 1); J.side = !opt.bare; if (opt.cap) J.cap = opt.cap; }
   // (the chart's cells for the way round: the packs over the box are waited for as a tap in the chart waits for them, the blocks warmed)
   const chart = async grow => { try { const M = planCoarseM(ax, az, bx, bz, grow), x0 = Math.min(ax, bx) - M, x1 = Math.max(ax, bx) + M, z0 = Math.min(az, bz) - M, z1 = Math.max(az, bz) + M;
       for (let z = z0; z < z1 + 6000; z += 6000) for (let x = x0; x < x1 + 6000; x += 6000) await mapNeed({x:Math.min(x, x1) / 1000, y:Math.min(z, z1) / 1000}, 4.5);
@@ -375,6 +375,8 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     // geometry, which asks her keel's own points, says whether she floats there. The same where it says «too narrow»: the
     // distance then without the half cell of rounding. The bench, steg 142: the skiff out of Øksfjord)
     if (r.why){ if ((r.cause === 'grunt' || r.cause === 'trangt') && !(opt && (opt.dig || opt.soft))){ const R2 = await planBane(a, b, type, Object.assign({}, opt || {}, {soft:true})); if (R2.bane){ R2.soft = true; return R2; } }
+      // (and where the second search with its ring to the side has none either, once more with no ring at all, as it was before 27.11.2026: a 75 m hull out of a basin whose own dredged water the ring reaches past, Sandshamn verft)
+      if ((r.cause === 'grunt' || r.cause === 'trangt') && opt && opt.soft && !opt.bare && !opt.cap && !opt.dig){ const R3 = await planBane(a, b, type, Object.assign({}, opt, {bare:true})); if (R3.bane){ R3.soft = true; return R3; } }
       // (a vessel lying still was shut on the way and then there was none: she is what stands in the way, not the place the search
       // gave up at. Urangsvåg with the skiff, steg 142: «the bridge is too low» where a boat lay along a floating dock)
       if (boatShut) r = Object.assign({}, r, {cause:'båt', at:boatShut});
