@@ -1,4 +1,4 @@
-from _env import GAME
+from _env import GAME, boot
 import asyncio
 from playwright.async_api import async_playwright
 async def main():
@@ -9,8 +9,9 @@ async def main():
           const orig = HTMLCanvasElement.prototype.getContext;
           HTMLCanvasElement.prototype.getContext = function(t, o){ const c = orig.call(this, t, o); if (c && (t==='webgl'||t==='webgl2'||t==='experimental-webgl') && !c.__p){ c.__p = 1; const da = c.drawArrays.bind(c); window.__bad = []; c.drawArrays = function(m, f, n){ const en = []; for (let i = 0; i < 8; i++){ if (c.getVertexAttrib(i, c.VERTEX_ATTRIB_ARRAY_ENABLED) && !c.getVertexAttrib(i, c.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING)) en.push(i); } if (en.length && window.__bad.length < 3) window.__bad.push(en.join(',') + ' | ' + new Error().stack.split('\\n').slice(2, 5).join(' <- ')); return da(m, f, n); }; } return c; };
         """)
-        await pg.goto(GAME)
-        await pg.wait_for_timeout(900); await pg.click('#obGo')
+        # (boot: it waits for the start button and gives the click 120 s; a fixed 900 ms and Playwright's 30 s were too little for the
+        # page's start on the software GPU, and the test was red on the click from 23.11.2026 without having looked at a frame)
+        await boot(pg, GAME)
         await pg.evaluate("S.tut=0; S.boat.status='idle'; S.boat.port=null; S.boat.pos={...GROUNDS[1].p};")
         await pg.wait_for_function("G3.isActive()", timeout=90000); await pg.wait_for_timeout(3000)
         for l in await pg.evaluate("window.__bad"): print(l[:600])
