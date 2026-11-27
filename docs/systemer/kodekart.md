@@ -203,7 +203,7 @@ Placeholder prices (NOK/kg, grade A) – to be tuned
   - 439 `reqFill(eq, type)`
   - 457 `lsaOf(V)`
 
-## `src/js/core/03-simulation.js` (1576 linjer)
+## `src/js/core/03-simulation.js` (1599 linjer)
 
 fleet: each vessel keeps its own state; the company holds the rest. The simulation steps through the vessels one at a
 
@@ -405,50 +405,50 @@ fleet: each vessel keeps its own state; the company holds the rest. The simulati
   - 1322 `finance(x, months)`
 - **1325** an admin's correction: a vessel bought by trade-in, taken back (26.11.2026, Jonas: «Gi han tilbake båten og pengene som om kjøpet
   - 1336 `undoBuyKr(to, from)`
-  - 1343 `undoBuyWhy(d)`
-  - 1355 `undoBuyApply(d)`
-  - 1384 `lenGroup()`
-  - 1385 `codLimits(H)`
-  - 1390 `codOpen(H)`
-  - 1391 `codLimitNow(H)`
-- **1392** haill: luck from the quay. Fresh goods: full effect for two days, fading to nothing on day seven. Sold for real money only (test mode now) or won at the pub.
-  - 1416 `haillBoost()`
-  - 1417 `haillLeft()`
-  - 1418 `haillStage()`
-  - 1420 `haillF()`
-  - 1421 `luck(sp)`
-  - 1425 `haillCap()`
-  - 1434 `haillInit()`
-  - 1442 `haillFromSrv(loc, srv, wait)`
-  - 1449 `srvToT(m, srvNow, t, world)`
-  - 1450 `tToSrv(m, srvNow, t, world)`
-  - 1453 `boostSrv(list, stack, now)`
-  - 1455 `haillMirror(list, used)`
-  - 1459 `haillStock(inv, srv, used)`
-  - 1464 `giveHaill(type, how, id)`
-  - 1469 `useHaill(type)`
-  - 1483 `pubEvening(H)`
-  - 1484 `pubOpen(H)`
-  - 1487 `capHold()`
-  - 1489 `cargoRoom()`
-  - 1491 `cargoMin(kg)`
-- **1492** the daily login bonus: each real calendar day you open the game adds a point to a bonus on the fish price; each day
-  - 1495 `streakState()`
-  - 1496 `streakPct()`
-  - 1497 `streakTouch()`
-- **1508** cold: effective temperature from air temperature and wind, plus wet from rain, snow and spray. Cold, wet hands fish worse;
-  - 1512 `effTemp(H)`
-  - 1513 `coldPen(H, hs)`
-- **1520** orders from buyers and customers: species, amount, quality, deadline and a price premium; reputation builds with each buyer
-  - 1535 `gradeOk(g, q)`
-  - 1536 `ordState()`
-  - 1539 `custNear(c)`
-  - 1544 `repOf(id)`
-  - 1546 `bkOrderable(H)`
-  - 1548 `bkPlant(id)`
-  - 1549 `custSp(c)`
-  - 1550 `spCatchable(sp, H)`
-  - 1552 `ordersTick(H)`
+  - 1348 `undoBuyWhy(d)`
+  - 1362 `undoBuyApply(d)`
+  - 1395 `lenGroup()`
+  - 1396 `codLimits(H)`
+  - 1401 `codOpen(H)`
+  - 1402 `codLimitNow(H)`
+- **1403** haill: luck from the quay. Fresh goods: full effect for two days, fading to nothing on day seven. Sold for real money only (test mode now) or won at the pub.
+  - 1439 `haillBoost()`
+  - 1440 `haillLeft()`
+  - 1441 `haillStage()`
+  - 1443 `haillF()`
+  - 1444 `luck(sp)`
+  - 1448 `haillCap()`
+  - 1457 `haillInit()`
+  - 1465 `haillFromSrv(loc, srv, wait)`
+  - 1472 `srvToT(m, srvNow, t, world)`
+  - 1473 `tToSrv(m, srvNow, t, world)`
+  - 1476 `boostSrv(list, stack, now)`
+  - 1478 `haillMirror(list, used)`
+  - 1482 `haillStock(inv, srv, used)`
+  - 1487 `giveHaill(type, how, id)`
+  - 1492 `useHaill(type)`
+  - 1506 `pubEvening(H)`
+  - 1507 `pubOpen(H)`
+  - 1510 `capHold()`
+  - 1512 `cargoRoom()`
+  - 1514 `cargoMin(kg)`
+- **1515** the daily login bonus: each real calendar day you open the game adds a point to a bonus on the fish price; each day
+  - 1518 `streakState()`
+  - 1519 `streakPct()`
+  - 1520 `streakTouch()`
+- **1531** cold: effective temperature from air temperature and wind, plus wet from rain, snow and spray. Cold, wet hands fish worse;
+  - 1535 `effTemp(H)`
+  - 1536 `coldPen(H, hs)`
+- **1543** orders from buyers and customers: species, amount, quality, deadline and a price premium; reputation builds with each buyer
+  - 1558 `gradeOk(g, q)`
+  - 1559 `ordState()`
+  - 1562 `custNear(c)`
+  - 1567 `repOf(id)`
+  - 1569 `bkOrderable(H)`
+  - 1571 `bkPlant(id)`
+  - 1572 `custSp(c)`
+  - 1573 `spCatchable(sp, H)`
+  - 1575 `ordersTick(H)`
 
 ## `src/js/core/03b-sea.js` (313 linjer)
 
@@ -3086,14 +3086,14 @@ The item card (M1 in docs/planer/butikker-og-sponsorer.md, 30.10.2026)
   - 149 `icTierLine(k, lv)`
   - 177 `itemCard(o)`
 
-## `src/js/ui/phone/00-shell.js` (72 linjer)
+## `src/js/ui/phone/00-shell.js` (75 linjer)
 
 ---------- the phone ----------
 
 - **1** the phone
-  - 71 `setBadge()`
+  - 74 `setBadge()`
 
-## `src/js/ui/phone/01-haill-fiske-service.js` (216 linjer)
+## `src/js/ui/phone/01-haill-fiske-service.js` (227 linjer)
 
 --- workshop: service, fitting and getting the gear ready, one job after the other while the boat is in port
 
@@ -3101,14 +3101,14 @@ The item card (M1 in docs/planer/butikker-og-sponsorer.md, 30.10.2026)
   - 3 `haill()`
 - **24** Kaiboden in one window (Jonas 16.11.2026: «ha alle boosters samlet i samme vindu … og heller gjemme bort de man allerede eier»;
   - 32 `kbShop()`
-- **74** the tackle shop on the quay: a purchase takes two taps, the second one confirms the price
-  - 81 `fiske()`
-  - 95 `svcWorn()`
-  - 97 `service()`
-  - 120 `iceCard()`
-  - 137 `jobStrip(aboard)`
-  - 158 `jobTick(root, force)`
-  - 178 `verksted()`
+- **85** the tackle shop on the quay: a purchase takes two taps, the second one confirms the price
+  - 92 `fiske()`
+  - 106 `svcWorn()`
+  - 108 `service()`
+  - 131 `iceCard()`
+  - 148 `jobStrip(aboard)`
+  - 169 `jobTick(root, force)`
+  - 189 `verksted()`
 
 ## `src/js/ui/phone/02-havn-last-agn-ordre.js` (60 linjer)
 
@@ -3204,12 +3204,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1825 linjer)
+## `src/js/ui/phone/07-patch.js` (1828 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1813 `patch()`
+  - 1816 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (136 linjer)
 
@@ -3361,7 +3361,7 @@ Kystmegleren: boats players sell to each other (B1–B8 in docs/planer/etter-ton
   - 222 `mgAfter(key, okNo, okEn)`
   - 224 `mgAct(a, d)`
 
-## `src/js/ui/phone/14-act.js` (408 linjer)
+## `src/js/ui/phone/14-act.js` (409 linjer)
 
   - 2 `act(a, d)`
 - **9** the receipt after a buy for kroner (Jonas 06.11.2026, Tony's test: «Det skal ikke være tvil om et kjøp er gjennomført»): one
@@ -3974,37 +3974,37 @@ PUSH NOTIFICATIONS (05.10.2026, the list's 9: «Push-varsler i appen»; supabase
   - 382 `rtTurn(B)`
   - 416 `worldStart()`
 
-## `src/js/ui/10i-shop.js` (492 linjer)
+## `src/js/ui/10i-shop.js` (508 linjer)
 
 THE SHOP (05.10.2026; supabase/migrations/20261006040000_shop.sql, supabase/functions/shop-checkout and stripe-webhook)
 
 - **1** THE SHOP (05.10.2026; supabase/migrations/20261006040000_shop.sql, supabase/functions/shop-checkout and stripe-webhook)
-  - 42 `shopMode()`
-  - 48 `realKr(nok)`
-  - 50 `shopLabel(nok)`
-  - 55 `shopWhat(k, g)`
-  - 70 `payBuy(k, give, extra)`
-  - 78 `shopFine()`
-  - 81 `shopGo(k, extra)`
-  - 100 `shopYard()`
-  - 104 `shopGive(g, srv)`
-  - 126 `shopThanks(rc)`
-  - 150 `shopBack(list)`
-  - 180 `haillProbe()`
-  - 188 `haillTell(now)`
-  - 194 `haillTell1()`
-- **216** HS4: the server is the truth
-  - 220 `srvOnly()`
-  - 223 `pubAsk()`
-  - 230 `achHaillAsk()`
-  - 235 `yardUsed()`
-  - 245 `srvImport(st)`
-  - 258 `shopClaim4()`
-  - 274 `srvApply(st)`
-  - 364 `shopWords(gifts, thanks, refs)`
-  - 374 `shopClaim()`
-  - 434 `shopVerify(sid)`
-  - 446 `shopStart()`
+  - 44 `shopMode()`
+  - 50 `realKr(nok)`
+  - 52 `shopLabel(nok)`
+  - 57 `shopWhat(k, g)`
+  - 72 `payBuy(k, give, extra)`
+  - 80 `shopFine()`
+  - 83 `shopGo(k, extra)`
+  - 102 `shopYard()`
+  - 106 `shopGive(g, srv)`
+  - 128 `shopThanks(rc)`
+  - 166 `shopBack(list)`
+  - 196 `haillProbe()`
+  - 204 `haillTell(now)`
+  - 210 `haillTell1()`
+- **232** HS4: the server is the truth
+  - 236 `srvOnly()`
+  - 239 `pubAsk()`
+  - 246 `achHaillAsk()`
+  - 251 `yardUsed()`
+  - 261 `srvImport(st)`
+  - 274 `shopClaim4()`
+  - 290 `srvApply(st)`
+  - 380 `shopWords(gifts, thanks, refs)`
+  - 390 `shopClaim()`
+  - 450 `shopVerify(sid)`
+  - 462 `shopStart()`
 
 ## `src/js/ui/10j-paint.js` (274 linjer)
 
@@ -4099,7 +4099,7 @@ put the game on the home screen (Jonas 11.10.2026: «Det er viktig at brukerne l
 - **111** the test edition's label (L1a, 10.11.2026, docs/planer/lansering-plan.md)
 - **142** the browser card on the loading screen (Jonas 03.11.2026, after tilbakemelding #107-#109)
 
-## `src/js/ui/10u-hopp.js` (146 linjer)
+## `src/js/ui/10u-hopp.js` (151 linjer)
 
 ---------- Hopp over resten av ruta: the fast-forward button, the card and the purchase (HO2–HO3, steg 105–106; docs/planer/hopp.md) ----------
 
@@ -4119,7 +4119,7 @@ The profile and the founders' badge (Jonas 16.11.2026, before the launch: «prof
 
 - **1** The profile and the founders' badge (Jonas 16.11.2026, before the launch: «profil-side med brukernavn, fartstid, ferdigheter,
 
-## `src/js/ui/10w-fix.js` (63 linjer)
+## `src/js/ui/10w-fix.js` (64 linjer)
 
 ---- an admin's correction, delivered to this game (26.11.2026; supabase/migrations/20261126120000_fixes.sql, the tab «Korrigering» in
 

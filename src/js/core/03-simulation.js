@@ -1339,10 +1339,17 @@ function undoBuyKr(to, from){ const A = VESSELS[to], B = VESSELS[from]; if (!A |
 // trade-in), the open group's quota comes back with what was fished in it this year (openUsedLoad), and what the right cost is paid back:
 // d.licKr, or its value at the hour of the purchase (d.licAt, the real time it was bought, ISO; licValue at that game hour, with the
 // world's stock as the game has it), or else what it is worth now. A row may hold the boat (from, to), the right (lic) or both.
+// d.inn (27.11.2026, Julian: the boat with the right had used Innovasjon Norge's top-up, S.inUsed, which is given once, on the first
+// closed-group boat; with the purchase undone the next one asked for 20 % equity instead of 5 %): the top-up is his to use again.
+// d.upg {key: level} (27.11.2026, Julian: the yard's rebuilds on the old hull, a drying room and better bunks, went with her in the
+// trade-in and did not come back with the type): put back on the boat, never lower than she has. d.gearKr: gear bought for the new boat
+// that she no longer has or he already had, paid back (book 'redskap'), the loans first like the rest.
 const undoLicH = at => { const ms = Date.parse(at); return isFinite(ms) ? Math.max(0, (ms - WORLD_T0) * GAME_RATE / 60000) / 60 : null; };
 function undoBuyWhy(d){
-  const boat = !!(d && (d.from || d.to)), lic = !!(d && d.lic);
-  if (!d || (!boat && !lic)) return 'bad';
+  const boat = !!(d && (d.from || d.to)), lic = !!(d && d.lic), inn = !!(d && d.inn), upg = !!(d && d.upg && Object.keys(d.upg).length), gear = !!(d && d.gearKr);
+  if (!d || (!boat && !lic && !inn && !upg && !gear)) return 'bad';
+  if (upg && Object.keys(d.upg).some(k => !UPGS[k] || !(d.upg[k] >= 1) || d.upg[k] > UPGS[k].steps.length)) return 'bad';
+  if (gear && !(d.gearKr > 0)) return 'bad';
   if (boat && (!VESSELS[d.from] || !VESSELS[d.to] || d.from === d.to || VESSELS[d.from].cls === 'hav' || VESSELS[d.to].cls === 'hav')) return 'bad';
   if (d.id != null && S.fixDone && S.fixDone[d.id]) return 'done';
   if (boat && S.boat.type !== d.to) return 'type';
@@ -1370,14 +1377,18 @@ function undoBuyApply(d){
     const H = d.licAt ? undoLicH(d.licAt) : null; licKr = d.licKr != null ? Math.round(d.licKr) : licValue(S.lic, H != null ? H : undefined);
     regFree(S.lic.id); S.lic = null; freshQuota(); openUsedLoad();
   }
+  const inn = !!(d.inn && S.inUsed); if (d.inn) delete S.inUsed;
+  const upgs = []; if (d.upg) for (const k in d.upg){ b.upg = b.upg || {}; if ((b.upg[k] || 0) < d.upg[k]){ b.upg[k] = d.upg[k]; upgs.push(k); } }
+  const gearKr = d.gearKr > 0 ? Math.round(d.gearKr) : 0;
   applyVessel(); S.equip.jukse = Math.min(S.equip.jukse || 0, BOAT.jukseMax || 0);
   b.fuel = Math.min(b.fuel || 0, BOAT.fuelCap); b.ice = Math.min(b.ice || 0, BOAT.iceCap || 0);
   while (S.crew.length > BOAT.crewMax) S.crew.pop();
-  const debt0 = debt(), all = kr + licKr;
+  const debt0 = debt(), all = kr + licKr + gearKr;
   if (kr > 0) book('baat', kr, 'Båtkjøpet angret', 'Vessel purchase undone');
   if (licKr > 0) book('baat', licKr, 'Hjemmelen fra båtkjøpet tilbake til registeret', 'The right from the vessel purchase back to the register');
+  if (gearKr > 0) book('redskap', gearKr, 'Utstyr fra båtkjøpet tilbakebetalt', 'Gear from the vessel purchase paid back');
   const paid = Math.min(debt0, Math.max(0, all)), off = paid > 0 ? payDown(paid) : 0; if (off > 0) book('avdrag', -off, 'Lånene innfridd med tilbakebetalingen', 'Loans paid off with the refund');
-  const r = {ok:true, kr:all, boatKr:kr, licKr, lic:d.lic || null, off, jobs, cash:Math.round(S.cash), debt:Math.round(debt())};
+  const r = {ok:true, kr:all, boatKr:kr, licKr, gearKr, upgs, lic:d.lic || null, inn, off, jobs, cash:Math.round(S.cash), debt:Math.round(debt())};
   if (d.id != null){ S.fixDone = S.fixDone || {}; S.fixDone[d.id] = {...r, t:S.t}; }
   return r;
 }
@@ -1409,8 +1420,20 @@ HAILL.takk = {no:'Takk-haill', en:'Thank-you luck', nok:0, reward:true, steps:[[
 // dabbe av»): the same haill, more of them, each switched on when the player wants (the server gives one grant each, n in the product)
 const HAILL_PACKS = {h1:{n:1, nok:39}, h3:{n:3, nok:99}, h8:{n:8, nok:229, best:true}};   // (raised 16.11.2026 with the trims)
 // the season pack («Jeg er også enig i at en samlepakke kan være et alternativ»): its content known before it is bought, no chance in it
-const PACKS = {sesong:{nok:249, haill:4, trim:'t24', skip:'s24', no:'Sjøværspakken', en:'The fishing trip pack'}};   // (renamed: Jonas 16.11.2026, «et sjøvær [er] en fisketur eller fangstekspedisjon på sjøen»; the key stays)
-const packWorth = P => HAILL_PACKS.h1.nok * P.haill + BOOSTS[P.trim].nok + SKIP[P.skip].nok;   // what the parts cost one by one (a haill at the single price)
+const PACKS = {sesong:{nok:249, haill:4, trim:'t24', skip:'s24', no:'Sjøværspakken', en:'The fishing trip pack'},   // (renamed: Jonas 16.11.2026, «et sjøvær [er] en fisketur eller fangstekspedisjon på sjøen»; the key stays)
+  // Black Week (Jonas 27.11.2026, docs/planer/svart-fredag.md: a bigger pack, no price put down, «Bare Black Week»): sold till the end
+  // of Monday 30.11.2026 Norwegian time (until, ms; the server refuses it from the same moment, products.data.until) and never
+  // prolonged. day is the last day as the card says it: a date in words, no clock that counts
+  blackweek:{nok:499, haill:10, trim:'t72', skip:'s72', no:'Black Week-pakken', en:'The Black Week pack', until:Date.UTC(2026, 10, 30, 23), day:['mandag 30.11', 'Monday 30 Nov']}};
+const packOn = (P, ms) => !!P && (P.until == null || ms < P.until);   // is the pack on sale at the moment ms (the world's clock, worldNow)
+// («bw0» in the address, the tests' games, tests/_env.py: an offer that is there or not by the day the test runs is off, so a test says
+// the same before and after its end; tests/bwtest.py puts it on round its own «now»)
+if (typeof location !== 'undefined' && /(^|[#,])bw0(?![\w=])/.test(location.hash || '')) PACKS.blackweek.until = 0;
+// what the content of a pack costs otherwise, the cheapest way the shop sells it: the haill in the packs of 1, 3 and 8 that give the
+// same number for the least (27.11.2026; before: every haill at the single price, which said more was saved than a player who would
+// have bought the pack of 8 beside it saves). «Spar X %» and «Du sparer N kr» are reckoned from this and nothing else
+const haillCheapest = n => { const c = [0]; for (let i = 1; i <= n; i++){ c[i] = Infinity; for (const k in HAILL_PACKS){ const X = HAILL_PACKS[k]; if (X.n <= i) c[i] = Math.min(c[i], c[i - X.n] + X.nok); } } return c[n]; };
+const packWorth = P => haillCheapest(P.haill) + BOOSTS[P.trim].nok + SKIP[P.skip].nok;
 const HAILL_STAGE = [[2, 'Luksushaill', 'Luxury luck'], [1, 'Fersk haill', 'Fresh luck'], [0.5, 'Mellomhaill', 'Middle luck'], [0.25, 'Gammelhaill', 'Old luck']];
 const haillAge = () => S.haill ? (S.t - S.haill.t0) / 60 : 1e9;   // hours since it was switched on
 function haillBoost(){ const h = S.haill, X = h && HAILL[h.type]; if (!X) return 0; const a = haillAge(); for (const [t, v] of X.steps) if (a < t) return v; return 0; }

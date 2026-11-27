@@ -6611,3 +6611,31 @@
 2026-11-27 13:33	ccr-5e1ba2f4-pusvyd	111d7cc+	nearedge	OK	203	3d	alene	
 2026-11-27 13:34	ccr-5e1ba2f4-pusvyd	111d7cc+	dbg23o	FEIL	33	3d	alene	avsluttet med kode 1
 2026-11-27 13:34	ccr-5e1ba2f4-pusvyd	111d7cc	dbg23o	FEIL	33	3d	alene	avsluttet med kode 1
+2026-11-27 11:17	ccr-1a8b7d9a-89hfb6	0808959+	kjoptest	OK	200	lite	samtidig	
+2026-11-27 11:17	ccr-1a8b7d9a-89hfb6	0808959+	fasittest	OK	42	lite	samtidig	
+2026-11-27 11:17	ccr-1a8b7d9a-89hfb6	0808959+	vervtest	OK	8	lite	samtidig	
+2026-11-27 11:17	ccr-1a8b7d9a-89hfb6	0808959+	hailltest	LES	24	lite	samtidig	
+2026-11-27 11:17	ccr-1a8b7d9a-89hfb6	0808959+	bwtest	OK	28	lite	samtidig	
+2026-11-27 11:19	ccr-1a8b7d9a-89hfb6	0808959+	bwtest	OK	60	lite	samtidig	
+2026-11-27 11:19	ccr-1a8b7d9a-89hfb6	0808959+	skiptest	OK	17	lite	samtidig	
+2026-11-27 11:19	ccr-1a8b7d9a-89hfb6	0808959+	hopptest	OK	8	lite	samtidig	
+2026-11-27 11:22	ccr-1a8b7d9a-89hfb6	0808959+	kjoptest	OK	196	lite	samtidig	
+2026-11-27 11:22	ccr-1a8b7d9a-89hfb6	0808959+	fasittest	OK	41	lite	samtidig	
+2026-11-27 11:42	ccr-1a8b7d9a-89hfb6	0ee9267+	bwtest	OK	72	lite	samtidig	
+2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	kjoptest	OK	202	lite	samtidig	
+2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	fasittest	OK	43	lite	samtidig	
+2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	vervtest	OK	10	lite	samtidig	
+2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	skiptest	OK	21	lite	samtidig	
+2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	hopptest	OK	12	lite	samtidig	
+2026-11-27 11:51	ccr-1a8b7d9a-89hfb6	7a94d3c	bwtest	OK	73	lite	samtidig	
+2026-11-27 11:51	ccr-1a8b7d9a-89hfb6	7a94d3c	sqltest	OK	90	lite	samtidig	
+2026-11-27 11:55	ccr-1a8b7d9a-89hfb6	7a94d3c	kjoptest	OK	223	lite	samtidig	
+2026-11-27 11:55	ccr-1a8b7d9a-89hfb6	7a94d3c	fasittest	OK	44	lite	samtidig	
+2026-11-27 11:55	ccr-1a8b7d9a-89hfb6	7a94d3c	skiptest	OK	22	lite	samtidig	
+2026-11-27 11:55	ccr-1a8b7d9a-89hfb6	7a94d3c	vervtest	OK	11	lite	samtidig	
+2026-11-27 11:55	ccr-1a8b7d9a-89hfb6	7a94d3c	hopptest	OK	12	lite	samtidig	
+2026-11-27 11:57	ccr-1a8b7d9a-89hfb6	7a94d3c+	bwtest	OK	71	lite	alene	
+2026-11-27 12:01	ccr-1a8b7d9a-89hfb6	6d730954+	sqltest	OK	81	lite	samtidig	
+2026-11-27 12:01	ccr-1a8b7d9a-89hfb6	6d730954+	bwtest	OK	71	lite	samtidig	
+2026-11-27 12:32	ccr-1a8b7d9a-89hfb6	a2304bf4+	kjoptest	OK	197	lite	samtidig	
+2026-11-27 12:32	ccr-1a8b7d9a-89hfb6	a2304bf4+	fasittest	OK	48	lite	samtidig	

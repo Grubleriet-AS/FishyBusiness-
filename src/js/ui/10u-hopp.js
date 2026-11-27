@@ -142,4 +142,9 @@ async function hopDeliver(id, d){
 }
 $('hopBtn').onclick = hopOpen;
 // Kaiboden one tap away in 3D (Jonas 16.11.2026; the button over the hop, index.html #kbBtn)
-if ($('kbBtn')) $('kbBtn').onclick = () => { if (typeof cloudEv === 'function') cloudEv('shop_view', {pg:'kb3d'}); PHONE.open('kaiboden'); };
+// (Black Week, 27.11.2026, docs/planer/svart-fredag.md: a gold dot on the button while the pack is sold and the shop is open, till
+// Kaiboden has been opened from here once in this visit; nothing is kept in the save, and it goes by itself at the pack's end)
+if ($('kbBtn')){ const kb = $('kbBtn'); let seen = false;
+  const dot = () => kb.classList.toggle('kb-ny', !seen && packOn(PACKS.blackweek, worldNow()) && shopMode() !== 'off');
+  kb.onclick = () => { seen = true; dot(); if (typeof cloudEv === 'function') cloudEv('shop_view', {pg:'kb3d'}); PHONE.open('kaiboden'); };
+  dot(); setInterval(dot, 20000); }
