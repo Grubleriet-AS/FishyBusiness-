@@ -456,6 +456,13 @@ function* farbGatherG(x, z, R){ const out = [], C = FARB.C, q = ++FARB.q, Y = fa
 function farbGone(o, n, buf = FARB.buf){ if (o.mk){ if (o.hung === undefined){ let h = false; if (MK_HUNG.has(o.mk[2])) for (let i = 0; i < n; i++){ const d = buf[i]; if (d.k === 's' && farbD(d, o.x, o.z) < 3.6){ h = true; break; } } if (FARB.w || farbKnown(o.x, o.z, 50)) o.hung = h; return h; } return o.hung; }
   if (o.turb){ if (o.sea === undefined){ const l = farbLand(o.x, o.z); if (l !== l) return false; o.sea = !l; } return !o.sea; }
   return false; }
+// The vessels lying still near x, z for the map (11b-obstacles.js fixBoats: boxes of the hulls at a quay and at anchor, t 1, and the
+// circles the boats on mooring buoys swing on, t 0). A boat on a buoy is in the list as her hull too, where she lies now, and that
+// is what counts here: the observer sees her hull as the 3D view draws it, and the whole circle of a buoy laid in the mouth of a
+// basin shut the place to every boat (Værøy verft, steg 142, 27.11.2026). That she swings when the wind turns is the watch's to see
+// (F3), as a vessel that comes in after the plan was made. FARB.swing true: the circles too
+FARB.swing = false;
+function farbBoats(x, z){ const L = fixBoats(x, z); return FARB.swing ? L : L.filter(o => o.t !== 0); }
 // The nearest thing she cannot pass within cap of x, z: {d (metres to it, 0 on it), what, id, x, z, o}; null where there is none;
 // FARB_UNK (d NaN) where the map is not in. The land, the coast line, the things, a bridge's deck lower than boat.air and
 // FARB.airOver, and with opt.boats the vessels lying still (11b-obstacles.js fixBoats); a vessel's touch has x, z her middle and R how far
@@ -468,7 +475,7 @@ function farbNearest(x, z, cap, boat, opt){ FARB.n.near++;
   const air = boat ? boat.air + FARB.airOver : Infinity, n = farbGather(x, z, cap), buf = FARB.buf;
   for (let i = 0; i < n; i++){ const o = buf[i]; if (o.k === 's' && !(farbUnder(o) < air)) continue; const b = o.bb || farbBB(o); if (x < b[0] - d || x > b[2] + d || z < b[1] - d || z > b[3] + d) continue;
     const e = o.molo && boat && boat.T > 0 ? Math.max(0, farbCoreDp(o, x, z) - farbMoloR(o, boat.T + FARB.eps + farbZC(x, z))) : farbD(o, x, z); if (e < d && !farbGone(o, n)){ d = e; hit = o; what = o.what; id = o.id; } }   // (a breakwater for her at the lowest water)
-  if (opt && opt.boats && !FARB.w) try { for (const o of fixBoats(x, z)){ const e = o.t === 0 ? Math.max(0, Math.hypot(x - o.x, z - o.z) - o.r) : Math.hypot(Math.max(0, Math.abs((x - o.x) * o.ux + (z - o.z) * o.uz) - o.l), Math.max(0, Math.abs((x - o.x) * o.uz - (z - o.z) * o.ux) - o.w)); if (e < d){ d = e; hit = o; what = 'båt'; id = 'båt#' + Math.round(o.x) + ',' + Math.round(o.z); } } } catch (e){}
+  if (opt && opt.boats && !FARB.w) try { for (const o of farbBoats(x, z)){ const e = o.t === 0 ? Math.max(0, Math.hypot(x - o.x, z - o.z) - o.r) : Math.hypot(Math.max(0, Math.abs((x - o.x) * o.ux + (z - o.z) * o.uz) - o.l), Math.max(0, Math.abs((x - o.x) * o.uz - (z - o.z) * o.ux) - o.w)); if (e < d){ d = e; hit = o; what = 'båt'; id = 'båt#' + Math.round(o.x) + ',' + Math.round(o.z); } } } catch (e){}
   return what || hit ? {d, what, id, x, z, o:hit} : null; }
 // metres from x, z to the nearest thing she cannot pass, cap where there is none within it, NaN where the map is not in
 function farbClear(x, z, boat, cap, opt){ const n = farbNearest(x, z, cap || FARB.cap, boat, opt); return n ? n.d : (cap || FARB.cap); }
@@ -516,7 +523,7 @@ function farbPose(X, Z, psi, boat, H, opt){ FARB.n.pose++; const m = opt && opt.
   const air = boat.air + FARB.airOver, n = farbGather(X, Z, R), buf = FARB.buf;
   for (let i = 0; i < n; i++){ const o = buf[i]; if (o.k === 's' && !(farbUnder(o) < air)) continue; const b = o.bb || farbBB(o); if (b[0] > x1 || b[2] < x0 || b[1] > z1 || b[3] < z0) continue;
     if ((o.molo ? farbCoreD(P, o) - farbMoloR(o, boat.T + (opt && opt.squat || 0) + (opt && opt.keel || 0) + FARB.eps - farbTide(H, X, Z) + farbZC(X, Z)) : farbPolyD(P, o)) <= m && !farbGone(o, n)) { const h_ = out({what:o.what, id:o.id, x:o.x != null ? o.x : (b[0] + b[2]) / 2, z:o.z != null ? o.z : (b[1] + b[3]) / 2}); if (h_) return h_; } }
-  if (opt && opt.boats && !FARB.w) try { for (const o of fixBoats(X, Z)){ const d = o.t === 0 ? Math.max(0, farbPtPoly(P, o.x, o.z) - o.r) : farbRingD(P, o.Q || (o.Q = farbBoxPts(o))); if (d <= m) { const h_ = out({what:'båt', id:'båt#' + Math.round(o.x) + ',' + Math.round(o.z), x:o.x, z:o.z, R:o.t === 0 ? o.r : Math.hypot(o.l, o.w), box:o.t === 0 ? null : [o.ux, o.uz, o.l, o.w]}); if (h_) return h_; } } } catch (e){}
+  if (opt && opt.boats && !FARB.w) try { for (const o of farbBoats(X, Z)){ const d = o.t === 0 ? Math.max(0, farbPtPoly(P, o.x, o.z) - o.r) : farbRingD(P, o.Q || (o.Q = farbBoxPts(o))); if (d <= m) { const h_ = out({what:'båt', id:'båt#' + Math.round(o.x) + ',' + Math.round(o.z), x:o.x, z:o.z, R:o.t === 0 ? o.r : Math.hypot(o.l, o.w), box:o.t === 0 ? null : [o.ux, o.uz, o.l, o.w]}); if (h_) return h_; } } } catch (e){}
   // the water under her: with the foreshore where the coast is near enough for it to reach in under her, and then her outline closely
   const s = Math.sin(psi), c = Math.cos(psi), sq = opt && opt.squat || 0, kl = opt && opt.keel || 0, reach = Math.hypot(boat.L, boat.B) / 2 + FARB.shore.reach + 2, cd = farbCoast(X, Z, reach, true);
   if (cd !== cd) return {what:'ukjent', id:'', x:X, z:Z}; const off = cd >= reach;
