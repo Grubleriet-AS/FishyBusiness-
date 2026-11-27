@@ -74,4 +74,18 @@ export default function (t){
   const at = '2026-11-24T21:46:26Z', Hb = (Date.parse(at) - K.WORLD_T0) * K.GAME_RATE / 60000 / 60, want = K.licValue(S.lic, Hb);
   const r7 = K.undoBuyApply({id:53, lic:O.id, licAt:at});
   t.ok(r7.ok && r7.licKr === want && want !== lv, 'hjemmelen betales med prisen da den ble kjøpt (' + want + ' kr, ikke ' + lv + ')', r7);
+  // Innovasjon Norge's top-up given back (Julian 27.11.2026: 4,8 mill. in equity for kyst15 with h14, not 600 000)
+  S = setup(); S.boat.type = 'sjark'; K.applyVessel(); S.boat.port = 'x'; S.cash = 404105; S.fleet = S.fleet || []; S.crew = S.crew || []; S.inUsed = true;
+  const c8 = S.cash, r8 = K.undoBuyApply({id:54, inn:true});
+  t.ok(r8.ok && r8.inn === true && !S.inUsed && S.cash === c8 && r8.kr === 0, 'toppfinansieringen kan brukes igjen, og ingenting annet endres', r8);
+  t.eq(K.undoBuyWhy({id:55}), 'bad', 'en tom rad gjør ingenting');
+  // the yard's rebuilds back on the boat and the gear paid back (Julian 27.11.2026: a drying room and better bunks, 186 250 kr of gear)
+  S = setup(); S.boat.type = 'sjark'; K.applyVessel(); S.boat.port = 'x'; S.cash = 404105; S.fleet = S.fleet || []; S.crew = S.crew || []; S.inUsed = true;
+  const c9 = S.cash, r9 = K.undoBuyApply({id:56, inn:true, upg:{dry:1, cabin:1}, gearKr:186250});
+  t.ok(r9.ok && S.boat.upg.dry === 1 && S.boat.upg.cabin === 1 && r9.upgs.length === 2 && !S.inUsed, 'tørkerom og bedre køyer er tilbake, og toppfinansieringen er ledig', r9);
+  t.eq(Math.round(S.cash - c9), 186250, 'utstyret betales tilbake når det ikke er lån');
+  t.eq(K.undoBuyWhy({id:57, upg:{nope:1}}), 'bad', 'en ukjent ombygging gjør ingenting');
+  t.eq(K.undoBuyWhy({id:58, upg:{dry:9}}), 'bad', 'et trinn som ikke finnes, gjør ingenting');
+  S.boat.upg.dry = 2; const r10 = K.undoBuyApply({id:59, upg:{dry:1}});
+  t.ok(r10.ok && S.boat.upg.dry === 2 && r10.upgs.length === 0, 'en ombygging senkes aldri', r10);
 }

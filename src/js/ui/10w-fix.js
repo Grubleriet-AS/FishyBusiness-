@@ -30,7 +30,7 @@ async function fixClaim(){
     let list; try { list = await cloudRpc('fix_pending', {}); } catch (e){ return; }   // (a server without the migration answers 404: nothing to do)
     for (const f of list || []){
       if (f.kind !== 'undo_buy') continue;   // a kind this game does not know waits for a game that does
-      const d = f.data || {}, r = undoBuyApply({id:f.id, from:d.from, to:d.to, kr:d.kr == null ? null : +d.kr, lic:d.lic || null, licKr:d.licKr == null ? null : +d.licKr, licAt:d.licAt || null});
+      const d = f.data || {}, r = undoBuyApply({id:f.id, from:d.from, to:d.to, kr:d.kr == null ? null : +d.kr, lic:d.lic || null, licKr:d.licKr == null ? null : +d.licKr, licAt:d.licAt || null, inn:!!d.inn, upg:d.upg || null, gearKr:d.gearKr == null ? null : +d.gearKr});
       if (!r.ok && r.why === 'done'){
         // done here before, the server not told (the save had not reached the account, or the answer was lost): save and tell now
         if (await admfixSaved()) await cloudRpc('fix_done', {fid:f.id, res:{...S.fixDone[f.id], from:d.from, to:d.to, at:new Date().toISOString()}, done:true}).catch(e => console.error(e));
@@ -44,10 +44,11 @@ async function fixClaim(){
         continue;
       }
       const V = d.from ? VESSELS[d.from] : null, back = r.off > 0 ? [' (' + kr(r.off) + ' av det gikk til lånene)', ' (' + kr(r.off) + ' of it paid off the loans)'] : ['', ''];
-      const what = [V ? V.name.no + ' er din igjen' : '', r.licKr > 0 ? 'hjemmelen er gitt tilbake til registeret' : ''].filter(Boolean).join(', '),
-        whatEn = [V ? 'the ' + V.name.en + ' is yours again' : '', r.licKr > 0 ? 'the right has gone back to the register' : ''].filter(Boolean).join(', ');
-      const no = f.note || ('Båtkjøpet er angret: ' + what + ', og ' + kr(r.kr) + ' er betalt tilbake' + back[0] + '.'),
-        en = 'The vessel purchase is undone: ' + whatEn + ', and ' + kr(r.kr) + ' has been paid back' + back[1] + '.';
+      const what = [V ? V.name.no + ' er din igjen' : '', r.licKr > 0 ? 'hjemmelen er gitt tilbake til registeret' : '', r.inn ? 'toppfinansieringen fra Innovasjon Norge kan brukes igjen' : '', r.upgs && r.upgs.length ? 'ombyggingene er tilbake på båten (' + r.upgs.map(k => UPGS[k].steps[(S.boat.upg[k] || 1) - 1].no.toLowerCase()).join(', ') + ')' : ''].filter(Boolean).join(', '),
+        whatEn = [V ? 'the ' + V.name.en + ' is yours again' : '', r.licKr > 0 ? 'the right has gone back to the register' : '', r.inn ? 'the top-up from Innovasjon Norge can be used again' : '', r.upgs && r.upgs.length ? 'the rebuilds are back on the boat' : ''].filter(Boolean).join(', ');
+      const paidNo = r.kr > 0 ? ', og ' + kr(r.kr) + ' er betalt tilbake' + back[0] : '', paidEn = r.kr > 0 ? ', and ' + kr(r.kr) + ' has been paid back' + back[1] : '';
+      const no = f.note || ('Båtkjøpet er angret: ' + what + paidNo + '.'),
+        en = 'The vessel purchase is undone: ' + whatEn + paidEn + '.';
       log(no, en); msg('Kystmegleren', no, en);
       if (typeof G3 !== 'undefined') try { G3.vesselChanged(); } catch (e){ console.error(e); }
       try { refreshAll(); } catch (e){}
