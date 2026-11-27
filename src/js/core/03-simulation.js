@@ -1317,7 +1317,7 @@ function deal(price, ti, inn){
   const C0 = Math.max(0, S.cash) + bankS().spare, loanNeed = C0 >= cost ? 0 : cost - Math.max(0, C0 - 5000), bankL = Math.min(loanNeed, price * 0.8), inL = loanNeed - bankL;
   const cap = (S.fleet.reduce((a, v) => a + vesselValue(v), 0) - ti + price) * 0.8 + (inn ? price * INN : 0) - (D - payoff);
   const why = !loanNeed ? null : S.sales.length < 3 ? 'notes' : C0 < eqNeed ? 'eq' : inL > (inn ? price * INN : 0) + 1 || loanNeed > cap + 1 ? 'cap' : null;
-  return {cost, eqNeed, loanNeed, bankL, inL, payoff, tiNet, ok:!why, why};
+  return {cost, eqNeed, loanNeed, bankL, inL, payoff, tiNet, ok:!why, why, inn:!!inn};   // (inn: whether Kystfondet's top-up was offered; without it inL is only what the bank will not lend, 27.11.2026)
 }
 function finance(x, months){ if (x.payoff) payDown(x.payoff); if (x.bankL > 0) takeLoan(x.bankL, months); if (x.inL > 0) takeLoan(x.inL, 120, 'loanIN');
   if (S.cash < x.cost && bankS().spare > 0) bankMove('spare', -(x.cost - S.cash), 'Fra sparekontoen til båtkjøpet', 'From the savings for the vessel');   // the savings are equity

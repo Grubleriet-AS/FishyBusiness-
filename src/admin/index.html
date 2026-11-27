@@ -942,7 +942,7 @@ function krWire(){
     if (k && !(+k >= 0)){ alert('Tilbakebetalingen må være et tall.'); return; } if (lic && at && !isFinite(Date.parse(at))){ alert('Tidspunktet forstås ikke.'); return; }
     const data = {}; if (boat){ data.from = from; data.to = to; if (k) data.kr = +k; } if (lic){ data.lic = lic; if (at) data.licAt = new Date(Date.parse(at)).toISOString(); } if (inn) data.inn = true; if (upgTx) data.upg = upg; if (gear) data.gearKr = +gear;
     if (!confirm('Angre kjøpet:' + (boat ? ' ' + to + ' blir ' + from : '') + (lic ? (boat ? ',' : '') + ' hjemmelen ' + lic + ' tilbake til registeret' : '') + (k ? ', og ' + nf(+k, 0) + ' kr for båten' : ', med tilbakebetalingen regnet av spillet') + '?')) return;
-    add.disabled = true; try { if (!DEMO) await rpc('admin_fix_add', {who:KR.id, kind:'undo_buy', data, note}); krLoad(KR.id); } catch (e){ add.disabled = false; alert(e.message); } };
+    add.disabled = true; try { if (!DEMO) await rpc('admin_fix_add', {who:KR.id, kind:'undo', data, note}); krLoad(KR.id); } catch (e){ add.disabled = false; alert(e.message); } };
   document.querySelectorAll('[data-krrev]').forEach(b => b.onclick = async () => { b.disabled = true; try { if (!DEMO) await rpc('admin_fix_revoke', {fid:+b.dataset.krrev}); krLoad(KR.id); } catch (e){ b.disabled = false; alert(e.message); } });
 }
 // ---------- Kystposten's stories (supabase/migrations/20261007170000_news.sql; the game's core/09h-press.js) ----------
