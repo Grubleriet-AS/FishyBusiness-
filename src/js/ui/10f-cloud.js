@@ -596,7 +596,8 @@ async function cloudSync(cs){
   // was closed, the route never sent): the account's copy of this device's game, from before what was played here since, goes on, and
   // the one here is kept (Tidligere lagringer). Once: the start after it tries that game, and the safe start comes after that
   // (own: the account's game is this device's own and no later than the game here, a save whose answer never came back; see below)
-  const own = !!(lo && sync && cs.device && cs.device === deviceId() && Date.parse(sync.rev) !== Date.parse(rev) && local >= Date.parse(rev));
+  // (never a game here that is behind the one this device last had answered, sync.sq: a page left open that wrote its game back)
+  const own = !!(lo && sync && cs.device && cs.device === deviceId() && Date.parse(sync.rev) !== Date.parse(rev) && local >= Date.parse(rev) && (sync.sq == null || (lo.seq || 0) >= sync.sq));
   if (lo && sync && (Date.parse(sync.rev) === Date.parse(rev) && local > (sync.at || 0) + 1000 || own && local > Date.parse(rev) + 1000) && typeof bootgRescue === 'function' && bootgRescue()){
     try { sessionStorage.setItem('dsb_note', cloudL('Spillet stoppet under oppstarten. Vi fortsetter fra den siste lagringen på kontoen din, litt før. Det nyeste fra denne enheten er tatt vare på under Innstillinger › Tidligere lagringer.',
       'The game stopped while starting. We go on from the last save on your account, a little earlier. The newest from this device is kept under Settings › Earlier saves.')); } catch (e){}

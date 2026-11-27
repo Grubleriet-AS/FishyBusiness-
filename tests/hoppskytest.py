@@ -12,13 +12,16 @@ device and asks the account which game goes on. One device against a stand-in fo
   3. the page lives on: a save reaches the account and its answer is lost (the network), and the server's clock is ahead of the
      device's. The next save is refused (the account has moved on), and the game here goes on and is saved over the account's own
      older copy. Before, the server's time of that copy was held against the device's clock, and the older game was taken back
-  4. the boat off the route's line with land between her and the next point (leaving her berth, rounding a point: the manoeuvring
-     model's track, not the line), held for a hop: the page that comes back keeps her on her route, and the hop is made. Before, the
+     (3b: but a game here that is behind the one this device last had answered, a page left open that wrote its game back, never
+     goes on over the device's own later save on the account: the account's game is taken, as before)
+  4. the boat off the route's line with land between her and the next point (leaving her berth, on the route's first leg, and
+     rounding a point on a later one: the manoeuvring model's track, not the line), held for a hop: the page that comes back keeps her on her route, and the hop is made. Before, the
      start (ui/11-boot.js) took the line from where she lay to the next point for a leg of the route «over land», put her back in
      the nearest harbour and took the route away, so the hop was marked for a refund (5 of 41 harbours along the coast for 1 to 28 s
      after the cast-off, measured 27.11.2026; most of the refunded hops were bought 5 to 26 s after a departure)
-  5. the start's own job is still done: a route with a leg of its own over land (the chart or a quay changed since it was laid) puts
-     the boat in the nearest harbour with the route gone. (Before, the route came back with the vessel's own copy, and she lay moored
+  5. the start's own job is still done: a route with a leg over land ahead of her (the chart or a quay changed since it was laid;
+     under way the legs after the one she is on, moored the first leg from the harbour's point too) puts the boat in the nearest
+     harbour with the route gone, and the log says so. (Before, the route came back with the vessel's own copy, and she lay moored
      with the route over land still on her: what a player whose hop was refunded then met, and «Sitter båten fast?» was pressed)
   6. no page errors
 KYST_LITE=1 python3 tests/hoppskytest.py. Prints OK or FEIL lines."""
@@ -110,8 +113,9 @@ START = """async (off) => {
   // while the route's own leg to that point is clear (as on her way out of a berth, or on her track round a point)
   let at = null;
   if (off){ const W = S.plan.wps;
-    for (let i = 1; i < Math.min(W.length, 8); i++){ if (!legClear(W[i - 1], W[i])) continue;
-      for (let f = 0.1; f < 0.95; f += 0.1){ const m = {x:W[i - 1].x + (W[i].x - W[i - 1].x) * f, y:W[i - 1].y + (W[i].y - W[i - 1].y) * f};
+    // ('first': on the route's first leg, out of the harbour, the route's index 0, as the hops refunded were; 'later': on a later leg)
+    for (let i = off === 'first' ? 0 : 1; i < (off === 'first' ? 1 : Math.min(W.length, 8)); i++){ const P = i ? W[i - 1] : A.p; if (!legClear(P, W[i]) && !quayLandLeg(P, W[i])) continue;
+      for (let f = 0.1; f < 0.95; f += 0.1){ const m = {x:P.x + (W[i].x - P.x) * f, y:P.y + (W[i].y - P.y) * f};
         for (let dx = -0.6; dx <= 0.6; dx += 0.03) for (let dy = -0.6; dy <= 0.6; dy += 0.03){ const q = {x:m.x + dx, y:m.y + dy}, d = Math.hypot(dx, dy);
           if ((!at || d < at.d) && !isLand(q) && coastDist(q) > 0.02 && !legClear(q, W[i])) at = {i, d, q}; } } }
     if (at){ b.pos = {x:at.q.x, y:at.q.y}; S.plan.idx = at.i; } }
@@ -192,29 +196,53 @@ async def main():
             await asyncio.sleep(0.25)
         check(lost and s3.get('alive') and s3.get('cash') == 424242 and (DB['row'].get('summary') or {}).get('cash') == 424242,
               '3. a save answered by nobody and a server clock ahead: the game here goes on and reaches the account, never its own older copy back', {'lost': lost, 's3': s3, 'row': DB['row'].get('summary'), 'rev': DB['row']['rev']})
+        # 3b. the game here is behind the one this device last had answered (a page left open wrote its game back, the save's count
+        # below the one in step), and the account has this device's later save unanswered: the account's game goes on, as before
+        for _ in range(100):
+            if await pg.evaluate("!CLOUD.saving && !CLOUD.forceNext && TAB.rv === %d" % DB['row']['rev']): break
+            await pg.wait_for_timeout(100)
+        DB['mute'] = True; rev0 = DB['row']['rev']
+        await pg.evaluate("() => { S.cash = 555000; save(); cloudSaveSoon(); }")
+        for _ in range(100):
+            if DB['row']['rev'] > rev0: break
+            await asyncio.sleep(0.1)
+        b3 = await pg.evaluate("() => { SAVE_OFF = true; const o = JSON.parse(localStorage.getItem(KEY)), sy = syncGet(); o.seq = sy.sq - 1; o.cash = 111; o.lastReal = Date.now() + 5; localStorage.setItem(KEY, JSON.stringify(o)); return {sq:sy.sq, seq:o.seq}; }")
+        await pg.reload(); await pg.wait_for_function(READY, timeout=240000)
+        a3 = await pg.evaluate("({cash:S.cash})")
+        check(DB['row']['rev'] == rev0 + 1 and a3['cash'] == 555000, '3b. a game here behind the one this device last had answered never goes on over its own later save on the account', {'b3': b3, 'a3': a3, 'rev': DB['row']['rev']})
         # 4. the boat beside the route's line, land between her and the next point: back from the payment she is still on her route
-        st = await pg.evaluate(START, True); q = await pg.evaluate(PRESS)
-        check(bool(st['at']) and q['held'] and not q['why'], 'under way beside the line of the route, land between her and the next point, the boat held', {'st': st, 'q': q})
-        if st['at']:
+        for off, gid in (('first', 503), ('later', 504)):
+            st = await pg.evaluate(START, off); q = await pg.evaluate(PRESS)
+            check(bool(st['at']) and q['held'] and not q['why'], 'under way beside the line of the route (' + off + ' leg), land between her and the next point, the boat held', {'st': st, 'q': q})
+            if not st['at']: continue
             DB['game_t'] = q['t']; DB['mute'] = True; rev0 = DB['row']['rev']
             await pg.evaluate(BUY)
             for _ in range(100):
                 if DB['row']['rev'] > rev0: break
                 await asyncio.sleep(0.1)
-            DB['grants'].append({'id': 503, 'data': {'give': 'hopp', 'boat': q['boat'], 'min': q['min'], 'kr': q['kr'], 'to': q['to']}})
-            g, calls, a = await back(pg, 503)
+            DB['grants'].append({'id': gid, 'data': {'give': 'hopp', 'boat': q['boat'], 'min': q['min'], 'kr': q['kr'], 'to': q['to']}})
+            g, calls, a = await back(pg, gid)
             check(g.get('used') and not g.get('void') and a['km'] < 0.5 and not a['void'],
-                  '4. back from the payment with the boat beside the line of her route: she is still on it, and the hop is made (never back in the nearest harbour with the route gone)', {'grant': g, 'a': a})
-        # 5. a route whose own leg crosses land is still taken away at the start, the boat put in the nearest harbour
-        r5 = await pg.evaluate("""async () => { const H = window.__H || JSON.parse(sessionStorage.getItem('hoppsky')), b = S.boat, W = H.wps;
-          const far = PORTS.filter(p => !p.naust && dist(p.p, W[1]) > 15 && dist(p.p, W[1]) < 80 && !legClear(W[1], p.p) && !quayLandLeg(W[1], p.p) && legClear(W[0], W[1]))[0];
-          if (!far) return {err:'no harbour behind land'};
-          b.status = 'sailing'; b.port = null; b.pos = {x:W[0].x, y:W[0].y}; b.v = 0; b.hopHold = null;
-          S.plan = {wps:[Object.assign({}, W[0]), Object.assign({}, W[1]), {x:far.p.x, y:far.p.y, port:far.id}], idx:0, speed:BOAT.vcruise || BOAT.vmax * 0.8, returning:false, depAt:null, unsafe:[false, false, false]};
-          save(); return {far:far.name}; }""")
-        await pg.reload(); await pg.wait_for_function(READY, timeout=240000)
-        a5 = await pg.evaluate("({st:S.boat.status, port:S.boat.port, plan:!!S.plan, trail:(S.trail || []).length})")
-        check(not r5.get('err') and a5['st'] == 'port' and a5['port'] and not a5['plan'] and a5['trail'] == 1, '5. a route with a leg of its own over land is still taken away at the start (the route and the track, in the copy the vessel keeps too), the boat in the nearest harbour', {'r5': r5, 'a5': a5})
+                  '4. back from the payment with the boat beside the line of her route (' + off + ' leg): she is still on it, and the hop is made (never back in the nearest harbour with the route gone)', {'grant': g, 'a': a})
+        # 5. a route with a leg over land ahead is still taken away at the start, the boat put in the nearest harbour: under way (a
+        # leg ahead of the one she is on), and moored with a departure set (the route's first leg, from the harbour's point)
+        FAR = """async (moored) => { const H = window.__H || JSON.parse(sessionStorage.getItem('hoppsky')), b = S.boat, W = H.wps, A = portById(H.A), P = moored ? A.p : W[1];
+          let far = null;
+          for (const p of PORTS.filter(p => !p.naust && dist(p.p, P) > 12 && dist(p.p, P) < 40).sort((p, q) => dist(p.p, P) - dist(q.p, P))){
+            for (let f = 0; f <= 1; f += 0.05) await mapNeed({x:P.x + (p.p.x - P.x) * f, y:P.y + (p.p.y - P.y) * f}, 2);
+            if (!legClear(P, p.p) && !quayLandLeg(P, p.p)){ far = p; break; } }
+          if (!far || !legClear(W[0], W[1])) return {err:'no harbour behind land'};
+          b.hopHold = null; b.v = 0;
+          if (moored){ b.status = 'port'; b.port = A.id; b.pos = {x:A.p.x, y:A.p.y}; S.plan = {wps:[{x:far.p.x, y:far.p.y, port:far.id}], idx:0, speed:BOAT.vcruise || BOAT.vmax * 0.8, returning:false, depAt:S.t + 600, unsafe:[false]}; }
+          else { b.status = 'sailing'; b.port = null; b.pos = {x:(W[0].x + W[1].x) / 2, y:(W[0].y + W[1].y) / 2};
+            S.plan = {wps:[Object.assign({}, W[0]), Object.assign({}, W[1]), {x:far.p.x, y:far.p.y, port:far.id}], idx:1, speed:BOAT.vcruise || BOAT.vmax * 0.8, returning:false, depAt:null, unsafe:[false, false, false]}; }
+          S.log = []; save(); return {far:far.name}; }"""
+        for moored in (False, True):
+            r5 = await pg.evaluate(FAR, moored)
+            await pg.reload(); await pg.wait_for_function(READY, timeout=240000)
+            a5 = await pg.evaluate("({st:S.boat.status, port:S.boat.port, plan:!!S.plan, trail:(S.trail || []).length, told:(S.log || []).some(l => /gikk over land/.test(l.no || ''))})")
+            check(not r5.get('err') and a5['st'] == 'port' and a5['port'] and not a5['plan'] and a5['trail'] == 1 and a5['told'],
+                  '5. a route with a leg over land ahead (' + ('moored, its first leg' if moored else 'under way, the leg after hers') + ') is still taken away at the start, in the copy the vessel keeps too, and said in the log', {'r5': r5, 'a5': a5})
         check(not errs, '6. no page errors', errs[:3])
         await br.close()
     print('FEIL: ' + ', '.join(FAIL) if FAIL else 'alt OK')

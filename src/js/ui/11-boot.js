@@ -280,15 +280,19 @@ if (BOOTG.safe) bootgSafe();   // the starts before locked (BOOTG above): the ro
   (S.draft || []).forEach(fixW); if (S.plan) S.plan.wps.forEach(fixW); S.trail.forEach(fixW);
   // real coastline: anything that now sits on land is brought back to a harbour
   if ((S.draft || []).some(w => isLand(w))) S.draft = [];
-  // (the route's own legs, by the route panel's rule: legClearMemo, which lets a leg over a sealed harbour's own fill through,
+  // (the route's legs ahead of her, by the route panel's rule: legClearMemo, which lets a leg over a sealed harbour's own fill through,
   // quayLandLeg. Not the line from where she is to the next point: that is no leg of the route, and the sailing keeps her off land on
   // it by itself (groundCheck, the way out of a harbour, the track round a corner). With that line, a page loaded again while she left
   // her berth or rounded a point close to land put her back in the nearest harbour and took the route away; a hop paid for at Stripe
   // meanwhile could then not be made, and was refunded. Measured 27.11.2026: 5 of 41 harbours along the coast, for 1 to 28 s after the
   // cast-off, Stø among them, where one of the refunded hops was bought 17 s after the departure. tests/hoppskytest.py)
   const legOk = (a, w) => legClear(a, w) || (typeof quayLandLeg === 'function' && !!quayLandLeg(a, w));
-  const bb = S.boat, onLand = bb.status !== 'port' && isLand(bb.pos), pl0 = S.plan;
-  const badPlan = pl0 && pl0.wps.slice(pl0.idx).some((w, i, a) => { const p = i ? a[i - 1] : pl0.idx > 0 ? pl0.wps[pl0.idx - 1] : null; return isLand(w) || !!p && !legOk(p, w); });
+  // (the leg she is on is checked only while she lies moored, from the harbour's point, where it is the route's own first leg. Under
+  // way it is the sailing's: the point before hers is not always the leg's start (Autonav's ways round, sailReplan, obsSail and
+  // landSail, put their points in from where she is), and the part behind her is not among the packs the start loads, bootMapLoad:
+  // «mask block … is not loaded» would stop the start; the independent check 27.11.2026)
+  const bb = S.boat, onLand = bb.status !== 'port' && isLand(bb.pos), pl0 = S.plan, moored = bb.status === 'port' || bb.status === 'unmooring';
+  const badPlan = pl0 && pl0.wps.slice(pl0.idx).some((w, i, a) => { const p = i ? a[i - 1] : moored ? bb.pos : null; return isLand(w) || !!p && !legOk(p, w); });
   if (onLand || badPlan){
     const q = PORTS.slice().sort((a, b) => dist(a.p, bb.pos) - dist(b.p, bb.pos))[0];
     // (told, so it can be seen how often and from what: before, nothing said that a start had moved a boat; 27.11.2026)
