@@ -214,8 +214,9 @@ export default function (t){
       const e1 = K.planEnd('a', 'sjark'), e2 = K.planEnd('b', 'sjark'), e3 = K.planEnd('c', 'sjark'), e4 = K.planEnd(null, 'sjark');
       t.ok(e1 && e1.x === 500.01 && e1.y === 900.02 && e1.hd === 1.2 && e2 === null && e3 === null && e4 === null, 'banen ender ved kaiplassen der stedet har en, ellers i havnas punkt (planEnd gir da ingenting)', [e1, e2, e3, e4]); } finally { K.set('berthPose', bp0); }
     const fb0 = K.get('fixBoats'), FB = K.get('FARB'); try { K.set('fixBoats', () => [{t:1, x:0, z:0, l:4, w:1.5, ux:1, uz:0}, {t:0, x:10, z:0, r:11}]);
-      const n1 = K.farbBoats(0, 0).length; FB.swing = true; const n2 = K.farbBoats(0, 0).length; FB.swing = false;
-      t.ok(n1 === 1 && K.farbBoats(0, 0)[0].t === 1 && n2 === 2, 'en bøyebåt regnes som skroget der hun ligger, ikke hele sirkelen hun svinger på (FARB.swing snur det)', [n1, n2]); } finally { K.set('fixBoats', fb0); FB.swing = false; } } finally { K.set('S', S0); }
+      const n2 = K.farbBoats(0, 0).length; FB.swing = false; const n1 = K.farbBoats(0, 0).length, t1 = K.farbBoats(0, 0)[0].t; FB.swing = true;
+      // (27.11.2026, fifth session: the circles count again, now that a buoy has a free lane round it, 05-vessels.js moorBuoyRoom)
+      t.ok(n2 === 2 && n1 === 1 && t1 === 1, 'en bøyebåts svingsirkel teller (FARB.swing); slått av regnes hun som skroget der hun ligger', [n1, n2]); } finally { K.set('fixBoats', fb0); FB.swing = true; } } finally { K.set('S', S0); }
   // A clear detour, measured without the reference (steg 142, point 4): the search says how far it took the goal to be from the start
   // with only what is solid shutting a cell (h0), and planOmvei holds the bane's length against it. A
   // belt of water the field calls too shallow (a shore's foot) across the short way: the first search goes round it, the second
