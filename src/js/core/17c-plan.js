@@ -362,6 +362,7 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
   let r = await send({op:'start', J}), tiles = 0, tries = 0, exp = 0, boatShut = null; const shut = [];   // (shut: what the check on the geometry found and shut, for the answer)
   const o = Object.assign({}, bb, {end:!(opt && opt.end === false)}), sw = {m:side, keel:planKeel(), squat:sq, sqV:P ? v => planSquat(u => dynSquat(P, u, false), v) : null, boats:true, skip}, memo = new Map(), rMin = Math.max(boat.B / 2, bb.R / 16);
   // (the harbour manoeuvres at the ends, where the caller gave her berths, opt.from and opt.to: planEnd's)
+  const r2 = v => Math.round(v * 100) / 100;
   const hv = {dep:!!(opt && opt.from && opt.from.hd != null && !opt.dig), arr:!!(opt && opt.to && opt.to.hd != null && !opt.dig), Dh:Math.max(PLAN.havn.dMin, PLAN.havn.d * boat.L), join:Math.max(8, PLAN.havn.join * boat.L), n:0, drop:[]};
   if (hv.dep || hv.arr) try { await farbNeed([a, b], (hv.Dh + 3 * boat.L + 60) / 1000); } catch (e){}
   for (;;){
@@ -402,7 +403,11 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
       if (hv.dep && tot > hv.Dh * (hv.arr ? 2.6 : 1.4)){ const H = along(hv.Dh), R = await havn('d', {x:ax, z:az, hd:opt.from.hd}, H, freeH([ax, az]), null); if (R){ head = R.pts; d0 = hv.Dh + hv.join; hv.n += R.n; } else hv.dep = false; }
       if (hv.arr && tot > hv.Dh * (hv.dep ? 2.6 : 1.4)){ const H = along(tot - hv.Dh), R = await havn('a', {x:bx, z:bz, hd:opt.to.hd}, H, freeH([bx, bz]), {kAhead:3, kAstern:1}); if (R){ tail = planHavnRev(R.pts); d1 = tot - hv.Dh - hv.join; hv.n += R.n; } else hv.arr = false; }
       const mid = []; if (head){ const J = along(d0); mid.push([J.x, J.z, 0]); } for (let i = 0; i < P.length; i++) if ((!head || cum[i] > d0 + 1) && (!tail || cum[i] < d1 - 1)) mid.push([P[i][0], P[i][1], 0]); if (tail){ const J = along(d1); mid.push([J.x, J.z, 0]); }
-      Q = (head || []).concat(mid, tail || []); }
+      // (to the centimetre, as the plan keeps them, planInto: the bane the minute step builds again from the plan is then the very
+      // one that is checked here. With the manoeuvres' corners, whose legs are made for their radius, a bane built from the rounded
+      // numbers had other pieces than the one that was checked, baneOf gave none, and the trip was sailed from point to point as
+      // before the bane: Averøy with the skiff over land at 15 knots, the bench 27.11.2026)
+      Q = (head || []).concat(mid, tail || []).map(q => [r2(q[0]), r2(q[1]), r2(q[2] || 0), r2(q[3] || 0), r2(q[4] || 0), q[5] || 0]); }
     for (let i = 0; i + 1 < Q.length; i++){ const n = Math.max(1, Math.ceil(Math.hypot(Q[i + 1][0] - Q[i][0], Q[i + 1][1] - Q[i][1]) / 2000));
       for (let j = 0; j < n; j++) if (!await farbNeed([{x:(Q[i][0] + (Q[i + 1][0] - Q[i][0]) * j / n) / 1000, y:(Q[i][1] + (Q[i + 1][1] - Q[i][1]) * j / n) / 1000}, {x:(Q[i][0] + (Q[i + 1][0] - Q[i][0]) * (j + 1) / n) / 1000, y:(Q[i][1] + (Q[i + 1][1] - Q[i][1]) * (j + 1) / n) / 1000}], 0.4)) return fail({why:'ingen vei', cause:'ukjent', at:[Q[i][0], Q[i][1]]}, {tiles, tries, exp}); }
     for (let guard = 0; guard < 400; guard++){ B = baneBuild(Q, o); Q = B.Q; hit = await farbRunA(baneFriG(B, boat, Hmin, sw, memo)); if (!hit || hit.what === 'ukjent') break;
@@ -410,12 +415,12 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
         if (inD || inA){ if (inD) hv.dep = false; if (inA) hv.arr = false; hv.drop.push(hit.what + ':' + hit.id + '@' + Math.round(hit.x) + ',' + Math.round(hit.z)); redo = true; break; } }
       const p = B.P[hit.i];
       // (water too shallow for her squat at the speed she has there: she goes slower over it, down to BANE.vSlow, before it is shut)
-      if (hit.what === 'grunn' && p.vl > BANE.vSlow + 1e-6){ const v2 = Math.max(BANE.vSlow, p.vl / 2);
+      if (hit.what === 'grunn' && p.vl > BANE.vSlow + 1e-6){ const v2 = r2(Math.max(BANE.vSlow, p.vl / 2));
         if (p.k === 'a'){ Q[p.c][4] = v2; continue; }
         const c0 = Q[p.c][3] || 0, u0 = hit.s - p.s0 - 15, u1 = hit.s - p.s0 + BANE.piece + 15, dx = (p.bx - p.ax) / p.len, dz = (p.bz - p.az) / p.len, ins = [];
-        const m5 = (Q[p.c][5] || 0) & 3; if (u0 > 2) ins.push([p.ax + dx * u0, p.az + dz * u0, 0, c0, 0, m5]); if (u1 < p.len - 2) ins.push([p.ax + dx * u1, p.az + dz * u1, 0, v2, 0, m5]); else Q[p.c][3] = v2;
+        const m5 = (Q[p.c][5] || 0) & 3; if (u0 > 2) ins.push([r2(p.ax + dx * u0), r2(p.az + dz * u0), 0, c0, 0, m5]); if (u1 < p.len - 2) ins.push([r2(p.ax + dx * u1), r2(p.az + dz * u1), 0, v2, 0, m5]); else Q[p.c][3] = v2;
         if (ins.length){ if (!(u1 < p.len - 2)) ins[ins.length - 1][3] = c0; Q.splice(p.c, 0, ...ins); } continue; }
-      if (p.k !== 'a' || p.r / 2 < rMin) break; Q[p.c][2] = p.r / 2; }
+      if (p.k !== 'a' || p.r / 2 < rMin) break; Q[p.c][2] = r2(p.r / 2); }
     if (!redo) break; }
     if (!hit){ PLAN.n.plans++; PLAN.n.tiles += tiles; const R1 = {bane:B, pts:banePts(B), nm:B.len / 1852, ms:0, tiles, tries, exp, Hmin, need:J, shut, h0:r.h0 || 0, havn:{dep:!!head, arr:!!tail, n:hv.n, drop:hv.drop}};
       // (a clear detour: the second search too, and the shorter of the two that the check let through. Only then, so a trip that goes

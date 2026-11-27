@@ -232,6 +232,13 @@ export default function (t){
       const slot = (x, z, psi) => hull(x, z, psi).every(c => c[0] < 7 && c[1] > -(Bm / 2 + 0.4) + 0.05);
       h = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, slot);
       t.ok(h, 'med baugen mot en vegg: en vei finnes'); if (h){ const w = sweep(h.pts, slot); t.eq(w.bad, 0, 'uten å ta borti veggen eller kaia'); t.ok(w.M.cusp.length >= 1, 'og hun stopper og skifter minst én gang', w.M.cusp.length); }
+      // the bane the minute step builds again from the plan (planInto's leg, baneOf) is the very one that was built from the points
+      // to the centimetre, as planBane makes them: built from other numbers than the plan keeps, it had other pieces, baneOf gave
+      // none, and the trip was sailed from point to point (Averøy with the skiff over land, the bench 27.11.2026)
+      if (h){ const r2 = v => Math.round(v * 100) / 100, far0 = 500000, Qc = h.pts.map(q => [r2(q[0] + far0), r2(q[1] + far0 + 400000), r2(q[2]), r2(q[3]), 0, q[5]]).concat([[far0 - 50 - 300, far0 + 400000 + 30, 0, 0, 0, 0]]);
+        const ob = Object.assign(K.baneBoat('sjark', 8), {end:true}), Bc = K.baneBuild(Qc.map(q => q.slice()), ob), pl = {wps:[{x:0, y:0, port:null, fish:0}], idx:0};
+        K.planInto(pl, {pts:K.banePts(Bc), bane:Bc}, 0, 1); const Y = K.baneOf(K.baneLeg(pl));
+        t.ok(Y && Math.abs(Y.B.len - Bc.len) < 1e-9 && Y.B.P.length === Bc.P.length && Y.B.cusp.length === Bc.cusp.length, 'banen minuttsteget bygger fra planen, er den som ble kontrollert (med manøveren i)', Y ? [Y.B.len, Bc.len, Y.B.P.length, Bc.P.length] : null); }
       // shut in on every side: none, and it says so within its limit
       h = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, (x, z) => Math.hypot(x, z) < 6, {maxN:500});
       t.ok(h === null, 'stengt inne på alle kanter: ingen vei', h);

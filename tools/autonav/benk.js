@@ -159,7 +159,7 @@
         c.st.last = {X:a.x * 1000, Z:a.y * 1000, psi}; BK.sweep(c, {X:q.x * 1000, Z:q.y * 1000, psi}, kn); } },
     finish(R, r){ const c = BK.cur; if (!c) return null; BK.cur = null; const b = S.boat, hits = c.hits;
       return {end:R.end || b.status, at:!!R.at, why:R.why ? String(R.why).slice(0, 200) : null, min:R.min, nmRoute:r && r.nm != null ? +r.nm.toFixed(2) : null, nmSailed:+(c.m / 1852).toFixed(2), fuel:+(c.fuel0 - b.fuel).toFixed(1),
-        hands:R.hands || 0, handsK:R.handsK || {}, hits:hits.filter(h => !h.own), own:c.own, berth:[...c.berth].map(k => k.split('|')[0]), obs:{n:c.st.n || 0, skip:Math.round(c.st.skip || 0), jumps:c.jumps}, tick:c.tN ? {n:c.tN, mean:+(c.tSum / c.tN).toFixed(2), max:+c.tMax.toFixed(1)} : null, err:BK.err}; },
+        hands:R.hands || 0, handsK:R.handsK || {}, bane:R.bane, hits:hits.filter(h => !h.own), own:c.own, berth:[...c.berth].map(k => k.split('|')[0]), obs:{n:c.st.n || 0, skip:Math.round(c.st.skip || 0), jumps:c.jumps}, tick:c.tN ? {n:c.tN, mean:+(c.tSum / c.tN).toFixed(2), max:+c.tMax.toFixed(1)} : null, err:BK.err}; },
     // ---- the ends of a stretch, her place at the start, the route ----
     async end(e){ const kinds = [['sim', 3], ['chart', 3], ['vec', 1.5]];
       if (e.ll){ const p = natP(e.ll[0], e.ll[1]); await mapPreload([p], kinds); return {kind:'ll', id:null, p, name:e.navn || 'punkt'}; }
@@ -228,7 +228,7 @@
           if (!simAreaReady()){ await mapNeed(b.pos, 4); await sleep(20); continue; }
           if (sailWaiting() && waits++ < 1500){ await sleep(20); continue; }
           DYN.on = false; const pl0 = S.plan, p0 = {x:b.pos.x, y:b.pos.y}, i0 = pl0 ? pl0.idx : 0, w0 = pl0 ? {a:pl0.wps, n:pl0.wps.length, pts:pl0.wps.map(q => ({x:q.x, y:q.y}))} : null;
-          const bn = BK.banePre(pl0); step(); BK.watchBg(c, p0, i0, w0, bn);
+          const bn = BK.banePre(pl0); if (R.bane === undefined) R.bane = pl0 && pl0.b2 ? !!bn : null; else if (pl0 && pl0.b2 && !bn && R.bane) R.bane = false; step(); BK.watchBg(c, p0, i0, w0, bn);   // (R.bane: false where the plan has a bane and the minute step does not follow it)
           if (S.plan && S.plan.replan) await sleep(20);
           if (b.status === 'aground'){ stuck = 'aground'; break; }
           if (b.status === 'port' && !S.plan) break;
