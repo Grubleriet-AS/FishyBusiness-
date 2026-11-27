@@ -46,7 +46,9 @@
     const t = markRead(SEA_TRY);
     if (t && t.lvl + 1 > v){ const n = goneGet(SEA_GONE) + 1;
       if (n >= 2){ v = Math.min(2, t.lvl + 1); seaBumped = true; goneSet(SEA_GONE, 0); try { localStorage.setItem(SEA_KEY, String(v)); } catch (e){} if (t.lvl === 0) seaReSet('no'); }
-      else { goneSet(SEA_GONE, n); if (typeof cloudErr === 'function') cloudErr('3D sjønivå ' + t.lvl + ': et forsøk kom ikke tilbake (1 av 2), prøves igjen · ' + GPU, 'view3d init', ''); } }
+      // (the first is not sent: iPhones leave it, a page ended while 3D starts, and the next start comes through, klynge:46fd07ca,
+      // 20.-27.11.2026; the second in a row is sent with the level down, below, and a try that fails in the page as before)
+      else goneSet(SEA_GONE, n); }
     const re = seaReGet();
     if (re.startsWith('try')){ const p = re.split(':');   // the try of the full sea once more: another page's right now, or one that never came back
       if (!(p[1] !== SEAID && Math.abs(Date.now() - (+p[2] || 0)) < SEA_FRESH)){ seaReSet('no');
