@@ -329,7 +329,7 @@ function planFresh(){ try { FIX.boats = null; } catch (e){} PLAN.hvMemo = new Ma
 async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = type || S.boat.type, boat = planBoat(ty, a.x * 1000, a.y * 1000), bb = baneBoat(ty, opt && opt.kn), F = FARB.F, c2 = PLAN.cell, H0 = S.t / 60;
   const ax = a.x * 1000, az = a.y * 1000, bx = b.x * 1000, bz = b.y * 1000, fail = (r, extra) => Object.assign({why:planWhy(r), cause:r.cause || r.why, at:r.at || null, decks:r.decks, refined:r.refined, fineN:r.fineN, ms:Math.round(performance.now() - t0)}, extra || {});
   const w = planWorker(); if (!w) return fail({why:'feil', cause:'ukjent'});
-  if (!(opt && (opt.soft || opt.dig))) planFresh();
+  if (!(opt && (opt.soft || opt.dig || opt.keep))) planFresh();
   // the lowest water while she is on the way (the tide where she starts: it is the same within a trip of this length)
   const hrs = Math.hypot(bx - ax, bz - az) / bb.vmax / 3600 * 1.5 + 0.25; let Hmin = H0, lv = Infinity; for (let h = 0; h <= hrs + 1e-9; h += 1 / 6){ const v = farbTide(H0 + h, ax, az); if (v < lv){ lv = v; Hmin = H0 + h; } }
   let sq = 0, P = null; try { P = dynCal(ty).P; sq = dynSquat(P, bb.vmax, false); } catch (e){}
@@ -402,6 +402,10 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
       head = null; tail = null; let d0 = 0, d1 = tot;
       if (hv.dep && tot > hv.Dh * (hv.arr ? 2.6 : 1.4)){ const H = along(hv.Dh), R = await havn('d', {x:ax, z:az, hd:opt.from.hd}, H, freeH([ax, az]), null); if (R){ head = R.pts; d0 = hv.Dh + hv.join; hv.n += R.n; } else hv.dep = false; }
       if (hv.arr && tot > hv.Dh * (hv.dep ? 2.6 : 1.4)){ const H = along(tot - hv.Dh), R = await havn('a', {x:bx, z:bz, hd:opt.to.hd}, H, freeH([bx, bz]), {kAhead:3, kAstern:1}); if (R){ tail = planHavnRev(R.pts); d1 = tot - hv.Dh - hv.join; hv.n += R.n; } else hv.arr = false; }
+      // (an end with no manoeuvre goes to the harbour's own point as before the manoeuvres, opt.from.px: a bane that came to the
+      // berth itself «as it came» swung her into the quay, and the check then shut the berth: Ålesund with kyst21, «no way»)
+      { const na = opt && opt.from && opt.from.px != null && !head, nb = opt && opt.to && opt.to.px != null && !tail;
+        if (na || nb) return planBane(na ? {x:opt.from.px, y:opt.from.py} : a, nb ? {x:opt.to.px, y:opt.to.py} : b, type, Object.assign({}, opt, {from:na ? null : opt.from, to:nb ? null : opt.to, keep:true})); }
       const mid = []; if (head){ const J = along(d0); mid.push([J.x, J.z, 0]); } for (let i = 0; i < P.length; i++) if ((!head || cum[i] > d0 + 1) && (!tail || cum[i] < d1 - 1)) mid.push([P[i][0], P[i][1], 0]); if (tail){ const J = along(d1); mid.push([J.x, J.z, 0]); }
       // (to the centimetre, as the plan keeps them, planInto: the bane the minute step builds again from the plan is then the very
       // one that is checked here. With the manoeuvres' corners, whose legs are made for their radius, a bane built from the rounded
@@ -422,7 +426,7 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
         if (ins.length){ if (!(u1 < p.len - 2)) ins[ins.length - 1][3] = c0; Q.splice(p.c, 0, ...ins); } continue; }
       if (p.k !== 'a' || p.r / 2 < rMin) break; Q[p.c][2] = r2(p.r / 2); }
     if (!redo) break; }
-    if (!hit){ PLAN.n.plans++; PLAN.n.tiles += tiles; const R1 = {bane:B, pts:banePts(B), nm:B.len / 1852, ms:0, tiles, tries, exp, Hmin, need:J, shut, h0:r.h0 || 0, havn:{dep:!!head, arr:!!tail, n:hv.n, drop:hv.drop}};
+    if (!hit){ PLAN.n.plans++; PLAN.n.tiles += tiles; const R1 = {bane:B, pts:banePts(B), nm:B.len / 1852, ms:0, tiles, tries, exp, Hmin, need:J, shut, h0:r.h0 || 0, havn:{dep:!!head, arr:!!tail, n:hv.n, drop:hv.drop}, ends:{a:{x:a.x, y:a.y}, b:{x:b.x, y:b.y}}};
       // (a clear detour: the second search too, and the shorter of the two that the check let through. Only then, so a trip that goes
       // nearly straight is searched once)
       if (!(opt && (opt.dig || opt.soft || opt.alt === false)) && planOmvei(B.len, r.h0)){ let R2 = null; try { R2 = await planBane(a, b, type, Object.assign({}, opt || {}, {soft:true, cap:Math.round(PLAN.omveiCap[0] + PLAN.omveiCap[1] * exp), tries:PLAN.omveiCap[2]})); } catch (e){}
@@ -470,7 +474,7 @@ async function planDig(a, b, type, opt){ const R = await planBane(a, b, type, Ob
 // across whatever stood between (the bench's observer: a floating dock at Stø, a vessel at Urangsvåg, steg 142). null where the
 // place has no berth to find (the map not in, a point at sea): the harbour's point then. The search with her heading at the berth
 // (G2: back out, turn, go) is not here yet: the bane comes to the berth from the way it came
-function planEnd(pid, type, kind){ if (!pid) return null; try { const bp = berthPose(pid, type || S.boat.type, kind || 'main'); return bp ? {x:bp.x, y:bp.y, hd:bp.hd} : null; } catch (e){ return null; } }
+function planEnd(pid, type, kind){ if (!pid) return null; try { const bp = berthPose(pid, type || S.boat.type, kind || 'main'); if (!bp) return null; let pt = null; try { pt = portById(pid).p; } catch (e){} return {x:bp.x, y:bp.y, hd:bp.hd, px:pt ? pt.x : null, py:pt ? pt.y : null}; } catch (e){ return null; } }   // (px, py: the harbour's own point, where the bane ends when no manoeuvre to the berth is found)
 // ---- the harbour search with her heading (G2, steg 142, 27.11.2026) ----
 // By a quay the way has her heading in it: she lies along the quay, 0.4 m off it, and a way that leaves the berth «as it came»
 // swings her stern into the quay (two tries at a lead along the quay, fifth session). So the first and the last of a bane is found

@@ -210,9 +210,9 @@ export default function (t){
     // which sees her hull as the 3D view draws it, counted no touch. FARB.swing turns it
     // Where a bane to a place ends: at her berth there (berthPose: where her middle lies by the quay), not at the harbour's point,
     // from which arrive() set her at the berth across whatever lay between (Stø with the purse seiner, Urangsvåg: steg 142, G2)
-    const bp0 = K.get('berthPose'); try { K.set('berthPose', (pid, ty, kind) => pid === 'a' ? {x:500.01, y:900.02, hd:1.2, kind} : pid === 'b' ? null : (() => { throw new Error('no map'); })());
-      const e1 = K.planEnd('a', 'sjark'), e2 = K.planEnd('b', 'sjark'), e3 = K.planEnd('c', 'sjark'), e4 = K.planEnd(null, 'sjark');
-      t.ok(e1 && e1.x === 500.01 && e1.y === 900.02 && e1.hd === 1.2 && e2 === null && e3 === null && e4 === null, 'banen ender ved kaiplassen der stedet har en, ellers i havnas punkt (planEnd gir da ingenting)', [e1, e2, e3, e4]); } finally { K.set('berthPose', bp0); }
+    const bp0 = K.get('berthPose'); try { K.set('berthPose', (pid, ty, kind) => pid === 'husoy' ? {x:500.01, y:900.02, hd:1.2, kind} : pid === 'b' ? null : (() => { throw new Error('no map'); })());
+      const e1 = K.planEnd('husoy', 'sjark'), hp = K.portById('husoy').p, e2 = K.planEnd('b', 'sjark'), e3 = K.planEnd('c', 'sjark'), e4 = K.planEnd(null, 'sjark');
+      t.ok(e1 && e1.x === 500.01 && e1.y === 900.02 && e1.hd === 1.2 && e1.px === hp.x && e1.py === hp.y && e2 === null && e3 === null && e4 === null, 'banen ender ved kaiplassen der stedet har en, ellers i havnas punkt (planEnd gir da ingenting)', [e1, e2, e3, e4]); } finally { K.set('berthPose', bp0); }
     // ---- the harbour search with her heading (G2): from the berth to a place and a heading on the way, over where she is and how she lies ----
     { const L = 10, Bm = 4, hull = (x, z, psi) => { const s = Math.sin(psi), c = Math.cos(psi); return [[L / 2, Bm / 2], [L / 2, -Bm / 2], [-L / 2, Bm / 2], [-L / 2, -Bm / 2]].map(([f, g]) => [x + f * s + g * c, z - f * c + g * s]); };
       const run = (bp, goal, free, o) => K.planHavn(bp, goal, L, Bm, free, o);
