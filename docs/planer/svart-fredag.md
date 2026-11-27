@@ -1,6 +1,6 @@
-# Svart fredag og mørketida: tilbudet i Kaiboden (plan 27.11.2026)
+# Black Week: tilbudet i Kaiboden (plan 27.11.2026)
 
-Status: **plan, ingenting bygd. Valgene V1–V4 venter på Jonas.**
+Status: **plan, ingenting bygd. Valgene er tatt** (Jonas 27.11.2026): V1 A, ny pakke og gave; V2 B, bare Black Week, til og med mandag 30.11, med datoen på kortet; V3 A, 499 kr; V4 A, Turbotrim 2 timer. Byggingen venter på «kjør på».
 
 ## Hva Jonas ba om
 
@@ -57,25 +57,27 @@ Alle beløp er brutto med mva., før betalingsgebyr. Butikken har vært åpen fo
 - **Gaver uten kjøp** finnes som produkter med pris 0 og `active` false (`reg_luksus`, `fb_haill`, `ach_haill`), gitt som `grants` uten `purchase_id`; spillet deler dem ut selv (`shopGive`).
 - **Et produkt tas av salg** med `active = false`.
 
-## Forslaget
+## Forslaget (valgt 27.11.2026)
 
 **Ikke et prisavslag, men en større pakke og en gave.**
 
-- **Mørketidspakken, 499 kr:** Turbotrim 3 døgn, Skippertak 3 døgn og 8 haill. Delene koster 910 kr enkeltvis (299 + 299 + 8 × 39), så «Spar 45 %» med samme regnemåte og samme forhold som Sjøværspakken (454 → 249). Den hever taket for de 15 som kjøper mest, uten å senke prisen på noe som selger i dag.
+- **Black Week-pakken (arbeidsnavn), 499 kr, til og med mandag 30.11.2026:** Turbotrim 3 døgn, Skippertak 3 døgn og 8 haill. Delene koster 910 kr enkeltvis (299 + 299 + 8 × 39), så «Spar 45 %» med samme regnemåte og samme forhold som Sjøværspakken (454 → 249). Den hever taket for de 15 som kjøper mest, uten å senke prisen på noe som selger i dag.
 - **Gaven:** én Turbotrim 2 timer til hver registrerte spiller, som melding fra Kaiboden. Den lar de 334 som ikke har betalt, prøve det som sparer tid, og meldingen fører inn i Kaiboden der pakken ligger øverst. Gjester får den når de registrerer seg i perioden.
-- **Navnet:** mørketida begynner i Tromsø omtrent 27.11 og varer til rundt 15.1 (sjekkes mot kilde før teksten skrives). En sesongpakke som kommer tilbake hvert år, holder regelen «sesongting kan kjøpes igjen senere»; «Svart fredag» som navn sier at tilbudet er over etter helga.
+- **Varigheten og unntaket (V2 B):** pakken selges til og med mandag 30.11.2026, og kortet sier det som en dato i tekst («Til og med mandag 30.11»), ikke som en klokke som teller. Det er et unntak Jonas har gjort fra «ingen nedtelling i butikken» og «tidspress aldri knyttet til butikken», for denne pakken alene; regelen står for resten av butikken (`docs/regler-bakgrunn.md`).
+- **Slutten må holde:** «Black Week» sier selv at tilbudet er over etter perioden (Kitchn-saken), så pakken forlenges ikke. Spillet skjuler kortet etter datoen, og produktraden settes `active = false` 1.12 (en dataendring Jonas kjører). Gaven gis i samme periode.
+- **Tida er knapp:** PR-ene må flettes og slippes med «slipp nå» for at pakken skal ligge ute i helga. Ute lørdag gir det knapt tre døgn.
 
 ## Fasene
 
 | Fase | Bygger | Filer | Tester | Måles |
 |---|---|---|---|---|
-| **SF1** Pakken | `PACKS.morketid`, `pk_morketid`, produktraden (migrering, bare tillegg), kortet øverst i Kaiboden med eget bilde (ett `generate_game_asset`), spillet skjuler en pakke serveren ikke selger | `core/03-simulation.js`, `ui/10i-shop.js`, `ui/phone/01-haill-fiske-service.js`, ny migrering | `node tests/unit/run.mjs` (ny sjekk i `butikk.test.mjs`, sett rød først), `fasittest`, `sqltest`, skjermbilder i begge formater | kjøp per døgn, nye mot gamle betalende |
+| **SF1** Pakken | `PACKS.blackweek`, `pk_blackweek`, produktraden (migrering, bare tillegg), kortet øverst i Kaiboden med eget bilde (ett `generate_game_asset`) og datoen i tekst, spillet skjuler kortet etter 30.11 og en pakke serveren ikke selger | `core/03-simulation.js`, `ui/10i-shop.js`, `ui/phone/01-haill-fiske-service.js`, ny migrering | `node tests/unit/run.mjs` (ny sjekk i `butikk.test.mjs`, sett rød først), `fasittest`, `sqltest`, skjermbilder i begge formater | kjøp per døgn, nye mot gamle betalende |
 | **SF2** Gaven | produktet `gave_trim` (pris 0, ikke til salgs), funksjonen som gir én levering per registrerte konto én gang, meldingen i telefonen | ny migrering, `ui/10i-shop.js` (bare hvis `shopGive` ikke alt tar en trim uten kjøp) | `sqltest`, `fasittest` | hvor mange som bruker gaven, og kjøper trim innen sju døgn |
-| **SF3** Avlesningen | ingen kode: spørringene under kjøres 1.12 og 7.12 og skrives inn her | denne fila | ingen | se «Måling» |
+| **SF3** Avlesningen | ingen kode: produktraden av salg 1.12 (Jonas), spørringene under kjøres 1.12 og 7.12 og skrives inn her | denne fila | ingen | se «Måling» |
 
 SF1 og SF2 er én PR hver til Jonas (`hoy`). Migreringene er bare tillegg og går med slippet.
 
-## Valgene
+## Valgene (svart 27.11.2026: V1 A, V2 B, V3 A, V4 A)
 
 - **V1 Formen.** A: Mørketidspakken og gaven (**anbefalt**: hever taket der pengene er, og lovlig uten førpris). B: prosentavslag på butikken (treffer dem som betaler full pris, og førprisen holder ikke 11 dager etter prishevingen). C: bare gaven, ingen ny vare.
 - **V2 Varigheten.** A: sesongpakke gjennom mørketida, til 15.1, tilbake neste år, ingen dato som teller ned (**anbefalt**: holder Jonas' egne regler). B: bare Black Week, til og med mandag 30.11, med datoen på kortet (krever at Jonas gjør unntak fra «ingen nedtelling i butikken»).
@@ -92,12 +94,12 @@ Leses i `purchases` og `grants`, bare summer: pakkens kjøp per døgn og hvor ma
 - **Hvorfor én av fire betalinger løper ut, er ikke kjent.** Stripe-koblingen var ikke innlogget i økta, så betalingsmåtene i kassa (Vipps, kort, Klarna) er ikke sett. `docs/systemer/monetisering-og-engasjement.md`: «Vipps er nesten et krav.»
 - **Gebyret per betaling** er ikke slått opp; satsen står i Jonas' Stripe-avtale.
 - **Om `shopGive` tar en trim uten kjøp,** og om en pakkedel kan være «Ferdig nå» (V3 C), ses i SF1 og SF2 før det loves.
-- **Datoene for mørketida** og om § 9a formelt gjelder digitalt innhold.
+- Om § 9a formelt gjelder digitalt innhold.
 - **Hvor mange som ser tilbudet:** bare de som åpner Kaiboden eller får gaven. Det finnes ingen kanal ut til spillere som ikke åpner spillet, og det skal det ikke være.
 
 ## Hva planen ikke gjør
 
-- Ingen prisendring på det som selges i dag, ingen «før/nå», ingen nedtelling, ingen push om tilbudet.
+- Ingen prisendring på det som selges i dag, ingen «før/nå», ingen klokke som teller ned (bare datoen i tekst), ingen push om tilbudet, ingen forlengelse etter 30.11.
 - Ingen tilfeldig innhold, ingen fiktiv valuta, ingenting til gjester for penger.
 - Retter ikke betalingene som løper ut, og samler ikke små hopp i klipp: det er egne avgjørelser.
 - Ingen e-post eller annonsering utenfor spillet.
