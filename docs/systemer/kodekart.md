@@ -2330,7 +2330,7 @@ WHAT A ROUTE MUST NOT SAIL THROUGH (Jonas 05.10.2026: «autoruter aldri skal gå
   - 124 `heatAt(p)`
   - 127 `schoolDrift(sp, p, H)`
 
-## `src/js/core/13-work.js` (468 linjer)
+## `src/js/core/13-work.js` (485 linjer)
 
 work aboard: stations, and how the crew share them
 
@@ -2361,23 +2361,23 @@ work aboard: stations, and how the crew share them
   - 195 `jobMinute(j, A)`
   - 205 `jobWait(j)`
   - 210 `workAssign(as)`
-- **307** the boat's own hands at the quay (OB4, 11.11.2026, docs/planer/om-bord.md F10, F11, F23; Jonas 09.11.2026: «at arbeidet ombord
-  - 315 `quayRoles(P, ctx)`
-- **328** the deck washed down, the packed lunch and the cold, as roles on those on a break (OB14, 11.11.2026, docs/planer/om-bord.md F12,
-  - 342 `washMin()`
-  - 344 `deckWash()`
-  - 346 `lunchNow()`
-  - 347 `deckRoles(P, ctx)`
-  - 364 `deckDoing(p)`
-- **366** what a person does on a break (Jonas 23.10.2026: «La det også stå hva de gjør når de ikke har en aktiv arbeidsoppgave som feks: lener
-  - 382 `crewVice(c)`
-  - 384 `idleEnv()`
-  - 392 `idleWeights(p, ctx, E, mates)`
-  - 415 `idleAssign(P, ctx)`
-  - 429 `idleText(p)`
-  - 437 `workDoing(p)`
-  - 447 `workTeam(st, g, as)`
-  - 454 `workMinute()`
+- **324** the boat's own hands at the quay (OB4, 11.11.2026, docs/planer/om-bord.md F10, F11, F23; Jonas 09.11.2026: «at arbeidet ombord
+  - 332 `quayRoles(P, ctx)`
+- **345** the deck washed down, the packed lunch and the cold, as roles on those on a break (OB14, 11.11.2026, docs/planer/om-bord.md F12,
+  - 359 `washMin()`
+  - 361 `deckWash()`
+  - 363 `lunchNow()`
+  - 364 `deckRoles(P, ctx)`
+  - 381 `deckDoing(p)`
+- **383** what a person does on a break (Jonas 23.10.2026: «La det også stå hva de gjør når de ikke har en aktiv arbeidsoppgave som feks: lener
+  - 399 `crewVice(c)`
+  - 401 `idleEnv()`
+  - 409 `idleWeights(p, ctx, E, mates)`
+  - 432 `idleAssign(P, ctx)`
+  - 446 `idleText(p)`
+  - 454 `workDoing(p)`
+  - 464 `workTeam(st, g, as)`
+  - 471 `workMinute()`
 
 ## `src/js/core/14-crewlife.js` (741 linjer)
 
@@ -3207,12 +3207,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1833 linjer)
+## `src/js/ui/phone/07-patch.js` (1838 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1821 `patch()`
+  - 1826 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (136 linjer)
 
@@ -3812,7 +3812,7 @@ SOUND (the user's wish 03.10.2026)
 - **144** the music (Jonas 05.10.2026: «rolig ambient instrumentaler som svak stemning i bakgrunnen. Må kunne skrus av i innstillinger»)
 - **312** the whistle and the bell (Ø11.2; sjøveisreglene FOR-1975-12-01-5 rules 32-35 and vedlegg III, read 06.11.2026)
 
-## `src/js/ui/10f-cloud.js` (1132 linjer)
+## `src/js/ui/10f-cloud.js` (1146 linjer)
 
 THE CLOUD (04.10.2026; docs/lansering.md E and F)
 
@@ -3882,45 +3882,45 @@ THE CLOUD (04.10.2026; docs/lansering.md E and F)
   - 573 `cloudKeptNote(where)`
   - 578 `cloudTake(cs, kept)`
   - 585 `cloudSync(cs)`
-  - 624 `cloudSaveSoon(closing, manual)`
-  - 673 `cloudSoon(ms)`
-- **674** one device at a time (13.10.2026, supabase/migrations/20261013120000_active.sql)
-  - 684 `cloudFp()`
-  - 685 `cloudClaim(wait)`
-  - 699 `cloudBeat(now)`
-  - 715 `cloudWake()`
-  - 721 `cloudPassed(h)`
-  - 736 `cloudHeldShow(h)`
-  - 745 `cloudPlayHere()`
-  - 755 `cloudCheckHead()`
-  - 764 `cloudConflict(cl, moved)`
-  - 794 `cloudHist()`
-  - 799 `cloudRestore(id)`
-- **810** what is measured: the game's own functions, wrapped once they are all defined
-  - 811 `cloudHooks()`
-- **842** the account card in Settings
-  - 843 `cloudCard()`
-  - 867 `histRows()`
-  - 879 `cloudAccountDel()`
-  - 890 `cloudMediaDel()`
-  - 896 `cloudAct(a, d)`
-- **932** registering, for a guest: in the game's own words, never a wall before the third landing
-  - 941 `guestHave()`
-  - 947 `guestAsk(why)`
-  - 973 `nameWhy(v)`
-  - 990 `namesKept()`
-  - 991 `namesKeep(o)`
-  - 993 `namesApply()`
-  - 1001 `nameTake(n, quiet)`
-  - 1011 `nameCheck()`
-  - 1032 `nameSuggest()`
-  - 1041 `nameAsk(why, reason)`
-  - 1066 `guestOpenAsk()`
-  - 1078 `nameNudge(force)`
-  - 1093 `guestNudge(step)`
-  - 1105 `guestLogin(src)`
-  - 1111 `guestRegister(signIn)`
-  - 1126 `guestGift()`
+  - 634 `cloudSaveSoon(closing, manual)`
+  - 683 `cloudSoon(ms)`
+- **684** one device at a time (13.10.2026, supabase/migrations/20261013120000_active.sql)
+  - 694 `cloudFp()`
+  - 695 `cloudClaim(wait)`
+  - 709 `cloudBeat(now)`
+  - 725 `cloudWake()`
+  - 731 `cloudPassed(h)`
+  - 746 `cloudHeldShow(h)`
+  - 755 `cloudPlayHere()`
+  - 765 `cloudCheckHead()`
+  - 774 `cloudConflict(cl, moved)`
+  - 808 `cloudHist()`
+  - 813 `cloudRestore(id)`
+- **824** what is measured: the game's own functions, wrapped once they are all defined
+  - 825 `cloudHooks()`
+- **856** the account card in Settings
+  - 857 `cloudCard()`
+  - 881 `histRows()`
+  - 893 `cloudAccountDel()`
+  - 904 `cloudMediaDel()`
+  - 910 `cloudAct(a, d)`
+- **946** registering, for a guest: in the game's own words, never a wall before the third landing
+  - 955 `guestHave()`
+  - 961 `guestAsk(why)`
+  - 987 `nameWhy(v)`
+  - 1004 `namesKept()`
+  - 1005 `namesKeep(o)`
+  - 1007 `namesApply()`
+  - 1015 `nameTake(n, quiet)`
+  - 1025 `nameCheck()`
+  - 1046 `nameSuggest()`
+  - 1055 `nameAsk(why, reason)`
+  - 1080 `guestOpenAsk()`
+  - 1092 `nameNudge(force)`
+  - 1107 `guestNudge(step)`
+  - 1119 `guestLogin(src)`
+  - 1125 `guestRegister(signIn)`
+  - 1140 `guestGift()`
 
 ## `src/js/ui/10g-push.js` (210 linjer)
 
@@ -4102,7 +4102,7 @@ put the game on the home screen (Jonas 11.10.2026: «Det er viktig at brukerne l
 - **111** the test edition's label (L1a, 10.11.2026, docs/planer/lansering-plan.md)
 - **142** the browser card on the loading screen (Jonas 03.11.2026, after tilbakemelding #107-#109)
 
-## `src/js/ui/10u-hopp.js` (151 linjer)
+## `src/js/ui/10u-hopp.js` (152 linjer)
 
 ---------- Hopp over resten av ruta: the fast-forward button, the card and the purchase (HO2–HO3, steg 105–106; docs/planer/hopp.md) ----------
 
@@ -4114,7 +4114,7 @@ put the game on the home screen (Jonas 11.10.2026: «Det er viktig at brukerne l
   - 83 `hopPress(paid, id, min, quiet)`
   - 104 `hopUse(id)`
   - 116 `hopVoid(id, why)`
-  - 128 `hopDeliver(id, d)`
+  - 129 `hopDeliver(id, d)`
 
 ## `src/js/ui/10v-profil.js` (119 linjer)
 
@@ -4130,7 +4130,7 @@ The profile and the founders' badge (Jonas 16.11.2026, before the launch: «prof
   - 19 `admfixSaved()`
   - 25 `fixClaim()`
 
-## `src/js/ui/11-boot.js` (448 linjer)
+## `src/js/ui/11-boot.js` (465 linjer)
 
 ---------- boot ----------
 
@@ -4165,7 +4165,7 @@ The profile and the founders' badge (Jonas 16.11.2026, before the launch: «prof
   - 216 `bootMapLoad()`
   - 247 `chart0Load()`
   - 248 `bootGame()`
-  - 430 `bootFail(e)`
+  - 447 `bootFail(e)`
 
 ## `src/js/ui/11b-watchdog.js` (91 linjer)
 

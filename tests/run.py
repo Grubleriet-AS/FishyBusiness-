@@ -613,5 +613,8 @@ def main():
 COVER['tests/unit/fraktpris.test.mjs'] = []   # steg 155: freight and tows paid by what is carried
 COVER['supabase/migrations/20261127120000_cheat_worth.sql'] = ['sqltest', 'admintest']; COVER['tests/unit/lagringsverdi.test.mjs'] = []   # HS5b: the check of the kroner on what the company is worth
 COVER['src/js/ui/10w-fix.js'] = ['korrtest']; COVER['tests/korrtest.py'] = ['korrtest']; COVER['supabase/migrations/20261126120000_fixes.sql'] = ['sqltest']; COVER['tests/unit/angrekjop.test.mjs'] = []   # an admin's correction (fixes, 26.11.2026)
+# a hop paid for is made when the page comes back from the payment, whatever the save to the account was doing (27.11.2026)
+LITE += ['hoppskytest']
+for _f in ('src/js/ui/10f-cloud.js', 'src/js/ui/10i-shop.js', 'src/js/ui/10u-hopp.js', 'src/js/ui/11-boot.js', 'tests/hoppskytest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['hoppskytest']))
 if __name__ == '__main__':
     main()
