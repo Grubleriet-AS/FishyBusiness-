@@ -6605,3 +6605,9 @@
 2026-11-26 15:17	ccr-5e1ba2f4-pusvyd	49bcaf7	maptest	OK	16	lite	alene	
 2026-11-26 15:18	ccr-5e1ba2f4-pusvyd	49bcaf7	routetest	FEIL	45	lite	alene	FEIL Kast loss setter ruta i gang, og kartplotteren står åpen  {'plan': False, 'plot': True, 'g3': False}
 2026-11-26 15:18	ccr-5e1ba2f4-pusvyd	49bcaf7	maptest	OK	16	lite	alene	
+2026-11-27 13:15	ccr-5e1ba2f4-pusvyd	111d7cc	admintest	OK	15	lite	alene	
+2026-11-27 13:16	ccr-5e1ba2f4-pusvyd	111d7cc+	dbg23o	FEIL	33	3d	alene	avsluttet med kode 1
+2026-11-27 13:30	ccr-5e1ba2f4-pusvyd	111d7cc+	seabedtest	OK	845	3d	alene	
+2026-11-27 13:33	ccr-5e1ba2f4-pusvyd	111d7cc+	nearedge	OK	203	3d	alene	
+2026-11-27 13:34	ccr-5e1ba2f4-pusvyd	111d7cc+	dbg23o	FEIL	33	3d	alene	avsluttet med kode 1
+2026-11-27 13:34	ccr-5e1ba2f4-pusvyd	111d7cc	dbg23o	FEIL	33	3d	alene	avsluttet med kode 1

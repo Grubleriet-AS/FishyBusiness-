@@ -203,7 +203,7 @@ Placeholder prices (NOK/kg, grade A) – to be tuned
   - 439 `reqFill(eq, type)`
   - 457 `lsaOf(V)`
 
-## `src/js/core/03-simulation.js` (1555 linjer)
+## `src/js/core/03-simulation.js` (1576 linjer)
 
 fleet: each vessel keeps its own state; the company holds the rest. The simulation steps through the vessels one at a
 
@@ -404,51 +404,51 @@ fleet: each vessel keeps its own state; the company holds the rest. The simulati
   - 1315 `deal(price, ti, inn)`
   - 1322 `finance(x, months)`
 - **1325** an admin's correction: a vessel bought by trade-in, taken back (26.11.2026, Jonas: «Gi han tilbake båten og pengene som om kjøpet
-  - 1335 `undoBuyKr(to, from)`
-  - 1336 `undoBuyWhy(d)`
-  - 1343 `undoBuyApply(d)`
-  - 1363 `lenGroup()`
-  - 1364 `codLimits(H)`
-  - 1369 `codOpen(H)`
-  - 1370 `codLimitNow(H)`
-- **1371** haill: luck from the quay. Fresh goods: full effect for two days, fading to nothing on day seven. Sold for real money only (test mode now) or won at the pub.
-  - 1395 `haillBoost()`
-  - 1396 `haillLeft()`
-  - 1397 `haillStage()`
-  - 1399 `haillF()`
-  - 1400 `luck(sp)`
-  - 1404 `haillCap()`
-  - 1413 `haillInit()`
-  - 1421 `haillFromSrv(loc, srv, wait)`
-  - 1428 `srvToT(m, srvNow, t, world)`
-  - 1429 `tToSrv(m, srvNow, t, world)`
-  - 1432 `boostSrv(list, stack, now)`
-  - 1434 `haillMirror(list, used)`
-  - 1438 `haillStock(inv, srv, used)`
-  - 1443 `giveHaill(type, how, id)`
-  - 1448 `useHaill(type)`
-  - 1462 `pubEvening(H)`
-  - 1463 `pubOpen(H)`
-  - 1466 `capHold()`
-  - 1468 `cargoRoom()`
-  - 1470 `cargoMin(kg)`
-- **1471** the daily login bonus: each real calendar day you open the game adds a point to a bonus on the fish price; each day
-  - 1474 `streakState()`
-  - 1475 `streakPct()`
-  - 1476 `streakTouch()`
-- **1487** cold: effective temperature from air temperature and wind, plus wet from rain, snow and spray. Cold, wet hands fish worse;
-  - 1491 `effTemp(H)`
-  - 1492 `coldPen(H, hs)`
-- **1499** orders from buyers and customers: species, amount, quality, deadline and a price premium; reputation builds with each buyer
-  - 1514 `gradeOk(g, q)`
-  - 1515 `ordState()`
-  - 1518 `custNear(c)`
-  - 1523 `repOf(id)`
-  - 1525 `bkOrderable(H)`
-  - 1527 `bkPlant(id)`
-  - 1528 `custSp(c)`
-  - 1529 `spCatchable(sp, H)`
-  - 1531 `ordersTick(H)`
+  - 1336 `undoBuyKr(to, from)`
+  - 1343 `undoBuyWhy(d)`
+  - 1355 `undoBuyApply(d)`
+  - 1384 `lenGroup()`
+  - 1385 `codLimits(H)`
+  - 1390 `codOpen(H)`
+  - 1391 `codLimitNow(H)`
+- **1392** haill: luck from the quay. Fresh goods: full effect for two days, fading to nothing on day seven. Sold for real money only (test mode now) or won at the pub.
+  - 1416 `haillBoost()`
+  - 1417 `haillLeft()`
+  - 1418 `haillStage()`
+  - 1420 `haillF()`
+  - 1421 `luck(sp)`
+  - 1425 `haillCap()`
+  - 1434 `haillInit()`
+  - 1442 `haillFromSrv(loc, srv, wait)`
+  - 1449 `srvToT(m, srvNow, t, world)`
+  - 1450 `tToSrv(m, srvNow, t, world)`
+  - 1453 `boostSrv(list, stack, now)`
+  - 1455 `haillMirror(list, used)`
+  - 1459 `haillStock(inv, srv, used)`
+  - 1464 `giveHaill(type, how, id)`
+  - 1469 `useHaill(type)`
+  - 1483 `pubEvening(H)`
+  - 1484 `pubOpen(H)`
+  - 1487 `capHold()`
+  - 1489 `cargoRoom()`
+  - 1491 `cargoMin(kg)`
+- **1492** the daily login bonus: each real calendar day you open the game adds a point to a bonus on the fish price; each day
+  - 1495 `streakState()`
+  - 1496 `streakPct()`
+  - 1497 `streakTouch()`
+- **1508** cold: effective temperature from air temperature and wind, plus wet from rain, snow and spray. Cold, wet hands fish worse;
+  - 1512 `effTemp(H)`
+  - 1513 `coldPen(H, hs)`
+- **1520** orders from buyers and customers: species, amount, quality, deadline and a price premium; reputation builds with each buyer
+  - 1535 `gradeOk(g, q)`
+  - 1536 `ordState()`
+  - 1539 `custNear(c)`
+  - 1544 `repOf(id)`
+  - 1546 `bkOrderable(H)`
+  - 1548 `bkPlant(id)`
+  - 1549 `custSp(c)`
+  - 1550 `spCatchable(sp, H)`
+  - 1552 `ordersTick(H)`
 
 ## `src/js/core/03b-sea.js` (313 linjer)
 
@@ -2682,7 +2682,7 @@ THE CATCH: WHERE THE PLAYERS' BOATS TOUCH WHAT IS NOT CLEAN WATER (the autonav r
   - 167 `slamRate(b = S.boat, H = S.t / 60, hard = 1)`
   - 199 `slamMinute()`
 
-## `src/js/core/17-farbar.js` (781 linjer)
+## `src/js/core/17-farbar.js` (788 linjer)
 
 FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2.0 F1, steg 141, 23.11.2026)
 
@@ -2741,20 +2741,21 @@ FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2
 - **433** the questions
   - 435 `farbGather(x, z, R)`
   - 456 `farbGone(o, n, buf = FARB.buf)`
-  - 463 `farbNearest(x, z, cap, boat, opt)`
-  - 474 `farbClear(x, z, boat, cap, opt)`
-  - 477 `farbCoastSegs(x0, z0, x1, z1)`
-  - 493 `farbWallTouch(P, X, Z, W, m, bb)`
-  - 496 `farbPose(X, Z, psi, boat, H, opt)`
-  - 537 `farbSweep(p0, p1, boat, H, opt)`
-- **550** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
-  - 566 `farbFieldBuild(J)`
-  - 670 `farbSegOutParts(PK, ax, az, bx, bz)`
-  - 747 `farbFieldWorker()`
-  - 755 `farbFieldTile(cell, fx, fz)`
-  - 758 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
-  - 772 `farbFieldAt(x, z, cell = 2)`
-- **774** the channels dredged along the coast (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
+  - 465 `farbBoats(x, z)`
+  - 470 `farbNearest(x, z, cap, boat, opt)`
+  - 481 `farbClear(x, z, boat, cap, opt)`
+  - 484 `farbCoastSegs(x0, z0, x1, z1)`
+  - 500 `farbWallTouch(P, X, Z, W, m, bb)`
+  - 503 `farbPose(X, Z, psi, boat, H, opt)`
+  - 544 `farbSweep(p0, p1, boat, H, opt)`
+- **557** THE FIELD: THE DISTANCE AND THE DEPTH ON A GRID, WORKED OUT IN A WORKER
+  - 573 `farbFieldBuild(J)`
+  - 677 `farbSegOutParts(PK, ax, az, bx, bz)`
+  - 754 `farbFieldWorker()`
+  - 762 `farbFieldTile(cell, fx, fz)`
+  - 765 `farbFieldNeed(x0, z0, x1, z1, cell = 2, opt)`
+  - 779 `farbFieldAt(x, z, cell = 2)`
+- **781** the channels dredged along the coast (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
 
 ## `src/js/core/17b-bane.js` (104 linjer)
 
@@ -2774,26 +2775,29 @@ BANEN: THE WAY AS A TRAJECTORY SHE CAN SAIL (Autonav 2.0 F2, steg 142, 24.11.202
   - 83 `baneOf(g)`
   - 90 `baneSail(pl, b, left0)`
 
-## `src/js/core/17c-plan.js` (409 linjer)
+## `src/js/core/17c-plan.js` (457 linjer)
 
 PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2, steg 142, 24.11.2026)
 
 - **1** PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2, steg 142, 24.11.2026)
-  - 30 `planMake()`
-  - 234 `planWorker()`
-  - 242 `planWhy(r)`
-  - 248 `planCoarseM(ax, az, bx, bz, grow)`
-  - 261 `planNeeds(boat, sq, lv, side, F, c2)`
-  - 268 `planSquat(sqV, v)`
-  - 278 `planBlockOf(hit, boat, side, c2, tries, seen)`
-  - 289 `planSkip(h, X, Z, a, b, own, L, dig)`
-  - 297 `planBoat(type, x, z)`
-  - 301 `planBane(a, b, type, opt)`
-- **372** where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
-  - 376 `planDigRuns(P, sh, o)`
-  - 394 `planDig(a, b, type, opt)`
-  - 403 `planInto(pl, R, i0, i1)`
-  - 408 `planOn()`
+  - 31 `planMake()`
+  - 247 `planWorker()`
+  - 255 `planWhy(r)`
+  - 261 `planCoarseM(ax, az, bx, bz, grow)`
+  - 274 `planNeeds(boat, sq, lv, side, F, c2)`
+  - 281 `planSquat(sqV, v)`
+  - 291 `planBlockOf(hit, boat, side, c2, tries, seen)`
+  - 302 `planSkip(h, X, Z, a, b, own, L, dig)`
+  - 313 `planOmvei(len, h0)`
+  - 320 `planBoat(type, x, z)`
+  - 325 `planFresh()`
+  - 329 `planBane(a, b, type, opt)`
+- **413** where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
+  - 417 `planDigRuns(P, sh, o)`
+  - 435 `planDig(a, b, type, opt)`
+  - 447 `planEnd(pid, type, kind)`
+  - 451 `planInto(pl, R, i0, i1)`
+  - 456 `planOn()`
 
 ## `src/js/ui/01-i18n.js` (120 linjer)
 
@@ -4115,13 +4119,13 @@ The profile and the founders' badge (Jonas 16.11.2026, before the launch: «prof
 
 - **1** The profile and the founders' badge (Jonas 16.11.2026, before the launch: «profil-side med brukernavn, fartstid, ferdigheter,
 
-## `src/js/ui/10w-fix.js` (55 linjer)
+## `src/js/ui/10w-fix.js` (63 linjer)
 
 ---- an admin's correction, delivered to this game (26.11.2026; supabase/migrations/20261126120000_fixes.sql, the tab «Korrigering» in
 
 - **1** an admin's correction, delivered to this game (26.11.2026; supabase/migrations/20261126120000_fixes.sql, the tab «Korrigering» in
-  - 16 `admfixSaved()`
-  - 20 `fixClaim()`
+  - 19 `admfixSaved()`
+  - 25 `fixClaim()`
 
 ## `src/js/ui/11-boot.js` (448 linjer)
 
@@ -5029,7 +5033,7 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 315 `spawn(x, y, z, vx, vy, vz, life, g)`
   - 317 `drawPts(n, mode, VP, col, size, round, off, mx)`
 
-## `src/js/view3d/17-draw.js` (296 linjer)
+## `src/js/view3d/17-draw.js` (300 linjer)
 
 ---------- drawing ----------
 
@@ -5043,11 +5047,11 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
   - 89 `buildGround()`
   - 100 `maskOr(J, x, z)`
   - 101 `groundStep()`
-  - 141 `buildLandMask()`
-  - 164 `lmStep()`
-  - 211 `skyMask(eye, Vm, fov, asp, farZ)`
-  - 222 `seaRing(u, eye, y, R, Hl)`
-  - 239 `drawSea(VP, eye, t, far, drop)`
+  - 145 `buildLandMask()`
+  - 168 `lmStep()`
+  - 215 `skyMask(eye, Vm, fov, asp, farZ)`
+  - 226 `seaRing(u, eye, y, R, Hl)`
+  - 243 `drawSea(VP, eye, t, far, drop)`
 
 ## `src/js/view3d/17b-inland-water.js` (152 linjer)
 
@@ -5288,7 +5292,7 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
 - **94** frame
   - 98 `fpsEl()`
 
-## `src/js/view3d/24-cinema.js` (813 linjer)
+## `src/js/view3d/24-cinema.js` (820 linjer)
 
 ---------- cinema (the user's wish 03.10.2026; a director of fourteen shots 01.11.2026) ----------
 
@@ -5304,23 +5308,23 @@ the new people's skeleton (Folk 2, FB6, steg 124): bone matrices from local turn
 - **165** the picture watched (02.11.2026; Jonas: «Det er viktig at vi fanger opp så mye potensielle feil som oppstår så fort som
   - 184 `gfxErr(msg, ctx)`
   - 189 `glReport(e, tag)`
-  - 191 `glProbe(tag)`
-  - 198 `gfxStart(now)`
-  - 206 `gfxJudge(px, day, vis)`
-  - 213 `gfxPix(j)`
-  - 220 `gfxNaN(eye, VPn)`
-  - 230 `gfxEnd(now, eye, VPn, W, Hh)`
-  - 272 `frameClock(raw)`
-  - 288 `frame()`
-  - 295 `frame0()`
-  - 525 `snapTake()`
-  - 530 `drawRoute(VP, eye)`
-  - 553 `driftSpray(VP, eye, dt, t, col)`
-  - 580 `drawSmoke(VP, eye, BM, dt)`
-  - 621 `scupperWater(VP, eye, BM, dt, t, col)`
-  - 655 `splashFoam(x, z, r, a)`
-  - 657 `drawEffects(VP, eye, BM, dt, t)`
-  - 795 `updateLabels(VP, eye, W, Hh)`
+  - 195 `glProbe(tag)`
+  - 203 `gfxStart(now)`
+  - 212 `gfxJudge(px, day, vis)`
+  - 219 `gfxPix(j)`
+  - 226 `gfxNaN(eye, VPn)`
+  - 236 `gfxEnd(now, eye, VPn, W, Hh)`
+  - 279 `frameClock(raw)`
+  - 295 `frame()`
+  - 302 `frame0()`
+  - 532 `snapTake()`
+  - 537 `drawRoute(VP, eye)`
+  - 560 `driftSpray(VP, eye, dt, t, col)`
+  - 587 `drawSmoke(VP, eye, BM, dt)`
+  - 628 `scupperWater(VP, eye, BM, dt, t, col)`
+  - 662 `splashFoam(x, z, r, a)`
+  - 664 `drawEffects(VP, eye, BM, dt, t)`
+  - 802 `updateLabels(VP, eye, W, Hh)`
 
 ## `src/js/view3d/25-controls.js` (289 linjer)
 
