@@ -88,4 +88,10 @@ export default function (t){
   t.eq(K.undoBuyWhy({id:58, upg:{dry:9}}), 'bad', 'et trinn som ikke finnes, gjør ingenting');
   S.boat.upg.dry = 2; const r10 = K.undoBuyApply({id:59, upg:{dry:1}});
   t.ok(r10.ok && S.boat.upg.dry === 2 && r10.upgs.length === 0, 'en ombygging senkes aldri', r10);
+  // the card names Kystfondet only when the top-up is offered (Julian 27.11.2026: «Kystfondet 4 329 162 kr» beside 4,8 mill. in equity)
+  S = setup(); S.cash = 449398; S.fleet = S.fleet || []; S.sales = [{}, {}, {}];
+  const dx = K.deal(28106404, 805000, false), dy = K.deal(28106404, 805000, true);
+  t.ok(dx.inn === false && dx.inL > 0 && dy.inn === true, 'deal sier om toppfinansieringen var med', {x:dx.inn, y:dy.inn});
+  t.eq(Math.round(dx.eqNeed), 4816281, 'uten toppfinansiering: 20 % minus innbyttet');
+  t.eq(Math.round(dy.eqNeed), Math.round(28106404 * 0.05 - 805000), 'med toppfinansiering: 5 % minus innbyttet');
 }

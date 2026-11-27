@@ -2142,12 +2142,13 @@ def main():
             sql("select public.admin_fix_revoke(%d)" % FX['id2'], AD2, 'authenticated')
             FX['revoked'] = len(json.loads(sql("select public.fix_pending()::text", FQ, 'authenticated')))
             FX['nobody'] = json.loads(sql("select public.admin_fix_find('nobody')::text", AD2, 'authenticated'))
+            FX['undo'] = int(sql("""select public.admin_fix_add('%s', 'undo', '{"inn":true}', '')""" % FQ['sub'], AD2, 'authenticated'))
         except RuntimeError as e: FX['err'] = str(e)[:300]
         m = FX.get('mine') or [{}]
         print(ok(not FX.get('err') and FX['find'].get('found') and FX['find'].get('id') == FP['sub'] and FX['findAal1'] and FX['findPl'] and FX['addPl'] and FX['second'] and FX['badKind']
                  and len(FX['mine']) == 1 and m[0].get('data', {}).get('to') == 'kyst21' and m[0].get('note') is None and FX['other'] == [] and FX['table']
                  and FX['otherClose'] == 1 and FX['wait'] == 1 and FX['after'] == 0 and FX['list'][0].get('result', {}).get('kr') == 8405000 and FX['list'][0].get('done')
-                 and FX['revoked'] == 0 and FX['nobody'] == {'found': False}),
+                 and FX['revoked'] == 0 and FX['nobody'] == {'found': False} and FX.get('undo', 0) > 0),
               "fixes: the admin with aal2 finds an account by either id and adds one correction at a time; the game gets its own only, a wait keeps it open, done closes it with what it did; a player adds none, reads no table, closes no other's; a revoked one is gone", {k: FX.get(k) for k in ('err', 'mine', 'other', 'otherClose', 'wait', 'after', 'revoked')})
         # RANK1-c (20261116200000_rank_fs.sql, steg 134; Jonas 16.11.2026, V4 A): top_list kind 'fs', the tab Fartstid. The registered
         # players by players.fs, highest first, with the level in years as fsOf counts it; guests and the marked accounts (cheat_on) out,

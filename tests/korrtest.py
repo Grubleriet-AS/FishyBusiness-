@@ -50,6 +50,15 @@ async def main():
         r4 = await pg.evaluate("""(async () => { __calls.length = 0; S.boat.type = 'kyst21'; applyVessel(); const c0 = S.cash; await fixClaim();
           const t = S.boat.type; S.boat.type = 'plastsjark'; applyVessel(); return {cash:S.cash - c0, type:t}; })()""")
         print(ok(r4['cash'] == 0 and r4['type'] == 'kyst21'), 'a kyst21 bought again is not taken back by the same row', r4)
+        # a row this version cannot read (a field it does not know, or a kind it does not know) is left open and never closed from here
+        # (27.11.2026: a page of the version before closed Julian's row 3 as «bad»), and the new kind 'undo' is done as 'undo_buy'
+        r5 = await pg.evaluate("""(async () => { __calls.length = 0; S.boat.type = 'kyst21'; applyVessel(); const c0 = S.cash;
+          __rows = [{id:21, kind:'undo_buy', data:{from:'plastsjark', to:'kyst21', zzz:1}}, {id:22, kind:'later', data:{}}]; await fixClaim();
+          const left = {calls:__calls.map(c => c[0]), type:S.boat.type, cash:S.cash - c0};
+          __calls.length = 0; __rows = [{id:23, kind:'undo', data:{from:'plastsjark', to:'kyst21'}}]; await fixClaim();
+          const d = __calls.find(c => c[0] === 'fix_done'); return {left, type:S.boat.type, done:d && d[1].done, fid:d && d[1].fid}; })()""")
+        print(ok(r5['left']['calls'] == ['fix_pending'] and r5['left']['type'] == 'kyst21' and r5['left']['cash'] == 0 and r5['type'] == 'plastsjark' and r5['done'] is True and r5['fid'] == 23),
+              'a row with a field or a kind this version does not know is left open; the kind undo is done', r5)
         print(ok(not errs), 'no page errors', errs[:3])
         await br.close()
 asyncio.run(main())
