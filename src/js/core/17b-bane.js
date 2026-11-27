@@ -8,7 +8,7 @@
 // minute step follows the bane by the clock when the plan has one (baneSail: one call in 05-vessels.js sail); the boat model follows
 // it from F3. Nothing of the old Autonav is changed: a plan without a bane sails as before.
 // Metres on the grid (x east, z south), psi from north clockwise, speeds m/s, as 17-farbar.js.
-const BANE = {chord:0.12, ds:5, vEnd:0.5, vMin:0.3, own:1.3, piece:20, vTight:1.5, vSlow:1.5};
+const BANE = {chord:0.12, ds:5, vEnd:0.5, vMin:0.3, own:1.3, piece:20, vTight:1.5, vSlow:1.5, vRev:1.0, vSide:0.3, OFF:[0, Math.PI, Math.PI / 2, -Math.PI / 2]};
 // what a bane needs of her: R the radius she turns, vmax the speed she is sent at (m/s), stop(v) her stopping distance from v
 function baneBoat(type, kn){ const k = type || S.boat.type, V = VESSELS[k] || VESSELS.skiff, cal = dynCal(k);
   return {type:k, L:V.len, R:clamp(V.turnR || 2 * V.len, 1.2 * V.len, 2 * V.len), vmax:Math.max(1, (kn || V.vcruise || 6) * KN_MS), stop:v => dynStopDist(cal, v)}; }
@@ -16,25 +16,32 @@ function baneBoat(type, kn){ const k = type || S.boat.type, V = VESSELS[k] || VE
 // (half of the shorter), where she then goes slower (o.start false: she has her speed from the first metre); a point's third number is the most the arc at it may have (the planner sets it
 // where her own radius has no room), its fourth the most speed she may have on the leg to it, its fifth in the arc at it (where the
 // water is too shallow for her squat at more). o: {R, vmax, stop, end (true: she stops at the last point)}. Q: the points it was built from.
-// P: the pieces, each {k:'l', ax, az, bx, bz, psi} or {k:'a', cx, cz, r, a0, da}, with len, s0 (metres along from the start) and vl
+// A point's sixth number says how she lies on the leg that ends at it (G2, 27.11.2026: by a quay she backs, turns and is warped off
+// it, and her hull is then not along the way she goes): its two low bits 0 ahead, 1 astern (her heading the other way from the
+// way she goes, BANE.vRev at most), 2 and 3 sideways (her heading the way she goes turned a quarter to starboard or to port,
+// BANE.vSide at most); 4: the corner's radius (the third number) stands as it is given, the legs were made for it (the harbour
+// search's corners lie a cut from each other, and half of the shorter leg would halve them). Where she changes between two of
+// these, and at both ends of a sideways leg, there is no arc: she stops there (B.cusp: the places, metres along).
+// P: the pieces, each {k:'l', ax, az, bx, bz, psi} or {k:'a', cx, cz, r, a0, da}, with off (her heading less the way she goes), len, s0 (metres along from the start) and vl
 // (the most she has there); len; S, V, T: the speed and the time at every BANE.ds metres along
 function baneBuild(pts, o){ const Q = [pts[0]]; for (let i = 1; i < pts.length; i++) if (Math.hypot(pts[i][0] - Q[Q.length - 1][0], pts[i][1] - Q[Q.length - 1][1]) > 0.5) Q.push(pts[i]);
   const n = Q.length, P = [], cut = new Array(n).fill(0), rad = new Array(n).fill(0), phi = new Array(n).fill(0), sg = new Array(n).fill(0); let s = 0;
+  const md = i => (Q[i][5] || 0) & 3, stopAt = i => md(i) !== md(i + 1) || md(i) >= 2, cusp = [], vM = m => m === 1 ? BANE.vRev : m >= 2 ? BANE.vSide : Infinity;
   const leg = i => Math.hypot(Q[i][0] - Q[i - 1][0], Q[i][1] - Q[i - 1][1]), U = i => { const l = leg(i); return [(Q[i][0] - Q[i - 1][0]) / l, (Q[i][1] - Q[i - 1][1]) / l]; };
-  for (let i = 1; i < n - 1; i++){ const u1 = U(i), u2 = U(i + 1), f = Math.acos(Math.max(-1, Math.min(1, u1[0] * u2[0] + u1[1] * u2[1]))); if (f < 0.02) continue;
-    let t = Math.min(o.R, Q[i][2] > 0 ? Q[i][2] : Infinity) * Math.tan(Math.min(f, 3.0) / 2); const lim = Math.min(leg(i), leg(i + 1)) / 2; if (t > lim) t = lim; cut[i] = t; rad[i] = t / Math.tan(Math.min(f, 3.0) / 2); phi[i] = f; sg[i] = u1[0] * u2[1] - u1[1] * u2[0] >= 0 ? 1 : -1; }
+  for (let i = 1; i < n - 1; i++){ const u1 = U(i), u2 = U(i + 1), f = Math.acos(Math.max(-1, Math.min(1, u1[0] * u2[0] + u1[1] * u2[1]))); if (f < 0.02 || stopAt(i)) continue;
+    let t = Math.min(o.R, Q[i][2] > 0 ? Q[i][2] : Infinity) * Math.tan(Math.min(f, 3.0) / 2); const lim = (Q[i][5] || 0) & 4 ? Math.min(leg(i), leg(i + 1)) : Math.min(leg(i), leg(i + 1)) / 2; if (t > lim) t = lim; cut[i] = t; rad[i] = t / Math.tan(Math.min(f, 3.0) / 2); phi[i] = f; sg[i] = u1[0] * u2[1] - u1[1] * u2[0] >= 0 ? 1 : -1; }
   let prev = Q[0];
   for (let i = 1; i < n; i++){ const u1 = U(i), e = i < n - 1 ? [Q[i][0] - u1[0] * cut[i], Q[i][1] - u1[1] * cut[i]] : Q[i], l = Math.hypot(e[0] - prev[0], e[1] - prev[1]);
-    if (l > 1e-6){ P.push({k:'l', ax:prev[0], az:prev[1], bx:e[0], bz:e[1], psi:Math.atan2(u1[0], -u1[1]), len:l, s0:s, c:i, vl:Math.min(o.vmax, Q[i][3] > 0 ? Q[i][3] : Infinity)}); s += l; }
-    prev = e;
+    if (l > 1e-6){ P.push({k:'l', ax:prev[0], az:prev[1], bx:e[0], bz:e[1], psi:Math.atan2(u1[0], -u1[1]) + BANE.OFF[md(i)], off:BANE.OFF[md(i)], len:l, s0:s, c:i, vl:Math.min(o.vmax, vM(md(i)), Q[i][3] > 0 ? Q[i][3] : Infinity)}); s += l; }
+    prev = e; if (i < n - 1 && stopAt(i)) cusp.push(s);
     if (i < n - 1 && cut[i] > 0 && rad[i] > 0.05){ const r = rad[i], g = sg[i], cx = e[0] - u1[1] * g * r, cz = e[1] + u1[0] * g * r, a0 = Math.atan2(e[1] - cz, e[0] - cx), da = g * phi[i], l2 = r * phi[i];
-      P.push({k:'a', cx, cz, r, a0, da, len:l2, s0:s, c:i, vl:Math.min(r >= o.R * 0.98 ? o.vmax : (r < o.R * 0.5 ? Math.min(o.vmax, BANE.vTight) : o.vmax * r / o.R), Q[i][3] > 0 ? Q[i][3] : Infinity, Q[i + 1][3] > 0 ? Q[i + 1][3] : Infinity, Q[i][4] > 0 ? Q[i][4] : Infinity)}); s += l2; prev = [cx + r * Math.cos(a0 + da), cz + r * Math.sin(a0 + da)]; } }
-  const B = {P, len:s, o, Q, S:null, V:null, T:null}; baneSpeed(B); return B; }
+      P.push({k:'a', cx, cz, r, a0, da, off:BANE.OFF[md(i)], len:l2, s0:s, c:i, vl:Math.min(vM(md(i)), r >= o.R * 0.98 ? o.vmax : (r < o.R * 0.5 ? Math.min(o.vmax, BANE.vTight) : o.vmax * r / o.R), Q[i][3] > 0 ? Q[i][3] : Infinity, Q[i + 1][3] > 0 ? Q[i + 1][3] : Infinity, Q[i][4] > 0 ? Q[i][4] : Infinity)}); s += l2; prev = [cx + r * Math.cos(a0 + da), cz + r * Math.sin(a0 + da)]; } }
+  const B = {P, len:s, o, Q, cusp, S:null, V:null, T:null}; baneSpeed(B); return B; }
 // where she is s metres along it: {X, Z, psi, i (the piece)}
 function baneAt(B, s){ const P = B.P; if (!P.length) return null; s = Math.max(0, Math.min(B.len, s)); let i = 0, lo = 0, hi = P.length - 1; while (lo < hi){ const m = (lo + hi + 1) >> 1; if (P[m].s0 <= s) lo = m; else hi = m - 1; } i = lo;
   const p = P[i], u = p.len > 0 ? Math.min(1, (s - p.s0) / p.len) : 0;
   if (p.k === 'l') return {X:p.ax + (p.bx - p.ax) * u, Z:p.az + (p.bz - p.az) * u, psi:p.psi, i};
-  const a = p.a0 + p.da * u, g = p.da >= 0 ? 1 : -1; return {X:p.cx + p.r * Math.cos(a), Z:p.cz + p.r * Math.sin(a), psi:Math.atan2(-Math.sin(a) * g, -Math.cos(a) * g), i}; }
+  const a = p.a0 + p.da * u, g = p.da >= 0 ? 1 : -1; return {X:p.cx + p.r * Math.cos(a), Z:p.cz + p.r * Math.sin(a), psi:Math.atan2(-Math.sin(a) * g, -Math.cos(a) * g) + (p.off || 0), i}; }
 // the speed she can have d metres before a place where she is to have v1: her stopping distances say how fast she slows
 function baneBefore(o, v1, d){ let lo = v1, hi = o.vmax; if (hi <= lo) return lo; const s1 = o.stop(v1); if (o.stop(hi) - s1 <= d) return hi;
   for (let k = 0; k < 14; k++){ const m = (lo + hi) / 2; if (o.stop(m) - s1 <= d) lo = m; else hi = m; } return lo; }
@@ -44,6 +51,7 @@ function baneSpeed(B){ const o = B.o, ds = BANE.ds, n = Math.max(1, Math.ceil(B.
   // (each piece's limit at every place within it and at the two on either side, so a piece shorter than the step has its own too)
   for (const p of B.P){ const k0 = Math.max(0, Math.floor(p.s0 / ds)), k1 = Math.min(n, Math.ceil((p.s0 + p.len) / ds)); for (let k = k0; k <= k1; k++) if (p.vl < V[k]) V[k] = p.vl; }
   if (o.end) V[n] = Math.min(V[n], BANE.vEnd);
+  for (const c of B.cusp || []){ const k = c / ds; for (const q of [Math.floor(k), Math.ceil(k)]) if (q >= 0 && q <= n) V[q] = Math.min(V[q], BANE.vEnd); }   // (she stops where she changes between ahead, astern and sideways)
   // (from the berth she gathers way as she would lose it: the speed she has d metres on is the one she could have stopped from in d)
   if (o.start !== false){ V[0] = Math.min(V[0], BANE.vEnd); for (let k = 0; k < n; k++) V[k + 1] = Math.min(V[k + 1], baneBefore(o, V[k], S[k + 1] - S[k])); }
   for (let k = n - 1; k >= 0; k--) V[k] = Math.min(V[k], baneBefore(o, V[k + 1], S[k + 1] - S[k]));

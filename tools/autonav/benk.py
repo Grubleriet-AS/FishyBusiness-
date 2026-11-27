@@ -44,7 +44,8 @@ ROUTE = r"""async (keep) => { BK.from = BK.put(BK.A); let q, again = 0;
   if (!q.r){ if (keep) BK.R = null; return q; } if (keep) BK.R = q;
   return {nm:+q.r.nm.toFixed(3), ms:q.ms, gap:q.gap, st:q.st, again, shape:BK.shape(BK.from, q.r.wps), wps:q.r.wps.map(w => [+w.x.toFixed(4), +w.y.toFixed(4)])}; }"""
 CPU = r"""(n) => { BK.from = BK.put(BK.A); BK.plan(BK.R.r, BK.Z, BK.R.nt, true); return BK.cpu(n); }"""
-SAIL = r"""async (eng) => { BK.from = BK.put(BK.A); const to = BK.plan(BK.R.r, BK.Z, BK.R.nt, true); return eng === 'modell' ? BK.sailModel(BK.R.r, to, BK.from) : BK.sailBg(BK.R.r, to, BK.from); }"""
+SAIL = r"""async (eng) => { BK.from = BK.put(BK.A); const to = BK.plan(BK.R.r, BK.Z, BK.R.nt, true); if (BK.R.pz) to.p = BK.R.pz; if (BK.R.pa) BK.from = BK.R.pa;   // (the new planner's banes begin and end at her berths: the observer's rule for her own berth counts from them)
+  return eng === 'modell' ? BK.sailModel(BK.R.r, to, BK.from) : BK.sailBg(BK.R.r, to, BK.from); }"""
 FASIT = r"""async () => { BK.put(BK.A); if (BK.R && BK.R.pa) BK.from = BK.R.pa;   // (the new planner's banes begin and end at her berths, planEnd: the reference between the same two points)
   const z = BK.R && BK.R.nt ? {x:BK.R.nt.x, y:BK.R.nt.y} : BK.R && BK.R.pz ? BK.R.pz : BK.Z.p, pts = [BK.from, z].concat(BK.R ? BK.R.r.wps : []), G = BK.G;
   if (!G || BK.Gid !== BK.strek || pts.some(p => p.x < G.x0 + 0.05 || p.x > G.x1 - 0.05 || p.y < G.y0 + 0.05 || p.y > G.y1 - 0.05)){ BK.Gpts = (BK.Gid === BK.strek && BK.Gpts ? BK.Gpts : []).concat(pts); BK.Gid = BK.strek; await BK.landGrid(BK.Gpts); }

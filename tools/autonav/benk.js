@@ -134,10 +134,23 @@
       if (L0){ const mv = Math.hypot(pose.X - L0.X, pose.Z - L0.Z); if (mv > 60){ c.st.last = null; c.jumps++; } else c.m += mv; }
       BK.squat = dynSquat(P, d.u, !!(E && E.narrow)); BK.sweep(c, pose, Math.hypot(d.u || 0, d.v || 0) / KN_MS); },
     // after a minute step with the model off: her way from where she was, along the route's points she passed
-    watchBg(c, p0, i0, w0){ const b = S.boat, pl = S.plan; BK.f++;
+    // Where she is on a plan's bane before a minute step (the new planner's, 17b-bane.js): the leg, its bane and the metres along.
+    // With it the observer follows the bane itself through the minute, every 2 m, with the heading and the speed the bane has
+    // there (watchBg), not the plan's points with her heading the way she goes and the minute's mean speed: a bane she backs
+    // and is warped along by a quay (G2, steg 142) has her heading another way than she goes, and her speed by the quay is
+    // under a knot where the minute's mean is three
+    banePre(pl){ try { if (!pl || !pl.b2 || typeof baneLeg !== 'function') return null; const g = baneLeg(pl), Y = g && baneOf(g); if (!Y) return null;
+        const R = pl.b2, s = R.at === g.i0 && R.i === pl.idx ? R.s : pl.idx > g.i0 ? Y.at[pl.idx - g.i0 - 1] : 0; return {pl, g, B:Y.B, s}; } catch (e){ return null; } },
+    watchBane(c, bn){ const pl = S.plan, B = bn.B, s1 = pl === bn.pl && baneLeg(pl) === bn.g && pl.b2.at === bn.g.i0 ? Math.max(bn.s, pl.b2.s) : B.len, P = dynCalOf(S.boat).P; if (!(s1 > bn.s + 1e-6)) return true;
+      const n = Math.max(1, Math.ceil((s1 - bn.s) / 2)); let q0 = baneAt(B, bn.s);
+      for (let k = 1; k <= n; k++){ const s = bn.s + (s1 - bn.s) * k / n, q = baneAt(B, s), v = baneV(B, s); BK.squat = dynSquat(P, v, false); c.m += (s1 - bn.s) / n;
+        c.st.last = {X:q0.X, Z:q0.Z, psi:q0.psi}; BK.sweep(c, {X:q.X, Z:q.Z, psi:q.psi}, v / KN_MS); q0 = q; }
+      return true; },
+    watchBg(c, p0, i0, w0, bn){ const b = S.boat, pl = S.plan; BK.f++;
       if (pl && pl.replan) c.rpAt = BK.f;
       if (b.status === 'aground'){ BK.aground(c); return; }
       if (!c.left && dist(b.pos, c.from) > 0.3) c.left = true;
+      if (bn && b.status !== 'aground'){ let ok = false; try { ok = BK.watchBane(c, bn); } catch (e){ BK.err = BK.err || 'watchBane: ' + String(e && e.message).slice(0, 80); } if (ok) return; }
       const p1 = {x:b.pos.x, y:b.pos.y}, path = [p0], arrived = b.status === 'port' && !pl;
       if (w0 && (arrived || (pl && pl.wps === w0.a && pl.wps.length === w0.n && pl.idx >= i0))){ const i1 = arrived ? w0.n : pl.idx; for (let i = i0; i < i1; i++) path.push({x:w0.pts[i].x, y:w0.pts[i].y}); }
       if (dist(path[path.length - 1], p1) > 1e-6) path.push(p1);
@@ -186,13 +199,13 @@
     // Autonav 2.0 (--autonav ny): the bane the planner finds (17c-plan.js planBane), timed the same way
     async route2(Z, from, nt){ const ch = new MessageChannel(); let last = performance.now(), gap = 0, on = true; ch.port1.onmessage = () => { const t = performance.now(); if (t - last > gap) gap = t - last; last = t; if (on) ch.port2.postMessage(0); }; ch.port2.postMessage(0);
       const t0 = performance.now(), sl0 = FARB.F.n.slice; FARB.F.n.slice = 0; let R;
-      // (BK.berthEnds true: the ends at her berths, planEnd, not the harbours' points. Off: tried 27.11.2026 without the search with her heading (G2), the bane then comes to the berth from the way it came and her hull sweeps the quay: «kai» touches at both ends at Sandshamn, Ålesund verft, Husøy, Træna and Breivikbotn, where there were none)
-      const A = BK.A, ba = BK.berthEnds === true && A && A.kind !== 'll' && A.kind !== 'naust' && A.id ? planEnd(A.id, S.boat.type) : null, bz = BK.berthEnds === true && !nt && Z.kind !== 'll' && Z.id ? planEnd(Z.id, S.boat.type) : null;
+      // (the ends at her berths, planEnd, with the harbour search with her heading at each, planBane's opt.from and opt.to; BK.berthEnds false: the harbours' points, as before 27.11.2026)
+      const A = BK.A, ba = BK.berthEnds !== false && A && A.kind !== 'll' && A.kind !== 'naust' && A.id ? planEnd(A.id, S.boat.type) : null, bz = BK.berthEnds !== false && !nt && Z.kind !== 'll' && Z.id ? planEnd(Z.id, S.boat.type) : null;
       const pa = ba ? {x:ba.x, y:ba.y} : from, pz = nt ? {x:nt.x, y:nt.y} : bz ? {x:bz.x, y:bz.y} : Z.p;
-      try { R = await planBane(pa, pz, null, {kn:BOAT.vmax}); } catch (e){ R = {why:['error: ' + String(e && e.message).slice(0, 120)]}; }
+      try { R = await planBane(pa, pz, null, {kn:BOAT.vmax, from:ba, to:bz}); } catch (e){ R = {why:['error: ' + String(e && e.message).slice(0, 120)]}; }
       const ms = performance.now() - t0; on = false; const t = performance.now(); if (t - last > gap) gap = t - last; ch.port1.close(); const slice = FARB.F.n.slice; FARB.F.n.slice = Math.max(sl0, slice);
       if (!R.bane) return {why:String(R.why ? R.why[0] : 'none').slice(0, 160), cause:R.cause, at:R.at, ms:Math.round(ms), gap:+gap.toFixed(1), tries:R.tries, tiles:R.tiles};
-      return {r:{wps:R.pts.map(q => ({x:q.x, y:q.y})), nm:R.nm, bane:R}, nt, pa, pz, ms:Math.round(ms), gap:+gap.toFixed(1), st:{ms:R.ms, maxSlice:+slice.toFixed(1), expanded:R.exp, tiles:R.tiles, tries:R.tries, time:Math.round(R.bane.time), h0:Math.round(R.h0 || 0), soft:R.soft ? 1 : 0, alt:R.alt}}; },
+      return {r:{wps:R.pts.map(q => ({x:q.x, y:q.y})), nm:R.nm, bane:R}, nt, pa, pz, ms:Math.round(ms), gap:+gap.toFixed(1), st:{ms:R.ms, maxSlice:+slice.toFixed(1), expanded:R.exp, tiles:R.tiles, tries:R.tries, time:Math.round(R.bane.time), h0:Math.round(R.h0 || 0), soft:R.soft ? 1 : 0, alt:R.alt, havn:R.havn && [R.havn.dep ? 1 : 0, R.havn.arr ? 1 : 0, R.havn.n, R.havn.drop], cusp:R.bane.cusp.length}}; },
     plan(r, Z, nt, full){ const n = r.wps.length, last = nt ? {x:nt.x, y:nt.y, port:Z.id, berth:'naust', fish:0} : Z.id ? {x:Z.p.x, y:Z.p.y, port:Z.id, fish:0} : {x:Z.p.x, y:Z.p.y, port:null, fish:0, leia:true};
       S.plan = {wps:r.wps.map((q, i) => i === n - 1 ? last : {x:q.x, y:q.y, port:null, fish:0, leia:true}), idx:0, speed:full ? BOAT.vmax : BOAT.vcruise, full:!!full, returning:false};
       if (r.bane){ S.plan.wps = [last]; planInto(S.plan, r.bane, 0, 1); const q0 = r.bane.bane.Q[0]; S.boat.pos = {x:q0[0] / 1000, y:q0[1] / 1000}; }   // (she is where the bane begins: at her berth, the naust's too, not at the harbour's point)
@@ -215,7 +228,7 @@
           if (!simAreaReady()){ await mapNeed(b.pos, 4); await sleep(20); continue; }
           if (sailWaiting() && waits++ < 1500){ await sleep(20); continue; }
           DYN.on = false; const pl0 = S.plan, p0 = {x:b.pos.x, y:b.pos.y}, i0 = pl0 ? pl0.idx : 0, w0 = pl0 ? {a:pl0.wps, n:pl0.wps.length, pts:pl0.wps.map(q => ({x:q.x, y:q.y}))} : null;
-          step(); BK.watchBg(c, p0, i0, w0);
+          const bn = BK.banePre(pl0); step(); BK.watchBg(c, p0, i0, w0, bn);
           if (S.plan && S.plan.replan) await sleep(20);
           if (b.status === 'aground'){ stuck = 'aground'; break; }
           if (b.status === 'port' && !S.plan) break;

@@ -213,6 +213,33 @@ export default function (t){
     const bp0 = K.get('berthPose'); try { K.set('berthPose', (pid, ty, kind) => pid === 'a' ? {x:500.01, y:900.02, hd:1.2, kind} : pid === 'b' ? null : (() => { throw new Error('no map'); })());
       const e1 = K.planEnd('a', 'sjark'), e2 = K.planEnd('b', 'sjark'), e3 = K.planEnd('c', 'sjark'), e4 = K.planEnd(null, 'sjark');
       t.ok(e1 && e1.x === 500.01 && e1.y === 900.02 && e1.hd === 1.2 && e2 === null && e3 === null && e4 === null, 'banen ender ved kaiplassen der stedet har en, ellers i havnas punkt (planEnd gir da ingenting)', [e1, e2, e3, e4]); } finally { K.set('berthPose', bp0); }
+    // ---- the harbour search with her heading (G2): from the berth to a place and a heading on the way, over where she is and how she lies ----
+    { const L = 10, Bm = 4, hull = (x, z, psi) => { const s = Math.sin(psi), c = Math.cos(psi); return [[L / 2, Bm / 2], [L / 2, -Bm / 2], [-L / 2, Bm / 2], [-L / 2, -Bm / 2]].map(([f, g]) => [x + f * s + g * c, z - f * c + g * s]); };
+      const run = (bp, goal, free, o) => K.planHavn(bp, goal, L, Bm, free, o);
+      const o5 = {R:20, vmax:5, stop:v => v * v * 2, end:false, start:true}, modes = P => [...new Set(P.slice(1).map(q => q[5] & 3))].sort().join('');
+      // the least her hull keeps to what free() shuts, sampled every half metre along the bane built from the points
+      const sweep = (P, ok) => { const M = K.baneBuild(P.map(q => q.slice()), o5); let bad = 0; for (let u = 0; u <= M.len; u += 0.5){ const q = K.baneAt(M, u); if (!ok(q.X, q.Z, q.psi)) bad++; } return {bad, M}; };
+      // open water: straight ahead, no astern, no sideways
+      let h = run({x:0, z:0, hd:Math.PI / 2}, {x:60, z:0, psi:Math.PI / 2}, () => true);
+      t.ok(h && h.pts.length === 2 && modes(h.pts) === '0' && Math.abs(h.len - 60) < 4, 'havnesøket i åpent vann: rett fram, bare forover', h && [h.pts.length, modes(h.pts), h.len]);
+      // a quay along her port side (north of her, 0.4 m off): she may not touch it with any corner, and the goal lies astern and out
+      const quay = (x, z, psi) => hull(x, z, psi).every(c => c[1] > -(Bm / 2 + 0.4) + 0.05);
+      h = run({x:0, z:0, hd:Math.PI / 2}, {x:-40, z:40, psi:Math.PI * 1.25}, quay);
+      t.ok(h && h.pts.length >= 3, 'fra en kai langs siden til et sted akterut og ute: en vei finnes', h && h.pts.length);
+      if (h){ const w = sweep(h.pts, quay); t.eq(w.bad, 0, 'og skroget tar aldri borti kaia langs hele banen (hver halve meter)'); t.ok(/[23]/.test(modes(h.pts)) || /1/.test(modes(h.pts)), 'hun går sidelengs ut eller rygger: ikke bare forover', modes(h.pts));
+        const e = K.baneAt(w.M, w.M.len); t.ok(Math.hypot(e.X + 40, e.Z - 40) < 4 && Math.abs(Math.atan2(Math.sin(e.psi - Math.PI * 1.25), Math.cos(e.psi - Math.PI * 1.25))) < 0.45, 'banen ender ved stedet med kursen den ble bedt om', [e.X, e.Z, e.psi]); }
+      // her bow to a wall (nothing east of x 7), a quay to the north: out astern, round and away to the west
+      const slot = (x, z, psi) => hull(x, z, psi).every(c => c[0] < 7 && c[1] > -(Bm / 2 + 0.4) + 0.05);
+      h = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, slot);
+      t.ok(h, 'med baugen mot en vegg: en vei finnes'); if (h){ const w = sweep(h.pts, slot); t.eq(w.bad, 0, 'uten å ta borti veggen eller kaia'); t.ok(w.M.cusp.length >= 1, 'og hun stopper og skifter minst én gang', w.M.cusp.length); }
+      // shut in on every side: none, and it says so within its limit
+      h = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, (x, z) => Math.hypot(x, z) < 6, {maxN:500});
+      t.ok(h === null, 'stengt inne på alle kanter: ingen vei', h);
+      // the way in is the way out sailed backwards: the points turned round, ahead and astern changed
+      h = run({x:0, z:0, hd:Math.PI / 2}, {x:-40, z:40, psi:Math.PI * 0.25}, quay, {kAhead:3, kAstern:1});
+      if (h){ const inn = K.planHavnRev(h.pts), w = sweep(inn, quay), e = K.baneAt(w.M, w.M.len), s0 = K.baneAt(w.M, 0);
+        t.eq(w.bad, 0, 'veien inn (veien ut baklengs) tar heller ikke borti kaia'); t.ok(Math.hypot(e.X, e.Z) < 1e-6 && Math.abs(Math.atan2(Math.sin(e.psi - Math.PI / 2), Math.cos(e.psi - Math.PI / 2))) < 1e-6, 'og ender ved kaiplassen med kursen hun skal ligge med', [e.X, e.Z, e.psi]);
+        t.ok(Math.abs(Math.atan2(Math.sin(s0.psi - Math.PI * 0.25), Math.cos(s0.psi - Math.PI * 0.25))) < 0.45, 'hun kommer inn med kursen veien hadde', s0.psi); } else t.ok(false, 'veien inn finnes'); }
     const fb0 = K.get('fixBoats'), FB = K.get('FARB'); try { K.set('fixBoats', () => [{t:1, x:0, z:0, l:4, w:1.5, ux:1, uz:0}, {t:0, x:10, z:0, r:11}]);
       const n2 = K.farbBoats(0, 0).length; FB.swing = false; const n1 = K.farbBoats(0, 0).length, t1 = K.farbBoats(0, 0)[0].t; FB.swing = true;
       // (27.11.2026, fifth session: the circles count again, now that a buoy has a free lane round it, 05-vessels.js moorBuoyRoom)

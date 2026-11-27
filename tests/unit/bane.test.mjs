@@ -7,6 +7,26 @@ export default function (t){
   // (a boat that turns on 20 m, sails 5 m/s and stops on v * v * 2 metres: 50 m from 5 m/s)
   const o = {R:20, vmax:5, stop:v => v * v * 2, end:true, start:false};
   try {
+    // ---- a bane she can back and warp along (G2, steg 142, sixth session): a leg's sixth number says how she lies on it ----
+    { const P5 = (dx, dz, f, r) => [far.x + dx, far.z + dz, r || 0, 0, 0, f || 0], nrm = a => ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      // astern 40 m east, then ahead west: her heading is west all the way, no arc where she changes (she stops there)
+      let M = K.baneBuild([P5(0, 0), P5(40, 0, 1), P5(-60, 0, 0)], o);
+      t.eq(M.P.map(p => p.k).join(''), 'll', 'der hun skifter fra akterover til forover, er det ingen bue');
+      t.near(nrm(K.baneAt(M, 20).psi), 1.5 * Math.PI, 1e-9, 'akterover mot øst peker baugen mot vest'); t.near(nrm(K.baneAt(M, 80).psi), 1.5 * Math.PI, 1e-9, 'og forover mot vest etterpå: samme kurs');
+      t.near(M.len, 140, 1e-9, 'lengden er de to stykkene'); t.ok(K.baneV(M, 40) <= 0.5 + 1e-6 && M.cusp.length === 1 && Math.abs(M.cusp[0] - 40) < 1e-6, 'hun stopper der hun skifter', [K.baneV(M, 40), M.cusp]);
+      t.ok(M.P[0].vl <= K.get('BANE').vRev + 1e-9 && M.P[1].vl > M.P[0].vl, 'akterover går det sakte', [M.P[0].vl, M.P[1].vl]);
+      // warped 10 m sideways off a quay (south), her bow east, then ahead east
+      M = K.baneBuild([P5(0, 0), P5(0, 10, 3), P5(100, 10, 0)], o);
+      t.eq(M.P.map(p => p.k).join(''), 'll', 'sidelengs ut fra kaia og så forover: ingen bue i hjørnet');
+      t.near(nrm(K.baneAt(M, 5).psi), Math.PI / 2, 1e-9, 'sidelengs mot sør med baugen mot øst'); t.near(nrm(K.baneAt(M, 50).psi), Math.PI / 2, 1e-9, 'og samme kurs forover');
+      t.ok(M.P[0].vl <= K.get('BANE').vSide + 1e-9, 'sidelengs går det saktest', M.P[0].vl);
+      // an arc sailed astern: her heading is the tangent turned round
+      M = K.baneBuild([P5(0, 0), P5(200, 0, 1), P5(200, 200, 1)], o); const qa = K.baneAt(M, 180 + 20 * Math.PI / 4);
+      t.eq(M.P.map(p => p.k).join(''), 'lal', 'akterover gjennom et hjørne: en bue som forover'); t.near(nrm(qa.psi), nrm(Math.PI * 3 / 4 + Math.PI), 1e-9, 'med kursen snudd');
+      // a corner whose legs were made for its radius (the harbour search's): the radius stands, though a leg is no longer than the cut
+      const tt = 20 * Math.tan(Math.PI / 8); M = K.baneBuild([P5(0, 0), P5(tt, 0, 4, 20), P5(tt + tt * Math.SQRT1_2, tt * Math.SQRT1_2, 4)], o);
+      t.near(M.P.find(p => p.k === 'a').r, 20, 1e-6, 'et hjørne laget for sin radius beholder den'); t.near(M.len, 20 * Math.PI / 4, 1e-6, 'og banen er bare buen');
+      const M0 = K.baneBuild([P5(0, 0), P5(tt, 0, 0, 20), P5(tt + tt * Math.SQRT1_2, tt * Math.SQRT1_2)], o); t.near(M0.P.find(p => p.k === 'a').r, 10, 1e-6, 'uten merket halveres den som før'); }
     // a right-angle corner: east 200 m, then south 200 m
     let B = K.baneBuild([at(0, 0), at(200, 0), at(200, 200)], o);
     t.eq(B.P.map(p => p.k).join(''), 'lal', 'et hjørne blir et rett stykke, en bue og et rett stykke');
