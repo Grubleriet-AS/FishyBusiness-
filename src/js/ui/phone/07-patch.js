@@ -2,6 +2,30 @@
   const PATCH = [
     ['juksabord-271126', '27.11.2026', 'Mannskapet sløyer mens det jukses', 'The crew gut while you jig', [
        ['Med juksamaskiner og flere om bord enn maskinene trenger, går de ledige til sløyebordet og isen når det ligger fisk i karet. Før ble de stående ved rekka, karet ble fullt, og fisket stoppet.', 'With jigging reels and more hands aboard than the reels need, those free go to the gutting table and the ice when fish lies in the tub. Before, they stayed at the rail, the tub filled, and the fishing stopped.']]],
+    ['kart-271126', '27.11.2026', 'Ålesund verft', 'The yard at Ålesund', [
+       ['Verftet i Ålesund ligger 25 m lenger inn langs kaia si, så utløpet fra bassenget er bredere for de større båtene.', 'The yard at Ålesund lies 25 m further in along its quay, so the way out of the basin is wider for the bigger boats.'],
+       ['Sjøen tegner ikke lenger brenning midt i et basseng foran en kai.', 'The sea no longer draws surf in the middle of a basin in front of a quay.']]],
+    ['kart-261126', '26.11.2026', 'Moloen i Øksfjord', 'The breakwater at Øksfjord', [
+       ['Moloen ved mottaket i Øksfjord er kortere i enden mot land, så innløpet er bredere for de større båtene.', 'The breakwater by the fish plant at Øksfjord is shorter at the end towards the land, so the inlet is wider for the bigger boats.']]],
+    ['enklere-251126', '25.11.2026', 'Kvote og Båthandel med det viktigste først', 'Quota and the boat market with the essentials first', [
+       ['Kvote viser torskekvoten din øverst, med vanlige ord: «taket ditt i år» og «det du har uansett». Fagordet står i parentes, og et trykk på det forklarer det.', 'Quota shows your cod quota at the top, in plain words: «your cap this year» and «what you have in any case». The trade\'s word stands in brackets, and a tap on it explains it.'],
+       ['Det du ikke trenger ennå, ligger under «Mer» på samme side, i Kvote, Regler og Båthandel. Ingenting er låst.', 'What you do not need yet lies under «More» on the same page, in Quota, Rules and the boat market. Nothing is locked.'],
+       ['Vil du se alt med en gang: Innstillinger, «Vis alt».', 'To see everything at once: Settings, «Show all».'],
+       ['Håndboka sier fra når du har brukt halve torskekvoten, og når du kan kjøpe en båt med egen kvote.', 'The handbook tells you when half the cod quota is used, and when you can buy a boat with a quota of its own.']]],
+    ['kjopskort-251126', '25.11.2026', 'Båtkjøpet sier hva som endrer seg', 'The boat purchase says what changes', [
+       ['Over kjøpsknappen står kortet «Dette endrer seg»: kvoten før og etter, hvor mye torsk du kan levere i år, og hvor mye selgeren alt har fisket av årets kvote.', 'Over the buy button stands the card «This changes»: the quota before and after, how much cod you can land this year, and how much of the year\'s quota the seller has already fished.'],
+       ['En båt uten kvoterett (hjemmel) har et rødt kort som sier at torsk, hyse og sei bare kan være bifangst, og kjøpet spør før det tar kvoten fra båten din.', 'A boat without a quota right has a red card saying that cod, haddock and saithe can only be bycatch, and the purchase asks before it takes the quota from your boat.'],
+       ['En grå kjøpsknapp på verftet sier hvorfor, og hva du kan gjøre med det.', 'A grey buy button at the yard says why, and what you can do about it.'],
+       ['Rederi viser hvilken kvote hver båt fisker på.', 'The company app shows which quota each boat fishes on.']]],
+    ['kvotemaaler-251126', '25.11.2026', 'Torskekvoten på skjermen', 'The cod quota on the screen', [
+       ['Statusboksen viser torskekvoten når du har brukt halvparten: det som er levert, det som er om bord, og hvor mye som er igjen. Den blir gul fra 80 % og rød når det som er om bord, ikke får plass.', 'The status box shows the cod quota once half of it is used: what is landed, what is aboard, and how much is left. It turns yellow from 80% and red when what is aboard does not fit.'],
+       ['Varselet om full kvote kommer nå også om høsten, og for hyse, sei og blåkveite.', 'The warning of a full quota now comes in the autumn too, and for haddock, saithe and Greenland halibut.'],
+       ['En båt uten kvote får «Bare bifangst» på Regler-linja, ikke «Lov her».', 'A boat without a quota gets «Bycatch only» on the rules line, not «Allowed here».'],
+       ['Sluttseddelen sier hvor mye som er igjen av torskekvoten, og hjemskjermen har kortet «Torsk i år».', 'The landing note says how much is left of the cod quota, and the home screen has the card «Cod this year».']]],
+    ['innbytte-251126', '25.11.2026', 'Innbytte og Båthandel', 'Trade-in and the boat market', [
+       ['Fangsten må leveres før du bytter inn båten. Før fulgte det som lå i rommet, med til den nye.', 'The catch must be landed before you trade in the boat. Before, what lay in the hold went with you to the new one.'],
+       ['Bytter du inn en båt med hjemmel mot en ny båt med hjemmel, går den gamle hjemmelen tilbake til registeret.', 'When a boat with a right is traded in for a new boat with a right, the old right goes back to the register.'],
+       ['Båthandel sier nå at kystbåtene fra 11 m også selges med hjemmel, og at de uten hjemmel bare kan ta torsk, hyse og sei som bifangst.', 'The boat market now says that the coastal vessels from 11 m are also sold with a right, and that without one they can only take cod, haddock and saithe as bycatch.']]],
     ['kvote-251126', '25.11.2026', 'Mer torsk i åpen gruppe', 'More cod in the open group', [
        ['Båter i åpen gruppe har nå alderstillegget: 2 tonn torsk i tillegg til kvoten etter båtens lengde.', 'Boats in the open group now have the age addition: 2 tonnes of cod on top of the quota by the boat\'s length.'],
        ['Har du hjemsted i Finnmark, Nord-Troms eller en av de andre kommunene i kystfiskeordningen, får du 3,5 tonn til.', 'If your home is in Finnmark, northern Troms or one of the other municipalities in the coastal-fishing scheme, you get 3.5 tonnes more.'],

@@ -135,6 +135,7 @@ def coast2(tx, ty):
     if not B.is_empty and not U.is_empty: B = B.difference(U)
     r = rings_of([U], 3, 4) if not U.is_empty else []
     if not B.is_empty: r += [(c + 2, pts) for c, pts in rings_of([B], 1, 4)]
+    import rett; r = rett.apply(tx, ty, r)[0]   # the cuts at single places (rett.json; steg 142, Jonas' choice 8)
     b = bytearray(); lines(b, r); return bytes(b), len(r)
 
 # n, then per name x, y (varint), kind, rank, the angle the name is turned (degrees + 90: 90 is level), name length and UTF-8

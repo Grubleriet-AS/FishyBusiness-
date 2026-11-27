@@ -205,7 +205,7 @@ async function load(){
   catch (e){ if (SES){ $('#app').innerHTML = '<main><div class="card warn">' + esc(e.message) + '</div><button id="reLogin">Logg inn på nytt</button></main>';
     $('#reLogin').onclick = () => { sesClear(); TR = null; FN = null; render(); }; } }   // (no onclick in the HTML: the page's CSP allows only its own script)
 }
-const TABS = [['status', 'Status'], ['oversikt', 'Nøkkeltall'], ['trakt', 'Trakt'], ['tid', 'Spilletid'], ['frafall', 'Frafall'], ['bruk', 'Spillbruk'], ['okonomi', 'Økonomi i spillet'], ['penger', 'Penger'], ['teknikk', 'Teknikk'], ['geo', 'Geografi'], ['tilbake', 'Tilbakemeldinger'], ['agent', 'Agent'], ['lansering', 'Lansering'], ['logoer', 'Logoer'], ['navn', 'Brukernavn'], ['avis', 'Kystposten'], ['merker', 'Merker'], ['juks', 'Juks'], ['kapplop', 'Kappløp'], ['kommer', 'Kommer'], ['sponsorer', 'Sponsorer'], ['mediekort', 'Mediekort']];
+const TABS = [['status', 'Status'], ['oversikt', 'Nøkkeltall'], ['trakt', 'Trakt'], ['tid', 'Spilletid'], ['frafall', 'Frafall'], ['bruk', 'Spillbruk'], ['okonomi', 'Økonomi i spillet'], ['penger', 'Penger'], ['teknikk', 'Teknikk'], ['geo', 'Geografi'], ['tilbake', 'Tilbakemeldinger'], ['agent', 'Agent'], ['lansering', 'Lansering'], ['logoer', 'Logoer'], ['navn', 'Brukernavn'], ['avis', 'Kystposten'], ['merker', 'Merker'], ['juks', 'Juks'], ['korr', 'Korrigering'], ['kapplop', 'Kappløp'], ['kommer', 'Kommer'], ['sponsorer', 'Sponsorer'], ['mediekort', 'Mediekort']];
 function render(){
   for (const k in CH) delete CH[k];
   if (!DEMO && !SES) return loginView();
@@ -229,11 +229,12 @@ function render(){
   if (TAB === 'mediekort' && $('#mkPrint')) $('#mkPrint').onclick = () => window.print();
   if (TAB === 'navn') nmWire();
   if (TAB === 'juks') jkWire();
+  if (TAB === 'korr') krWire();
   if (TAB === 'penger') sgWire();
   if (TAB === 'avis') nwWire();
   if (TAB === 'merker' && $('#acR')) $('#acR').onclick = () => { AC = null; render(); };
   if (TAB === 'okonomi') havWire();
-  if (TAB === 'trakt' && $('#fnR')) $('#fnR').onclick = () => { FN = null; TU = null; HBF = null; render(); };
+  if (TAB === 'trakt' && $('#fnR')) $('#fnR').onclick = () => { FN = null; TU = null; HBF = null; RGF = null; render(); };
 }
 
 const card = (title, body, note) => '<div class="card"><h3>' + title + '</h3>' + body + (note ? '<p class="note">' + note + '</p>' : '') + '</div>';
@@ -273,7 +274,7 @@ const VIEW = {
 // ---------- the frame (17.11.2026): the tabs in groups, a short text on top of each saying what it shows, and the help behind each number ----------
 const LOGO = '<svg viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lgo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4aa3f0"/><stop offset="1" stop-color="#1b4f8f"/></linearGradient></defs><rect width="32" height="32" rx="9" fill="url(#lgo)"/><path d="M5 19c3 0 3-2 5.5-2s2.5 2 5.5 2 3-2 5.5-2 2.5 2 5.5 2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M5 24c3 0 3-2 5.5-2s2.5 2 5.5 2 3-2 5.5-2 2.5 2 5.5 2" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2" stroke-linecap="round"/><path d="M16 6l5 9h-10z" fill="#f2b33d"/></svg>';
 const GROUPS = [['Oversikt', ['status', 'oversikt']], ['Spillerne', ['trakt', 'tid', 'frafall', 'bruk', 'merker', 'kapplop', 'geo']], ['Økonomi', ['okonomi', 'penger']],
-  ['Drift', ['teknikk', 'tilbake', 'agent', 'juks']], ['Innhold', ['lansering', 'navn', 'logoer', 'avis']], ['Partnere', ['sponsorer', 'mediekort']], ['Annet', ['kommer']]];
+  ['Drift', ['teknikk', 'tilbake', 'agent', 'juks', 'korr']], ['Innhold', ['lansering', 'navn', 'logoer', 'avis']], ['Partnere', ['sponsorer', 'mediekort']], ['Annet', ['kommer']]];
 const INTRO = {
   status:['Status', 'Hvor spillet er på vei, på ett blikk. Hver graf viser én ting per dag i perioden du har valgt, med den grå linja for perioden før. Pilene sier om tallet har gått opp eller ned siden da.',
     [['Nye spillere', 'Folk som åpnet spillet for første gang den dagen (gjester og kontoer).'], ['Registreringer', 'Kontoer som ble laget den dagen. En gjest som registrerer seg, teller her.'], ['Aktive', 'Ulike spillere som spilte minst én økt den dagen.'], ['Spilletid', 'Timene spillerne faktisk var aktive (ikke tid med appen i bakgrunnen).'], ['Leveringer', 'Turer som endte med fisk solgt på et mottak.'], ['Kommer tilbake', 'Av dem som startet en uke: hvor mange som spilte igjen dagen etter (dag 1) og etter en uke (dag 7). Det beste tegnet på at spillet holder på folk.']]],
@@ -295,6 +296,7 @@ const INTRO = {
   tilbake:['Tilbakemeldinger', 'Det spillerne har sendt inn, med agentens forslag. Sett status og svar her; svaret går til spilleren.'],
   agent:['Agent', 'Rapportene fra tilbakemeldingsagenten: hva den fant viktigst, og PR-ene den åpnet.'],
   juks:['Juks', 'Kontoer der serveren mener tallene ikke kan være ekte. Du avgjør om merket står eller fjernes.'],
+  korr:['Korrigering', 'Rett noe i én spillers spill, for eksempel et båtkjøp som skal angres. Spillet gjør det selv neste gang det spør; lagringen røres ikke på serveren.'],
   lansering:['Lansering', 'Founders-merket og profilbildene som venter på godkjenning.'],
   navn:['Brukernavn', 'Navnene spillerne har valgt. Fjern et navn som ikke hører hjemme i spillet.'],
   logoer:['Logoer', 'Logoene spillerne har lastet opp til båtene sine.'],
@@ -901,6 +903,48 @@ function jkWire(){
   act('[data-jkkeep]', 'jkkeep', 'admin_cheat_keep', r => { r.kept = new Date().toISOString(); });
   act('[data-jkclr]', 'jkclr', 'admin_cheat_clear', r => { r.cleared = new Date().toISOString(); JK.open = new Set(JK.rows.filter(x => !x.cleared).map(x => x.who)).size; });
 }
+// ---------- Korrigering (26.11.2026, supabase/migrations/20261126120000_fixes.sql; the game's ui/10w-fix.js): a correction to one
+// player's game, done by the game itself the next time it asks (within ten minutes while it is open, else at the next start). Nothing
+// on the server reads or writes the save. The one kind now: a vessel purchase undone (core/03-simulation.js undoBuyApply)
+let KR = null, KRW = '';
+async function krLoad(w){ KRW = w; KR = {busy:true}; render(); try { KR = DEMO ? {found:true, id:'user_demo', pub:'a1b2c3d4e5', save:{summary:{type:'kyst21', cash:-4268, boat:'H H', day:311}}, types:[{type:'plastsjark', first:'2026-11-20', last:'2026-11-24T11:18:26Z'}], buys:['2026-11-24T11:19:01Z'], fixes:[]} : await rpc('admin_fix_find', {who:w}); }
+  catch (e){ KR = {err:e.message}; } render(); }
+const KR_WHY = {lic:'venter: båten spilleren følger, har ikke den hjemmelen', port:'venter: båten er ikke i havn', hold:'venter: mer fisk om bord enn det gamle rommet tar', type:'venter: spilleren følger en annen båt', done:'gjort i spillet før, lagret nå', bad:'kan ikke gjøres (ukjent type)'};
+VIEW.korr = () => {
+  const f = '<div class="card"><label>Konto (WorkOS-ID «user_…» eller den offentlige ID-en fra Juks og Brukernavn) <input id="krWho" value="' + esc(KRW) + '" style="min-width:22em"></label> <button id="krFind" class="p">Finn</button></div>';
+  if (!KR) return f; if (KR.busy) return f + '<p class="note">Henter …</p>'; if (KR.err) return f + card('Feil', '<p class="warn">' + esc(KR.err) + '</p>', 'Er migreringen supabase/migrations/20261126120000_fixes.sql kjørt?');
+  if (!KR.found) return f + '<p class="note">Ingen konto med den ID-en.</p>';
+  const sm = (KR.save || {}).summary || {}, when = v => v ? esc(new Date(v).toLocaleString('nb-NO')) : '', nkr = v => nf(+v || 0, 0) + ' kr';
+  const open = (KR.fixes || []).find(x => !x.done && !x.revoked), types = KR.types || [];
+  return f + '<div class="grid">' + kpi('Båten nå', esc(sm.type || '–'), sm.boat ? '«' + esc(sm.boat) + '»' : '') + kpi('Kassa', sm.cash != null ? nkr(sm.cash) : '–', 'dag ' + esc(sm.day || '–')) + kpi('Båtkjøp siste 30 dager', nf((KR.buys || []).length, 0), (KR.buys || []).slice(0, 3).map(when).join(', ')) + '</div>' +
+    card('Typer seilt siste 14 dager', types.length ? '<table><tr><th>Type</th><th>Første</th><th>Siste</th></tr>' + types.map(t => '<tr><td>' + esc(t.type) + '</td><td>' + when(t.first) + '</td><td>' + when(t.last) + '</td></tr>').join('') + '</table>' : '<p class="note">Ingen turer med Autonav.</p>', 'Fra turene med Autonav. Typen før kjøpet er den som slutter rett før båtkjøpet.') +
+    (open ? card('Åpen korrigering', '<p>' + esc(open.kind) + ' ' + esc(JSON.stringify(open.data)) + ', lagt inn ' + when(open.at) + (open.result ? '<br><span class="note">Spillet sa: ' + esc(KR_WHY[open.result.why] || JSON.stringify(open.result)) + ' (' + when(open.result.at) + ')</span>' : '<br><span class="note">Spillet har ikke spurt ennå.</span>') + '</p><button data-krrev="' + (+open.id) + '">Trekk tilbake</button>')
+    : card('Angre et båtkjøp', '<p><label>Båten nå (type) <input id="krTo" value="' + esc(sm.type || '') + '"></label> <label>Tilbake til (type) <input id="krFrom" list="krTypes" value="' + esc((types.find(t => t.type !== sm.type) || {}).type || '') + '"></label>' +
+        '<datalist id="krTypes">' + types.map(t => '<option value="' + esc(t.type) + '">').join('') + '</datalist></p>' +
+        '<p><label>Tilbakebetaling (kr, tomt = prisen på båten nå minus 70 % av prisen på den gamle, som innbyttet ga) <input id="krKr" inputmode="numeric" placeholder="automatisk"></label></p>' +
+        '<p><label>Hjemmel kjøpt med båten (f.eks. h20, tomt = ingen) <input id="krLic" placeholder="ingen"></label> <label>Kjøpt (tidspunkt, for hjemmelens pris da) <input id="krAt" value="' + esc((KR.buys || [])[0] || '') + '"></label></p>' +
+        '<p><label><input type="checkbox" id="krInn"> Toppfinansieringen fra Innovasjon Norge kan brukes igjen (kjøpet brukte den)</label></p>' +
+        '<p><label>Ombygginger tilbake på båten (f.eks. dry:1, cabin:1) <input id="krUpg" placeholder="ingen"></label> <label>Utstyr betalt tilbake (kr) <input id="krGear" inputmode="numeric" placeholder="0"></label></p>' +
+        '<p><label>Melding til spilleren (tomt = spillets egen) <input id="krNote" style="min-width:30em"></label></p><button id="krAdd" class="p">Legg inn</button>',
+      'For et innbytte på verftet (ikke et kjøp til flåten, og ikke havflåten). Spillet gjør det selv neste gang det spør (innen ti minutter når det er åpent, ellers ved neste start), i havn og på båten det gjelder. Båten blir den gamle typen som levert fra verftet: verftsarbeid og kniv- og håvtrinn fulgte det gamle skroget og er ikke i lagringen lenger; verftsjobber bestilt til det nye skroget betales tilbake. En hjemmel innbyttet tok med, er solgt og blir solgt, og pengene for den står i kassa. Ble båten kjøpt med hjemmel (Båthandelens tilbud i lukket gruppe), fyll inn hjemmelen: den går tilbake til registeret, og spillet betaler prisen den hadde da den ble kjøpt (tidspunktet). Bare hjemmelen: la båttypene stå tomme. Tilbakebetalingen innfrir lånene først og resten går til kontoen, så rederiet er verdt det samme som før kjøpet, minus rentene som er betalt siden. Kassa hopper, så Juks kan sette et merke: fjern det der.')) +
+    ((KR.fixes || []).length ? card('Korrigeringer på kontoen', '<table><tr><th>Lagt inn</th><th>Hva</th><th>Status</th></tr>' + KR.fixes.map(x => '<tr><td>' + when(x.at) + '</td><td>' + esc(x.kind) + ' ' + esc(JSON.stringify(x.data)) + '</td><td>' + (x.revoked ? 'trukket ' + when(x.revoked) : x.done ? 'ferdig ' + when(x.done) + (x.result && x.result.ok ? ': ' + nkr(x.result.kr) + ' tilbake, ' + nkr(x.result.off) + ' til lånene, kassa ' + nkr(x.result.cash) : x.result ? ': ' + esc(KR_WHY[x.result.why] || '') : '') : 'åpen') + '</td></tr>').join('') + '</table>') : '');
+};
+function krWire(){
+  const go = () => { const w = ($('#krWho').value || '').trim(); if (w) krLoad(w); };
+  if ($('#krFind')) $('#krFind').onclick = go; if ($('#krWho')) $('#krWho').onkeydown = e => { if (e.key === 'Enter') go(); };
+  const add = $('#krAdd'); if (add) add.onclick = async () => { const to = $('#krTo').value.trim(), from = $('#krFrom').value.trim(), k = $('#krKr').value.replace(/\s/g, ''), note = $('#krNote').value,
+      lic = ($('#krLic').value || '').trim(), at = ($('#krAt').value || '').trim(), boat = !!(to || from), inn = !!($('#krInn') && $('#krInn').checked),
+      upgTx = ($('#krUpg') && $('#krUpg').value || '').trim(), gear = ($('#krGear') && $('#krGear').value || '').replace(/\s/g, ''), upg = {};
+    for (const part of upgTx ? upgTx.split(',') : []){ const m = /^\s*([a-z]+)\s*:\s*(\d)\s*$/.exec(part); if (!m){ alert('Ombyggingene skrives som dry:1, cabin:1.'); return; } upg[m[1]] = +m[2]; }
+    if (gear && !(+gear > 0)){ alert('Utstyret må være et tall.'); return; }
+    if (!boat && !lic && !inn && !upgTx && !gear){ alert('Fyll inn noe som skal rettes.'); return; }
+    if (boat && (!to || !from || to === from)){ alert('Fyll inn to ulike båttyper, eller la begge stå tomme for bare hjemmelen.'); return; }
+    if (k && !(+k >= 0)){ alert('Tilbakebetalingen må være et tall.'); return; } if (lic && at && !isFinite(Date.parse(at))){ alert('Tidspunktet forstås ikke.'); return; }
+    const data = {}; if (boat){ data.from = from; data.to = to; if (k) data.kr = +k; } if (lic){ data.lic = lic; if (at) data.licAt = new Date(Date.parse(at)).toISOString(); } if (inn) data.inn = true; if (upgTx) data.upg = upg; if (gear) data.gearKr = +gear;
+    if (!confirm('Angre kjøpet:' + (boat ? ' ' + to + ' blir ' + from : '') + (lic ? (boat ? ',' : '') + ' hjemmelen ' + lic + ' tilbake til registeret' : '') + (k ? ', og ' + nf(+k, 0) + ' kr for båten' : ', med tilbakebetalingen regnet av spillet') + '?')) return;
+    add.disabled = true; try { if (!DEMO) await rpc('admin_fix_add', {who:KR.id, kind:'undo_buy', data, note}); krLoad(KR.id); } catch (e){ add.disabled = false; alert(e.message); } };
+  document.querySelectorAll('[data-krrev]').forEach(b => b.onclick = async () => { b.disabled = true; try { if (!DEMO) await rpc('admin_fix_revoke', {fid:+b.dataset.krrev}); krLoad(KR.id); } catch (e){ b.disabled = false; alert(e.message); } });
+}
 // ---------- Kystposten's stories (supabase/migrations/20261007170000_news.sql; the game's core/09h-press.js) ----------
 // What the players' games have put in the shared paper: the kind, the boat's and the company's names and the numbers. The words are
 // written in each reader's game. One that should not be there is taken away for everyone.
@@ -981,7 +1025,7 @@ VIEW.trakt = () => {
     card('Per uke de startet', table(FN.weeks, [['wk', 'Uke fra', v => esc(String(v).slice(0, 10))], ['start', 'Startet'], ['catch', 'Fangst', (v, x) => r(v, x.start)], ['land1', '1. levering', (v, x) => r(v, x.start)],
       ['land3', '3. levering', (v, x) => r(v, x.start)], ['reg', 'Registrert', (v, x) => r(v, x.start)], ['d1', 'Dag 1', (v, x) => r(v, x.d1n)], ['d7', 'Dag 7', (v, x) => r(v, x.d7n)], ['d30', 'Dag 30', (v, x) => r(v, x.d30n)],
       ['tier', 'Trinn ≤ dag 7', (v, x) => v == null ? '–' : r(v, x.start)]]),
-      'Andel av dem som startet den uka. Dag 1, 7 og 30 regnes av dem som har hatt så lang tid. «Trinn ≤ dag 7» er kjøpt kniv, høtt eller et annet trinn innen sju dager (fra 07.11.2026); en uke som ikke er sju dager gammel, er ikke ferdig.') + tuView() + ttView() + hbView();
+      'Andel av dem som startet den uka. Dag 1, 7 og 30 regnes av dem som har hatt så lang tid. «Trinn ≤ dag 7» er kjøpt kniv, høtt eller et annet trinn innen sju dager (fra 07.11.2026); en uke som ikke er sju dager gammel, er ikke ferdig.') + tuView() + ttView() + hbView() + rgView();
 };
 // ---------- the first trip's steps (supabase/migrations/20261010100000_tut_steps.sql; the game's ui/07b-first-trip.js; docs/onboarding.md) ----------
 // Each step of the guided first trip in the game's order: how many reached it of those who began the guide, and the median real
@@ -1032,7 +1076,7 @@ const HB_TIPS = [[2, 'Tur 2 og 3', [['is', 'Is før turen'], ['sloy', 'Sløying'
   [3, 'Kvelden og natta', [['mannskap', 'Mannskap'], ['vaer', 'Været'], ['redning', 'Redning'], ['energi', 'Hvile'], ['kulde', 'Kulda'], ['diesel', 'Diesel'], ['rorbu', 'Rorbua']]],
   [4, 'Rutinen', [['drift', 'Driftsplanen'], ['topp', 'Salgslaget og topplista'], ['merker', 'Milepæler'], ['tilbake', 'Si fra'], ['patch', 'Patchnotes']]],
   [5, 'Utstyr og båt', [['oppdrag', 'Oppdrag'], ['butikk', 'Utstyrsbutikken'], ['verft', 'Verftet'], ['neste', 'Neste båt']]],
-  [6, 'Sosialt og økonomi', [['venner', 'Venner'], ['ais', 'Andre båter'], ['pub', 'Puben'], ['rederi', 'Rederiet'], ['kvote', 'Kvoten']]]];
+  [6, 'Sosialt og økonomi', [['venner', 'Venner'], ['ais', 'Andre båter'], ['pub', 'Puben'], ['rederi', 'Rederiet'], ['kvote', 'Kvoten'], ['kvhalv', 'Halve torskekvoten'], ['kvover', 'Over kvoten'], ['kvstopp', 'Fisket på taket stoppes'], ['egenkvote', 'Egen kvote']]]];
 let HBF = null;
 async function hbLoad(){ await null; try { HBF = DEMO ? hbDemo() : await rpc('admin_hb', {weeks:8}); } catch (e){ HBF = {err:e.message}; } if (TAB === 'trakt') render(); }
 function hbDemo(){ const t = {}; let k = 0; for (const [, , tips] of HB_TIPS) for (const [id] of tips){ t[id] = {seen:Math.max(2, 30 - k * 1), skip:(k * 7) % 5}; k++; } return {players:34, tips:t}; }
@@ -1044,6 +1088,38 @@ function hbView(){
     return '<tr><td>' + esc(t) + ' <span class="note">' + id + '</span></td><td>' + nf(n, 0) + '</td><td style="width:35%"><div class="bar"><i style="width:' + w + '%"></i></div></td><td class="note">' + w + ' %</td><td class="note">' + (x.skip ? nf(x.skip, 0) + ' hoppet over her' : '') + '</td></tr>'; }).join('')).join('');
   return card('Håndboka, tips for tips', '<p class="note">' + nf(HBF.players || 0, 0) + ' spillere har sett minst ett tips de siste 8 ukene.</p><table><tr><th>Tips</th><th>Lest</th><th></th><th>Av dem</th><th>«Jeg kan dette»</th></tr>' + rows + '</table>',
     'Et tips mange hopper over fra, kommer for tidlig eller sier for lite.');
+}
+// ---------- Regelverket i klartekst (steg 153, K5 of docs/planer/regler-i-klartekst.md; supabase/migrations/20261125120000_regler.sql) ----------
+// What the plan wanted to read before the next change: how often a landing has something confiscated, which reasons the grey buttons
+// show, which «Mer» folds are opened, who turns «Vis alt» on, the purchases that took the quota from the boat, and the days from blad
+// B to the first right. Sums and distinct players only, of those who share usage statistics.
+const RG_WHY = {notes:'Banken vil se tre leveringer', eq:'For lite egenkapital', cap:'Banken låner ikke mer', cash:'Ikke nok penger', bladb:'Mangler blad B', hold:'Fisk i rommet ved innbytte', yard:'Ikke på verftet', order:'Bestilling venter', sale:'Noe til salgs', open:'Én båt i åpen gruppe', 'mb.bladb':'Megleren: mangler blad B', 'mb.open':'Megleren: én båt i åpen gruppe', 'mb.cash':'Megleren: ikke nok penger'};
+const RG_MER = {kvote:'Kvote: resten av kvotesiden', papirer:'Kvote: de andre papirene', faner:'Kvote: sesongen, bestanden og markedet', regler:'Regler: større båter, Lofoten, havet, sør', baater:'Båthandel: større båter'};
+const RG_ACC = {open:'åpen gruppe', lukket:'lukket gruppe', none:'uten adgang'}, RG_KG = {u100:'under 100 kg', u500:'100–500 kg', o500:'over 500 kg'};
+let RGF = null;
+async function rgLoad(){ await null; try { RGF = DEMO ? rgDemo() : await rpc('admin_regler', {weeks:8}); } catch (e){ RGF = {err:e.message}; } if (TAB === 'trakt') render(); }
+function rgDemo(){ return {sales:412, sellers:58, conf:19, conf_players:11, conf_by:{'open:u100':9, 'open:u500':5, 'none:o500':3, 'lukket:u100':2}, why:{notes:{n:44, p:31}, eq:{n:21, p:14}, bladb:{n:17, p:12}, hold:{n:6, p:5}, open:{n:9, p:8}},
+  mer:{kvote:{n:23, p:19}, faner:{n:15, p:12}, baater:{n:11, p:9}, regler:{n:4, p:4}, papirer:{n:3, p:3}}, vis_on:5, vis_off:1, noacc:1, noacc_players:1, bladb:9, right:4, days:3.5}; }
+function rgView(){
+  if (!RGF){ rgLoad(); return ''; }
+  if (RGF.err) return card('Kvoter og regler i klartekst', '<p class="warn">' + esc(RGF.err) + '</p>', 'Er migreringen supabase/migrations/20261125120000_regler.sql kjørt?');
+  const R = RGF, pc = (a, b) => b ? Math.round(a / b * 1000) / 10 + ' %' : '–', all = Math.max(1, R.sellers || 0);
+  const tbl = (T, names, h1) => { const ks = Object.keys(T || {}).sort((a, b) => (T[b].p || 0) - (T[a].p || 0)); if (!ks.length) return '<p class="note">Ingen ennå.</p>';
+    return '<table><tr><th>' + h1 + '</th><th>Spillere</th><th></th><th>Av dem som leverer</th><th>Ganger</th></tr>' + ks.map(k => { const w = Math.round((T[k].p || 0) / all * 100);
+      return '<tr><td>' + esc(names[k] || k) + ' <span class="note">' + esc(k) + '</span></td><td>' + nf(T[k].p || 0, 0) + '</td><td style="width:30%"><div class="bar"><i style="width:' + Math.min(100, w) + '%"></i></div></td><td class="note">' + w + ' %</td><td class="note">' + nf(T[k].n || 0, 0) + '</td></tr>'; }).join('') + '</table>'; };
+  const by = Object.entries(R.conf_by || {}).sort((a, b) => b[1] - a[1]).map(([k, n]) => { const [a, g] = k.split(':'); return '<tr><td>' + esc(RG_ACC[a] || a) + '</td><td>' + esc(RG_KG[g] || g) + '</td><td>' + nf(n, 0) + '</td></tr>'; }).join('');
+  return card('Kvoter og regler i klartekst',
+    '<table><tr><th>De siste 8 ukene</th><th></th></tr>' +
+    '<tr><td>Leveringer med noe inndratt</td><td>' + nf(R.conf || 0, 0) + ' av ' + nf(R.sales || 0, 0) + ' · ' + pc(R.conf || 0, R.sales || 0) + '</td></tr>' +
+    '<tr><td>Spillere som har fått noe inndratt</td><td>' + nf(R.conf_players || 0, 0) + ' av ' + nf(R.sellers || 0, 0) + ' · ' + pc(R.conf_players || 0, R.sellers || 0) + '</td></tr>' +
+    '<tr><td>Kjøp som tok kvoten fra båten (etter spørsmålet)</td><td>' + nf(R.noacc || 0, 0) + ' · ' + nf(R.noacc_players || 0, 0) + ' spillere</td></tr>' +
+    '<tr><td>Nådde blad B</td><td>' + nf(R.bladb || 0, 0) + ' spillere</td></tr>' +
+    '<tr><td>Kjøpte båt med hjemmel på verftet</td><td>' + nf(R.right || 0, 0) + ' spillere</td></tr>' +
+    '<tr><td>Fra blad B til første hjemmel (median)</td><td>' + (R.days != null ? nf(R.days, 1) + ' døgn' : '–') + '</td></tr>' +
+    '<tr><td>Slo på «Vis alt» / gikk tilbake</td><td>' + nf(R.vis_on || 0, 0) + ' / ' + nf(R.vis_off || 0, 0) + ' spillere</td></tr></table>' +
+    (by ? '<h4>Inndragningene</h4><table><tr><th>Gruppe</th><th>Størrelse</th><th>Leveringer</th></tr>' + by + '</table>' : '') +
+    '<h4>Grunnene grå kjøpsknapper viste</h4>' + tbl(R.why, RG_WHY, 'Grunn') + '<h4>«Mer» som ble åpnet</h4>' + tbl(R.mer, RG_MER, 'Side'),
+    'Andelen leveringer med inndragning skal gå ned, og kjøp som tar kvoten skal være nær null. En «Mer» mange åpner, ligger for dypt; en grunn mange møter, er der flyten stopper. Hendelsene sendes fra versjonen med steg 148b–153.');
 }
 // ---------- the badges' funnel (supabase/migrations/20261007140000_ach.sql; the game's core/09f-merker.js) ----------
 // How far the players come in «Første uke på sjøen»: each milestone in the game's order, with how many reached it (of those who share

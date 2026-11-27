@@ -50,8 +50,8 @@ async def main():
         await boot(pg)
         await pg.evaluate(D2)
         await pg.evaluate("lifeDay = () => {}; lifeInjury = () => {};")
-        await pg.evaluate("() => { window.PLAN = " + PLAN + "; }")
-        run = lambda a: pg.evaluate("PLAN(%s)" % json.dumps(a))
+        await pg.evaluate("() => { window.SKPLAN = " + PLAN + "; }")   # (not window.PLAN: the game has a PLAN of its own since Autonav 2.0, core/17c-plan.js, and the page's const hid this one: «PLAN is not a function», 25.11.2026)
+        run = lambda a: pg.evaluate("SKPLAN(%s)" % json.dumps(a))
         # 1. four days of day rhythm, Max from the start against none: round the clock
         a, m = await run({'mins': 4 * 1440}), await run({'mins': 4 * 1440, 'skip0': 'max'})
         rests = [w for w in m['waits'] if w[1] in ('rest', 'dep', 'energy')]

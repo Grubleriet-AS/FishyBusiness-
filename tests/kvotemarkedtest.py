@@ -191,7 +191,7 @@ async def main():
           PHONE.dact('kvote', 'kmsel', {id:String(_s2)}); PHONE.render(); await new Promise(r => setTimeout(r, 300)); const ch = [...document.querySelectorAll('#phone .kx-to .chip-b')].map(b => ({v:b.dataset.v, dis:b.disabled, t:b.textContent}));
           S.fm.b = false; PHONE.render(); const t = document.querySelector('#phone .kx-auc').textContent, bb = {txt:/blad B/.test(t), bid:!!document.querySelector('#phone [data-pa=kmbid]')}; S.fm.b = true; PHONE.render(); window._keep = keep; return {ch, bb, kf:HJ.h14.kf + lh.extra, tak:HJ.h14.kf * 5}; })()""")
         capH = next(x for x in cap['ch'] if x['v'] == hav)
-        check(capH['dis'] and 'Over kvotetaket' in capH['t'] and cap['kf'] <= cap['tak'] and cap['bb']['txt'] and not cap['bb']['bid'], 'kvotetaket (5 ganger egen kvote) stenger valget av båten som er full, og uten blad B kan ingen by', cap)
+        check(capH['dis'] and 'et tak på hvor mye kvote' in capH['t'] and cap['kf'] <= cap['tak'] and cap['bb']['txt'] and not cap['bb']['bid'], 'kvotetaket (5 ganger egen kvote) stenger valget av båten som er full, og uten blad B kan ingen by', cap)
         wt = await pg.evaluate("""(async () => { document.querySelector('#phone .kx-to [data-v=' + _tom + ']').click(); await new Promise(r => setTimeout(r, 80)); document.querySelector('#phone [data-pa=kmbuy]').click(); await new Promise(r => setTimeout(r, 100));
           return 0; })()""")
         # (the buy went through at once in the stub; to make the boat full before the settlement, bid on a new one instead)

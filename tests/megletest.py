@@ -138,6 +138,10 @@ async def main():
           return {auc:!!document.querySelector('#phone .mb-auc'), min:inp && +inp.min, val:inp && +inp.value, left:/Slutter om/.test(t), bn:/Kjøp nå/.test(t), lic:/Hjemmelslengde/.test(t) && /deltakerloven/.test(t), to:[...document.querySelectorAll('#phone .mb-to .chip-b')].map(b => b.innerText), tilstand:/Tilstand/.test(t), folger:/Følger med/.test(t)}; })()""")
         check(sh['auc'] and sh['min'] == 8000000 and sh['val'] == 8000000 and sh['left'] and sh['bn'] and sh['lic'] and len(sh['to']) == 2 and '+2 %' in sh['to'][1] and sh['tilstand'] and sh['folger'],
               'oppføringen: auksjonen med tida igjen, første bud fra startprisen, «Kjøp nå», hjemmelen merket med lovhenvisningen, Tilstand og Følger med, og valget hent selv eller lever for 2 %', sh)
+        # steg 151: the card «Dette endrer seg» stands over the auction, with the seller's catch on the right and the open-group boat that loses her place
+        kc = await pg.evaluate("(() => { const c = document.querySelector('#phone .mg-sheet .ph-card.chg'), a = document.querySelector('#phone .mb-auc'); return {card:!!c, over:!!(c && a && (c.compareDocumentPosition(a) & 4)), txt:c ? c.textContent.slice(0, 260) : ''}; })()")
+        check(kc['card'] and kc['over'] and 'egen kvote (lukket gruppe)' in kc['txt'], 'oppføringen: kortet «Dette endrer seg» står over auksjonen', kc)
+        await shot(pg, '#phone .ph-card.chg', 'megle_kort_liggende.png')
         low = await pg.evaluate("(async () => { document.getElementById('mbBid').value = 7900000; document.querySelector('#phone [data-pa=mbbid]').click(); await new Promise(r => setTimeout(r, 200)); return {msg:document.querySelector('#phone .mb-auc').innerText, calls:FAKE.calls.filter(c => c[0] === 'listing_bid').length}; })()")
         check('minst' in low['msg'] and low['calls'] == 0, 'et bud under startprisen sier hva som trengs, og sendes ikke', low)
         bid = await pg.evaluate("""(async () => { const c0 = S.cash; document.querySelector('#phone [data-pa=mbto][data-s=near]').click(); await new Promise(r => setTimeout(r, 50));

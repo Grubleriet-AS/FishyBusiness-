@@ -18,7 +18,7 @@ FIT = """(() => { const d = document.querySelector('#phone'); if (!d) return ['n
 SETUP = """((home, used) => { S.tut = 0; S.lic = null; S.boat.status = 'port'; const pt = portById(home) || PORTS.find(q => q.mk && q.name === home); S.home = pt.id;
   const q = freshQuota(), H = S.t / 60, lim = codLimitNow(H); q.torsk = Math.round(lim * used); PHONE.show(true); PHONE.open('kvote'); PHONE.dact('kvote', 'sub', {s:'mine'}); PHONE.render();
   const txt = sel => { const e = document.querySelector(sel); return e ? e.textContent : null; }, l = codLimits(H);
-  const card = [...document.querySelectorAll('#phone .ph-card')].find(c => /åpen gruppe/.test((c.querySelector('h4') || {}).textContent || ''));
+  const card = document.querySelector('#phone .ph-card.kv-cod');
   const O = yearQuota(yearH(H)).open; return {home:pt.name, kyst:kystOrd(pt.id), yk:Math.round(O.kyst * 1000), ya:Math.round(O.alder * 1000), lim, base:[l.base.max, l.base.guar], add:l.add, full:txt('#kvFull'), first:(document.querySelector('#phone .ph-c') || {firstElementChild:null}).firstElementChild === document.querySelector('#kvFull'), card:card ? card.textContent : null, btn:!!document.querySelector('#kvFull [data-pa="sub"][data-s="mkt"]')}; })"""
 
 # the landing: cod aboard over what is left goes on the quota up to the limit with the additions, and the rest is confiscated
@@ -49,14 +49,14 @@ async def main():
             await pg.set_viewport_size({'width': w, 'height': h}); await pg.wait_for_timeout(300)
             await pg.evaluate("PHONE.render()"); await pg.wait_for_timeout(200); fits.append(await pg.evaluate(FIT))
             await pg.screenshot(path=os.path.join(OUT, 'kvfull_baatsfjord_%s.png' % tag))
-            await pg.evaluate("(() => { const e = [...document.querySelectorAll('#phone .ph-card')].find(c => /åpen gruppe/.test((c.querySelector('h4') || {}).textContent || '')); if (e) e.scrollIntoView({block:'center'}); })()"); await pg.wait_for_timeout(200)
+            await pg.evaluate("(() => { const e = document.querySelector('#phone .ph-card.kv-cod'); if (e) e.scrollIntoView({block:'center'}); })()"); await pg.wait_for_timeout(200)
             await pg.screenshot(path=os.path.join(OUT, 'kvfull_kvotekort_%s.png' % tag))
         await pg.set_viewport_size({'width': 1280, 'height': 800}); await pg.wait_for_timeout(200)
         # 2. Vangshamn on Senja, the quota of § 21 just landed: outside the scheme, 2 t to go on, no card
-        b = await pg.evaluate(SETUP + "('vangshamn', 0)"); room = await pg.evaluate("(() => { const q = quotaState(), l = codLimits(); q.torsk = codOpen(S.t / 60) ? l.base.max : l.base.guar; PHONE.render(); return {room:codRoom(S.t / 60), full:!!document.querySelector('#kvFull'), card:[...document.querySelectorAll('#phone .ph-card')].find(c => /åpen gruppe/.test((c.querySelector('h4') || {}).textContent || '')).textContent}; })()")
+        b = await pg.evaluate(SETUP + "('vangshamn', 0)"); room = await pg.evaluate("(() => { const q = quotaState(), l = codLimits(); q.torsk = codOpen(S.t / 60) ? l.base.max : l.base.guar; PHONE.render(); return {room:codRoom(S.t / 60), full:!!document.querySelector('#kvFull'), card:document.querySelector('#phone .ph-card.kv-cod').textContent}; })()")
         check(not b['kyst'] and b['add'] == {'kyst': 0, 'alder': ya, 'sum': ya} and room['room'] == ya and not room['full'], 'Vangshamn (Senja) er utenfor: bare alderstillegget, og den som hadde fylt § 21-kvoten, har det igjen og ser ikke kortet', {'add': b['add'], 'room': room['room'], 'full': room['full']})
         check('gjelder ikke hjemstedet ditt' in room['card'] and 'Alderstillegg+ %s t' % t1(ya) in room['card'] and 'Igjen nå%s t' % t1(ya, 2) in room['card'], 'kvotekortet sier at kystfiskeordningen ikke gjelder hjemstedet, og viser alderstillegget og det som er igjen', room['card'][:420])
-        await pg.evaluate("(() => { const e = [...document.querySelectorAll('#phone .ph-card')].find(c => /åpen gruppe/.test((c.querySelector('h4') || {}).textContent || '')); if (e) e.scrollIntoView({block:'center'}); })()"); await pg.wait_for_timeout(200)
+        await pg.evaluate("(() => { const e = document.querySelector('#phone .ph-card.kv-cod'); if (e) e.scrollIntoView({block:'center'}); })()"); await pg.wait_for_timeout(200)
         await pg.screenshot(path=os.path.join(OUT, 'kvfull_vangshamn_liggende.png')); fits.append(await pg.evaluate(FIT))
         ld = await pg.evaluate(LAND + "(500)")
         check(ld['room'] == ya and ld['codQ'] == ya and ld['conf'] == 500 and ld['grp'] == ya, 'leveringen: alderstillegget går på kvoten (alt på gruppekvota utenfor ordningen) og 500 kg over blir inndratt', ld)

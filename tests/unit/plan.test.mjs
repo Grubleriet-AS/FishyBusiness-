@@ -125,24 +125,118 @@ export default function (t){
   // A sound through the island with a bridge too low for her, and the way round the island's far end. The chart's cells have the sound
   // open, so the search goes for it and fills the water on this side; when that has found nothing, the deck is land to the chart's
   // cells and the search goes round (the bench, 24.11.2026: Hønebrua, Steinvågbrua and Reine gave «søket ble for stort»)
-  { const sund = box((x, z) => Math.abs(x - 400) < 100 && z > -200 && Math.abs(z - 300) > 20), lav = (x, z) => Math.abs(x - 400) < 110 && Math.abs(z - 300) < 26 ? 12 : 255;
-    W = world(sund, null, lav); r = solve(W, {a:[100, 300], b:[700, 300], w:1.15, co:chart(sund, 50), maxExp:9000});
-    t.ok(r.path && r.decks >= 1 && r.path.some(p => p[1] < -200), 'et sund med en for lav bru, og veien rundt øya: når søket ikke kommer under, blir brua land for sjøkartets ruter, og det går rundt', r.path ? [r.decks, len(r.path), r.exp] : [r.why, r.cause, r.exp]); }
+  { const legs = P => { let worst = Infinity; const ang = i => { if (i <= 0 || i >= P.length - 1) return 0; const a = Math.atan2(P[i][1] - P[i - 1][1], P[i][0] - P[i - 1][0]), b = Math.atan2(P[i + 1][1] - P[i][1], P[i + 1][0] - P[i][0]); let d = Math.abs(b - a); if (d > Math.PI) d = 2 * Math.PI - d; return d; };
+      for (let i = 2; i < P.length - 1; i++){ const l = Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1]), need = 110 * (Math.tan(ang(i - 1) / 2) + Math.tan(ang(i) / 2)); if (need > 1 && l / need < worst) worst = l / need; } return worst; };
+    const jog = () => [[100, 100], [380, 100], [388, 108], [700, 108]];   // (8 m to the side over 8 m: two corners of 45 degrees)
+    W = world(box()); const big = {a:[100, 100], b:[700, 108], clr:9.75, needD2:Math.ceil((9.75 + 1) / q), needD4:Math.ceil((9.75 + 2) / q), pref:46, k:1, w:1.15, fineR:400};
+    const r0 = solve(W, big), r1 = solve(W, Object.assign({turnR:110}, big)), g0 = r0.PL.gentle(jog()), g1 = r1.PL.gentle(jog());
+    console.log('plan: et knekk på 8 m for et skip med 110 m svingradius, før og etter: korteste strekk ' + legs(jog()).toFixed(2) + ' og ' + legs(g1).toFixed(2) + ' av det svingene trenger; veien ' + JSON.stringify(g1.map(p => p.map(Math.round))));
+    t.ok(legs(jog()) < 0.2 && JSON.stringify(g0) === JSON.stringify(jog()), 'uten svingradien står et knekk hun ikke kan seile, som det er (strekket er under en femdel av det svingene trenger)', legs(jog()));
+    t.ok(legs(g1) >= 0.95, 'med svingradien (J.turnR) trekkes de to hjørnene fra hverandre til strekket mellom dem er langt nok for svingene', [legs(g1), g1]);
+    t.ok(len(g1) <= len(jog()) + 0.01 && g1[0][0] === 100 && g1[g1.length - 1][0] === 700, 'uten omvei, og endene står', [len(g1), len(jog())]);
+    // (and where the land stands in the way of a longer slant, the corners are slid as far as the open water lets them)
+    W = world(box((x, z) => (x < 330 && z > 112) || (x > 440 && z < 96))); const r2 = solve(W, Object.assign({turnR:110}, big)), g2 = r2.PL.gentle(jog());
+    t.ok(g2.every(p => p[1] >= 99.9 && p[1] <= 108.1) && distTo(g2, 329, 113) >= 9.75 && distTo(g2, 441, 95) >= 9.75, 'der land står i veien for en lengre skrå linje, går veien fortsatt klar av det', g2.map(p => p.map(Math.round))); }
+  // What is shut after a touch: round the touch the first time; where the same touch comes again (her bow or stern reaches it from
+  // a way that does not pass it: shutting round it changed nothing, seven times over), round where she stood
+  { const seen = new Map(), h = {what:'grunn', id:'10,20', x:100, z:100, px:130, pz:104}, bt = {L:75, B:15.5, T:7.5}, b1 = K.planBlockOf(h, bt, 2, 2, 1, seen), b2 = K.planBlockOf(h, bt, 2, 2, 2, seen);
+    t.ok(b1.x === 100 && b1.z === 100 && b1.r > 9.75, 'første gang stenges det rundt berøringen', b1);
+    t.ok(b2.x === 130 && b2.z === 104 && b2.r >= 4, 'kommer samme berøring igjen, stenges det der hun sto', b2);
+    const b3 = K.planBlockOf({what:'kai', id:'kai#5', x:50, z:50, px:60, pz:50}, bt, 2, 2, 1, seen); t.ok(b3.x === 60 && b3.z === 50, 'en ting stenges der hun sto (berøringen er tingens midte)', b3); }
+  // her own berth (planSkip, the bench's rule): a vessel lying still counts by her middle, as the observer counts her (Sandshamn with
+  // the autoliner, steg 142: a ship of 75 m whose middle lay 97 m from the quay, outside a length and a half of 45 m, was let pass
+  // by her nearest point and touched); a mooring buoy's circle by its edge; the water by where it is
+  { const a = [0, 0], b = [1000, 0], own = 1.5 * 45.4, ship = {what:'båt', id:'båt#1080,57', x:1080, z:57, R:Math.hypot(37.5, 7), box:[1, 0, 37.5, 7]};
+    t.ok(!K.planSkip(ship, 1050, 20, a, b, own, 45.4, false), 'et fartøy som ligger stille med midten utenfor halvannen båtlengde fra kaia, er ikke egen kaiplass');
+    t.ok(K.planSkip(Object.assign({}, ship, {x:1040, z:30}), 1030, 10, a, b, own, 45.4, false), 'med midten innenfor er hun det');
+    t.ok(K.planSkip({what:'båt', id:'båt#1080,0', x:1080, z:0, R:20}, 1050, 0, a, b, own, 45.4, false), 'en bøye regnes etter kanten av sirkelen hun svinger på');
+    t.ok(!K.planSkip({what:'grunn', id:'1,2', x:500, z:0}, 500, 0, a, b, own, 45.4, false) && K.planSkip({what:'grunn', id:'1,2', x:500, z:0}, 500, 0, a, b, own, 45.4, true), 'grunt vann midt på veien teller, unntatt når det graves'); }
+  // a vessel lying still along a floating dock (Urangsvåg with the skiff, steg 142): shut as her own box widened by the margins, not as
+  // a circle round her middle as wide as she is long, which shut the only way past her
+  { const seen = new Map(), sk = {L:5.9, B:2.45, T:0.6}, h = {what:'båt', id:'båt#100,100', x:100, z:100, R:Math.hypot(8, 2.5), box:[1, 0, 8, 2.5]}, bl = K.planBlockOf(h, sk, 2, 2, 1, seen), half = sk.B / 2 + 2;
+    const L = bl.list || [[bl.x, bl.z, bl.r]], inBl = (x, z) => L.some(c => Math.hypot(x - c[0], z - c[1]) < c[2]);
+    let side = 0; for (let d = 0; d < 40; d += 0.25) if (inBl(100, 100 + d)) side = d;
+    t.ok(side <= 2.5 + half + 2 * 2 + 0.01, 'et fartøy som ligger stille, stenges til siden bare med hennes egen halve bredde og marginene (' + side + ' m)', bl);
+    let cover = true; for (let a = -8; a <= 8; a += 0.5) for (const b of [-2.5 - half, 0, 2.5 + half]) if (!inBl(100 + a, 100 + b * 0.99)) cover = false;
+    t.ok(cover, 'og hele skroget hennes med marginene er stengt, fra baug til hekk'); }
 
-  // a place shut after the check on the geometry found something there: the way goes another
-  W = world(() => false); r = solve(W, {a:[100, 100], b:[400, 100]}, [[250, 100, 30]]);
-  t.ok(r.path && distTo(r.path, 250, 100) >= 26, 'et sted kontrollen har stengt, går veien utenom', r.path && distTo(r.path, 250, 100));
-
-  // her height for the bridges: as the game counts it today (0.35 of her length, 2 to 16 m, and no tide), till the bridges have their
-  // real clearances (steg 141b); the model's own height with aerials (VESSELS.air) when PLAN.realAir says both are real
-  { const P = K.get('PLAN'), V = K.get('VESSELS'), FB = K.get('FARB'), b0 = K.planBoat('sjark'), rule = Math.min(16, Math.max(2, V.sjark.len * 0.35)); t.near(b0.air, rule, 1e-9, 'båtens høyde under bruer er den spillet seiler etter i dag (0,35 av lengden)');
-    t.ok(V.sjark.air > b0.air + 2, 'og ikke modellens egen med antenner, som er flere meter mer', [V.sjark.air, b0.air]);
-    FB.w = {land:() => 0, coast:() => [1e9, 0], depth:() => 50, tide:() => 0, zc:() => 0, hat:() => 1.5, pocket:() => false, known:() => true};
-    try { const b1 = K.planBoat('sjark', 9e6, 9e6); t.near(b1.air, rule - K.farbHat(9e6, 9e6), 1e-9, 'og kartets høyeste tidevann trekkes fra, for kartet måler dekket derfra og spillets regel gjør det ikke', [b1.air, K.farbHat(9e6, 9e6)]); } finally { FB.w = null; }
-    P.realAir = true; try { t.near(K.planBoat('sjark').air, V.sjark.air, 1e-9, 'med ekte bruhøyder inne (PLAN.realAir) er det modellens egen'); } finally { P.realAir = false; } }
+  // The words for it: a shoal across the whole way with a hull wide enough to ask the water a cell to the side (rb2, rb4: every boat
+  // but the narrowest) is «for grunt», not «brua er for lav». Where the water under her side shut a cell, the search for the cause
+  // took it for a deck (it was the one thing it did not ask), and Træna, Lindesnes and Øksfjord were told of a bridge that is not there
+  // (a slot of deep water 10 m wide through the shoal: deep enough along its middle, too shallow under her side)
+  { W = world(box(), (x, z) => Math.abs(x - 250) < 20 && Math.abs(z - 100) >= 5 ? 15 : 200); r = solve(W, {a:[100, 100], b:[400, 100], rb2:1, rb4:1, fineR:400});
+    t.eq(r.cause, 'grunt', 'ei renne som er dyp nok i midten, men for grunn under siden hennes: grunnen er at det er for grunt, ikke en bru', [r.why, r.cause]); }
+  // ---- the dredged channels (Jonas' choice 5, «Tilpass havna»): where to dig ----
+  // The search with J.dig: water too shallow for her does not shut a cell, it costs J.dig times as much, so the way goes where the
+  // least is to be dug: through a deep gap where there is one near, and straight over the shoal where there is none
+  { const band = hull => (x, z) => Math.abs(x - 250) < 20 && !(hull && Math.abs(z - 220) < 30) ? 15 : 200;
+    W = world(box(), band(false)); r = solve(W, {a:[100, 100], b:[400, 100]}); t.eq(r.cause, 'grunt', 'ei grunne på tvers av hele veien: ingen vei');
+    r = solve(W, {a:[100, 100], b:[400, 100], dig:8}); t.ok(r.path && len(r.path) < 305, 'med J.dig går veien rett over grunna (der skal det graves)', r.path ? len(r.path) : [r.why, r.cause]);
+    W = world(box(), band(true)); r = solve(W, {a:[100, 100], b:[400, 100], dig:8});
+    t.ok(r.path && r.path.some(p => Math.abs(p[0] - 250) < 60 && Math.abs(p[1] - 220) < 30), 'og gjennom det dype løpet der det finnes et like ved: det graves ikke mer enn det må', r.path && r.path.map(p => p.map(Math.round)));
+    W = world(box((x, z) => Math.abs(x - 250) < 4), () => 200); r = solve(W, {a:[100, 100], b:[400, 100], dig:8}); t.eq(r.cause, 'land', 'land graves det ikke gjennom'); }
+  // A breakwater's foot is not dug through: the tiles' layer m (the water over the slope) shuts a cell when digging as the water does otherwise
+  { const foot = (x, z) => Math.abs(x - 250) < 20 && Math.abs(z - 100) < 150; const W0 = world(box(), (x, z) => Math.abs(x - 250) < 20 ? 15 : 200);
+    const Wm = {tile:(c, fx, fz) => { const Y = W0.tile(c, fx, fz); if (!Y.m){ Y.m = new Uint8Array(N * N).fill(255); for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) if (foot((fx * N + i + 0.5) * c, (fz * N + j + 0.5) * c)) Y.m[j * N + i] = 10; } return Y; }};
+    r = solve(Wm, {a:[100, 100], b:[400, 100], dig:8}); console.log('plan: graving rundt moloens fot: ' + JSON.stringify(r.path ? r.path.map(p => p.map(Math.round)) : [r.why, r.cause]));
+    t.ok(r.path && r.path.some(p => Math.abs(p[0] - 250) < 40 && Math.abs(p[1] - 100) >= 148) && !r.path.some(p => Math.abs(p[0] - 250) < 18 && Math.abs(p[1] - 100) < 140), 'gravingen går rundt moloens fot, og over grunna der foten slutter', r.path ? JSON.stringify(r.path.map(p => p.map(Math.round))) : [r.why, r.cause]); }
+  // The channel from a way and where along it the water is too shallow (planDigRuns): the shallow runs, joined where they lie
+  // close, reaching a little past each end, as straight pieces with the channel's half width and depth
+  { const line = []; for (let x = 0; x <= 200; x += 2) line.push([x, 50]); const sh = line.map(p => (p[0] >= 80 && p[0] <= 120 ? 1 : 0));
+    let G = K.planDigRuns(line, sh, {ext:10, gap:12, r:8, d:4.1});
+    t.ok(G.length === 1 && Math.abs(G[0][0] - 70) < 0.01 && Math.abs(G[0][2] - 130) < 0.01 && G[0][1] === 50 && G[0][4] === 8 && G[0][5] === 4.1, 'ei grunne fra 80 til 120 m langs en rett vei: én renne fra 70 til 130 m, med bredden og dybden', G);
+    const sh2 = line.map(p => ((p[0] >= 40 && p[0] <= 60) || (p[0] >= 70 && p[0] <= 90) || p[0] >= 190 ? 1 : 0)); G = K.planDigRuns(line, sh2, {ext:10, gap:12, r:8, d:4.1});
+    t.ok(G.length === 2 && Math.abs(G[0][0] - 30) < 0.01 && Math.abs(G[0][2] - 100) < 0.01 && Math.abs(G[1][0] - 180) < 0.01 && Math.abs(G[1][2] - 200) < 0.01, 'to grunner 10 m fra hverandre blir én renne, og en ved veiens ende stopper der', G);
+    const bend = []; for (let x = 0; x <= 100; x += 2) bend.push([x, 0]); for (let z = 2; z <= 100; z += 2) bend.push([100, z]);
+    G = K.planDigRuns(bend, bend.map(() => 1), {ext:10, gap:12, r:8, d:4.1}); t.ok(G.length === 2 && G[0][2] === 100 && G[0][3] === 0 && G[1][0] === 100 && G[1][3] === 100, 'rundt et hjørne: to rette stykker som møtes i hjørnet', G);
+    t.eq(K.planDigRuns(line, line.map(() => 0), {ext:10, gap:12, r:8, d:4.1}).length, 0, 'ingen grunne: ingen renne'); }
 
   // the words
   const S0 = K.get('S'); K.set('S', K.newState());
   try { const w = K.planWhy({why:'ingen vei', cause:'bru', at:[500000, 900000]});
-    t.ok(/brua er for lav/.test(w[0]) && /bridge is too low/.test(w[1]) && /° N/.test(w[0]), 'svaret sier hvorfor og hvor, på norsk og engelsk', w); } finally { K.set('S', S0); }
+    t.ok(/brua er for lav/.test(w[0]) && /bridge is too low/.test(w[1]) && /° N/.test(w[0]), 'svaret sier hvorfor og hvor, på norsk og engelsk', w);
+    // (a vessel lying still that was shut, and then no way: it is the vessel, not «the search grew too large» or a bridge; Urangsvåg)
+    const wb = K.planWhy({why:'for langt', cause:'båt', at:[500000, 900000]});
+    t.ok(/fartøy som ligger stille/.test(wb[0]) && /vessel lying still/.test(wb[1]) && /° N/.test(wb[0]), 'et fartøy som ligger stille og stenger, sies som det', wb);
+    // The vessels lying still are listed afresh when a plan is made (planFresh): fixBoats keeps its list for the game minute, and the
+    // list is those within AIS range of where she was when it was made. The bench puts the clock back for every trip, so a plan at
+    // Senjahopen had the vessels round the stretch before it and none of those lying 262 m from the quay (steg 142: touches at 5 knots)
+    const np0 = K.get('npcStates'), ship = (id, x) => ({id, p:{x, y:900}, v:0, cls:'moor', L:20, B:5, hd:0}), nB = () => K.fixBoats(500000, 900000).filter(o => o.t === 1).length;
+    try { K.get('FIX').boats = null; K.set('npcStates', () => [ship('a', 500)]); const n1 = nB();
+      K.set('npcStates', () => [ship('b', 500.02), ship('c', 500.05)]); const n2 = nB(); K.planFresh(); const n3 = nB();
+      t.ok(n1 === 1 && n2 === 1 && n3 === 2, 'fartøyene som ligger stille, listes på nytt når en plan lages (lista holdes ellers for spillminuttet)', [n1, n2, n3]); } finally { K.set('npcStates', np0); K.get('FIX').boats = null; }
+    // A boat on a mooring buoy counts as she lies (her hull, in the list as any vessel at a quay), not by the whole circle she
+    // swings on: the circle of a buoy in the mouth of Værøy verft's basin shut the yard to every boat (steg 142), where the observer,
+    // which sees her hull as the 3D view draws it, counted no touch. FARB.swing turns it
+    // Where a bane to a place ends: at her berth there (berthPose: where her middle lies by the quay), not at the harbour's point,
+    // from which arrive() set her at the berth across whatever lay between (Stø with the purse seiner, Urangsvåg: steg 142, G2)
+    const bp0 = K.get('berthPose'); try { K.set('berthPose', (pid, ty, kind) => pid === 'a' ? {x:500.01, y:900.02, hd:1.2, kind} : pid === 'b' ? null : (() => { throw new Error('no map'); })());
+      const e1 = K.planEnd('a', 'sjark'), e2 = K.planEnd('b', 'sjark'), e3 = K.planEnd('c', 'sjark'), e4 = K.planEnd(null, 'sjark');
+      t.ok(e1 && e1.x === 500.01 && e1.y === 900.02 && e1.hd === 1.2 && e2 === null && e3 === null && e4 === null, 'banen ender ved kaiplassen der stedet har en, ellers i havnas punkt (planEnd gir da ingenting)', [e1, e2, e3, e4]); } finally { K.set('berthPose', bp0); }
+    const fb0 = K.get('fixBoats'), FB = K.get('FARB'); try { K.set('fixBoats', () => [{t:1, x:0, z:0, l:4, w:1.5, ux:1, uz:0}, {t:0, x:10, z:0, r:11}]);
+      const n1 = K.farbBoats(0, 0).length; FB.swing = true; const n2 = K.farbBoats(0, 0).length; FB.swing = false;
+      t.ok(n1 === 1 && K.farbBoats(0, 0)[0].t === 1 && n2 === 2, 'en bøyebåt regnes som skroget der hun ligger, ikke hele sirkelen hun svinger på (FARB.swing snur det)', [n1, n2]); } finally { K.set('fixBoats', fb0); FB.swing = false; } } finally { K.set('S', S0); }
+  // A clear detour, measured without the reference (steg 142, point 4): the search says how far it took the goal to be from the start
+  // with only what is solid shutting a cell (h0), and planOmvei holds the bane's length against it. A
+  // belt of water the field calls too shallow (a shore's foot) across the short way: the first search goes round it, the second
+  // (J.dig: the water costs instead of shutting, the check on the geometry has the last word) goes over it
+  { const belt = (x, z) => Math.abs(x - 250) < 2 && z > -200 && z < 440 ? 10 : 200;   // (4 m of shoal: on the field it is 16 m, at 24 times the cost (J.dig and J.slow) still far less than the way round)
+    const W2 = world(box(), belt), r1 = solve(W2, {a:[100, 100], b:[400, 100]}), r2 = solve(W2, {a:[100, 100], b:[400, 100], dig:8});
+    t.ok(r1.path && r1.h0 > 290 && r1.h0 <= 300.01, 'søket sier hvor lang veien er når bare det faste stenger (h0)', r1.h0);
+    // (and round a breakwater that way is the way round, not the straight line: a way that must go round is no detour)
+    const rm = solve(world(molo), {a:[100, 100], b:[400, 100], k:1}); t.ok(rm.path && rm.h0 > 500 && rm.h0 <= len(rm.path) && K.planOmvei(len(rm.path), rm.h0) === false, 'rundt en molo er det minste veien rundt, og banen ingen omvei', [rm.h0, rm.path && len(rm.path)]);
+    t.ok(r1.path && len(r1.path) > 600, 'det første søket går rundt beltet feltet kaller for grunt', r1.path && len(r1.path));
+    t.ok(K.planOmvei(len(r1.path), r1.h0) === true, 'og det er en tydelig omvei: det andre søket skal prøves', [len(r1.path), r1.h0]);
+    t.ok(r2.path && len(r2.path) < 310, 'det andre søket går over beltet', r2.path && len(r2.path));
+    t.ok(K.planOmvei(len(r2.path), r2.h0) === false && K.planOmvei(1000, 960) === false && K.planOmvei(200, 150) === false && K.planOmvei(2000, 1600) === true, 'en bane nær det minste er ingen omvei, og en kort tur prøves ikke på nytt for noen meter');
+    // (the second search has a cap of its own: past it, it gives up and says so, and the first way stands)
+    const r3 = solve(W2, {a:[100, 100], b:[400, 100], dig:8, cap:40}); t.ok(!r3.path && r3.why === 'for langt', 'det andre søket gir opp ved taket sitt', [r3.why, r3.path && len(r3.path)]);
+    // (the second search on a sound whose big cells have the foreshore's water in them (the least within 6 m) and whose fine cells
+    // have water enough down the middle: the big cells on the first way are made fine there too, though they are not shut when the
+    // water only costs. They were left big, the sound cost 24 times its length, and the way round won: Stamsund with kyst21)
+    { const gapW = (x, z) => Math.abs(x - 250) < 4 && z > -200 && z < 400 && Math.abs(z - 100) > 10, fore = (x, z) => Math.abs(x - 250) < 10 && Math.abs(z - 100) > 6 ? 10 : 200;
+      const r4 = solve(world(box(gapW), fore), {a:[100, 100], b:[400, 100], dig:8});
+      t.ok(r4.path && len(r4.path) < 320 && r4.fineN > 0, 'det andre søket gjør rutene fine langs et sund der de grove bare har fjæras vann, og går gjennom', [r4.path && len(r4.path), r4.fineN]); }
+    t.ok(K.planOmvei(500, 0) === false && K.planOmvei(500, undefined) === false, 'uten et mål for avstanden prøves ingenting'); }
+
 }

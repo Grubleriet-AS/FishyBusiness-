@@ -30,9 +30,27 @@ function access(){ if (S.lic) return 'lukket'; return S.cur === openVesselId() &
 const BYCATCH = {share:0.1, cod:2000};
 function vesselValue(v){ const b = vget(v, 'boat'), eq = vget(v, 'equip') || {}; return Math.round(VESSELS[b.type].price * 0.7 + (eq.motor90 ? EQUIP.motor90.price * 0.5 : 0) + licValue(vget(v, 'lic')) * 0.95); }
 // a vessel added to the fleet: default state, in port with 40 % fuel; the bigger boats come with a plotter and VHF
+// a vessel's id is never given twice (steg 148b, T3): the next number is over every id the company has had. Before, it was the highest in
+// the fleet plus one, so a boat bought after the highest was sold took her id, and with it what is kept under it: her tax value
+// (S.saldo), the Greenland halibut landed this year (S.bkq.v) and her landings (S.sales). S.vseq is the highest number given; a save
+// from before it is read from the fleet and from what is kept by id
+const vesselNo = id => +String(id).slice(1) || 0;
+function vesselSeq(){
+  let n = S.vseq || 0;
+  for (const x of S.fleet || []) n = Math.max(n, vesselNo(x.id));
+  for (const k in (S.saldo || {})) n = Math.max(n, vesselNo(k));
+  for (const k in ((S.bkq && S.bkq.v) || {})) n = Math.max(n, vesselNo(k));
+  for (const x of S.sales || []) if (x.v) n = Math.max(n, vesselNo(x.v));
+  return S.vseq = n + 1;
+}
+// a vessel leaves the company (sold): what was kept under her id goes with her. The landings (S.sales) are history and stay
+function vesselGone(v){
+  S.vseq = Math.max(S.vseq || 0, vesselNo(v.id));
+  if (S.saldo) delete S.saldo[v.id]; if (S.bkq && S.bkq.v) delete S.bkq.v[v.id]; if (S.mobScan) delete S.mobScan[v.id];
+}
 const VNAMES = ['Kystværing', 'Nordlys', 'Vestfjord', 'Nordkyn', 'Havglimt', 'Skreien', 'Fjordbris', 'Straumen', 'Hekkingen', 'Kvitskjær'];
 function newVesselObj(type, pid, lic){
-  const d = newState(), V = VESSELS[type], p = portById(pid).p, n = Math.max(0, ...S.fleet.map(x => +String(x.id).slice(1) || 0)) + 1, v = {id:'v' + n};
+  const d = newState(), V = VESSELS[type], p = portById(pid).p, n = vesselSeq(), v = {id:'v' + n};
   for (const k of VKEYS) v[k] = d[k];
   Object.assign(v.boat, {type, pos:{x:p.x, y:p.y}, port:pid, fuel:V.fuelCap * 0.4});
   v.trail = [{x:p.x, y:p.y, port:pid}]; v.lic = lic || null;
@@ -1277,7 +1295,7 @@ function fmInit(){ const F = {n:0, last:-1, kr:0, b:false}; for (const s of S.sa
   F.b = !!(S.lic || (S.fleet || []).some(v => v.lic)) || (F.n >= BLADB.days && F.kr >= BLADB.kr); return F; }
 function fmLand(total){ const F = S.fm || (S.fm = fmInit()), d = Math.floor(S.t / 1440); if (d !== F.last){ F.n++; F.last = d; } F.kr += total;
   if (!F.b && F.n >= BLADB.days && F.kr >= BLADB.kr){ F.b = true;
-    msg('Fiskeridirektoratet', 'Du er ført på blad B i fiskermanntallet: fiske er hovedyrket ditt. Nå kan du kjøpe en båt med deltakeradgang i lukket gruppe, og Kystfondet kan toppfinansiere det første kjøpet. Se Båthandel under Verft.', 'You are on blad B of the fishermen\'s register: fishing is your main occupation. You can now buy a boat with a closed-group right, and Kystfondet can top up the financing of the first one. See the boat market in the yard.'); } }
+    if (typeof cloudEv === 'function') cloudEv('bladb', {});   /* (steg 153, the funnel: the day blad B is reached, against the first right) */ msg('Fiskeridirektoratet', 'Du er ført på blad B i fiskermanntallet: fiske er hovedyrket ditt. Nå kan du kjøpe en båt med deltakeradgang i lukket gruppe, og Kystfondet kan toppfinansiere det første kjøpet. Se Båthandel under Verft.', 'You are on blad B of the fishermen\'s register: fishing is your main occupation. You can now buy a boat with a closed-group right, and Kystfondet can top up the financing of the first one. See the boat market in the yard.'); } }
 const bladB = () => !!(S.fm && S.fm.b);
 // loans: Kystbanken lends against the fleet; Innovasjon Norge tops up the first closed-group purchase with a risk loan at a higher rate
 // (the share and the rate are estimates, not checked against their terms)
@@ -1304,6 +1322,76 @@ function deal(price, ti, inn){
 function finance(x, months){ if (x.payoff) payDown(x.payoff); if (x.bankL > 0) takeLoan(x.bankL, months); if (x.inL > 0) takeLoan(x.inL, 120, 'loanIN');
   if (S.cash < x.cost && bankS().spare > 0) bankMove('spare', -(x.cost - S.cash), 'Fra sparekontoen til båtkjøpet', 'From the savings for the vessel');   // the savings are equity
   book('baat', -x.cost, 'Båtkjøp', 'Vessel bought'); }
+// ---- an admin's correction: a vessel bought by trade-in, taken back (26.11.2026, Jonas: «Gi han tilbake båten og pengene som om kjøpet
+// aldri fant sted»; table fixes, ui/10w-fix.js). The vessel followed is of type d.to and goes back to d.from as delivered (her yard work and
+// knife and landing-net tiers went with the hull and are not in the save any more). The refund is what the trade cost: the new type's
+// price less what the old hull was taken in for (70 % of her price, as vesselValue), or d.kr when the admin gives it. A right or a motor
+// the trade-in also paid for stays sold, and what it was paid stays in the account, so the company is worth what it was before the
+// trade, less the interest paid since. The refund pays down the loans first and the rest goes to the account. The yard's jobs ordered
+// for the new hull are paid back and taken off the queue, as switchVessel does for the old one. Not for the ocean fleet either way (its
+// permit and price are its own). A row done is kept in S.fixDone (id -> what was done), so it is never done twice, also when the
+// server was not told. Returns {ok:false, why} when not now: 'done' (this row is done), 'type' (the vessel followed is not of type d.to),
+// 'lic' (the vessel followed does not hold the right d.lic), 'port' (not in port), 'hold' (more fish aboard than the old hold takes),
+// 'bad' (cannot be done).
+function undoBuyKr(to, from){ const A = VESSELS[to], B = VESSELS[from]; if (!A || !B || A.cls === 'hav' || B.cls === 'hav') return null; return Math.max(0, Math.round(A.price - B.price * 0.7)); }
+// (27.11.2026, Julian: the boat was bought with a right in the closed group, buylic, and the right and its loan stayed when the boat was
+// taken back.) d.lic: the right bought with her goes back to the owners ashore (regFree, as when a right goes with the old boat in a
+// trade-in), the open group's quota comes back with what was fished in it this year (openUsedLoad), and what the right cost is paid back:
+// d.licKr, or its value at the hour of the purchase (d.licAt, the real time it was bought, ISO; licValue at that game hour, with the
+// world's stock as the game has it), or else what it is worth now. A row may hold the boat (from, to), the right (lic) or both.
+// d.inn (27.11.2026, Julian: the boat with the right had used Innovasjon Norge's top-up, S.inUsed, which is given once, on the first
+// closed-group boat; with the purchase undone the next one asked for 20 % equity instead of 5 %): the top-up is his to use again.
+// d.upg {key: level} (27.11.2026, Julian: the yard's rebuilds on the old hull, a drying room and better bunks, went with her in the
+// trade-in and did not come back with the type): put back on the boat, never lower than she has. d.gearKr: gear bought for the new boat
+// that she no longer has or he already had, paid back (book 'redskap'), the loans first like the rest.
+const undoLicH = at => { const ms = Date.parse(at); return isFinite(ms) ? Math.max(0, (ms - WORLD_T0) * GAME_RATE / 60000) / 60 : null; };
+function undoBuyWhy(d){
+  const boat = !!(d && (d.from || d.to)), lic = !!(d && d.lic), inn = !!(d && d.inn), upg = !!(d && d.upg && Object.keys(d.upg).length), gear = !!(d && d.gearKr);
+  if (!d || (!boat && !lic && !inn && !upg && !gear)) return 'bad';
+  if (upg && Object.keys(d.upg).some(k => !UPGS[k] || !(d.upg[k] >= 1) || d.upg[k] > UPGS[k].steps.length)) return 'bad';
+  if (gear && !(d.gearKr > 0)) return 'bad';
+  if (boat && (!VESSELS[d.from] || !VESSELS[d.to] || d.from === d.to || VESSELS[d.from].cls === 'hav' || VESSELS[d.to].cls === 'hav')) return 'bad';
+  if (d.id != null && S.fixDone && S.fixDone[d.id]) return 'done';
+  if (boat && S.boat.type !== d.to) return 'type';
+  if (lic && !(S.lic && S.lic.id === d.lic)) return 'lic';
+  if (!S.boat.port || S.boat.sale || S.order) return 'port';
+  if (boat && (S.cargo || []).reduce((a, c) => a + c.kg, 0) > VESSELS[d.from].holdCap) return 'hold';
+  if (boat && !(d.kr != null ? d.kr >= 0 : undoBuyKr(d.to, d.from) != null)) return 'bad';
+  return lic && d.licKr != null && !(d.licKr >= 0) ? 'bad' : null;
+}
+function undoBuyApply(d){
+  const why = undoBuyWhy(d); if (why) return {ok:false, why};
+  const b = S.boat, boat = !!(d.from || d.to);
+  let kr = 0, jobs = 0, licKr = 0;
+  if (boat){
+    kr = d.kr != null ? Math.round(d.kr) : undoBuyKr(d.to, d.from);
+    // the yard's jobs on this hull, paid back as switchVessel pays back the old hull's
+    const hullJobs = (S.jobs || []).filter(j => ['eng', 'hold', 'upg', 'prop'].includes(j.kind));
+    for (const j of hullJobs){ const st = j.kind === 'eng' ? ENGUP[j.lv - 1] : j.kind === 'hold' ? HOLDUP[j.lv - 1] : j.kind === 'prop' ? PROPUP[j.lv - 1] : UPGS[j.u] && UPGS[j.u].steps[j.lv - 1];
+      const back = j.kr > 0 ? j.kr : st ? upPrice(st.pc, st.min) : 0; if (back > 0){ book('verft', back, 'Tilbakebetalt: ' + (j.no || ''), 'Paid back: ' + (j.en || '')); jobs += back; } }
+    if (hullJobs.length) S.jobs = S.jobs.filter(j => !hullJobs.includes(j));
+    b.type = d.from; delete b.engLv; delete b.propLv; delete b.holdLv; delete b.upg; delete b.liv; delete b.call;
+    for (const q of Object.keys(EQUIP)) if (!EQUIP[q].tiers && !equipFits(q, d.from)) S.equip[q] = EQUIP[q].multi ? Math.min(S.equip[q] || 0, VESSELS[d.from].jukseMax || 0) : false;
+  }
+  if (d.lic){
+    const H = d.licAt ? undoLicH(d.licAt) : null; licKr = d.licKr != null ? Math.round(d.licKr) : licValue(S.lic, H != null ? H : undefined);
+    regFree(S.lic.id); S.lic = null; freshQuota(); openUsedLoad();
+  }
+  const inn = !!(d.inn && S.inUsed); if (d.inn) delete S.inUsed;
+  const upgs = []; if (d.upg) for (const k in d.upg){ b.upg = b.upg || {}; if ((b.upg[k] || 0) < d.upg[k]){ b.upg[k] = d.upg[k]; upgs.push(k); } }
+  const gearKr = d.gearKr > 0 ? Math.round(d.gearKr) : 0;
+  applyVessel(); S.equip.jukse = Math.min(S.equip.jukse || 0, BOAT.jukseMax || 0);
+  b.fuel = Math.min(b.fuel || 0, BOAT.fuelCap); b.ice = Math.min(b.ice || 0, BOAT.iceCap || 0);
+  while (S.crew.length > BOAT.crewMax) S.crew.pop();
+  const debt0 = debt(), all = kr + licKr + gearKr;
+  if (kr > 0) book('baat', kr, 'Båtkjøpet angret', 'Vessel purchase undone');
+  if (licKr > 0) book('baat', licKr, 'Hjemmelen fra båtkjøpet tilbake til registeret', 'The right from the vessel purchase back to the register');
+  if (gearKr > 0) book('redskap', gearKr, 'Utstyr fra båtkjøpet tilbakebetalt', 'Gear from the vessel purchase paid back');
+  const paid = Math.min(debt0, Math.max(0, all)), off = paid > 0 ? payDown(paid) : 0; if (off > 0) book('avdrag', -off, 'Lånene innfridd med tilbakebetalingen', 'Loans paid off with the refund');
+  const r = {ok:true, kr:all, boatKr:kr, licKr, gearKr, upgs, lic:d.lic || null, inn, off, jobs, cash:Math.round(S.cash), debt:Math.round(debt())};
+  if (d.id != null){ S.fixDone = S.fixDone || {}; S.fixDone[d.id] = {...r, t:S.t}; }
+  return r;
+}
 function lenGroup(){ const L = BOAT.len || 5.8; return L < 8 ? 0 : L < 10 ? 1 : 2; }
 function codLimits(H){ if (H == null) H = S.t / 60; if (S.lic){ const c = licQ(S.lic, H).torsk; return {max:c, guar:c}; } const O = yearQuota(yearH(H)).open, g = lenGroup(), A = openAdd(H), base = {max:(O.max[g] + openMaxAdd(H)) * 1000, guar:O.guar[g] * 1000};
   // the open group: § 21's quota for the vessel's length, and on top of it the coastal-fishing scheme and the age addition (J-161-2026 §§ 22 and 23; 03d-quota.js openAdd)
@@ -1332,8 +1420,20 @@ HAILL.takk = {no:'Takk-haill', en:'Thank-you luck', nok:0, reward:true, steps:[[
 // dabbe av»): the same haill, more of them, each switched on when the player wants (the server gives one grant each, n in the product)
 const HAILL_PACKS = {h1:{n:1, nok:39}, h3:{n:3, nok:99}, h8:{n:8, nok:229, best:true}};   // (raised 16.11.2026 with the trims)
 // the season pack («Jeg er også enig i at en samlepakke kan være et alternativ»): its content known before it is bought, no chance in it
-const PACKS = {sesong:{nok:249, haill:4, trim:'t24', skip:'s24', no:'Sjøværspakken', en:'The fishing trip pack'}};   // (renamed: Jonas 16.11.2026, «et sjøvær [er] en fisketur eller fangstekspedisjon på sjøen»; the key stays)
-const packWorth = P => HAILL_PACKS.h1.nok * P.haill + BOOSTS[P.trim].nok + SKIP[P.skip].nok;   // what the parts cost one by one (a haill at the single price)
+const PACKS = {sesong:{nok:249, haill:4, trim:'t24', skip:'s24', no:'Sjøværspakken', en:'The fishing trip pack'},   // (renamed: Jonas 16.11.2026, «et sjøvær [er] en fisketur eller fangstekspedisjon på sjøen»; the key stays)
+  // Black Week (Jonas 27.11.2026, docs/planer/svart-fredag.md: a bigger pack, no price put down, «Bare Black Week»): sold till the end
+  // of Monday 30.11.2026 Norwegian time (until, ms; the server refuses it from the same moment, products.data.until) and never
+  // prolonged. day is the last day as the card says it: a date in words, no clock that counts
+  blackweek:{nok:499, haill:10, trim:'t72', skip:'s72', no:'Black Week-pakken', en:'The Black Week pack', until:Date.UTC(2026, 10, 30, 23), day:['mandag 30.11', 'Monday 30 Nov']}};
+const packOn = (P, ms) => !!P && (P.until == null || ms < P.until);   // is the pack on sale at the moment ms (the world's clock, worldNow)
+// («bw0» in the address, the tests' games, tests/_env.py: an offer that is there or not by the day the test runs is off, so a test says
+// the same before and after its end; tests/bwtest.py puts it on round its own «now»)
+if (typeof location !== 'undefined' && /(^|[#,])bw0(?![\w=])/.test(location.hash || '')) PACKS.blackweek.until = 0;
+// what the content of a pack costs otherwise, the cheapest way the shop sells it: the haill in the packs of 1, 3 and 8 that give the
+// same number for the least (27.11.2026; before: every haill at the single price, which said more was saved than a player who would
+// have bought the pack of 8 beside it saves). «Spar X %» and «Du sparer N kr» are reckoned from this and nothing else
+const haillCheapest = n => { const c = [0]; for (let i = 1; i <= n; i++){ c[i] = Infinity; for (const k in HAILL_PACKS){ const X = HAILL_PACKS[k]; if (X.n <= i) c[i] = Math.min(c[i], c[i - X.n] + X.nok); } } return c[n]; };
+const packWorth = P => haillCheapest(P.haill) + BOOSTS[P.trim].nok + SKIP[P.skip].nok;
 const HAILL_STAGE = [[2, 'Luksushaill', 'Luxury luck'], [1, 'Fersk haill', 'Fresh luck'], [0.5, 'Mellomhaill', 'Middle luck'], [0.25, 'Gammelhaill', 'Old luck']];
 const haillAge = () => S.haill ? (S.t - S.haill.t0) / 60 : 1e9;   // hours since it was switched on
 function haillBoost(){ const h = S.haill, X = h && HAILL[h.type]; if (!X) return 0; const a = haillAge(); for (const [t, v] of X.steps) if (a < t) return v; return 0; }

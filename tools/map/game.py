@@ -37,6 +37,28 @@ def marks_by_tile(T):
     print(json.dumps({'marks': fs[-1], 'tiles': len(out), 'lights': len(d['lights']), 'marks_n': len(d['marks']), 'rocks': len(d['rocks'])}))
     return out
 
+# a chart pack's part (head, rest) with its tile's coast2 block cut where tools/map/rett.json says (rett.block: None when nothing is cut)
+def fix_coast2(head, rest, block, T, rett, cut):
+    B = T // block; tx, ty = head['tile']; blocks, body, off, hit = [], [], 0, False
+    for l, bx, by, o, ln, *cnt in head['blocks']:
+        b = rest[o:o + ln]
+        if l == 'coast2' and bx == tx * B and by == ty * B:
+            nb = rett.block(b, tx, ty)
+            if nb is not None: b = nb; hit = True; cut.append([tx, ty])
+        blocks.append([l, bx, by, off, len(b)] + cnt); body.append(b); off += len(b)
+    return (dict(head, blocks=blocks), b''.join(body)) if hit else (head, rest)
+
+# a vec pack's part with its breakwaters cut where tools/map/rett.json says (the 'pier' entry; rett.vec_block)
+def fix_vec(head, rest, rett, cut):
+    tx, ty = head['tile']; blocks, body, off, hit = [], [], 0, False
+    for l, bx, by, o, ln, *cnt in head['blocks']:
+        b = rest[o:o + ln]
+        if l == 'pier':
+            r = rett.vec_block(b, tx, ty)
+            if r is not None: b, k = r; cnt = [k] + cnt[1:]; hit = True; cut.append(['vec', tx, ty])
+        blocks.append([l, bx, by, off, len(b)] + cnt); body.append(b); off += len(b)
+    return (dict(head, blocks=blocks), b''.join(body)) if hit else (head, rest)
+
 def main(rel, out):
     src = json.load(open(os.path.join(SRC, 'manifest.json'))); nat = json.load(open(os.path.join(rel, 'manifest.json')))
     assert nat.get('profile') == 'game', rel + ' is not in the game format (coast.py game, from kart-2)'
@@ -64,12 +86,16 @@ def main(rel, out):
             have.setdefault((pk['kind'], tuple(pk['tile'])), []).append((d, pk))
     if ram:   # the tiles off the old frame: none of them is in src or the release's game/
         for pk in ram['packs']: assert (pk['kind'], tuple(pk['tile'])) not in have, pk['file']; have[(pk['kind'], tuple(pk['tile']))] = [(rdir, pk)]
-    packs, groups = [], {}
+    packs, groups = [], {}; sys.path.insert(0, HERE); import rett; cut = []
     for (kind, t), srcs in sorted(have.items()):
         g = GROUP.get(kind)
         if g: groups.setdefault((kind, t[0] // g, t[1] // g), []).append((t, srcs[0][0], srcs[0][1])); continue
         if len(srcs) == 1:
-            d, pk = srcs[0]; shutil.copyfile(os.path.join(d, pk['file']), os.path.join(out, pk['file'])); packs.append(dict(pk)); continue
+            d, pk = srcs[0]
+            if kind == 'vec' and rett.entries(*t):   # a breakwater cut by tools/map/rett.json (steg 142): the pack written again
+                h0, r0 = read(d, pk); h1, r1 = fix_vec(h0, r0, rett, cut)
+                if h1 is not h0: fn, h, n = write(out, kind, f'{t[0]}-{t[1]}', [(h1, r1)]); packs.append(dict(pk, file=fn, hash=h, bytes=n)); continue
+            shutil.copyfile(os.path.join(d, pk['file']), os.path.join(out, pk['file'])); packs.append(dict(pk)); continue
         (d0, p0), (d1, p1) = srcs; h0, r0 = read(d0, p0); h1, r1 = read(d1, p1); own = {(b[0], b[1], b[2]) for b in h0['blocks']}
         h1 = dict(h1, blocks=[b for b in h1['blocks'] if (b[0], b[1], b[2]) not in own])
         fn, h, n = write(out, kind, f'{t[0]}-{t[1]}', [(h0, r0), (h1, r1)])
@@ -77,6 +103,8 @@ def main(rel, out):
     MK = marks_by_tile(T)
     for (kind, gx, gy), mem in sorted(groups.items()):
         mem.sort(); parts = [read(d, pk) for t, d, pk in mem]
+        if kind == 'chart':   # the cuts in the fine coast at single places (rett.py, rett.json; steg 142)
+            parts = [fix_coast2(h, r, nat['block'], T, rett, cut) for h, r in parts]
         if kind == 'chart' and MK:   # each tile's sea marks as its 'marks' entry (one JSON, raw deflate, at the tile's first block)
             B = T // nat['block']
             for t, d, pk in mem:
@@ -87,6 +115,7 @@ def main(rel, out):
         fn, h, n = write(out, kind, f'g{gx}-{gy}', parts)
         tl = [list(t) for t, d, pk in mem]; xs = [t[0] for t in tl]; ys = [t[1] for t in tl]
         packs.append(dict(file=fn, hash=h, kind=kind, tile=tl[0], tiles=tl, box=[min(xs) * T, min(ys) * T, (max(xs) + 1) * T, (max(ys) + 1) * T], bytes=n))
+    if cut: print(json.dumps({'rett': cut}))
     packs.sort(key=lambda p: p['file'])
     tiles = sorted({tuple(p['tile']) for p in packs if p['kind'] == 'sim'})
     man = dict(v=2, frame=src['frame'], block=src['block'], tile=T, layers=layers, packs=packs, tiles=[list(t) for t in tiles],

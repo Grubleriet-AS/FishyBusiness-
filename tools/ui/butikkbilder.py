@@ -39,13 +39,16 @@ SHEETS = {
     'ark-prisstige': (3, 2, ['hp3', 'hp8', 't72', 's72', 'pakke', None]),
     # the drift anchor (17.11.2026, EQUIP.drivanker): one picture, made with the three cards above as its references
     'ark-drivanker': (1, 1, ['drivanker']),
+    # the Black Week pack (27.11.2026, PACKS.blackweek): one picture, a black crate with the turbo kit, the cans and the clovers, made
+    # with pakke, t72, s72 and hp8 as its references
+    'ark-blackweek': (1, 1, ['bwpakke']),
 }
 ORDER = ['jig', 'kgear', 'jigset', 'hooks', 'net', 'line', 'pot', 'kit', 'heavy',
          'jukse', 'linehaler', 'garnhaler', 'teinehaler', 'linesetter', 'garnrenne', 'krabbekar', 'kniv', 'hott',
          'vhf', 'ais', 'plotter', 'chirp', 'sonar', 'radar', 'radarA', 'brovakt', 'olje',
          'varme', 'ice', 'bait', 'antigro', 'motor90', 'motor', 'prop', 'hold', 'tank',
          'cabin', 'galley', 'dry', 'insul', 'stab', 'gut', 'icemaker', 'box', 'potsno',
-         'haill', 'luksus', 'pump', 'ic', 'turbo', 'sk_light', 'sk_std', 'sk_max', 'hp3', 'hp8', 't72', 's72', 'pakke', 'drivanker']
+         'haill', 'luksus', 'pump', 'ic', 'turbo', 'sk_light', 'sk_std', 'sk_max', 'hp3', 'hp8', 't72', 's72', 'pakke', 'drivanker', 'bwpakke']
 
 
 def cut(a, x0, y0, x1, y1):

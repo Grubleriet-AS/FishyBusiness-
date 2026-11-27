@@ -87,7 +87,7 @@
         // (a point of her keel over land is the land's own touch, not shallow water: the depth there is 0 by definition)
         keel(x, z){ const p = km(x, z); try { return isLand(p) ? 9 : depthNav(p) + tideCD(H, p) - BOAT.draft - BK.squat; } catch (e){ return 9; } },
         // the foreshore as drawn: the ground over her keel there (not in a harbour unit's basin, which is dug out)
-        beach(x, z){ const p = km(x, z); try { if (inHarbourPocket(p)) return false; const g = shoreGround(p); return g != null && g < COAST3.top && g > tideH(H, p) - BOAT.draft; } catch (e){ return false; } },
+        beach(x, z){ const p = km(x, z); try { if (inHarbourPocket(p) || BK.pit(x, z)) return false; const g = shoreGround(p); return g != null && g < COAST3.top && g > tideH(H, p) - BOAT.draft; } catch (e){ return false; } },
         things(x0, z0, x1, z1){ return BK.thingsIn(x0, z0, x1, z1); },
         // clear water beyond R round the point: the fine coast, the harbour units and the things' boxes; 0 when not known
         free(x, z, R){ const p = km(x, z), cap = R + 60; let d; try { if (isLand(p)) return 0; d = coastDistM(p, cap); } catch (e){ return 0; } if (!(d > R)) return 0;
@@ -96,6 +96,11 @@
           for (const U of UNITA) if (Math.hypot(U.o[0] - x, U.o[1] - z) < cap + 160) return 0;
           for (const o of BK.thingsIn(x - cap, z - cap, x + cap, z + cap)){ const dd = BKO.boxDist(o, x, z); if (dd < d){ d = dd; if (!(d > R)) return 0; } }
           return d - R; } }; },
+    // the pit the 3D view digs in front of Father's naust's or a rorbu's quay (view3d/03-berths-naust.js siteTerr: the bank in front of
+    // the face cut down to the berth's depth, the 3D shore too): no foreshore there, from a metre off the face out through the pocket
+    // the simulation dredges (sitePockE). The observer drew the foreshore across it till steg 142 (26.11.2026)
+    pit(x, z){ const one = s => !!(s && s.o && s.u) && Math.abs(x - s.o[0]) < 80 && Math.abs(z - s.o[1]) < 80 && -(x - s.o[0]) * s.u[1] + (z - s.o[1]) * s.u[0] >= 1 && sitePockE(s, x, z) === 0;
+      try { if (S.naust && one(S.naust)) return true; for (const Rb of rorbuIn(x / 1000 - 0.1, z / 1000 - 0.1, x / 1000 + 0.1, z / 1000 + 0.1)) if (one(Rb.site)) return true; } catch (e){} return false; },
     // ---- a trip's log ----
     begin(to, from, r, strek){ const pl = S.plan, endP = to && to.p ? to.p : (pl && pl.wps.length ? pl.wps[pl.wps.length - 1] : from);
       BK.cur = {to:to ? to.name : null, toPort:!!(to && to.id), from:{x:from.x, y:from.y}, endP:{x:endP.x, y:endP.y}, seen:new Map(), hits:[], left:false, rpAt:-1e9, st:{}, own:0, jumps:0, m:0, tN:0, tSum:0, tMax:0, fuel0:S.boat.fuel, bg:null, berth:new Set()}; },
@@ -181,10 +186,13 @@
     // Autonav 2.0 (--autonav ny): the bane the planner finds (17c-plan.js planBane), timed the same way
     async route2(Z, from, nt){ const ch = new MessageChannel(); let last = performance.now(), gap = 0, on = true; ch.port1.onmessage = () => { const t = performance.now(); if (t - last > gap) gap = t - last; last = t; if (on) ch.port2.postMessage(0); }; ch.port2.postMessage(0);
       const t0 = performance.now(), sl0 = FARB.F.n.slice; FARB.F.n.slice = 0; let R;
-      try { R = await planBane(from, nt ? {x:nt.x, y:nt.y} : Z.p, null, {kn:BOAT.vmax}); } catch (e){ R = {why:['error: ' + String(e && e.message).slice(0, 120)]}; }
+      // (BK.berthEnds true: the ends at her berths, planEnd, not the harbours' points. Off: tried 27.11.2026 without the search with her heading (G2), the bane then comes to the berth from the way it came and her hull sweeps the quay: «kai» touches at both ends at Sandshamn, Ålesund verft, Husøy, Træna and Breivikbotn, where there were none)
+      const A = BK.A, ba = BK.berthEnds === true && A && A.kind !== 'll' && A.kind !== 'naust' && A.id ? planEnd(A.id, S.boat.type) : null, bz = BK.berthEnds === true && !nt && Z.kind !== 'll' && Z.id ? planEnd(Z.id, S.boat.type) : null;
+      const pa = ba ? {x:ba.x, y:ba.y} : from, pz = nt ? {x:nt.x, y:nt.y} : bz ? {x:bz.x, y:bz.y} : Z.p;
+      try { R = await planBane(pa, pz, null, {kn:BOAT.vmax}); } catch (e){ R = {why:['error: ' + String(e && e.message).slice(0, 120)]}; }
       const ms = performance.now() - t0; on = false; const t = performance.now(); if (t - last > gap) gap = t - last; ch.port1.close(); const slice = FARB.F.n.slice; FARB.F.n.slice = Math.max(sl0, slice);
       if (!R.bane) return {why:String(R.why ? R.why[0] : 'none').slice(0, 160), cause:R.cause, at:R.at, ms:Math.round(ms), gap:+gap.toFixed(1), tries:R.tries, tiles:R.tiles};
-      return {r:{wps:R.pts.map(q => ({x:q.x, y:q.y})), nm:R.nm, bane:R}, nt, ms:Math.round(ms), gap:+gap.toFixed(1), st:{ms:R.ms, maxSlice:+slice.toFixed(1), expanded:R.exp, tiles:R.tiles, tries:R.tries, time:Math.round(R.bane.time)}}; },
+      return {r:{wps:R.pts.map(q => ({x:q.x, y:q.y})), nm:R.nm, bane:R}, nt, pa, pz, ms:Math.round(ms), gap:+gap.toFixed(1), st:{ms:R.ms, maxSlice:+slice.toFixed(1), expanded:R.exp, tiles:R.tiles, tries:R.tries, time:Math.round(R.bane.time), h0:Math.round(R.h0 || 0), soft:R.soft ? 1 : 0, alt:R.alt}}; },
     plan(r, Z, nt, full){ const n = r.wps.length, last = nt ? {x:nt.x, y:nt.y, port:Z.id, berth:'naust', fish:0} : Z.id ? {x:Z.p.x, y:Z.p.y, port:Z.id, fish:0} : {x:Z.p.x, y:Z.p.y, port:null, fish:0, leia:true};
       S.plan = {wps:r.wps.map((q, i) => i === n - 1 ? last : {x:q.x, y:q.y, port:null, fish:0, leia:true}), idx:0, speed:full ? BOAT.vmax : BOAT.vcruise, full:!!full, returning:false};
       if (r.bane){ S.plan.wps = [last]; planInto(S.plan, r.bane, 0, 1); const q0 = r.bane.bane.Q[0]; S.boat.pos = {x:q0[0] / 1000, y:q0[1] / 1000}; }   // (she is where the bane begins: at her berth, the naust's too, not at the harbour's point)
@@ -235,7 +243,7 @@
     // A grid of 5 m cells over the window round the stretch (10 m and more when the window is big). A cell is hard when its middle is
     // land or inside a thing (her own rocks and low decks with them); she may be where the nearest hard cell is at least half her
     // beam and FAS.side m away, with FAS.keel m under her keel at chart datum, but for the cells by her own berth at each end. The
-    // shortest way over those cells (A* with eight neighbours, no corner cut), pulled tight where the straight line is clear. Not a
+    // (the water: the chart's, and over the foreshore what the 3D view draws, as the observer has it) shortest way over those cells (A* with eight neighbours, no corner cut), pulled tight where the straight line is clear. Not a
     // route to sail (no turning circle, no speed): the length no route can beat by much, to measure the detours against.
     FAS:{side:2, keel:0.5, cells:5e6, cell:5},
     async landGrid(pts, widen = 1, cell0 = 0){ let x0 = Math.min(...pts.map(p => p.x)), x1 = Math.max(...pts.map(p => p.x)), y0 = Math.min(...pts.map(p => p.y)), y1 = Math.max(...pts.map(p => p.y));
@@ -274,17 +282,31 @@
     fasit(a, z){ const G = BK.G, {X0, Z0, cell, W, Hh} = G, N = W * Hh, t0 = performance.now(), L = BOAT.len || 10, H = BK.T0 / 60;
       const hard = G.land.slice(), eng = BK.eng; BK.eng = 'bakgrunn'; let things = []; try { things = BK.thingsIn(X0, Z0, X0 + W * cell, Z0 + Hh * cell); } finally { BK.eng = eng; }
       for (const o of things) BK.raster(G, hard, o);
-      const d2 = BK.edt(hard, W, Hh), need = ((BOAT.beam || 3) / 2 + BK.FAS.side + cell / 2) / cell, need2 = need * need, deep = new Uint8Array(N), lim = BOAT.draft + BK.FAS.keel;
+      const d2 = BK.edt(hard, W, Hh), need = ((BOAT.beam || 3) / 2 + BK.FAS.side + cell / 2) / cell, need2 = need * need, deep = new Uint8Array(N), side = new Uint8Array(N), lim = BOAT.draft + BK.FAS.keel, hb = (BOAT.beam || 3) / 2 + BK.FAS.side, shoreR2 = Math.pow((16 + hb) / cell + 1, 2);
       const cellOf = p => { const i = Math.floor((p.x * 1000 - X0) / cell), j = Math.floor((p.y * 1000 - Z0) / cell); return i >= 0 && j >= 0 && i < W && j < Hh ? j * W + i : -1; };
-      const re = Math.max(1.5 * L, 25) / cell, ends = [a, z].map(p => [(p.x * 1000 - X0) / cell - 0.5, (p.y * 1000 - Z0) / cell - 0.5]);
+      // (an end that is a point at sea has no berth: she must float where she is put, with her clearance. Till steg 142 the water was
+      // not asked within a length and a half of such an end either, and a 75 m ship «had a way» out of a sound 3 m deep: sund-seloy)
+      const sea = [BK.A && BK.A.kind === 'll', BK.Z && BK.Z.kind === 'll' && !(BK.R && BK.R.nt)];
+      const re = Math.max(1.5 * L, 25) / cell, ends = [a, z].map(p => [(p.x * 1000 - X0) / cell - 0.5, (p.y * 1000 - Z0) / cell - 0.5]).filter((e, i) => !sea[i]);
       const pass = k => { if (hard[k]) return false; const i = k % W, j = (k - i) / W;
         for (const e of ends) if ((i - e[0]) * (i - e[0]) + (j - e[1]) * (j - e[1]) < re * re) return true;   // (by her berth: the quay beside her is hers)
         if (d2[k] < need2) return false;
-        let v = deep[k]; if (!v){ const p = km(X0 + (i + 0.5) * cell, Z0 + (j + 0.5) * cell); let dd = 0; try { dd = depthNav(p) + tideCD(H, p); } catch (e){} v = deep[k] = dd >= lim ? 1 : 2; } return v === 1; };
+        // (the water over the foreshore as the 3D view draws it and the observer judges it, beach above; till steg 142 punkt 3 the
+        // reference asked the chart's depth only and went through the foreshore by the shore, so the planner's banes, which keep out
+        // of it, read as detours: smola-vest-ut and stamsund with the skiff 1.3-1.6 times the reference)
+        let v = deep[k]; if (!v){ const x = X0 + (i + 0.5) * cell, zz = Z0 + (j + 0.5) * cell, p = km(x, zz); let dd = 0; try { dd = depthNav(p) + tideCD(H, p); if (!inHarbourPocket(p) && !BK.pit(x, zz)){ const gr = shoreGround(p); if (gr != null && gr < COAST3.top) dd = Math.min(dd, tideH(H, p) - gr); } } catch (e){} v = deep[k] = dd >= lim ? 1 : 2; } if (v !== 1) return false;
+        // (and the foreshore under her sides: the water was asked under her keel line only, so a boat 6 m wide «had a way» with her
+        // side over the foreshore the observer counts a touch on; Stamsund with kyst21, steg 142 point 4. Eight points half her beam and the margin to the side out (as the planner's check asks the water: under her hull widened by the margin),
+        // asked where the land is near enough for its foreshore to reach her)
+        if (d2[k] >= shoreR2) return true; let sd = side[k];
+        if (!sd){ const x = X0 + (i + 0.5) * cell, zz = Z0 + (j + 0.5) * cell; sd = 1;
+          for (let q = 0; q < 8 && sd === 1; q++){ const px = x + Math.cos(q * Math.PI / 4) * hb, pz = zz + Math.sin(q * Math.PI / 4) * hb, p = km(px, pz);
+            try { if (inHarbourPocket(p) || BK.pit(px, pz)) continue; const gr = shoreGround(p); if (gr != null && gr < COAST3.top && tideH(H, p) - gr < lim) sd = 2; } catch (e){} }
+          side[k] = sd; } return sd === 1; };
       // each end's cell, or the nearest one she may be in within her berth's reach
-      const snap = p => { const k0 = cellOf(p); if (k0 < 0) return -1; if (pass(k0)) return k0; const i0 = k0 % W, j0 = (k0 - i0) / W, R = Math.ceil(re); let best = -1, bd = 1e9;
+      const snap = (p, atSea) => { const k0 = cellOf(p); if (k0 < 0) return -1; if (pass(k0)) return k0; const i0 = k0 % W, j0 = (k0 - i0) / W, R = atSea ? 2 : Math.ceil(re); let best = -1, bd = 1e9;
         for (let j = Math.max(0, j0 - R); j <= Math.min(Hh - 1, j0 + R); j++) for (let i = Math.max(0, i0 - R); i <= Math.min(W - 1, i0 + R); i++){ const dd = (i - i0) * (i - i0) + (j - j0) * (j - j0); if (dd < bd && pass(j * W + i)){ bd = dd; best = j * W + i; } } return best; };
-      const s = snap(a), t = snap(z); if (s < 0 || t < 0) return {why:(s < 0 ? 'the start' : 'the end') + ' is not on water she may be in', cell};
+      const s = snap(a, sea[0]), t = snap(z, sea[1]); if (s < 0 || t < 0) return {why:(s < 0 ? 'the start' : 'the end') + ' is not on water she may be in', cell};
       const g = new Float32Array(N).fill(Infinity), par = new Int32Array(N).fill(-1), done = new Uint8Array(N), ti = t % W, tj = (t - ti) / W, SQ = Math.SQRT2;
       const h = k => { const dx = Math.abs(k % W - ti), dz = Math.abs(Math.floor(k / W) - tj); return dx > dz ? dx + (SQ - 1) * dz : dz + (SQ - 1) * dx; };
       // (a binary heap of [f, cell])

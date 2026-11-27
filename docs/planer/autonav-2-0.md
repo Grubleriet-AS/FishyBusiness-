@@ -374,7 +374,7 @@ Sjekket 23.11.2026 (dekning og lisens). Økta har begrenset nett: OSM-tallene, G
 | **Kaimodulene** (`view3d/22-docks-air.js` `quayMod`) | **Gjennomgått (andre økt).** 3D bygger en kai fra land ut til båten der hun ligger: ved kaiplassene rederiet holder, der spillerens båt ligger nå, og ved havnenes egne båter. Der en båt ligger, står kaia mellom henne og land, og hun er i kartet som fartøy som ligger stille. Kaia ved en kaiplass rederiet holder, står også mens båten er ute: den er nå en ting i kartet (leses fra `S.havn` uten å skrive i lagringen). |
 | Båtens egen kaiplass | En båt som ligger inntil sin egen kai, berører kaias vegg i kartet. Planleggeren og styringen (F2, F3) må ha regelen benken har: det hun lå inntil da hun kastet loss, er ikke et treff. |
 
-## Planleggeren (F2, steg 142, pågår 24.11.2026)
+## Planleggeren (F2, steg 142, pågår 26.11.2026)
 
 Jonas: «Kjør på med steg 142». Koden: `src/js/core/17b-bane.js` (banen) og `17c-plan.js` (søket og kontrollen); systemdokumentet `docs/systemer/autonav.md` 4.12y sier hva hver del gjør. Ingenting i spillet kaller dette ennå: bare benken (`tools/autonav/benk.py --autonav ny --motor bakgrunn`). Gammel Autonav er urørt.
 
@@ -408,13 +408,155 @@ Tallene er fra en maskin som kjørte tre benkdeler samtidig, så tidene er ikke 
    - *Tidevannet.* Kartet måler brudekket fra høyeste astronomiske tidevann; spillets regel gjør ikke det. Høyeste tidevann trekkes fra båtens høyde til 141b er inne. **Begge deler snus med `PLAN.realAir` når bruene har ekte høyder (steg 141b)**: da gjelder ekte høyde og høyeste tidevann.
    - *Sjøkartets ruter ser ikke en lav bru eller en smal fylling.* Avstanden til målet pekte rett gjennom, og søket fylte vannet på denne siden til taket. Etter et søk uten vei får sjøkartets ruter nå vite hvor søket har vært og er ferdig (`learn`), avstanden regnes på nytt, og et større utsnitt hentes når veien rundt ligger utenfor det første. Hønebrua med kyst21: 3,99 nm mot fasitens 3,98.
    - Benken på de 39 strekningene som hadde feil (`ny-steg142/turer-39-etter-punkt1.jsonl`): turer 79 → 90, uten bane der fasiten har vei 46 → 32, «for stort» 20 → 4. De fire som står igjen: bru-storvalen og reine med kyst21 (brua er noen centimeter for lav etter avrunding i feltet, og det finnes ingen vei rundt), sund-akkarfjord og sund-rosvik med skiff (ikke sett på). Et søk som gir opp, bruker fortsatt 3–18 s.
-2. **«For grunt» og «brua er for lav» (20):** fasiten ser ikke dybde, så en del av disse er steder som trenger mudret renne (valg 5, oppgave 7: ikke begynt), og kaidekker som feltet har som lav bru utenfor egen plass.
-3. **Treffene (11 turer):** fartøy som ligger stille like utenfor regelen for egen kaiplass, og fjære ved sund-urangsvag.
-4. **Omveiene (8 baner):** der det trange løpet ikke er på veien det første søket (bare det faste stenger) finner.
+2. **«For grunt», «brua er for lav» og «for trangt» (27 steder, og ett «land»): 12 rettet i kartet og planleggeren, 5 gravd, 1 var benkens egen feil, og i andre økt 4 til rettet i planleggeren; 6 står igjen, se «Resten av punkt 2»** (26.11.2026, Jonas: «Kjør på med neste steg»). Årsaken per klasse står i «Stedene uten bane» under.
+3. **Treffene: tatt 26.11.2026 (tredje økt), se «Punkt 3» under.** Opprinnelig (14 turer, 26.11.2026): fartøy som ligger stille like utenfor regelen for egen kaiplass (11 treff), flytebrygge (4), land og fjære ved sund-urangsvag. To er nye etter punkt 2 og ikke sett på: myre-sto med ringnoteren (brygge 73 m fra kaia på Stø; havna er nå åpen for henne, så veien er en annen) og sund-hvaler med sjarken (over tegnet fjære 115 m fra enden; banen selv er fri for fjære i observatørens øyne når den spørres stilling for stilling, så det er sveipet mellom minuttene som bør ses på).
+4. **Omveiene (8 baner):** der det trange løpet ikke er på veien det første søket (bare det faste stenger) finner. **Påbegynt 26.11.2026:** to av tre var fasitens feil (den gikk gjennom fjæra; rettet, se «Punkt 3»). Stamsund med skiffen står igjen: 1,25 ganger fasiten fordi feltet (det grunneste vannet innen 3 m) stenger vann like utenfor fjæra som geometrien har nok av, og det andre søket går bare når det første ikke finner vei.
 5. **Ankomsttiden:** `sailV` har 5 knop i havn, fartsgrenser og akselerasjon per minutt som banens profil ikke kjenner. Banen må ta dem inn, eller `sail()` følge banens fart.
 6. **Planleggingstiden** målt etter kravet (strupet fire ganger, stille maskin, `farsjekk.py --felt`-måten for skivene). Trolig trengs 8 m-ruter på åpne strekk.
 7. **Ikke begynt:** havnesøket med kurs (G2: rygge ut, snu), flagget `#autonav2` i spillet (`planOn()` finnes, ingenting kaller den), tegnede ruter rettet ved «Kast loss» med logglinje, rennene, strekningen forbi havvind ved Karmøy.
 8. **Fra den uavhengige kontrollen, ikke rettet:** laveste vann regnes fra nå, ikke fra når en senere etappe seiles; `planInto` flytter ikke `pl.unsafe`; en vending over 172° gir en bue som ikke tangerer neste strekk; buer strammes ned til halve bredden (en manøver, ikke en sving: F3 må behandle dem slik); minuttsteget langs banen viker ikke for andre fartøy og brenner diesel etter minuttets fart.
+
+### Stedene uten bane (punkt 2, 26.11.2026)
+
+27 steder hadde ingen bane der fasiten har vei, med årsaken «for grunt», «brua er for lav» eller «for trangt» (og lindesnes med skiffen: «land»). Årsaken er funnet med `tools/autonav/hvorfor.py`: fasitens vei gått 2 m om gangen mot feltet og geometrien, og et bilde av feltet rundt stedet planleggeren peker på. Tre klasser:
+
+**A. Feil i kartet og planleggeren (12 steder, alle rettet, alle har bane nå).** På åtte av dem feilet kontrollen på samme sted sju ganger på rad.
+
+| Feil | Steder | Rettet |
+|---|---|---|
+| En lommeveggs berøring ble meldt i veggens ende (35 og 59 m fra båten), så regelen for egen kaiplass tok den ikke, og stengingen rundt den endret ingenting | senjahopen-ut sjark, sandshamn-verft autoliner, finnsnes-botnhamn sjark | `farbWallTouch`: berøringen er der hun er |
+| Regelen for egen plass gjaldt ikke en grunnberøring i et sveip over åpent vann | sund-bolandet, sund-hvaler og bru-honebrua pelagisk, sund-stamsund kyst21 | `farbSweep` tar `opt.skip` også der |
+| Vannet var rundet til dm i feltet, og planleggeren la kartets 3 cm og squat oppå dypgang + 0,5 m. Havnene er mudret til nøyaktig største dypgang + 0,5 m (4,35 m): feltet hadde 4,3 og kravet var 4,4 | tufjord-ut autoliner (og alle havner for de dypeste båtene) | Feltet i trinn på 5 cm; `planNeeds`, `planKeel`, `planSquat` |
+| Kartet hadde fjære tvers over gropa 3D graver foran naustet | tufjord-naust og oksvoll-vallersund-naust skiff | `farbSitePit` i geometrien, feltet og observatøren |
+| Et knekk på 6 m over 8 m forbi et brukar: et skip på 75 m snudde 45° på stedet og feide baugen 26 m til siden. Stengingen ble lagt rundt berøringen, 30 m fra veien | bru-karmsund og bru-maroyvegen pelagisk | `gentle` (hjørnene trekkes fra hverandre), `planBlockOf` (samme berøring igjen: der hun sto) |
+
+I tillegg sa svaret «brua er for lav» ved Træna, Lindesnes og Øksfjord, der det ikke er bru: vann under siden hennes som stengte ei rute, ble tatt for et dekke. Rettet (`sideOk` i `cause`).
+
+**Avgjort i denne klassen, kan snus:** i 3 knop og saktere regnes squat som ingenting (under 7 cm for alle båtene), og kartets 3 cm legges ikke oppå de 0,5 m. Ellers er havnene stengt for båtene de er mudret for. Valg 4 sier «dypgang + squat + 0,5 m»; alternativet er å mudre havnene 10 cm dypere (`HARB_DRAFT` i `07-harbours.js`, som er kjernemekanikk og endrer spillet i dag). Snus i `planSquat` (én linje).
+
+**B. Ekte grunt slik 3D tegner det (13 steder): renne etter valg 5.** Fjæra går 13,5 m ut fra kystlinja og er for grunn for alle båtene ved laveste lavvann i nord (bunnen ligger 2,5 m under middelvann ytterst, sjøkartnull 1,4 m under). Et løp smalere enn rundt 27 m pluss båten er derfor stengt for alle, og fasiten ser ikke fjæra.
+
+| Sted | Båter | Hva | Status |
+|---|---|---|---|
+| Træna (mottaket) | skiff, sjark, kyst21 | Løpet ut av havna er smalere enn fjæra på de to sidene | **Gravd:** 258 m, 19,2 m bred, 4,2 m dyp (for kyst21). Alle tre har bane |
+| Ålesund verft | skiff, sjark | Fjæra over munningen av verftsbassenget | **Gravd:** 89 m, 16,2 m bred, 2,4 m dyp (for sjark). Begge har bane |
+| Ålesund verft | kyst21 | Munningen er for trang for henne (rundt 14 m); fasiten går en annen vei ut (5,1 nm) | Ikke gravd: ikke sett på hvor hennes vei går |
+| Øksfjord | skiff, sjark | Innløpet mellom moloens hode og land: moloens steinfot (8,9 m ut for skiffen) og fjæra lar under 8 m vann stå igjen | Ikke gravd: gravingen ser moloens fot som vann i søket og som stein i kontrollen, og finner ingen vei. Verktøyet må holde foten stengt i søket |
+| Lindesnes | skiff, sjark, kyst21 | Ei rekke bryggestykker på tvers av bassengets munning med et gap på rundt 19 m; fjære langs dem | Ikke gravd: «land i veien» også når vannet ses bort fra. Ikke funnet hva som stenger gapet |
+| Sandshamn verft | pelagisk (øst og vest) | Bassenget ligger i vann grunnere enn 8 m; fasiten har vei fordi den ikke spør vannet innen 1,5 båtlengder (112 m) av endene | Ikke gravd: gravingen gir «for grunt» ved starten. Ikke funnet hvorfor |
+
+Rennene lages av `tools/autonav/renner.py` (stedene i `renner-steder.json`) og ligger i `src/data/renner.json`. Hvor det graves, er planleggerens eget svar: søket går der minst må graves (`planDig`). **3D graver dem ikke ennå** (`docs/spill-dette/142.md`), og observatøren ser som 3D: de fem turene gjennom rennene står med «over tegnet fjære» på benken til 3D har gravd.
+
+**C. Benkens egne (3 steder).** sund-seloy med pelagisk: startpunktet ligger på 3 m vann, og fasiten «hadde vei» fordi den ikke spurte vannet nær enden. Rettet: en ende som er et punkt på sjøen, har ingen kaiplass, så vannet og klaringen gjelder der også. urangsvag-bremnes (sjark, kyst21): fasiten har vei bare på 20 m-ruter (vinduet blir stort når ruta mangler), der et løp på under 20 m slipper gjennom; på 5 m-ruter har den ingen. Ikke rettet: fasiten bør ikke stoles på over 5 m-ruter, og de to står fortsatt som «uten bane der fasiten har vei».
+
+### Benken etter punkt 2 (26.11.2026, `docs/planer/autonav-benk/ny-steg142-punkt2/turer.jsonl`)
+
+Hele lista: 93 strekninger (alle unntatt kategorien `rute`), 321 linjer og 11 der stedet ikke tar båten, bakgrunnsturen, uten CPU-strupingen, tre deler samtidig.
+
+| | Runde 6 (delvis) | Etter punkt 1 (39 strekninger) | Nå (hele lista) | Kravet |
+|---|---|---|---|---|
+| Turer seilt | 224 | | 262 | |
+| Turer med treff | 11 | | 14 (18 treff: 11 fartøy som ligger stille, 4 flytebrygge, 2 land, 1 brygge) | 0 |
+| Turer over tegnet fjære | (3 treff) | | 8 (5 i rennene 3D ikke har gravd, 2 sund-urangsvag, 1 sund-hvaler) | 0 |
+| Uten bane der fasiten har vei | 46 | 32 | 14 (8 «for grunt», 2 «for trangt», 4 «søket ble for stort») | 0 |
+| Lengde mot fasiten, median | 1,5 % over | | 1,4 % over | høyst 5 % |
+| Baner over 15 % lenger enn fasiten | 8 | | 13 (smola-vest-ut, sund-urangsvag, bru-maroyvegen, bru-reksund, stamsund, sund-bolandet) | ingen |
+| Planleggingstid, ustrupet, maskinen opptatt | median 0,6 s, p90 2,8 s | | median 0,7 s, p90 3,7 s, lengst 29,8 s | under 1 s strupet (ikke målt) |
+| Seilt tid mot banens tid | median 1,8 ganger | | median 1,9 ganger | innen 2 % |
+
+Farsjekken etter endringene i kartet (26.11.2026, langs denne kjøringens ruter): 0 stillinger og 0 sveip der observatøren ser en berøring og kartet sier fritt (25 000 stillinger), bassengene 0 av 22 944, feltet aldri lenger unna enn geometrien. Skivemålingen (`--felt`) er rød og grønn om hverandre på øktas maskin, også for koden fra før økta (12,3 mot 10,9 ms rød, 7,9 mot 10,2 grønn; den nye 10,1 mot 9,4 og én gang 31 ms i lagene under): den sier ingenting sikkert her og må tas på en stille maskin (punkt 6).
+
+De 14 uten bane: «for stort» reine og bru-storvalen kyst21 (punkt 1), sund-akkarfjord og sund-rosvik skiff (ikke sett på); «for grunt» og «for trangt» er klasse B og C over (Sandshamn verft pelagisk to, Øksfjord to, Lindesnes tre, Ålesund verft kyst21; urangsvag-bremnes to). Omveiene er flere fordi flere steder har bane (bru-maroyvegen, sund-bolandet): punkt 4. De to nye treffene står i punkt 3.
+
+### Resten av punkt 2 (26.11.2026, andre økt samme dag; Jonas: «fortsett»)
+
+De åtte stedene i klasse B som sto uten renne, og de to i C, sett på en gang til. Tre av dem var ikke grunt vann:
+
+- **Feltet stengte vann geometrien har nok av** (Øksfjord med skiffen, Sandshamn verft med pelagisk, sund-akkarfjord og sund-rosvik med skiffen). Gravingen fant en vei der ingenting måtte graves: feltets vann er det grunneste innen halvannen rute, og et bredt skrog spør rutene til siden også, så et løp med nok vann for henne kan være stengt i feltet. Rettet: sier søket «for grunt» eller «for trangt», går det én gang til der vannet koster i stedet for å stenge og avstanden er uten halve ruta, og kontrollen på geometrien avgjør (`opt.soft` i `planBane`). Alle fire har bane nå.
+- **Moloens fot er stein, ikke fjære.** Feltet har fått et eget lag for den (`m`), og gravingen går aldri gjennom den. Øksfjord med sjarken har derfor ingen vei: mellom moloens fot i hennes kjøldybde og land er det for trangt, også med fjæra gravd bort.
+- **Lindesnes er stengt av ei hårtynn landstripe i kystdataene** (under 2 m bred, 60 m lang, tvers over bassengets munning ved 58,0411° N 7,152° Ø). Fasiten på 5 m-ruter slipper gjennom den; kartet, observatøren og spillets `isLand` har den som land. Det er ikke noe å grave: stripa må rettes i kartdataene, eller havna har ingen vei ut.
+- **Ålesund verft med kyst21:** munningen er for trang for henne med marginene (halve bredden + 2 m til hver side), også uten feltets avrunding.
+
+**Benken, de 26 strekningene som manglet bane kjørt på nytt og slått sammen med resten** (`docs/planer/autonav-benk/ny-steg142-punkt2b/turer.jsonl`): 264 turer seilt, 12 turer med treff (14 treff), **uten bane der fasiten har vei 14 → 8**: Lindesnes tre (landstripa), Øksfjord sjark (moloens fot), Ålesund verft kyst21 (for trangt), Sandshamn verft vest med pelagisk (ikke sett på: østsiden har bane nå), og reine og bru-storvalen med kyst21 («for stort», punkt 1). To turer mistet banen: skiffen til og fra Urangsvåg utstyrsbutikk (urangsvag-inn, urangsvag-bremnes). Banen de hadde, gikk borti et fartøy som ligger stille og ei flytebrygge; nå stenges fartøyet, og søket etterpå blir for stort. Hører til punkt 3. Et søk som gir opp, tar lengre tid enn før (median 5,5 s, lengst 40 s), fordi det går to ganger: punkt 6.
+
+**Valg 8 (Jonas 26.11.2026, i spørsmålsverktøyet): «Rett kartet per sted».** Der stein eller land står i veien og renne ikke hjelper, rettes kartet, så stedene tar båtene de tar i dag: landstripa ved Lindesnes tas ut av kystdataene, og ved Øksfjord og Ålesund verft flyttes moloen eller munningen utvides i havnedataene. Forkastet: «Stedet tar ikke båten» (Øksfjord bare skiff, Ålesund verft opp til sjark) og «Mindre margin i havn» (1 m til siden de siste 100 m; ville endret valg 4 for alle havner). Ikke bygget ennå: det er neste i steget, før punkt 3. Kystdataene lages av kartrørledningen (`tools/map/`, releasen `kart-N`), havnedataene av `tools/harbour/`; 3D, observatøren og kartet leser de samme dataene, så rettingen gjelder alle tre.
+
+### Valg 8 bygd (26.11.2026, tredje økt; Jonas: «Kjør på med neste steg»)
+
+- **Lindesnes: ikke ei landstripe i dataene, men en feil i spillets kystoppslag.** `coastQuery` (`01d-coast.js`, og kopien i feltets worker) telte veien ned langs rutas venstre side halvåpen, mens veien på tvers teller radens egne punkter som passert. Et punkt på nøyaktig samme meter-rad som en vannrett kystkant ble da land helt bort til neste kant: en linje uten tykkelse, 60 m tvers over munningen. Feltets ruter på 2 m har midten på hele meter og traff den; fasiten (5 m) og observatøren gjorde det sjelden. Rettet i kjernen med enhetstest (`kystlinje.test.mjs`, sett rød). Stikkprøve på 1 km² hele meter: Kristiansand hadde 74 slike punkter, Bodø, Tromsø og Hammerfest 0. Etterpå sto bare fjæra i munningen igjen for sjark og kyst21: gravd (`renner.json`, 85 m, 19,2 m bred, 4,2 m dyp). Alle tre båtene har bane (2,6 nm).
+- **Øksfjord: moloen 22 m kortere** (`tools/map/rett.json`, `rett.py`: kuttet i `coast2` og i vec-pakkenes molo-linje; `game.py` tar det med når kysten settes sammen, også i utrullingen, `chart.py` i neste release). Med 12 m sto moloens fot og fjæra på landsiden fortsatt for nær hverandre (`planDig` fant ingen vei). Med 22 m har skiff, sjark og kyst21 bane (0,41 nm) uten renne.
+- **Ålesund verft med kyst21: ikke løst, stedet satt tilbake slik det var.** To forsøk: (1) verftet 25 m inn langs sin egen kai (`tools/steder/rett.py`): kyst21 fikk bane (5,23 nm), men 3D tegnet en blek flate (11 × 26 m) ute i bassenget rett ut for hovedplassen, der kystdataene har land som havnelomma gjør til vann (Gemini: «ser ut som en feil»); årsaken i 3D er ikke funnet. (2) Land tatt bort på sørsiden av munningen (`rett.py` `land`, 30 × 90 m): munningen ble bred nok, men søket for kyst21 sto fortsatt fast («for trangt» ved den nye strandkanten), også med fjæra gravd. Siden den nye planleggeren ikke brukes i spillet og gammel Autonav tar kyst21 fra verftet i dag, ble ingen av dem stående. Neste forsøk: finne hva 3D tegner der (flyttingen er den som virket for planleggeren), eller hvorfor søket står fast etter kuttet.
+- **Gammel Autonav** (`tests/allesteder.py`, de tre stedene, kyst21, laveste lavvann): likt før og etter, alt OK.
+- **`hvorfor.py`** regnet feltets vann i dm etter at feltet gikk over til trinn på 5 cm: «grunt» og det brune i bildene var feil. Rettet.
+
+### Punkt 3: treffene (26.11.2026, tredje økt)
+
+Hver tur med treff er kjørt på nytt med en sonde som lister fartøyene som ligger stille nær banen i det planleggingen skjer, seiler bakgrunnsturen, og måler hvor langt hvert treff ligger fra banen. Fire klasser:
+
+| Klasse | Turer | Hva | Gjort |
+|---|---|---|---|
+| Planleggerens feil: et fartøy som ligger stille, stengt som en sirkel | urangsvag-bremnes, urangsvag-inn, bremnes-urangsvag (skiff) | Sirkelen rundt midten med radius lik halve diagonalen stengte 15 m til siden og skiffens eneste vei forbi en båt langs flytebrygga | Stengt som hennes egen boks med marginene (`planBlockOf`, enhetstest sett rød). Fasiten har heller ingen vei der når båten ligger der: planleggeren sier nå «et fartøy som ligger stille, stenger veien» i stedet for «brua er for lav» |
+| Planleggerens feil: egen kaiplass regnet etter fartøyets nærmeste punkt | sandshamn-inn (autoliner), samme klasse som Senjahopen | Djupvær (75 m) med midten 97 m fra kaia ble tatt for egen kaiplass; observatøren regner etter midten | `planSkip`: et fartøy etter midten (enhetstest sett rød) |
+| Fartøyet var ikke der da planen ble lagt | bremnes-urangsvag skiff (Havbris utenfor AIS-rekkevidden fra Bremnes, 6 km), gutvik-ut (ferja har flyttet seg) | Planleggeren kjenner bare fartøy som ligger stille innen AIS-rekkevidde når den planlegger | Hører til vakta i F3 og ny planlegging ved ankomst (som planen sier) |
+| Bakgrunnsturen forlater banen ved endene | myre-sto (ringnoteren, 38 m fra banen), urangsvag-bremnes ut (39–43 m), sund-hvaler (sjarken driver i 0 knop etter enden) | Banen ender i havnas punkt; `arrive()` setter båten ved kaiplassen og observatøren sveiper det hoppet over brygga. Ved et endepunkt på sjøen ligger båten etterpå og driver | Havnesøket med kurs (G2, punkt 7): banen skal ende og begynne ved kaiplassen. Senjahopen og Breivikbotn hadde ingen treff i sonden |
+
+**Fasiten ser fjæra** (benk.js `fasit`): den spurte bare sjøkartet og gikk gjennom fjæra der observatøren teller treff; nå tar den vannet over fjæra som observatøren (`shoreGround`). smola-vest-ut med skiffen 1,57 → 1,00 ganger fasiten, sund-bolandet 1,21 → 1,01. Kjøringen under gikk med den gamle fasiten (den startet før rettingen).
+
+### Benken etter valg 8 og punkt 3 (26.11.2026, `docs/planer/autonav-benk/ny-steg142-punkt3/turer.jsonl`)
+
+Hele lista (93 strekninger, 321 linjer, 11 der stedet ikke tar båten), bakgrunnsturen, uten CPU-strupingen, tre deler samtidig. Bygget hadde boksen for fartøy og ordene for dem, men ikke `planSkip` og ikke fasiten som ser fjæra (de kom mens den gikk). Strekningene med treff og omveier er kjørt på nytt med dagens bygg (`ny-steg142-punkt3-treff/turer.jsonl`, 41 linjer).
+
+| | Etter punkt 2 (`punkt2b`) | Nå (hele lista) | Kravet |
+|---|---|---|---|
+| Turer seilt | 264 | 271 | |
+| Turer med treff | 12 (14 treff) | 14 (18 treff: 11 fartøy som ligger stille, 4 flytebrygge, 2 land, 1 brygge) | 0 |
+| Turer over tegnet fjære | 8 | 10 (8 i rennene 3D ikke har gravd: Træna, Ålesund verft, Lindesnes; 2 sund-urangsvag; sund-hvaler) | 0 |
+| Uten bane der fasiten har vei | 8 | 4 (Ålesund verft kyst21, reine og bru-storvalen kyst21 «for stort», Sandshamn verft vest pelagisk) | 0 |
+| Lengde mot fasiten, median | 1,4 % over | 1 % over (p90 5 %) | høyst 5 % |
+| Baner over 15 % lenger enn fasiten | 13 | 13 med den gamle fasiten; Smøla og Bolandet er 1,00–1,02 med den nye, Stamsund 1,25 | ingen |
+| Planleggingstid, ustrupet, maskinen opptatt | median 0,97 s, p90 6,7 s | median 1,2 s, p90 8,3 s, lengst 65 s | under 1 s strupet (ikke målt) |
+
+**Treffene med dagens bygg** (`punkt3-treff`): Sandshamn-inn med autolineren har ingen (`planSkip`). Det som står igjen: **Senjahopen ut** med skiff, sjark og kyst21, på banen i 5 knop, 262 m fra kaia, mot Nordglimt I (75 m) og Havtrost (60 m) ved kai, er ikke forklart (sonden på en annen klokke fant ingen treff, og planleggeren stengte fartøyet der); ellers bare klassene i «Punkt 3» som hører til havnesøket (G2: myre-sto, urangsvag-inn og breivikbotn i 0 knop ved enden) og vakta (F3: gutvik-ut, ferja har flyttet seg), og sund-hvaler (driver etter enden).
+
+**Farsjekken** langs kjøringens ruter (tre deler): 0 stillinger og 0 sveip der observatøren ser en berøring og kartet sier fritt, av 29 070 stillinger og 3 300 sveip; 7 lå i rennene 3D ikke har gravd (telles nå for seg, `renne`). Bassengene (`--basseng`): 0 av 22 944. Gammel Autonav (`tests/allesteder.py`, de tre stedene i valg 8): likt før og etter.
+
+### Fjerde økt (27.11.2026; Jonas: «Start neste økt»)
+
+**Punkt 4, omveiene: bygd.** Det andre søket (`opt.soft`) prøves nå også når banen er en tydelig omvei, og den korteste banen som består kontrollen, tas.
+
+- *Målet for «omvei» uten fasit:* det første søket begynner med et forsøk der bare det faste stenger (land, en for lav bru). Lengden av den veien, trukket rett, er `h0`, og `planOmvei` slår til når banen er over 1,1 ganger `h0` og 80 m til. Sjøkartets grove avstand (100 m-ruter) ble prøvd først og forkastet: den slo til på de fleste turene (banen 1,2–5 ganger den), og hver av dem ble søkt to ganger.
+- *Taket:* det andre søket ser på høyst 30 000 ruter pluss tre ganger det første søket og stenger og søker på nytt høyst tre ganger. Smøla nord (der den første veien er den korteste og målet slår til fordi fjæra ikke er «fast») gikk fra 31–35 s til 13–19 s med taket.
+- *To feil i det andre søket, funnet på Stamsund med kyst21* (1,23 ganger fasiten også etter det over): (1) de grove rutene langs sundet ble aldri gjort fine, fordi forfiningen bare så etter ruter som var stengt, og i det andre søket koster grunt vann i stedet for å stenge; sundet kostet 24 ganger lengden sin og omveien vant. (2) Vannet til siden ble ikke spurt i det hele tatt, så et skrog på 7,2 m ble sendt med siden over fjæra; kontrollen stengte stedet, og søket kom tilbake med det samme noen meter bortenfor. Nå gjøres rutene fine også der vannet bare koster, og ringen til siden er én rute nærmere enn i det første søket.
+- *Fasiten var for snill mot brede båter:* den spurte fjæra bare under kjøllinja. For kyst21 ved Stamsund gikk den med siden over fjæra observatøren teller treff på. Nå spør den åtte punkter en halv bredde og marginen ut. Med 5 m-ruter er den da noen steder strengere enn planleggerens kontroll på geometrien (Stamsund med sjarken: banen 0,82 ganger fasiten), så fasiten er ikke lenger en sikker nedre grense for de brede.
+- *Strekningene som var over 15 %:* Stamsund skiff og sjark 1,25 → 1,00 og 0,82; kyst21 1,23 → 1,00 (fasiten ble lengre: sundet er for trangt for henne med marginen); Urangsvåg-sundet kyst21 og pelagisk 1,23 og 1,43 → 0,97 og 1,04; Marøyvegen pelagisk 1,38 → 1,01; Smøla vest, Bolandet og Reksund var fasitens feil fra før (1,00–1,02). Alle under 1,10.
+
+**Punkt: Senjahopen ut, forklart og rettet.** Fem fartøy ligger i samme punkt 262 m fra kaia (Nordglimt I 75 m, Havtrost 60 m og tre småbåter). `fixBoats` holder lista over fartøy som ligger stille, for spillminuttet, og lista er dem innen AIS-rekkevidde av der hun var da den ble laget. Benken stiller klokka tilbake til samme minutt for hver tur, så planen ved Senjahopen fikk fartøyene rundt strekningen før. Sett med en sonde: Stamsund planlagt først i samme side ga 0 stengt, banen 7 m fra midten av Nordglimt I og de to treffene fra benken; alene ga den ett stengt og ingen treff. `planFresh()` kaster lista når en plan lages. Klassen «fartøyet var ikke der da planen ble lagt» i punkt 3 var trolig delvis denne feilen (Bremnes–Urangsvåg).
+
+**Det den ferske lista viste:**
+- *Værøy verft:* ti småbåter ligger fortøyd rundt verftet, og én på bøye midt i bassengets munning (30 m bred). Svingsirkelen hennes (lengden og 3 m) stengte verftet for alle båtene. Kartet regner nå en bøyebåt som skroget der hun ligger (`farbBoats`), som observatøren; `FARB.swing` snur det. Alle tre har bane, 0 treff. **Valgt uten Jonas, kan snus:** at hun svinger når vinden snur, er vaktas sak i F3.
+- *Urangsvåg utstyrsbutikk:* ingen av båtene har bane inn eller ut (urangsvag-inn, urangsvag-bremnes, bremnes-urangsvag) når fartøyene ved flytebrygga er med; fasiten, som ikke ser fartøy, har heller ingen på 5 m-ruter. Banene de hadde før, gikk forbi fartøy planleggeren ikke hadde i lista.
+
+**Ålesund verft med kyst21: løst med forsøk (a), verftet 25 m inn langs kaia.** Den bleke flata i bassenget var ikke terreng og ikke en ting: bare sjøshaderen malte den (flata forsvant når sjøens tegnekall ble hoppet over, og det lå ingenting blekt under), strandteksturen og terrenget var dypt vann der. Årsaken var sjøens grunne-tekstur (`groundStep` i `view3d/17-draw.js`), som bygges av 25 m-landmasken uten å kjenne havnelommene: der masken har land inne i bassenget, var dybden 0 og sjøen tegnet brenning. En rute i en havnelomme er nå vann der også. Pikselen midt i flata gikk fra (91, 114, 134) til (10, 45, 75), som vannet rundt. Bilder før og etter i begge formater: `docs/okter/2026-11-27-142/`. Gemini (ett kall som svarte; det første fikk tidsavbrudd): flata er borte i alle etterbildene, ingen ny sprekk mellom blokka og land; den pekte på en liten grå bit i vannkanten ved blokkas venstre ende som ikke er i førbildene (ikke sett på, står i `docs/spill-dette/142.md`) og at landfestet er smalere. Benken: kyst21 5,23 nm, 0 treff.
+
+**Havnesøket med kurs (G2): prøvd det enkle, ikke bygd.** `planEnd` gir kaiplassen fra `berthPose`, og benken kan planlegge mellom kaiplassene (`BK.berthEnds`). Uten søket med kurs kommer banen inn mot kaia fra den veien den kom, skroget sveiper kaia, og det ble «kai»-treff i begge ender ved Sandshamn, Ålesund verft, Husøy, Træna og Breivikbotn, der det ikke var noen. Slått av; treffene i 0 knop ved endene (myre-sto med ringnoteren, sund-urangsvag) står til G2 er bygd.
+
+**Benken på hele lista** (`docs/planer/autonav-benk/ny-steg142-punkt4/turer.jsonl`; 93 strekninger, 332 linjer, 11 der stedet ikke tar båten, bakgrunnsturen, uten CPU-strupingen, tre deler samtidig; Sandshamn verft, Øksfjord og Gamvik kjørt på nytt etter den siste rettingen og slått inn):
+
+| | Etter punkt 3 | Nå | Kravet |
+|---|---|---|---|
+| Turer seilt | 271 | 266 | |
+| Turer med treff | 14 (18 treff) | 4 (4 treff: 3 land i 0 knop 17–39 m fra enden ved sund-urangsvag, 1 brygge 73 m fra kaia på Stø med ringnoteren; alle hører til havnesøket med kurs) | 0 |
+| Turer over tegnet fjære | 10 | 10 (6 i rennene 3D ikke har gravd: Træna, Lindesnes, Ålesund verft med sjarken; 3 sund-urangsvag i 0 knop ved enden; sund-hvaler, som driver etter enden) | 0 |
+| Uten bane der fasiten har vei | 4 | 6 (Gamvik sjark, kyst21 og autoliner: et fartøy ligger i havnas munning; Sandshamn verft vest pelagisk; reine og bru-storvalen kyst21 «for stort») | 0 |
+| Uten bane, fasiten heller ikke | | 48 linjer på 21 strekninger (de tre til og fra Urangsvåg utstyrsbutikk er nye der) | |
+| Lengde mot fasiten, median | 1 % over (p90 5 %) | 0,2 % over (p90 2,3 %) | høyst 5 % |
+| Baner over 15 % lenger enn fasiten | 13 med den gamle fasiten | 0 (lengst: Værøy kyst21 1,10, Smøla nord skiff og Gutvik 1,07) | ingen |
+| Det andre søket prøvd ved omvei | | 20 turer, tatt i 4 | |
+| Planleggingstid, ustrupet, maskinen opptatt | median 1,2 s, p90 8,3 s, lengst 65 s | med bane: median 1,1 s, p90 5,4 s, lengst 44 s; uten bane: median 5,4 s, lengst 51 s | under 1 s strupet (ikke målt) |
+
+Færre turer seilt enn sist fordi Urangsvåg utstyrsbutikk (9 linjer) ikke lenger har bane når fartøyene der er med. **Gamvik** er ny: en båt ligger fortøyd midt i munningen (rundt 20 m vann mellom fjærene), skiffen kommer forbi, sjarken og større ikke. Banene de hadde før, gikk forbi en båt planleggeren ikke hadde i lista. Det er samme slag som bøya i munningen ved Værøy verft: hvor kystens båter legges (`moorHarbour` i `05-vessels.js`), ikke planleggeren. **Sandshamn verft øst med pelagisk** mistet banen med ringen til siden i det andre søket og fikk den tilbake: der det andre søket med ring ikke finner vei, går det én gang til uten (`opt.bare`).
+
+**Farsjekken** langs kjøringens ruter (tre deler): 0 stillinger og 0 sveip der observatøren ser en berøring og kartet sier fritt, av 28 853 stillinger; 5 lå i rennene 3D ikke har gravd (telles for seg). Bassengene (`--basseng`): 0 av 22 940. Gammel Autonav ved Ålesund verft etter flyttingen (`KYST_ALLE=ports KYST_ALLE_ID=sv292732_1091800 python3 tests/allesteder.py`): alt OK, ingen feil.
 
 ### Det kontrollen fant (24.11.2026)
 
@@ -448,6 +590,7 @@ Alle sju ble som anbefalt. Det som ikke ble valgt, står med for sammenhengen.
 5. **Steder som ikke passer en båt: «Tilpass havna».** Havna tilpasses båtene stedet tar i dag: en mudret renne og småbrygger bort langs den kontrollerte veien inn, som «Mudre havnene» 18.11.2026. Et sted stenges for en båtstørrelse bare som siste utvei, med forklaring i kartplotteren. *Ikke valgt:* steng stedet for størrelsen og rett dataene sted for sted.
 6. **Bruene: «Ekte høyder».** Båtene får en ekte høyde som eget felt. Bruene får seilingshøyde fra offentlig kilde der den finnes (kilde og lisens sjekkes først, og oppgis), ellers dagens anslag, og 3D tegner brua med samme høyde. *Ikke valgt:* dagens anslag beholdt.
 7. **Slippet: «Gradvis».** 10 % av spillerne først, så 50 % og 100 %, hvert trinn etter noen døgn der fangsten viser færre berøringer per 1000 turer enn gammel Autonav. Nødbremsen står på, og gammel Autonav ligger klar å falle tilbake på. *Ikke valgt:* alle samtidig.
+8. **Stein eller land i veien der renne ikke hjelper (26.11.2026, steg 142): «Rett kartet per sted».** Landstripa i kystdataene ved Lindesnes tas ut, og moloen ved Øksfjord og munningen ved Ålesund verft rettes i havnedataene, så stedene tar båtene de tar i dag. *Ikke valgt:* «Stedet tar ikke båten» (Øksfjord bare skiff, Ålesund verft opp til sjark), «Mindre margin i havn» (1 m til siden de siste 100 m inn mot kai). Står i «Resten av punkt 2».
 
 **Det valgene betyr for byggingen:**
 
@@ -482,4 +625,8 @@ Alle sju ble som anbefalt. Det som ikke ble valgt, står med for sammenhengen.
 - 23.11.2026, F1 (steg 141) pågår (Jonas: «Kjør på med steg 141»; samme økt). Bygget: `core/17-farbar.js` med geometrien, spørsmålene og feltet i worker, `mapBlockWarm` i loaderen, `VESSELS.air` for alle 15 typene, `tests/unit/farbar.test.mjs` (117 sjekker), `tools/autonav/farsjekk.py`. Sjekket: 32 144 skrogstillinger og 3 648 sveip mot benkens observatør uten én stilling der kartet sier fritt og observatøren ser en berøring; feltet mot geometrien i 259 200 ruter. Den uavhengige kontrollen fant tre feil i sveipet og brudekket (punkt 7 til 9 i «Farbarhetskartet»), som er rettet, og at «aldri over 4 ms» ikke holder (124 av 75 017 skiver). Avgjort: båtenes høyde med pisker, bru-kilden (OSM og NVDB Vegnett Pluss; Kartverkets maritime infrastruktur forkastet til de har sagt ja), kraftspenn er ingen hindring. Lagt: steg 141b (bruene og `air` i bruk). Igjen i 141 («Hvor langt» i `start/141.md`): moloenes form, marinaenes småbåter, kaimodulene, de siste lange skivene.
 - 23.11.2026, F1 (steg 141) ferdig (Jonas: «Kjør på med resten av steg 141»; andre økt). Lagt til: dybden i workeren, moloens form i kartet, feltet og observatøren, marinaenes småbåter og kaiplassenes kaier i kartet, 3D rettet så småbåter ikke ligger i veien inn til en kai eller under bryggene, bassengpasset i farsjekken, grunnlinja kjørt på nytt (`grunnlinje2`). Jonas' to svar om hovedtråden: «Fortsett å jage», så «Skriv om kravet»; det nye kravet holder i målingen av alle 96 stedene. «Ferdig når» fra `start/141.md`: (1) holder; (2) 144 enhetssjekker; (3) 32 144 stillinger, 3 648 sveip og 23 173 bassengsveip uten én der kartet sier fritt og observatøren ser en berøring; (4) holder etter det nye kravet, 187,5 kB per flis; (5) holder, 141b lagt. Startmeldingen for F2 er skrevet (`start/142.md`). Ikke gjort: turbinene er ikke prøvd mot observatøren, og ingen renne er mudret; begge står i oppgaven til 142.
 - 24.11.2026, F2 (steg 142) pågår (Jonas: «Kjør på med steg 142»). Bygget: banen, søket på to rutestørrelser i worker, kontrollen, bakgrunnsturen langs banen, benken med `--autonav ny`. Benken (delvis, 332 linjer): 11 av 224 turer med treff (grunnlinja: 97), 46 uten bane der fasiten har vei, median lengde 1,5 % over fasiten. «Ferdig når» 1 og 2 holder delvis, 3–5 ikke; se «Planleggeren (F2, steg 142)» for hva som står igjen. Samme steg fortsetter.
+- 27.11.2026, F2 (steg 142) fjerde økt (Jonas: «Start neste økt»): punkt 4 bygd (ingen bane over 1,10 ganger fasiten, median 0,2 % over), Senjahopen ut forklart og rettet (fartøylista var fra forrige strekning), bøyebåter som skrog, Ålesund verft med kyst21 løst (flyttet 25 m; brenningen i bassenget kom fra sjøens grunne-tekstur). Benken: 4 turer med treff av 266 (alle ved endene), 6 uten bane der fasiten har vei. Havnesøket med kurs er ikke bygd. Se «Fjerde økt».
+- 26.11.2026, F2 (steg 142), punkt 2 (Jonas: «Kjør på med neste steg i en ny økt»). Årsaken funnet for de 27 stedene uten bane: 12 var feil i kartet og planleggeren (rettet, med enhetstester), 13 er ekte grunt slik 3D tegner fjæra (5 gravd med renne: Træna og Ålesund verft; 8 står igjen), 3 var benkens egne (1 rettet). Benken på hele lista: 262 turer, 14 uten bane der fasiten har vei (før 32), 14 turer med treff. Samme steg fortsetter.
+- 26.11.2026, andre økt (Jonas: «fortsett»): resten av punkt 2. Der søket sier «for grunt» eller «for trangt», går det en gang til med geometrien som dommer (fire steder til har bane); moloens fot graves aldri (eget lag i feltet); Lindesnes er stengt av ei landstripe i kystdataene. Benken: uten bane der fasiten har vei 14 → 8. Samme steg fortsetter.
 - 24.11.2026, F2 punkt 1 (Jonas: «Kjør på med punkt 1»): «søket ble for stort» 20 → 4. Planleggeren regner båtens høyde og tidevannet under bruer som spillet gjør i dag (til 141b), og søket lærer sjøkartets ruter det det har sett. Uten bane der fasiten har vei: 46 → 32 (resten er grunt, kaidekker og trangt: punkt 2).
+- 26.11.2026, F2 (steg 142) pågår, tredje økt (Jonas: «Kjør på med neste steg i en ny økt»). Valg 8 bygd: Lindesnes var en feil i kjernens kystoppslag (rettet, stikkprøve sør, midt og nord), moloen ved Øksfjord 22 m kortere (`tools/map/rett.json`), Ålesund verft med kyst21 ikke løst og stedet satt tilbake. Punkt 3: fartøy som ligger stille stenges som boks og regnes etter midten for egen kaiplass, og svaret sier når et fartøy stenger; fasiten ser fjæra. Benken på hele lista: uten bane der fasiten har vei 8 → 4, farsjekken 0 (7 i rennene). Neste: punkt 4 (Stamsund), Ålesund verft, Senjahopen ut (startmeldingen).

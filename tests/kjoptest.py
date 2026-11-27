@@ -247,6 +247,40 @@ async def hs4(br, handle, st, calls, errs):
     # (in a harbour by a hop, for the steps after: the pub needs a harbour)
     k4 = await pg.evaluate("(async () => { const q = await hopGo(true); return {why:q && q.why, st:S.boat.status}; })()")
     if k4 != {'why': None, 'st': 'port'}: print('(in a harbour: ' + json.dumps(k4, ensure_ascii=False) + ')')
+    # j. Black Week (steg 156, 27.11.2026, docs/planer/svart-fredag.md) in the shop as it is live, which tests/bwtest.py does not see (it
+    # buys in a test without payment): the card's «Kjøp» shows the price in real money and asks shop-checkout for pakke_blackweek and
+    # the boat, straight to Stripe; back with the session paid, the server's twelve grants (10 haill, Turbotrim t72, Skippertak s72) are
+    # in the store and on the fleet, confirmed once as ONE purchase at 499 kr, with no line that sells the pack again; and the gift, a
+    # Turbotrim of 2 hours given with no purchase (the product trim_2, data.comp and bw), adds its two hours and is confirmed as a gift
+    # from us with no price and with the way to the pack. The pack's end is moved round the test's own «now»
+    bwOn = "PACKS.blackweek.until = worldNow() + 3 * 864e5; "
+    await pg.evaluate(bwOn + "document.getElementById('modal').hidden = true; PHONE.open('trim')"); await pg.wait_for_timeout(600)
+    j0 = await pg.evaluate("(() => { const b = document.querySelector('.kbs-hero.bw .kbs-buy'); return {lab:b ? b.textContent : '', fine:!!document.querySelector('#phone .shop-fine'), stock:haillStock(S.haillInv, S.haillSrv, S.haillUsed).haill || 0, thanks:S.msgs.filter(m => /Takk for kjøpet/.test(m.no)).length, rate:GAME_RATE}; })()")
+    n0 = len(calls); await pg.evaluate("document.querySelector('.kbs-hero.bw .kbs-buy').click()"); await pg.wait_for_timeout(700)
+    # (a trim of another kind is on from the steps before: the pack asks first, under its own card, and the second tap buys)
+    jp = await pg.evaluate("(() => { const h = document.querySelector('.kbs-hero.bw'), n = h && h.nextElementSibling, ask = !!n && /Erstatter/.test(n.textContent); if (ask) document.querySelector('.kbs-hero.bw .kbs-buy').click(); return ask; })()") if 'checkout.stripe.test' not in pg.url else None
+    await pg.wait_for_url('**/checkout.stripe.test/**', timeout=30000)
+    jc = [c_ for c_ in calls[n0:] if c_[0] == 'checkout']
+    check('Kjøp' in j0['lab'] and '499 kr' in j0['lab'] and j0['fine'] and len(jc) == 1 and jc[0][1].get('product') == 'pakke_blackweek' and jc[0][1].get('boat') == cur and jc[0][2] == 'Bearer tok_test',
+          'Black Week, live: the card\'s «Kjøp» shows 499 kr in real money with the consent line, and the tap (a second one where a trim of another kind is on: asked under the pack\'s own card) asks shop-checkout for pakke_blackweek and the boat with the player\'s token, straight to Stripe', {'lab': j0['lab'], 'fine': j0['fine'], 'asked': jp, 'checkout': [c_[1] for c_ in jc]})
+    st.setdefault('late', {})['cs_test_1'] = [{'id': 200 + i_, 'product': 'pakke_blackweek', 'data': {'give': 'haill', 'type': 'haill', 'boat': cur}} for i_ in range(10)] + [
+        {'id': 210, 'product': 'pakke_blackweek', 'data': {'give': 'trim', 'k': 't72', 'boat': cur}}, {'id': 211, 'product': 'pakke_blackweek', 'data': {'give': 'skip', 'k': 's72', 'boat': cur}}]
+    await pg.goto(url('kjop=cs_test_1')); await pg.wait_for_function("typeof SHOP !== 'undefined' && CLOUD.user && typeof SIMREADY !== 'undefined' && SIMREADY", timeout=120000)
+    await pg.evaluate(bwOn + "0"); await pg.wait_for_function("!!document.querySelector('#modal:not([hidden]) .shoprc')", timeout=60000)
+    j1 = await pg.evaluate("""(() => { const m = document.getElementById('modal'), its = [...m.querySelectorAll('.shoprc-it:not(.shoprc-bw)')].map(x => x.textContent);
+      return {stock:haillStock(S.haillInv, S.haillSrv, S.haillUsed).haill || 0, trim:trimRec(S.boat) ? {k:trimRec(S.boat).k, h:+(trimLeft(S.boat) / GAME_RATE).toFixed(1)} : null, skip:S.skip ? {k:S.skip.k, h:+(skipLeft() / GAME_RATE).toFixed(1)} : null,
+        head:(m.querySelector('h2') || {}).textContent, its, bw:!!m.querySelector('.shoprc-bw, [data-bw]'), thanks:S.msgs.filter(x => /Takk for kjøpet/.test(x.no)).length}; })()""")
+    check(j1['stock'] - j0['stock'] == 10 and j1['trim'] and j1['trim']['k'] == 't72' and j1['trim']['h'] >= 71.5 and j1['skip'] and j1['skip']['k'] == 's72' and j1['skip']['h'] >= 71.5
+          and j1['head'] == 'Takk for kjøpet!' and len(j1['its']) == 1 and 'Black Week-pakken' in j1['its'][0] and '499 kr' in j1['its'][0] and '×' not in j1['its'][0] and not j1['bw'] and j1['thanks'] - j0['thanks'] == 1,
+          'Black Week, live: back from Stripe the twelve grants give 10 haill in the store, Turbotrim and Skippertak for 72 hours, confirmed once as one purchase at 499 kr, and the confirmation does not sell the pack again', {'before': j0, 'after': j1})
+    await pg.evaluate("document.getElementById('modal').hidden = true"); await pg.wait_for_timeout(300)
+    st['grants'].append({'id': 220, 'product': 'trim_2', 'data': {'give': 'trim', 'k': 't2', 'comp': True, 'bw': True}})
+    await pg.evaluate("shopClaim()"); await pg.wait_for_function("!!document.querySelector('#modal:not([hidden]) .shoprc')", timeout=60000)
+    j2 = await pg.evaluate("""(() => { const m = document.getElementById('modal'); return {h:+(trimLeft(S.boat) / GAME_RATE).toFixed(1), k:trimRec(S.boat).k, head:(m.querySelector('h2') || {}).textContent, txt:m.querySelector('.shoprc').textContent,
+        line:(m.querySelector('.shoprc-bw') || {}).textContent || '', btn:!!m.querySelector('[data-bw]'), thanks:S.msgs.filter(x => /Takk for kjøpet/.test(x.no)).length, msg:(S.msgs.filter(x => /En gave fra Det Store Blå/.test(x.no)).pop() || {}).no || ''}; })()""")
+    check(abs(j2['h'] - j1['trim']['h'] - 2) < 0.2 and j2['head'] == 'En gave fra Det Store Blå' and 'Turbotrim' in j2['txt'] and 'trim_2' not in j2['txt'] and '29 kr' not in j2['txt'] and 'Black Week-pakken' in j2['line'] and j2['btn'] and j2['thanks'] == j1['thanks'] and 'Turbotrim' in j2['msg'],
+          'Black Week, live: the gift from the server (trim_2 with no purchase) adds two hours of Turbotrim and is confirmed as a gift from us by its name, with no price, with the line about the pack and «Se pakken», and in Meldinger', {'trim': [j1['trim'], j2['h']], 'head': j2['head'], 'txt': j2['txt'][:160], 'line': j2['line'][:80], 'msg': j2['msg'][:120]})
+    await pg.evaluate("document.getElementById('modal').hidden = true; PACKS.blackweek.until = 0"); st['grants'] = [g for g in st['grants'] if g['id'] < 200]
     # i. a server from before the migration (the new functions answer 404): the game as after HS3, all of it. What is in the save stands,
     # the pub draws itself, and the chapter's haill is the game's own
     st['hs4'] = False

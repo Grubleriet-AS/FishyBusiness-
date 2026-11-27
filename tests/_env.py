@@ -30,14 +30,18 @@ SEED = os.environ.get('KYST_SEED', '1')
 # seconds (ui/10c-dock.js CALM), and most tests wait longer than that between their clicks: Playwright would wait for a button the
 # calm has hidden until its time-out. So every test plays with the calm off, but the two that are about it: tut.py (the calm must
 # never come in the first trip; the port for U2-4) and roetest.py, which open GAME_RO, the game as a player has it
-GAME_RO = BASE + 'index.html#qfix' + (',seed=' + SEED if SEED != '0' else '')
+# «bw0» (27.11.2026): the Black Week pack, sold till 30.11.2026, is off in the tests' games (core/03-simulation.js), so no test says one
+# thing before that day and another after; bwtest.py turns it on round its own «now»
+GAME_RO = BASE + 'index.html#qfix,bw0' + (',seed=' + SEED if SEED != '0' else '')
 GAME_TUT = GAME_RO + ',ro0'
 # the tests play without the first-trip tutorial; tut.py uses GAME_TUT
-GAME = GAME_TUT + '#notut'
+# vis1: «Vis alt» (steg 152, ui/phone/04-kvote.js stAll): the pages show everything at once, as before the stages, so a test finds every tab
+# and card where it was. The tests of the stages themselves set S.settings.rmAll = false; tut.py plays the game as a new player has it
+GAME = GAME_TUT + ',vis1#notut'
 # KYST_LITE=1 (tests/run.py sets it for the tests that do not look at 3D): the game runs as before, but no 3D frame is drawn,
 # which is most of the time a test takes with SwiftShader
 if os.environ.get('KYST_LITE') == '1':
-    GAME = GAME_TUT + '#notut,no3d'
+    GAME = GAME_TUT + ',vis1#notut,no3d'
 # KYST_MERKE=folk2 (steg 125): one more flag in the address of every test that opens GAME, so a test written without the new
 # people can be run with them (crewclip, workshot); several with a comma
 if os.environ.get('KYST_MERKE'):
@@ -107,6 +111,35 @@ def _no_live():
     goto._dsb = True
     Page.goto, Page.reload = goto, reload
 try: _no_live()
+except ImportError: pass
+
+
+# A screenshot gets at least SHOT_MIN, times KYST_TIDSFAKTOR (27.11.2026). In the regression on GitHub's machines (regresjon.yml, the
+# night to Monday 23.11.2026) nine tests ended the same way, twice each, «Page.screenshot: Timeout … exceeded», the call log ending in
+# «fonts loaded»: aurorashot, skoddeshot, deckshot, workshot, brotest, h2dshot and camtest on the page's default of 120 s (boot),
+# vessel3d on its own default of 120 s and ultratest on the 120 s it gives each picture. The tests that give their pictures 300 s
+# themselves (sunshot, kaishot, wetshot, havnshot and more) were green on the same machines that night. SwiftShader draws on the CPU, a
+# picture waits for a frame, and those machines draw slower than the sessions' (KYST_TIDSFAKTOR, which until now only tests/run.py read,
+# for the limit of a whole test). A picture's limit is no check: a limit a test sets higher stands, 0 (no limit) stays 0, and a picture
+# that hangs is still stopped, by this limit and by run.py's for the whole test.
+SHOT_MIN = 300000
+TIDSFAKTOR = float(os.environ.get('KYST_TIDSFAKTOR') or 1)
+def shot_limit(given, default, factor=TIDSFAKTOR):
+    """The time-out in ms of a screenshot: what the test gave (None: the page's default), but at least SHOT_MIN × factor."""
+    t = default if given is None else given
+    return 0 if t == 0 else max(t, SHOT_MIN * factor)
+def _shot_time():
+    from playwright.async_api import Page
+    if getattr(Page.screenshot, '_dsb', False): return
+    shot0 = Page.screenshot
+    async def screenshot(self, **kw):
+        try: d = self._impl_obj._timeout_settings.timeout()
+        except Exception: d = 30000
+        kw['timeout'] = shot_limit(kw.get('timeout'), d)
+        return await shot0(self, **kw)
+    screenshot._dsb = True
+    Page.screenshot = screenshot
+try: _shot_time()
 except ImportError: pass
 
 
