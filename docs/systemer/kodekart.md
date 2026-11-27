@@ -2760,25 +2760,25 @@ FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2
   - 781 `farbFieldAt(x, z, cell = 2)`
 - **783** the channels dredged along the coast (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
 
-## `src/js/core/17b-bane.js` (104 linjer)
+## `src/js/core/17b-bane.js` (112 linjer)
 
 BANEN: THE WAY AS A TRAJECTORY SHE CAN SAIL (Autonav 2.0 F2, steg 142, 24.11.2026)
 
 - **1** BANEN: THE WAY AS A TRAJECTORY SHE CAN SAIL (Autonav 2.0 F2, steg 142, 24.11.2026)
   - 13 `baneBoat(type, kn)`
-  - 21 `baneBuild(pts, o)`
-  - 34 `baneAt(B, s)`
-  - 39 `baneBefore(o, v1, d)`
-  - 42 `baneSpeed(B)`
-  - 53 `baneV(B, s)`
-  - 54 `baneS(B, t)`
-  - 58 `banePts(B)`
-  - 76 `baneFri(B, boat, H, opt)`
-  - 82 `baneLeg(pl)`
-  - 83 `baneOf(g)`
-  - 90 `baneSail(pl, b, left0)`
+  - 27 `baneBuild(pts, o)`
+  - 41 `baneAt(B, s)`
+  - 46 `baneBefore(o, v1, d)`
+  - 49 `baneSpeed(B)`
+  - 61 `baneV(B, s)`
+  - 62 `baneS(B, t)`
+  - 66 `banePts(B)`
+  - 84 `baneFri(B, boat, H, opt)`
+  - 90 `baneLeg(pl)`
+  - 91 `baneOf(g)`
+  - 98 `baneSail(pl, b, left0)`
 
-## `src/js/core/17c-plan.js` (457 linjer)
+## `src/js/core/17c-plan.js` (532 linjer)
 
 PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2, steg 142, 24.11.2026)
 
@@ -2795,12 +2795,15 @@ PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2
   - 320 `planBoat(type, x, z)`
   - 325 `planFresh()`
   - 329 `planBane(a, b, type, opt)`
-- **413** where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
-  - 417 `planDigRuns(P, sh, o)`
-  - 435 `planDig(a, b, type, opt)`
-  - 447 `planEnd(pid, type, kind)`
-  - 451 `planInto(pl, R, i0, i1)`
-  - 456 `planOn()`
+- **443** where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
+  - 447 `planDigRuns(P, sh, o)`
+  - 465 `planDig(a, b, type, opt)`
+  - 477 `planEnd(pid, type, kind)`
+- **478** the harbour search with her heading (G2, steg 142, 27.11.2026)
+  - 519 `planHavn(bp, goal, L, B, free, o)`
+  - 522 `planHavnRev(P)`
+  - 526 `planInto(pl, R, i0, i1)`
+  - 531 `planOn()`
 
 ## `src/js/ui/01-i18n.js` (120 linjer)
 
@@ -4122,13 +4125,13 @@ The profile and the founders' badge (Jonas 16.11.2026, before the launch: «prof
 
 - **1** The profile and the founders' badge (Jonas 16.11.2026, before the launch: «profil-side med brukernavn, fartstid, ferdigheter,
 
-## `src/js/ui/10w-fix.js` (64 linjer)
+## `src/js/ui/10w-fix.js` (67 linjer)
 
 ---- an admin's correction, delivered to this game (26.11.2026; supabase/migrations/20261126120000_fixes.sql, the tab «Korrigering» in
 
 - **1** an admin's correction, delivered to this game (26.11.2026; supabase/migrations/20261126120000_fixes.sql, the tab «Korrigering» in
-  - 19 `admfixSaved()`
-  - 25 `fixClaim()`
+  - 22 `admfixSaved()`
+  - 28 `fixClaim()`
 
 ## `src/js/ui/11-boot.js` (465 linjer)
 

@@ -575,7 +575,22 @@ Færre turer seilt enn sist fordi Urangsvåg utstyrsbutikk (9 linjer) ikke lenge
 - **Samme bane kontrollert og seilt.** Planen lagrer banens punkter i cm, og minuttsteget bygger banen fra dem. Med manøverens hjørner ble banen fra de avrundede tallene en annen enn den kontrollerte, `baneOf` ga ingen, og turen ble seilt fra punkt til punkt som før banen (Averøy–Tustna med skiffen over land i 15 knop på benken). Punktene rundes nå før kontrollen, og benken melder `bane: false` der en plan har bane og minuttsteget ikke følger den.
 - **Observatøren følger banen** (`benk.js` `watchBane`): gjennom hvert minutt sveiper den skroget langs banen selv, hver andre meter, med kursen og farten banen har der. Før fulgte den planens punkter med kursen lik fartsretningen og minuttets snittfart: en manøver på 30 m ved kaia ble en rett strek over kaihjørnet i «3 knop». Regelen for egen kai (under én knop innen halvannen båtlengde) regnes fra banens ender. Det gjør observatøren riktigere, ikke snillere: den ser fortsatt hver stilling, tettere enn før.
 
-BENK6
+**Benken på hele lista** (`docs/planer/autonav-benk/ny-steg142-g2/turer.jsonl`; 93 strekninger, 332 linjer, bakgrunnsturen, uten CPU-strupingen, tre deler samtidig):
+
+| | Femte økt | Nå | Kravet |
+|---|---|---|---|
+| Turer seilt | 270 | 270 | |
+| Turer med treff | 4 | **0** | 0 |
+| Turer over tegnet fjære | 10 | 6 (alle i rennene 3D ikke har gravd: Træna tre, Lindesnes tre) | 0 |
+| Uten bane der fasiten har vei | 3 | 3 (Sandshamn verft vest pelagisk, reine og bru-storvalen kyst21) | 0 |
+| Lengde mot fasiten, median | 0,2 % over | 0,7 % over (p90 3,4 %; manøvrene er med i lengden) | høyst 5 % |
+| Lengste bane mot fasiten | 1,10 | 1,10 (Værøy kyst21) | høyst 1,15 |
+| Manøver ut fra kai / inn til kai | | 131 / 65 av 270 turer (resten ender i et punkt på sjøen, ved et naust, eller gikk til havnas punkt) | |
+| Planleggingstid, ustrupet, maskinen opptatt | median 1,0 s, p90 5,4 s, lengst 42 s | median 2,4 s, p90 12,5 s, lengst 106 s | under 1 s strupet (ikke målt) |
+
+Planleggingstiden har økt: manøversøket spør geometrien for hver stilling på hovedtråden (opptil 2 000 steder per ende), og en ende uten manøver planlegges én gang til mot havnas punkt. Det er punkt 6 og er ikke løst. Farsjekken er ikke kjørt på nytt (kartet er ikke endret siden femte økt, der den var 0). Hele enhetssettet: 5 773 OK.
+
+**Det som står igjen av G2:** manøveren finnes ikke ved alle kaiplasser (inn til kai: 65 turer); der går enden til havnas punkt, og `arrive()` setter henne ved kaiplassen som før. Naustene og rorbuene har ikke manøver (benken gir dem ikke `planEnd`). Sidelengs gange er en planleggingsforenkling: F3 (kaimanøveren med fysikk og avgrenset hjelp, valg 3) må avgjøre hvordan båten faktisk tas ut fra kaia.
 
 
 ### Det kontrollen fant (24.11.2026)
