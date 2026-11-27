@@ -30,7 +30,9 @@ SEED = os.environ.get('KYST_SEED', '1')
 # seconds (ui/10c-dock.js CALM), and most tests wait longer than that between their clicks: Playwright would wait for a button the
 # calm has hidden until its time-out. So every test plays with the calm off, but the two that are about it: tut.py (the calm must
 # never come in the first trip; the port for U2-4) and roetest.py, which open GAME_RO, the game as a player has it
-GAME_RO = BASE + 'index.html#qfix' + (',seed=' + SEED if SEED != '0' else '')
+# «bw0» (27.11.2026): the Black Week pack, sold till 30.11.2026, is off in the tests' games (core/03-simulation.js), so no test says one
+# thing before that day and another after; bwtest.py turns it on round its own «now»
+GAME_RO = BASE + 'index.html#qfix,bw0' + (',seed=' + SEED if SEED != '0' else '')
 GAME_TUT = GAME_RO + ',ro0'
 # the tests play without the first-trip tutorial; tut.py uses GAME_TUT
 # vis1: «Vis alt» (steg 152, ui/phone/04-kvote.js stAll): the pages show everything at once, as before the stages, so a test finds every tab

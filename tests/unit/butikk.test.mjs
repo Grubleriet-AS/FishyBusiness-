@@ -37,6 +37,21 @@ export default function (t){
   // the hop over the rest of a route (HO3): its price is the server's for the minutes (shop_quote_hop); the product's own price is the least
   t.eq(DB.hopp && DB.hopp.nok, K.HOP.min, 'hopp: produktets pris i databasen er minsteprisen (' + K.HOP.min + ' kr); resten regnes etter minuttene');
   t.eq(SP.hopp, 'hopp', 'hopp: kassen kjenner produktet');
+  // the packs (the season pack 16.11.2026, Black Week 27.11.2026): what the card says is in a pack is what the database delivers, a
+  // pack with an end is refused by the server from the same moment the game takes its card away, and that moment is the end of the
+  // day the card names, in Norwegian time
+  for (const k in K.PACKS){ const P = K.PACKS[k], D = DB[SP['pk_' + k]], it = D && D.data.items || [], f = g => it.find(x => x.give === g) || {};
+    t.eq(f('haill').n, P.haill, 'pk_' + k + ': databasen gir like mange haill som kortet sier (' + P.haill + ')');
+    t.eq(f('trim').k, P.trim, 'pk_' + k + ': databasen gir trimmen kortet sier (' + P.trim + ')');
+    t.eq(f('skip').k, P.skip, 'pk_' + k + ': databasen gir Skippertaket kortet sier (' + P.skip + ')');
+    t.eq(D && D.data.until != null ? Date.parse(D.data.until) : null, P.until == null ? null : P.until, 'pk_' + k + ': serverens slutt er spillets slutt');
+    t.ok(P.nok < K.packWorth(P), 'pk_' + k + ': pakken koster mindre enn delene hver for seg (' + P.nok + ' mot ' + K.packWorth(P) + ' kr)'); }
+  { const B = K.PACKS.blackweek;
+    t.eq(K.packWorth(B), 910, 'Black Week: delene koster 910 kr hver for seg');
+    t.eq(Math.round((1 - B.nok / K.packWorth(B)) * 100), 45, 'Black Week: «Spar 45 %» er regnet fra de ekte prisene');
+    t.eq(new Date(B.until).toLocaleString('sv-SE', {timeZone:'Europe/Oslo'}), '2026-12-01 00:00:00', 'Black Week: slutten er midnatt etter mandag 30.11 i norsk tid');
+    t.ok(K.packOn(B, B.until - 1) && !K.packOn(B, B.until) && !K.packOn(B, B.until + 864e5), 'Black Week: i salg til slutten, ikke fra og med den');
+    t.ok(K.packOn(K.PACKS.sesong, B.until + 864e5), 'Sjøværspakken har ingen slutt'); }
   // and the other way: every product the database sells (not the thank-you, which is never bought) is one the game sells
   const sold = new Set(Object.values(SP));
   for (const id of Object.keys(DB).filter(id => !DB[id].data.reward)) t.ok(sold.has(id), id + ': databasens produkt selges i spillet');

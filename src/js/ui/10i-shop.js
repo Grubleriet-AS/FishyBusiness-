@@ -36,7 +36,9 @@ const SHOP_PRODUCT = {haill:'haill', luksus:'luksus', pump:'trim_pump', ic:'trim
   // the price ladder (16.11.2026, supabase/migrations/20261116180000_prisstige.sql): haill in packs, Turbotrim and Skippertak in four
   // lengths, the season pack
   hp_h1:'haill', hp_h3:'haill_3', hp_h8:'haill_8', t2:'trim_2', t8:'trim_8', t24:'trim_24', t72:'trim_72',
-  sk_s2:'skip_2', sk_s8:'skip_8', sk_s24:'skip_24', sk_s72:'skip_72', pk_sesong:'pakke_sesong'};   // the hop over the rest of a route (HO3, ui/10u-hopp.js): the price is the server's for the minutes (shop_quote_hop)
+  sk_s2:'skip_2', sk_s8:'skip_8', sk_s24:'skip_24', sk_s72:'skip_72', pk_sesong:'pakke_sesong',
+  pk_blackweek:'pakke_blackweek'};   // (Black Week, 27.11.2026, supabase/migrations/20261127120000_blackweek.sql: sold till PACKS.blackweek.until)
+  // (the hop over the rest of a route, HO3, ui/10u-hopp.js: the price is the server's for the minutes, shop_quote_hop)
 const shopFn = () => CLOUD_CFG.supabaseUrl.replace(/\/$/, '') + '/functions/v1/shop-checkout';
 const shopL = (no, en) => S.lang === 'en' ? en : no;
 function shopMode(){
@@ -128,17 +130,25 @@ function shopThanks(rc){
   // (a pack is one purchase that gives several grants, 20261116180000_prisstige.sql: the grants of one product are one line, with the
   // price once per purchase, never once per grant; the purchases are the grants over what one purchase gives, rounded up)
   const per = k => /^hp_/.test(k) && HAILL_PACKS[k.slice(3)] ? HAILL_PACKS[k.slice(3)].n : /^pk_/.test(k) && PACKS[k.slice(3)] ? PACKS[k.slice(3)].haill + 2 : 1;
-  const grp = new Map(); for (const r of rc){ const k = Object.keys(SHOP_PRODUCT).find(x => SHOP_PRODUCT[x] === r.g.product), key = String(r.g.product || '') + ((r.g.data || {}).comp ? ':comp' : '') + (k && per(k) > 1 ? '' : ':' + r.g.id); if (!grp.has(key)) grp.set(key, []); grp.get(key).push(r); }
-  const its = [...grp.values()].map(rs => { const r = rs[0], k = Object.keys(SHOP_PRODUCT).find(x => SHOP_PRODUCT[x] === r.g.product), w = k ? shopWhat(k, r.g) : null, n = Math.ceil(rs.length / (k ? per(k) : 1));
+  // (a gift that is no product of the shop, the Black Week gift bw_trim: named by what it gives)
+  const keyOf = g => Object.keys(SHOP_PRODUCT).find(x => SHOP_PRODUCT[x] === g.product) || ((g.data || {}).give === 'trim' && BOOSTS[g.data.k] ? g.data.k : undefined);
+  const grp = new Map(); for (const r of rc){ const k = keyOf(r.g), key = String(r.g.product || '') + ((r.g.data || {}).comp ? ':comp' : '') + (k && per(k) > 1 ? '' : ':' + r.g.id); if (!grp.has(key)) grp.set(key, []); grp.get(key).push(r); }
+  const its = [...grp.values()].map(rs => { const r = rs[0], k = keyOf(r.g), w = k ? shopWhat(k, r.g) : null, n = Math.ceil(rs.length / (k ? per(k) : 1));
     const uniq = a => [...new Set(a)].join(' ');
     return {nm:(w ? w.name : String(r.g.product || '')) + (n > 1 ? ' × ' + n : ''), nok:(r.g.data || {}).comp ? 0 : w ? w.nok * n : 0, no:uniq(rs.map(x => x.no)), en:uniq(rs.map(x => x.en))}; });
   const head = gift ? ['En gave fra Det Store Blå', 'A gift from Det Store Blå'] : ['Takk for kjøpet!', 'Thank you for your purchase!'];
   const lead = gift ? ['Vi har gitt deg dette, og det er levert i spillet:', 'We have given you this, and it is delivered in the game:'] : ['Betalingen er gjennomført, og kjøpet er levert i spillet:', 'The payment went through, and the purchase is delivered in the game:'];
   msg('Det Store Blå', head[0] + ' ' + its.map(x => x.nm + (x.nok ? ' (\u{1F48E} ' + x.nok + ' kr)' : '') + ': ' + x.no).join(' '), head[1] + ' ' + its.map(x => x.nm + (x.nok ? ' (\u{1F48E} ' + x.nok + ' kr)' : '') + ': ' + x.en).join(' '));
+  // the way to the Black Week pack while it is sold (docs/planer/svart-fredag.md: the confirmation is where every buyer and every
+  // one who got the gift looks): one line with its content, what the parts cost and its last day, and a button that opens Kaiboden.
+  // Not after the pack itself, and not where the shop is closed
+  const B = PACKS.blackweek, bw = packOn(B, worldNow()) && shopMode() !== 'off' && !rc.some(r => r.g.product === SHOP_PRODUCT.pk_blackweek);
+  const bwLine = bw ? '<p class="shoprc-it shoprc-bw"><b>' + L(B.no, B.en) + '</b> · ' + realKr(B.nok) + '<br>' + L(B.haill + ' haill, Turbotrim og Skippertak i 3 døgn. Kjøpt hver for seg: ' + packWorth(B) + ' kr. Selges til og med ' + B.day[0] + '.', B.haill + ' luck, Turbo tune and Skippertak for 3 days. Bought one by one: ' + packWorth(B) + ' kr. On sale through ' + B.day[1] + '.') + '</p>' : '';
   const html = '<div class="ob shoprc"><p class="reg-from">Det Store Blå</p><h2>' + L(head[0], head[1]) + '</h2><p>' + L(lead[0], lead[1]) + '</p>' +
     its.map(x => '<p class="shoprc-it"><b>' + x.nm + '</b>' + (x.nok ? ' · ' + realKr(x.nok) : '') + '<br>' + L(x.no, x.en) + '</p>').join('') +
-    '<p class="note">' + L('Bekreftelsen ligger også i Meldinger.', 'The confirmation is in Messages too.') + '</p><div class="btns"><button class="btn p" data-close>' + L('Fint!', 'Great!') + '</button></div></div>';
-  const show = () => { const m = document.getElementById('modal'); if (m && !m.hidden){ setTimeout(show, 2000); return; } modal(html); };
+    bwLine + '<p class="note">' + L('Bekreftelsen ligger også i Meldinger.', 'The confirmation is in Messages too.') + '</p><div class="btns">' + (bw ? '<button class="btn" data-close data-bw>' + L('Se pakken', 'See the pack') + '</button>' : '') + '<button class="btn p" data-close>' + L('Fint!', 'Great!') + '</button></div></div>';
+  const show = () => { const m = document.getElementById('modal'); if (m && !m.hidden){ setTimeout(show, 2000); return; } modal(html);
+    const b = m && m.querySelector('[data-bw]'); if (b) b.onclick = () => { m.hidden = true; if (typeof cloudEv === 'function') cloudEv('shop_view', {pg:'bw_rc'}); PHONE.open('trim'); }; };
   setTimeout(show, 300);
 }
 // Bought, delivered and not in this save (HS3): given again, in the order they were delivered, as if each came on then. A trim goes on

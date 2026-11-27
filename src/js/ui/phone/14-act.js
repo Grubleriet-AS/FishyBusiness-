@@ -45,7 +45,7 @@
     if (a === 'open' && d.a === 'nett'){ sub.nett = d.s || 'home'; if (sub.nett === 'shop' && typeof cloudEv === 'function') cloudEv('shop_view', {pg:'nett'}); }
     if (a === 'sub' && app === 'nett' && d.s === 'shop' && typeof cloudEv === 'function') cloudEv('shop_view', {pg:'nett'});
     if (a === 'open' && d.a === 'handbok' && typeof HBUI !== 'undefined') HBUI.only = d.hbid || null;   // an item card's «Mer» opens its one entry (ui/05a-itemcard.js)
-    if (a === 'open'){ appSeen(d.a); app = d.a === 'kaiboden' ? kbLast : d.a; confirmMayday = false; if (d.s) sub[d.a] = d.s; if (d.a === 'post') sub.postArt = null; }
+    if (a === 'open'){ appSeen(d.a); app = d.a === 'kaiboden' ? kbFirst() : d.a; confirmMayday = false; if (d.s) sub[d.a] = d.s; if (d.a === 'post') sub.postArt = null; }
     else if (a === 'home'){ app = 'home'; }
     else if (a === 'back'){ app = 'home'; }
     else if (a === 'shop'){ const k = d.k, kg = +d.kg || 0; if (!shopPend || shopPend.k !== k || shopPend.kg !== kg || Date.now() - shopPend.t > IC_CONFIRM_MS){ shopPend = {k, kg, t:Date.now()}; return true; } shopPend = null; const free = tutFree(k); buyMark(); const why = shopBuy(k, kg, free); if (why){ toast(L(why[0], why[1])); } else { if (free){ if (k === 'ice') S.iceFree = 0; tutMark('free_' + k); } if (k !== 'ice') shopBought(k === 'jig' ? 'Håndjuksa' : 'Kveiteutstyr', k === 'jig' ? 'Hand jig' : 'Halibut gear'); if (typeof cloudEv === 'function') cloudEv('shop_buy', {w:'shop', k}); receipt(k === 'ice' ? L(fmt(kg, 0) + ' kg is', fmt(kg, 0) + ' kg ice') : k === 'jig' ? L('Håndjuksa', 'Hand jig') : L('Kveiteutstyr', 'Halibut gear'), 'shop', k); } }
@@ -195,6 +195,7 @@
       // (the first luxury luck is free: taken first, as haillbuy asks; and a pack whose trim would take the place of an old one of another
       // kind on now asks first, as trimbuy does: trimPend, the note at the top of kbShop)
       if (/^hp_/.test(k) && tutFree('haill')){ toast(L('Hent den gratis luksushaillen først.', 'Take the free luxury luck first.')); return true; }
+      if (/^pk_/.test(k) && PACKS[k.slice(3)] && !packOn(PACKS[k.slice(3)], worldNow())){ toast(L('Tilbudet er over.', 'The offer is over.')); return true; }   // (Black Week: the card stood open over its end; the server refuses it too)
       if (/^pk_/.test(k) && PACKS[k.slice(3)]){ const on = trimOn(S.boat); if (on && boostKind(trimRec(S.boat).k) !== boostKind(PACKS[k.slice(3)].trim) && trimPend !== k){ trimPend = k; return true; } trimPend = null; }
       if (/^hp_/.test(k) && HAILL_PACKS[k.slice(3)]){ const P = HAILL_PACKS[k.slice(3)]; payBuy(k, () => { for (let i = 0; i < P.n; i++) giveHaill('haill', 'shop'); toast(L(P.n + ' haill ligger i Mine boostere. Slå på når du vil.', P.n + ' luck wait in My boosters. Switch on when you want.')); }); }
       else if (k === 'luksus') return act0('haillbuy', {k:'luksus'});

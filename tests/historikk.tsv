@@ -6605,3 +6605,13 @@
 2026-11-26 15:17	ccr-5e1ba2f4-pusvyd	49bcaf7	maptest	OK	16	lite	alene	
 2026-11-26 15:18	ccr-5e1ba2f4-pusvyd	49bcaf7	routetest	FEIL	45	lite	alene	FEIL Kast loss setter ruta i gang, og kartplotteren står åpen  {'plan': False, 'plot': True, 'g3': False}
 2026-11-26 15:18	ccr-5e1ba2f4-pusvyd	49bcaf7	maptest	OK	16	lite	alene	
+2026-11-27 11:17	ccr-1a8b7d9a-89hfb6	0808959+	kjoptest	OK	200	lite	samtidig	
+2026-11-27 11:17	ccr-1a8b7d9a-89hfb6	0808959+	fasittest	OK	42	lite	samtidig	
+2026-11-27 11:17	ccr-1a8b7d9a-89hfb6	0808959+	vervtest	OK	8	lite	samtidig	
+2026-11-27 11:17	ccr-1a8b7d9a-89hfb6	0808959+	hailltest	LES	24	lite	samtidig	
+2026-11-27 11:17	ccr-1a8b7d9a-89hfb6	0808959+	bwtest	OK	28	lite	samtidig	
+2026-11-27 11:19	ccr-1a8b7d9a-89hfb6	0808959+	bwtest	OK	60	lite	samtidig	
+2026-11-27 11:19	ccr-1a8b7d9a-89hfb6	0808959+	skiptest	OK	17	lite	samtidig	
+2026-11-27 11:19	ccr-1a8b7d9a-89hfb6	0808959+	hopptest	OK	8	lite	samtidig	
+2026-11-27 11:22	ccr-1a8b7d9a-89hfb6	0808959+	kjoptest	OK	196	lite	samtidig	
+2026-11-27 11:22	ccr-1a8b7d9a-89hfb6	0808959+	fasittest	OK	41	lite	samtidig	

@@ -1,6 +1,6 @@
 # Black Week: tilbudet i Kaiboden (plan 27.11.2026)
 
-Status: **plan, ingenting bygd. Valgene er tatt** (Jonas 27.11.2026): V1 A, ny pakke og gave; V2 B, bare Black Week, til og med mandag 30.11, med datoen på kortet; V3 A, 499 kr; V4 A, Turbotrim 2 timer. Byggingen venter på «kjør på».
+Status: **plan, ingenting bygd. Valgene er tatt** (Jonas 27.11.2026): V1 A, ny pakke og gave; V2 B, bare Black Week, til og med mandag 30.11, med datoen på kortet; V3 A, 499 kr; V4 A, Turbotrim 2 timer. **SF1 og SF2 er bygd** (steg 154, 27.11.2026, Jonas: «Kjør på. Husk at vi må selge, og at vi må bruke alle psykologiske triggere og faktorer i hvordan vi utløser mer-salg!»), som én PR til Jonas. Se «Bygd» nederst.
 
 ## Hva Jonas ba om
 
@@ -17,7 +17,7 @@ Alle beløp er brutto med mva., før betalingsgebyr. Butikken har vært åpen fo
 | Betalt i alt | 25 916 kr på 616 kjøp, 76 betalende |
 | Per døgn | topp 3 863 kr (ons 18.11) og 3 980 kr (søn 22.11); de tre siste hele døgnene 1 737, 2 087 og 1 648 kr |
 | Aktive per døgn | 110–130, jevnt; nye spillere har falt fra 394 (17.11) til 15–61 |
-| Betalende av registrerte | 76 av 410 (18,5 %); 60 av 76 har kjøpt mer enn én gang |
+| Betalende av registrerte | 76 av 322 kontoer med innlogging (24 %); 60 av 76 har kjøpt mer enn én gang. (Rettet 27.11: første utgave sa 410, etter `players.guest`, som også teller gjester som ikke har landet eller seilt) |
 | Første kjøp | median 9 timer etter at kontoen ble laget, tre av fire innen 1,4 døgn |
 | Tilbakebetalt | 8 kjøp, 445 kr, alle hopp |
 
@@ -29,7 +29,7 @@ Alle beløp er brutto med mva., før betalingsgebyr. Butikken har vært åpen fo
 
 **Det som ikke blir kjøp:**
 - 202 påbegynte betalinger løp ut mot 616 betalte (én av fire). 67 spillere har prøvd uten noen gang å betale (92 forsøk, 4 406 kr); 56 av dem var aktive siste uke.
-- 334 registrerte har ikke betalt (217 aktive siste uke), og 556 er gjester (220 aktive siste uke) som ikke kan kjøpe.
+- Rundt 250 kontoer med innlogging har ikke betalt, og resten er gjester som ikke kan kjøpe. (Første utgave sa 334 og 556 etter `players.guest`; kontoene med innlogging er 322.)
 - 105 betalte hopp kostet 5–9 kr og ga til sammen 629 kr; det faste gebyret per betaling tar en stor del av så små kjøp.
 
 **Haill er det mye av gratis:** rundt 320 gratis haill ligger ubrukt (153 av 317 velkomstgaver, og fra puben, kapittel 2 og takk). Av Sjøværspakkens 120 leveringer er 53 ubrukt.
@@ -62,7 +62,7 @@ Alle beløp er brutto med mva., før betalingsgebyr. Butikken har vært åpen fo
 **Ikke et prisavslag, men en større pakke og en gave.**
 
 - **Black Week-pakken (arbeidsnavn), 499 kr, til og med mandag 30.11.2026:** Turbotrim 3 døgn, Skippertak 3 døgn og 8 haill. Delene koster 910 kr enkeltvis (299 + 299 + 8 × 39), så «Spar 45 %» med samme regnemåte og samme forhold som Sjøværspakken (454 → 249). Den hever taket for de 15 som kjøper mest, uten å senke prisen på noe som selger i dag.
-- **Gaven:** én Turbotrim 2 timer til hver registrerte spiller, som melding fra Kaiboden. Den lar de 334 som ikke har betalt, prøve det som sparer tid, og meldingen fører inn i Kaiboden der pakken ligger øverst. Gjester får den når de registrerer seg i perioden.
+- **Gaven:** én Turbotrim 2 timer til hver registrerte spiller, som melding fra Kaiboden. Den lar de rundt 250 som ikke har betalt, prøve det som sparer tid, og meldingen fører inn i Kaiboden der pakken ligger øverst. Gjester får den når de registrerer seg i perioden.
 - **Varigheten og unntaket (V2 B):** pakken selges til og med mandag 30.11.2026, og kortet sier det som en dato i tekst («Til og med mandag 30.11»), ikke som en klokke som teller. Det er et unntak Jonas har gjort fra «ingen nedtelling i butikken» og «tidspress aldri knyttet til butikken», for denne pakken alene; regelen står for resten av butikken (`docs/regler-bakgrunn.md`).
 - **Slutten må holde:** «Black Week» sier selv at tilbudet er over etter perioden (Kitchn-saken), så pakken forlenges ikke. Spillet skjuler kortet etter datoen, og produktraden settes `active = false` 1.12 (en dataendring Jonas kjører). Gaven gis i samme periode.
 - **Tida er knapp:** PR-ene må flettes og slippes med «slipp nå» for at pakken skal ligge ute i helga. Ute lørdag gir det knapt tre døgn.
@@ -103,3 +103,26 @@ Leses i `purchases` og `grants`, bare summer: pakkens kjøp per døgn og hvor ma
 - Ingen tilfeldig innhold, ingen fiktiv valuta, ingenting til gjester for penger.
 - Retter ikke betalingene som løper ut, og samler ikke små hopp i klipp: det er egne avgjørelser.
 - Ingen e-post eller annonsering utenfor spillet.
+
+## Bygd (steg 154, 27.11.2026)
+
+SF1 og SF2 ble én leveranse og én PR, fordi veien fra kvitteringen til pakken er felles for begge. Hva som er bygd, står i `docs/systemer/haill-pub-og-bonus.md`, «Black Week-pakken».
+
+**Det som skal få pakken solgt, og hvorfor det er med:**
+
+| Virkemiddel | Hvor | Hvorfor det er ærlig |
+|---|---|---|
+| Anker: «Kjøpt hver for seg: 910 kr» | kortet og kvitteringen | delene selges til de prisene i dag |
+| Gevinsten i kroner: «Du sparer 411 kr» ved siden av «Spar 45 %» | kortet | samme regnestykke, i det tallet som veier mest over 100 kr |
+| Tidsvindu: «Selges til og med mandag 30.11» | kortet og kvitteringen | datoen holder: serveren nekter pakken etterpå, og den forlenges ikke |
+| Gjengjeld og smaksprøve: gaven Turbotrim 2 timer | alle kontoer med innlogging | en ekte gave uten vilkår; den som har kjent dobbel fart, vet hva pakken gir |
+| Øyeblikket etter et kjøp: linja og «Se pakken» | kvitteringsvinduet | den som nettopp har betalt 19 kr, ser hva 499 kr gir; ett trykk, ingen sperre |
+| Plassering og kontrast: øverst, mørkt med gull, eget bilde | Kaiboden | pakken er den største varen butikken har |
+| Lokkevare ved siden av: 3 døgn av én sort koster 299 kr | radene under | prisene sto der fra før; pakken gir begge sortene og haill for 200 kr mer |
+| Oppdagelse: gullprikk på Kaiboden-knappen | 3D-skjermen | sier at noe er nytt, til butikken er åpnet én gang |
+
+**Ikke med, og hvorfor:** gjennomstreket pris (ville vært en førpris, og prisene ble hevet 16.11), klokke som teller ned og «bare N igjen» (ikke sant for en digital vare, og mot «ingen nedtelling»), push om tilbudet (push er bare om egen båt og eget redskap), vindu som spretter opp under spilling, antall kjøpere (med 15 store kjøpere ville tallet virket mot sin hensikt, og kjøpte fordeler skal ikke synes), pris etter hvem som kjøper.
+
+**Gemini** (ett `ask_gemini`-kall, ett bilde med `generate_game_asset`): mobil-UX-malen ga 3–5 av 5. Funnene som ble rettet: «Til og med mandag 30.11» kunne leses som at boosterne varer til da (nå «Selges til og med …»), notelinja med 910 kr var for svak (større og lysere), og knappene i kvitteringen var under 48 px (nå 48). Ikke rettet: kjøpsknappen i liggende format står i øvre høyre del av skjermen, utenfor den beste tommelsonen; den følger kortets plass øverst i lista.
+
+**Avlesningen (SF3)** gjenstår til 1.12 og 7.12, se «Måling».

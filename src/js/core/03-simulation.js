@@ -1409,7 +1409,15 @@ HAILL.takk = {no:'Takk-haill', en:'Thank-you luck', nok:0, reward:true, steps:[[
 // dabbe av»): the same haill, more of them, each switched on when the player wants (the server gives one grant each, n in the product)
 const HAILL_PACKS = {h1:{n:1, nok:39}, h3:{n:3, nok:99}, h8:{n:8, nok:229, best:true}};   // (raised 16.11.2026 with the trims)
 // the season pack («Jeg er også enig i at en samlepakke kan være et alternativ»): its content known before it is bought, no chance in it
-const PACKS = {sesong:{nok:249, haill:4, trim:'t24', skip:'s24', no:'Sjøværspakken', en:'The fishing trip pack'}};   // (renamed: Jonas 16.11.2026, «et sjøvær [er] en fisketur eller fangstekspedisjon på sjøen»; the key stays)
+const PACKS = {sesong:{nok:249, haill:4, trim:'t24', skip:'s24', no:'Sjøværspakken', en:'The fishing trip pack'},   // (renamed: Jonas 16.11.2026, «et sjøvær [er] en fisketur eller fangstekspedisjon på sjøen»; the key stays)
+  // Black Week (Jonas 27.11.2026, docs/planer/svart-fredag.md: a bigger pack, no price put down, «Bare Black Week»): sold till the end
+  // of Monday 30.11.2026 Norwegian time (until, ms; the server refuses it from the same moment, products.data.until) and never
+  // prolonged. day is the last day as the card says it: a date in words, no clock that counts
+  blackweek:{nok:499, haill:8, trim:'t72', skip:'s72', no:'Black Week-pakken', en:'The Black Week pack', until:Date.UTC(2026, 10, 30, 23), day:['mandag 30.11', 'Monday 30 Nov']}};
+const packOn = (P, ms) => !!P && (P.until == null || ms < P.until);   // is the pack on sale at the moment ms (the world's clock, worldNow)
+// («bw0» in the address, the tests' games, tests/_env.py: an offer that is there or not by the day the test runs is off, so a test says
+// the same before and after its end; tests/bwtest.py puts it on round its own «now»)
+if (typeof location !== 'undefined' && /(^|[#,])bw0(?![\w=])/.test(location.hash || '')) PACKS.blackweek.until = 0;
 const packWorth = P => HAILL_PACKS.h1.nok * P.haill + BOOSTS[P.trim].nok + SKIP[P.skip].nok;   // what the parts cost one by one (a haill at the single price)
 const HAILL_STAGE = [[2, 'Luksushaill', 'Luxury luck'], [1, 'Fersk haill', 'Fresh luck'], [0.5, 'Mellomhaill', 'Middle luck'], [0.25, 'Gammelhaill', 'Old luck']];
 const haillAge = () => S.haill ? (S.t - S.haill.t0) / 60 : 1e9;   // hours since it was switched on
