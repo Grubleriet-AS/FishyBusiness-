@@ -1,5 +1,9 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['frakt-271126', '27.11.2026', 'Oppdrag: frakt og slep', 'Missions: freight and tows', [
+       ['Fraktoppdrag betales etter hvor mye som fraktes. For båter under 11 m er alt som før.', 'Freight missions are paid by how much is carried. For boats under 11 m everything is as before.'],
+       ['Båtene på 11 m og over får tilbud om større last: fiskekar til et mottak, og fôr til et oppdrettsanlegg.', 'The vessels of 11 m and over are offered bigger cargo: fish tubs for a landing station, and feed for a fish farm.'],
+       ['Slep med de største båtene: tida betales etter størrelsen på båten som slepes. Oppdrag du alt har tatt, betales som lovet.', 'Tows with the largest vessels: the time is paid by the size of the boat towed. Missions you have taken already are paid as promised.']]],
     ['rute-271126', '27.11.2026', 'Båten blir på ruta si', 'The boat stays on her route', [
        ['Åpnet du spillet på nytt like etter avgang, kunne båten bli flyttet tilbake til havna og miste ruta. Nå fortsetter hun der hun var.', 'If you opened the game again just after a departure, the boat could be moved back to the harbour and lose her route. Now she goes on from where she was.'],
        ['Spillet på enheten din byttes ikke lenger ut med en litt eldre lagring fra kontoen når den nyeste ikke rakk å bli bekreftet.', 'The game on your device is no longer swapped for a slightly older save from your account when the newest one was not confirmed in time.']]],
