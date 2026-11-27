@@ -12,7 +12,15 @@ device and asks the account which game goes on. One device against a stand-in fo
   3. the page lives on: a save reaches the account and its answer is lost (the network), and the server's clock is ahead of the
      device's. The next save is refused (the account has moved on), and the game here goes on and is saved over the account's own
      older copy. Before, the server's time of that copy was held against the device's clock, and the older game was taken back
-  4. no page errors
+  4. the boat off the route's line with land between her and the next point (leaving her berth, rounding a point: the manoeuvring
+     model's track, not the line), held for a hop: the page that comes back keeps her on her route, and the hop is made. Before, the
+     start (ui/11-boot.js) took the line from where she lay to the next point for a leg of the route «over land», put her back in
+     the nearest harbour and took the route away, so the hop was marked for a refund (5 of 41 harbours along the coast for 1 to 28 s
+     after the cast-off, measured 27.11.2026; most of the refunded hops were bought 5 to 26 s after a departure)
+  5. the start's own job is still done: a route with a leg of its own over land (the chart or a quay changed since it was laid) puts
+     the boat in the nearest harbour with the route gone. (Before, the route came back with the vessel's own copy, and she lay moored
+     with the route over land still on her: what a player whose hop was refunded then met, and «Sitter båten fast?» was pressed)
+  6. no page errors
 KYST_LITE=1 python3 tests/hoppskytest.py. Prints OK or FEIL lines."""
 import asyncio, json, time
 from datetime import datetime, timezone
@@ -184,7 +192,30 @@ async def main():
             await asyncio.sleep(0.25)
         check(lost and s3.get('alive') and s3.get('cash') == 424242 and (DB['row'].get('summary') or {}).get('cash') == 424242,
               '3. a save answered by nobody and a server clock ahead: the game here goes on and reaches the account, never its own older copy back', {'lost': lost, 's3': s3, 'row': DB['row'].get('summary'), 'rev': DB['row']['rev']})
-        check(not errs, '4. no page errors', errs[:3])
+        # 4. the boat beside the route's line, land between her and the next point: back from the payment she is still on her route
+        st = await pg.evaluate(START, True); q = await pg.evaluate(PRESS)
+        check(bool(st['at']) and q['held'] and not q['why'], 'under way beside the line of the route, land between her and the next point, the boat held', {'st': st, 'q': q})
+        if st['at']:
+            DB['game_t'] = q['t']; DB['mute'] = True; rev0 = DB['row']['rev']
+            await pg.evaluate(BUY)
+            for _ in range(100):
+                if DB['row']['rev'] > rev0: break
+                await asyncio.sleep(0.1)
+            DB['grants'].append({'id': 503, 'data': {'give': 'hopp', 'boat': q['boat'], 'min': q['min'], 'kr': q['kr'], 'to': q['to']}})
+            g, calls, a = await back(pg, 503)
+            check(g.get('used') and not g.get('void') and a['km'] < 0.5 and not a['void'],
+                  '4. back from the payment with the boat beside the line of her route: she is still on it, and the hop is made (never back in the nearest harbour with the route gone)', {'grant': g, 'a': a})
+        # 5. a route whose own leg crosses land is still taken away at the start, the boat put in the nearest harbour
+        r5 = await pg.evaluate("""async () => { const H = window.__H || JSON.parse(sessionStorage.getItem('hoppsky')), b = S.boat, W = H.wps;
+          const far = PORTS.filter(p => !p.naust && dist(p.p, W[1]) > 15 && dist(p.p, W[1]) < 80 && !legClear(W[1], p.p) && !quayLandLeg(W[1], p.p) && legClear(W[0], W[1]))[0];
+          if (!far) return {err:'no harbour behind land'};
+          b.status = 'sailing'; b.port = null; b.pos = {x:W[0].x, y:W[0].y}; b.v = 0; b.hopHold = null;
+          S.plan = {wps:[Object.assign({}, W[0]), Object.assign({}, W[1]), {x:far.p.x, y:far.p.y, port:far.id}], idx:0, speed:BOAT.vcruise || BOAT.vmax * 0.8, returning:false, depAt:null, unsafe:[false, false, false]};
+          save(); return {far:far.name}; }""")
+        await pg.reload(); await pg.wait_for_function(READY, timeout=240000)
+        a5 = await pg.evaluate("({st:S.boat.status, port:S.boat.port, plan:!!S.plan, trail:(S.trail || []).length})")
+        check(not r5.get('err') and a5['st'] == 'port' and a5['port'] and not a5['plan'] and a5['trail'] == 1, '5. a route with a leg of its own over land is still taken away at the start (the route and the track, in the copy the vessel keeps too), the boat in the nearest harbour', {'r5': r5, 'a5': a5})
+        check(not errs, '6. no page errors', errs[:3])
         await br.close()
     print('FEIL: ' + ', '.join(FAIL) if FAIL else 'alt OK')
 asyncio.run(main())

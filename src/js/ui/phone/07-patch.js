@@ -1,5 +1,8 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['rute-271126', '27.11.2026', 'Båten blir på ruta si', 'The boat stays on her route', [
+       ['Åpnet du spillet på nytt like etter avgang, kunne båten bli flyttet tilbake til havna og miste ruta. Nå fortsetter hun der hun var.', 'If you opened the game again just after a departure, the boat could be moved back to the harbour and lose her route. Now she goes on from where she was.'],
+       ['Spillet på enheten din byttes ikke lenger ut med en litt eldre lagring fra kontoen når den nyeste ikke rakk å bli bekreftet.', 'The game on your device is no longer swapped for a slightly older save from your account when the newest one was not confirmed in time.']]],
     ['kart-271126', '27.11.2026', 'Ålesund verft', 'The yard at Ålesund', [
        ['Verftet i Ålesund ligger 25 m lenger inn langs kaia si, så utløpet fra bassenget er bredere for de større båtene.', 'The yard at Ålesund lies 25 m further in along its quay, so the way out of the basin is wider for the bigger boats.'],
        ['Sjøen tegner ikke lenger brenning midt i et basseng foran en kai.', 'The sea no longer draws surf in the middle of a basin in front of a quay.']]],

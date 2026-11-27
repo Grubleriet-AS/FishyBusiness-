@@ -280,10 +280,23 @@ if (BOOTG.safe) bootgSafe();   // the starts before locked (BOOTG above): the ro
   (S.draft || []).forEach(fixW); if (S.plan) S.plan.wps.forEach(fixW); S.trail.forEach(fixW);
   // real coastline: anything that now sits on land is brought back to a harbour
   if ((S.draft || []).some(w => isLand(w))) S.draft = [];
-  const bb = S.boat, onLand = bb.status !== 'port' && isLand(bb.pos), badPlan = S.plan && S.plan.wps.slice(S.plan.idx).some((w, i, a) => isLand(w) || !legClear(i ? a[i - 1] : bb.pos, w));
+  // (the route's own legs, by the route panel's rule: legClearMemo, which lets a leg over a sealed harbour's own fill through,
+  // quayLandLeg. Not the line from where she is to the next point: that is no leg of the route, and the sailing keeps her off land on
+  // it by itself (groundCheck, the way out of a harbour, the track round a corner). With that line, a page loaded again while she left
+  // her berth or rounded a point close to land put her back in the nearest harbour and took the route away; a hop paid for at Stripe
+  // meanwhile could then not be made, and was refunded. Measured 27.11.2026: 5 of 41 harbours along the coast, for 1 to 28 s after the
+  // cast-off, Stø among them, where one of the refunded hops was bought 17 s after the departure. tests/hoppskytest.py)
+  const legOk = (a, w) => legClear(a, w) || (typeof quayLandLeg === 'function' && !!quayLandLeg(a, w));
+  const bb = S.boat, onLand = bb.status !== 'port' && isLand(bb.pos), pl0 = S.plan;
+  const badPlan = pl0 && pl0.wps.slice(pl0.idx).some((w, i, a) => { const p = i ? a[i - 1] : pl0.idx > 0 ? pl0.wps[pl0.idx - 1] : null; return isLand(w) || !!p && !legOk(p, w); });
   if (onLand || badPlan){
     const q = PORTS.slice().sort((a, b) => dist(a.p, bb.pos) - dist(b.p, bb.pos))[0];
+    // (told, so it can be seen how often and from what: before, nothing said that a start had moved a boat; 27.11.2026)
+    if (typeof cloudEvLater === 'function') cloudEvLater('boot_land', {land:!!onLand, plan:!!badPlan, st:bb.status, to:q.id, held:!!bb.hopHold});
     S.plan = null; bb.status = 'port'; bb.port = q.id; bb.pos = {x:q.p.x, y:q.p.y}; bb.v = 0; S.trail = [{x:q.p.x, y:q.p.y, port:q.id}];
+    // (into the vessel's own copy too, as bootgSafe above: ensureFleet below binds the game to it again, and the route and the track
+    // came back with it, so she lay moored in the harbour with the route over land still on her; 27.11.2026)
+    if (S.fleet && S.fleet.length) storeVessel(curVessel());
     log('Kartet eller en kai er endret, og ruta gikk over land. Båten er flyttet til ' + q.name + '.', 'The chart or a quay has changed, and the route crossed land. The boat was moved to ' + q.name + '.');
   } }
 { const d = newState(); for (const k of ['equip', 'crew', 'loan', 'member', 'msgs', 'sales', 'order', 'owned', 'stock', 'marks', 'jobs', 'prep', 'tripBuff', 'draftDep', 'navrows', 'company', 'boatName', 'tut', 'incidents', 'lore', 'tattoos', 'tat', 'sets', 'gseq', 'ops', 'lic', 'qseed', 'haill', 'pubE', 'target', 'streak', 'clothes', 'orders', 'rep', 'bors', 'cevt', 'workLog']) if (S[k] === undefined || (k === 'stock' && !S[k])) S[k] = d[k];
