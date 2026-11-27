@@ -6615,3 +6615,9 @@
 2026-11-27 11:19	ccr-1a8b7d9a-89hfb6	0808959+	hopptest	OK	8	lite	samtidig	
 2026-11-27 11:22	ccr-1a8b7d9a-89hfb6	0808959+	kjoptest	OK	196	lite	samtidig	
 2026-11-27 11:22	ccr-1a8b7d9a-89hfb6	0808959+	fasittest	OK	41	lite	samtidig	
+2026-11-27 11:42	ccr-1a8b7d9a-89hfb6	0ee9267+	bwtest	OK	72	lite	samtidig	
+2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	kjoptest	OK	202	lite	samtidig	
+2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	fasittest	OK	43	lite	samtidig	
+2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	vervtest	OK	10	lite	samtidig	
+2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	skiptest	OK	21	lite	samtidig	
+2026-11-27 11:44	ccr-1a8b7d9a-89hfb6	0ee9267+	hopptest	OK	12	lite	samtidig	

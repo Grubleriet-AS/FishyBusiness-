@@ -14,7 +14,7 @@ def check(ok, what, extra=''):
     print(('OK  ' if ok else 'FEIL') + ' ' + what + (('  ' + json.dumps(extra, ensure_ascii=False, default=str)[:500]) if extra != '' else ''))
 
 
-GIFT = "[{g:{id:9001, product:'bw_trim', data:{give:'trim', k:'t2', comp:true, bw:true}}, no:'Turbotrim er på hele flåten.', en:'Turbo tune is on the whole fleet.'}]"
+GIFT = "[{g:{id:9001, product:'trim_2', data:{give:'trim', k:'t2', comp:true, bw:true}}, no:'Turbotrim er på hele flåten.', en:'Turbo tune is on the whole fleet.'}]"
 HERO = """(() => { const h = document.querySelector('.kbs-hero.bw'), all = [...document.querySelectorAll('.kbs-hero')], b = h && h.querySelector('.kbs-buy'), r = b && b.getBoundingClientRect(), c = h && h.getBoundingClientRect();
   return {on:!!h, first:!!h && all[0] === h, n:all.length, txt:h ? h.textContent : '', btnH:r ? Math.round(r.height) : 0, btnW:r ? Math.round(r.width) : 0, w:c ? Math.round(c.width) : 0, vw:innerWidth,
     inside:!!c && c.left >= 0 && c.right <= innerWidth + 1, pic:!!h && !!h.querySelector('.kbs-hpic .ic-img, .kbs-hpic img, .kbs-hpic .kb-pic')}; })()"""
@@ -40,6 +40,9 @@ async def one(br, name, w, h):
     check(r['btnH'] >= 48 and r['inside'], name + ': kjøpsknappen er minst 48 px høy, og kortet er innenfor skjermen', {k: r[k] for k in ('btnH', 'btnW', 'w', 'vw', 'inside')})
     await pg.wait_for_timeout(1200)
     await pg.screenshot(path=os.path.join(OUT, 'bw-kaiboden-%s.png' % name))
+    # where the shop is closed («Snart i salg») the card is not there
+    off = await pg.evaluate("(() => { const f = shopMode; shopMode = () => 'off'; PHONE.render(); const r = !document.querySelector('.kbs-hero.bw') && !!document.querySelector('.kbs-hero'); shopMode = f; PHONE.render(); return r; })()")
+    check(off and bool(await pg.evaluate("!!document.querySelector('.kbs-hero.bw')")), name + ': med butikken stengt står ikke Black Week-kortet der, bare Sjøværspakken')
     # the purchase (a test without payment where there is no cloud): what the card says is what is given
     b0 = json.loads(await J("{h:(S.haillInv || {}).haill || 0, trim:!!trimOn(S.boat), skip:skipOn()}"))
     await pg.evaluate("document.querySelector('.kbs-hero.bw .kbs-buy').click()"); await pg.wait_for_timeout(400)
@@ -48,9 +51,25 @@ async def one(br, name, w, h):
     # the gift's confirmation: named by what it gives, no price, and the way to the pack
     await pg.evaluate("PHONE.show(false); document.getElementById('modal').hidden = true; shopThanks(%s)" % GIFT); await pg.wait_for_timeout(900)
     m = json.loads(await J("(() => { const m = document.getElementById('modal'), l = m.querySelector('.shoprc-bw'), b = m.querySelector('[data-bw]'), r = b && b.getBoundingClientRect(); return {open:!m.hidden, txt:m.textContent, line:l ? l.textContent : '', btn:b ? b.textContent : '', btnH:r ? Math.round(r.height) : 0}; })()"))
-    check(m['open'] and 'En gave fra Det Store Blå' in m['txt'] and 'Turbotrim' in m['txt'] and 'bw_trim' not in m['txt'] and '29 kr' not in m['txt'], name + ': gaven kvitteres som en gave med navnet Turbotrim og uten pris', m['txt'][:200])
+    check(m['open'] and 'En gave fra Det Store Blå' in m['txt'] and 'Turbotrim' in m['txt'] and '29 kr' not in m['txt'], name + ': gaven kvitteres som en gave med navnet Turbotrim og uten pris', m['txt'][:200])
     check(all(x in m['line'] for x in ('Black Week-pakken', '499 kr', '910 kr', 'Selges til og med mandag 30.11')) and m['btn'] == 'Se pakken' and m['btnH'] >= 48, name + ': kvitteringen har én linje om pakken og knappen «Se pakken»', {'line': m['line'], 'btn': m['btn'], 'h': m['btnH']})
     await pg.screenshot(path=os.path.join(OUT, 'bw-gave-%s.png' % name))
+    # a window opened over the confirmation before it is answered (the report of the time away at the start does that) does not take
+    # it away: it comes again when that window is closed
+    await pg.evaluate("modal('<div class=\"ob\"><p>Mens du var borte</p><div class=\"btns\"><button class=\"btn p\" data-close>Ok</button></div></div>')"); await pg.wait_for_timeout(1500)
+    over = await pg.evaluate("!document.querySelector('#modal .shoprc')")
+    await pg.evaluate("document.querySelector('#modal [data-close]').click()")
+    try: await pg.wait_for_function("!document.getElementById('modal').hidden && !!document.querySelector('#modal .shoprc-bw')", timeout=8000); back = True
+    except Exception: back = False
+    check(over and back, name + ': en kvittering som et annet vindu la seg over, kommer igjen når det vinduet lukkes', {'over': over, 'back': back})
+    # the same in English
+    await pg.evaluate("document.getElementById('modal').hidden = true; S.lang = 'en'; PHONE.open('trim')"); await pg.wait_for_timeout(400)
+    en = await pg.evaluate("(document.querySelector('.kbs-hero.bw') || {}).textContent || ''")
+    await pg.evaluate("PHONE.show(false); shopThanks(%s)" % GIFT); await pg.wait_for_timeout(900)
+    en2 = await pg.evaluate("(document.querySelector('#modal .shoprc-bw') || {}).textContent || ''")
+    check(all(x in en for x in ('The Black Week pack', 'Save 45 %', 'You save 411 kr', 'On sale through Monday 30 Nov')) and 'On sale through Monday 30 Nov' in en2, name + ': kortet og linja i kvitteringen på engelsk', [en[:200], en2])
+    await pg.evaluate("document.getElementById('modal').hidden = true; S.lang = 'no'"); await pg.wait_for_timeout(1300)   # (the English one's own watch has seen it closed)
+    await pg.evaluate("shopThanks(%s)" % GIFT); await pg.wait_for_timeout(900)
     await pg.evaluate("document.querySelector('#modal [data-bw]').click()"); await pg.wait_for_timeout(600)
     r = json.loads(await J(HERO))
     check(r['on'] and await pg.evaluate("document.getElementById('modal').hidden && document.body.classList.contains('ph-on')"), name + ': «Se pakken» lukker kvitteringen og åpner Kaiboden på pakken')

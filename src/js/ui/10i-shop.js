@@ -130,10 +130,8 @@ function shopThanks(rc){
   // (a pack is one purchase that gives several grants, 20261116180000_prisstige.sql: the grants of one product are one line, with the
   // price once per purchase, never once per grant; the purchases are the grants over what one purchase gives, rounded up)
   const per = k => /^hp_/.test(k) && HAILL_PACKS[k.slice(3)] ? HAILL_PACKS[k.slice(3)].n : /^pk_/.test(k) && PACKS[k.slice(3)] ? PACKS[k.slice(3)].haill + 2 : 1;
-  // (a gift that is no product of the shop, the Black Week gift bw_trim: named by what it gives)
-  const keyOf = g => Object.keys(SHOP_PRODUCT).find(x => SHOP_PRODUCT[x] === g.product) || ((g.data || {}).give === 'trim' && BOOSTS[g.data.k] ? g.data.k : undefined);
-  const grp = new Map(); for (const r of rc){ const k = keyOf(r.g), key = String(r.g.product || '') + ((r.g.data || {}).comp ? ':comp' : '') + (k && per(k) > 1 ? '' : ':' + r.g.id); if (!grp.has(key)) grp.set(key, []); grp.get(key).push(r); }
-  const its = [...grp.values()].map(rs => { const r = rs[0], k = keyOf(r.g), w = k ? shopWhat(k, r.g) : null, n = Math.ceil(rs.length / (k ? per(k) : 1));
+  const grp = new Map(); for (const r of rc){ const k = Object.keys(SHOP_PRODUCT).find(x => SHOP_PRODUCT[x] === r.g.product), key = String(r.g.product || '') + ((r.g.data || {}).comp ? ':comp' : '') + (k && per(k) > 1 ? '' : ':' + r.g.id); if (!grp.has(key)) grp.set(key, []); grp.get(key).push(r); }
+  const its = [...grp.values()].map(rs => { const r = rs[0], k = Object.keys(SHOP_PRODUCT).find(x => SHOP_PRODUCT[x] === r.g.product), w = k ? shopWhat(k, r.g) : null, n = Math.ceil(rs.length / (k ? per(k) : 1));
     const uniq = a => [...new Set(a)].join(' ');
     return {nm:(w ? w.name : String(r.g.product || '')) + (n > 1 ? ' × ' + n : ''), nok:(r.g.data || {}).comp ? 0 : w ? w.nok * n : 0, no:uniq(rs.map(x => x.no)), en:uniq(rs.map(x => x.en))}; });
   const head = gift ? ['En gave fra Det Store Blå', 'A gift from Det Store Blå'] : ['Takk for kjøpet!', 'Thank you for your purchase!'];
@@ -146,9 +144,17 @@ function shopThanks(rc){
   const bwLine = bw ? '<p class="shoprc-it shoprc-bw"><b>' + L(B.no, B.en) + '</b> · ' + realKr(B.nok) + '<br>' + L(B.haill + ' haill, Turbotrim og Skippertak i 3 døgn. Kjøpt hver for seg: ' + packWorth(B) + ' kr. Selges til og med ' + B.day[0] + '.', B.haill + ' luck, Turbo tune and Skippertak for 3 days. Bought one by one: ' + packWorth(B) + ' kr. On sale through ' + B.day[1] + '.') + '</p>' : '';
   const html = '<div class="ob shoprc"><p class="reg-from">Det Store Blå</p><h2>' + L(head[0], head[1]) + '</h2><p>' + L(lead[0], lead[1]) + '</p>' +
     its.map(x => '<p class="shoprc-it"><b>' + x.nm + '</b>' + (x.nok ? ' · ' + realKr(x.nok) : '') + '<br>' + L(x.no, x.en) + '</p>').join('') +
-    bwLine + '<p class="note">' + L('Bekreftelsen ligger også i Meldinger.', 'The confirmation is in Messages too.') + '</p><div class="btns">' + (bw ? '<button class="btn" data-close data-bw>' + L('Se pakken', 'See the pack') + '</button>' : '') + '<button class="btn p" data-close>' + L('Fint!', 'Great!') + '</button></div></div>';
-  const show = () => { const m = document.getElementById('modal'); if (m && !m.hidden){ setTimeout(show, 2000); return; } modal(html);
-    const b = m && m.querySelector('[data-bw]'); if (b) b.onclick = () => { m.hidden = true; if (typeof cloudEv === 'function') cloudEv('shop_view', {pg:'bw_rc'}); PHONE.open('trim'); }; };
+    bwLine + '<p class="note">' + L('Bekreftelsen ligger også i Meldinger.', 'The confirmation is in Messages too.') + '</p><div class="btns">' + '<button class="btn p" data-close>' + L('Fint!', 'Great!') + '</button>' + (bw ? '<button class="btn" data-bw>' + L('Se pakken', 'See the pack') + '</button>' : '') + '</div></div>';
+  // (it waits for a window that is open, and a gift waits for the first trip's guide too, never a purchase: «det må ikke være tvil
+  // om at salget har gått gjennom»; and a window opened over it before it was answered, the
+  // report of the time away at the start (showAway calls modal itself), does not take it away: it comes again when that one is closed.
+  // A gift comes at the start, so it met that report often)
+  const show = () => { const m = document.getElementById('modal'); if ((m && !m.hidden) || (gift && typeof tutOn === 'function' && tutOn())){ setTimeout(show, 2000); return; } modal(html);
+    const b = m.querySelector('[data-bw]'); if (b) b.onclick = () => { m.hidden = true; if (typeof cloudEv === 'function') cloudEv('shop_view', {pg:'bw_rc'}); PHONE.open('trim'); };
+    // (what happens to the window first decides: closed, and that is the end of it; its content replaced while it is open, and it
+    // comes again. Seen as it happens, so a window opened right after this one was closed is not taken for one laid over it)
+    const box = m.querySelector('.shoprc'), mo = new MutationObserver(rs => { mo.disconnect(); if (rs[0].type === 'childList' && !m.contains(box)) show(); });
+    mo.observe(m, {attributes:true, attributeFilter:['hidden'], childList:true}); };
   setTimeout(show, 300);
 }
 // Bought, delivered and not in this save (HS3): given again, in the order they were delivered, as if each came on then. A trim goes on

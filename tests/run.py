@@ -413,7 +413,8 @@ COVER['supabase/functions/shop-checkout/index.ts'] = COVER.get('supabase/functio
 D3 += ['fotgli']; LONG['fotgli'] = 2400; COVER['tests/fotgli.py'] = ['fotgli']; COVER['tests/unit/fotgli.test.mjs'] = []
 LITE += ['bwtest']   # the Black Week pack and the gift in Kaiboden and in the confirmation, both formats (steg 154, 27.11.2026)
 COVER['tests/bwtest.py'] = ['bwtest']; COVER['supabase/migrations/20261127120000_blackweek.sql'] = ['sqltest']
-for _f in ('src/js/ui/10i-shop.js', 'src/js/ui/phone/01-haill-fiske-service.js'): COVER[_f] = COVER.get(_f, []) + ['bwtest']
+for _f in ('src/js/ui/10i-shop.js', 'src/js/ui/10u-hopp.js', 'src/js/ui/phone/00-shell.js', 'src/js/ui/phone/01-haill-fiske-service.js', 'src/js/ui/phone/06-render.js', 'src/js/ui/phone/14-act.js', 'src/js/core/03-simulation.js'): COVER[_f] = COVER.get(_f, []) + ['bwtest']
+COVER['supabase/migrations/20261127121000_lop_trim.sql'] = ['sqltest']
 for _f in ('src/js/deckcrew.js', 'src/js/view3d/08-plants.js', 'src/js/view3d/20-trawl-seine.js'):
     COVER[_f] = COVER.get(_f, []) + ['fotgli']
 

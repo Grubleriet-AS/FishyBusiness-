@@ -125,4 +125,8 @@ SF1 og SF2 ble én leveranse og én PR, fordi veien fra kvitteringen til pakken 
 
 **Gemini** (ett `ask_gemini`-kall, ett bilde med `generate_game_asset`): mobil-UX-malen ga 3–5 av 5. Funnene som ble rettet: «Til og med mandag 30.11» kunne leses som at boosterne varer til da (nå «Selges til og med …»), notelinja med 910 kr var for svak (større og lysere), og knappene i kvitteringen var under 48 px (nå 48). Ikke rettet: kjøpsknappen i liggende format står i øvre høyre del av skjermen, utenfor den beste tommelsonen; den følger kortets plass øverst i lista.
 
+**Poengene fra Gemini** (stående/liggende): kortet fikk tekststørrelse 3/3, kontrast 4/4, trykkflater 3/3, tommelsonen 5/3, overlapp 5/5, sollys 3/3; kvitteringen 3/3, 4/4, 2/2, 3/2, 5/5, 3/3. Trykkflatene er målt til 48 px i `tests/bwtest.py` etter rettingen.
+
+**Den uavhengige kontrollen** (fem punkter, alle holdt) fant åtte ting; rettet: gaven ville hett `bw_trim` i en side som sto åpen over slippet (nå en levering av `trim_2`), gavevinduet kunne bli skrevet over av rapporten ved oppstart (kommer nå igjen), utløseren ved registrering kunne stoppe en ny konto hvis datoen ble ugyldig (svelger nå egne feil), kappløpets fartsvakt kjente ikke Turbotrim (`lop_trim`), kortet sto der med butikken stengt, og testhullene (engelsk, stengt butikk, vinduet som legges over, `COVER`). Ikke gjort: unntaket fra «ingen nedtelling» er ikke skrevet inn i `CLAUDE.md`; det står i `docs/regler-bakgrunn.md` og i koden ved kortet, og varer i tre døgn.
+
 **Avlesningen (SF3)** gjenstår til 1.12 og 7.12, se «Måling».
