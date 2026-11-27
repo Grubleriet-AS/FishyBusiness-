@@ -4,7 +4,7 @@ Flyttet hit fra `docs/BACKLOG.md` 12.11.2026, så backloggen bare har det som er
 
 ## Strøket 27.11.2026 (steg 155, Jonas' økt, gren `ccr-26223d0c-yhvnxv`)
 
-- **Oppdragene betalte etter båtens kapasitet, uansett last** (funnet 27.11.2026 i steg 154: en 21-meter fikk 908 600 og 787 800 kr for fraktoppdrag, det siste 400 kg tomme fiskekasser). Jonas valgte «Frakt betaler etter lasten»: `turFraktPay` og `turTowHold` i `core/09g-turer.js`, to større varer i `TUR_GOODS`, og tavla omprises ved oppdatering (`turReprice`). `tests/unit/fraktpris.test.mjs`. Foto og ekkolinje følger fortsatt båtens egen kurve; det står som eget valg i backloggen.
+- **Oppdragene betalte etter båtens kapasitet, uansett last** (funnet 27.11.2026 i steg 154: en 21-meter fikk 908 600 og 787 800 kr for fraktoppdrag, det siste 400 kg tomme fiskekasser). Jonas valgte «Frakt betaler etter lasten»: `turFraktPay` og `turTowHold` i `core/09g-turer.js`, to større varer i `TUR_GOODS` for båter på 11 m og over, båtene under 11 m unntatt, og tavla omprises ved oppdatering (`turReprice`). Den uavhengige kontrollen fant at første utgave ikke regnet med verftets større lasterom; rettet i samme steg. `tests/unit/fraktpris.test.mjs`. Foto og ekkolinje følger fortsatt båtens egen kurve; det står som eget valg i backloggen.
 
 ## Strøket 16.11.2026 (steg 132, Jonas' økt, gren `claude/blissful-cannon-ctb8e9`)
 

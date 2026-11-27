@@ -77,8 +77,9 @@ const TUR_GOODS = [
   {kg:[40, 200], no:'reservedeler til et fiskebruk', en:'spare parts for a fish plant'}, {kg:[60, 300], no:'agn til linefiskerne', en:'bait for the line fishers'},
   {kg:[80, 400], no:'tomme fiskekasser', en:'empty fish boxes'}, {kg:[100, 600], no:'tauverk og blåser', en:'rope and buoys'},
   {kg:[150, 1500], no:'proviant til en butikk', en:'provisions for a shop'}, {kg:[300, 3000], no:'nye garn til et fiskarlag', en:'new nets for a fishermen\'s club'},
-  // (steg 155, 27.11.2026: cargo for the vessels over 11 m, which are paid by what they carry; no boat under 11 m has the room for it)
-  {kg:[8000, 14000], no:'fiskekar og paller til et mottak', en:'fish tubs and pallets for a landing station'}, {kg:[10000, 20000], no:'fôrsekker til et oppdrettsanlegg', en:'sacks of feed for a fish farm'}
+  // (steg 155, 27.11.2026: cargo for the vessels of 11 m and over, which are paid by what they carry. big: offered to them only, so the
+  // boats under 11 m get what they got, also with the yard's bigger hold; the race's cargo is drawn among the eight before these)
+  {kg:[8000, 20000], big:true, no:'fiskekar til et mottak', en:'fish tubs for a landing station'}, {kg:[10000, 24000], big:true, no:'fôr til et oppdrettsanlegg', en:'feed for a fish farm'}
 ];
 const TUR_BOATS = ['Måsen', 'Terna', 'Lille Viking', 'Havbris', 'Skarven', 'Fiskeørn', 'Polarstjerna', 'Sølvblank', 'Kvitøy', 'Brisen'];
 const TUR_OWNERS = ['Kåre Nilsen', 'Hallvard Olsen', 'Ragnhild Johansen', 'Per Arne Hansen', 'Sigrid Pedersen', 'Odd Karlsen', 'Bjørn Isaksen', 'Torill Mikkelsen'];
@@ -91,8 +92,10 @@ function turState(){ const T = S.turer || (S.turer = {board:[], act:[], done:[],
   if (T.v < 4){ T.v = 4; try { turReprice(T); } catch (e){ console.warn('turReprice', e); } }
   return T; }
 function turReprice(T){
+  // (the board is the company's and does not say which boat an offer was made for: with more than one boat it is made anew, as in v3)
+  if ((S.fleet || []).length > 1){ T.board = []; T.at = null; T.slots = TUR.boardMax; T.slotT = S.t; return; }
   for (const m of T.board || []){ const c = TUR.cls[m.cls]; if (!c) continue;
-    if (m.k === 'frakt' && m.kg && !m.first){ const nb = turFraktPay(m.h, c.f, m.kg); if (nb < (m.base || 0)){ m.base = nb; m.pay = Math.min(m.pay || nb, turFinal(m)); } }
+    if (m.k === 'frakt' && m.kg){ const nb = turFraktPay(m.h, c.f, m.kg); if (nb < (m.base || 0)){ m.base = nb; m.pay = Math.min(m.pay || nb, turFinal(m)); } }
     else if (m.k === 'slep' && m.L && m.hold == null && m.value){ m.hold = turTowHold(m.L); const nb = turSalvage(m, turDanger(m.p));
       if (nb < (m.base || 0)){ m.base = nb; m.pay = Math.min(m.pay || nb, turFinal(m)); m.payLo = turSalvage(m, 0); m.payHi = turSalvage(m, 1); } } }
 }
@@ -150,19 +153,23 @@ function turSpOk(sp){ const pg = S.pgear; if (sp === 'krabbe') return !!(pg && p
   return true; }
 // how the player has been doing: the last ten missions, more done is a little harder, more failed a little easier
 function turForm(){ const D = (turState().done || []).slice(0, 10); if (D.length < 3) return 1; const r = D.filter(x => x.ok).length / D.length; return r > 0.8 ? 1.1 : r < 0.4 ? 0.8 : 1; }
-// hold: the hold the job is worth (freight and tows, below); the boat's own curve when it is not given, and never more than her own
-const turPay = (hGame, f, hold) => Math.max(500, Math.round((hold == null ? turRate() : turCapOf(Math.min(BOAT.holdCap, hold))) * hGame / GAME_RATE * f / 100) * 100);
+// hold: the hold the job is worth (freight and tows, below); the boat's own curve when it is not given, never more than her own, and
+// always her own for a boat under 11 m (nothing changes for them, whatever hold the yard has built her)
+const turPay = (hGame, f, hold) => Math.max(500, Math.round((hold == null || !((BOAT.len || 0) >= 11) ? turRate() : turCapOf(Math.min(BOAT.holdCap, hold))) * hGame / GAME_RATE * f / 100) * 100);
 // Freight is paid by what is carried (steg 155, 27.11.2026; Jonas: «Frakt betaler etter lasten»): a 21 m vessel got 787 800 kr for 400 kg
-// of empty fish boxes, because the pay followed her hold whatever was aboard. The curve is read at the hold the cargo fills a fifth of
-// (TUR.fraktF: the least the board gives a boat with room for more), never under the largest hold of a boat under 11 m (a job a sjark
-// could have taken pays as for a sjark, and nothing changes for the boats under 11 m) and never over the boat's own (turPay)
+// of empty fish boxes, because the pay followed her hold whatever was aboard. For a vessel of 11 m and over the curve is read at the hold
+// the cargo fills a fifth of (TUR.fraktF: the least the board gives a boat with room for more), never under the largest hold a boat under
+// 11 m can have (with the yard's last rebuild: a job a sjark could have taken pays as for the largest sjark) and never over her own
 let TUR_SMALL = 0;
-const turSmallHold = () => TUR_SMALL || (TUR_SMALL = Math.max(...Object.values(VESSELS).filter(v => v.len < 11).map(v => v.holdCap)));
+// the largest hold a type can have: as applyVessel sets it with the yard's last rebuild (the tubs for a boat that carries her catch in them)
+const turMaxHold = k => { const V = VESSELS[k]; return V.kar ? karN(k, HOLDUP.length) * TUB_KG : Math.round(V.holdCap * HOLDUP[HOLDUP.length - 1].x); };
+const turSmallHold = () => TUR_SMALL || (TUR_SMALL = Math.max(...Object.keys(VESSELS).filter(k => VESSELS[k].len < 11).map(turMaxHold)));
 const turFraktHold = kg => Math.max(turSmallHold(), (kg || 0) / TUR.fraktF);
 const turFraktPay = (hGame, f, kg) => turPay(hGame, f, turFraktHold(kg));
-// a tow: the board gives a boat a casualty of 75 to 95 % of her own length, at most 12 m, so the largest boat offered a tow of length L is
-// L / TUR.towF long; the time is paid at most as for the largest hold among the boats up to that (a 12 m boat: a 15 m vessel's)
-function turTowHold(L){ const hs = Object.values(VESSELS).filter(v => v.len <= L / TUR.towF + 0.01).map(v => v.holdCap); return hs.length ? Math.max(...hs) : turSmallHold(); }
+// a tow: the board gives a boat a casualty of 75 to 95 % of her own length, at most 12 m (to the nearest 0.1 m), so the largest boat
+// offered a tow of length L is L / TUR.towF long; the time is paid at most as for the largest hold among the boats up to that (a 12 m
+// boat: a 15 m vessel's), and never under the floor of the freight (a PAN-PAN answered is of any length, 14b-sikkerhet.js)
+function turTowHold(L){ return Math.max(turSmallHold(), ...Object.keys(VESSELS).filter(k => VESSELS[k].len <= L / TUR.towF + 0.07).map(turMaxHold)); }
 function turClass(hGame){ for (const k in TUR.cls){ const c = TUR.cls[k].h; if (hGame >= c[0] && hGame < c[1]) return k; } return null; }
 const turMinR = hGame => Math.round(hGame * 60 / GAME_RATE);
 // the game hours the kilos of a species take with the quickest gear the player has (the fishery model's usual catch, TUR.fish): the
@@ -247,7 +254,7 @@ function turBestAt(o, q, h, cls, me){
 // what the deck and the hold take of kg (at least 10 kg: with less room it waits on the quay until there is), and loading and landing are the crew's own work (cargoJob)
 function turFrakt(o, cls, used, me = turMe(), fromId = null, fix = null){
   if (fix){ const f = portById(fix.from), t = portById(fix.to); if (!f || !t) return null;
-    const rnd = fix.rnd || Math.random, g = TUR_GOODS[Math.floor(rnd() * TUR_GOODS.length)], kg = Math.max(10, Math.round(Math.min(fix.kg, cargoRoom() * 0.6) / 10) * 10);
+    const rnd = fix.rnd || Math.random, G0 = TUR_GOODS.filter(x => !x.big), g = G0[Math.floor(rnd() * G0.length)], kg = Math.max(10, Math.round(Math.min(fix.kg, cargoRoom() * 0.6) / 10) * 10);
     return {k:'frakt', cls:'lop', from:f.id, to:t.id, p:t.p, nm:Math.round(turNm(f.p, t.p)), h:turNm(f.p, t.p) / turV(), kg, what:[g.no, g.en], base:0}; }
   const c = TUR.cls[cls], v = turV(), hi = turHi(cls, me), from = fromId ? portById(fromId) : S.boat.status === 'port' ? portById(S.boat.port) : nearestPort(S.boat.pos); if (!from) return null;
   const way = turWay(), onWay = x => way && turNm(x.q.p, way) < 15 ? 1 : 0;   // (a harbour near where she is going comes first)
@@ -255,7 +262,7 @@ function turFrakt(o, cls, used, me = turMe(), fromId = null, fix = null){
   const cand = PORTS.filter(q => q.id !== from.id && !used.has(q.id) && q.pier).map(q => ({q, h:pick + turNm(from.p, q.p) / v})).filter(x => x.h >= c.h[0] && x.h < hi);
   for (const {q, h} of turOrder(cand, me).sort((a, b) => onWay(b) - onWay(a))){
     if (!turCan(from.p, q.p, h - pick, false) || (pick && !turCan(o, from.p, pick, false))) continue;
-    const room = cargoRoom(), fit = TUR_GOODS.filter(g => g.kg[0] <= room * 0.6); if (!fit.length) return null;   // (the deck first, schema v2)
+    const room = cargoRoom(), bigOk = (BOAT.len || 0) >= 11, fit = TUR_GOODS.filter(g => g.kg[0] <= room * 0.6 && (bigOk || !g.big)); if (!fit.length) return null;   // (the deck first, schema v2)
     const g = fit[Math.floor(Math.random() * fit.length)], kg = Math.round(Math.min(g.kg[1], room * 0.6, Math.max(g.kg[0], BOAT.holdCap * (0.2 + Math.random() * 0.3))) / 10) * 10;
     return {k:'frakt', cls, from:from.id, to:q.id, p:q.p, nm:Math.round((pick ? turNm(o, from.p) : 0) + turNm(from.p, q.p)), h, kg, what:[g.no, g.en], base:turFraktPay(h, c.f, kg), hTot:h * 2.5 + 12};
   }
@@ -466,7 +473,7 @@ function turFirst(o){
     const onw = cand.length && way ? cand.find(x => turNm(x.q.p, way) < 15 && x.nm <= cand[0].nm * 1.5) : null; if (onw && onw !== cand[0]) cand.splice(0, 0, ...cand.splice(cand.indexOf(onw), 1));
     for (const {q, nm} of cand){ const h = pick + nm / v;
       if (!turCan(from.p, q.p, nm / v, false) || (pick && !turCan(o, from.p, pick, false))) continue;
-      return {k:'frakt', cls:'kort', first:true, from:from.id, to:q.id, p:q.p, nm:Math.round((pick ? turNm(o, from.p) : 0) + nm), h, kg, what:[TUR_GOODS[1].no, TUR_GOODS[1].en], base:turPay(h, TUR.cls.kort.f), hTot:TUR_FIRST.hTot}; }
+      return {k:'frakt', cls:'kort', first:true, from:from.id, to:q.id, p:q.p, nm:Math.round((pick ? turNm(o, from.p) : 0) + nm), h, kg, what:[TUR_GOODS[1].no, TUR_GOODS[1].en], base:turFraktPay(h, TUR.cls.kort.f, kg), hTot:TUR_FIRST.hTot}; }
   }
   return null;
 }
