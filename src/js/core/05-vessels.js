@@ -268,7 +268,14 @@ function coastState(b, H, hod = hodOf(H)){
 // boats placed before it. A boat that does not fit is moved off the face the least that frees her (up to 8 m, then along the face),
 // and one that still does not is put on a mooring buoy in the basin (as small boats lie in Norwegian harbours), swinging to the
 // harbour's mouth. Until the coast is in, the pack's place stands (nothing is drawn so near anyway).
-const MOOR = {ver:-1, PEN:3, SMALL:11};   // PEN: the mooring pennant from the buoy to the bow (m); SMALL: under it a boat may lie at a dock or a buoy
+const MOOR = {ver:-1, PEN:3, SMALL:11, LED:16, FORE:13.5};   // PEN: the mooring pennant from the buoy to the bow (m); SMALL: under it a boat may lie at a dock or a buoy
+// (LED, Jonas 27.11.2026, «Fri led forbi»: the free water a buoy leaves between the circle she swings on and the foreshore, m;
+// FORE: how far the foreshore reaches from the coast's line, 17-farbar.js. The buoy lay her length and 8 m from the nearest land,
+// and so in the middle of passages 20-30 m of water wide: Gamvik's way out and the mouth of Værøy verft's basin, where nothing
+// bigger than a skiff had a way past her. The lane is asked on her nearest side, so it is there whatever lies on the other. The
+// width of the water through the buoy was tried first and did not do it: the buoys moved to other places that shut the way.
+// A boat with no such place is not shown in port, as before)
+const moorBuoyRoom = L => L + MOOR.PEN + MOOR.FORE + MOOR.LED;
 // a hull of half length r about x, z in a harbour unit's block (with its fill behind), its basin or its landing and bunker berths (L1,
 // choice 3: the rest of the plant's quay is the harbour's boats' too)
 function unitHit(x, z, r){
@@ -409,13 +416,13 @@ function moorHarbour(h){
       break;
     }
   }
-  // a mooring buoy in the basin for the rest under 11 m: water with room to swing (the length and 8 m from the coast), away from the
+  // a mooring buoy in the basin for the rest under 11 m: water with room to swing and a way past her (moorBuoyRoom: her length, the pennant, the foreshore and MOOR.LED m from the coast), away from the
   // berths and the rest. A bigger boat with no quay gets no place (none): she is not shown in port, and her day starts at the mouth
   for (const b of need){
     let m = null; if (b.L >= MOOR.SMALL){ b.moored = {p:b.p, hd:b.hd, st:'port', none:true}; continue; }
     for (let r = 40; r <= 420 && !m; r += 30) for (let k = 0; k < 16 && !m; k++){
       const a = (k + hash(hashStr(b.id) + r) * 0.9) / 16 * 2 * Math.PI, p = {x:h.x + Math.sin(a) * r / 1000, y:h.y - Math.cos(a) * r / 1000};
-      if (!coastFine(p) || isLand(p) || coastDistM(p, 100) < b.L + 8 || depthF(p) < b.T + 1.5) continue;
+      if (!coastFine(p) || isLand(p) || coastDistM(p, 100) < moorBuoyRoom(b.L) || depthF(p) < b.T + 1.5) continue;
       const hd = mouth ? Math.atan2(mouth.x - p.x, -(mouth.y - p.y)) : b.hd;
       if (!docksIn(p.x * 1000 - 60, p.y * 1000 - 60, p.x * 1000 + 60, p.y * 1000 + 60).every(d => { const e1 = d.s0 + d.np * FDOCK.PL; for (let q = 0; q <= e1; q += 3) if (Math.hypot(p.x * 1000 - d.o[0] - d.n[0] * q, p.y * 1000 - d.o[1] - d.n[1] * q) < b.L + 8) return false; return true; })) continue;
       // p is the buoy; she lies to it by the bow on her mooring pennant and swings round it with the wind and the tide (the circle free)

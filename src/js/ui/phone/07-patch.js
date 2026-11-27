@@ -2,7 +2,8 @@
   const PATCH = [
     ['kart-271126', '27.11.2026', 'Ålesund verft', 'The yard at Ålesund', [
        ['Verftet i Ålesund ligger 25 m lenger inn langs kaia si, så utløpet fra bassenget er bredere for de større båtene.', 'The yard at Ålesund lies 25 m further in along its quay, so the way out of the basin is wider for the bigger boats.'],
-       ['Sjøen tegner ikke lenger brenning midt i et basseng foran en kai.', 'The sea no longer draws surf in the middle of a basin in front of a quay.']]],
+       ['Sjøen tegner ikke lenger brenning midt i et basseng foran en kai.', 'The sea no longer draws surf in the middle of a basin in front of a quay.'],
+       ['Båter på bøye ligger ikke lenger midt i trange løp: bøyene har fått fri led rundt seg.', 'Boats on mooring buoys no longer lie in the middle of narrow passages: the buoys have a free lane round them.']]],
     ['kart-261126', '26.11.2026', 'Moloen i Øksfjord', 'The breakwater at Øksfjord', [
        ['Moloen ved mottaket i Øksfjord er kortere i enden mot land, så innløpet er bredere for de større båtene.', 'The breakwater by the fish plant at Øksfjord is shorter at the end towards the land, so the inlet is wider for the bigger boats.']]],
     ['enklere-251126', '25.11.2026', 'Kvote og Båthandel med det viktigste først', 'Quota and the boat market with the essentials first', [
