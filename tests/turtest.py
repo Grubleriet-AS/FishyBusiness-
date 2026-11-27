@@ -250,7 +250,7 @@ async def main():
           const old = {k:'sesong', cls:'sesong', to:'x', sp:'sei', kg:BOAT.holdCap * 3, got:0, h:12, hTot:150, pay:400000, id:999};
           const keep = T.act; T.act = [old]; T.v = 1; turState(); const after = {kg:old.kg, pay:old.pay, v:T.v, slots:T.slots}; T.act = keep;
           return {moved1:seq1 > seq0, moved2:seq2 > seq1, kg:after.kg, pay:after.pay, v:after.v, slots:after.slots, hold:BOAT.holdCap}; })()""")
-        check(rr['moved1'] and not rr['moved2'] and rr['kg'] <= 2 * rr['hold'] and rr['pay'] < 400000 and rr['v'] == 3 and rr['slots'] == 4,
+        check(rr['moved1'] and not rr['moved2'] and rr['kg'] <= 2 * rr['hold'] and rr['pay'] < 400000 and rr['v'] == 4 and rr['slots'] == 4,
               'moving far makes a new board once a game day, not twice; a season\'s move from the oldest saves is brought down to two holds; the save comes over to the new rules with a full board', rr)
         # 14. the measurement (30.10.2026): a board seen sends tur_show once for that set of missions; a mission taken sends tur_take with its id
         #     and the real minutes allowed; given up it sends tur_fail with the same id, how it ended ('drop') and the share of the deadline used

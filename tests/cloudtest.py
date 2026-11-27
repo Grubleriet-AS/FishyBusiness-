@@ -101,6 +101,10 @@ async def main():
         sm = (puts[0].get('summary') or {}) if puts else {}
         check(len(puts) == 1 and puts[0]['data'].startswith('KYST2:') and puts[0]['force'] is False and puts[0]['base'] is None and sm.get('day', 0) >= 1 and 'cash' in sm and sm.get('type'),
               'the save goes up as a save code with its summary, not forced, from no account save yet', {k: (v[:12] if isinstance(v, str) else v) for k, v in (puts[0] if puts else {}).items()})
+        # HS5b (27.11.2026): the summary carries what the server's check of the kroner reads beside the cash: the two accounts, the loans,
+        # every vessel's type and the rights' value (core/03-simulation.js saveWorth)
+        check(isinstance(sm.get('bank'), int) and isinstance(sm.get('debt'), int) and isinstance(sm.get('licv'), int) and sm.get('types') == [sm.get('type')] * sm.get('fleet', 1),
+              'the summary has the accounts, the loans, the vessel types and the value of the rights', {k: sm.get(k) for k in ('cash', 'bank', 'debt', 'types', 'licv', 'type', 'fleet')})
         check(r['card'], 'the account card is in Settings, with the e-mail')
         check(not r['admIcon'] and not r['admApp'], 'an account without the admin flag has no Admin app on the phone and cannot open it', {'icon': r['admIcon'], 'app': r['admApp']})
         # the account has moved on (another device saved) with an older save: one game per account (08.10.2026), the one saved
