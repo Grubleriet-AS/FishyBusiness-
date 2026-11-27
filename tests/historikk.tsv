@@ -6631,3 +6631,5 @@
 2026-11-27 11:57	ccr-1a8b7d9a-89hfb6	7a94d3c+	bwtest	OK	71	lite	alene	
 2026-11-27 12:01	ccr-1a8b7d9a-89hfb6	6d730954+	sqltest	OK	81	lite	samtidig	
 2026-11-27 12:01	ccr-1a8b7d9a-89hfb6	6d730954+	bwtest	OK	71	lite	samtidig	
+2026-11-27 12:32	ccr-1a8b7d9a-89hfb6	a2304bf4+	kjoptest	OK	197	lite	samtidig	
+2026-11-27 12:32	ccr-1a8b7d9a-89hfb6	a2304bf4+	fasittest	OK	48	lite	samtidig	
