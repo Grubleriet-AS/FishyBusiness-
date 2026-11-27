@@ -1339,10 +1339,12 @@ function undoBuyKr(to, from){ const A = VESSELS[to], B = VESSELS[from]; if (!A |
 // trade-in), the open group's quota comes back with what was fished in it this year (openUsedLoad), and what the right cost is paid back:
 // d.licKr, or its value at the hour of the purchase (d.licAt, the real time it was bought, ISO; licValue at that game hour, with the
 // world's stock as the game has it), or else what it is worth now. A row may hold the boat (from, to), the right (lic) or both.
+// d.inn (27.11.2026, Julian: the boat with the right had used Innovasjon Norge's top-up, S.inUsed, which is given once, on the first
+// closed-group boat; with the purchase undone the next one asked for 20 % equity instead of 5 %): the top-up is his to use again.
 const undoLicH = at => { const ms = Date.parse(at); return isFinite(ms) ? Math.max(0, (ms - WORLD_T0) * GAME_RATE / 60000) / 60 : null; };
 function undoBuyWhy(d){
-  const boat = !!(d && (d.from || d.to)), lic = !!(d && d.lic);
-  if (!d || (!boat && !lic)) return 'bad';
+  const boat = !!(d && (d.from || d.to)), lic = !!(d && d.lic), inn = !!(d && d.inn);
+  if (!d || (!boat && !lic && !inn)) return 'bad';
   if (boat && (!VESSELS[d.from] || !VESSELS[d.to] || d.from === d.to || VESSELS[d.from].cls === 'hav' || VESSELS[d.to].cls === 'hav')) return 'bad';
   if (d.id != null && S.fixDone && S.fixDone[d.id]) return 'done';
   if (boat && S.boat.type !== d.to) return 'type';
@@ -1370,6 +1372,7 @@ function undoBuyApply(d){
     const H = d.licAt ? undoLicH(d.licAt) : null; licKr = d.licKr != null ? Math.round(d.licKr) : licValue(S.lic, H != null ? H : undefined);
     regFree(S.lic.id); S.lic = null; freshQuota(); openUsedLoad();
   }
+  const inn = !!(d.inn && S.inUsed); if (d.inn) delete S.inUsed;
   applyVessel(); S.equip.jukse = Math.min(S.equip.jukse || 0, BOAT.jukseMax || 0);
   b.fuel = Math.min(b.fuel || 0, BOAT.fuelCap); b.ice = Math.min(b.ice || 0, BOAT.iceCap || 0);
   while (S.crew.length > BOAT.crewMax) S.crew.pop();
@@ -1377,7 +1380,7 @@ function undoBuyApply(d){
   if (kr > 0) book('baat', kr, 'Båtkjøpet angret', 'Vessel purchase undone');
   if (licKr > 0) book('baat', licKr, 'Hjemmelen fra båtkjøpet tilbake til registeret', 'The right from the vessel purchase back to the register');
   const paid = Math.min(debt0, Math.max(0, all)), off = paid > 0 ? payDown(paid) : 0; if (off > 0) book('avdrag', -off, 'Lånene innfridd med tilbakebetalingen', 'Loans paid off with the refund');
-  const r = {ok:true, kr:all, boatKr:kr, licKr, lic:d.lic || null, off, jobs, cash:Math.round(S.cash), debt:Math.round(debt())};
+  const r = {ok:true, kr:all, boatKr:kr, licKr, lic:d.lic || null, inn, off, jobs, cash:Math.round(S.cash), debt:Math.round(debt())};
   if (d.id != null){ S.fixDone = S.fixDone || {}; S.fixDone[d.id] = {...r, t:S.t}; }
   return r;
 }

@@ -74,4 +74,9 @@ export default function (t){
   const at = '2026-11-24T21:46:26Z', Hb = (Date.parse(at) - K.WORLD_T0) * K.GAME_RATE / 60000 / 60, want = K.licValue(S.lic, Hb);
   const r7 = K.undoBuyApply({id:53, lic:O.id, licAt:at});
   t.ok(r7.ok && r7.licKr === want && want !== lv, 'hjemmelen betales med prisen da den ble kjøpt (' + want + ' kr, ikke ' + lv + ')', r7);
+  // Innovasjon Norge's top-up given back (Julian 27.11.2026: 4,8 mill. in equity for kyst15 with h14, not 600 000)
+  S = setup(); S.boat.type = 'sjark'; K.applyVessel(); S.boat.port = 'x'; S.cash = 404105; S.fleet = S.fleet || []; S.crew = S.crew || []; S.inUsed = true;
+  const c8 = S.cash, r8 = K.undoBuyApply({id:54, inn:true});
+  t.ok(r8.ok && r8.inn === true && !S.inUsed && S.cash === c8 && r8.kr === 0, 'toppfinansieringen kan brukes igjen, og ingenting annet endres', r8);
+  t.eq(K.undoBuyWhy({id:55}), 'bad', 'en tom rad gjør ingenting');
 }
