@@ -34,6 +34,7 @@ async def main():
         await pg.wait_for_selector('#ltEnv', state='visible', timeout=90000); await pg.click('#ltEnv')
         await pg.wait_for_selector('#ltGo.on', timeout=60000); await pg.click('#ltGo')
         await pg.wait_for_selector('#startPick', timeout=20000)
+        await pg.wait_for_selector('#stGo', state='visible', timeout=60000)   # (the list comes once the coast's sea is worked out, in bits behind the box: ui/08c-start.js)
         pick = await pg.evaluate("""(() => { const it = [...document.querySelectorAll('#stAll > .st-it.rec')], dots = document.querySelectorAll('#startPick .st-dot').length, all = document.querySelectorAll('#stAll details .st-it').length;
           const sc = [...document.querySelectorAll('#stAll > .st-it')].map(e => startInfo(portById(e.dataset.id)).score), sorted = sc.every((v, i) => !i || v <= sc[i - 1]);
           const q = document.getElementById('stQ'); q.value = 'vangs'; q.dispatchEvent(new Event('input')); const hit = [...document.querySelectorAll('#stHits .st-it')].map(e => e.dataset.id);
@@ -76,6 +77,7 @@ async def main():
         await boot(pg, GAME)
         await pg.evaluate("(() => { delete S.home; S.moved = false; PHONE.open('innst'); document.querySelector('[data-pa=move]').click(); })()")
         await pg.wait_for_selector('#startPick', timeout=20000)
+        await pg.wait_for_selector('#stGo', state='visible', timeout=60000)   # (the list comes once the coast's sea is worked out, in bits behind the box: ui/08c-start.js)
         to = await pg.evaluate("(() => { const t = [...document.querySelectorAll('#startPick .st-it.rec')].find(e => e.dataset.id !== 'finnsnes'); t.click(); return t.dataset.id; })()")
         await pg.click('#stGo')
         await pg.wait_for_function("!document.getElementById('startPick')", timeout=90000)

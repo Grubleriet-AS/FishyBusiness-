@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['start-281126', '28.11.2026', 'Valget av startsted', 'Choosing where to start', [
+       ['Etter brevet fra far sto spillet stille en stund på noen telefoner før listen over steder kom. Nå svarer skjermen hele tida, og listen kommer straks været langs kysten er sett på.', 'After Father\'s letter the game stood still for a while on some phones before the list of places came. Now the screen answers all the time, and the list comes as soon as the weather along the coast has been looked at.']]],
     ['frakt-271126', '27.11.2026', 'Oppdrag: frakt og slep', 'Missions: freight and tows', [
        ['Fraktoppdrag betales etter hvor mye som fraktes. For båter under 11 m er alt som før.', 'Freight missions are paid by how much is carried. For boats under 11 m everything is as before.'],
        ['Båtene på 11 m og over får tilbud om større last: fiskekar til et mottak, og fôr til et oppdrettsanlegg.', 'The vessels of 11 m and over are offered bigger cargo: fish tubs for a landing station, and feed for a fish farm.'],
