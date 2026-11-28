@@ -12,7 +12,9 @@ export default function (t){
   t.eq(K.lenArea(K.VESSELS.kyst21.len).length, 2, 'kyst21 får begge linjene');
   t.eq(K.lenArea(K.VESSELS.kyst15.len).length, 0, 'kyst15 (14,99 m) er under 15 m');
   t.eq(K.lenArea(K.VESSELS.breisjark.len).length, 0, 'breisjarken har ingen');
-  // the same limits as the check itself: rulesAt has the same lengths (f31 from 15 m, j32b from 21 m, j32c from 28 m)
-  const src = K.rulesAt.toString();
-  t.ok(/len >= 15/.test(src) && /len < 21/.test(src) && /len >= 21/.test(src) && /len < 28/.test(src), 'rulesAt har de samme lengdene (15, 21, 28)');
+  // the same limits as the check itself: one table, RU_LEN, read by rulesAt and lenArea (the kontroll 28.11.2026: a regex on the source
+  // would not see a changed limit); a changed limit changes the card, and rulesAt has no length of its own left
+  const src = K.rulesAt.toString(), f0 = K.RU_LEN.f31; K.RU_LEN.f31 = 16; const moved = K.lenArea(15).length; K.RU_LEN.f31 = f0;
+  t.ok(moved === 0 && K.lenArea(15).length === 1, 'lenArea leser grensene fra RU_LEN');
+  t.ok(/RU_LEN\.f31\b/.test(src) && /RU_LEN\.j32c/.test(src) && !/len >= 15|len < 21|len >= 21|len < 28/.test(src), 'rulesAt leser de samme grensene og har ingen egne igjen');
 }

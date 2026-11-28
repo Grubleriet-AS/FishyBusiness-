@@ -16,7 +16,9 @@
   const annuity = (bal, rate, n) => bal > 0 ? Math.round(bal * rate / 12 / (1 - Math.pow(1 + rate / 12, -n))) : 0;
   function boatMonthly(x, months){
     let p = x.payoff || 0; const b0 = S.loan ? S.loan.bal : 0, i0 = S.loanIN ? S.loanIN.bal : 0, pb = Math.min(b0, p); p -= pb; const pi = Math.min(i0, p);
-    return annuity(b0 - pb + (x.bankL || 0), LOANS.loan.rate, months) + annuity(i0 - pi + (x.inn ? x.inL || 0 : 0), LOANS.loanIN.rate, 120);
+    // (a loan that gets nothing new keeps its payment: payDown does not work it out again, only takeLoan does)
+    const bank = x.bankL > 0 ? annuity(b0 - pb + x.bankL, LOANS.loan.rate, months) : b0 - pb > 0.5 ? S.loan.pay : 0, inL = x.inn ? x.inL || 0 : 0;
+    return bank + (inL > 0 ? annuity(i0 - pi + inL, LOANS.loanIN.rate, 120) : i0 - pi > 0.5 ? S.loanIN.pay : 0);
   }
   // the box over the button while it asks: the money and the water, then «cannot be undone»
   function boatConfirmBox(x, type, months){
@@ -41,7 +43,8 @@
     return '<p class="ph-note" data-eqdetail="1">' + L('Slik er det regnet: banken vil ha ' + pct + ' % av prisen (' + kr(price * pct / 100) + ') i egenkapital.', 'How it is counted: the bank wants ' + pct + '% of the price (' + kr(price * pct / 100) + ') in equity.') +
       (ti ? ' ' + (x.payoff ? L('Innbyttet er verdt ' + kr(ti) + ', men går først til å innfri ' + kr(x.payoff) + ' av gjelda di, så det teller ' + kr(x.tiNet) + '.', 'The trade-in is worth ' + kr(ti) + ', but first pays off ' + kr(x.payoff) + ' of your debt, so it counts ' + kr(x.tiNet) + '.') : L('Innbyttet teller ' + kr(x.tiNet) + '.', 'The trade-in counts ' + kr(x.tiNet) + '.')) : '') +
       ' ' + L('Du trenger ' + kr(x.eqNeed) + ' og har ' + kr(have) + ' i kassa og på sparekontoen (skattekontoen teller ikke).', 'You need ' + kr(x.eqNeed) + ' and have ' + kr(have) + ' in the account and the savings (the tax account does not count).') +
-      (used ? ' ' + L('Toppfinansieringen fra Kystfondet er brukt: den gis bare på den første båten med egen kvote.', 'Kystfondet\'s top-up is used: it is given only on the first boat with a quota of your own.') : '') + '</p>';
+      (used ? ' ' + L('Toppfinansieringen fra Kystfondet er brukt: den gis bare på den første båten med egen kvote.', 'Kystfondet\'s top-up is used: it is given only on the first boat with a quota of your own.') :
+        !x.inn && S.fleet.some(v => vget(v, 'lic')) ? ' ' + L('Toppfinansieringen fra Kystfondet gis bare på den første båten med egen kvote, og rederiet har alt en.', 'Kystfondet\'s top-up is given only on the first boat with a quota of your own, and the company has one already.') : '') + '</p>';
   }
   // ---- «Dette endrer seg» (steg 151, K3 of docs/planer/regler-i-klartekst.md): what a purchase changes, from rmBuy (core/03l-room.js),
   // over the button that makes it. The group, this year's cod before and after with what the seller has fished, who may fish on the
@@ -64,7 +67,7 @@
     h.push('<table class="tbl chgt"><thead><tr><th></th>' + (N ? '<th>' + L('Nå', 'Now') + '</th>' : '') + '<th>' + (N ? L('Etter kjøpet', 'After the purchase') : L('Den nye båten', 'The new boat')) + '</th></tr></thead><tbody>' +
       rows.map(([lbl, f]) => '<tr><td>' + lbl + '</td>' + (N ? '<td>' + f(N, 0) + '</td>' : '') + '<td>' + f(A, R.seller || 0) + '</td></tr>').join('') +
       // (28.11.2026: where she may not fish, by her length, lenArea in core/03e-rules.js; Julian's 21 m boat could not fish inside the fjord lines)
-      (() => { const ln = N ? (VESSELS[S.boat.type] || {}).len || 0 : 0, la = offer.type ? (VESSELS[offer.type] || {}).len || 0 : offer.v ? (VESSELS[vget(offer.v, 'boat').type] || {}).len || 0 : 0, an = lenArea(ln), aa = lenArea(la);
+      (() => { const ln = N ? (VESSELS[offer.v ? vget(offer.v, 'boat').type : S.boat.type] || {}).len || 0 : 0, la = offer.type ? (VESSELS[offer.type] || {}).len || 0 : offer.v ? (VESSELS[vget(offer.v, 'boat').type] || {}).len || 0 : 0, an = lenArea(ln), aa = lenArea(la);
         if (!an.length && !aa.length) return ''; const txt = a => a.length ? a.map(x => L(x.no, x.en)).join(' ') : L('ingen grenser etter lengden', 'no limits by her length');
         return '<tr data-area="' + aa.length + '"><td>' + L('Hvor hun ikke kan fiske', 'Where she may not fish') + '</td>' + (N ? '<td>' + txt(an) + '</td>' : '') + '<td' + (aa.length && !an.length ? ' class="chg-warn"' : '') + '>' + txt(aa) + '</td></tr>'; })() +
       '</tbody></table>');
