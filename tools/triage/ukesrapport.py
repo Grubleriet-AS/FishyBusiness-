@@ -41,7 +41,7 @@ def render(uke, fixed, waiting, issues, new_clusters, opus, week_no):
     if not waiting and not issues: L.append('Ingenting.')
     L += ['', '## Nye feilklynger denne uka (%d)' % len(new_clusters), '']
     L += ['- `klynge:%s` %s, %d økter, alvor %d, risiko %s' % (c['id'], c['msg'][:90], c['sessions'], c['alvor'], c['risiko']) for c in new_clusters[:15]] or ['Ingen.']
-    L += ['', '## Opus', '', '%d kjøringer siste sju døgn (taket er 4 i døgnet).' % opus, '', '---', '_Driften (`tools/triage/ukesrapport.py`)_']
+    L += ['', '## Opus', '', '%d kjøringer siste sju døgn (taket er 6 i døgnet).' % opus, '', '---', '_Driften (`tools/triage/ukesrapport.py`)_']
     return '\n'.join(L) + '\n', top
 
 

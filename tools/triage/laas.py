@@ -14,7 +14,7 @@ means someone else took it in the same moment. A lock that has not been renewed 
     python3 tools/triage/laas.py status               prints who holds it, or «ledig»
     python3 tools/triage/laas.py teller [--timer 24]   how many times Driften took the lock for an Opus agent in the last hours: each
                                                       take for a fix or a queue step (not a renewal, not the release), the count the
-                                                      Opus cap reads (Jonas 18.11.2026: «Tak: 4 i døgnet»)
+                                                      Opus cap reads (OPUS_TAK in klynge.py; 6 from 28.11.2026)
     python3 tools/triage/laas.py --selftest           the checks of this file, on a repository of its own in a temporary folder
 
 `--remote` names another remote than origin (the self-test uses that).
@@ -99,6 +99,19 @@ def takes(cwd, remote, hours=24, now=None, who=('driften', 'feilretting'), kind=
     return n
 
 
+def last_what(cwd, remote, hours=72, now=None, who=('driften', 'feilretting')):
+    """What the newest take for an Opus fix was for («klynge:<id>» or «#N»), in the last hours; '' when none. Not the release, the
+    emergency brake or a queue step. tools/triage/klynge.py reads it to give the players' reports every other run (28.11.2026)."""
+    if not head(cwd, remote): return ''
+    now = now or time.time()
+    out = git(cwd, 'log', '--format=%s', '--since=%d' % int(now - hours * 3600), 'refs/laas/' + BRANCH).stdout.strip().split('\n')
+    for msg in out:                                                     # newest first
+        p = msg.split()
+        if len(p) < 4 or p[0] != 'kjører' or p[2] not in who or p[3] in ('slipp', 'nodbrems', 'steg', 'notat'): continue
+        return ' '.join(p[3:])
+    return ''
+
+
 def selftest():
     bad = []
     def eq(what, got, want):
@@ -139,6 +152,11 @@ def selftest():
         eq('teller bare steg', takes(a, 'o', who=('driften',), kind='steg'), 1)
         eq('teller bare rettinger', takes(a, 'o', who=('driften',), kind='retting'), 1)
         eq('teller ingenting eldre enn vinduet', takes(a, 'o', now=time.time() + 25 * 3600, who=('driften',)), 0)
+        # what the last fix was for: the newest take for a fix, past the release, a queue step and another holder (klynge.py's order)
+        eq('forrige retting: klyngen, forbi slippet og steget', last_what(a, 'o', who=('driften',)), 'klynge:aaaa1111')
+        take(a, 'o', 'driften', '#447'); give(a, 'o')
+        eq('forrige retting: en tilbakemelding', last_what(a, 'o', who=('driften',)), '#447')
+        eq('forrige retting: ingen i vinduet', last_what(a, 'o', now=time.time() + 80 * 3600, who=('driften',)), '')
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     for x in bad: print('FEIL ' + x)
