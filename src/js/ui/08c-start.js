@@ -58,7 +58,21 @@ function startWx(pt, H0){
 }
 function showStart(done){
   const L = (no, en) => S.lang === 'no' ? no : en;
-  const H0 = S.t / 60, ports0 = PORTS.filter(q => q.mottak || q.id === HOME0).map(pt => ({pt, ...startInfo(pt), wx:startWx(pt, H0)}));
+  // (the box goes up at once, and the coast's sea is worked out in bits of 40 ms behind it: done in one stretch, the wave fetch's rays
+  // at eight points round every plant held the page 3 s with the CPU slowed four times, and 10-30 s on a slow phone, right after Father's
+  // letter, «Heng: spillet sto stille · kart», klynge:38184905, tests/hengstart.py. The box is #startPick from the start, so the 3D view
+  // still waits for the choice, ui/11-boot.js go3d)
+  const el = document.createElement('div'); el.id = 'startPick'; el.className = 'stp';   // not 'st': that is the HUD's status line
+  const head = '<h2>' + L('Hvor står fars naust?', 'Where is Father’s boathouse?') + '</h2>';
+  el.innerHTML = '<div class="st-box">' + head + '<p class="st-lead">' + L('Ser på været langs kysten …', 'Looking at the weather along the coast …') + '</p></div>';
+  document.body.appendChild(el);
+  const H0 = S.t / 60, all0 = PORTS.filter(q => q.mottak || q.id === HOME0), ports0 = [];
+  let i = 0;
+  const step = () => { if (!el.isConnected) return; const end = performance.now() + 40;
+    while (i < all0.length){ const pt = all0[i++]; ports0.push({pt, ...startInfo(pt), wx:startWx(pt, H0)}); if (performance.now() > end) break; }
+    if (i < all0.length) setTimeout(step, 0); else fill(); };
+  step();
+  function fill(){
   // the places the first trip can be made from now come first; if the whole coast were over the limit (never seen), all are offered
   const anyOk = ports0.some(x => x.wx.ok); if (!anyOk) ports0.forEach(x => { x.wx.ok = true; });
   const ports = ports0.sort((a, b) => (b.wx.ok - a.wx.ok) || b.score - a.score);
@@ -73,14 +87,12 @@ function showStart(done){
     (x.small >= 0.3 ? L(' · mye fra små båter', ' · much from small boats') : '') + '</small></button>';
   const best = ports.filter(x => x.wx.ok).slice(0, TOP).map((x, i) => item(x, i)).join('');
   const byReg = REGIONS.map(r => { const xs = ports.filter(x => x.region === r[0]); return xs.length ? '<details class="st-reg"><summary>' + L(r[1], r[2]) + ' <span>' + xs.length + '</span></summary>' + xs.map(x => item(x)).join('') + '</details>' : ''; }).join('');
-  const el = document.createElement('div'); el.id = 'startPick'; el.className = 'stp';   // not 'st': that is the HUD's status line
-  el.innerHTML = '<div class="st-box"><h2>' + L('Hvor står fars naust?', 'Where is Father’s boathouse?') + '</h2><p class="st-lead">' +
+  el.innerHTML = '<div class="st-box">' + head + '<p class="st-lead">' +
     L('Velg hvor langs kysten du tar over. Øverst står stedene der det er mest å tjene akkurat nå. Vil du heller starte nær der du bor, kan du søke eller bla etter landsdel. Steder med uvær akkurat nå står grått, med når det ventes å løye.', 'Choose where along the coast you take over. At the top are the places where there is most to earn right now. If you would rather start near where you live, search or browse by region. Places with heavy weather right now are grey, with when it is expected to ease.') +
     '</p><input type="search" id="stQ" class="st-q" autocomplete="off" placeholder="' + L('Søk etter et sted', 'Search for a place') + '">' +
     '<div class="st-list" id="stHits" hidden></div><div class="st-list" id="stAll"><h3 class="st-h">' + L('Best akkurat nå', 'Best right now') + '</h3>' + best +
     '<h3 class="st-h">' + L('Alle steder etter landsdel', 'All places by region') + '</h3>' + byReg + '</div>' +
     '<div class="st-pick" id="stPick" hidden><div id="stPickTx"></div><button class="btn primary" id="stGo">' + L('Start her', 'Start here') + '</button></div></div>';
-  document.body.appendChild(el);
   let sel = null;
   const pick = id => {
     const c = ports.find(x => x.pt.id === id); if (!c || !c.wx.ok) return; sel = c;
@@ -105,6 +117,7 @@ function showStart(done){
     if (S.tutT && !S.intro) S.tutT.map = Date.now();
     el.remove(); done();
   });
+  }
 }
 // the patch for «Første tur» near a harbour (Onboarding 2, O1, docs/planer/onboarding-2.md, 27.10.2026). Never missing, never on Senja
 // for a start elsewhere, never unlawful, and near, so the first bite comes within minutes: the best fish 1.5 to 2.5 km out first, then
