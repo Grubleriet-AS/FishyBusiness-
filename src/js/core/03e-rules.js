@@ -132,6 +132,20 @@ function zoneLicApply(c){ if (!ZLIC.includes(c) || zoneLic(c)) return false; (S.
 // inside the fjord lines for coastal cod (høstingsforskriften vedlegg 4), along the whole coast
 function insideFjord(p){ return !!(ruBits(p) & 2); }
 function insideBaseline(p){ return !!(ruBits(p) & 1); }
+// where a boat of this length may not fish, in words for the buyer (28.11.2026, Jonas: «Vi må heller fikse grunnen til at spillere kjøper
+// feil båt»; Julian bought a 21 m boat not knowing she could not fish inside the fjord lines). The same lengths as rulesAt below:
+// høstingsforskriften § 31 (15 m and over inside the fjord lines; 21 m and over north of Tysfjorden), J-187-2026 § 32 (21–27.99 m inside
+// the baseline, 28 m and over within 4 nm of it, north of 62° N, with the exceptions rulesAt has by area and season). [] under 15 m.
+// Each line {no, en, ref}; the card says «most places» where rulesAt has exceptions, and the map and Regler-appen say where
+function lenArea(len){
+  const out = [], add = (no, en, ref) => out.push({no, en, ref});
+  if (!(len >= 15)) return out;
+  if (len < 21) add('Kan ikke fiske torsk innenfor fjordlinjene. Andre arter går der, med høyst 5 % torsk som bifangst.', 'May not fish cod inside the fjord lines. Other species may be fished there, with at most 5% cod as bycatch.', 'Høstingsforskriften § 31');
+  else add('Kan ikke fiske innenfor fjordlinjene nord for Tysfjorden, og ikke torsk innenfor dem lenger sør.', 'May not fish inside the fjord lines north of Tysfjorden, and not cod inside them further south.', 'Høstingsforskriften § 31');
+  if (len >= 21 && len < 28) add('Nord for 62° N kan hun de fleste steder ikke fiske torsk, hyse og sei innenfor grunnlinjen.', 'North of 62° N she may not fish cod, haddock and saithe inside the baseline in most places.', 'J-187-2026 § 32');
+  else if (len >= 28) add('Nord for 62° N kan hun de fleste steder ikke fiske torsk, hyse og sei innenfor 4 nautiske mil av grunnlinjen.', 'North of 62° N she may not fish cod, haddock and saithe within 4 nautical miles of the baseline in most places.', 'J-187-2026 § 32');
+  return out;
+}
 // km from the baseline (0 inside it); the zones of 1, 2, 4, 6, 12 nm are measured from it
 function blDist(p){
   if (insideBaseline(p)) return 0; const b = RU.bl; let best = 1e9;

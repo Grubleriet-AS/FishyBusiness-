@@ -94,7 +94,7 @@ async def main():
           // buy a skiff for the fleet from the market tab, with the real button
           // the market lists a card per boat; the buttons are on her sheet
           DOCK.open('fartoy:marked'); { const dr = document.getElementById('drawerBody'), tap = s => { const e = dr.querySelector(s); if (e) e.click(); }; tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=open]'); tap('[data-pa=mksel][data-k=skiff]'); }
-          const bt = document.querySelector('[data-pa="buy"][data-ti="0"][data-k="skiff"]'); R.buyEnabled = !bt.disabled; bt.click();
+          const bt = document.querySelector('[data-pa="buy"][data-ti="0"][data-k="skiff"]'); R.buyEnabled = !bt.disabled; bt.click(); { const b2 = document.querySelector('[data-pa="buy"][data-ti="0"][data-k="skiff"]'); if (b2) b2.click(); }
           R.after = S.fleet.map(v => vget(v, 'boatName') + ':' + vget(v, 'boat').type + ':' + vget(v, 'boat').port);
           // not aboard and no crew: the new skiff cannot leave
           const nv = S.fleet[S.fleet.length - 1]; R.depart = onVessel(nv, () => { S.crew = []; S.plan = {wps:[{...LG(1, 1), port:null, fish:0}], idx:0, speed:10}; return depart(); });
@@ -117,7 +117,7 @@ async def main():
         # 5. a new build ordered for the fleet is added when the yard delivers
         order = await pg.evaluate("""(()=>{ S.cash = 2e7; S.order = null; for (const v of S.fleet) withVessel(v, () => { S.plan = null; S.boat.status = 'port'; S.boat.port = 'finnsnes'; });
           DOCK.open('fartoy:marked'); { const dr = document.getElementById('drawerBody'), tap = s => { const e = dr.querySelector(s); if (e) e.click(); }; tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=open]'); tap('[data-pa=mksel][data-k=sjarkny]'); }
-          const n0 = S.fleet.length; document.querySelector('[data-pa="buy"][data-ti="0"][data-k="sjarkny"]').click(); const vid = S.order ? 'an order' : null;
+          const n0 = S.fleet.length; (q => { document.querySelector(q).click(); const b2 = document.querySelector(q); if (b2) b2.click(); })('[data-pa="buy"][data-ti="0"][data-k="sjarkny"]'); const vid = S.order ? 'an order' : null;
           const nv = S.fleet[S.fleet.length - 1];
           return {n0, n1:S.fleet.length, vid, order:S.order, type:vget(nv, 'boat').type, port:vget(nv, 'boat').port, msg:S.msgs[S.msgs.length - 1].no}; })()""")
         print('new build:', json.dumps(order, ensure_ascii=False))

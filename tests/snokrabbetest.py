@@ -54,7 +54,7 @@ BUY = """async ([la, lo]) => {
 
 BUYNOW = """async () => {
   const R = {}, b = S.boat, c0 = S.cash, r0 = npcReg().krab || 0;
-  document.querySelector('[data-pa="buy"][data-ti="1"][data-k="snokrabbe"]').click(); await new Promise(r => setTimeout(r, 200));
+  (q => { document.querySelector(q).click(); const b2 = document.querySelector(q); if (b2) b2.click(); })('[data-pa="buy"][data-ti="1"][data-k="snokrabbe"]'); await new Promise(r => setTimeout(r, 200));
   R.type = b.type; R.lic = S.lic ? {id:S.lic.id, hav:S.lic.hav, kf:S.lic.kf} : null; R.paid = Math.round(c0 - S.cash); R.reg = [r0, npcReg().krab || 0];
   R.q = Math.round(havQ(S.lic, S.t / 60).snokrabbe / 1000);
   await new Promise(r => setTimeout(r, 400)); const sk = document.querySelector('.bm-skip'); if (sk) sk.click();
