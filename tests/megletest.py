@@ -155,7 +155,7 @@ async def main():
         ob = await pg.evaluate("(async () => { const c0 = S.cash; FAKE.otherBid(_kL, 8200000); await MBC.sync(); await MBC.load(true); const m = S.msgs[S.msgs.length - 1]; return {back:S.cash - c0, msg:m && m.no, next:+(document.getElementById('mbBid') || {}).min}; })()")
         check(round(ob['back']) == 8160000 and 'overbydd' in (ob['msg'] or '') and ob['next'] == 8364000, 'overbydd: pengene er tilbake med en gang, en melding sier det, og neste bud er 2 % over (8 364 000)', ob)
         # «Kjøp nå» with delivery: the boat in the fleet, sailed by the broker's skipper to the yard near you
-        bn = await pg.evaluate("""(async () => { const c0 = S.cash, n0 = S.fleet.length; document.querySelector('#phone [data-pa=mbbuy]').click(); await new Promise(r => setTimeout(r, 500));
+        bn = await pg.evaluate("""(async () => { const c0 = S.cash, n0 = S.fleet.length; (q => { document.querySelector(q).click(); const b2 = document.querySelector(q); if (b2) b2.click(); })('#phone [data-pa=mbbuy]'); await new Promise(r => setTimeout(r, 500));
           const v = S.fleet[S.fleet.length - 1], D = (mktState().del || []).find(d => d.vid === v.id), m = S.msgs[S.msgs.length - 1];
           return {paid:c0 - S.cash, n:S.fleet.length - n0, name:v.boatName, type:vget(v, 'boat').type, port:vget(v, 'boat').port, lic:v.lic && v.lic.id, del:D && {from:D.from, to:D.to, kr:D.kr}, near:mbYardNear(vget(vesselById(S.me), 'boat').pos).id, msg:m && m.no, moment:!!document.getElementById('buyMoment') || null}; })()""")
         await pg.wait_for_timeout(300)
@@ -278,7 +278,7 @@ async def main():
           const full = mbValue(v), lk = mbLicKr(v), R = {full, lk}; DOCK.open('fartoy:marked'); await w(); const dr = document.getElementById('drawerBody'), tap = s => { const e = dr.querySelector(s); if (e) e.click(); return !!e; };
           tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=open]'); await w(); tap('[data-pa=mksel][data-k=plastsjark]'); await w();
           R.row = (dr.querySelector('.ti-lic') || {}).innerText || ''; R.on0 = (dr.querySelector('.ti-lic .chip-b.on') || {}).innerText || ''; tap('[data-pa=mbti][data-s=keep]'); await w(); R.on1 = (dr.querySelector('.ti-lic .chip-b.on') || {}).innerText || '';
-          const c0 = S.cash, d0 = debt(); R.buy = tap('[data-pa=buy][data-ti="1"]'); await w();
+          const c0 = S.cash, d0 = debt(); R.buy = (tap('[data-pa=buy][data-ti="1"]'), tap('[data-pa=buy][data-ti="1"]')); await w();
           R.type = S.boat.type; R.lic = S.lic; R.free = S.licFree.length; R.f = S.licFree[0] && {id:S.licFree[0].id, st:S.licFree[0].st.length, used:S.licFree[0].used.torsk}; R.paid = Math.round(c0 - S.cash); R.price = VESSELS.plastsjark.price; R.debt = debt() - d0; R.log = S.log.slice(-6).filter(l => /ledig hjemmel|Overtok/.test(l.no)).map(l => l.no.slice(0, 60)).join(' | ');
           const e = document.querySelector('#buyMoment .bm-skip'); if (e) e.click(); DOCK.close(); return R; })()""")
         ti['row'] = ti['row'][:60]; ti['on0'] = ti['on0'][:30]; ti['on1'] = ti['on1'][:30]

@@ -48,7 +48,7 @@ async def moment3d(br, errs):
         await pg.evaluate("(() => { const st = window.setTimeout; window.__st = st; window.setTimeout = (f, ms, ...r) => ms === BUYM.DUR ? 0 : st(f, ms, ...r); })()")
         if fmt == 'liggende':
             await pg.evaluate("""(() => { S.cash = 2e6; S.sales = S.sales.length >= 3 ? S.sales : [{}, {}, {}]; renderActs(); DOCK.open('fartoy'); const dr = document.getElementById('drawerBody'), tap = s => { const e = dr.querySelector(s); if (e) e.click(); };
-              tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=open]'); tap('[data-pa=mksel][data-k=snekke]'); tap('[data-pa=buy][data-ti="1"][data-k=snekke]'); })()""")
+              tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=open]'); tap('[data-pa=mksel][data-k=snekke]'); (tap('[data-pa=buy][data-ti="1"][data-k=snekke]'), tap('[data-pa=buy][data-ti="1"][data-k=snekke]')); })()""")
             await until(pg, "BUYM.on", 30000)
         else:
             await pg.evaluate("BUYM.show()")
@@ -111,7 +111,7 @@ async def main():
         await pg.evaluate("""(() => { const dr = document.getElementById('drawerBody'), tap = s => { const e = dr.querySelector(s); if (e) e.click(); }; tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=open]'); tap('[data-pa=mksel][data-k=snekke]'); })()""")
         await pg.wait_for_timeout(300)
         btn = await pg.evaluate("(() => { const b = document.querySelector('#drawerBody [data-pa=buy][data-ti=\"1\"][data-k=snekke]'); return b ? !b.disabled : null; })()")
-        await pg.evaluate("document.querySelector('#drawerBody [data-pa=buy][data-ti=\"1\"][data-k=snekke]').click()"); await pg.wait_for_timeout(400)
+        await pg.evaluate("(q => { document.querySelector(q).click(); const b2 = document.querySelector(q); if (b2) b2.click(); })('#drawerBody [data-pa=buy][data-ti=\"1\"][data-k=snekke]')"); await pg.wait_for_timeout(400)
         af = await pg.evaluate("({type:S.boat.type, paid:%d - S.cash, n:S.fleet.length, price:VESSELS.snekke.price, ti:vesselValue(curVessel())})" % b0['cash'])
         check(btn and af['type'] == 'snekke' and af['n'] == b0['n'] and af['paid'] > 0, 'verftet selger nytt til full pris, med den gamle båten i bytte', [btn, af])
         # the moment (M5): the name painted on, the flag, the camera round her, and «Hopp over»

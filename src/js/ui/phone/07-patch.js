@@ -1,5 +1,9 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['batkjop-281126', '28.11.2026', 'Båtkjøpet', 'Buying a boat', [
+       ['Et båtkjøp spør først: knappen blir «Bekreft kjøp», og over den står lånene, terminbeløpet i måneden, egenkapitalen og at kjøpet ikke kan angres. Trykk igjen for å kjøpe.', 'A boat purchase asks first: the button reads «Confirm purchase», and above it stand the loans, the monthly payment, the equity and that the purchase cannot be undone. Tap again to buy.'],
+       ['Kortet «Dette endrer seg» sier hvor båten ikke kan fiske etter lengden sin, som innenfor fjordlinjene og grunnlinjen.', 'The card «This changes» says where the boat may not fish by her length, such as inside the fjord lines and the baseline.'],
+       ['Sier banken nei fordi egenkapitalen er for liten, står det hvordan det er regnet: hva banken vil ha, hva innbyttet teller etter at gjelda er betalt, og hva du har.', 'When the bank says no for too little equity, it says how it is counted: what the bank wants, what the trade-in counts once the debt is paid, and what you have.']]],
     ['havkart-281126', '28.11.2026', 'Havfiskefartøy i kartplotteren', 'Ocean vessels in the chart plotter', [
        ['Steder som ikke tar båten din, fordi kaia er for kort eller grunn, eller innseilingen for trang, er nedtonet i kartplotteren. Et trykk på stedet sier hvorfor, også når du tegner ruta selv.', 'Places that do not take your vessel, because the quay is too short or shallow, or the way in too narrow, are toned down in the chart plotter. A tap on the place says why, also when you draw the route yourself.']]],
     ['juksalast-281126', '28.11.2026', 'Juksa fyller lasterommet', 'The jig fills the hold', [

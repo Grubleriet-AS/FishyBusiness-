@@ -38,7 +38,7 @@
   }
   function act0(a, d){
     const b = S.boat;
-    if (a !== 'shop' && a !== 'equip' && a !== 'propup') shopPend = null;
+    if (a !== 'shop' && a !== 'equip' && a !== 'propup' && a !== 'buy' && a !== 'buylic' && a !== 'mbbuy') shopPend = null;   // (a boat's buy asks first too, 28.11.2026)
     if ((/^adm/.test(a) || (a === 'open' && d.a === 'admin')) && !adminOk()) return false;   // the Admin app is only Jonas's (adminOk)
     if (a === 'open' && d.a === 'profil') PROF.want = d.s || null;   // (the player's own from the home screen; another's from the leaderboard, ui/10v-profil.js)
     if (a === 'open' && d.a === 'garderobe'){ show(false); WARD.open(); return; }      // the wardrobe is a sheet of its own (ui/10g-wardrobe.js)
@@ -237,6 +237,8 @@
       // an ocean vessel comes with her permit from an NPC owner in the register (H1 of the ocean step, 03d-quota.js havLicTake)
       const hw = V2.cls === 'hav' ? havLicWhy(d.k) : null; if (hw){ toast(L(hw[0], hw[1])); return; }
       const x = deal(V2.cls === 'hav' ? havPrice(d.k, S.t / 60) : V2.price, ti); if (!x.ok){ toast(whyText(x) || t('no_cash')); return; }
+      // (28.11.2026: the first tap asks, with the money, the water and «cannot be undone» over the button, 10-fartoy.js boatBtn; the second buys)
+      { const bk = 'hull:' + d.k + ':' + (d.ti === '0' ? 0 : 1); if (!boatPendOn(bk)){ shopPend = {k:bk, kg:0, t:Date.now()}; return true; } shopPend = null; }
       // (steg 151) a purchase that takes access from the boat traded in asks first; the event for the funnel (K5), never who
       { const q = ti ? buyAsk({kind:'hull', type:d.k, ti:true, keep:tiKeepOn()}) : null; if (q){ if (!confirm(q)) return; if (typeof cloudEv === 'function') cloudEv('buy_noacc', {k:d.k}); } } finance(x, 120); achAdd('boat');
       const hl = V2.cls === 'hav' ? havLicTake(d.k, S.t / 60) : null; let hn = '';
@@ -376,6 +378,7 @@
       { const hw = ti ? tiHoldWhy() : null; if (hw){ toast(hw); return; } }   // (steg 148b, T2)
       if (!bladB()){ toast(L('Du må stå på blad B i fiskermanntallet for å kjøpe en båt med hjemmel. Se Papirer.', 'You must be on blad B of the fishermen\'s register to buy a boat with a right. See Papers.')); return; }
       const inn = innOK(), x = deal(price, ti, inn); if (!x.ok){ toast(whyText(x) || t('no_cash')); return; }
+      { const bk = 'lic:' + O.k + ':' + (d.ti === '0' ? 0 : 1); if (!boatPendOn(bk)){ shopPend = {k:bk, kg:0, t:Date.now()}; return true; } shopPend = null; }   // (28.11.2026: the first tap asks, boatBtn)
       if (!S.company){ const el = document.getElementById('coName'); S.company = String((el && el.value) || coDraft || '').trim().slice(0, 28) || coDefault(); coDraft = null; log('Rederiet ' + S.company + ' er opprettet.', 'The company ' + S.company + ' is founded.'); }
       finance(x, 180); if (inn) S.inUsed = true;
       if (ti && tiKeepOn()) mbMove({v:curVessel()}, {free:true});   // (KM4: the old right kept as a free right, taken off her before the trade-in)

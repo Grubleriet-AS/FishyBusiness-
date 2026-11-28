@@ -132,6 +132,22 @@ function zoneLicApply(c){ if (!ZLIC.includes(c) || zoneLic(c)) return false; (S.
 // inside the fjord lines for coastal cod (høstingsforskriften vedlegg 4), along the whole coast
 function insideFjord(p){ return !!(ruBits(p) & 2); }
 function insideBaseline(p){ return !!(ruBits(p) & 1); }
+// where a boat of this length may not fish, in words for the buyer (28.11.2026, Jonas: «Vi må heller fikse grunnen til at spillere kjøper
+// feil båt»; Julian bought a 21 m boat not knowing she could not fish inside the fjord lines). The same lengths as rulesAt below:
+// høstingsforskriften § 31 (15 m and over inside the fjord lines; 21 m and over north of Tysfjorden), J-187-2026 § 32 (21–27.99 m inside
+// the baseline, 28 m and over within 4 nm of it, north of 62° N, with the exceptions rulesAt has by area and season). [] under 15 m.
+// Each line {no, en, ref}; the card says «most places» where rulesAt has exceptions, and the map and Regler-appen say where
+// the lengths both rulesAt and lenArea read (one place, so the card never says other than the check does)
+const RU_LEN = {f31:15, f31b:21, j32:21, j32c:28};
+function lenArea(len){
+  const out = [], add = (no, en, ref) => out.push({no, en, ref});
+  if (!(len >= RU_LEN.f31)) return out;
+  if (len < RU_LEN.f31b) add('Kan ikke fiske torsk innenfor fjordlinjene. Andre arter går der, med høyst 5 % torsk som bifangst.', 'May not fish cod inside the fjord lines. Other species may be fished there, with at most 5% cod as bycatch.', 'Høstingsforskriften § 31');
+  else add('Kan ikke fiske innenfor fjordlinjene nord for Tysfjorden, og ikke torsk innenfor dem lenger sør.', 'May not fish inside the fjord lines north of Tysfjorden, and not cod inside them further south.', 'Høstingsforskriften § 31');
+  if (len >= RU_LEN.j32 && len < RU_LEN.j32c) add('Nord for 62° N kan hun de fleste steder ikke fiske torsk, hyse og sei innenfor grunnlinjen.', 'North of 62° N she may not fish cod, haddock and saithe inside the baseline in most places.', 'J-187-2026 § 32');
+  else if (len >= RU_LEN.j32c) add('Nord for 62° N kan hun de fleste steder ikke fiske torsk, hyse og sei innenfor 4 nautiske mil av grunnlinjen.', 'North of 62° N she may not fish cod, haddock and saithe within 4 nautical miles of the baseline in most places.', 'J-187-2026 § 32');
+  return out;
+}
 // km from the baseline (0 inside it); the zones of 1, 2, 4, 6, 12 nm are measured from it
 function blDist(p){
   if (insideBaseline(p)) return 0; const b = RU.bl; let best = 1e9;
@@ -265,10 +281,10 @@ function rulesAt(q){
   const add = (v, k, no, en, ref, url, block) => out.push({v, k, no, en, ref, url, block:!!block});
   const isSp = s => !sp || sp === s, cod3 = !sp || RU_COD.includes(sp), conv = !gear || RU_CONV.includes(gear);
   // høstingsforskriften § 31: 15 m and over inside the fjord lines
-  if (F && len >= 15){
+  if (F && len >= RU_LEN.f31){
     if (isSp('torsk')) add('no', 'f31', 'Fartøy på 15 m eller mer kan ikke fiske torsk innenfor fjordlinjene.', 'Vessels of 15 m or more may not fish cod inside the fjord lines.', 'Høstingsforskriften § 31', RU_HF, true);
     if (sp && sp !== 'torsk'){
-      if (len < 21) add('ok', 'f31h', 'Under 21 m kan du fiske andre arter enn torsk med konvensjonelle redskap innenfor fjordlinjene, med høyst 5 % torsk som bifangst.', 'Under 21 m you may fish species other than cod with conventional gear inside the fjord lines, with at most 5% cod as bycatch.', 'Høstingsforskriften § 31 h, J-187-2026 § 32', RU_HF);
+      if (len < RU_LEN.f31b) add('ok', 'f31h', 'Under 21 m kan du fiske andre arter enn torsk med konvensjonelle redskap innenfor fjordlinjene, med høyst 5 % torsk som bifangst.', 'Under 21 m you may fish species other than cod with conventional gear inside the fjord lines, with at most 5% cod as bycatch.', 'Høstingsforskriften § 31 h, J-187-2026 § 32', RU_HF);
       else if (ll.lat < 68.26) add('ok', 'f31a', 'Sør for Tysfjorden (68° 15,6′ N) kan fartøy på 15 m eller mer fiske andre arter enn torsk innenfor fjordlinjene.', 'South of Tysfjorden (68° 15.6′ N) vessels of 15 m or more may fish species other than cod inside the fjord lines.', 'Høstingsforskriften § 31 a', RU_HF);
       else add('no', 'f31', 'Fartøy på 21 m eller mer kan ikke fiske innenfor fjordlinjene her.', 'Vessels of 21 m or more may not fish inside the fjord lines here.', 'Høstingsforskriften § 31', RU_HF, true);
     }
@@ -279,10 +295,10 @@ function rulesAt(q){
   else if (F && winter && (!gear || gear === 'line')) add('ok', 'f33b', 'Her, utenfor krokgrensa i Finnmark, er det ingen grense på kroker fra 1. november til 30. april.', 'Here, outside the Finnmark hook line, there is no limit on hooks from 1 November to 30 April.', 'Høstingsforskriften § 33 andre ledd', RU_HF);
   if (F && (!gear || gear === 'garn') && isSp('torsk')) add('warn', 'f33a', 'Høyst 80 garn i fisket etter torsk innenfor fjordlinjene.', 'At most 80 nets when fishing cod inside the fjord lines.', 'Høstingsforskriften § 33a', RU_HF);
   // J-187-2026 § 32: cod, haddock and saithe with conventional gear north of 62° N, by length
-  if (n62 && cod3 && conv && len >= 21){
+  if (n62 && cod3 && conv && len >= RU_LEN.j32){
     const a00 = hom === '00', a67 = hom === '06' || hom === '07', a05r = ['03', '04', '05'].includes(hom);
     const forSp = s => {
-      if (len < 28){
+      if (len < RU_LEN.j32c){
         if (!inBL) return null;
         if ((a00 || a67) && s !== 'torsk') return null;
         if (s === 'torsk' && !F && ((a00 && ruIn2(md, 101, 501)) || (a67 && ruIn2(md, 101, 410)))) return null;
@@ -298,10 +314,10 @@ function rulesAt(q){
     const bad = (sp ? [sp] : RU_COD).filter(s => forSp(s));
     if (bad.length){
       const names = bad.map(s => SPECIES[s].no.toLowerCase()).join(', '), en = bad.map(s => SPECIES[s].en.toLowerCase()).join(', ');
-      if (len < 28) add('no', 'j32b', 'Fartøy på 21–27,99 m kan ikke fiske ' + names + ' innenfor grunnlinjen her.', 'Vessels of 21–27.99 m may not fish ' + en + ' inside the baseline here.', 'J-187-2026 § 32 andre ledd', RU_J187, true);
+      if (len < RU_LEN.j32c) add('no', 'j32b', 'Fartøy på 21–27,99 m kan ikke fiske ' + names + ' innenfor grunnlinjen her.', 'Vessels of 21–27.99 m may not fish ' + en + ' inside the baseline here.', 'J-187-2026 § 32 andre ledd', RU_J187, true);
       else add('no', 'j32c', 'Fartøy på 28 m eller mer kan ikke fiske ' + names + ' innenfor 4 nm av grunnlinjen her.', 'Vessels of 28 m or more may not fish ' + en + ' within 4 nm of the baseline here.', 'J-187-2026 § 32 tredje ledd', RU_J187, true);
     }
-  } else if (n62 && sp && !RU_COD.includes(sp) && len >= 21 && (len < 28 ? inBL : nm < 4))
+  } else if (n62 && sp && !RU_COD.includes(sp) && len >= RU_LEN.j32 && (len < RU_LEN.j32c ? inBL : nm < 4))
     add('warn', 'j32by', 'Du fisker andre arter der fartøyet ikke kan fiske torsk, hyse og sei: høyst 20 % av dem som bifangst.', 'You fish other species where the vessel may not fish cod, haddock and saithe: at most 20% of them as bycatch.', 'J-187-2026 § 32 ellevte ledd', RU_J187);
   // høstingsforskriften § 26 (the ocean longliners, H2a of docs/planer/havsteget-h2-autoline.md): a vessel over 21.35 m fishing with line and
   // with a baiting machine aboard may not set line within 4 nm of the baselines along the mainland coast (Sweden to Russia), and within
