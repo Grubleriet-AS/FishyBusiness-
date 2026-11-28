@@ -151,6 +151,17 @@ export default function (t){
     t.ok(K.planSkip(Object.assign({}, ship, {x:1040, z:30}), 1030, 10, a, b, own, 45.4, false), 'med midten innenfor er hun det');
     t.ok(K.planSkip({what:'båt', id:'båt#1080,0', x:1080, z:0, R:20}, 1050, 0, a, b, own, 45.4, false), 'en bøye regnes etter kanten av sirkelen hun svinger på');
     t.ok(!K.planSkip({what:'grunn', id:'1,2', x:500, z:0}, 500, 0, a, b, own, 45.4, false) && K.planSkip({what:'grunn', id:'1,2', x:500, z:0}, 500, 0, a, b, own, 45.4, true), 'grunt vann midt på veien teller, unntatt når det graves'); }
+  // by a berth she manoeuvres at (zn, G2): her own quay is not let through whole; how near she may be it grows evenly from the berth
+  // (the skiff at 66 of 77 harbours on the way in, --alle 28.11.2026: the whole quay let through within 0.9 of her length and the
+  // full 2 m asked from there, so the manoeuvre the search found was «in the quay» a metre past that line in the check)
+  { const L = 6, own = 9, a = [0, 0], b = [1000, 0], zn = {side:2, a:null, b:{r:own, n0:0.25}}, kai = d => ({what:'kai', id:'enhet#x', x:1003, z:30, d}), at = D => [1000 - D, 0];
+    t.ok(K.planSkip(kai(0.3), ...at(0), a, b, own, L, false, zn) && !K.planSkip(kai(0.1), ...at(0), a, b, own, L, false, zn) && !K.planSkip(kai(0), ...at(2), a, b, own, L, false, zn), 'ved kaiplassen kan hun ligge 0,3 m fra kaia, men ikke nærmere enn hun ligger der, og ikke i den');
+    t.ok(K.planSkip(kai(0.3), ...at(3), a, b, own, L, false, zn) && !K.planSkip(kai(0.3), ...at(6), a, b, own, L, false, zn) && K.planSkip(kai(1.2), ...at(6), a, b, own, L, false, zn), 'en halv båtlengde ut holder fortsatt 0,3 m; seks meter ut må hun ha vel en meter');
+    let jump = 0, prev = null, jumpAt = null; for (let D = 0; D <= 12; D += 0.05){ let need = 0; while (need < 3 && !K.planSkip(kai(need), ...at(D), a, b, own, L, false, zn)) need += 0.01; if (need >= 3) need = 2; if (prev != null && Math.abs(need - prev) > jump){ jump = Math.abs(need - prev); jumpAt = [+D.toFixed(2), +prev.toFixed(2), +need.toFixed(2)]; } prev = need; }
+    t.ok(jump < 0.05, 'kravet øker jevnt ut til full margin ved sonens kant, uten sprang (5 cm steg gir under 5 cm endring)', jumpAt);
+    t.ok(!K.planSkip(kai(1.9), ...at(9.5), a, b, own, L, false, zn), 'utenfor sonen slippes ingenting forbi');
+    const z2 = {side:2, a:{r:own, n0:0}, b:null}; t.ok(K.planSkip(kai(0), 995, 0, a, b, own, L, false, z2) && K.planSkip(kai(0), 2, 0, a, b, own, L, false, z2), 'enden uten manøver har regelen som før (alt innen 0,9 båtlengder); en kaiplass som selv ligger i kaia (n0 0), slipper den forbi der');
+    t.ok(K.planSkip({what:'grunn', id:'1,2', x:1001, z:0}, 1000, 0, a, b, own, L, false, zn) && K.planSkip({what:'båt', id:'båt#1004,0', x:1004, z:0, R:3, box:[1, 0, 3, 1]}, 1000, 0, a, b, own, L, false, zn), 'vannet og et fartøy som ligger stille, regnes som før'); }
   // a vessel lying still along a floating dock (Urangsvåg with the skiff, steg 142): shut as her own box widened by the margins, not as
   // a circle round her middle as wide as she is long, which shut the only way past her
   { const seen = new Map(), sk = {L:5.9, B:2.45, T:0.6}, h = {what:'båt', id:'båt#100,100', x:100, z:100, R:Math.hypot(8, 2.5), box:[1, 0, 8, 2.5]}, bl = K.planBlockOf(h, sk, 2, 2, 1, seen), half = sk.B / 2 + 2;
@@ -210,9 +221,51 @@ export default function (t){
     // which sees her hull as the 3D view draws it, counted no touch. FARB.swing turns it
     // Where a bane to a place ends: at her berth there (berthPose: where her middle lies by the quay), not at the harbour's point,
     // from which arrive() set her at the berth across whatever lay between (Stø with the purse seiner, Urangsvåg: steg 142, G2)
-    const bp0 = K.get('berthPose'); try { K.set('berthPose', (pid, ty, kind) => pid === 'a' ? {x:500.01, y:900.02, hd:1.2, kind} : pid === 'b' ? null : (() => { throw new Error('no map'); })());
-      const e1 = K.planEnd('a', 'sjark'), e2 = K.planEnd('b', 'sjark'), e3 = K.planEnd('c', 'sjark'), e4 = K.planEnd(null, 'sjark');
-      t.ok(e1 && e1.x === 500.01 && e1.y === 900.02 && e1.hd === 1.2 && e2 === null && e3 === null && e4 === null, 'banen ender ved kaiplassen der stedet har en, ellers i havnas punkt (planEnd gir da ingenting)', [e1, e2, e3, e4]); } finally { K.set('berthPose', bp0); }
+    const bp0 = K.get('berthPose'); try { K.set('berthPose', (pid, ty, kind) => pid === 'husoy' ? {x:500.01, y:900.02, hd:1.2, kind} : pid === 'b' ? null : (() => { throw new Error('no map'); })());
+      const e1 = K.planEnd('husoy', 'sjark'), hp = K.portById('husoy').p, e2 = K.planEnd('b', 'sjark'), e3 = K.planEnd('c', 'sjark'), e4 = K.planEnd(null, 'sjark');
+      t.ok(e1 && e1.x === 500.01 && e1.y === 900.02 && e1.hd === 1.2 && e1.px === hp.x && e1.py === hp.y && e2 === null && e3 === null && e4 === null, 'banen ender ved kaiplassen der stedet har en, ellers i havnas punkt (planEnd gir da ingenting)', [e1, e2, e3, e4]); } finally { K.set('berthPose', bp0); }
+    // ---- the harbour search with her heading (G2): from the berth to a place and a heading on the way, over where she is and how she lies ----
+    { const L = 10, Bm = 4, hull = (x, z, psi) => { const s = Math.sin(psi), c = Math.cos(psi); return [[L / 2, Bm / 2], [L / 2, -Bm / 2], [-L / 2, Bm / 2], [-L / 2, -Bm / 2]].map(([f, g]) => [x + f * s + g * c, z - f * c + g * s]); };
+      const run = (bp, goal, free, o) => K.planHavn(bp, goal, L, Bm, free, o);
+      const o5 = {R:20, vmax:5, stop:v => v * v * 2, end:false, start:true}, modes = P => [...new Set(P.slice(1).map(q => q[5] & 3))].sort().join('');
+      // the least her hull keeps to what free() shuts, sampled every half metre along the bane built from the points
+      const sweep = (P, ok) => { const M = K.baneBuild(P.map(q => q.slice()), o5); let bad = 0; for (let u = 0; u <= M.len; u += 0.5){ const q = K.baneAt(M, u); if (!ok(q.X, q.Z, q.psi)) bad++; } return {bad, M}; };
+      // open water: straight ahead, no astern, no sideways
+      let h = run({x:0, z:0, hd:Math.PI / 2}, {x:60, z:0, psi:Math.PI / 2}, () => true);
+      t.ok(h && h.pts.length === 2 && modes(h.pts) === '0' && Math.abs(h.len - 60) < 4, 'havnesøket i åpent vann: rett fram, bare forover', h && [h.pts.length, modes(h.pts), h.len]);
+      // a quay along her port side (north of her, 0.4 m off): she may not touch it with any corner, and the goal lies astern and out
+      const quay = (x, z, psi) => hull(x, z, psi).every(c => c[1] > -(Bm / 2 + 0.4) + 0.05);
+      h = run({x:0, z:0, hd:Math.PI / 2}, {x:-40, z:40, psi:Math.PI * 1.25}, quay);
+      t.ok(h && h.pts.length >= 3, 'fra en kai langs siden til et sted akterut og ute: en vei finnes', h && h.pts.length);
+      if (h){ const w = sweep(h.pts, quay); t.eq(w.bad, 0, 'og skroget tar aldri borti kaia langs hele banen (hver halve meter)'); t.ok(/[23]/.test(modes(h.pts)) || /1/.test(modes(h.pts)), 'hun går sidelengs ut eller rygger: ikke bare forover', modes(h.pts));
+        const e = K.baneAt(w.M, w.M.len); t.ok(Math.hypot(e.X + 40, e.Z - 40) < 4 && Math.abs(Math.atan2(Math.sin(e.psi - Math.PI * 1.25), Math.cos(e.psi - Math.PI * 1.25))) < 0.45, 'banen ender ved stedet med kursen den ble bedt om', [e.X, e.Z, e.psi]); }
+      // her bow to a wall (nothing east of x 7), a quay to the north: out astern, round and away to the west
+      const slot = (x, z, psi) => hull(x, z, psi).every(c => c[0] < 7 && c[1] > -(Bm / 2 + 0.4) + 0.05);
+      h = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, slot);
+      t.ok(h, 'med baugen mot en vegg: en vei finnes'); if (h){ const w = sweep(h.pts, slot); t.eq(w.bad, 0, 'uten å ta borti veggen eller kaia'); t.ok(w.M.cusp.length >= 1, 'og hun stopper og skifter minst én gang', w.M.cusp.length); }
+      // the search at its cap says so, and greedier (o.w: the way left weighs more) it finds the manoeuvre with fewer places looked at
+      // (the big boats at 25 of 372 berths, --alle 28.11.2026: planBane goes once more with PLAN.havn.w2 where the first came to its cap)
+      { const PLAN = K.get('PLAN'), full = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, slot), gr = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, slot, {w:PLAN.havn.w2}), cap = Math.max(20, Math.floor((full.n + gr.n) / 2));
+        t.ok(gr.n < full.n * 0.8, 'grådigere ser søket på færre plasser før det er framme', [gr.n, full.n]);
+        PLAN.hvWhy = ''; const c1 = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, slot, {maxN:cap}); t.ok(c1 === null && /^taket:/.test(PLAN.hvWhy), 'med færre plasser til rådighet enn det trenger, finner søket ingen manøver, og sier at det var taket', [full.n, cap, PLAN.hvWhy]);
+        const c2 = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, slot, {maxN:cap, w:PLAN.havn.w2}); t.ok(c2 && c2.n <= cap, 'grådigere (w ' + PLAN.havn.w2 + ') finner det den innenfor det samme taket', c2 && [c2.n, cap]);
+        if (c2){ const w = sweep(c2.pts, slot); t.eq(w.bad, 0, 'og den manøveren tar heller ikke borti noe'); }
+        PLAN.hvWhy = ''; const shutIn = (x, z, psi) => Math.hypot(x, z) < 6 || Math.hypot(x - 60, z) < 6; t.ok(run({x:0, z:0, hd:0}, {x:60, z:0, psi:0}, shutIn) === null && /^stengt:/.test(PLAN.hvWhy), 'der hun er stengt inne, sier søket «stengt», ikke taket', PLAN.hvWhy); }
+      // the bane the minute step builds again from the plan (planInto's leg, baneOf) is the very one that was built from the points
+      // to the centimetre, as planBane makes them: built from other numbers than the plan keeps, it had other pieces, baneOf gave
+      // none, and the trip was sailed from point to point (Averøy with the skiff over land, the bench 27.11.2026)
+      if (h){ const r2 = v => Math.round(v * 100) / 100, far0 = 500000, Qc = h.pts.map(q => [r2(q[0] + far0), r2(q[1] + far0 + 400000), r2(q[2]), r2(q[3]), 0, q[5]]).concat([[far0 - 50 - 300, far0 + 400000 + 30, 0, 0, 0, 0]]);
+        const ob = Object.assign(K.baneBoat('sjark', 8), {end:true}), Bc = K.baneBuild(Qc.map(q => q.slice()), ob), pl = {wps:[{x:0, y:0, port:null, fish:0}], idx:0};
+        K.planInto(pl, {pts:K.banePts(Bc), bane:Bc}, 0, 1); const Y = K.baneOf(K.baneLeg(pl));
+        t.ok(Y && Math.abs(Y.B.len - Bc.len) < 1e-9 && Y.B.P.length === Bc.P.length && Y.B.cusp.length === Bc.cusp.length, 'banen minuttsteget bygger fra planen, er den som ble kontrollert (med manøveren i)', Y ? [Y.B.len, Bc.len, Y.B.P.length, Bc.P.length] : null); }
+      // shut in on every side: none, and it says so within its limit
+      h = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, (x, z) => Math.hypot(x, z) < 6, {maxN:500});
+      t.ok(h === null, 'stengt inne på alle kanter: ingen vei', h);
+      // the way in is the way out sailed backwards: the points turned round, ahead and astern changed
+      h = run({x:0, z:0, hd:Math.PI / 2}, {x:-40, z:40, psi:Math.PI * 0.25}, quay, {kAhead:3, kAstern:1});
+      if (h){ const inn = K.planHavnRev(h.pts), w = sweep(inn, quay), e = K.baneAt(w.M, w.M.len), s0 = K.baneAt(w.M, 0);
+        t.eq(w.bad, 0, 'veien inn (veien ut baklengs) tar heller ikke borti kaia'); t.ok(Math.hypot(e.X, e.Z) < 1e-6 && Math.abs(Math.atan2(Math.sin(e.psi - Math.PI / 2), Math.cos(e.psi - Math.PI / 2))) < 1e-6, 'og ender ved kaiplassen med kursen hun skal ligge med', [e.X, e.Z, e.psi]);
+        t.ok(Math.abs(Math.atan2(Math.sin(s0.psi - Math.PI * 0.25), Math.cos(s0.psi - Math.PI * 0.25))) < 0.45, 'hun kommer inn med kursen veien hadde', s0.psi); } else t.ok(false, 'veien inn finnes'); }
     const fb0 = K.get('fixBoats'), FB = K.get('FARB'); try { K.set('fixBoats', () => [{t:1, x:0, z:0, l:4, w:1.5, ux:1, uz:0}, {t:0, x:10, z:0, r:11}]);
       const n2 = K.farbBoats(0, 0).length; FB.swing = false; const n1 = K.farbBoats(0, 0).length, t1 = K.farbBoats(0, 0)[0].t; FB.swing = true;
       // (27.11.2026, fifth session: the circles count again, now that a buoy has a free lane round it, 05-vessels.js moorBuoyRoom)

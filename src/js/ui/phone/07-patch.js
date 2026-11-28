@@ -1,8 +1,17 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
-    ['juksalast-271126', '27.11.2026', 'Juksa fyller lasterommet', 'The jig fills the hold', [
+    ['juksalast-281126', '28.11.2026', 'Juksa fyller lasterommet', 'The jig fills the hold', [
        ['Båten holder ikke lenger av plass i lasterommet til line, garn og teiner som står i sjøen: du kan jukse til rommet er fullt. Før stoppet juksa uten at det var lett å se hvorfor.', 'The boat no longer keeps room in the hold for line, nets and pots standing in the sea: you can jig until the hold is full. Before, the jig stopped without it being easy to see why.'],
        ['Blir rommet fullt mens du trekker, stopper trekkingen, og resten står igjen i sjøen med fisken sin. Lever fangsten, og trekk resten etterpå.', 'If the hold fills while you haul, the hauling stops, and the rest stays in the sea with its fish. Land the catch, then haul the rest.']]],
+    ['start-281126', '28.11.2026', 'Valget av startsted', 'Choosing where to start', [
+       ['Etter brevet fra far sto spillet stille en stund på noen telefoner før listen over steder kom. Nå svarer skjermen hele tida, og listen kommer straks været langs kysten er sett på.', 'After Father\'s letter the game stood still for a while on some phones before the list of places came. Now the screen answers all the time, and the list comes as soon as the weather along the coast has been looked at.']]],
+    ['frakt-271126', '27.11.2026', 'Oppdrag: frakt og slep', 'Missions: freight and tows', [
+       ['Fraktoppdrag betales etter hvor mye som fraktes. For båter under 11 m er alt som før.', 'Freight missions are paid by how much is carried. For boats under 11 m everything is as before.'],
+       ['Båtene på 11 m og over får tilbud om større last: fiskekar til et mottak, og fôr til et oppdrettsanlegg.', 'The vessels of 11 m and over are offered bigger cargo: fish tubs for a landing station, and feed for a fish farm.'],
+       ['Slep med de største båtene: tida betales etter størrelsen på båten som slepes. Oppdrag du alt har tatt, betales som lovet.', 'Tows with the largest vessels: the time is paid by the size of the boat towed. Missions you have taken already are paid as promised.']]],
+    ['rute-271126', '27.11.2026', 'Båten blir på ruta si', 'The boat stays on her route', [
+       ['Åpnet du spillet på nytt like etter avgang, kunne båten bli flyttet tilbake til havna og miste ruta. Nå fortsetter hun der hun var.', 'If you opened the game again just after a departure, the boat could be moved back to the harbour and lose her route. Now she goes on from where she was.'],
+       ['Spillet på enheten din byttes ikke lenger ut med en litt eldre lagring fra kontoen når den nyeste ikke rakk å bli bekreftet.', 'The game on your device is no longer swapped for a slightly older save from your account when the newest one was not confirmed in time.']]],
     ['juksabord-271126', '27.11.2026', 'Mannskapet sløyer mens det jukses', 'The crew gut while you jig', [
        ['Med juksamaskiner og flere om bord enn maskinene trenger, går de ledige til sløyebordet og isen når det ligger fisk i karet. Før ble de stående ved rekka, karet ble fullt, og fisket stoppet.', 'With jigging reels and more hands aboard than the reels need, those free go to the gutting table and the ice when fish lies in the tub. Before, they stayed at the rail, the tub filled, and the fishing stopped.']]],
     ['kart-271126', '27.11.2026', 'Ålesund verft', 'The yard at Ålesund', [

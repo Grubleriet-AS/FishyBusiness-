@@ -7,6 +7,9 @@
 // account (CLOUD.lastSave is the save's own time): a save that fails leaves the row open, and the next round saves and tells again.
 // Kinds: 'undo_buy' (core/03-simulation.js undoBuyApply).
 const ADMFIX = {busy:false};
+// the kinds and the fields this version knows (27.11.2026: a page of the version before closed a row with fields it did not know as
+// «bad»). A row of another kind, or with a field not here, is left open for a newer version: never done, never closed from here
+const ADMFIX_KINDS = ['undo_buy', 'undo'], ADMFIX_KEYS = ['from', 'to', 'kr', 'lic', 'licKr', 'licAt', 'inn', 'upg', 'gearKr'];
 const ADMFIX_WAIT = {
   port:['Kystmegleren har en melding til deg om båtkjøpet: gå til kai, så ordnes det.', 'The broker has word about your vessel purchase: go alongside, and it will be put right.'],
   hold:['Kystmegleren har en melding til deg om båtkjøpet: lever fangsten først, så ordnes det.', 'The broker has word about your vessel purchase: land the catch first, and it will be put right.'],
@@ -29,7 +32,7 @@ async function fixClaim(){
   try {
     let list; try { list = await cloudRpc('fix_pending', {}); } catch (e){ return; }   // (a server without the migration answers 404: nothing to do)
     for (const f of list || []){
-      if (f.kind !== 'undo_buy') continue;   // a kind this game does not know waits for a game that does
+      if (!ADMFIX_KINDS.includes(f.kind) || Object.keys(f.data || {}).some(k => !ADMFIX_KEYS.includes(k))) continue;   // a kind or a field this version does not know waits for one that does
       const d = f.data || {}, r = undoBuyApply({id:f.id, from:d.from, to:d.to, kr:d.kr == null ? null : +d.kr, lic:d.lic || null, licKr:d.licKr == null ? null : +d.licKr, licAt:d.licAt || null, inn:!!d.inn, upg:d.upg || null, gearKr:d.gearKr == null ? null : +d.gearKr});
       if (!r.ok && r.why === 'done'){
         // done here before, the server not told (the save had not reached the account, or the answer was lost): save and tell now

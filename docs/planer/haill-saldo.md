@@ -152,6 +152,32 @@ Migreringen `supabase/migrations/20261110160000_cheat_flags.sql`, fanen «Juks»
 - Et salg av en båt som ikke er den spilleren står i, kan gi et feil merke når flåteverdien ikke er meldt (spillere uten samtykke til statistikk). Ingen slike salg finnes i dataene.
 - Kontoens første lagring holdes mot 15 000 kr. En som har spilt lenge uten sky og så får en konto, kan få et feil merke.
 
+#### HS5b bygd 27.11.2026 (steg 154, Jonas' økt, grenen `ccr-26223d0c-yhvnxv`): sjekken av kronene regner på nettoverdien
+
+Jonas 27.11.2026: «Sjekk juksemerkingen på detstorebla.no/admin. Finn ut hva som har skjedd i de forskjellige tilfellene og om de faktisk har funnet muligheter for å jukse i spillet», og etter svaret: «Kjør på med rettingen av sjekken.»
+
+**Funnet (lesende spørringer mot produksjonen 27.11.2026):** tolv åpne merker, alle `cash`, alle feil. Lagringene ble hentet og regnskapet i dem lest: hos 11 av 12 er kassa nøyaktig 2 000 kr pluss summen av alle bokførte poster (`S.stats.y`), og saldorekka i `S.ledger` har ingen brudd hos noen av de tolv (den tolvte er fra før regnskapet og kan ikke avstemmes slik). Det serveren så som hopp:
+
+| Årsak | Kontoer | Eksempel |
+|---|---|---|
+| Fra sparekontoen eller skattekontoen til brukskontoen | 10 | 1 201 218 kr fra sparekontoen, 130 000 til ekstra avdrag, resten tilbake |
+| Båt kjøpt med lån og innbytte («5 % må ha vært der» kjente ikke innbyttet) | 1 | sjark mot breisjark med 13 mill. i lån |
+| Typen til båten spilleren står i, i en flåte på to | 1 (42 merker) | sjark og hurtigsjark: 375 000 kr «større flåte» ved hvert bytte |
+
+**Løsningen** står i `docs/systemer/skyen-og-felles-verden.md`, «Kronene og landingene sjekket på serveren»: sammendraget får `bank`, `debt`, `types` og `licv`, og sjekken regner på kasse + konti − lån med båtene som kom og gikk, hjemmelverdien, hver bevarte lagring som grunnlag og en bøtte for det som kommer i ett stykke. Migreringen `20261127120000_cheat_worth.sql` er «ok» i `tools/ci/migsjekk.py` (bare tillegg: tre kolonner i `cheat_cash`, fire små funksjoner, og kroppen i de to triggerfunksjonene `saves_cheat_check` og `saves_cash_check`).
+
+**Den uavhengige kontrollen (`/kontroll`, 27.11.2026)** sjekket de fem punktene og fant fire feil, som er rettet og står i `tests/sqltest.py`, sett røde først: vernet for admin-korrigeringer virket ikke i spillets rekkefølge (spillet lagrer før `fix_done`; 1 019 996 kr over for en sjarkny tilbake til hurtigsjark), «Start på nytt» fra et rederi med gjeld ga merke (3 768 016 kr over fra en kyst21 med 13 mill. i gjeld), en annen enhet med et eldre spill ga merke når man kom tilbake (timene ble regnet fra den uleselige lagringen), og én rad hos megleren slapp inn alle båter (en pelagisk skrevet inn).
+
+**Det som er svakt, og som står** (de to første er punkter i `docs/BACKLOG.md`):
+- En lagring fra et spill uten de nye feltene sjekkes ikke for kroner.
+- Den eldste av de ti bevarte lagringene tatt tilbake gir merke (`save_keep` sletter den før sjekken kjører). Slik var det også før HS5b.
+- En million skrevet inn går gjennom for en flåte over rundt 23 tonn last (kyst15 og større): bøtta som slipper oppdraget på 908 600 kr gjennom, slipper også det. Funksjonen fra 10.11.2026 merket det.
+- En hjemmel som kommer til, telles ikke, så penger skrevet inn og brukt på en hjemmel vises ikke (hjemmelverdien følger kvoteprisen, og en økning kan ikke skilles fra den).
+- Regnskapene til de tolv kontoene er kjørt gjennom regelen med flåten kontoene har nå, ikke den de hadde da hver postering ble ført, og uten båt- og landingsposteringene. Med alle regnet som trebåt (det strengeste) gir bare kontoen med oppdrag på 150 000 til 908 600 kr merker.
+- Bøtta og taket per time følger lasten i `cheat_vt`, ikke et ombygd lasterom.
+
+**Det undersøkelsen fant som ikke er juks i lagringen, men et hull i reglene:** vederlaget på 20 % for inndratt fangst (`CONF_PAY` i `core/03l-room.js`, `fine:0` i sluttseddelen). Én konto fisket med en 21-meter uten hjemmel og fikk 5,38 mill. kr i vederlag for 26,9 mill. kr inndratt på de siste 60 sluttsedlene. Det står som eget punkt i `docs/BACKLOG.md`; valget er Jonas'.
+
 ## 4. Valgene
 
 Rekkefølgen og hva som kommer før lansering, er avgjort (V7 A). Det som står igjen:
@@ -247,6 +273,7 @@ Rekkefølgen og hva som kommer før lansering, er avgjort (V7 A). Det som står 
   - **Et nytt spill etter at gaven er levert,** har den ikke (granten er `done`), som for kjøpt haill i dag. HS2 retter det (gaven blir en ubrukt enhet på serveren).
   - `shopClaim` holder nå bekreftelseslista (`rc`) for sitt eget kall, fordi `guestGift` kan starte et kall mens et annet venter på `shop_done`.
   - Etter utrullingen: `select count(*) from grants where product_id = 'reg_luksus'` skal være lik antall kontoer (WorkOS-ID-er i `players`).
+- 27.11.2026: HS5b bygd (steg 154): de tolv merkene i produksjon var alle feil; sjekken av kronene regner på kasse, konti og lån med båtene og hjemlene. Se «HS5b bygd» over.
 - 10.11.2026: V5 avgjort i økta etter at Jonas overlot det («Du vet sikkert bedre enn meg hvordan vi forhindrer juksing i spillet. Du har tross alt skrevet koden»): A og mer; HS5 skrevet om (kronene og landingene sjekket på serveren, et merke holder kontoen ute av topplistene og summen for åpen gruppe til Jonas har sett på det) og flyttet over lanseringslinja; startmeldingen i `start/99.md`. Alle valgene i planen er tatt; steg 49 er ferdig.
 - 10.11.2026: V3 besvart av Jonas («Spillere skal ikke kunne redigere sin egen lagring og gi seg selv så mye haill eller andre varer de selv vil. Det må fikses.»): HS4 skrevet om (serveren er fasiten for haill og alt som er kjøpt, også det som er aktivert) og flyttet over lanseringslinja. Om «andre varer» også gjelder spillkronene og det de kjøper, er valg 30 (V5).
 - 10.11.2026: V2 presisert av Jonas: før lanseringen og så snart som mulig (early access); HS3 flyttet over lanseringslinja, startmeldingen skrevet (`start/97.md`).

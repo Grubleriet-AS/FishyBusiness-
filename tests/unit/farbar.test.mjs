@@ -84,6 +84,11 @@ export default function (t){
     t.eq(K.farbPose(...pose(0, 0, 0), boat, 0), null, 'en stake 0,3 m forut for baugen er ikke en berøring (hun peker nord)');
     t.ok(K.farbPose(...pose(0, 0, Math.PI), boat, 0) === null && K.farbPose(...pose(0, -1, 0), boat, 0), 'snudd er den akterut og fortsatt klar; en meter fram er den under baugen');
     t.eq(K.farbPose(...pose(0, 0, 0), boat, 0, {m:1}).what, 'merke', 'med 1 m margin til siden er staken 0,3 m forut for nær');
+    // (how far off it is, for the planner's rule by her own quay, planSkip: 0 where it is under her)
+    t.near(K.farbPose(...pose(0, 0, 0), boat, 0, {m:1}).d, 0.3, 0.02, 'og berøringen sier hvor langt unna den er (0,3 m)');
+    FARB.test = [{k:'c', what:'merke', id:'mid', x:far.x, z:far.z + 2, r:0.5}]; t.eq(K.farbPose(...pose(0, 0, 0), boat, 0).d, 0, 'en stake under skroget er 0 m unna');
+    { const seen = []; FARB.test = [{k:'c', what:'merke', id:'n', x:far.x + 1.5 + 0.5 + 0.2, z:far.z, r:0.5}, {k:'c', what:'merke', id:'f', x:far.x - 1.5 - 0.5 - 0.8, z:far.z, r:0.5}];
+      t.eq(K.farbPose(...pose(0, 0, 0), boat, 0, {m:1, skip:h => { seen.push([h.id, +h.d.toFixed(2)]); return h.d >= 0.5; }}).id, 'n', 'en regel som slipper forbi det som er minst 0,5 m unna, får begge stakene og stopper på den som er 0,2 m unna', seen); }
 
     // ---- 5. the sweep ----
     FARB.test = [{k:'c', what:'merke', id:'stake', x:far.x + 0.8, z:far.z - 7.5, r:0.5}];

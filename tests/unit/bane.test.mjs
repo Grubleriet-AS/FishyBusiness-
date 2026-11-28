@@ -7,6 +7,26 @@ export default function (t){
   // (a boat that turns on 20 m, sails 5 m/s and stops on v * v * 2 metres: 50 m from 5 m/s)
   const o = {R:20, vmax:5, stop:v => v * v * 2, end:true, start:false};
   try {
+    // ---- a bane she can back and warp along (G2, steg 142, sixth session): a leg's sixth number says how she lies on it ----
+    { const P5 = (dx, dz, f, r) => [far.x + dx, far.z + dz, r || 0, 0, 0, f || 0], nrm = a => ((a % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      // astern 40 m east, then ahead west: her heading is west all the way, no arc where she changes (she stops there)
+      let M = K.baneBuild([P5(0, 0), P5(40, 0, 1), P5(-60, 0, 0)], o);
+      t.eq(M.P.map(p => p.k).join(''), 'll', 'der hun skifter fra akterover til forover, er det ingen bue');
+      t.near(nrm(K.baneAt(M, 20).psi), 1.5 * Math.PI, 1e-9, 'akterover mot øst peker baugen mot vest'); t.near(nrm(K.baneAt(M, 80).psi), 1.5 * Math.PI, 1e-9, 'og forover mot vest etterpå: samme kurs');
+      t.near(M.len, 140, 1e-9, 'lengden er de to stykkene'); t.ok(K.baneV(M, 40) <= 0.5 + 1e-6 && M.cusp.length === 1 && Math.abs(M.cusp[0] - 40) < 1e-6, 'hun stopper der hun skifter', [K.baneV(M, 40), M.cusp]);
+      t.ok(M.P[0].vl <= K.get('BANE').vRev + 1e-9 && M.P[1].vl > M.P[0].vl, 'akterover går det sakte', [M.P[0].vl, M.P[1].vl]);
+      // warped 10 m sideways off a quay (south), her bow east, then ahead east
+      M = K.baneBuild([P5(0, 0), P5(0, 10, 3), P5(100, 10, 0)], o);
+      t.eq(M.P.map(p => p.k).join(''), 'll', 'sidelengs ut fra kaia og så forover: ingen bue i hjørnet');
+      t.near(nrm(K.baneAt(M, 5).psi), Math.PI / 2, 1e-9, 'sidelengs mot sør med baugen mot øst'); t.near(nrm(K.baneAt(M, 50).psi), Math.PI / 2, 1e-9, 'og samme kurs forover');
+      t.ok(M.P[0].vl <= K.get('BANE').vSide + 1e-9, 'sidelengs går det saktest', M.P[0].vl);
+      // an arc sailed astern: her heading is the tangent turned round
+      M = K.baneBuild([P5(0, 0), P5(200, 0, 1), P5(200, 200, 1)], o); const qa = K.baneAt(M, 180 + 20 * Math.PI / 4);
+      t.eq(M.P.map(p => p.k).join(''), 'lal', 'akterover gjennom et hjørne: en bue som forover'); t.near(nrm(qa.psi), nrm(Math.PI * 3 / 4 + Math.PI), 1e-9, 'med kursen snudd');
+      // a corner whose legs were made for its radius (the harbour search's): the radius stands, though a leg is no longer than the cut
+      const tt = 20 * Math.tan(Math.PI / 8); M = K.baneBuild([P5(0, 0), P5(tt, 0, 4, 20), P5(tt + tt * Math.SQRT1_2, tt * Math.SQRT1_2, 4)], o);
+      t.near(M.P.find(p => p.k === 'a').r, 20, 1e-6, 'et hjørne laget for sin radius beholder den'); t.near(M.len, 20 * Math.PI / 4, 1e-6, 'og banen er bare buen');
+      const M0 = K.baneBuild([P5(0, 0), P5(tt, 0, 0, 20), P5(tt + tt * Math.SQRT1_2, tt * Math.SQRT1_2)], o); t.near(M0.P.find(p => p.k === 'a').r, 10, 1e-6, 'uten merket halveres den som før'); }
     // a right-angle corner: east 200 m, then south 200 m
     let B = K.baneBuild([at(0, 0), at(200, 0), at(200, 200)], o);
     t.eq(B.P.map(p => p.k).join(''), 'lal', 'et hjørne blir et rett stykke, en bue og et rett stykke');
@@ -67,5 +87,30 @@ export default function (t){
     t.near(Math.hypot(S.boat.pos.x * 1000 - far.x, S.boat.pos.y * 1000 - far.z), 100, 0.5, 'og aldri fortere enn minuttets egen fart');
     // a plan whose points were changed after the bane was put in has none (it sails as before)
     const pl4 = JSON.parse(JSON.stringify(pl)); pl4.wps.splice(1, 1); t.eq(K.baneSail(pl4, S.boat, 99), false, 'en plan som er endret etterpå, har ingen bane og seiler som før');
+    // ---- the boat model's tick along it (16b-dyn.js dynTick asks baneTick first; Jonas 27.11.2026: «Ført langs banen») ----
+    { const pl6 = JSON.parse(JSON.stringify(pl)); S.plan = pl6; S.boat.pos = {x:far.x / 1000, y:far.z / 1000}; S.boat.status = 'sailing'; S.trail = [];
+      const d = {u:0, v:0, r:0, psi:0, X:far.x, Y:far.z}; let sec = 0, at120 = null, u120 = 0;
+      while (pl6.idx < pl6.wps.length && sec < 5000){ if (!K.baneTick(pl6, S.boat, d, 0.5)) break; sec += 0.5; if (sec === 120){ at120 = [d.X, d.Y, d.psi]; u120 = d.u; } }
+      t.ok(Math.abs(sec - B3.time) < Math.max(3, B3.time * 0.02), 'ført langs banen i sanntid er hun framme når banen sier det, innen 2 %', [sec, B3.time]);
+      const q6 = K.baneAt(B3, K.baneS(B3, 120)); t.ok(at120 && Math.hypot(at120[0] - q6.X, at120[1] - q6.Z) < 6 && Math.abs(Math.atan2(Math.sin(at120[2] - q6.psi), Math.cos(at120[2] - q6.psi))) < 0.05, 'etter to minutter er hun der banen sier, med banens kurs', at120 && [Math.hypot(at120[0] - q6.X, at120[1] - q6.Z), at120[2], q6.psi]);
+      t.ok(Math.abs(u120 - K.baneV(B3, K.baneS(B3, 120))) < 0.3, 'og farten er banens', [u120, K.baneV(B3, K.baneS(B3, 120))]);
+      t.near(S.boat.pos.x * 1000, far.x + 900, 0.01, 'turen ender i banens siste punkt, som bakgrunnsturen'); t.ok(S.trail.length < 12 && S.trail.length >= 3, 'og sporet får et punkt hver 250 m', S.trail.length);
+      // the same place whichever of the two moved her: a minute step after some ticks goes on from where the ticks left her
+      const pl7 = JSON.parse(JSON.stringify(pl)); S.plan = pl7; S.boat.pos = {x:far.x / 1000, y:far.z / 1000}; const d7 = {u:0, v:0, r:0, psi:0, X:far.x, Y:far.z}; for (let k = 0; k < 120; k++) K.baneTick(pl7, S.boat, d7, 0.5); const s60 = pl7.b2.s; K.baneSail(pl7, S.boat, 99);
+      t.ok(s60 > 50 && pl7.b2.s > s60 + 100, 'et minuttsteg etter noen sekunder ført går videre derfra', [s60, pl7.b2.s]);
+      // astern and sideways: her way through the water is astern (u under 0) or to the side (v), her heading the bane's
+      const P5 = (dx, dz, f) => [far.x + dx, far.z + dz, 0, 0, 0, f || 0], Bm = K.baneBuild([P5(0, 0), P5(0, 10, 3), P5(-40, 10, 1), P5(300, 10, 0)], Object.assign({}, bb, {end:true})), plm = {wps:[{x:0, y:0, port:null, fish:0, leia:true}], idx:0, speed:8};
+      K.planInto(plm, {pts:K.banePts(Bm), bane:Bm}, 0, 1); S.plan = plm; S.boat.pos = {x:far.x / 1000, y:far.z / 1000}; const dm = {u:0, v:0, r:0, psi:0, X:far.x, Y:far.z}; const seen = {side:0, astern:0, ahead:0};
+      for (let k = 0; k < 2000 && plm.idx < plm.wps.length; k++){ if (!K.baneTick(plm, S.boat, dm, 0.5)) break; const hd = Math.abs(Math.atan2(Math.sin(dm.psi - Math.PI / 2), Math.cos(dm.psi - Math.PI / 2))) < 1e-6; if (!hd) seen.bad = (seen.bad || 0) + 1; if (Math.abs(dm.v) > 0.05 && Math.abs(dm.u) < 0.05) seen.side++; else if (dm.u < -0.05) seen.astern++; else if (dm.u > 0.05) seen.ahead++; }
+      t.ok(seen.side > 5 && seen.astern > 5 && seen.ahead > 5 && !seen.bad, 'sidelengs, akterover og forover etter hverandre, med baugen mot øst hele veien', seen);
+      // the same clock whichever moves her (steg 142 point 5): the minute step and the tick have the bane's speed and the same
+      // limits besides (baneCap: the plan's own setting here), so a minute of ticks and one minute step leave her at the same place
+      const pl8 = JSON.parse(JSON.stringify(pl)), pl9 = JSON.parse(JSON.stringify(pl)); pl8.speed = pl9.speed = 4; const d8 = {u:0, v:0, r:0, psi:0, X:far.x, Y:far.z};
+      S.plan = pl8; S.boat.pos = {x:far.x / 1000, y:far.z / 1000}; for (let k = 0; k < 240; k++) K.baneTick(pl8, S.boat, d8, 0.5);
+      S.plan = pl9; S.boat.pos = {x:far.x / 1000, y:far.z / 1000}; K.baneSail(pl9, S.boat, Infinity); K.baneSail(pl9, S.boat, Infinity);
+      t.ok(pl8.b2.s > 150 && pl8.b2.s < 4 * 0.514444 * 120 + 1, 'planens fart (4 knop) holdes av den som føres i sanntid', [pl8.b2.s, 4 * 0.514444 * 120]);
+      t.ok(Math.abs(pl8.b2.s - pl9.b2.s) < 3, 'to minutter i sanntid og to minuttsteg gir samme sted langs banen', [pl8.b2.s, pl9.b2.s]);
+      const plA = JSON.parse(JSON.stringify(pl)); S.plan = plA; S.boat.pos = {x:far.x / 1000, y:far.z / 1000}; let mA = 0; while (plA.idx < plA.wps.length && mA < 500){ if (!K.baneSail(plA, S.boat, Infinity)) break; mA++; }
+      t.ok(Math.abs(mA - B3.time / 60) <= 1, 'og bakgrunnsturen er framme i det minuttet banen sier', [mA, B3.time / 60]); }
   } finally { FARB.w = null; FARB.test = null; }
 }

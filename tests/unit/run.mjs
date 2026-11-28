@@ -111,7 +111,7 @@ for (const f of files){
   const mod = await import(pathToFileURL(join(HERE, f)).href);
   const {K} = fresh(mod.stubs, mod.scripts, mod.data), t = harness(name, K);
   t.fresh = stubs => fresh(stubs, mod.scripts, mod.data).K;   // another core, for a test that compares two runs
-  try { mod.default(t); }
+  try { await mod.default(t); }   // (a test may be async: styr.test.mjs waits for the plan's banes)
   catch (e){ t.out.push('FEIL ' + name + ': ' + (e && e.stack || e)); fails++; }
   for (const line of t.out) console.log(line);
   fails += t.fails; checks += t.out.filter(l => l.startsWith('OK ')).length;

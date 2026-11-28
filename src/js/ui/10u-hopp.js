@@ -119,7 +119,8 @@ function hopVoid(id, why){
   if (typeof cloudRpc === 'function') cloudRpc('hop_void', {id, why:why[1]}).catch(e => console.error(e));
   const no = 'Hoppet ble ikke gjort: ' + why[0] + ' Kjøpet er merket, og pengene betales tilbake.', en = 'The hop was not made: ' + why[1] + ' The purchase is marked, and the money is paid back.';
   log(no, en); toast(hopL(no, en)); if (typeof msg === 'function') msg('Det Store Blå', no, en);
-  if (typeof cloudEv === 'function') cloudEv('hop_void', {id, why:why[1]});
+  // (with what the boat was doing, so the cause of a hop not made can be read from the events; 27.11.2026)
+  if (typeof cloudEv === 'function') cloudEv('hop_void', {id, why:why[1], st:S.boat.status, port:S.boat.port || null, plan:!!S.plan});
   if (typeof save === 'function') save();
 }
 // a hop paid for, when the payment comes (srvApply): made from where the boat is held, at once or as soon as what passes by itself has
