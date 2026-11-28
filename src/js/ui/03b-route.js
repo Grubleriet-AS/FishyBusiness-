@@ -230,8 +230,9 @@ async function leiaTo(pt, buoy, act){   // buoy: to a set's buoy, to haul it (th
   // from Father's naust the way starts at its berth, not by the harbour's way out from the plant (tilbakemelding #20)
   const atN = !S.draft.length && b.status === 'port' && berthKind(b) === 'naust';
   const start = S.draft.length ? S.draft[S.draft.length - 1] : draftOrigin(), aPort = !S.draft.length && !atN ? draftPort() : null;
-  // Father's naust as the end (07c-naust.js naustTarget); in its own harbour the way there is short, straight from the harbour point
-  const nt = naustTarget(pt, r);
+  // Father's naust as the end (07c-naust.js naustTarget); in its own harbour the way there is short, straight from the harbour point.
+  // Not in «Første tur»: its way in goes to the plant's quay (tilbakemelding #439)
+  const nt = tutOn() ? null : naustTarget(pt, r);
   if (nt && atN){ toast(t('already_here')); return; }
   if (!nt && near && aPort === near.id && !atN){ toast(t('already_here')); return; }
   // (a tap by one of the coast's harbours, shut to the players: says why, and a tap on its water is a point of the route as before)
