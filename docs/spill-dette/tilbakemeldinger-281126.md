@@ -3,7 +3,7 @@
 Etter gjennomgangen 28.11.2026 («Køen for de noterte» i `docs/systemer/tilbakemelding-og-admin.md`). Alt står i /admin under Tilbakemeldinger; ingenting er svart på eller satt til fikset av økta.
 
 - **Flett PR #250** (https://github.com/Grubleriet-AS/FishyBusiness-/pull/250). Den er `hoy` fordi rutinene, `CLAUDE.md` og systemdokumentet er med, så ingen rutine fletter den. Til den er flettet, går Driften som før (taket 4, og de 41 tekniske sakene som nå er notert inn i køen, blir ikke tatt). Krokbyttet kommer til testadressen når den er flettet, og til spillerne med slippet etter.
-- **«Bruk forslaget» på de 15 som er rettet og ute hos spillerne.** De har foreslått status «Fikset» og et svar; du trykker «Bruk forslaget» og Lagre, og spilleren får svaret og takk-haillen.
+- **«Bruk forslaget» på de 14 som er rettet og ute hos spillerne.** De har foreslått status «Fikset» og et svar; du trykker «Bruk forslaget» og Lagre, og spilleren får svaret og takk-haillen.
   - Gjesteboka som ikke åpnet seg: #236, #293, #358, #394, og #369 (som også gjaldt driftsplanen).
   - Driftsplanen som ble liggende med «Finner veien …»: #367, #398.
   - Ruta som sto fast ved kaia og ikke kunne slettes: #262, #307, #341, #375, #386, #406.
