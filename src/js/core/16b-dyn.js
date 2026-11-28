@@ -604,14 +604,14 @@ function dynTick(dt){
   if (typeof simAreaReady === 'function' && !simAreaReady()){ if (!DYN.hold){ DYN.hold = true; DYN.holdAt = Date.now(); } DYN.debt = Math.min(DYN.debt + dt, 20); return; }
   DYN.hold = false;
   const dtR = Math.min(dt, 20), pay = Math.min(DYN.debt, dtR), dtG = (dtR + pay) * simRate(); DYN.debt -= pay;   // a stall longer than twenty seconds is lost (the minute steps go on without moving her)
-  if (helmOn()) dynHelm(d, dtG); else dynAuto(d, dtG);
+  if (helmOn()) dynHelm(d, dtG); else if (!styrTick(b, d, dtG)) dynAuto(d, dtG);   // (Autonav 2.0: a plan with a bane carries her along it, 17d-styr.js)
 }
 // the minute step while the model has her: the fuel, the detours round obstacles, the distance for the tattoos; nothing moves her
 function dynMinute(H, W){
   const b = S.boat, pl = S.plan;
   if (b.fuel <= 0){ b.fuel = 0; b.status = 'adrift'; b.v = 0; log('Tom for drivstoff. Båten driver.', 'Out of fuel. The boat is adrift.'); return; }
   if (!DYN.hold) fuelUse(b, fuelLph(b.v || 0, W) / 60);   // (held for the map, or a minute caught up without moving her: no fuel)
-  if (pl){ obsSail(pl, b); landSail(pl, b); }
+  if (pl && !styrOn(pl)){ obsSail(pl, b); landSail(pl, b); }   // (a plan with a bane is checked already and stays as it is, 17d-styr.js)
   if (meAboard() && DYN.nm){ tatAdd('nm', DYN.nm); DYN.nm = 0; }
 }
 // ---- by hand (16-helm.js): the throttle and the rudder into the model ----

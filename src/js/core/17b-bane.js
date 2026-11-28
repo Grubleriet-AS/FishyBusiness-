@@ -95,17 +95,46 @@ function baneOf(g){ let Y = BANE.of.get(g); if (Y) return Y.B ? Y : null;
 // along the bane as its own speeds take her in the minute, never faster than the minute's own speed (the weather, the plan's
 // setting), and comes to the plan's points as she passes them (arrive: the quay, the logbook). left0: km she may go this minute.
 // False where the plan has no bane for where she is (it then sails as before)
-function baneSail(pl, b, left0){ const g = baneLeg(pl), Y = g && baneOf(g); if (!Y) return false; const B = Y.B, R = pl.b2;
+// The most she may have s metres along a plan's bane besides the bane's own speed (m/s): the plan's setting, what the sea lets her
+// make (speedCap), the speed limit where she is (05e-sjovei.js fartKn) and 5 knots within 250 m of a harbour, as the minute step
+// has had them (05-vessels.js sailV). Asked by where she is, so the minute step and the boat model's tick get the same, and she is
+// at the same place at the same time whichever moves her (the minute's own ramp of sailV made the time away take twice the bane's
+// time, the bench, steg 142 point 5). Kept for 15 m of way and the game minute
+function baneCap(pl, B, s){ const R = pl.b2, C = R.cap; if (C && C.t === S.t && Math.abs(s - C.s) < 15) return C.v;
+  const q = baneAt(B, s), p = {x:q.X / 1000, y:q.Z / 1000}, H = S.t / 60; let kn = pl.speed > 0 ? pl.speed : 99;
+  try { kn = Math.min(kn, speedCap(hsAt(p, H), seaDirF(p, H, q.psi))); } catch (e){}
+  try { const l = fartKn(p, H); if (l > 0) kn = Math.min(kn, l); } catch (e){}
+  try { for (const P of PORTS) if (Math.abs(P.p.x - p.x) < 0.25 && Math.abs(P.p.y - p.y) < 0.25 && Math.hypot(P.p.x - p.x, P.p.y - p.y) < 0.25){ kn = Math.min(kn, 5); break; } } catch (e){}
+  R.cap = {s:+s.toFixed(1), t:S.t, v:+(Math.max(0.5, kn) * KN_MS).toFixed(3)}; return R.cap.v; }
+function baneSail(pl, b, left0, W){ const g = baneLeg(pl), Y = g && baneOf(g); if (!Y) return false; const B = Y.B, R = pl.b2;
   // (how far along she is, from the plan's own place where something else has moved her on: the boat model while the game was open, a jump)
   if (R.at !== g.i0 || R.i !== pl.idx){ R.at = g.i0; R.s = pl.idx > g.i0 ? Y.at[pl.idx - g.i0 - 1] : 0; }
   const s0 = R.s; let s = s0, t = 0; const cap = left0 * 1000;
-  while (t < 60 && s < B.len && s - s0 < cap){ const v = Math.max(BANE.vMin, baneV(B, s)), dt = Math.min(2, 60 - t); s = Math.min(B.len, s + v * dt, s0 + cap); t += dt; }
+  while (t < 60 && s < B.len && s - s0 < cap){ const v = Math.max(BANE.vMin, Math.min(baneV(B, s), baneCap(pl, B, s))), dt = Math.min(1, 60 - t); s = Math.min(B.len, s + v * dt, s0 + cap); t += dt; }
   const q = baneAt(B, s);
   // (sea ice on the minute's way stops her as it does on any trip: the planner's map knows the land and the water, not the ice)
   if (typeof groundCheck === 'function'){ let gp = null; try { gp = groundCheck(b.pos, {x:q.X / 1000, y:q.Z / 1000}, 0); } catch (e){} if (gp && gp.ice){ sailStop(pl, b, iceWhy(gp)); return true; } }
-  R.s = s; b.heading = q.psi; b.v = (s - s0) / 60 / KN_MS;
-  // (the bane's own points are passed without a line in the log; one in the trail every 250 m; a stop is come to as on any trip: arrive)
+  R.s = s; b.heading = q.psi; b.v = (s - s0) / 60 / KN_MS; if (W !== undefined) try { fuelUse(b, fuelLph(b.v, W) / 60); } catch (e){}   // (the diesel by the speed she had, not the minute's own before the bane)
+  if (banePass(pl, b, g, Y, s)) return true;
+  R.i = pl.idx; b.pos = {x:q.X / 1000, y:q.Z / 1000}; return true; }
+// the plan's points she has come to s metres along the leg's bane: the bane's own are passed without a line in the log (one in the
+// trail every 250 m), a stop is come to as on any trip (arrive). True where the trip ended or the plan changed there
+function banePass(pl, b, g, Y, s){ const R = pl.b2;
   while (pl.idx < g.i0 + g.n && Y.at[pl.idx - g.i0] <= s + 1e-3){ const w = pl.wps[pl.idx], i = pl.idx;
     if (w.bane){ pl.idx++; const l = S.trail[S.trail.length - 1]; if (!l || Math.hypot(l.x - w.x, l.y - w.y) > 0.25) S.trail.push({x:w.x, y:w.y, port:null}); continue; }
     b.pos = {x:w.x, y:w.y}; R.i = pl.idx + 1; if (arrive(w) || S.plan !== pl || pl.idx === i) return true; }
+  return false; }
+// The boat model's tick along a plan with a bane (16b-dyn.js dynTick asks this before its own steering; Jonas 27.11.2026, choice 10:
+// «Ført langs banen»): while the game is looked at she is carried along the bane as the minute step carries her when it is not,
+// to the same place by the same clock: where she is, her heading and her speed are the bane's, dt seconds on (game seconds). What
+// was checked free is what is sailed; the wind and the sea move her in the waves (the view's) and never off the bane. d: the model's
+// state (16b-dyn.js dynState), written as the views read it: X, Y, psi, and her way through the water ahead (u, under 0 astern) and
+// to the side (v). o.hold: the watch has her stopped (she keeps her place). False where the plan has no bane for where she is
+function baneTick(pl, b, d, dt, o){ const g = baneLeg(pl), Y = g && baneOf(g); if (!Y) return false; const B = Y.B, R = pl.b2;
+  if (R.at !== g.i0 || R.i !== pl.idx){ R.at = g.i0; R.s = pl.idx > g.i0 ? Y.at[pl.idx - g.i0 - 1] : 0; }
+  const s0 = R.s; let s = s0; if (!(o && o.hold)) for (let t = dt; t > 1e-9 && s < B.len;){ const h = Math.min(0.25, t), v = Math.max(BANE.vMin, Math.min(baneV(B, s), baneCap(pl, B, s))); s = Math.min(B.len, s + v * h); t -= h; }
+  const q0 = baneAt(B, s0), q = baneAt(B, s), vx = dt > 0 ? (q.X - q0.X) / dt : 0, vz = dt > 0 ? (q.Z - q0.Z) / dt : 0, sn = Math.sin(q.psi), cs = Math.cos(q.psi);
+  d.X = q.X; d.Y = q.Z; d.psi = ((q.psi % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); d.u = vx * sn - vz * cs; d.v = vx * cs + vz * sn; d.r = 0; d.wall = Date.now();
+  R.s = s; b.heading = d.psi; b.v = Math.hypot(vx, vz) / KN_MS; b.pos = {x:q.X / 1000, y:q.Z / 1000};
+  if (banePass(pl, b, g, Y, s)) return true;
   R.i = pl.idx; b.pos = {x:q.X / 1000, y:q.Z / 1000}; return true; }

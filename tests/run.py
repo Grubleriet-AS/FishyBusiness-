@@ -434,7 +434,7 @@ for _f in ('tools/server/vakt/vakt.sh', 'tools/server/vakt/setup.sh', 'tools/ser
 COVER['src/js/core/17-farbar.js'] = ['boottest', 'trip2']; COVER['tests/unit/farbar.test.mjs'] = []
 # Autonav 2.0 F2 (steg 142, 24.11.2026): banen and the planner (17b-bane.js, 17c-plan.js). Called only by the bench and behind the flag
 # (planOn), so what they can break in the game is the page itself (one script) and a trip (sail asks whether the plan has a bane)
-COVER['src/js/core/17b-bane.js'] = ['boottest', 'trip2']; COVER['src/js/core/17c-plan.js'] = ['boottest', 'trip2']; COVER['tests/unit/bane.test.mjs'] = []; COVER['tests/unit/plan.test.mjs'] = []
+COVER['src/js/core/17b-bane.js'] = ['boottest', 'trip2']; COVER['src/js/core/17d-styr.js'] = ['boottest', 'trip2']; COVER['src/js/core/17c-plan.js'] = ['boottest', 'trip2']; COVER['tests/unit/bane.test.mjs'] = []; COVER['tests/unit/plan.test.mjs'] = []
 for _f in ('tools/autonav/farsjekk.py', 'tools/autonav/farsjekk.js'): COVER[_f] = []
 # Steg 142, punkt 2 (26.11.2026): the dredged channels (src/data/renner.json, in the page through 17-farbar.js, so the page itself is
 # what it can break) and the two tools that need dist-vec/ and are run by hand (hvorfor.py: why there is no bane; renner.py: the channels)
