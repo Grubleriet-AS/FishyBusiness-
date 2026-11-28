@@ -257,24 +257,31 @@ NOTE_TEK = re.compile(r'\s*teknisk', re.I)
 # (the game's own grounding reports, noted «grunnstøting: …» or, before 28.11.2026, «teknisk: grunnstøting …»: Autonav's, never one by one;
 # the first words only, so a technical note that mentions a grounding still waits)
 NOTE_GRUNN = re.compile(r'\s*(teknisk\W+)?(automatisk\s+)?grunnst[øo]ting', re.I)
+NOTE_LAAS = re.compile(r'venter på PR-låsen', re.I)   # (a fix given up because the PR lock was shut: the routine writes it in the note)
 NOTED_MAX = 150        # how many noted rows agent_feedback gives, the heaviest first (supabase/migrations/20261117160000_agent_incidents.sql)
 
 
-def waiting(noted, hfb, gfb, new_ids=()):
+def waiting(noted, hfb, gfb, new_ids=(), lock=None, dead=()):
     """The noted technical feedback that still waits for a fix (28.11.2026). Before, only the feedback not noted yet was looked at, and
     the routine notes each one in the run it arrives in: with the Opus cap used that hour, it was never seen again (the notes said
     «Opus-taket nådd, venter», and nothing waited). One waits while its note starts with «teknisk», names no PR and no cluster (a
     cluster's feedback follows the cluster), Jonas has not answered it or set a status (`new`), no PR names it (`tilbakemelding #N`,
     hfb) and it is not given up (gfb), and it weighs at least MIN_FIX. The highest weight first, then the newest (the version it was
     written on is the nearest to the players' now). The light model takes one out by rewriting its note: «rettet: …», «ønske: …».
-    A note about a grounding never waits (the text of a noted feedback is not read again, so the note's own word is the mark)."""
+    A note about a grounding never waits (the text of a noted feedback is not read again, so the note's own word is the mark).
+    A fix that was given up because the PR lock was shut («venter på PR-låsen» in the note) waits until a middels fix may get a PR
+    again (lock), so it does not wake Opus every hour for nothing; and a note whose PRs were all closed without being merged more
+    than HANDLED_DAYS ago (dead: their numbers) waits again, since nothing came of them (the independent check 28.11.2026)."""
+    shut = lock is not None and not prlaas.allows(lock, 'middels')
     out = []
     for n in noted or []:
         note = n.get('note') or ''
         try: fid = int(n.get('id')); score = float(n.get('score') or 0)
         except (TypeError, ValueError): continue
         if fid in new_ids or fid in hfb or fid in gfb or (n.get('status') or 'new') != 'new': continue
-        if not NOTE_TEK.match(note) or NOTE_GRUNN.match(note) or PR_REF.search(note) or KLYNGE_REF.search(note) or score < MIN_FIX: continue
+        nums = {int(x) for x in PR_REF.findall(note)}
+        if not NOTE_TEK.match(note) or NOTE_GRUNN.match(note) or (nums and not nums <= set(dead)) or KLYNGE_REF.search(note) or score < MIN_FIX: continue
+        if shut and NOTE_LAAS.search(note): continue
         out.append({'id': fid, 'type': 'teknisk', 'score': score, 'klynge': None, 'topic': n.get('topic'), 'ts': n.get('ts'), 'venter': True})
     return sorted(out, key=lambda f: (-f['score'], -(ts(f['ts']).timestamp() if ts(f['ts']) else 0)))
 
@@ -373,7 +380,8 @@ def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=(), reg=(), 
     allowed = lambda c: prlaas.allows(lock, c['risiko'], c.get('files') or ([c['file']] if c.get('file') else []))   # (one hoy, three middels, never the same file)
     fix_cl = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and allowed(c)]
     fix_fb = [f for f in fb if f['type'] == 'teknisk' and not f['klynge'] and f['id'] not in hfb and f['id'] not in gfb and f['score'] >= MIN_FIX]
-    venter = waiting(noted, hfb, gfb, {f['id'] for f in fb})   # (the noted ones that still wait: they stay in the queue until a PR names them)
+    dead = {p.get('number') for p in prs or [] if p.get('state') != 'open' and not p.get('merged_at') and ts(p.get('closed_at')) and (now - ts(p.get('closed_at'))).total_seconds() > HANDLED_DAYS * 86400}
+    venter = waiting(noted, hfb, gfb, {f['id'] for f in fb}, lock, dead)   # (the noted ones that still wait: they stay in the queue until a PR names them)
     fix_fb = sorted(fix_fb + venter, key=lambda f: -f['score'])   # (stable: a new one before a waiting one of the same weight)
     blocked = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and not allowed(c)]
     return {'klynger': cls, 'tilbakemeldinger': fb, 'rett': fix_cl, 'rett_fb': fix_fb, 'venter': venter, 'koe': order(fix_cl, fix_fb, last_fix), 'sperret': blocked, 'oppgitt': sorted(gcl) + ['#%d' % n for n in sorted(gfb)],
@@ -677,6 +685,12 @@ def selftest():
     eq('notert som venter: Opus trengs, og det er noe å gjøre', (s['trenger_opus'], s['ingenting'], s.get('venter_tekniske')), (True, False, [32, 40, 39, 31]))
     s = summary(decide([], N, [], [], iso(1), now, open_lock), [], 0, 0)
     eq('notert som venter med taket nådd: stille (ingen rapport hver time)', (s['trenger_opus'], s['ingenting'], s['opus_taket_naadd']), (False, True, True))
+    NL = [{'id': 51, 'ts': iso(9), 'note': 'teknisk: knappen virker ikke. Venter på PR-låsen (28.11).', 'score': 3, 'status': 'new'}, {'id': 52, 'ts': iso(8), 'note': 'teknisk: annen feil', 'score': 3, 'status': 'new'}]
+    eq('gitt opp for PR-låsen: venter mens låsen er stengt, tilbake når den er åpen', (kan([], NL, [], [], iso(1), now, {'lav': True, 'middels_hoy': False}), kan([], NL, [], [], iso(1), now, open_lock)), (['#52'], ['#52', '#51']))
+    NP = [{'id': 53, 'ts': iso(9), 'note': 'teknisk: feil, PR https://github.com/x/y/pull/60', 'score': 3, 'status': 'new'}]
+    pr60 = lambda **k: [dict({'number': 60, 'state': 'closed', 'title': 't', 'body': ''}, **k)]
+    eq('PR-en i notatet lukket uten fletting for lenge siden: venter igjen; flettet, åpen eller nylig lukket: ikke', (kan([], NP, [], pr60(closed_at=iso(24 * 5)), iso(1), now, open_lock), kan([], NP, [], pr60(closed_at=iso(24 * 5), merged_at=iso(24 * 5)), iso(1), now, open_lock),
+       kan([], NP, [], pr60(state='open'), iso(1), now, open_lock), kan([], NP, [], pr60(closed_at=iso(24)), iso(1), now, open_lock), kan([], NP, [], [], iso(1), now, open_lock)), (['#53'], [], [], [], []))
     eq('en ny tilbakemelding står ikke to ganger', kan([dict(R[5], id=31)], N, [], [], iso(1), now, open_lock).count('#31'), 1)
     eq('ventende i utkastet', 'venter på retting: #32, #40' in draft(decide([], N, [], [], iso(1), now, open_lock), s), True)
     # the players' reports before the regression's red tests, and after a fix of a cluster a player's report is next (and the other way)

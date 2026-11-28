@@ -40,12 +40,37 @@ const restAshore = () => resting() && S.rest.w !== 'koye';
 // (no hands of her own: none aboard at all, asleep on the watch below or not, crewAboard(H, true). A hand asleep takes the job when
 // she wakes, and you are left ashore: driftsplan2test S9, two hands asleep in port with the lines to bait)
 const jobsOnlyMe = () => { const b = S.boat; return !!b && b.status === 'port' && meAboard() && !crewAboard(null, true).length && !(typeof lagOf === 'function' && lagOf()) && (S.jobs || []).some(j => typeof crewJob === 'function' && crewJob(j)); };
-// once a minute in port (05-vessels.js vesselStep): resting ashore with such a job waiting (a save from before, or a job that became
-// yours when the hands left), you go aboard and do it
+// the hour the last of the jobs that are yours is done (0 when not known yet), or null when none is: asked of the boat bound now, and
+// (jobsMine) of the boat you are aboard whichever boat is shown (the independent check 28.11.2026: with another boat of the company on
+// the screen the question was asked of her, the rest was paid for, and you were called down the minute after). The yard's jobs beside
+// yours do not count in the hour
+function jobsMineUntil(){ if (!jobsOnlyMe()) return null; let m = 0; for (const j of S.jobs || []) if (crewJob(j) && j.until != null) m = Math.max(m, j.until); return m; }
+const jobsMine = () => { const v = myVessel(); return v && typeof curVessel === 'function' && v !== curVessel() ? withVessel(v, jobsMineUntil) : jobsMineUntil(); };
+// once a minute in port (05-vessels.js vesselStep): resting ashore with such a job waiting (a save from before, or a job laid in the
+// queue from the phone while you rest), you go aboard and do it. The rest is not ended but kept (S.restBack: where, and the night
+// paid for), and jobsRestBack takes you up again when the work is done: a rorbu night is paid once, and with the game closed you
+// still come back rested (the independent check 28.11.2026: before, a job laid in the queue from the rorbu cost a second night, and
+// the energy stood where it was for the rest of the time away)
 function jobsCallMe(){
   if (!S.rest || !restAshore() || !jobsOnlyMe()) return false;
-  const w = S.rest.w; restEnd(true);
-  log('Arbeidet om bord venter på deg. Du gikk ned fra ' + (w === 'rorbu' ? 'rorbua' : 'naustet') + ' og om bord.', 'The work aboard waits for you. You went down from the ' + (w === 'rorbu' ? 'rorbu' : 'boathouse') + ' and aboard.');
+  const r = S.rest, w = r.w; S.restBack = {port:r.port, w, t0:r.t0, paid:r.paid}; S.rest = null;
+  log('Arbeidet om bord venter på deg. Du gikk ned fra ' + (w === 'rorbu' ? 'rorbua' : 'naustet') + ' og om bord, og går opp igjen når det er gjort.', 'The work aboard waits for you. You went down from the ' + (w === 'rorbu' ? 'rorbu' : 'boathouse') + ' and aboard, and go up again when it is done.');
+  if (hooks.onEnergy) hooks.onEnergy('rest');
+  return true;
+}
+// once a minute on the boat you are aboard: the rest that waits for your work (S.restBack: one you were called down from, with w and
+// the night paid; or one asked for while the work waited, restStart, with no w) begins when the work is done. Gone when she has left
+// the harbour, when you rest already, or when she leaves this minute
+function jobsRestBack(){
+  const rb = S.restBack, b = S.boat; if (!rb || !meAboard()) return false;
+  if (!b || b.status !== 'port' || b.port !== rb.port || S.rest){ S.restBack = null; return false; }
+  if (jobsOnlyMe()) return false;
+  S.restBack = null;
+  if (S.plan && S.plan.depAt != null && S.plan.depAt <= S.t + 1) return false;
+  if (!rb.w) return !restStart();
+  S.rest = {port:rb.port, w:rb.w, t0:rb.t0, paid:rb.paid};
+  log('Arbeidet om bord er gjort. Du gikk opp igjen ' + (rb.w === 'rorbu' ? 'på rorbua.' : 'i naustet.'), 'The work aboard is done. You went up again to the ' + (rb.w === 'rorbu' ? 'rorbu.' : 'boathouse.'));
+  if (hooks.onEnergy) hooks.onEnergy('rest');
   return true;
 }
 const bunks = b => !!(b && VESSELS[b.type] && VESSELS[b.type].berths > 0);
@@ -59,7 +84,11 @@ function restRate(b){
 function restStart(){
   const b = myBoat(), w = restWhere(b); if (!w) return bunks(b) ? ['Du kan hvile i køya til ankers, eller på sjøen når noen av mannskapet er våkne og har vakta.', 'You can rest in the bunk at anchor, or at sea when someone of the crew is awake on watch.'] : ['Du kan hvile i naustet i hjemhavna eller på en rorbu.', 'You can rest in the boathouse in your home harbour or at a rorbu.'];
   if (resting()) return null;
-  if (w !== 'koye' && b === S.boat && jobsOnlyMe()){ const u = jobsDone(); return ['Arbeidet om bord må bli ferdig først' + (u && typeof hm === 'function' ? ', ca. kl. ' + hm(u / 60) : '') + '. Alene om bord gjør du det selv.', 'The work aboard has to be done first' + (u && typeof hm === 'function' ? ', about ' + hm(u / 60) : '') + '. Alone aboard you do it yourself.']; }
+  // your own work aboard first (jobsOnlyMe): nothing is paid and no rest begins, but it is remembered that you asked (S.restBack), so
+  // you go and rest when the work is done, also with the game closed (jobsRestBack)
+  if (w !== 'koye'){ const u = jobsMine(); if (u != null){ S.restBack = {port:b.port || null, w:null};
+    const kl = u && typeof hm === 'function' ? [' (ca. kl. ' + hm(u / 60) + ')', ' (about ' + hm(u / 60) + ')'] : ['', ''];
+    return ['Alene om bord gjør du ferdig arbeidet først' + kl[0] + ', og går så og hviler.', 'Alone aboard you finish the work first' + kl[1] + ', and then go and rest.']; } }
   const pt = b.port ? portById(b.port) : null;
   if (w === 'koye'){ const sk = crewOf(myVessel()).filter(c => !c.off).slice().sort((a, c) => c.attr.sjo - a.attr.sjo)[0]; log(b.anch ? 'Du gikk ned i køya mens båten ligger til ankers.' : 'Du gikk ned i køya. ' + sk.name.split(' ')[0] + ' har vakta.', b.anch ? 'You went down to the bunk while the boat lies at anchor.' : 'You went down to the bunk. ' + sk.name.split(' ')[0] + ' has the watch.'); }
   else if (w === 'rorbu'){
@@ -67,12 +96,12 @@ function restStart(){
     book('land', -RORBU.kr, 'Rorbu', 'Rorbu');
     log('Du tok inn på rorbua i ' + pt.name + ' for ' + kr(RORBU.kr) + ' natta.', 'You took a room at the rorbu in ' + pt.name + ' for ' + kr(RORBU.kr) + ' a night.');
   } else log('Du gikk opp i naustet for å hvile.', 'You went up to the boathouse to rest.');
-  S.rest = {port:b.port || null, w, t0:S.t, paid:S.t + RORBU.night}; achAdd('sleep');
+  S.restBack = null; S.rest = {port:b.port || null, w, t0:S.t, paid:S.t + RORBU.night}; achAdd('sleep');
   if (hooks.onEnergy) hooks.onEnergy('rest');
   return null;
 }
 function restEnd(quiet){
-  if (!S.rest) return; const w = S.rest.w; S.rest = null;
+  S.restBack = null; if (!S.rest) return; const w = S.rest.w; S.rest = null;
   if (!quiet) log(w === 'koye' ? 'Du kom opp fra køya. Energi ' + Math.round(S.energy) + ' %.' : (w === 'rorbu' ? 'Du gikk ned fra rorbua' : 'Du gikk ned fra naustet') + ' og om bord. Energi ' + Math.round(S.energy) + ' %.', w === 'koye' ? 'You came up from the bunk. Energy ' + Math.round(S.energy) + ' %.' : 'You went down from the ' + (w === 'rorbu' ? 'rorbu' : 'boathouse') + ' and aboard. Energy ' + Math.round(S.energy) + ' %.');
   if (hooks.onEnergy) hooks.onEnergy('rest');
 }

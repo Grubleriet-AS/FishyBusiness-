@@ -899,7 +899,7 @@ crew: people with skills, habits and moods
   - 722 `flyOut(c)`
   - 730 `flyTick()`
 
-## `src/js/core/05-vessels.js` (1546 linjer)
+## `src/js/core/05-vessels.js` (1547 linjer)
 
 ---------- other vessels (deterministic, so every player sees the same traffic) ----------
 
@@ -961,57 +961,57 @@ crew: people with skills, habits and moods
   - 698 `step()`
   - 719 `holdMinute(H, p)`
   - 728 `vesselStep(H)`
-  - 825 `plantFuel(b)`
-  - 828 `sailV(H, hs)`
-  - 844 `sail(H, W, hs)`
-  - 885 `sailWaiting()`
-  - 886 `sailReplan(pl, b, gp)`
-  - 942 `iceWhy(p, tried)`
-  - 944 `sailStop(pl, b, why)`
-  - 957 `planPortStuck()`
-  - 958 `planPortFree()`
-  - 969 `haltPlan(need)`
-  - 979 `arrive(w)`
-  - 1000 `unstuckWhy()`
-  - 1006 `unstuckSpot()`
-  - 1019 `agFree()`
-  - 1030 `unstuck()`
-- **1044** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
-  - 1052 `moorPhase(b)`
-  - 1067 `dock(pid, berth)`
-  - 1095 `catchFactors(H, W, hs)`
-  - 1108 `stockDev(p, sp)`
-  - 1114 `fish(H, W, hs)`
-  - 1223 `endFishing(why)`
-  - 1244 `bycHere(how)`
-  - 1248 `bycAdd(sp, kg, how)`
-  - 1252 `bycConf()`
-  - 1255 `addCatch(sp, kg, cls, hook, opt)`
-- **1277** work on deck: gutting and icing take hands and time
-  - 1293 `deckHands()`
-  - 1296 `deckPending()`
-  - 1297 `deckEta(hands)`
-  - 1302 `moveKg(x, kg, patch)`
-  - 1310 `iceMinute()`
-  - 1317 `iceOut(out)`
-  - 1323 `deckMinute()`
-- **1348** lying to in a storm (H1b R8, 05.11.2026)
-  - 1370 `quayFar(b)`
-  - 1374 `lieTo(W, hs)`
-  - 1381 `lieToStep(W, hs)`
-  - 1391 `risk(W, hs)`
-  - 1419 `hullRepair()`
-  - 1422 `svcOverdue()`
-- **1423** the rescue boat (plan E3, 05.10.2026)
-  - 1449 `rescueBases()`
-  - 1458 `rescueBase(p)`
-  - 1465 `rescueAis(H)`
-  - 1469 `rescue(keepCatch)`
-  - 1497 `towSea(p)`
-  - 1502 `towRoutes(b)`
-  - 1513 `towStep(H)`
-  - 1526 `towDone(t)`
-  - 1535 `towPose(frac)`
+  - 826 `plantFuel(b)`
+  - 829 `sailV(H, hs)`
+  - 845 `sail(H, W, hs)`
+  - 886 `sailWaiting()`
+  - 887 `sailReplan(pl, b, gp)`
+  - 943 `iceWhy(p, tried)`
+  - 945 `sailStop(pl, b, why)`
+  - 958 `planPortStuck()`
+  - 959 `planPortFree()`
+  - 970 `haltPlan(need)`
+  - 980 `arrive(w)`
+  - 1001 `unstuckWhy()`
+  - 1007 `unstuckSpot()`
+  - 1020 `agFree()`
+  - 1031 `unstuck()`
+- **1045** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
+  - 1053 `moorPhase(b)`
+  - 1068 `dock(pid, berth)`
+  - 1096 `catchFactors(H, W, hs)`
+  - 1109 `stockDev(p, sp)`
+  - 1115 `fish(H, W, hs)`
+  - 1224 `endFishing(why)`
+  - 1245 `bycHere(how)`
+  - 1249 `bycAdd(sp, kg, how)`
+  - 1253 `bycConf()`
+  - 1256 `addCatch(sp, kg, cls, hook, opt)`
+- **1278** work on deck: gutting and icing take hands and time
+  - 1294 `deckHands()`
+  - 1297 `deckPending()`
+  - 1298 `deckEta(hands)`
+  - 1303 `moveKg(x, kg, patch)`
+  - 1311 `iceMinute()`
+  - 1318 `iceOut(out)`
+  - 1324 `deckMinute()`
+- **1349** lying to in a storm (H1b R8, 05.11.2026)
+  - 1371 `quayFar(b)`
+  - 1375 `lieTo(W, hs)`
+  - 1382 `lieToStep(W, hs)`
+  - 1392 `risk(W, hs)`
+  - 1420 `hullRepair()`
+  - 1423 `svcOverdue()`
+- **1424** the rescue boat (plan E3, 05.10.2026)
+  - 1450 `rescueBases()`
+  - 1459 `rescueBase(p)`
+  - 1466 `rescueAis(H)`
+  - 1470 `rescue(keepCatch)`
+  - 1498 `towSea(p)`
+  - 1503 `towRoutes(b)`
+  - 1514 `towStep(H)`
+  - 1527 `towDone(t)`
+  - 1536 `towPose(frac)`
 
 ## `src/js/core/05b-ferje.js` (197 linjer)
 
@@ -2527,27 +2527,29 @@ life aboard: learning, meals, the rest rule and what the crew says
   - 565 `sosMobEnd(M, out, how)`
   - 589 `sosNpc()`
 
-## `src/js/core/15-energy.js` (204 linjer)
+## `src/js/core/15-energy.js` (233 linjer)
 
 your own energy: a day at sea empties it, a night ashore fills it
 
 - **1** your own energy: a day at sea empties it, a night ashore fills it
   - 14 `alarmAck()`
-  - 45 `jobsCallMe()`
-  - 53 `restRate(b)`
-  - 59 `restStart()`
-  - 74 `restEnd(quiet)`
-  - 80 `restMinute()`
-  - 95 `rorbuTip(p)`
-  - 99 `restTip(b)`
-- **109** Skippertak (Jonas 12.10.2026): an energy drink, for real money only (never for the game's kroner), in three sizes
-  - 123 `fleetCrews()`
-  - 126 `giveSkip(k, end, t0)`
-  - 141 `energyMinute()`
-  - 165 `fallAsleep(v, doze)`
-  - 179 `wakeUp()`
-  - 185 `wakeEarly(back)`
-  - 197 `sleepDrift(H)`
+  - 47 `jobsMineUntil()`
+  - 54 `jobsCallMe()`
+  - 64 `jobsRestBack()`
+  - 78 `restRate(b)`
+  - 84 `restStart()`
+  - 103 `restEnd(quiet)`
+  - 109 `restMinute()`
+  - 124 `rorbuTip(p)`
+  - 128 `restTip(b)`
+- **138** Skippertak (Jonas 12.10.2026): an energy drink, for real money only (never for the game's kroner), in three sizes
+  - 152 `fleetCrews()`
+  - 155 `giveSkip(k, end, t0)`
+  - 170 `energyMinute()`
+  - 194 `fallAsleep(v, doze)`
+  - 208 `wakeUp()`
+  - 214 `wakeEarly(back)`
+  - 226 `sleepDrift(H)`
 
 ## `src/js/core/16-helm.js` (74 linjer)
 
