@@ -157,6 +157,9 @@ const TSTEPS = [
 // step it is on, and lets the chart and the cast-off through.
 function tutAdrift(){
   if (!tutOn()) return null; const b = S.boat, m = S.tut.m;
+  // at Father's naust in the plant's own harbour with the catch (tilbakemelding #439): the naust has no plant, so the way goes on by water
+  // to the plant's quay, as from a boat lying still
+  if (m.cast2 && !m.land && b.status === 'port' && b.port === tutLand() && berthKind(b) === 'naust' && !S.plan && !b.land && !b.landQ && !b.shift) return 'in';
   if (b.status !== 'idle' || S.plan || b.tutWait || b.land) return null;
   if (m.cast2 && !m.land) return 'in';
   if (m.cast1 && !m.luck && !m.haill && !m.fish && holdTotal() <= 1) return 'out';
@@ -165,7 +168,8 @@ function tutAdrift(){
 const tutDriftReady = d => d === 'in' ? draftEnds(tutLand()) : tutFieldFish() >= TUT_FISH_H && tutFieldWp(S.draft) >= 0;
 function tutDriftTip(d){
   const into = d === 'in', where = into ? {no:'til ' + tutLandN(), en:'to ' + tutLandN()} : {no:'ut til feltet ' + tutAt().no, en:'out to the grounds ' + tutAt().en};
-  if (!inPlot()) return {el:vis('#miniPlot'), noOk:true, no:'Båten ligger stille. Åpne kartplotteren og lag ruta ' + where.no + ' på nytt.', en:'The boat lies still. Open the chart plotter and make the route ' + where.en + ' again.'};
+  if (!inPlot()) return S.boat.status === 'port' ? {el:vis('#miniPlot'), noOk:true, no:'Båten ligger ved naustet, og fisken leveres på mottakskaia. Åpne kartplotteren og lag ruta ' + where.no + '.', en:'The boat lies at the boathouse, and the catch is landed at the plant’s quay. Open the chart plotter and make the route ' + where.en + '.'}
+    : {el:vis('#miniPlot'), noOk:true, no:'Båten ligger stille. Åpne kartplotteren og lag ruta ' + where.no + ' på nytt.', en:'The boat lies still. Open the chart plotter and make the route ' + where.en + ' again.'};
   if (tutDriftReady(d)){ const e = estimate();
     if (e.bad >= 0) return {el:vis(['#rUndo', '#panel [data-act=clear]']), noOk:true, no:'Etappe ' + legName(e.bad) + ' krysser land. Trykk angre, og bruk «Autonav».', en:'Leg ' + legName(e.bad) + ' crosses land. Tap undo and use «Autonav».'};
     return {el:vis('#panel .rbar [data-act=start]'), noOk:true, no:'Trykk «Kast loss».', en:'Tap «Cast off».'}; }
