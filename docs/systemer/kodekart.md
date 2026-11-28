@@ -899,7 +899,7 @@ crew: people with skills, habits and moods
   - 722 `flyOut(c)`
   - 730 `flyTick()`
 
-## `src/js/core/05-vessels.js` (1544 linjer)
+## `src/js/core/05-vessels.js` (1545 linjer)
 
 ---------- other vessels (deterministic, so every player sees the same traffic) ----------
 
@@ -982,36 +982,36 @@ crew: people with skills, habits and moods
   - 1094 `catchFactors(H, W, hs)`
   - 1107 `stockDev(p, sp)`
   - 1113 `fish(H, W, hs)`
-  - 1221 `endFishing(why)`
-  - 1242 `bycHere(how)`
-  - 1246 `bycAdd(sp, kg, how)`
-  - 1250 `bycConf()`
-  - 1253 `addCatch(sp, kg, cls, hook, opt)`
-- **1275** work on deck: gutting and icing take hands and time
-  - 1291 `deckHands()`
-  - 1294 `deckPending()`
-  - 1295 `deckEta(hands)`
-  - 1300 `moveKg(x, kg, patch)`
-  - 1308 `iceMinute()`
-  - 1315 `iceOut(out)`
-  - 1321 `deckMinute()`
-- **1346** lying to in a storm (H1b R8, 05.11.2026)
-  - 1368 `quayFar(b)`
-  - 1372 `lieTo(W, hs)`
-  - 1379 `lieToStep(W, hs)`
-  - 1389 `risk(W, hs)`
-  - 1417 `hullRepair()`
-  - 1420 `svcOverdue()`
-- **1421** the rescue boat (plan E3, 05.10.2026)
-  - 1447 `rescueBases()`
-  - 1456 `rescueBase(p)`
-  - 1463 `rescueAis(H)`
-  - 1467 `rescue(keepCatch)`
-  - 1495 `towSea(p)`
-  - 1500 `towRoutes(b)`
-  - 1511 `towStep(H)`
-  - 1524 `towDone(t)`
-  - 1533 `towPose(frac)`
+  - 1222 `endFishing(why)`
+  - 1243 `bycHere(how)`
+  - 1247 `bycAdd(sp, kg, how)`
+  - 1251 `bycConf()`
+  - 1254 `addCatch(sp, kg, cls, hook, opt)`
+- **1276** work on deck: gutting and icing take hands and time
+  - 1292 `deckHands()`
+  - 1295 `deckPending()`
+  - 1296 `deckEta(hands)`
+  - 1301 `moveKg(x, kg, patch)`
+  - 1309 `iceMinute()`
+  - 1316 `iceOut(out)`
+  - 1322 `deckMinute()`
+- **1347** lying to in a storm (H1b R8, 05.11.2026)
+  - 1369 `quayFar(b)`
+  - 1373 `lieTo(W, hs)`
+  - 1380 `lieToStep(W, hs)`
+  - 1390 `risk(W, hs)`
+  - 1418 `hullRepair()`
+  - 1421 `svcOverdue()`
+- **1422** the rescue boat (plan E3, 05.10.2026)
+  - 1448 `rescueBases()`
+  - 1457 `rescueBase(p)`
+  - 1464 `rescueAis(H)`
+  - 1468 `rescue(keepCatch)`
+  - 1496 `towSea(p)`
+  - 1501 `towRoutes(b)`
+  - 1512 `towStep(H)`
+  - 1525 `towDone(t)`
+  - 1534 `towPose(frac)`
 
 ## `src/js/core/05b-ferje.js` (197 linjer)
 
@@ -1898,7 +1898,7 @@ Kystvakta: the inspection at the quay or on the field (Oppdrag 2 V1, 30.10.2026;
   - 314 `kvWhatSno(r)`
   - 333 `kvFinish()`
 
-## `src/js/core/10-gear.js` (964 linjer)
+## `src/js/core/10-gear.js` (974 linjer)
 
 passive gear: nets, line and pots that stand in the sea while the boat is away
 
@@ -1922,76 +1922,77 @@ passive gear: nets, line and pots that stand in the sea while the boat is away
 - **178** the rig: a boat is rigged for one kind of fishing at a time. Jigging needs a hand jig or reels; line and pots
   - 184 `rigGuess()`
   - 190 `rigOf()`
-  - 199 `gearReserve()`
-  - 206 `handGear(kind, type = S.boat && S.boat.type)`
-  - 209 `rigNoRoom(kind, type = S.boat && S.boat.type)`
-  - 210 `rigHas(r)`
-  - 213 `rigWrong(kind)`
-  - 215 `haulerNoFit(kind)`
-  - 225 `rigBlock(r)`
-  - 237 `rigSet(r)`
-- **239** what the vessel owns: aboard, ashore (baiting, mending) and in the sea
-  - 240 `ownedUnits(kind)`
-  - 247 `gearRoom(kind)`
-- **249** buying (in port)
-  - 253 `equipCount(k)`
-  - 254 `buyGate(what, spec, lv)`
-  - 282 `tierGate(k, lv)`
-  - 303 `jigTierBack(type, n0, lv)`
-  - 310 `tierBuy(k, lv)`
-  - 320 `buyGear(what, spec, n)`
-  - 355 `joinNets(id1, id2)`
-  - 356 `splitNets(id, n)`
-- **358** rules for setting at a place
-  - 360 `segDist(p, a, b)`
-  - 361 `nearSet(p, km)`
-  - 362 `gearRules(kind, spec, p)`
-  - 396 `setGeom(p, hdg, km)`
-  - 403 `setGeomExact(p, hdg, km)`
-- **405** the work at sea: status stays 'fishing' with b.gop, so deck work, rest rules, auto-return and the tub pause work as before
-  - 406 `gopUnitMin(g, H, hs)`
-  - 431 `startSet(kind, spec, fishAfter, hdg)`
-  - 454 `startHaul(sid, reset, fishAfter)`
-  - 473 `endLines(op, kind, d)`
-  - 476 `thiefOf(s)`
-  - 486 `haulSlow(g)`
-  - 491 `gearOpMinute(H, W, hs)`
-  - 516 `finishSet(g, H)`
-  - 528 `gopEnd(g)`
-  - 530 `gopAfter(b = S.boat)`
-  - 534 `gearUnset(s, n)`
-  - 544 `gopAbort(why)`
-  - 564 `gearBack(s, n, cond, W)`
-  - 571 `wearNets(s, g)`
-  - 580 `haulUnit(g, H, SL)`
-  - 598 `landFish(sp, kg, key, mesh, p, H, hook, fresh, g)`
-  - 614 `netLen(w)`
-  - 615 `retain(sp, key, mesh, w)`
-  - 622 `sampleSel(sp, key, mesh, p, H)`
-  - 625 `landCrabs(g, n, kg)`
-  - 636 `finishHaul(g, H)`
-- **676** a station on a route or the standing plan: haul what stands here and set it again, or set new gear if nothing stands here.
-  - 680 `cycleSpec(kind, want, n)`
-  - 694 `gearCycle(w, fishAfter)`
-  - 712 `opsGearNeeds(o)`
-  - 722 `opsGearAfter()`
-- **728** in the sea, every hour: catch, losses, weather and deadlines (company level)
-  - 729 `soakHour(s, H)`
-  - 776 `potsOver(type = S.boat && S.boat.type, pg = S.pgear, sets = mySets()`
-  - 779 `potsUnfit()`
-  - 801 `gearHour(H)`
-  - 839 `reportLost(sid)`
-  - 847 `netMended(l)`
-- **848** in port: baiting at the shed or by the crew, mending by the crew or at the net loft in Finnsnes
-  - 854 `egnOrder(lk, n, bait)`
-  - 868 `egnHands()`
-  - 877 `egnSelf(lk, n, bait)`
-  - 898 `stripSelf(lk, bait, n, then)`
-  - 912 `mendSelf(nid)`
-  - 923 `botOrder(nid)`
-  - 934 `gearJob(j)`
-  - 946 `gearJobCancel(j)`
-  - 953 `shoreTick()`
+  - 199 `handGear(kind, type = S.boat && S.boat.type)`
+  - 202 `rigNoRoom(kind, type = S.boat && S.boat.type)`
+  - 203 `rigHas(r)`
+  - 206 `rigWrong(kind)`
+  - 208 `haulerNoFit(kind)`
+  - 218 `rigBlock(r)`
+  - 230 `rigSet(r)`
+- **232** what the vessel owns: aboard, ashore (baiting, mending) and in the sea
+  - 233 `ownedUnits(kind)`
+  - 240 `gearRoom(kind)`
+- **242** buying (in port)
+  - 246 `equipCount(k)`
+  - 247 `buyGate(what, spec, lv)`
+  - 275 `tierGate(k, lv)`
+  - 296 `jigTierBack(type, n0, lv)`
+  - 303 `tierBuy(k, lv)`
+  - 313 `buyGear(what, spec, n)`
+  - 348 `joinNets(id1, id2)`
+  - 349 `splitNets(id, n)`
+- **351** rules for setting at a place
+  - 353 `segDist(p, a, b)`
+  - 354 `nearSet(p, km)`
+  - 355 `gearRules(kind, spec, p)`
+  - 389 `setGeom(p, hdg, km)`
+  - 396 `setGeomExact(p, hdg, km)`
+- **398** the work at sea: status stays 'fishing' with b.gop, so deck work, rest rules, auto-return and the tub pause work as before
+  - 399 `gopUnitMin(g, H, hs)`
+  - 424 `startSet(kind, spec, fishAfter, hdg)`
+  - 447 `startHaul(sid, reset, fishAfter)`
+  - 465 `endLines(op, kind, d)`
+  - 468 `thiefOf(s)`
+  - 478 `haulSlow(g)`
+  - 483 `gearOpMinute(H, W, hs)`
+  - 513 `finishSet(g, H)`
+  - 525 `gopEnd(g)`
+  - 527 `gopAfter(b = S.boat)`
+  - 531 `gearUnset(s, n)`
+  - 541 `gopAbort(why)`
+  - 562 `gearBack(s, n, cond, W)`
+  - 569 `wearNets(s, g)`
+  - 578 `haulUnit(g, H, SL)`
+  - 598 `haulRest(g, s)`
+  - 605 `haulWaits(g)`
+  - 607 `landFish(sp, kg, key, mesh, p, H, hook, fresh, g)`
+  - 624 `netLen(w)`
+  - 625 `retain(sp, key, mesh, w)`
+  - 632 `sampleSel(sp, key, mesh, p, H)`
+  - 635 `landCrabs(g, n, kg)`
+  - 646 `finishHaul(g, H)`
+- **686** a station on a route or the standing plan: haul what stands here and set it again, or set new gear if nothing stands here.
+  - 690 `cycleSpec(kind, want, n)`
+  - 704 `gearCycle(w, fishAfter)`
+  - 722 `opsGearNeeds(o)`
+  - 732 `opsGearAfter()`
+- **738** in the sea, every hour: catch, losses, weather and deadlines (company level)
+  - 739 `soakHour(s, H)`
+  - 786 `potsOver(type = S.boat && S.boat.type, pg = S.pgear, sets = mySets()`
+  - 789 `potsUnfit()`
+  - 811 `gearHour(H)`
+  - 849 `reportLost(sid)`
+  - 857 `netMended(l)`
+- **858** in port: baiting at the shed or by the crew, mending by the crew or at the net loft in Finnsnes
+  - 864 `egnOrder(lk, n, bait)`
+  - 878 `egnHands()`
+  - 887 `egnSelf(lk, n, bait)`
+  - 908 `stripSelf(lk, bait, n, then)`
+  - 922 `mendSelf(nid)`
+  - 933 `botOrder(nid)`
+  - 944 `gearJob(j)`
+  - 956 `gearJobCancel(j)`
+  - 963 `shoreTick()`
 
 ## `src/js/core/10b-gearcare.js` (274 linjer)
 
@@ -3228,12 +3229,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1838 linjer)
+## `src/js/ui/phone/07-patch.js` (1843 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1826 `patch()`
+  - 1831 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (136 linjer)
 
@@ -3712,7 +3713,7 @@ actions
   - 32 `letterSound(kind)`
   - 44 `showLetter(done)`
 
-## `src/js/ui/08c-start.js` (178 linjer)
+## `src/js/ui/08c-start.js` (191 linjer)
 
 «Hvor står fars naust?»: where a new game starts (05.10.2026)
 
@@ -3722,9 +3723,9 @@ actions
   - 50 `startRing(pt)`
   - 51 `startWx(pt, H0)`
   - 59 `showStart(done)`
-  - 121 `tutMixAt(q, H, len, land)`
-  - 132 `tutFieldNear(pt, land, skip)`
-  - 156 `chooseStart(pt, onProgress)`
+  - 134 `tutMixAt(q, H, len, land)`
+  - 145 `tutFieldNear(pt, land, skip)`
+  - 169 `chooseStart(pt, onProgress)`
 
 ## `src/js/ui/09-hand-fishing.js` (87 linjer)
 

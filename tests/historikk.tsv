@@ -6717,6 +6717,25 @@
 2026-11-27 14:52	ccr-5e1ba2f4-pusvyd	17e452a+	kaiover	OK	129	lite	samtidig	
 2026-11-27 16:59	ccr-b7b2f394-jdf54x	f05556a	worktest	OK	14	lite	samtidig	
 2026-11-27 16:59	ccr-b7b2f394-jdf54x	f05556a	trip2	OK	17	lite	samtidig	
+2026-11-27 17:14	ccr-3d087977-h7z0iw	ad2f741+	geartest	OK	26	lite	samtidig	
+2026-11-27 17:14	ccr-3d087977-h7z0iw	ad2f741+	autolinetest	OK	10	lite	samtidig	
+2026-11-27 17:14	ccr-3d087977-h7z0iw	ad2f741+	snokrabbetest	OK	11	lite	samtidig	
+2026-11-27 17:14	ccr-3d087977-h7z0iw	ad2f741+	bktest	OK	13	lite	samtidig	
+2026-11-27 17:14	ccr-3d087977-h7z0iw	ad2f741+	caretest	OK	5	lite	samtidig	
+2026-11-27 17:14	ccr-3d087977-h7z0iw	ad2f741+	krabbefabrikktest	OK	19	lite	samtidig	
+2026-11-27 17:14	ccr-3d087977-h7z0iw	ad2f741+	trip2	OK	11	lite	samtidig	
+2026-11-27 17:14	ccr-3d087977-h7z0iw	ad2f741+	decktest	OK	5	lite	samtidig	
+2026-11-27 17:14	ccr-3d087977-h7z0iw	ad2f741+	tutfull	OK	5	lite	samtidig	
+2026-11-27 17:14	ccr-3d087977-h7z0iw	ad2f741+	driftsplan2kyst	OK	0	lite	samtidig	
+2026-11-27 17:16	ccr-3d087977-h7z0iw	ad2f741+	driftsplan2test	OK	90	lite	alene	
+2026-11-27 17:24	ccr-3d087977-h7z0iw	54d10d1+	geartest	OK	27	lite	samtidig	
+2026-11-27 17:24	ccr-3d087977-h7z0iw	54d10d1+	autolinetest	OK	10	lite	samtidig	
+2026-11-27 17:24	ccr-3d087977-h7z0iw	54d10d1+	snokrabbetest	OK	11	lite	samtidig	
+2026-11-27 17:24	ccr-3d087977-h7z0iw	54d10d1+	bktest	OK	13	lite	samtidig	
+2026-11-27 17:24	ccr-3d087977-h7z0iw	54d10d1+	caretest	OK	5	lite	samtidig	
+2026-11-27 17:25	ccr-3d087977-h7z0iw	54d10d1+	krabbefabrikktest	OK	20	lite	samtidig	
+2026-11-27 17:25	ccr-3d087977-h7z0iw	54d10d1+	trip2	OK	12	lite	samtidig	
+2026-11-27 17:26	ccr-3d087977-h7z0iw	54d10d1+	driftsplan2test	OK	91	lite	alene	
 2026-11-27 17:13	ccr-26223d0c-yhvnxv	d0761e2+	turtest	OK	6	lite	samtidig	
 2026-11-27 17:13	ccr-26223d0c-yhvnxv	d0761e2+	admintest	OK	15	lite	samtidig	
 2026-11-27 17:13	ccr-26223d0c-yhvnxv	d0761e2+	cloudtest	FEIL	26	lite	samtidig	avsluttet med kode 1

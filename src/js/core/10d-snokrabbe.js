@@ -154,7 +154,7 @@ function snoSoak(s, H){
 // goes where the trip sends it (snoStow, 10e-krabbefabrikk.js): the dead to the freezer round, on a live trip into the tanks while there
 // is room, the rest to the factory for the clusters
 function landSno(g, n){
-  const G = S.gacc || (S.gacc = {}), so = g.snoS || (g.snoS = {n:0, kept:0, rel:0, fem:0, soft:0, dead:0, kg:0, small:0, live:0}), m = gDate(S.t / 60).getUTCMonth();
+  const G = g.fa || (g.fa = {}), so = g.snoS || (g.snoS = {n:0, kept:0, rel:0, fem:0, soft:0, dead:0, kg:0, small:0, live:0}), m = gDate(S.t / 60).getUTCMonth();
   G.snoN = (G.snoN || 0) + n; let room = capHold() - holdLoad();
   while (G.snoN >= 1 && room > 0.05){
     G.snoN -= 1; const c = snoCrab(m); so.n++; if (c.fem) so.fem++;

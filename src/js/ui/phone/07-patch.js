@@ -1,5 +1,8 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['juksalast-281126', '28.11.2026', 'Juksa fyller lasterommet', 'The jig fills the hold', [
+       ['Båten holder ikke lenger av plass i lasterommet til line, garn og teiner som står i sjøen: du kan jukse til rommet er fullt. Før stoppet juksa uten at det var lett å se hvorfor.', 'The boat no longer keeps room in the hold for line, nets and pots standing in the sea: you can jig until the hold is full. Before, the jig stopped without it being easy to see why.'],
+       ['Blir rommet fullt mens du trekker, stopper trekkingen, og resten står igjen i sjøen med fisken sin. Lever fangsten, og trekk resten etterpå.', 'If the hold fills while you haul, the hauling stops, and the rest stays in the sea with its fish. Land the catch, then haul the rest.']]],
     ['start-281126', '28.11.2026', 'Valget av startsted', 'Choosing where to start', [
        ['Etter brevet fra far sto spillet stille en stund på noen telefoner før listen over steder kom. Nå svarer skjermen hele tida, og listen kommer straks været langs kysten er sett på.', 'After Father\'s letter the game stood still for a while on some phones before the list of places came. Now the screen answers all the time, and the list comes as soon as the weather along the coast has been looked at.']]],
     ['frakt-271126', '27.11.2026', 'Oppdrag: frakt og slep', 'Missions: freight and tows', [

@@ -1132,8 +1132,9 @@ function fish(H, W, hs){
   if (S.plan && S.plan.noJig) return;   // a plan with gear and no jigging: the boat waits by the gear (06f-plan.js)
   if (!vesselJigs()) return;   // an ocean vessel does not jig: she waits by her gear
   // jigging is always possible while the boat lies still, also with line, nets or pots in the sea (Jonas 09.10.2026): the dead time between
-  // setting and hauling is spent on the jig. What the gear in the sea is likely to bring is kept free in the hold (gearReserve), so the haul is not left standing
-  { const res = gearReserve(); if (res > 0 && tot >= capHold() - res){ if ((S.resTold || -1e9) < S.t - 720){ S.resTold = S.t; log('Resten av lasterommet er satt av til redskapet i sjøen. Jukser ikke mer nå.', 'The rest of the hold is kept for the gear in the sea. No more jigging now.'); } return; } }
+  // setting and hauling is spent on the jig. No room is kept in the hold for the gear in the sea (Jonas 27.11.2026: «Man burde kunne fylle
+  // båten med juksa mens redskapet står i havet»): a hold that fills during the haul stops it, and the rest is hauled after the landing
+  // (gearOpMinute and gopAbort in 10-gear.js)
   // where the rules stop the boat (03e-rules.js: the fjord lines by length, the baseline zones of J-187-2026 § 32, closed areas): it waits
   { const rq = {p:b.pos, len:BOAT.len, gear:'juksa', sp:S.target === 'kveite' ? 'kveite' : null, hand:!(S.equip && S.equip.jukse > 0)}, rb = (S.ruAt && S.ruAt.t > S.t - 10 && dist(S.ruAt.p, b.pos) < 0.05) ? S.ruAt.m : ruBlockMsg(rq);
     S.ruAt = {t:S.t, p:{x:b.pos.x, y:b.pos.y}, m:rb};
