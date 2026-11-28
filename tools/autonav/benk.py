@@ -110,7 +110,7 @@ async def run(a):
                 S.append({'id': 'ut-' + pid, 'navn': name + ', ut', 'kat': 'alle', 'landsdel': ld, 'fra': {'port': pid}, 'til': {'sea': pid}})
                 S.append({'id': 'inn-' + pid, 'navn': name + ', inn', 'kat': 'alle', 'landsdel': ld, 'fra': {'sea': pid}, 'til': {'port': pid}})
             if a.strek: S = [s for s in S if s['id'] in a.strek.split(',') or s['id'].split('-', 1)[1] in a.strek.split(',')]
-            if a.hver > 1: S = [s for k, s in enumerate(S) if (k // 2) % a.hver == 0]
+            if a.hver > 1: S = [s for k, s in enumerate(S) if (k // 2) % a.hver == a.hopp % a.hver]
             if a.dele: i, n = (int(v) for v in a.dele.split('/')); S = [s for k, s in enumerate(S) if (k // 2) % n == i - 1]
         print('benken: %d strekninger, båter %s, motorer %s, bygg %s' % (len(S), boats, engines, ver), flush=True)
         for s in S:
@@ -318,7 +318,7 @@ def main():
     ap.add_argument('--bare-cpu', action='store_true', help='the route and the first steps of the model with the CPU slowed, nothing sailed: run alone, so the times are the machine\'s own')
     ap.add_argument('--bilde', default='', help='a folder for a picture of each stretch and boat run: the route, the reference and the touches')
     ap.add_argument('--autonav', default='gammel', help='which Autonav is sailed (gammel: the game as it is; ny: the planner of F2, 17c-plan.js, as the background trip: --motor bakgrunn)')
-    ap.add_argument('--alle', action='store_true', help='every place of the game (PORTS), out to open water by it and in again, instead of the list'); ap.add_argument('--hver', type=int, default=1, help='with --alle: every n-th place only')
+    ap.add_argument('--alle', action='store_true', help='every place of the game (PORTS), out to open water by it and in again, instead of the list'); ap.add_argument('--hopp', type=int, default=0, help='with --hver n: which of the n (0 the first place and every nth after it, 1 the second ...)'); ap.add_argument('--hver', type=int, default=1, help='with --alle: every n-th place only')
     ap.add_argument('--liste', action='store_true'); ap.add_argument('--rapport', nargs='+'); ap.add_argument('--sammenlign', nargs=2, metavar=('A', 'B'))
     a = ap.parse_args()
     if a.rapport: return rapport(a.rapport)

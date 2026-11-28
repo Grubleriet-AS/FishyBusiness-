@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['havkart-281126', '28.11.2026', 'Havfiskefartøy i kartplotteren', 'Ocean vessels in the chart plotter', [
+       ['Steder som ikke tar båten din, fordi kaia er for kort eller grunn, eller innseilingen for trang, er nedtonet i kartplotteren. Et trykk på stedet sier hvorfor, også når du tegner ruta selv.', 'Places that do not take your vessel, because the quay is too short or shallow, or the way in too narrow, are toned down in the chart plotter. A tap on the place says why, also when you draw the route yourself.']]],
     ['juksalast-281126', '28.11.2026', 'Juksa fyller lasterommet', 'The jig fills the hold', [
        ['Båten holder ikke lenger av plass i lasterommet til line, garn og teiner som står i sjøen: du kan jukse til rommet er fullt. Før stoppet juksa uten at det var lett å se hvorfor.', 'The boat no longer keeps room in the hold for line, nets and pots standing in the sea: you can jig until the hold is full. Before, the jig stopped without it being easy to see why.'],
        ['Blir rommet fullt mens du trekker, stopper trekkingen, og resten står igjen i sjøen med fisken sin. Lever fangsten, og trekk resten etterpå.', 'If the hold fills while you haul, the hauling stops, and the rest stays in the sea with its fish. Land the catch, then haul the rest.']]],
