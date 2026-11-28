@@ -77,7 +77,7 @@ async def main():
 
         # 3. the fleet buttons, clicked for real
         btn = await pg.evaluate("""(()=>{
-          const R = {}; const v1 = curVessel(), v2 = S.fleet[1]; S.cash = 5e6;
+          const R = {}; const v1 = curVessel(), v2 = S.fleet[1]; S.cash = 5e6; R.v2 = v2.id;   // (her id: ids are not used again since steg 148, so not «v2» after the boats made above)
           for (const v of S.fleet) withVessel(v, () => { S.plan = null; S.ops && (S.ops.on = false); S.boat.status = 'port'; S.boat.port = 'finnsnes'; S.boat.pos = {...PORTS[0].p}; });
           PHONE.open('rederi'); const q = s => document.querySelector(s);
           q('[data-pa="vfollow"][data-id="' + v2.id + '"]').click(); R.follow = S.cur;
@@ -94,14 +94,14 @@ async def main():
           // buy a skiff for the fleet from the market tab, with the real button
           // the market lists a card per boat; the buttons are on her sheet
           DOCK.open('fartoy:marked'); { const dr = document.getElementById('drawerBody'), tap = s => { const e = dr.querySelector(s); if (e) e.click(); }; tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=open]'); tap('[data-pa=mksel][data-k=skiff]'); }
-          const bt = document.querySelector('[data-pa="buy"][data-ti="0"][data-k="skiff"]'); R.buyEnabled = !bt.disabled; bt.click();
+          const bt = document.querySelector('[data-pa="buy"][data-ti="0"][data-k="skiff"]'); R.buyEnabled = !bt.disabled; bt.click(); { const b2 = document.querySelector('[data-pa="buy"][data-ti="0"][data-k="skiff"]'); if (b2) b2.click(); }
           R.after = S.fleet.map(v => vget(v, 'boatName') + ':' + vget(v, 'boat').type + ':' + vget(v, 'boat').port);
           // not aboard and no crew: the new skiff cannot leave
           const nv = S.fleet[S.fleet.length - 1]; R.depart = onVessel(nv, () => { S.crew = []; S.plan = {wps:[{...LG(1, 1), port:null, fish:0}], idx:0, speed:10}; return depart(); });
           return R; })""", [btn2['c0'], btn2['val']])
         print('buttons:', json.dumps([btn, btn2['name'], btn3], ensure_ascii=False))
-        print(ok(btn['follow'] == 'v2' and btn['hudRow']), 'follow: the HUD shows the followed vessel, no anchor')
-        print(ok(btn['board'] == 'v2' and btn['hudAnchor']), 'go aboard: the anchor shows')
+        print(ok(btn['follow'] == btn['v2'] and btn['hudRow']), 'follow: the HUD shows the followed vessel, no anchor')
+        print(ok(btn['board'] == btn['v2'] and btn['hudAnchor']), 'go aboard: the anchor shows')
         print(ok(btn2['name'] == 'Testbåt'), 'rename via prompt')
         print(ok(btn3['fleet'] == 1 and btn3['cashUp']), 'sell the other vessel now to Kystmegleren for 90 % of its value (B4)')
         print(ok(btn3['buyEnabled'] and len(btn3['after']) == 2 and btn3['depart'] is False), 'buy for the fleet, and a crewless vessel without you cannot leave')
@@ -117,7 +117,7 @@ async def main():
         # 5. a new build ordered for the fleet is added when the yard delivers
         order = await pg.evaluate("""(()=>{ S.cash = 2e7; S.order = null; for (const v of S.fleet) withVessel(v, () => { S.plan = null; S.boat.status = 'port'; S.boat.port = 'finnsnes'; });
           DOCK.open('fartoy:marked'); { const dr = document.getElementById('drawerBody'), tap = s => { const e = dr.querySelector(s); if (e) e.click(); }; tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=open]'); tap('[data-pa=mksel][data-k=sjarkny]'); }
-          const n0 = S.fleet.length; document.querySelector('[data-pa="buy"][data-ti="0"][data-k="sjarkny"]').click(); const vid = S.order ? 'an order' : null;
+          const n0 = S.fleet.length; (q => { document.querySelector(q).click(); const b2 = document.querySelector(q); if (b2) b2.click(); })('[data-pa="buy"][data-ti="0"][data-k="sjarkny"]'); const vid = S.order ? 'an order' : null;
           const nv = S.fleet[S.fleet.length - 1];
           return {n0, n1:S.fleet.length, vid, order:S.order, type:vget(nv, 'boat').type, port:vget(nv, 'boat').port, msg:S.msgs[S.msgs.length - 1].no}; })()""")
         print('new build:', json.dumps(order, ensure_ascii=False))

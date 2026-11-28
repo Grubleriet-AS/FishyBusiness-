@@ -6769,3 +6769,11 @@
 2026-11-28 09:39	ccr-7be08e09-unmpq1	41d0e59b+	decktest	OK	7	lite	samtidig	
 2026-11-28 09:39	ccr-7be08e09-unmpq1	41d0e59b+	trip2	OK	12	lite	samtidig	
 2026-11-28 09:40	ccr-7be08e09-unmpq1	41d0e59b+	driftsplan2test	OK	99	lite	alene	
+2026-11-28 08:52	ccr-5e1ba2f4-pusvyd	59809d92+	boottest	OK	35	lite	samtidig	
+2026-11-28 08:52	ccr-5e1ba2f4-pusvyd	59809d92+	trip2	OK	24	lite	samtidig	
+2026-11-28 08:52	ccr-5e1ba2f4-pusvyd	59809d92+	havkart	OK	35	lite	samtidig	
+2026-11-28 08:54	ccr-5e1ba2f4-pusvyd	59809d92+	charttest	FEIL	109	lite	alene	FEIL det første bildet (grove fliser) kommer innen 0,6 s på hvert nivå med CPU strupet 4x  {'hele landet': 737, 'regionen': 130, 'fjorden': 22, 'havna': 69}
+2026-11-28 09:55	ccr-7be08e09-unmpq1	e9a24cc9+	worktest	OK	14	lite	samtidig	
+2026-11-28 09:55	ccr-7be08e09-unmpq1	e9a24cc9+	caretest	OK	11	lite	samtidig	
+2026-11-28 09:55	ccr-7be08e09-unmpq1	e9a24cc9+	rorbutest	OK	15	lite	samtidig	
+2026-11-28 09:55	ccr-7be08e09-unmpq1	e9a24cc9+	sleeptest	OK	12	lite	samtidig	

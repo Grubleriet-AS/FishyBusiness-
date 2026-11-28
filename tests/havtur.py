@@ -88,7 +88,7 @@ PREP = """async ([la, lo]) => {
 
 BUY = """async () => {
   const R = {}, b = S.boat, c0 = S.cash, r0 = npcReg().konv || 0, m0 = S.msgs.length;
-  document.querySelector('[data-pa="buy"][data-ti="1"][data-k="autoliner"]').click(); await new Promise(r => setTimeout(r, 200));
+  (q => { document.querySelector(q).click(); const b2 = document.querySelector(q); if (b2) b2.click(); })('[data-pa="buy"][data-ti="1"][data-k="autoliner"]'); await new Promise(r => setTimeout(r, 200));
   R.type = b.type; R.lic = S.lic ? {id:S.lic.id, hav:S.lic.hav, kf:S.lic.kf, from:S.lic.from} : null; R.paid = Math.round(c0 - S.cash); R.loan = Math.round((S.loan || 0));
   R.reg = [r0, npcReg().konv || 0]; R.msg = S.msgs.slice(m0).map(m => m.from + ': ' + m.no).join(' | ').slice(0, 300);
   R.q = (q => ({torsk:Math.round(q.torsk / 1000), hyse:Math.round(q.hyse[0] / 1000)}))(licQ(S.lic, S.t / 60));
@@ -248,7 +248,7 @@ KPREP = """async ([la, lo]) => {
 
 KBUY = """async () => {
   const R = {}, b = S.boat, c0 = S.cash, r0 = npcReg().krab || 0, m0 = S.msgs.length;
-  document.querySelector('[data-pa="buy"][data-ti="1"][data-k="snokrabbe"]').click(); await new Promise(r => setTimeout(r, 200));
+  (q => { document.querySelector(q).click(); const b2 = document.querySelector(q); if (b2) b2.click(); })('[data-pa="buy"][data-ti="1"][data-k="snokrabbe"]'); await new Promise(r => setTimeout(r, 200));
   R.type = b.type; R.lic = S.lic ? {id:S.lic.id, hav:S.lic.hav, kf:S.lic.kf} : null; R.paid = Math.round(c0 - S.cash);
   R.reg = [r0, npcReg().krab || 0]; R.msg = S.msgs.slice(m0).map(m => m.from + ': ' + m.no).join(' | ').slice(0, 300);
   const Q = snoQuota(S.t / 60); R.q = Q ? [Math.round(Q.base / 1000), Math.round(Q.extra / 1000)] : null;

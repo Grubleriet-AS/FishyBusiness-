@@ -150,7 +150,7 @@ async def main():
             await pg.evaluate("DOCK.close()")
         # trading the skiff in for the 7.9 m snekke
         r = await pg.evaluate("""(()=>{ S.cash = 9e5; const c0 = S.cash; DOCK.open('fartoy'); const dr = document.getElementById('drawerBody'); const back = dr.querySelector('[data-pa=mksel]:not([data-k])'); if (back) back.click(); dr.querySelector('[data-pa=mktab][data-s=open]').click(); dr.querySelector('[data-pa=mksel][data-k=snekke]').click();
-          dr.querySelector('[data-pa=buy][data-ti="1"]').click(); const R = {type:S.boat.type, paid:Math.round(c0 - S.cash), fleet:S.fleet.length, open:openVesselId() === S.cur}; DOCK.close(); return R; })()""")
+          (q => { dr.querySelector(q).click(); const b2 = dr.querySelector(q); if (b2) b2.click(); })('[data-pa=buy][data-ti="1"]'); const R = {type:S.boat.type, paid:Math.round(c0 - S.cash), fleet:S.fleet.length, open:openVesselId() === S.cur}; DOCK.close(); return R; })()""")
         print('trade-in:', json.dumps(r))
         print(ok(r['type'] == 'snekke' and r['paid'] == 245000 - 66500 and r['fleet'] == 1 and r['open']), 'trading the skiff in for the 7.9 m snekke costs the price less the trade-in, and she takes the open-group place')
         # V7, the way to the closed group: blad B, the loans, Innovasjon Norge's top-up and the ladder in «Neste mål»
@@ -175,7 +175,7 @@ async def main():
           R.goals1 = goalTxt();
           // the entry: the skiff traded in and NOK 200 000 in the bank buys the boat with a right under 7 m
           const O = LIC_OFFERS[0], price = VESSELS[O.ves].price + licValue(O); R.price = price; S.cash = 200000; R.noInn = deal(price, vesselValue(curVessel()), false).why;
-          DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=trebat][data-o=u7]'); tap('[data-pa=buylic][data-ti="1"]'); DOCK.close();
+          DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=trebat][data-o=u7]'); (tap('[data-pa=buylic][data-ti="1"]'), tap('[data-pa=buylic][data-ti="1"]')); DOCK.close();
           R.after = {type:S.boat.type, lic:S.lic && S.lic.id, cash:Math.round(S.cash), loan:S.loan && Math.round(S.loan.bal), loanIN:S.loanIN && Math.round(S.loanIN.bal), inUsed:!!S.inUsed, innNow:innOK()};
           R.goals2 = goalTxt();
           DOCK.open('bank'); R.bank = dr().textContent.includes('Kystfondet'); DOCK.close();

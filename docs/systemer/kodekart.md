@@ -621,7 +621,7 @@ Quotas for cod, haddock and saithe north of 62° N. The regulation as it stood f
   - 612 `sorConf(byc, codHold, q, acc)`
   - 621 `sorLanded(q, ok)`
 
-## `src/js/core/03e-rules.js` (601 linjer)
+## `src/js/core/03e-rules.js` (617 linjer)
 
 The rules along the coast (R2 of the rules plan, 05.10.2026). rulesAt() takes a place, a time, the boat's length, the gear and the
 
@@ -638,30 +638,31 @@ The rules along the coast (R2 of the rules plan, 05.10.2026). rulesAt() takes a 
   - 129 `zoneLicApply(c)`
   - 133 `insideFjord(p)`
   - 134 `insideBaseline(p)`
-  - 136 `blDist(p)`
-  - 142 `ruHom(p)`
-  - 148 `landsdel(p)`
-  - 149 `ruLok(p)`
-  - 151 `ruZone(p)`
-  - 152 `ruAt(id, p)`
-  - 154 `ruLineName(ref)`
-  - 169 `kcQuota(ll)`
-  - 186 `ruSeaRules(c, q, ll, md, add)`
-  - 259 `rulesAt(q)`
-  - 456 `f26In(f, ll)`
-  - 476 `ruMeshNow()`
-  - 480 `ruBycWarn(k, pc)`
-  - 491 `ruByc(q)`
-  - 507 `ruBlockMsg(q)`
-  - 509 `ruMinSize(sp, p)`
-  - 514 `fjordLimits(p, H)`
-  - 542 `ruCtx()`
-  - 546 `ruNow()`
-  - 557 `ruLayerBlock(bx, by, q, budget, tail)`
-  - 571 `ruWpQ(w)`
-  - 576 `ruWpMsg(w)`
-  - 583 `ruOpenNear(p, q, maxKm)`
-  - 592 `ruTips()`
+  - 142 `lenArea(len)`
+  - 152 `blDist(p)`
+  - 158 `ruHom(p)`
+  - 164 `landsdel(p)`
+  - 165 `ruLok(p)`
+  - 167 `ruZone(p)`
+  - 168 `ruAt(id, p)`
+  - 170 `ruLineName(ref)`
+  - 185 `kcQuota(ll)`
+  - 202 `ruSeaRules(c, q, ll, md, add)`
+  - 275 `rulesAt(q)`
+  - 472 `f26In(f, ll)`
+  - 492 `ruMeshNow()`
+  - 496 `ruBycWarn(k, pc)`
+  - 507 `ruByc(q)`
+  - 523 `ruBlockMsg(q)`
+  - 525 `ruMinSize(sp, p)`
+  - 530 `fjordLimits(p, H)`
+  - 558 `ruCtx()`
+  - 562 `ruNow()`
+  - 573 `ruLayerBlock(bx, by, q, budget, tail)`
+  - 587 `ruWpQ(w)`
+  - 592 `ruWpMsg(w)`
+  - 599 `ruOpenNear(p, q, maxKm)`
+  - 608 `ruTips()`
 
 ## `src/js/core/03f-fiske.js` (387 linjer)
 
@@ -1203,7 +1204,7 @@ The ocean fleet as NPCs (H1 of docs/planer/bestand-og-flaate.md, 02.11.2026)
   - 332 `startReturn(auto, W, home, hsOver, opsKeep)`
 - **352** CORE END
 
-## `src/js/core/06b-coastports.js` (199 linjer)
+## `src/js/core/06b-coastports.js` (212 linjer)
 
 the fish receivers along the whole coast as harbours (05.10.2026, M2 of the coast plan)
 
@@ -1218,8 +1219,9 @@ the fish receivers along the whole coast as harbours (05.10.2026, M2 of the coas
   - 137 `plantsNear(p, n = 10)`
 - **143** the ocean vessels at the plants (H0 of docs/planer/havsteget.md, 03.11.2026)
   - 150 `portWhy(pt, type)`
-  - 167 `placeWhy(pt, type)`
-  - 186 `placeRoom(pt, r)`
+  - 175 `innWhy(pt, type)`
+  - 180 `placeWhy(pt, type)`
+  - 199 `placeRoom(pt, r)`
 
 ## `src/js/core/06c-steder.js` (48 linjer)
 
@@ -2897,7 +2899,7 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 190 `chartNamesOf(pk, entry, sc, ox, oy)`
   - 203 `chartNamesSvg(vx0, vy0, vx1, vy1, u, taken, part)`
 
-## `src/js/ui/03-map.js` (922 linjer)
+## `src/js/ui/03-map.js` (934 linjer)
 
 ---------- map ----------
 
@@ -2934,24 +2936,25 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 421 `updateMapButtons()`
   - 437 `tapName(mp, rr)`
   - 456 `renderStatic()`
-  - 564 `portIcon(p, s, u)`
-  - 585 `anchorPath(x, y, s, u)`
-  - 593 `soundingsSvg(vx0, vy0, vx1, vy1, u, taken)`
-  - 612 `scheduleStatic()`
-  - 617 `aisTrack(id, H)`
-  - 622 `aisInfo(n)`
-  - 641 `sjvChartSvg(u, bp)`
-  - 651 `renderAisCard()`
-  - 659 `curArrowsOf(q, u, H, lab, halo)`
-  - 672 `curArrowsSvg(u)`
-  - 690 `renderDyn()`
-  - 779 `pinAdd(mp)`
-  - 784 `pinOpen(id, fresh)`
-  - 804 `pinKb()`
-  - 835 `ptrUp(e)`
-  - 865 `unzoom()`
-  - 872 `portByLabel(pt)`
-  - 877 `addWaypoint(pt)`
+  - 570 `placeNoGo(p)`
+  - 572 `portIcon(p, s, u)`
+  - 593 `anchorPath(x, y, s, u)`
+  - 601 `soundingsSvg(vx0, vy0, vx1, vy1, u, taken)`
+  - 620 `scheduleStatic()`
+  - 625 `aisTrack(id, H)`
+  - 630 `aisInfo(n)`
+  - 649 `sjvChartSvg(u, bp)`
+  - 659 `renderAisCard()`
+  - 667 `curArrowsOf(q, u, H, lab, halo)`
+  - 680 `curArrowsSvg(u)`
+  - 698 `renderDyn()`
+  - 787 `pinAdd(mp)`
+  - 792 `pinOpen(id, fresh)`
+  - 812 `pinKb()`
+  - 843 `ptrUp(e)`
+  - 873 `unzoom()`
+  - 880 `portByLabel(pt)`
+  - 885 `addWaypoint(pt)`
 
 ## `src/js/ui/03b-route.js` (378 linjer)
 
@@ -3232,12 +3235,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1845 linjer)
+## `src/js/ui/phone/07-patch.js` (1851 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1833 `patch()`
+  - 1839 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (136 linjer)
 
@@ -3273,31 +3276,36 @@ the home screen (UI 2, U2-6; Jonas 06.11.2026, V6 A and V2 A in docs/planer/ui-2
   - 200 `redning()`
 - **220** vessels: my vessel overview and the market
 
-## `src/js/ui/phone/10-fartoy.js` (407 linjer)
+## `src/js/ui/phone/10-fartoy.js` (454 linjer)
 
-- **7** «Dette endrer seg» (steg 151, K3 of docs/planer/regler-i-klartekst.md): what a purchase changes, from rmBuy (core/03l-room.js),
-  - 11 `buyRes(offer)`
-  - 14 `buyCard(offer, head, foot)`
-  - 35 `buyAsk(offer)`
-  - 43 `whyBox(code, ctx)`
-  - 54 `whyLine(code)`
-  - 69 `goals()`
-  - 95 `goalsCard()`
-- **100** «Båten og utstyret» (OPP4 of docs/planer/oppgraderinger.md, 07.11.2026; Jonas: «én side for båten og utstyret»: «enig»): every
-  - 114 `haulNow(kind)`
-  - 118 `haulNow0(kind)`
-  - 129 `tierLad(k, pg, fxOf)`
-  - 135 `oneLad(k, base, pg, fx, nm)`
-  - 198 `ladders()`
-  - 215 `kitCard()`
-  - 216 `kitCard0()`
-- **245** the boat market: tabs for the open group, boats with a closed-group right, the coastal fleet over 11 m and the ocean fleet;
-  - 254 `mkCard(k, O)`
-  - 258 `market()`
-  - 294 `specSecs(k, O)`
-  - 318 `sheet(k, O)`
-  - 371 `fartoy(tab0)`
-- **406** the company: the fleet at a glance and what needs you. The vessel apps work on the vessel picked at the top (default: the one you follow)
+- **7** the boat purchase confirmed (28.11.2026, Jonas: «Vi må heller fikse grunnen til at spillere kjøper feil båt og ønsker
+  - 17 `boatMonthly(x, months)`
+  - 24 `boatConfirmBox(x, type, months)`
+  - 34 `boatBtn(key, attrs, label, x, type, months, cls, dis)`
+  - 40 `eqDetail(x, price, ti)`
+- **49** «Dette endrer seg» (steg 151, K3 of docs/planer/regler-i-klartekst.md): what a purchase changes, from rmBuy (core/03l-room.js),
+  - 53 `buyRes(offer)`
+  - 56 `buyCard(offer, head, foot)`
+  - 82 `buyAsk(offer)`
+  - 90 `whyBox(code, ctx)`
+  - 101 `whyLine(code)`
+  - 116 `goals()`
+  - 142 `goalsCard()`
+- **147** «Båten og utstyret» (OPP4 of docs/planer/oppgraderinger.md, 07.11.2026; Jonas: «én side for båten og utstyret»: «enig»): every
+  - 161 `haulNow(kind)`
+  - 165 `haulNow0(kind)`
+  - 176 `tierLad(k, pg, fxOf)`
+  - 182 `oneLad(k, base, pg, fx, nm)`
+  - 245 `ladders()`
+  - 262 `kitCard()`
+  - 263 `kitCard0()`
+- **292** the boat market: tabs for the open group, boats with a closed-group right, the coastal fleet over 11 m and the ocean fleet;
+  - 301 `mkCard(k, O)`
+  - 305 `market()`
+  - 341 `specSecs(k, O)`
+  - 365 `sheet(k, O)`
+  - 418 `fartoy(tab0)`
+- **453** the company: the fleet at a glance and what needs you. The vessel apps work on the vessel picked at the top (default: the one you follow)
 
 ## `src/js/ui/phone/11-rederi.js` (94 linjer)
 
@@ -3365,7 +3373,7 @@ Nettet and the tackle shop on the quay (M2 in docs/planer/butikker-og-sponsorer.
   - 115 `nett()`
   - 127 `netShop()`
 
-## `src/js/ui/phone/13c-megler.js` (260 linjer)
+## `src/js/ui/phone/13c-megler.js` (265 linjer)
 
 Kystmegleren: boats players sell to each other (B1–B8 in docs/planer/etter-tonys-test.md, Jonas 07.11.2026; EAFC's auction house)
 
@@ -3379,17 +3387,17 @@ Kystmegleren: boats players sell to each other (B1–B8 in docs/planer/etter-ton
   - 109 `megler()`
   - 132 `mgWishCard()`
   - 141 `mgSheet(Q)`
-- **180** KM4: «Flytt hjemmelen til …» (Rederi «⋯», and the free rights under the fleet). mlSel = {vid} a boat's right or {key} a free right
-  - 182 `mlSrc()`
-  - 183 `mbLicSheet()`
-  - 201 `mbMoveBtn(v)`
-  - 203 `mbFreeCard()`
-  - 209 `tiLicRow()`
-  - 214 `mgHere()`
-  - 222 `mgAfter(key, okNo, okEn)`
-  - 224 `mgAct(a, d)`
+- **184** KM4: «Flytt hjemmelen til …» (Rederi «⋯», and the free rights under the fleet). mlSel = {vid} a boat's right or {key} a free right
+  - 186 `mlSrc()`
+  - 187 `mbLicSheet()`
+  - 205 `mbMoveBtn(v)`
+  - 207 `mbFreeCard()`
+  - 213 `tiLicRow()`
+  - 218 `mgHere()`
+  - 226 `mgAfter(key, okNo, okEn)`
+  - 228 `mgAct(a, d)`
 
-## `src/js/ui/phone/14-act.js` (409 linjer)
+## `src/js/ui/phone/14-act.js` (412 linjer)
 
   - 2 `act(a, d)`
 - **9** the receipt after a buy for kroner (Jonas 06.11.2026, Tony's test: «Det skal ikke være tvil om et kjøp er gjennomført»): one

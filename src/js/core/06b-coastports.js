@@ -164,9 +164,22 @@ const portFits = (pt, type) => !portWhy(pt, type);
 // quayFace; quayFit: 90 % of it her length and 2 m, and her draught and half a metre; a harbour unit's basin is dredged to its dredge,
 // a face whose depth the map does not know counts as QUAY_DEPTH_UNKNOWN). A standard unit's berth is 24 m, so the ocean vessels go to
 // the yards with the big unit (90 m) and the quays long enough. The coast's boats go everywhere as before. Reason in both languages, or null
+// The way in (Autonav 2.0, steg 142; Jonas 28.11.2026: «Når en spiller bruker en båt fra havflåten kan disse stedene skjules fra
+// kartplotteren»). The quay rule asks the quay and the room off it; whether a hull of her size gets in to it at all is measured
+// by the planner, which sweeps her whole hull along the way from open water (17c-plan.js; tools/autonav/benk.py --alle), and
+// src/data/innseiling.json has, per place where the quay rule takes a longer vessel than has a way in, the longest that has one
+// and why the next has none (tools/autonav/grenser.py). An ocean vessel longer than that is not sent there: the chart plotter says
+// why and shows the place toned down (ui/03b-route.js, ui/03-map.js). Only where she is sent: a vessel that lies at such a place
+// already lands and bunkers there as before (portWhy is not changed), and leaves as before. The coast's boats go everywhere.
+const INNSEILING = /*@include(data/innseiling.json)*/null;
+function innWhy(pt, type){ const V = VESSELS[type], m = INNSEILING && INNSEILING.maks && pt ? INNSEILING.maks[pt.id] : null; if (!m || !V || V.cls !== 'hav' || !(V.len > m[0] + 0.5)) return null;
+  const L = Math.round(V.len), nf = v => String(Math.round(v * 10) / 10).replace('.', ',');
+  return m[1] === 'bru' ? ['Brua på vei inn hit er for lav for båten.', 'The bridge on the way in here is too low for the vessel.']
+    : m[1] === 'grunt' ? ['Innseilingen hit er for grunn for en dypgang på ' + nf(V.draft) + ' m.', 'The way in here is too shallow for a draught of ' + Math.round(V.draft * 10) / 10 + ' m.']
+    : ['Innseilingen hit er for trang for en båt på ' + L + ' m.', 'The way in here is too narrow for a ' + L + ' m vessel.']; }
 function placeWhy(pt, type){
   const V = VESSELS[type]; if (!pt || !V || V.cls !== 'hav') return null;
-  if (pt.mottak || pt.havOnly) return portWhy(pt, type);
+  if (pt.mottak || pt.havOnly) return portWhy(pt, type) || innWhy(pt, type);
   if (!pt.sted) return null;
   let f = null; try { f = quayFace(pt.id, 'main'); } catch (e){}
   if (!f) return ['Kaia her er ikke for havfiskefartøy.', 'The quay here is not for ocean vessels.'];
@@ -177,7 +190,7 @@ function placeWhy(pt, type){
   // (and room to turn off the quay: open water within her length all round the harbour point, sixteen ways out at half and all of it;
   // every yard has the big unit's 90 m quay, also those in a narrow bay, as Bokn verft: there the quay passed and the bay did not)
   if (!placeRoom(pt, V.len)) return ['Det er ikke plass til å snu en båt på ' + Math.round(V.len) + ' m her.', 'There is no room to turn a ' + Math.round(V.len) + ' m vessel here.'];
-  return null;
+  return innWhy(pt, type);
 }
 // open water within r metres all round a point r metres out from the harbour point, away from the quay (a unit's normal, else from the
 // shore point through the harbour point): a circle of her length that reaches back to the harbour point (sixteen ways, at half r and r);
