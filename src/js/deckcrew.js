@@ -1169,8 +1169,10 @@ function crewSim(src){
     for (let i = 0; i < A.length; i++) for (let j = i + 1; j < A.length; j++){ const a = A[i], b = A[j]; if (a.mode === 'in' || b.mode === 'in' || a.mode === 'helm' || b.mode === 'helm') continue;
       const dx = b.x - a.x, dz = b.z - a.z, d = Math.hypot(dx, dz); if (d > 0.45 || d < 1e-4) continue; const push = Math.min(0.03, (0.45 - d) * 0.3), nx = -dz / d, nz = dx / d;
       // (not when the walker is about to arrive next to the other: the places by the table and the tub are that close)
+      // (and only onto deck at his own level, within a step: a cell of a floor above or below is no way aside; the pelagic trawler's
+      // walker was pushed onto a cell 1.65 m over him and put his foot down where no deck was, crewclip FB3, regresjon #142)
       for (const [o, s] of [[a, -1], [b, 1]]){ if (o.mode !== 'walk' || o.near < 0.6) continue; const x = o.x + nx * push * s, z = o.z + nz * push * s, f = walkOff(o);
-        if (ST.M.ok(ST.M.cellOf(x, z)) && !bodyLines(o, o.sqA).some(([v, w]) => lineHit(x + f[0] + v[0] * w, o.y, z + f[1] + v[1] * w, walkY(o)))){ o.x = x; o.z = z; } } }
+        if (ST.M.ok(ST.M.cellOf(x, z)) && Math.abs(ST.M.floorAt(x, z) - o.y) <= FOT.RISE && !bodyLines(o, o.sqA).some(([v, w]) => lineHit(x + f[0] + v[0] * w, o.y, z + f[1] + v[1] * w, walkY(o)))){ o.x = x; o.z = z; } } }
   }
   // for the view: the agents to draw (not those inside), and where a crew member stands for the line over his head
   function agents(){ return A; }
@@ -1521,6 +1523,9 @@ function footStep1(s, inp){
     const C0 = [[1, 1], [0.66, 1], [0.33, 1], [0, 1], [0.33, 0.5], [0, 0.5], [-0.3, 1], [-0.3, 0.5], [0.66, 0.5]].map(([m, wk]) => { const a0 = lead * m + (m < 0 ? -0.15 : 0); return [px + Ut[0] * a0 + Ra[0] * sd(i) * w[i] * wk, pz + Ut[1] * a0 + Ra[1] * sd(i) * w[i] * wk]; });
     for (const c of C0){ const q = clear(c); if (!inp.ok || inp.ok(q[0], q[1])) return [q[0], q[1], hh]; }
     for (const c of C0){ const q = away(c, s.f[1 - i].x, s.f[1 - i].z, C.SEP); if (inp.ok(q[0], q[1])) return [q[0], q[1], hh]; }
+    // (none at his side: on his own line, the feet in line as on a plank, where the way runs a hand's width from a wall or a floor
+    // above him; the pelagic trawler's way a few cm from a floor 1.65 m over hers, crewclip FB3, regresjon #142)
+    for (const m of [1, 0.66, 0.33, 0]){ const a0 = lead * m, q = away([px + Ut[0] * a0, pz + Ut[1] * a0], s.f[1 - i].x, s.f[1 - i].z, C.SEP); if (inp.ok(q[0], q[1])) return [q[0], q[1], hh]; }
     const q = clear(C0[0]); return [q[0], q[1], hh]; };
   if (s.sw < 0){ s.ds += dt || 0;
     // which foot goes next: walking, the other one than last; standing, the one furthest from where it should be
