@@ -34,6 +34,20 @@ const restWhere = b => b && b.status === 'port' ? (isRorbu(b.port) ? 'rorbu' : a
 const myBoat = () => { const v = myVessel(); return v ? vget(v, 'boat') : S.boat; };
 const resting = () => { const b = myBoat(); if (!S.rest || !b) return false; return S.rest.w === 'koye' ? bunkOk(b, myVessel()) : b.status === 'port' && b.port === S.rest.port; };
 const restAshore = () => resting() && S.rest.w !== 'koye';
+// the crew's own work in the queue that only you can do: you are the one aboard (no hands of her own) and she lies in port. While it
+// waits you are not ashore resting: the job would never be done, and the departure waits for the queue, which is what would have brought
+// you aboard (tilbakemelding #342, 23.11.2026: «bytte kroka», two days with the queue at 1/6 and three minutes left; #462 and #464)
+// (no hands of her own: none aboard at all, asleep on the watch below or not, crewAboard(H, true). A hand asleep takes the job when
+// she wakes, and you are left ashore: driftsplan2test S9, two hands asleep in port with the lines to bait)
+const jobsOnlyMe = () => { const b = S.boat; return !!b && b.status === 'port' && meAboard() && !crewAboard(null, true).length && !(typeof lagOf === 'function' && lagOf()) && (S.jobs || []).some(j => typeof crewJob === 'function' && crewJob(j)); };
+// once a minute in port (05-vessels.js vesselStep): resting ashore with such a job waiting (a save from before, or a job that became
+// yours when the hands left), you go aboard and do it
+function jobsCallMe(){
+  if (!S.rest || !restAshore() || !jobsOnlyMe()) return false;
+  const w = S.rest.w; restEnd(true);
+  log('Arbeidet om bord venter på deg. Du gikk ned fra ' + (w === 'rorbu' ? 'rorbua' : 'naustet') + ' og om bord.', 'The work aboard waits for you. You went down from the ' + (w === 'rorbu' ? 'rorbu' : 'boathouse') + ' and aboard.');
+  return true;
+}
 const bunks = b => !!(b && VESSELS[b.type] && VESSELS[b.type].berths > 0);
 // energy a minute where she lies (0 when there is no rest to be had)
 function restRate(b){
@@ -45,6 +59,7 @@ function restRate(b){
 function restStart(){
   const b = myBoat(), w = restWhere(b); if (!w) return bunks(b) ? ['Du kan hvile i køya til ankers, eller på sjøen når noen av mannskapet er våkne og har vakta.', 'You can rest in the bunk at anchor, or at sea when someone of the crew is awake on watch.'] : ['Du kan hvile i naustet i hjemhavna eller på en rorbu.', 'You can rest in the boathouse in your home harbour or at a rorbu.'];
   if (resting()) return null;
+  if (w !== 'koye' && b === S.boat && jobsOnlyMe()){ const u = jobsDone(); return ['Arbeidet om bord må bli ferdig først' + (u && typeof hm === 'function' ? ', ca. kl. ' + hm(u / 60) : '') + '. Alene om bord gjør du det selv.', 'The work aboard has to be done first' + (u && typeof hm === 'function' ? ', about ' + hm(u / 60) : '') + '. Alone aboard you do it yourself.']; }
   const pt = b.port ? portById(b.port) : null;
   if (w === 'koye'){ const sk = crewOf(myVessel()).filter(c => !c.off).slice().sort((a, c) => c.attr.sjo - a.attr.sjo)[0]; log(b.anch ? 'Du gikk ned i køya mens båten ligger til ankers.' : 'Du gikk ned i køya. ' + sk.name.split(' ')[0] + ' har vakta.', b.anch ? 'You went down to the bunk while the boat lies at anchor.' : 'You went down to the bunk. ' + sk.name.split(' ')[0] + ' has the watch.'); }
   else if (w === 'rorbu'){

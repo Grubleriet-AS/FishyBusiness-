@@ -740,6 +740,7 @@ function vesselStep(H){
   // «Ferdig nå» kept (S.yardCredit, 10i-shop.js): the yard jobs running now are done at once, and the credit is used
   if (S.yardCredit > 0 && S.jobs && S.jobs.some(j => YARD_KINDS.includes(j.kind) && j.until != null && j.until > S.t)){ for (const j of S.jobs) if (YARD_KINDS.includes(j.kind) && j.until != null && j.until > S.t) j.until = S.t; S.yardCredit--; if (typeof yardUsed === 'function') yardUsed();   // (HS4: the credit is a grant on the server, told that it is used, ui/10i-shop.js)
     log('«Ferdig nå»: verftet gjør jobbene på «' + S.boatName + '» ferdig med én gang.', '«Done now»: the yard finishes the jobs on the «' + S.boatName + '» at once.'); }
+  if (S.jobs && S.jobs.length && b.status === 'port' && typeof jobsCallMe === 'function') jobsCallMe();   // (15-energy.js: the job only you can do brings you down from the naust)
   if (S.jobs && S.jobs.length && b.status === 'port'){ let done = null; for (const j of S.jobs){ jobOk(j); if (crewJob(j) ? jobMinute(j, WA) : ((j.until == null && (j.until = S.t + j.h * 60)), S.t >= j.until)) (done = done || []).push(j); }
     if (done){ S.jobs = S.jobs.filter(j => !done.includes(j)); done.forEach(finishJob); } }   // all side by side (06-services.js queueJob)
   // the crew's own jobs go on at sea with those who are free; the ones fishing, hauling or gutting are not (10b-gearcare.js seaWork)

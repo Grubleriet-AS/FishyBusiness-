@@ -305,6 +305,13 @@ function workAssign(as){
   if (ctx.s === 'port') for (const j of jobs) if (j.kind === 'last' && !(jn.get(j) > 0)){ const doze = p => !!(p.c && p.c.idle === 'sleep');
     const Q = P.filter(p => p.st === 'pause').sort((a, b) => (doze(a) ? 1 : 0) - (doze(b) ? 1 : 0) || pTired(a) - pTired(b));
     for (const q of Q){ if (jn.get(j) >= jobPlaces(j) || (doze(q) && jn.get(j) > 0)) break; put(q, 'last', 'need'); q.jw = j; jn.set(j, jn.get(j) + 1); } }
+  // alone aboard in port with one of the crew's own jobs waiting and you on a break (tired): nobody else comes, an open boat gives no
+  // rest at the quay, and the departure waits for the queue (05-vessels.js vesselStep), so the job is yours, tired or not, as the freight
+  // above (tilbakemelding #447, #462 and #464, 27.11.2026: the countdown for new hooks stood at three minutes for good; a small job
+  // never weighed up for the rest, restScore)
+  // (alone: no hands of her own aboard at all; one asleep on the watch below takes the job when she wakes, crewAboard(H, true))
+  if (ctx.s === 'port' && P.length === 1 && !P[0].c && P[0].st === 'pause' && !crewAboard(null, true).length){ const j = jobs.find(x => !(jn.get(x) > 0));
+    if (j){ put(P[0], JOB_ST[j.kind], 'need'); P[0].jw = j; jn.set(j, 1); } }
   // a meal is due: the best cook among those awake on a break, else one who jigs or works on the gear (they stop for it), however well
   // they cook (Ø8b M2: before only 3 or more, and with nobody that good it was dry bread; 14-crewlife.js cookPick)
   if (ctx.kokk && !cnt('kokk')){ const q = cookPick(P);

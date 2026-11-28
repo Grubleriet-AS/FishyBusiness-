@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['krok-281126', '28.11.2026', 'Krokbytte alene om bord', 'Changing hooks alone aboard', [
+       ['Alene om bord ble bytte av kroker og nytt juksasett aldri ferdig når du hvilte i naustet eller på rorbua, eller var sliten: nedtellingen sto stille, og båten kom seg ikke fra kai. Nå går du om bord og gjør jobben, og du kan hvile når den er ferdig.', 'Alone aboard, changing hooks and fitting a new jig set never finished while you rested in the boathouse or at a rorbu, or were tired: the countdown stood still, and the boat could not leave the quay. Now you go aboard and do the job, and you can rest when it is done.']]],
     ['juksalast-281126', '28.11.2026', 'Juksa fyller lasterommet', 'The jig fills the hold', [
        ['Båten holder ikke lenger av plass i lasterommet til line, garn og teiner som står i sjøen: du kan jukse til rommet er fullt. Før stoppet juksa uten at det var lett å se hvorfor.', 'The boat no longer keeps room in the hold for line, nets and pots standing in the sea: you can jig until the hold is full. Before, the jig stopped without it being easy to see why.'],
        ['Blir rommet fullt mens du trekker, stopper trekkingen, og resten står igjen i sjøen med fisken sin. Lever fangsten, og trekk resten etterpå.', 'If the hold fills while you haul, the hauling stops, and the rest stays in the sea with its fish. Land the catch, then haul the rest.']]],
