@@ -1,5 +1,9 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['batkjop-281126', '28.11.2026', 'Båtkjøpet', 'Buying a boat', [
+       ['Et båtkjøp spør først: knappen blir «Bekreft kjøp», og over den står lånene, terminbeløpet i måneden, egenkapitalen og at kjøpet ikke kan angres. Trykk igjen for å kjøpe.', 'A boat purchase asks first: the button reads «Confirm purchase», and above it stand the loans, the monthly payment, the equity and that the purchase cannot be undone. Tap again to buy.'],
+       ['Kortet «Dette endrer seg» sier hvor båten ikke kan fiske etter lengden sin, som innenfor fjordlinjene og grunnlinjen.', 'The card «This changes» says where the boat may not fish by her length, such as inside the fjord lines and the baseline.'],
+       ['Sier banken nei fordi egenkapitalen er for liten, står det hvordan det er regnet: hva banken vil ha, hva innbyttet teller etter at gjelda er betalt, og hva du har.', 'When the bank says no for too little equity, it says how it is counted: what the bank wants, what the trade-in counts once the debt is paid, and what you have.']]],
     ['juksalast-281126', '28.11.2026', 'Juksa fyller lasterommet', 'The jig fills the hold', [
        ['Båten holder ikke lenger av plass i lasterommet til line, garn og teiner som står i sjøen: du kan jukse til rommet er fullt. Før stoppet juksa uten at det var lett å se hvorfor.', 'The boat no longer keeps room in the hold for line, nets and pots standing in the sea: you can jig until the hold is full. Before, the jig stopped without it being easy to see why.'],
        ['Blir rommet fullt mens du trekker, stopper trekkingen, og resten står igjen i sjøen med fisken sin. Lever fangsten, og trekk resten etterpå.', 'If the hold fills while you haul, the hauling stops, and the rest stays in the sea with its fish. Land the catch, then haul the rest.']]],
