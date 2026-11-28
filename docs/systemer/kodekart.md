@@ -1169,7 +1169,7 @@ The ocean fleet as NPCs (H1 of docs/planer/bestand-og-flaate.md, 02.11.2026)
   - 1239 `farvWarn()`
   - 1240 `farvSay(w, how)`
 
-## `src/js/core/06-services.js` (352 linjer)
+## `src/js/core/06-services.js` (354 linjer)
 
 ---------- services behind the phone ----------
 
@@ -1193,15 +1193,15 @@ The ocean fleet as NPCs (H1 of docs/planer/bestand-og-flaate.md, 02.11.2026)
 - **200** standing operations plan: a hired skipper runs a saved route on set days, lands the catch and restocks
   - 202 `autoRestock()`
   - 210 `depart()`
-  - 244 `yardStale(j, b)`
-  - 252 `finishJob(j)`
-  - 286 `fitHours(k)`
-  - 289 `jobOk(j)`
-  - 294 `queueJob(j)`
-  - 298 `jobsDone()`
-  - 304 `shelterReturn(W, hsOver)`
-  - 330 `startReturn(auto, W, home, hsOver, opsKeep)`
-- **350** CORE END
+  - 246 `yardStale(j, b)`
+  - 254 `finishJob(j)`
+  - 288 `fitHours(k)`
+  - 291 `jobOk(j)`
+  - 296 `queueJob(j)`
+  - 300 `jobsDone()`
+  - 306 `shelterReturn(W, hsOver)`
+  - 332 `startReturn(auto, W, home, hsOver, opsKeep)`
+- **352** CORE END
 
 ## `src/js/core/06b-coastports.js` (199 linjer)
 
@@ -2760,7 +2760,7 @@ FARBARHETSKARTET: ONE TRUTH ABOUT WHAT A BOAT CAN SAIL OVER AND UNDER (Autonav 2
   - 792 `farbFieldAt(x, z, cell = 2)`
 - **794** the channels dredged along the coast (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
 
-## `src/js/core/17b-bane.js` (141 linjer)
+## `src/js/core/17b-bane.js` (152 linjer)
 
 BANEN: THE WAY AS A TRAJECTORY SHE CAN SAIL (Autonav 2.0 F2, steg 142, 24.11.2026)
 
@@ -2774,14 +2774,16 @@ BANEN: THE WAY AS A TRAJECTORY SHE CAN SAIL (Autonav 2.0 F2, steg 142, 24.11.202
   - 62 `baneS(B, t)`
   - 66 `banePts(B)`
   - 84 `baneFri(B, boat, H, opt)`
-  - 90 `baneLeg(pl)`
-  - 91 `baneOf(g)`
-  - 103 `baneCap(pl, B, s)`
-  - 109 `baneSail(pl, b, left0, W)`
-  - 122 `banePass(pl, b, g, Y, s)`
-  - 133 `baneTick(pl, b, d, dt, o)`
+  - 92 `baneLeg(pl)`
+  - 96 `baneDrop(pl, g)`
+  - 98 `baneAdrift(pl, g, x, z)`
+  - 99 `baneOf(g)`
+  - 111 `baneCap(pl, B, s)`
+  - 117 `baneSail(pl, b, left0, W)`
+  - 133 `banePass(pl, b, g, Y, s)`
+  - 144 `baneTick(pl, b, d, dt, o)`
 
-## `src/js/core/17c-plan.js` (563 linjer)
+## `src/js/core/17c-plan.js` (573 linjer)
 
 PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2, steg 142, 24.11.2026)
 
@@ -2798,27 +2800,28 @@ PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2
   - 332 `planBoat(type, x, z)`
   - 337 `planFresh()`
   - 341 `planBane(a, b, type, opt)`
-- **471** where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
-  - 475 `planDigRuns(P, sh, o)`
-  - 493 `planDig(a, b, type, opt)`
-  - 505 `planEnd(pid, type, kind)`
-- **506** the harbour search with her heading (G2, steg 142, 27.11.2026)
-  - 550 `planHavn(bp, goal, L, B, free, o)`
-  - 553 `planHavnRev(P)`
-  - 557 `planInto(pl, R, i0, i1)`
-  - 562 `planOn()`
+- **479** where to dredge (Jonas' choice 5, 23.11.2026: «Tilpass havna»)
+  - 483 `planDigRuns(P, sh, o)`
+  - 501 `planDig(a, b, type, opt)`
+  - 513 `planEnd(pid, type, kind)`
+- **514** the harbour search with her heading (G2, steg 142, 27.11.2026)
+  - 558 `planHavn(bp, goal, L, B, free, o)`
+  - 561 `planHavnRev(P)`
+  - 565 `planInto(pl, R, i0, i1)`
+  - 572 `planOn()`
 
-## `src/js/core/17d-styr.js` (68 linjer)
+## `src/js/core/17d-styr.js` (77 linjer)
 
 STYRINGEN: SHE IS CARRIED ALONG THE BANE WHILE THE GAME IS LOOKED AT (Autonav 2.0 F3, steg 143, 27.11.2026)
 
 - **1** STYRINGEN: SHE IS CARRIED ALONG THE BANE WHILE THE GAME IS LOOKED AT (Autonav 2.0 F3, steg 143, 27.11.2026)
   - 11 `styrTick(b, d, dtG)`
-  - 19 `styrOn(pl)`
-  - 22 `styrWait(pl)`
-  - 29 `styrPlan(pl, find)`
-  - 42 `styrLeg(pl, g, find)`
-  - 56 `styrWatch(pl, b, d)`
+  - 20 `styrOn(pl)`
+  - 23 `styrWait(pl)`
+  - 33 `styrFind(find, a, z, ty, o)`
+  - 36 `styrPlan(pl, find)`
+  - 49 `styrLeg(pl, g, find)`
+  - 63 `styrWatch(pl, b, d)`
 
 ## `src/js/ui/01-i18n.js` (120 linjer)
 

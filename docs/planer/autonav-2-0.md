@@ -630,6 +630,25 @@ Tre ting skilte planleggeren fra «for alle hver gang»: dekningen (hvert sted l
 5. **Turer som starter mens spillet er lukket** (driftsplanen, retur) får ikke bane; de seiler som før.
 6. **Planleggingstiden** (punkt 6 fra steg 142) er ikke målt mot kravet. Funn: havnesøket med vekt 1,5 ser på 3–12 ganger færre plasser for 5 % lengre vei; ikke tatt i bruk som standard.
 
+### Kontrollen av steg 143 (28.11.2026)
+
+En fersk agent fikk «Ferdig når» fra `start/143.md` og endringen. Dommen: punkt 1 og 4 holder; punkt 2 (benken med begge motorene bare på tre strekninger) og 5 (stedene uten bane) holder ikke; punkt 3 holder for vikingen, fartøyet som ligger stille har ingen test. Uten flagget er spillet urørt. Ti feil bak flagget:
+
+| Funn | Hva som er gjort |
+|---|---|
+| 1. To søk samtidig delte arbeiderens ene jobb og kunne få hverandres vei | Rettet: ett søk om gangen (`styrFind`), og en bane tas bare der den starter og ender der den ble bedt om. Enhetstest |
+| 2. Etter drift kunne veien søkes om og om igjen, og hun bli liggende | Rettet: høyst to forsøk, så seiles veiens punkter som før. Ventingen er 30 spillminutter (5 ekte minutter), ikke 6. Enhetstest |
+| 3. `planInto` flyttet ikke `pl.unsafe` | Rettet. Enhetstest |
+| 4. Banen ble kjent igjen bare på antall punkter | Rettet: også på punktet den ender i. Enhetstest |
+| 5. Veien rundt et fartøy hun ventet på, kunne gå gjennom det | Rettet: et søk fra der hun ligger i sjøen, regner ingen fartøy ved starten som egen kaiplass (`opt.seaA`). Ingen test (trenger trafikken) |
+| 6. Laveste vann regnes ved «Kast loss», ikke når en senere vei seiles | **Ikke rettet.** Samme funn som 24.11 (punkt 8 i «Det som står igjen i steget»); veier etter et stopp må søkes når de seiles |
+| 7. Is stoppet henne bare i minuttsteget | Rettet: vakta ser etter is foran (`groundCheck`) og stopper som minuttsteget. Ingen test |
+| 8. Minuttsteget satte henne tilbake på veiens start etter drift | Rettet: veien tas ut av banene og seiles som før fra der hun er. Enhetstest |
+| 9. `depart()` startet søk ingen kunne vente på | Rettet: bare for båten spilleren er om bord i, og ikke mens tid borte spilles |
+| 10. `styrOn` spurte ikke om banen kunne bygges igjen | Rettet |
+
+Mindre funn som står: sporet har ett punkt per 250 m langs en bane (retur samme vei bygger på det); hvert banepunkt tegnes som veipunkt med navn i kartet; to baner som møtes i et tegnet punkt, har ingen overgang (90° kurssprang i kontrollens prøve); dieselen bokføres litt ulikt i sanntid og minuttsteg; «Hopp» (`06j-hopp.js`, `hoy`, urørt) regner tiden med gammel fartsregel. `pl.b2` og banens punkter ligger i lagringen som nye, valgfrie felt i planen (en lagring uten dem er en plan uten bane); setningen «Lagringen endres ikke» under «Fasene» gjaldt F2 og er rettet der.
+
 ### Det kontrollen fant (24.11.2026)
 
 En fersk agent fikk diffen og «Ferdig når». Den fant at punkt 1 og 2 holder delvis og 3–5 ikke, og ti feil i koden. Rettet samme økt: flisene bes om der søket kommer til dem; et første søk viser hvor de fine rutene trengs (et løp på 13 m ble ellers 43 % omvei); fartsgrensen til korte stykker; minnet over frie stykker kjenner farten; egen kaiplass regnes etter der hun selv er for ting; stenging legges der hun sto; `baneSail` går videre fra planens sted, stopper for sjøis og fyller ikke sporet; workeren kaster flisene når kartet endres. Ett funn var feil lest: benken lar det observatøren ser av vannet følge samme regel som kaia (bare spillets egen grunnstøting teller alltid), og fars naust har tørt opptrekk.
@@ -649,7 +668,7 @@ Hver fase er én økt (F2 og F3 kan trenge to). Gammel Autonav står urørt og e
 | **F6 (steg 146) Bytte og slipp** | Full jakt, regresjon, testutgaven, gradvis slipp, fangsten merker motoren | `16e-anvtreff.js` (ett felt), flagget | Porten holder; Jonas har sett den på nettbrettet |
 | **F7 (steg 147) Rydding** | Gammel kode ut (`11-route.js` med flere) | | Etter to uker uten treff hos spillerne |
 
-Lagringen endres ikke: `S.plan.wps` er som før, og banen regnes fra veipunktene ved oppstart.
+Lagringens format endres ikke: `S.plan.wps` er som før. Fra F3 har en plan med bane to valgfrie felt til (`b2`: oppskriften banen bygges igjen fra, og `b2w` mens den søkes); en lagring uten dem er en plan uten bane.
 
 ## Valgene (besvart av Jonas 23.11.2026, i spørsmålsverktøyet)
 

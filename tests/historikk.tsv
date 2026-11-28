@@ -6728,3 +6728,7 @@
 2026-11-28 00:53	ccr-5e1ba2f4-pusvyd	05697e7+	trip2	OK	28	lite	samtidig	
 2026-11-28 00:53	ccr-5e1ba2f4-pusvyd	05697e7+	autonavtest	OK	63	lite	samtidig	
 2026-11-28 00:53	ccr-5e1ba2f4-pusvyd	05697e7+	autonav2	OK	40	lite	samtidig	
+2026-11-28 01:30	ccr-5e1ba2f4-pusvyd	e297d34+	boottest	OK	13	lite	samtidig	
+2026-11-28 01:30	ccr-5e1ba2f4-pusvyd	e297d34+	trip2	OK	13	lite	samtidig	
+2026-11-28 01:30	ccr-5e1ba2f4-pusvyd	e297d34+	autonavtest	OK	25	lite	samtidig	
+2026-11-28 01:30	ccr-5e1ba2f4-pusvyd	e297d34+	autonav2	OK	13	lite	samtidig	

@@ -8,7 +8,7 @@
 // minute step follows the bane by the clock when the plan has one (baneSail: one call in 05-vessels.js sail); the boat model follows
 // it from F3. Nothing of the old Autonav is changed: a plan without a bane sails as before.
 // Metres on the grid (x east, z south), psi from north clockwise, speeds m/s, as 17-farbar.js.
-const BANE = {chord:0.12, ds:5, vEnd:0.5, vMin:0.3, own:1.3, piece:20, vTight:1.5, vSlow:1.5, vRev:1.0, vSide:0.3, OFF:[0, Math.PI, Math.PI / 2, -Math.PI / 2]};
+const BANE = {snap:25, chord:0.12, ds:5, vEnd:0.5, vMin:0.3, own:1.3, piece:20, vTight:1.5, vSlow:1.5, vRev:1.0, vSide:0.3, OFF:[0, Math.PI, Math.PI / 2, -Math.PI / 2]};
 // what a bane needs of her: R the radius she turns, vmax the speed she is sent at (m/s), stop(v) her stopping distance from v
 function baneBoat(type, kn){ const k = type || S.boat.type, V = VESSELS[k] || VESSELS.skiff, cal = dynCal(k);
   return {type:k, L:V.len, R:clamp(V.turnR || 2 * V.len, 1.2 * V.len, 2 * V.len), vmax:Math.max(1, (kn || V.vcruise || 6) * KN_MS), stop:v => dynStopDist(cal, v)}; }
@@ -87,7 +87,15 @@ function baneFri(B, boat, H, opt){ const g = baneFriG(B, boat, H, opt); let r; w
 // each corner's radius), kn the speed and the boat's type. The bane itself (typed arrays) is never in the plan, which is saved:
 // it is built when it is asked for and kept by the leg (BANE.of). at, s: the leg she is on and how far along it
 BANE.of = new WeakMap();
-function baneLeg(pl){ const Y = pl.b2; if (!Y || Y.len !== pl.wps.length) return null; for (const g of Y.legs) if (pl.idx >= g.i0 && pl.idx < g.i0 + g.n) return g; return null; }
+// (a leg is the plan's still only while the point it ends in is where the bane ends: a plan whose rest was changed for as many
+// points as it had, the operations plan, kept its count and was followed along the old bane, the control 28.11.2026)
+function baneLeg(pl){ const Y = pl.b2; if (!Y || Y.len !== pl.wps.length) return null;
+  for (const g of Y.legs) if (pl.idx >= g.i0 && pl.idx < g.i0 + g.n){ const w = pl.wps[g.i0 + g.n - 1], e = g.q[g.q.length - 1]; return w && Math.abs(w.x * 1000 - e[0]) < 0.5 && Math.abs(w.y * 1000 - e[1]) < 0.5 ? g : null; }
+  return null; }
+// a way out of the plan's banes: its points stand, and are sailed from where she is as before the banes
+function baneDrop(pl, g){ const Y = pl.b2, i = Y ? Y.legs.indexOf(g) : -1; if (i >= 0){ Y.legs.splice(i, 1); Y.at = -1; } }
+// whether she is not where a way that starts at sea starts (g.sea: after a stop on the fishing ground, where she drifts): more than BANE.snap m off
+function baneAdrift(pl, g, x, z){ return !!g.sea && pl.idx === g.i0 && pl.b2.at !== g.i0 && Math.hypot(x - g.q[0][0], z - g.q[0][1]) > BANE.snap; }
 function baneOf(g){ let Y = BANE.of.get(g); if (Y) return Y.B ? Y : null;
   try { const B = baneBuild(g.q.map(q => q.slice()), Object.assign(baneBoat(g.type, g.kn), {end:g.end !== false})), at = banePts(B).map(q => q.s); Y = at.length === g.n ? {B, at} : {}; } catch (e){ Y = {}; }
   BANE.of.set(g, Y); return Y.B ? Y : null; }
@@ -107,6 +115,9 @@ function baneCap(pl, B, s){ const R = pl.b2, C = R.cap; if (C && C.t === S.t && 
   try { for (const P of PORTS) if (Math.abs(P.p.x - p.x) < 0.25 && Math.abs(P.p.y - p.y) < 0.25 && Math.hypot(P.p.x - p.x, P.p.y - p.y) < 0.25){ kn = Math.min(kn, 5); break; } } catch (e){}
   R.cap = {s:+s.toFixed(1), t:S.t, v:+(Math.max(0.5, kn) * KN_MS).toFixed(3)}; return R.cap.v; }
 function baneSail(pl, b, left0, W){ const g = baneLeg(pl), Y = g && baneOf(g); if (!Y) return false; const B = Y.B, R = pl.b2;
+  // (she has drifted from where the way starts and nobody is looking, so no new way is searched, 17d-styr.js styrLeg: the way's points
+  // are sailed from where she is as before the banes, not her set back on its start across whatever lies between)
+  if (baneAdrift(pl, g, b.pos.x * 1000, b.pos.y * 1000)){ baneDrop(pl, g); return false; }
   // (how far along she is, from the plan's own place where something else has moved her on: the boat model while the game was open, a jump)
   if (R.at !== g.i0 || R.i !== pl.idx){ R.at = g.i0; R.s = pl.idx > g.i0 ? Y.at[pl.idx - g.i0 - 1] : 0; }
   const s0 = R.s; let s = s0, t = 0; const cap = left0 * 1000;

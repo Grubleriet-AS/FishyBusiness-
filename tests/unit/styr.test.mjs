@@ -58,5 +58,24 @@ export default async function (t){
       const d2 = {u:0, v:0, r:0, psi:0, X:far.x, Y:far.z}; K.baneTick(pl, S.boat, d2, 10, {hold:true}); t.ok(Math.hypot(d2.X - far.x, d2.Y - far.z) < 0.01 && pl.b2.s === 0, 'holdt ligger hun der hun var');
       for (let k = 0; k < 60; k++) K.baneTick(pl, S.boat, d2, 1, {hold:false, v:1}); t.ok(pl.b2.s > 30 && pl.b2.s <= 60.01, 'med 1 m/s som tak har hun gått høyst 60 m på ett minutt', pl.b2.s);
       SJV.own = own0; }
+    // ---- what the independent control found (28.11.2026) ----
+    // the marks beside the points (pl.unsafe) are kept as long as the points
+    { const pl = plan(); pl.unsafe = [false, true, false, true]; S.plan = pl; boatAt(); await K.styrPlan(pl, find()); t.ok(pl.unsafe.length === pl.wps.length && pl.unsafe.every(u => u === false), 'merkene ved siden av punktene (pl.unsafe) følger punktene, og en bane er aldri merket utrygg', [pl.unsafe.length, pl.wps.length]); }
+    // a plan whose rest is changed for as many points as it had is not followed along the old bane
+    { const pl = plan(); S.plan = pl; boatAt(); await K.styrPlan(pl, find()); const n = pl.wps.length; t.ok(K.baneLeg(pl), 'banen er planens'); const e = pl.wps[K.baneLeg(pl).i0 + K.baneLeg(pl).n - 1]; e.x += 0.4;
+      t.ok(pl.wps.length === n && K.baneLeg(pl) === null && !K.styrOn(pl), 'flyttes punktet banen ender i (like mange punkter som før), er banen ikke planens lenger'); }
+    // she has drifted from where a way at sea starts, with nobody looking: its points are sailed as before, she is not set back on its start
+    { const pl = plan(); S.plan = pl; boatAt(); await K.styrPlan(pl, find()); const g1 = pl.b2.legs.find(q => q.i0 > 0); g1.sea = true; pl.idx = g1.i0; S.boat.pos = km(600, 400);
+      const r = K.baneSail(pl, S.boat, Infinity); t.ok(r === false && Math.abs(S.boat.pos.y - km(600, 400).y) < 1e-9 && !pl.b2.legs.includes(g1), 'drevet 400 m fra der veien starter, i minuttsteget: hun settes ikke tilbake på starten, veien seiles som før', [r, pl.b2.legs.length]); }
+    // looked at, the way is searched again, twice at most
+    { const pl = plan(); S.plan = pl; boatAt(); await K.styrPlan(pl, find()); const g1 = pl.b2.legs.find(q => q.i0 > 0); g1.sea = true; pl.idx = g1.i0; S.boat.pos = km(600, 400); const d = {u:0, v:0, r:0, psi:0, X:far.x + 600, Y:far.z + 400}; let never = () => new Promise(() => {});
+      K.set('planBane', never); t.eq(K.styrTick(S.boat, d, 0.1), true, 'sett på: veien søkes igjen fra der hun er, og hun ligger stille'); t.ok(pl.b2w && g1.tries === 1, 'ett forsøk');
+      delete pl.b2w; K.styrTick(S.boat, d, 0.1); delete pl.b2w; const r3 = K.styrTick(S.boat, d, 0.1); t.ok(r3 === false && !pl.b2w && !pl.b2.legs.includes(g1), 'etter to forsøk som ikke ble ferdige, seiles veien som før i stedet for et tredje', [g1.tries, r3]); }
+    // one search at a time, and a bane that does not go where it was asked is not taken
+    { STYR.q = null; const order = []; const slow = tag => async (a, z) => { order.push(tag + '>'); await new Promise(r => setTimeout(r, tag === 'A' ? 30 : 1)); order.push(tag + '<'); return null; };
+      const pA = K.styrFind(slow('A'), km(0, 0), km(100, 0), 'sjark', {}), pB = K.styrFind(slow('B'), km(0, 0), km(100, 0), 'sjark', {}); await pA; await pB;
+      t.eq(order.join(' '), 'A> A< B> B<', 'to søk går etter hverandre, ikke samtidig (arbeideren har én jobb)');
+      const wrong = async () => { const B = K.baneBuild([[far.x + 5000, far.z, 0], [far.x + 5300, far.z, 0]], Object.assign({}, bb, {end:true})); return {bane:B, pts:K.banePts(B)}; };
+      t.eq(await K.styrFind(wrong, km(0, 0), km(300, 0), 'sjark', {}), null, 'en bane som ikke starter og ender der den ble bedt om, tas ikke'); }
   } finally { FARB.w = null; PLAN.on = null; }
 }

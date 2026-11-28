@@ -374,7 +374,8 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
   const seen = new Map();
   // (the water under her counts the same way, by where it is: a naust's slip is dry under her for some metres. The bench has the same
   // rule for what its observer sees of the water; what the game itself calls a grounding always counts there)
-  const skip = (h, X, Z) => planSkip(h, X, Z, [ax, az], [bx, bz], own, boat.L, !!(opt && opt.dig), zn);   // (zn: by a berth she manoeuvres at, her own quay by how near she is it, not let through whole; set below, when the map round the ends is in)
+  // (opt.seaA: she starts where she lies at sea, styrLeg: no vessel by that end is her own berth's, so one she stopped for is gone round, not through)
+  const skip = (h, X, Z) => opt && opt.seaA && (h.box || h.R) ? planSkip(h, X, Z, [bx, bz], [bx, bz], own, boat.L, false, null) : planSkip(h, X, Z, [ax, az], [bx, bz], own, boat.L, !!(opt && opt.dig), zn);   // (zn: by a berth she manoeuvres at, her own quay by how near she is it, not let through whole; set below, when the map round the ends is in)
   // (the worker keeps the tiles it was given: thrown when the map has changed since, more of it come in or a channel dug, and when they are many)
   { const fv = farbFieldVer(); if (PLAN.ver !== fv || PLAN.sent > 300){ await send({op:'reset'}); PLAN.ver = fv; PLAN.sent = 0; } }
   let r = await send({op:'start', J}), tiles = 0, tries = 0, exp = 0, boatShut = null; const shut = [];   // (shut: what the check on the geometry found and shut, for the answer)
@@ -427,8 +428,12 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
         if (!R && /^taket/.test(PLAN.hvWhy)){ PLAN.hvWhy = ''; R = await farbRunA(planHavnG(bp, H, boat.L, boat.B, fr, Object.assign({}, oo || {}, {w:PLAN.havn.w2, maxN:2 * PLAN.havn.maxN}))); if (R) hv.w2++; }
         M.set(key, R); if (!R){ M.set(key + '?', PLAN.hvWhy); hv.why.push(k + ':' + PLAN.hvWhy); } return R; };
       head = null; tail = null; let d0 = 0, d1 = tot;
-      if (hv.dep && tot > hv.Dh * (hv.arr ? 2.6 : 1.4)){ const H = along(hv.Dh), R = await havn('d', {x:ax, z:az, hd:opt.from.hd}, H, freeH([ax, az], zn.a, hv.ban.d), null); if (R){ head = R.pts; d0 = hv.Dh + hv.join; hv.n += R.n; } else hv.dep = false; }
-      if (hv.arr && tot > hv.Dh * (hv.dep ? 2.6 : 1.4)){ const H = along(tot - hv.Dh), R = await havn('a', {x:bx, z:bz, hd:opt.to.hd}, H, freeH([bx, bz], zn.b, hv.ban.a), {kAhead:3, kAstern:1}); if (R){ tail = planHavnRev(R.pts); d1 = tot - hv.Dh - hv.join; hv.n += R.n; } else hv.arr = false; }
+      // (where on the way the manoeuvre meets it: Dh along, or up to two lengths farther where the search's own rule, which asks
+      // a little more room than the way was found with, has her shut there: a mouth of the margin's own width, mNT92 with the
+      // 21 m boat, --alle 28.11.2026: «the place on the way is shut», and no manoeuvre)
+      const meet = (fr, back) => { let dd = hv.Dh; for (let k = 0; k <= 4; k++){ const d2 = hv.Dh + k * boat.L / 2; if (k && d2 > tot * 0.45) break; const H = along(back ? tot - d2 : d2); if (fr(H.x, H.z, H.psi)){ dd = d2; break; } } return dd; };
+      if (hv.dep && tot > hv.Dh * (hv.arr ? 2.6 : 1.4)){ const fr = freeH([ax, az], zn.a, hv.ban.d), dd = meet(fr, false), H = along(dd), R = await havn('d', {x:ax, z:az, hd:opt.from.hd}, H, fr, null); if (R){ head = R.pts; d0 = dd + hv.join; hv.n += R.n; hv.dD = dd; } else hv.dep = false; }
+      if (hv.arr && tot > hv.Dh * (hv.dep ? 2.6 : 1.4)){ const fr = freeH([bx, bz], zn.b, hv.ban.a), dd = meet(fr, true), H = along(tot - dd), R = await havn('a', {x:bx, z:bz, hd:opt.to.hd}, H, fr, {kAhead:3, kAstern:1}); if (R){ tail = planHavnRev(R.pts); d1 = tot - dd - hv.join; hv.n += R.n; hv.dA = dd; } else hv.arr = false; }
       // (an end with no manoeuvre goes to the harbour's own point as before the manoeuvres, opt.from.px: a bane that came to the
       // berth itself «as it came» swung her into the quay, and the check then shut the berth: Ålesund with kyst21, «no way»)
       { const na = opt && opt.from && opt.from.px != null && !head, nb = opt && opt.to && opt.to.px != null && !tail;
@@ -442,11 +447,11 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     for (let i = 0; i + 1 < Q.length; i++){ const n = Math.max(1, Math.ceil(Math.hypot(Q[i + 1][0] - Q[i][0], Q[i + 1][1] - Q[i][1]) / 2000));
       for (let j = 0; j < n; j++) if (!await farbNeed([{x:(Q[i][0] + (Q[i + 1][0] - Q[i][0]) * j / n) / 1000, y:(Q[i][1] + (Q[i + 1][1] - Q[i][1]) * j / n) / 1000}, {x:(Q[i][0] + (Q[i + 1][0] - Q[i][0]) * (j + 1) / n) / 1000, y:(Q[i][1] + (Q[i + 1][1] - Q[i][1]) * (j + 1) / n) / 1000}], 0.4)) return fail({why:'ingen vei', cause:'ukjent', at:[Q[i][0], Q[i][1]]}, {tiles, tries, exp}); }
     for (let guard = 0; guard < 400; guard++){ B = baneBuild(Q, o); Q = B.Q; hit = await farbRunA(baneFriG(B, boat, Hmin, sw, memo)); if (!hit || hit.what === 'ukjent') break;
-      if (head || tail){ const hx = hit.px != null ? hit.px : hit.x, hz = hit.pz != null ? hit.pz : hit.z, zr = hv.Dh + hv.join + boat.L, inD = head && Math.hypot(hx - ax, hz - az) < zr, inA = tail && Math.hypot(hx - bx, hz - bz) < zr;
+      if (head || tail){ const hx = hit.px != null ? hit.px : hit.x, hz = hit.pz != null ? hit.pz : hit.z, zr = hv.join + boat.L, inD = head && Math.hypot(hx - ax, hz - az) < (hv.dD || hv.Dh) + zr, inA = tail && Math.hypot(hx - bx, hz - bz) < (hv.dA || hv.Dh) + zr;
         // (a touch within the manoeuvre itself: the place she stood at is shut to the harbour search and the manoeuvre found again,
         // PLAN.havn.retry times; the search asks her hull at its places and half way between, the check every 0.3 m. Past that, or
         // on the way beyond the manoeuvre, the manoeuvre is given up as before and the end goes to the harbour's point)
-        if (inD || inA){ const kk = inD ? 'd' : 'a', bn = hv.ban[kk], dE = Math.hypot(hx - (inD ? ax : bx), hz - (inD ? az : bz)); if (bn.length < PLAN.havn.retry && dE < hv.Dh + 2){ bn.push([hx, hz]); redo = true; break; } }
+        if (inD || inA){ const kk = inD ? 'd' : 'a', bn = hv.ban[kk], dE = Math.hypot(hx - (inD ? ax : bx), hz - (inD ? az : bz)); if (bn.length < PLAN.havn.retry && dE < ((inD ? hv.dD : hv.dA) || hv.Dh) + 2){ bn.push([hx, hz]); redo = true; break; } }
         if (inD || inA){ if (inD) hv.dep = false; if (inA) hv.arr = false; hv.drop.push((inD ? 'd:' : 'a:') + hit.what + ':' + hit.id + '@' + Math.round(hit.x) + ',' + Math.round(hit.z) + ' s' + Math.round(hit.s) + '/' + Math.round(B.len) + ' ' + Math.round(Math.hypot(hx - (inD ? ax : bx), hz - (inD ? az : bz))) + 'm'); redo = true; break; } }
       const p = B.P[hit.i];
       // (water too shallow for her squat at the speed she has there: she goes slower over it, down to BANE.vSlow, before it is shut)
@@ -559,6 +564,8 @@ function planHavnRev(P){ const n = P.length, sw = m => m ^ 1, out = []; for (let
 // A plan's legs are put in from the last to the first, so the places of those before stand
 function planInto(pl, R, i0, i1){ const last = pl.wps[i1 - 1], n = R.pts.length, B = R.bane;
   const pts = R.pts.map((q, i) => i === n - 1 ? Object.assign({}, last, {x:q.x, y:q.y}) : {x:q.x, y:q.y, port:null, fish:0, leia:true, bane:true});
+  // (pl.unsafe is kept beside the points, as everything else that puts points into a plan keeps it: the control 28.11.2026, a later way without a bane read another leg's mark)
+  if (pl.unsafe){ const u = pl.unsafe[i1 - 1]; pl.unsafe.splice(i0, i1 - i0, ...pts.map((q, i) => i === n - 1 ? !!u && !R.bane : false)); }
   pl.wps.splice(i0, i1 - i0, ...pts); const Y = pl.b2 || (pl.b2 = {legs:[], at:-1, s:0}); for (const g of Y.legs) if (g.i0 >= i1) g.i0 += n - (i1 - i0);
   Y.legs.push({i0, n, q:B.Q.map(q => [+q[0].toFixed(2), +q[1].toFixed(2), +(q[2] || 0).toFixed(2), +(q[3] || 0).toFixed(2), +(q[4] || 0).toFixed(2), q[5] || 0]), kn:+(B.o.vmax / KN_MS).toFixed(2), end:B.o.end !== false, type:B.o.type}); Y.len = pl.wps.length; return pl; }
 // whether the new Autonav is the one that sails: #autonav2 in the address (and what the bench sets)
