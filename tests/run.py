@@ -44,6 +44,7 @@ LITE += ['lagrefeiltest']   # the save to the account when the cloud fails (klyn
 LITE += ['planstartkai']   # the plan started at a quay that is not its home has the ways from there (06h-plan2-engine.js plan2Make, 25.11.2026)
 # OPP1 (07.11.2026): the knives and the gaff in tiers at the tackle shop
 LITE += ['opptest']
+LITE += ['havkart']   # an ocean vessel in the chart: places she is not sent to are toned down and say why (steg 142, 28.11.2026)
 LITE += ['autonav2']   # Autonav 2.0 behind #autonav2: the plan onto banes at «Kast loss» (steg 143, 17d-styr.js)
 LITE += ['driftsplan3test']   # Driftsplan 3, ringen og redskapet (DP3-1, steg 129)
 LITE += ['fetchsaves']   # lagringsportens henting i små biter (slippet 21.11.2026 stoppet på tidsavbrudd)
@@ -618,5 +619,8 @@ COVER['src/js/ui/10w-fix.js'] = ['korrtest']; COVER['tests/korrtest.py'] = ['kor
 LITE += ['hoppskytest']
 for _f in ('src/js/ui/10f-cloud.js', 'src/js/ui/10i-shop.js', 'src/js/ui/10u-hopp.js', 'src/js/ui/11-boot.js', 'tests/hoppskytest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['hoppskytest']))
 COVER['tests/batkjoptest.py'] = ['batkjoptest']; COVER['src/js/ui/phone/10-fartoy.js'] = COVER.get('src/js/ui/phone/10-fartoy.js', []) + ['batkjoptest']; LITE += ['batkjoptest']   # the boat purchase confirmed (28.11.2026)
+for _f in ('src/js/core/06b-coastports.js', 'src/js/ui/03-map.js', 'src/data/innseiling.json'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['havkart']))
+COVER['tests/havkart.py'] = ['havkart']; COVER['tests/unit/havplass.test.mjs'] = COVER.get('tests/unit/havplass.test.mjs', [])
+
 if __name__ == '__main__':
     main()

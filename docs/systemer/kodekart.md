@@ -1203,7 +1203,7 @@ The ocean fleet as NPCs (H1 of docs/planer/bestand-og-flaate.md, 02.11.2026)
   - 332 `startReturn(auto, W, home, hsOver, opsKeep)`
 - **352** CORE END
 
-## `src/js/core/06b-coastports.js` (199 linjer)
+## `src/js/core/06b-coastports.js` (212 linjer)
 
 the fish receivers along the whole coast as harbours (05.10.2026, M2 of the coast plan)
 
@@ -1218,8 +1218,9 @@ the fish receivers along the whole coast as harbours (05.10.2026, M2 of the coas
   - 137 `plantsNear(p, n = 10)`
 - **143** the ocean vessels at the plants (H0 of docs/planer/havsteget.md, 03.11.2026)
   - 150 `portWhy(pt, type)`
-  - 167 `placeWhy(pt, type)`
-  - 186 `placeRoom(pt, r)`
+  - 175 `innWhy(pt, type)`
+  - 180 `placeWhy(pt, type)`
+  - 199 `placeRoom(pt, r)`
 
 ## `src/js/core/06c-steder.js` (48 linjer)
 
@@ -2894,7 +2895,7 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 190 `chartNamesOf(pk, entry, sc, ox, oy)`
   - 203 `chartNamesSvg(vx0, vy0, vx1, vy1, u, taken, part)`
 
-## `src/js/ui/03-map.js` (922 linjer)
+## `src/js/ui/03-map.js` (934 linjer)
 
 ---------- map ----------
 
@@ -2931,24 +2932,25 @@ THE CHART'S VECTORS (phase K7 of the coast plan): the coast by level of detail, 
   - 421 `updateMapButtons()`
   - 437 `tapName(mp, rr)`
   - 456 `renderStatic()`
-  - 564 `portIcon(p, s, u)`
-  - 585 `anchorPath(x, y, s, u)`
-  - 593 `soundingsSvg(vx0, vy0, vx1, vy1, u, taken)`
-  - 612 `scheduleStatic()`
-  - 617 `aisTrack(id, H)`
-  - 622 `aisInfo(n)`
-  - 641 `sjvChartSvg(u, bp)`
-  - 651 `renderAisCard()`
-  - 659 `curArrowsOf(q, u, H, lab, halo)`
-  - 672 `curArrowsSvg(u)`
-  - 690 `renderDyn()`
-  - 779 `pinAdd(mp)`
-  - 784 `pinOpen(id, fresh)`
-  - 804 `pinKb()`
-  - 835 `ptrUp(e)`
-  - 865 `unzoom()`
-  - 872 `portByLabel(pt)`
-  - 877 `addWaypoint(pt)`
+  - 570 `placeNoGo(p)`
+  - 572 `portIcon(p, s, u)`
+  - 593 `anchorPath(x, y, s, u)`
+  - 601 `soundingsSvg(vx0, vy0, vx1, vy1, u, taken)`
+  - 620 `scheduleStatic()`
+  - 625 `aisTrack(id, H)`
+  - 630 `aisInfo(n)`
+  - 649 `sjvChartSvg(u, bp)`
+  - 659 `renderAisCard()`
+  - 667 `curArrowsOf(q, u, H, lab, halo)`
+  - 680 `curArrowsSvg(u)`
+  - 698 `renderDyn()`
+  - 787 `pinAdd(mp)`
+  - 792 `pinOpen(id, fresh)`
+  - 812 `pinKb()`
+  - 843 `ptrUp(e)`
+  - 873 `unzoom()`
+  - 880 `portByLabel(pt)`
+  - 885 `addWaypoint(pt)`
 
 ## `src/js/ui/03b-route.js` (378 linjer)
 
@@ -3229,12 +3231,12 @@ D5: where the big phone stands on a tablet, and how wide it is. It leaves the st
 - **100** Skippertak (core/15-energy.js SKIP): an energy drink for real money only, for you and the crews of the whole fleet
   - 104 `skipApp()`
 
-## `src/js/ui/phone/07-patch.js` (1843 linjer)
+## `src/js/ui/phone/07-patch.js` (1845 linjer)
 
 --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
 
 - **1** the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
-  - 1831 `patch()`
+  - 1833 `patch()`
 
 ## `src/js/ui/phone/08-home-papers-merker.js` (136 linjer)
 

@@ -503,8 +503,11 @@ function renderStatic(){
   for (const p of PORTS){
     // (Jonas 02.11.2026: «Kan du gjøre iconer litt større slik at de er lettere å se»: half as big again, 19 px across close in)
     const s = (pl ? 9.5 : 5) * u; if (!inV(p.p.x, p.p.y) || (!pl && !own.has(p.id))) continue;
-    g.push(portIcon(p, s, u));
-    if (pl) lbl(2, {x:p.p.x + s + 5 * u, y:p.p.y + 4.5 * u}, portLabel(p), 'lbl-port', 13 * u, 'stroke-width="' + (3 * u) + '"', {x:p.p.x, y:p.p.y, n:portLabel(p)}, s);
+    // (a place an ocean vessel is not sent to, by its quay or by the way in to it, 06b-coastports.js placeWhy: toned down, so it
+    // is seen before it is tapped; the tap says why. Jonas 28.11.2026)
+    const no = pl && BOAT.cls === 'hav' && placeNoGo(p);
+    g.push(no ? '<g opacity="0.4">' + portIcon(p, s, u) + '</g>' : portIcon(p, s, u));
+    if (pl) lbl(2, {x:p.p.x + s + 5 * u, y:p.p.y + 4.5 * u}, portLabel(p), 'lbl-port', 13 * u, 'stroke-width="' + (3 * u) + '"' + (no ? ' opacity="0.5"' : ''), {x:p.p.x, y:p.p.y, n:portLabel(p)}, s);
   }
   // the rorbuer (07d-rorbu.js): a little red house, the name when near
   if (pl) for (const R of rorbuIn(vx0 - 1, vy0 - 1, vx1 + 1, vy1 + 1)){
@@ -561,6 +564,11 @@ function renderStatic(){
 // the trading places' signs (Jonas 08.10.2026: each kind its own; 02.11.2026: «større ... relevante for hva de står for»): the plant a
 // fish on a blue disc, the shop a hook on an orange square, the yard a boat on its slipway on a green disc, Father's naust a brown
 // boathouse with its doors; anything else the old diamond
+// whether the boat sailed is not sent to a place (placeWhy), kept five seconds per boat type: the chart asks it for every place in
+// view on every draw, and the room to turn is found once the map round the place is in
+const PLACE_NOGO = {ty:'', at:0, m:new Map()};
+function placeNoGo(p){ const ty = S.boat.type, now = Date.now(), C = PLACE_NOGO; if (C.ty !== ty || now - C.at > 5000){ C.ty = ty; C.at = now; C.m.clear(); }
+  let v = C.m.get(p.id); if (v === undefined){ v = false; try { v = !!((p.mottak || p.havOnly || p.sted) && placeWhy(p, ty)); } catch (e){} C.m.set(p.id, v); } return v; }
 function portIcon(p, s, u){
   const k = portKind(p), x = p.p.x, y = p.p.y, sw = 'stroke-width="' + (1.4 * u) + '"', f = v => v.toFixed(3);
   if (k === 'mottak') return '<circle cx="' + f(x) + '" cy="' + f(y) + '" r="' + f(s) + '" class="pi pi-m" ' + sw + '/>' +
@@ -892,6 +900,10 @@ function addWaypoint(pt){
   // Father's naust: a route can end there (you sail to it; 07c-naust.js naustTarget)
   const nt = naustTarget(pt, r), atN = b.status === 'port' && berthKind(b) === 'naust';
   if (!near && !nt) near = portByLabel(pt);
+  // (an ocean vessel is not sent to a place that does not take her, by its quay or by the way in, 06b-coastports.js placeWhy: a
+  // point of the route set by hand on the place is refused with the reason, as Autonav's tap is, ui/03b-route.js leiaTo. Before
+  // 28.11.2026 only Autonav's tap asked, and a route drawn by hand ended at any quay)
+  if (near && !nt && (near.mottak || near.havOnly || near.sted)){ const why = placeWhy(near, b.type); if (why){ toast(S.lang === 'en' ? why[1] : why[0]); return; } }
   if (nt && atN && !S.draft.length){ toast(t('already_here')); return; }
   if (!nt && near && draftPort() === near.id && !S.draft.length && !atN){ toast(t('already_here')); return; }
   // (a tap by one of the coast's harbours, shut to the players: says why, and a tap on its water is a point of the route as before)
