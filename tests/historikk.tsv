@@ -6777,3 +6777,7 @@
 2026-11-28 09:55	ccr-7be08e09-unmpq1	e9a24cc9+	caretest	OK	11	lite	samtidig	
 2026-11-28 09:55	ccr-7be08e09-unmpq1	e9a24cc9+	rorbutest	OK	15	lite	samtidig	
 2026-11-28 09:55	ccr-7be08e09-unmpq1	e9a24cc9+	sleeptest	OK	12	lite	samtidig	
+2026-11-28 12:52	ccr-5e1ba2f4-pusvyd	8740afb7+	boottest	OK	16	lite	samtidig	
+2026-11-28 12:52	ccr-5e1ba2f4-pusvyd	8740afb7+	trip2	OK	15	lite	samtidig	
+2026-11-28 12:52	ccr-5e1ba2f4-pusvyd	8740afb7+	havkart	OK	18	lite	samtidig	
+2026-11-28 12:57	ccr-5e1ba2f4-pusvyd	8740afb7+	charttest	OK	54	lite	alene	

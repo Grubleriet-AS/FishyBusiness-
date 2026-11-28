@@ -5,7 +5,7 @@ has a bane for, out to open water and in again, and what each part of the coast 
 
     python3 tools/autonav/grenser.py --tar FILE.json                      the places and the ocean vessels each takes today (the game's own rule, on the bench's page)
     python3 tools/autonav/grenser.py --tabell TAR.json TURER.jsonl [...]  the table, from that and the bench's runs (benk.py --alle --bare-rute)
-    python3 tools/autonav/grenser.py --data TAR.json TURER.jsonl [...]    writes src/data/innseiling.json: the longest vessel with a way in, per place that has a limit
+    python3 tools/autonav/grenser.py --data TAR.json TURER.jsonl [...]    writes src/data/innseiling.json: per place, the ocean vessels the quay rule takes that have no way in, and why
 
 A place takes a type «with a bane» when the bench has a bane for her both out and in. Where the biggest the place takes has one,
 the smaller ocean vessels it takes are taken to have one too (they are not all planned); where she has none, each type is planned.
@@ -95,9 +95,18 @@ def data(rows):
     for r in rows.values():
         no = [t for t in r['tar_'] if r['bane'][t] is False]
         if not no: continue
-        yes = [t for t in r['tar_'] if r['bane'][t]]; w = r['why'].get(no[0], ''); k = 'bru' if 'bru' in w else 'grunt' if 'grunt' in w else 'trangt'
-        out[r['id']] = [max([LEN[t] for t in yes] or [0]), k]
-    json.dump({'v': 1, 'laget': datetime.date.today().isoformat(), 'om': 'The longest ocean vessel with a way in to a place, where the quay rule takes a longer one (tools/autonav/grenser.py; 06b-coastports.js placeWhy). [m, why]: grunt, trangt, bru. Not edited by hand.', 'maks': dict(sorted(out.items()))},
+        # (by type, not by length: the crab vessel of 50 m draws 6 m and the trawler of 60 m 5.1, so the shorter one is shut out of
+        # places the longer one gets in to. A vessel lying still in the way at the bench's hour is no limit of the place, unless
+        # a shorter type is shut out of it for its width)
+        o = {}
+        for t in no:
+            w = r['why'].get(t, ''); k = 'bru' if 'bru' in w else 'grunt' if 'grunt' in w else 'fartøy' if 'fartøy' in w else 'trangt'
+            if k == 'fartøy':
+                if not any(o.get(u) == 'trangt' for u in no if LEN[u] < LEN[t]): continue
+                k = 'trangt'
+            o[t] = k
+        if o: out[r['id']] = o
+    json.dump({'v': 2, 'laget': datetime.date.today().isoformat(), 'om': 'The ocean vessels with no way in to a place whose quay takes them, and why: grunt, trangt, bru (tools/autonav/grenser.py from the bench, benk.py --alle; 06b-coastports.js innWhy). Not edited by hand.', 'steder': dict(sorted(out.items()))},
               open(OUT, 'w', encoding='utf-8'), ensure_ascii=False, indent=1); print('skrev', OUT, len(out))
 
 

@@ -1,6 +1,168 @@
 {
- "v": 1,
+ "v": 2,
  "laget": "2026-11-28",
- "om": "The longest ocean vessel with a way in to a place, where the quay rule takes a longer one (tools/autonav/grenser.py; 06b-coastports.js placeWhy). [m, why]: grunt, trangt, bru. Not edited by hand.",
- "maks": {}
+ "om": "The ocean vessels with no way in to a place whose quay takes them, and why: grunt, trangt, bru (tools/autonav/grenser.py from the bench, benk.py --alle; 06b-coastports.js innWhy). Not edited by hand.",
+ "steder": {
+  "mN217": {
+   "snokrabbe": "grunt"
+  },
+  "mN289": {
+   "snokrabbe": "grunt"
+  },
+  "mN69": {
+   "snokrabbe": "grunt"
+  },
+  "mR88": {
+   "pelagisk": "grunt"
+  },
+  "senjahopen": {
+   "snokrabbe": "grunt",
+   "pelagisk": "grunt"
+  },
+  "sv1022748_242941": {
+   "snokrabbe": "grunt",
+   "bunntral": "grunt"
+  },
+  "sv1057144_175807": {
+   "snokrabbe": "grunt",
+   "pelagisk": "grunt"
+  },
+  "sv1081559_147434": {
+   "snokrabbe": "trangt",
+   "bunntral": "trangt",
+   "pelagisk": "trangt"
+  },
+  "sv1196366_124639": {
+   "snokrabbe": "trangt"
+  },
+  "sv198880_1437223": {
+   "snokrabbe": "trangt",
+   "bunntral": "grunt",
+   "pelagisk": "trangt"
+  },
+  "sv206639_1447501": {
+   "snokrabbe": "trangt",
+   "bunntral": "trangt",
+   "pelagisk": "trangt"
+  },
+  "sv216830_1340454": {
+   "snokrabbe": "grunt",
+   "bunntral": "grunt",
+   "pelagisk": "grunt"
+  },
+  "sv217683_1316727": {
+   "ringnot38": "bru",
+   "autoliner": "grunt",
+   "snokrabbe": "grunt"
+  },
+  "sv267275_1582086": {
+   "pelagisk": "grunt"
+  },
+  "sv284568_1589866": {
+   "snokrabbe": "grunt",
+   "bunntral": "grunt",
+   "pelagisk": "trangt"
+  },
+  "sv301334_1094351": {
+   "snokrabbe": "trangt",
+   "bunntral": "grunt",
+   "pelagisk": "trangt"
+  },
+  "sv327002_1590622": {
+   "pelagisk": "grunt"
+  },
+  "sv344681_1587667": {
+   "snokrabbe": "grunt",
+   "bunntral": "grunt",
+   "pelagisk": "grunt"
+  },
+  "sv407723_1521514": {
+   "snokrabbe": "trangt",
+   "pelagisk": "grunt"
+  },
+  "sv422503_1010231": {
+   "snokrabbe": "trangt",
+   "pelagisk": "trangt"
+  },
+  "sv443667_978429": {
+   "snokrabbe": "trangt",
+   "bunntral": "trangt",
+   "pelagisk": "trangt"
+  },
+  "sv446078_967789": {
+   "snokrabbe": "grunt",
+   "pelagisk": "trangt"
+  },
+  "sv446201_1487118": {
+   "ringnot38": "trangt",
+   "autoliner": "grunt",
+   "snokrabbe": "grunt",
+   "bunntral": "trangt"
+  },
+  "sv455456_1501427": {
+   "snokrabbe": "trangt",
+   "bunntral": "trangt",
+   "pelagisk": "trangt"
+  },
+  "sv482709_1437925": {
+   "snokrabbe": "grunt",
+   "bunntral": "grunt",
+   "pelagisk": "trangt"
+  },
+  "sv486145_962295": {
+   "snokrabbe": "grunt"
+  },
+  "sv504217_1452809": {
+   "ringnot38": "trangt",
+   "autoliner": "trangt"
+  },
+  "sv507351_938129": {
+   "snokrabbe": "trangt",
+   "bunntral": "grunt",
+   "pelagisk": "trangt"
+  },
+  "sv520573_1007674": {
+   "snokrabbe": "grunt",
+   "bunntral": "grunt"
+  },
+  "sv528708_907049": {
+   "snokrabbe": "grunt",
+   "bunntral": "grunt",
+   "pelagisk": "grunt"
+  },
+  "sv532088_1482291": {
+   "ringnot38": "grunt",
+   "autoliner": "grunt",
+   "snokrabbe": "trangt",
+   "bunntral": "trangt"
+  },
+  "sv538400_1491817": {
+   "snokrabbe": "trangt",
+   "bunntral": "grunt",
+   "pelagisk": "trangt"
+  },
+  "sv617514_786026": {
+   "snokrabbe": "trangt",
+   "bunntral": "grunt",
+   "pelagisk": "trangt"
+  },
+  "sv623225_669159": {
+   "snokrabbe": "grunt",
+   "bunntral": "grunt",
+   "pelagisk": "grunt"
+  },
+  "sv653261_540239": {
+   "ringnot38": "trangt",
+   "autoliner": "trangt",
+   "snokrabbe": "trangt"
+  },
+  "sv739680_544219": {
+   "snokrabbe": "grunt",
+   "bunntral": "grunt",
+   "pelagisk": "grunt"
+  },
+  "sv775988_398185": {
+   "snokrabbe": "trangt"
+  }
+ }
 }

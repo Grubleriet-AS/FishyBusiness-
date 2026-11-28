@@ -1,0 +1,5185 @@
+{
+"laget": "2026-11-28",
+"steder": {
+"finnsnes": {
+"id": "finnsnes",
+"navn": "Finnsnes",
+"lat": 69.2384,
+"lon": 17.9774,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Kaia her er 83 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"botnhamn": {
+"id": "botnhamn",
+"navn": "Botnhamn",
+"lat": 69.5089,
+"lon": 17.9074,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 25 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 25 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 25 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 25 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 25 m, for kort for en båt på 39 m."
+}
+},
+"husoy": {
+"id": "husoy",
+"navn": "Husøy",
+"lat": 69.5432,
+"lon": 17.6658,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Kaia her er 59 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 59 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"senjahopen": {
+"id": "senjahopen",
+"navn": "Senjahopen",
+"lat": 69.4944,
+"lon": 17.4876,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"gryllefjord": {
+"id": "gryllefjord",
+"navn": "Gryllefjord",
+"lat": 69.3621,
+"lon": 17.0676,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Mottaket her tar ikke imot fangst fra havfiskefartøy med trål.",
+"pelagisk": "Kaia her er 74 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"sommaroy": {
+"id": "sommaroy",
+"navn": "Sommarøy",
+"lat": 69.6343,
+"lon": 17.9958,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 27 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 27 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 27 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 27 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 27 m, for kort for en båt på 39 m."
+}
+},
+"brensholmen": {
+"id": "brensholmen",
+"navn": "Brensholmen",
+"lat": 69.6066,
+"lon": 18.0424,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 2 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": "Kaia her har 2 m dybde, for grunt for en dypgang på 3,8 m.",
+"bunntral": "Kaia her har 2 m dybde, for grunt for en dypgang på 5,1 m.",
+"pelagisk": "Kaia her er 76 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her har 2 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"torsken": {
+"id": "torsken",
+"navn": "Torsken",
+"lat": 69.3375,
+"lon": 17.1067,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Kaia her er 82 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"frovag": {
+"id": "frovag",
+"navn": "Frovåg",
+"lat": 69.0739,
+"lon": 17.0506,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 16 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 16 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 16 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 16 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 16 m, for kort for en båt på 39 m."
+}
+},
+"vangshamn": {
+"id": "vangshamn",
+"navn": "Vangshamn",
+"lat": 69.4724,
+"lon": 18.012,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"mN141": {
+"id": "mN141",
+"navn": "Myre",
+"lat": 68.9111,
+"lon": 15.0651,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 50 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 50 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 50 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 50 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mF377": {
+"id": "mF377",
+"navn": "Tufjord",
+"lat": 71.0046,
+"lon": 23.9035,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 58 m, for kort for en båt på 50 m.",
+"autoliner": null,
+"bunntral": "Kaia her er 58 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 58 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mTF70": {
+"id": "mTF70",
+"navn": "Havøysund",
+"lat": 70.995,
+"lon": 24.666,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 57 m, for kort for en båt på 50 m.",
+"autoliner": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 3,8 m.",
+"bunntral": "Kaia her er 57 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 57 m, for kort for en båt på 75 m.",
+"ringnot38": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 3,9 m."
+}
+},
+"mF201": {
+"id": "mF201",
+"navn": "Berlevåg",
+"lat": 70.8576,
+"lon": 29.1153,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 6 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": null,
+"bunntral": "Kaia her er 61 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 61 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mTF23": {
+"id": "mTF23",
+"navn": "Honningsvåg",
+"lat": 70.9959,
+"lon": 25.964,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 3,8 m.",
+"bunntral": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 5,1 m.",
+"pelagisk": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 7,5 m.",
+"ringnot38": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mTF9": {
+"id": "mTF9",
+"navn": "Kamøyvær",
+"lat": 71.0425,
+"lon": 25.8938,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 25 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 25 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 25 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 25 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 25 m, for kort for en båt på 39 m."
+}
+},
+"mF161": {
+"id": "mF161",
+"navn": "Båtsfjord",
+"lat": 70.629,
+"lon": 29.7197,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"mT1094": {
+"id": "mT1094",
+"navn": "Vannvåg",
+"lat": 70.1311,
+"lon": 19.9923,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 56 m, for kort for en båt på 50 m.",
+"autoliner": null,
+"bunntral": "Kaia her er 56 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 56 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mTF4": {
+"id": "mTF4",
+"navn": "Øksfjord",
+"lat": 70.241,
+"lon": 22.3486,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 45 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 45 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 45 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 45 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 45 m, for kort for en båt på 39 m."
+}
+},
+"mF440": {
+"id": "mF440",
+"navn": "Breivikbotn",
+"lat": 70.5895,
+"lon": 22.2836,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 17 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 17 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 17 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 17 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 17 m, for kort for en båt på 39 m."
+}
+},
+"mM317": {
+"id": "mM317",
+"navn": "Ålesund",
+"lat": 62.4695,
+"lon": 6.1441,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 20 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 20 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 20 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 20 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 20 m, for kort for en båt på 39 m."
+}
+},
+"mN69": {
+"id": "mN69",
+"navn": "Andenes",
+"lat": 69.324,
+"lon": 16.1365,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Mottaket her tar ikke imot fangst fra havfiskefartøy med trål.",
+"pelagisk": "Kaia her har 7,5 m dybde, for grunt for en dypgang på 7,5 m.",
+"ringnot38": null
+}
+},
+"mTF107": {
+"id": "mTF107",
+"navn": "Bergsfjord",
+"lat": 70.2508,
+"lon": 21.7823,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 31 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 31 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 31 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 31 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 31 m, for kort for en båt på 39 m."
+}
+},
+"mN119": {
+"id": "mN119",
+"navn": "Stø",
+"lat": 69.0217,
+"lon": 15.1255,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 50 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 50 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 50 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 50 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mF447": {
+"id": "mF447",
+"navn": "Sørvær",
+"lat": 70.6308,
+"lon": 21.9804,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 33 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 33 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 33 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 33 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 33 m, for kort for en båt på 39 m."
+}
+},
+"mN555": {
+"id": "mN555",
+"navn": "Røst",
+"lat": 67.5061,
+"lon": 12.072,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 6 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": null,
+"bunntral": "Mottaket her tar ikke imot fangst fra havfiskefartøy med trål.",
+"pelagisk": "Kaia her er 84 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mF295": {
+"id": "mF295",
+"navn": "Gamvik",
+"lat": 71.0623,
+"lon": 28.2615,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 5 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": null,
+"bunntral": "Kaia her har 5 m dybde, for grunt for en dypgang på 5,1 m.",
+"pelagisk": "Kaia her er 70 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mR40": {
+"id": "mR40",
+"navn": "Egersund",
+"lat": 58.4528,
+"lon": 5.9884,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 5,5 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": null,
+"bunntral": "Kaia her har 5,5 m dybde, for grunt for en dypgang på 5,1 m.",
+"pelagisk": "Kaia her har 5,5 m dybde, for grunt for en dypgang på 7,5 m.",
+"ringnot38": null
+}
+},
+"mF313": {
+"id": "mF313",
+"navn": "Kongsfjord",
+"lat": 70.718,
+"lon": 29.3174,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 52 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 52 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 52 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 52 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her har 2,5 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mN411": {
+"id": "mN411",
+"navn": "Stamsund",
+"lat": 68.1231,
+"lon": 13.8485,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 40 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 40 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 40 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 40 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 40 m, for kort for en båt på 39 m."
+}
+},
+"mN2350": {
+"id": "mN2350",
+"navn": "Ramberg",
+"lat": 68.0865,
+"lon": 13.2275,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 31 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 31 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 31 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 31 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 31 m, for kort for en båt på 39 m."
+}
+},
+"mN522": {
+"id": "mN522",
+"navn": "Henningsvær",
+"lat": 68.1544,
+"lon": 14.2044,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 36 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 36 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 36 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 36 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 36 m, for kort for en båt på 39 m."
+}
+},
+"mM212": {
+"id": "mM212",
+"navn": "Bud",
+"lat": 62.8933,
+"lon": 6.9572,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 31 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 31 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 31 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 31 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 31 m, for kort for en båt på 39 m."
+}
+},
+"mN541": {
+"id": "mN541",
+"navn": "Værøy",
+"lat": 67.6552,
+"lon": 12.7197,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 40 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 40 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 40 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 40 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 40 m, for kort for en båt på 39 m."
+}
+},
+"mT251": {
+"id": "mT251",
+"navn": "Kvaløya",
+"lat": 69.8511,
+"lon": 18.8203,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 44 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 44 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 44 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 44 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 44 m, for kort for en båt på 39 m."
+}
+},
+"mF343": {
+"id": "mF343",
+"navn": "Gjesvær",
+"lat": 71.0976,
+"lon": 25.3984,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 29 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 29 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 29 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 29 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 29 m, for kort for en båt på 39 m."
+}
+},
+"mT155": {
+"id": "mT155",
+"navn": "Vannareid",
+"lat": 70.2429,
+"lon": 19.4994,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 55 m, for kort for en båt på 50 m.",
+"autoliner": null,
+"bunntral": "Kaia her er 55 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 55 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mF771": {
+"id": "mF771",
+"navn": "Forsøl",
+"lat": 70.7218,
+"lon": 23.8145,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 28 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 28 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 28 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 28 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 28 m, for kort for en båt på 39 m."
+}
+},
+"mN322": {
+"id": "mN322",
+"navn": "Ballstad",
+"lat": 68.076,
+"lon": 13.531,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 39 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 39 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 39 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 39 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 39 m, for kort for en båt på 39 m."
+}
+},
+"mN51": {
+"id": "mN51",
+"navn": "Bleik",
+"lat": 69.2738,
+"lon": 15.9473,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 17 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 17 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 17 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 17 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 17 m, for kort for en båt på 39 m."
+}
+},
+"mF836": {
+"id": "mF836",
+"navn": "Vardø",
+"lat": 70.3629,
+"lon": 31.0278,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 41 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 41 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 41 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 41 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 41 m, for kort for en båt på 39 m."
+}
+},
+"mT105": {
+"id": "mT105",
+"navn": "Årviksand",
+"lat": 70.1964,
+"lon": 20.516,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 32 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 32 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 32 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 32 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 32 m, for kort for en båt på 39 m."
+}
+},
+"mN2320": {
+"id": "mN2320",
+"navn": "Sørvågen",
+"lat": 67.8981,
+"lon": 13.0442,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 49 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 49 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 49 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 49 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mT221": {
+"id": "mT221",
+"navn": "Oldervik",
+"lat": 69.755,
+"lon": 19.6771,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 19 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 19 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 19 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 19 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 19 m, for kort for en båt på 39 m."
+}
+},
+"mF260": {
+"id": "mF260",
+"navn": "Kjøllefjord",
+"lat": 70.951,
+"lon": 27.3448,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Mottaket her tar ikke imot fangst fra havfiskefartøy med trål.",
+"pelagisk": "Mottaket her tar ikke imot fangst fra havfiskefartøy med not eller trål.",
+"ringnot38": null
+}
+},
+"mN2384": {
+"id": "mN2384",
+"navn": "Træna",
+"lat": 66.4955,
+"lon": 12.0869,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 52 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 52 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 52 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 52 m, for kort for en båt på 75 m.",
+"ringnot38": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 3,9 m."
+}
+},
+"mTF57": {
+"id": "mTF57",
+"navn": "Vadsø",
+"lat": 70.0711,
+"lon": 29.7462,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 4,5 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": null,
+"bunntral": "Kaia her har 4,5 m dybde, for grunt for en dypgang på 5,1 m.",
+"pelagisk": "Kaia her er 75 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mT82": {
+"id": "mT82",
+"navn": "Skjervøy",
+"lat": 70.0297,
+"lon": 20.9747,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 17 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 17 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 17 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 17 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 17 m, for kort for en båt på 39 m."
+}
+},
+"mF104": {
+"id": "mF104",
+"navn": "Vardø øst",
+"lat": 70.3765,
+"lon": 31.1113,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 4,5 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": null,
+"bunntral": "Kaia her er 67 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 67 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mN439": {
+"id": "mN439",
+"navn": "Fredvang",
+"lat": 68.082,
+"lon": 13.1698,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 37 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 37 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 37 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 37 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 37 m, for kort for en båt på 39 m."
+}
+},
+"mN484": {
+"id": "mN484",
+"navn": "Reine",
+"lat": 67.936,
+"lon": 13.0874,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 22 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 22 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 22 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 22 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 22 m, for kort for en båt på 39 m."
+}
+},
+"mF357": {
+"id": "mF357",
+"navn": "Skarsvåg",
+"lat": 71.1131,
+"lon": 25.8323,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Kaia her er 61 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 61 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mM2047": {
+"id": "mM2047",
+"navn": "Fosnavåg",
+"lat": 62.3432,
+"lon": 5.6395,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 35 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 35 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 35 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 35 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 35 m, for kort for en båt på 39 m."
+}
+},
+"mN1084": {
+"id": "mN1084",
+"navn": "Dønna",
+"lat": 66.0848,
+"lon": 12.4488,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 29 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 29 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 29 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 29 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 29 m, for kort for en båt på 39 m."
+}
+},
+"mTF66": {
+"id": "mTF66",
+"navn": "Kvaløya vest",
+"lat": 69.7759,
+"lon": 18.4,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 20 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 20 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 20 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 20 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 20 m, for kort for en båt på 39 m."
+}
+},
+"mM360": {
+"id": "mM360",
+"navn": "Ellingsøy",
+"lat": 62.4965,
+"lon": 6.3617,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 2 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": "Kaia her har 2 m dybde, for grunt for en dypgang på 3,8 m.",
+"bunntral": "Kaia her har 2 m dybde, for grunt for en dypgang på 5,1 m.",
+"pelagisk": "Kaia her har 2 m dybde, for grunt for en dypgang på 7,5 m.",
+"ringnot38": "Kaia her har 2 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mF226": {
+"id": "mF226",
+"navn": "Skjånes",
+"lat": 70.8016,
+"lon": 28.1008,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 16 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 16 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 16 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 16 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 16 m, for kort for en båt på 39 m."
+}
+},
+"mN717": {
+"id": "mN717",
+"navn": "Svolvær",
+"lat": 68.2399,
+"lon": 14.5761,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 20 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 20 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 20 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 20 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 20 m, for kort for en båt på 39 m."
+}
+},
+"mM416": {
+"id": "mM416",
+"navn": "Sandshamn",
+"lat": 62.2522,
+"lon": 5.4853,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 56 m, for kort for en båt på 50 m.",
+"autoliner": null,
+"bunntral": "Kaia her er 56 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 56 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mN581": {
+"id": "mN581",
+"navn": "Laukvik",
+"lat": 68.3872,
+"lon": 14.4072,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 29 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 29 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 29 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 29 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 29 m, for kort for en båt på 39 m."
+}
+},
+"mN289": {
+"id": "mN289",
+"navn": "Napp",
+"lat": 68.1322,
+"lon": 13.4316,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Kaia her er 60 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 60 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mST343": {
+"id": "mST343",
+"navn": "Ansnes",
+"lat": 63.6505,
+"lon": 9.0281,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 30 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 30 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 30 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 30 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 30 m, for kort for en båt på 39 m."
+}
+},
+"mT247": {
+"id": "mT247",
+"navn": "Vengsøy",
+"lat": 69.8359,
+"lon": 18.5878,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 25 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 25 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 25 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 25 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 25 m, for kort for en båt på 39 m."
+}
+},
+"mF861": {
+"id": "mF861",
+"navn": "Dyfjord",
+"lat": 70.8987,
+"lon": 27.2274,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 43 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 43 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 43 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 43 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 43 m, for kort for en båt på 39 m."
+}
+},
+"mN220": {
+"id": "mN220",
+"navn": "Straumsjøen",
+"lat": 68.6953,
+"lon": 14.4601,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 57 m, for kort for en båt på 50 m.",
+"autoliner": null,
+"bunntral": "Kaia her er 57 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 57 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mT1289": {
+"id": "mT1289",
+"navn": "Sørkjosen",
+"lat": 69.7942,
+"lon": 20.9386,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 23 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 23 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 23 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 23 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 23 m, for kort for en båt på 39 m."
+}
+},
+"mM155": {
+"id": "mM155",
+"navn": "Averøy",
+"lat": 63.0684,
+"lon": 7.4916,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 49 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 49 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 49 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 49 m, for kort for en båt på 75 m.",
+"ringnot38": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 3,9 m."
+}
+},
+"mN217": {
+"id": "mN217",
+"navn": "Straumsjøen vest",
+"lat": 68.68,
+"lon": 14.4109,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Mottaket her tar ikke imot fangst fra havfiskefartøy med trål.",
+"pelagisk": "Mottaket her tar ikke imot fangst fra havfiskefartøy med not eller trål.",
+"ringnot38": null
+}
+},
+"mNT169": {
+"id": "mNT169",
+"navn": "Rørvik",
+"lat": 64.862,
+"lon": 11.2426,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 19 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 19 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 19 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 19 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 19 m, for kort for en båt på 39 m."
+}
+},
+"mF261": {
+"id": "mF261",
+"navn": "Mehamn",
+"lat": 71.0363,
+"lon": 27.8395,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 6 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": null,
+"bunntral": "Mottaket her tar ikke imot fangst fra havfiskefartøy med trål.",
+"pelagisk": "Kaia her er 82 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mF707": {
+"id": "mF707",
+"navn": "Kiberg",
+"lat": 70.2844,
+"lon": 30.9978,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 55 m, for kort for en båt på 50 m.",
+"autoliner": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 3,8 m.",
+"bunntral": "Kaia her er 55 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 55 m, for kort for en båt på 75 m.",
+"ringnot38": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 3,9 m."
+}
+},
+"mN1003": {
+"id": "mN1003",
+"navn": "Nordnesøya",
+"lat": 66.5944,
+"lon": 12.6599,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 37 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 37 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 37 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 37 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 37 m, for kort for en båt på 39 m."
+}
+},
+"mR57": {
+"id": "mR57",
+"navn": "Sævelandsvik",
+"lat": 59.2698,
+"lon": 5.1913,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 21 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 21 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 21 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 21 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 21 m, for kort for en båt på 39 m."
+}
+},
+"mSF98": {
+"id": "mSF98",
+"navn": "Raudeberg",
+"lat": 61.9854,
+"lon": 5.1426,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 27 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 27 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 27 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 27 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 27 m, for kort for en båt på 39 m."
+}
+},
+"mTF14": {
+"id": "mTF14",
+"navn": "Engenes",
+"lat": 68.9254,
+"lon": 17.1236,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 15 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 15 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 15 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 15 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 15 m, for kort for en båt på 39 m."
+}
+},
+"mN2186": {
+"id": "mN2186",
+"navn": "Brønnøysund",
+"lat": 65.4633,
+"lon": 12.1921,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 20 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 20 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 20 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 20 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 20 m, for kort for en båt på 39 m."
+}
+},
+"mST150": {
+"id": "mST150",
+"navn": "Uthaug",
+"lat": 63.7247,
+"lon": 9.5853,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 42 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 42 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 42 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 42 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 42 m, for kort for en båt på 39 m."
+}
+},
+"mN1113": {
+"id": "mN1113",
+"navn": "Bolga",
+"lat": 66.8016,
+"lon": 13.2337,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 45 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 45 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 45 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 45 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 45 m, for kort for en båt på 39 m."
+}
+},
+"mVA2": {
+"id": "mVA2",
+"navn": "Lindesnes",
+"lat": 58.0413,
+"lon": 7.1531,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 26 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 26 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 26 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 26 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 26 m, for kort for en båt på 39 m."
+}
+},
+"mN304": {
+"id": "mN304",
+"navn": "Bøstad",
+"lat": 68.2988,
+"lon": 13.7139,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 44 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 44 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 44 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 44 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 44 m, for kort for en båt på 39 m."
+}
+},
+"mN458": {
+"id": "mN458",
+"navn": "Sund i Lofoten",
+"lat": 68.009,
+"lon": 13.2126,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 53 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 53 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 53 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 53 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mH85": {
+"id": "mH85",
+"navn": "Bøvågen",
+"lat": 60.7009,
+"lon": 4.9216,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 33 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 33 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 33 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 33 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 33 m, for kort for en båt på 39 m."
+}
+},
+"mST479": {
+"id": "mST479",
+"navn": "Mausund",
+"lat": 63.8688,
+"lon": 8.6655,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 35 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 35 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 35 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 35 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 35 m, for kort for en båt på 39 m."
+}
+},
+"mF827": {
+"id": "mF827",
+"navn": "Varangerbotn",
+"lat": 70.1441,
+"lon": 28.8809,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 48 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 48 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 48 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 48 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mN1098": {
+"id": "mN1098",
+"navn": "Seløy",
+"lat": 66.0259,
+"lon": 12.2445,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 41 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 41 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 41 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 41 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 41 m, for kort for en båt på 39 m."
+}
+},
+"mF421": {
+"id": "mF421",
+"navn": "Akkarfjord",
+"lat": 70.7936,
+"lon": 23.4083,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 54 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her har 3 m dybde, for grunt for en dypgang på 3,8 m.",
+"bunntral": "Kaia her er 54 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 54 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her har 3 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mST845": {
+"id": "mST845",
+"navn": "Trondheim",
+"lat": 63.4327,
+"lon": 10.3681,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 28 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 28 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 28 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 28 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 28 m, for kort for en båt på 39 m."
+}
+},
+"mT1260": {
+"id": "mT1260",
+"navn": "Arnøyhamn",
+"lat": 70.0518,
+"lon": 20.6337,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 36 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 36 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 36 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 36 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 36 m, for kort for en båt på 39 m."
+}
+},
+"mVL187": {
+"id": "mVL187",
+"navn": "Kalvåg",
+"lat": 61.7653,
+"lon": 4.8772,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"mM89": {
+"id": "mM89",
+"navn": "Smøla",
+"lat": 63.3761,
+"lon": 8.2059,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 15 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 15 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 15 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 15 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 15 m, for kort for en båt på 39 m."
+}
+},
+"mN991": {
+"id": "mN991",
+"navn": "Sleneset",
+"lat": 66.3606,
+"lon": 12.6083,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 17 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 17 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 17 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 17 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 17 m, for kort for en båt på 39 m."
+}
+},
+"mTL25": {
+"id": "mTL25",
+"navn": "Roan",
+"lat": 64.178,
+"lon": 10.2132,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 19 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 19 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 19 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 19 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 19 m, for kort for en båt på 39 m."
+}
+},
+"mST490": {
+"id": "mST490",
+"navn": "Sørburøy",
+"lat": 63.979,
+"lon": 9.0882,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 33 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 33 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 33 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 33 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 33 m, for kort for en båt på 39 m."
+}
+},
+"mN893": {
+"id": "mN893",
+"navn": "Helligvær",
+"lat": 67.4123,
+"lon": 13.8941,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 3 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": "Kaia her har 3 m dybde, for grunt for en dypgang på 3,8 m.",
+"bunntral": "Kaia her er 66 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 66 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her har 3 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mM75": {
+"id": "mM75",
+"navn": "Smøla nord",
+"lat": 63.5063,
+"lon": 7.9726,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 17 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 17 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 17 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 17 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 17 m, for kort for en båt på 39 m."
+}
+},
+"mM2186": {
+"id": "mM2186",
+"navn": "Midsund",
+"lat": 62.6966,
+"lon": 6.6427,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 52 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 52 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 52 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 52 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mN112": {
+"id": "mN112",
+"navn": "Nordmela",
+"lat": 69.1413,
+"lon": 15.6806,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"mST460": {
+"id": "mST460",
+"navn": "Norddyrøy",
+"lat": 63.7998,
+"lon": 8.6791,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 17 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 17 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 17 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 17 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 17 m, for kort for en båt på 39 m."
+}
+},
+"mN161": {
+"id": "mN161",
+"navn": "Melbu",
+"lat": 68.4985,
+"lon": 14.8021,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Kaia her er 84 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mN905": {
+"id": "mN905",
+"navn": "Bodø",
+"lat": 67.2818,
+"lon": 14.3711,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 3 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": "Kaia her har 3 m dybde, for grunt for en dypgang på 3,8 m.",
+"bunntral": "Kaia her er 62 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 62 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her har 3 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mM2187": {
+"id": "mM2187",
+"navn": "Godøya",
+"lat": 62.4661,
+"lon": 6.016,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 2,5 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": "Kaia her har 2,5 m dybde, for grunt for en dypgang på 3,8 m.",
+"bunntral": "Kaia her har 2,5 m dybde, for grunt for en dypgang på 5,1 m.",
+"pelagisk": "Kaia her har 2,5 m dybde, for grunt for en dypgang på 7,5 m.",
+"ringnot38": "Kaia her har 2,5 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mR88": {
+"id": "mR88",
+"navn": "Skudeneshavn",
+"lat": 59.146,
+"lon": 5.2672,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"mN278": {
+"id": "mN278",
+"navn": "Bøstad sør",
+"lat": 68.2377,
+"lon": 13.626,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 47 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 47 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 47 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 47 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mTF76": {
+"id": "mTF76",
+"navn": "Tana",
+"lat": 70.4847,
+"lon": 27.9866,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 17 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 17 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 17 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 17 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 17 m, for kort for en båt på 39 m."
+}
+},
+"mM294": {
+"id": "mM294",
+"navn": "Valderøya",
+"lat": 62.5283,
+"lon": 6.1237,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 55 m, for kort for en båt på 50 m.",
+"autoliner": null,
+"bunntral": "Kaia her er 55 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 55 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mT125": {
+"id": "mT125",
+"navn": "Samuelsberg",
+"lat": 69.5452,
+"lon": 20.5461,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 39 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 39 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 39 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 39 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 39 m, for kort for en båt på 39 m."
+}
+},
+"mTL41": {
+"id": "mTL41",
+"navn": "Revsnes",
+"lat": 64.0392,
+"lon": 10.0518,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 33 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 33 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 33 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 33 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 33 m, for kort for en båt på 39 m."
+}
+},
+"mM96": {
+"id": "mM96",
+"navn": "Smøla sør",
+"lat": 63.3072,
+"lon": 8.1038,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 33 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 33 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 33 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 33 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 33 m, for kort for en båt på 39 m."
+}
+},
+"mN880": {
+"id": "mN880",
+"navn": "Leines",
+"lat": 67.7296,
+"lon": 14.7684,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 25 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 25 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 25 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 25 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 25 m, for kort for en båt på 39 m."
+}
+},
+"mT63": {
+"id": "mT63",
+"navn": "Burfjord",
+"lat": 69.9409,
+"lon": 22.0434,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 27 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 27 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 27 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 27 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 27 m, for kort for en båt på 39 m."
+}
+},
+"mN994": {
+"id": "mN994",
+"navn": "Rødøy",
+"lat": 66.662,
+"lon": 13.0694,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 49 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 49 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 49 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 49 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mM162": {
+"id": "mM162",
+"navn": "Tustna",
+"lat": 63.1543,
+"lon": 7.9453,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 38 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 38 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 38 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 38 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 38 m, for kort for en båt på 39 m."
+}
+},
+"mN2309": {
+"id": "mN2309",
+"navn": "Vega",
+"lat": 65.6796,
+"lon": 12.1311,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 30 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 30 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 30 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 30 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 30 m, for kort for en båt på 39 m."
+}
+},
+"mF293": {
+"id": "mF293",
+"navn": "Russenes",
+"lat": 70.5323,
+"lon": 25.1009,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 47 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 47 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 47 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 47 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her har 2,5 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mST137": {
+"id": "mST137",
+"navn": "Vallersund",
+"lat": 63.8514,
+"lon": 9.7553,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 30 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 30 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 30 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 30 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 30 m, for kort for en båt på 39 m."
+}
+},
+"mST135": {
+"id": "mST135",
+"navn": "Vallersund vest",
+"lat": 63.8569,
+"lon": 9.7299,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 41 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 41 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 41 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 41 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 41 m, for kort for en båt på 39 m."
+}
+},
+"mN2347": {
+"id": "mN2347",
+"navn": "Reipå",
+"lat": 66.9082,
+"lon": 13.6049,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 40 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 40 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 40 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 40 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 40 m, for kort for en båt på 39 m."
+}
+},
+"mN1001": {
+"id": "mN1001",
+"navn": "Selvær",
+"lat": 66.5859,
+"lon": 12.2267,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 16 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 16 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 16 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 16 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 16 m, for kort for en båt på 39 m."
+}
+},
+"mNT92": {
+"id": "mNT92",
+"navn": "Gutvik",
+"lat": 65.0846,
+"lon": 11.8297,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"mST874": {
+"id": "mST874",
+"navn": "Steinsdalen",
+"lat": 64.3212,
+"lon": 10.4508,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 45 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 45 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 45 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 45 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 45 m, for kort for en båt på 39 m."
+}
+},
+"mN918": {
+"id": "mN918",
+"navn": "Engan",
+"lat": 67.5117,
+"lon": 15.518,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 55 m, for kort for en båt på 50 m.",
+"autoliner": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 3,8 m.",
+"bunntral": "Kaia her er 55 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 55 m, for kort for en båt på 75 m.",
+"ringnot38": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 3,9 m."
+}
+},
+"mN879": {
+"id": "mN879",
+"navn": "Nordfold",
+"lat": 67.765,
+"lon": 15.2476,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Mottaket her tar ikke imot fangst fra havfiskefartøy med trål.",
+"pelagisk": "Kaia her er 79 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mH88": {
+"id": "mH88",
+"navn": "Bremnes",
+"lat": 59.7807,
+"lon": 5.1146,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 56 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 3,8 m.",
+"bunntral": "Kaia her er 56 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 56 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mN2285": {
+"id": "mN2285",
+"navn": "Sørarnøy",
+"lat": 67.1358,
+"lon": 13.9757,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 3,8 m.",
+"bunntral": "Kaia her er 61 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 61 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mF69": {
+"id": "mF69",
+"navn": "Bugøynes",
+"lat": 69.9724,
+"lon": 29.6432,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 23 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 23 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 23 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 23 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 23 m, for kort for en båt på 39 m."
+}
+},
+"mH81": {
+"id": "mH81",
+"navn": "Brandasund",
+"lat": 59.8919,
+"lon": 5.0944,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 25 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 25 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 25 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 25 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 25 m, for kort for en båt på 39 m."
+}
+},
+"mVA90": {
+"id": "mVA90",
+"navn": "Mandal",
+"lat": 58.0215,
+"lon": 7.4768,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 33 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 33 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 33 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 33 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 33 m, for kort for en båt på 39 m."
+}
+},
+"mT127": {
+"id": "mT127",
+"navn": "Olderdalen",
+"lat": 69.749,
+"lon": 20.4832,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 3 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": "Kaia her har 3 m dybde, for grunt for en dypgang på 3,8 m.",
+"bunntral": "Kaia her har 3 m dybde, for grunt for en dypgang på 5,1 m.",
+"pelagisk": "Kaia her er 71 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her har 3 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mH131": {
+"id": "mH131",
+"navn": "Skånevik",
+"lat": 59.734,
+"lon": 5.9357,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"mN891": {
+"id": "mN891",
+"navn": "Bogøy",
+"lat": 67.9173,
+"lon": 15.3388,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 16 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 16 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 16 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 16 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 16 m, for kort for en båt på 39 m."
+}
+},
+"mF433": {
+"id": "mF433",
+"navn": "Hasvik",
+"lat": 70.4831,
+"lon": 22.1657,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 57 m, for kort for en båt på 50 m.",
+"autoliner": null,
+"bunntral": "Kaia her er 57 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 57 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mVA94": {
+"id": "mVA94",
+"navn": "Kristiansand S",
+"lat": 58.1339,
+"lon": 7.9985,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 6 m.",
+"autoliner": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 3,8 m.",
+"bunntral": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 5,1 m.",
+"pelagisk": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 7,5 m.",
+"ringnot38": "Dybden ved kaia her er ikke kjent, så den er ikke trygg for en dypgang på 3,9 m."
+}
+},
+"mVA204": {
+"id": "mVA204",
+"navn": "Flekkerøy",
+"lat": 58.088,
+"lon": 8.0106,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 35 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 35 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 35 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 35 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 35 m, for kort for en båt på 39 m."
+}
+},
+"mVA69": {
+"id": "mVA69",
+"navn": "Hidrasund",
+"lat": 58.2296,
+"lon": 6.5299,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 35 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 35 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 35 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 35 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 35 m, for kort for en båt på 39 m."
+}
+},
+"mR129": {
+"id": "mR129",
+"navn": "Sirevåg",
+"lat": 58.5041,
+"lon": 5.7966,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 4,5 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": null,
+"bunntral": "Kaia her har 4,5 m dybde, for grunt for en dypgang på 5,1 m.",
+"pelagisk": "Kaia her er 84 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mT1079": {
+"id": "mT1079",
+"navn": "Krokelvdalen",
+"lat": 69.7289,
+"lon": 19.097,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 3,8 m.",
+"bunntral": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 5,1 m.",
+"pelagisk": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 7,5 m.",
+"ringnot38": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mR962": {
+"id": "mR962",
+"navn": "Ombo",
+"lat": 59.2739,
+"lon": 6.0985,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Mottaket her tar ikke imot fangst fra havfiskefartøy med trål.",
+"pelagisk": "Mottaket her tar ikke imot fangst fra havfiskefartøy med not eller trål.",
+"ringnot38": null
+}
+},
+"mF819": {
+"id": "mF819",
+"navn": "Havøysund øst",
+"lat": 70.9983,
+"lon": 24.6998,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 26 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 26 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 26 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 26 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 26 m, for kort for en båt på 39 m."
+}
+},
+"mF845": {
+"id": "mF845",
+"navn": "Båtsfjord sør",
+"lat": 70.6219,
+"lon": 29.6932,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 19 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 19 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 19 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 19 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 19 m, for kort for en båt på 39 m."
+}
+},
+"mN1008": {
+"id": "mN1008",
+"navn": "Aldersundet",
+"lat": 66.3988,
+"lon": 13.134,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 19 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 19 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 19 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 19 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 19 m, for kort for en båt på 39 m."
+}
+},
+"mF805": {
+"id": "mF805",
+"navn": "Lebesby",
+"lat": 70.4893,
+"lon": 27.0569,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 32 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 32 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 32 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 32 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 32 m, for kort for en båt på 39 m."
+}
+},
+"mST72": {
+"id": "mST72",
+"navn": "Brandsfjord",
+"lat": 64.1773,
+"lon": 10.3583,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 26 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 26 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 26 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 26 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 26 m, for kort for en båt på 39 m."
+}
+},
+"mAG20": {
+"id": "mAG20",
+"navn": "Risør",
+"lat": 58.7218,
+"lon": 9.2409,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 22 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 22 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 22 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 22 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 22 m, for kort for en båt på 39 m."
+}
+},
+"mAA61": {
+"id": "mAA61",
+"navn": "Grimstad",
+"lat": 58.3395,
+"lon": 8.5949,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"mT369": {
+"id": "mT369",
+"navn": "Kaldfarnes",
+"lat": 69.301,
+"lon": 16.9808,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 52 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 52 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 52 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 52 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her har 3,5 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mN235": {
+"id": "mN235",
+"navn": "Straumsjøen nord",
+"lat": 68.8165,
+"lon": 14.5525,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 10 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 10 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 10 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 10 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 10 m, for kort for en båt på 39 m."
+}
+},
+"mTL7": {
+"id": "mTL7",
+"navn": "Dyrvik",
+"lat": 63.7702,
+"lon": 8.8193,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 43 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 43 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 43 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 43 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 43 m, for kort for en båt på 39 m."
+}
+},
+"mF804": {
+"id": "mF804",
+"navn": "Veidnes",
+"lat": 70.6702,
+"lon": 26.6073,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 33 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 33 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 33 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 33 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 33 m, for kort for en båt på 39 m."
+}
+},
+"mF807": {
+"id": "mF807",
+"navn": "Indre Billefjord",
+"lat": 70.3236,
+"lon": 25.0653,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"mR950": {
+"id": "mR950",
+"navn": "Bokn",
+"lat": 59.1761,
+"lon": 5.3895,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 23 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 23 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 23 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 23 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 23 m, for kort for en båt på 39 m."
+}
+},
+"mN2166": {
+"id": "mN2166",
+"navn": "Lurøy",
+"lat": 66.3986,
+"lon": 12.8511,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 19 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 19 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 19 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 19 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 19 m, for kort for en båt på 39 m."
+}
+},
+"mR92": {
+"id": "mR92",
+"navn": "Rennesøy",
+"lat": 59.0968,
+"lon": 5.7021,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 47 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 47 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 47 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 47 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her har 4 m dybde, for grunt for en dypgang på 3,9 m."
+}
+},
+"mT212": {
+"id": "mT212",
+"navn": "Tromsdalen",
+"lat": 69.6279,
+"lon": 18.9475,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"mR960": {
+"id": "mR960",
+"navn": "Kvitsøy",
+"lat": 59.0592,
+"lon": 5.4179,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 25 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 25 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 25 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 25 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 25 m, for kort for en båt på 39 m."
+}
+},
+"mTL55": {
+"id": "mTL55",
+"navn": "Flatanger",
+"lat": 64.4757,
+"lon": 10.6965,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 31 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 31 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 31 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 31 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 31 m, for kort for en båt på 39 m."
+}
+},
+"mT119": {
+"id": "mT119",
+"navn": "Havnnes",
+"lat": 69.7875,
+"lon": 20.5695,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Kaia her er 60 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 60 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mM2258": {
+"id": "mM2258",
+"navn": "Smøla vest",
+"lat": 63.3673,
+"lon": 7.7808,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 18 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 18 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 18 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 18 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 18 m, for kort for en båt på 39 m."
+}
+},
+"mAA74": {
+"id": "mAA74",
+"navn": "Arendal",
+"lat": 58.4619,
+"lon": 8.778,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Mottaket her tar ikke imot fangst fra havfiskefartøy med konvensjonelle.",
+"autoliner": "Mottaket her tar ikke imot fangst fra havfiskefartøy med konvensjonelle.",
+"bunntral": null,
+"pelagisk": "Kaia her er 75 m, for kort for en båt på 75 m.",
+"ringnot38": "Mottaket her tar ikke imot fangst fra havfiskefartøy med not eller konvensjonell"
+}
+},
+"mN1009": {
+"id": "mN1009",
+"navn": "Indre Kvarøy",
+"lat": 66.4892,
+"lon": 12.9644,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 25 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 25 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 25 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 25 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 25 m, for kort for en båt på 39 m."
+}
+},
+"mN2228": {
+"id": "mN2228",
+"navn": "Gimsøysand",
+"lat": 68.2835,
+"lon": 14.2686,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 56 m, for kort for en båt på 50 m.",
+"autoliner": null,
+"bunntral": "Kaia her er 56 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 56 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mT1073": {
+"id": "mT1073",
+"navn": "Kvaløya sør",
+"lat": 69.6755,
+"lon": 18.7501,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 30 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 30 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 30 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 30 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 30 m, for kort for en båt på 39 m."
+}
+},
+"mF720": {
+"id": "mF720",
+"navn": "Repvåg",
+"lat": 70.747,
+"lon": 25.6701,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 39 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 39 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 39 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 39 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 39 m, for kort for en båt på 39 m."
+}
+},
+"mN645": {
+"id": "mN645",
+"navn": "Kabelvåg",
+"lat": 68.1934,
+"lon": 14.3416,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 25 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 25 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 25 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 25 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 25 m, for kort for en båt på 39 m."
+}
+},
+"mM373": {
+"id": "mM373",
+"navn": "Ellingsøy vest",
+"lat": 62.492,
+"lon": 6.3085,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 39 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 39 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 39 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 39 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 39 m, for kort for en båt på 39 m."
+}
+},
+"mSF225": {
+"id": "mSF225",
+"navn": "Florø",
+"lat": 61.5896,
+"lon": 4.9963,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 28 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 28 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 28 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 28 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 28 m, for kort for en båt på 39 m."
+}
+},
+"mSF72": {
+"id": "mSF72",
+"navn": "Selje",
+"lat": 62.0253,
+"lon": 5.3699,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"mM314": {
+"id": "mM314",
+"navn": "Hjørungavåg",
+"lat": 62.3514,
+"lon": 6.0811,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 43 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 43 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 43 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 43 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 43 m, for kort for en båt på 39 m."
+}
+},
+"mM341": {
+"id": "mM341",
+"navn": "Fiskarstrand",
+"lat": 62.4403,
+"lon": 6.25,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 27 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 27 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 27 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 27 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 27 m, for kort for en båt på 39 m."
+}
+},
+"mN830": {
+"id": "mN830",
+"navn": "Lødingen",
+"lat": 68.4174,
+"lon": 15.9951,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 31 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 31 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 31 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 31 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 31 m, for kort for en båt på 39 m."
+}
+},
+"mM359": {
+"id": "mM359",
+"navn": "Fiskarstrand øst",
+"lat": 62.4379,
+"lon": 6.281,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her har 5 m dybde, for grunt for en dypgang på 6 m.",
+"autoliner": null,
+"bunntral": "Kaia her har 5 m dybde, for grunt for en dypgang på 5,1 m.",
+"pelagisk": "Kaia her har 5 m dybde, for grunt for en dypgang på 7,5 m.",
+"ringnot38": null
+}
+},
+"mM395": {
+"id": "mM395",
+"navn": "Longva",
+"lat": 62.6813,
+"lon": 6.2357,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 41 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 41 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 41 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 41 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 41 m, for kort for en båt på 39 m."
+}
+},
+"mSF122": {
+"id": "mSF122",
+"navn": "Måløy",
+"lat": 61.93,
+"lon": 5.1141,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 46 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 46 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 46 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 46 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"mF412": {
+"id": "mF412",
+"navn": "Rypefjord",
+"lat": 70.634,
+"lon": 23.6711,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 22 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 22 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 22 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 22 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 22 m, for kort for en båt på 39 m."
+}
+},
+"mSF320": {
+"id": "mSF320",
+"navn": "Bulandet",
+"lat": 61.2855,
+"lon": 4.6336,
+"slag": "mottak",
+"tar": {
+"snokrabbe": "Kaia her er 37 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 37 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 37 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 37 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 37 m, for kort for en båt på 39 m."
+}
+},
+"mR946": {
+"id": "mR946",
+"navn": "Egersund sør",
+"lat": 58.4396,
+"lon": 5.9786,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Kaia her er 62 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 62 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"m100191": {
+"id": "m100191",
+"navn": "Avaldsnes",
+"lat": 59.3333,
+"lon": 5.2917,
+"slag": "mottak",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Kaia her er 77 m, for kort for en båt på 75 m.",
+"ringnot38": null
+}
+},
+"sb192187_1279128": {
+"id": "sb192187_1279128",
+"navn": "Hernar utstyrsbutikk",
+"lat": 60.681,
+"lon": 4.7603,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb193458_1435753": {
+"id": "sb193458_1435753",
+"navn": "Veavågen utstyrsbutikk",
+"lat": 59.2978,
+"lon": 5.2054,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv197762_1424036": {
+"id": "sv197762_1424036",
+"navn": "Torvastad verft",
+"lat": 59.4071,
+"lon": 5.2501,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb198221_1375848": {
+"id": "sb198221_1375848",
+"navn": "Urangsvåg utstyrsbutikk",
+"lat": 59.834,
+"lon": 5.1328,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv198840_1429275": {
+"id": "sv198840_1429275",
+"navn": "Avaldsnes verft",
+"lat": 59.3619,
+"lon": 5.2823,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv198880_1437223": {
+"id": "sv198880_1437223",
+"navn": "Kopervik verft",
+"lat": 59.2918,
+"lon": 5.3031,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv203585_1283290": {
+"id": "sv203585_1283290",
+"navn": "Manger verft",
+"lat": 60.6596,
+"lon": 4.9774,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv206639_1447501": {
+"id": "sv206639_1447501",
+"navn": "Bokn verft",
+"lat": 59.2107,
+"lon": 5.4634,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv208897_1480655": {
+"id": "sv208897_1480655",
+"navn": "Tananger verft",
+"lat": 58.92,
+"lon": 5.5836,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv208981_1367934": {
+"id": "sv208981_1367934",
+"navn": "Fitjar verft",
+"lat": 59.9183,
+"lon": 5.3013,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv209586_1319621": {
+"id": "sv209586_1319621",
+"navn": "Mathopen verft",
+"lat": 60.3465,
+"lon": 5.1843,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv211695_1362585": {
+"id": "sv211695_1362585",
+"navn": "Fitjar verft nord",
+"lat": 59.9691,
+"lon": 5.3353,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv213764_1312742": {
+"id": "sv213764_1312742",
+"navn": "Florvåg verft",
+"lat": 60.4131,
+"lon": 5.2403,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv216839_1489401": {
+"id": "sv216839_1489401",
+"navn": "Sandnes verft",
+"lat": 58.8522,
+"lon": 5.7409,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv216830_1340454": {
+"id": "sv216830_1340454",
+"navn": "Hagavik verft",
+"lat": 60.1713,
+"lon": 5.3715,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv217535_1468134": {
+"id": "sv217535_1468134",
+"navn": "Vestre Åmøy verft",
+"lat": 59.0417,
+"lon": 5.7018,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv217683_1316727": {
+"id": "sv217683_1316727",
+"navn": "Bergen verft",
+"lat": 60.3827,
+"lon": 5.3208,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv217707_1482183": {
+"id": "sv217707_1482183",
+"navn": "Stavanger verft",
+"lat": 58.9175,
+"lon": 5.7382,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv218372_1335482": {
+"id": "sv218372_1335482",
+"navn": "Lysekloster verft",
+"lat": 60.2178,
+"lon": 5.3826,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sb219148_1463882": {
+"id": "sb219148_1463882",
+"navn": "Rennesøy utstyrsbutikk",
+"lat": 59.0812,
+"lon": 5.7188,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv220101_1473964": {
+"id": "sv220101_1473964",
+"navn": "Hundvåg verft",
+"lat": 58.9933,
+"lon": 5.7595,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv221002_1532990": {
+"id": "sv221002_1532990",
+"navn": "Hellvik verft",
+"lat": 58.4709,
+"lon": 5.914,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb221185_1159358": {
+"id": "sb221185_1159358",
+"navn": "Kalvåg utstyrsbutikk",
+"lat": 61.7794,
+"lon": 4.9477,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv222369_1179688": {
+"id": "sv222369_1179688",
+"navn": "Florø verft",
+"lat": 61.6012,
+"lon": 5.0282,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv222736_1463203": {
+"id": "sv222736_1463203",
+"navn": "Rennesøy verft",
+"lat": 59.0918,
+"lon": 5.7794,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv224198_1481619": {
+"id": "sv224198_1481619",
+"navn": "Hommersåk verft",
+"lat": 58.9304,
+"lon": 5.8484,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv229576_1455294": {
+"id": "sv229576_1455294",
+"navn": "Finnøy verft",
+"lat": 59.1702,
+"lon": 5.8783,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv229896_1467381": {
+"id": "sv229896_1467381",
+"navn": "Tau verft",
+"lat": 59.0635,
+"lon": 5.9122,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv232105_1406520": {
+"id": "sv232105_1406520",
+"navn": "Ølen verft",
+"lat": 59.606,
+"lon": 5.8047,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv234348_1140404": {
+"id": "sv234348_1140404",
+"navn": "Raudeberg verft",
+"lat": 61.9652,
+"lon": 5.139,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb235478_1387245": {
+"id": "sb235478_1387245",
+"navn": "Høylandsbygd utstyrsbutikk",
+"lat": 59.781,
+"lon": 5.8165,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv236579_1473454": {
+"id": "sv236579_1473454",
+"navn": "Jørpeland verft",
+"lat": 59.0176,
+"lon": 6.0417,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sb238313_1135618": {
+"id": "sb238313_1135618",
+"navn": "Silda utstyrsbutikk",
+"lat": 62.0126,
+"lon": 5.1997,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb245017_1444088": {
+"id": "sb245017_1444088",
+"navn": "Skiftun utstyrsbutikk",
+"lat": 59.2883,
+"lon": 6.1188,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv256224_1113043": {
+"id": "sv256224_1113043",
+"navn": "Sandshamn verft",
+"lat": 62.2363,
+"lon": 5.4739,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb262723_1571672": {
+"id": "sb262723_1571672",
+"navn": "Vanse utstyrsbutikk",
+"lat": 58.1791,
+"lon": 6.624,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv262760_1324276": {
+"id": "sv262760_1324276",
+"navn": "Norheimsund verft",
+"lat": 60.3727,
+"lon": 6.1469,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv267275_1582086": {
+"id": "sv267275_1582086",
+"navn": "Farsund verft",
+"lat": 58.088,
+"lon": 6.8006,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb270855_1101121": {
+"id": "sb270855_1101121",
+"navn": "Bølandet utstyrsbutikk",
+"lat": 62.3611,
+"lon": 5.7191,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv281983_1580393": {
+"id": "sv281983_1580393",
+"navn": "Lyngdal verft",
+"lat": 58.1189,
+"lon": 7.0447,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv284568_1589866": {
+"id": "sv284568_1589866",
+"navn": "Lindesnes verft",
+"lat": 58.0374,
+"lon": 7.1069,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv292732_1091800": {
+"id": "sv292732_1091800",
+"navn": "Ålesund verft",
+"lat": 62.4711,
+"lon": 6.1115,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb296282_1092449": {
+"id": "sb296282_1092449",
+"navn": "Ålesund utstyrsbutikk",
+"lat": 62.4698,
+"lon": 6.1817,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv301334_1094351": {
+"id": "sv301334_1094351",
+"navn": "Ålesund verft øst",
+"lat": 62.4588,
+"lon": 6.2837,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv304428_1592512": {
+"id": "sv304428_1592512",
+"navn": "Mandal verft",
+"lat": 58.0192,
+"lon": 7.4651,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb309606_1596130": {
+"id": "sb309606_1596130",
+"navn": "Mandal utstyrsbutikk",
+"lat": 58.0053,
+"lon": 7.5456,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv315609_1103293": {
+"id": "sv315609_1103293",
+"navn": "Sykkylven verft",
+"lat": 62.3963,
+"lon": 6.5797,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv327002_1590622": {
+"id": "sv327002_1590622",
+"navn": "Søgne verft",
+"lat": 58.0729,
+"lon": 7.8207,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv336455_1585944": {
+"id": "sv336455_1585944",
+"navn": "Kristiansand S verft",
+"lat": 58.1235,
+"lon": 7.9717,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv336810_1591224": {
+"id": "sv336810_1591224",
+"navn": "Flekkerøy verft",
+"lat": 58.0769,
+"lon": 7.9872,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb340163_1583892": {
+"id": "sb340163_1583892",
+"navn": "Kristiansand S utstyrsbutikk",
+"lat": 58.1454,
+"lon": 8.0308,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb340594_1049543": {
+"id": "sb340594_1049543",
+"navn": "Bud utstyrsbutikk",
+"lat": 62.9025,
+"lon": 6.9283,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv341098_1582097": {
+"id": "sv341098_1582097",
+"navn": "Kristiansand S verft øst",
+"lat": 58.1621,
+"lon": 8.0434,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv344681_1587667": {
+"id": "sv344681_1587667",
+"navn": "Kristiansand S verft øst 2",
+"lat": 58.1157,
+"lon": 8.1132,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv349968_1069411": {
+"id": "sv349968_1069411",
+"navn": "Molde verft",
+"lat": 62.7361,
+"lon": 7.1586,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv375206_1566241": {
+"id": "sv375206_1566241",
+"navn": "Grimstad verft",
+"lat": 58.3339,
+"lon": 8.5937,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb376100_1564046": {
+"id": "sb376100_1564046",
+"navn": "Grimstad utstyrsbutikk",
+"lat": 58.3543,
+"lon": 8.6054,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb377503_1036100": {
+"id": "sb377503_1036100",
+"navn": "Averøy utstyrsbutikk",
+"lat": 63.0618,
+"lon": 7.6186,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv380431_1562494": {
+"id": "sv380431_1562494",
+"navn": "Fevik verft",
+"lat": 58.3719,
+"lon": 8.676,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv383942_1029479": {
+"id": "sv383942_1029479",
+"navn": "Kristiansund N verft",
+"lat": 63.1273,
+"lon": 7.7303,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv384041_1555088": {
+"id": "sv384041_1555088",
+"navn": "Arendal verft",
+"lat": 58.4259,
+"lon": 8.755,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv389797_1552209": {
+"id": "sv389797_1552209",
+"navn": "Arendal verft nord",
+"lat": 58.4714,
+"lon": 8.8195,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv399239_1536012": {
+"id": "sv399239_1536012",
+"navn": "Tvedestrand verft",
+"lat": 58.6095,
+"lon": 8.9538,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv407723_1521514": {
+"id": "sv407723_1521514",
+"navn": "Søndeled verft",
+"lat": 58.7311,
+"lon": 9.0622,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb408273_1006910": {
+"id": "sb408273_1006910",
+"navn": "Smøla utstyrsbutikk",
+"lat": 63.3521,
+"lon": 8.1614,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv416472_1527255": {
+"id": "sv416472_1527255",
+"navn": "Risør verft",
+"lat": 58.7155,
+"lon": 9.2375,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb418023_1523092": {
+"id": "sb418023_1523092",
+"navn": "Søndeled utstyrsbutikk",
+"lat": 58.7436,
+"lon": 9.2448,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv419232_972796": {
+"id": "sv419232_972796",
+"navn": "Titran verft",
+"lat": 63.6665,
+"lon": 8.3077,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv422503_1010231": {
+"id": "sv422503_1010231",
+"navn": "Lesund verft",
+"lat": 63.3358,
+"lon": 8.4507,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv426087_1511994": {
+"id": "sv426087_1511994",
+"navn": "Kragerø Skjærgård verft",
+"lat": 58.8592,
+"lon": 9.3807,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv439132_1485554": {
+"id": "sv439132_1485554",
+"navn": "Herre verft",
+"lat": 59.1055,
+"lon": 9.5687,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv443667_978429": {
+"id": "sv443667_978429",
+"navn": "Melandsjø verft",
+"lat": 63.6424,
+"lon": 8.8254,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb445075_959755": {
+"id": "sb445075_959755",
+"navn": "Dyrvik utstyrsbutikk",
+"lat": 63.8069,
+"lon": 8.8025,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv445873_1492613": {
+"id": "sv445873_1492613",
+"navn": "Stathelle verft",
+"lat": 59.0472,
+"lon": 9.6959,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv446078_967789": {
+"id": "sv446078_967789",
+"navn": "Sistranda verft",
+"lat": 63.7353,
+"lon": 8.8372,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv446201_1487118": {
+"id": "sv446201_1487118",
+"navn": "Porsgrunn verft",
+"lat": 59.0966,
+"lon": 9.6939,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv455456_1501427": {
+"id": "sv455456_1501427",
+"navn": "Nevlunghavn verft",
+"lat": 58.9749,
+"lon": 9.8738,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb457085_976958": {
+"id": "sb457085_976958",
+"navn": "Knarrlagsund utstyrsbutikk",
+"lat": 63.6633,
+"lon": 9.0695,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv465699_1494836": {
+"id": "sv465699_1494836",
+"navn": "Larvik verft",
+"lat": 59.041,
+"lon": 10.0426,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv476606_1487424": {
+"id": "sv476606_1487424",
+"navn": "Sandefjord verft",
+"lat": 59.1142,
+"lon": 10.2229,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv482709_1437925": {
+"id": "sv482709_1437925",
+"navn": "Sande i Vestfold verft",
+"lat": 59.5612,
+"lon": 10.2675,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv483434_1483544": {
+"id": "sv483434_1483544",
+"navn": "Veierland verft",
+"lat": 59.1533,
+"lon": 10.337,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv483542_1417431": {
+"id": "sv483542_1417431",
+"navn": "Lierstranda verft",
+"lat": 59.7452,
+"lon": 10.2568,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv485695_1447372": {
+"id": "sv485695_1447372",
+"navn": "Holmestrand verft",
+"lat": 59.4787,
+"lon": 10.3322,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv486145_962295": {
+"id": "sv486145_962295",
+"navn": "Oksvoll verft",
+"lat": 63.8169,
+"lon": 9.6361,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv486249_1472574": {
+"id": "sv486249_1472574",
+"navn": "Vear verft",
+"lat": 59.2535,
+"lon": 10.3729,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv487712_1488978": {
+"id": "sv487712_1488978",
+"navn": "Tjøme verft",
+"lat": 59.0881,
+"lon": 10.4172,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv488547_1482509": {
+"id": "sv488547_1482509",
+"navn": "Torød verft",
+"lat": 59.1658,
+"lon": 10.4247,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv492340_1432970": {
+"id": "sv492340_1432970",
+"navn": "Klokkarstua verft",
+"lat": 59.6115,
+"lon": 10.4317,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv492895_1453545": {
+"id": "sv492895_1453545",
+"navn": "Horten verft",
+"lat": 59.4279,
+"lon": 10.4661,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv497615_1416732": {
+"id": "sv497615_1416732",
+"navn": "Nærsnes verft",
+"lat": 59.7601,
+"lon": 10.5052,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv497780_1406590": {
+"id": "sv497780_1406590",
+"navn": "Nesbru verft",
+"lat": 59.8512,
+"lon": 10.4961,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv501300_1402404": {
+"id": "sv501300_1402404",
+"navn": "Høvik verft",
+"lat": 59.8908,
+"lon": 10.5535,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv502613_1426268": {
+"id": "sv502613_1426268",
+"navn": "Drøbak verft",
+"lat": 59.6779,
+"lon": 10.605,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb502670_940161": {
+"id": "sb502670_940161",
+"navn": "Linesøya utstyrsbutikk",
+"lat": 64.0269,
+"lon": 9.9343,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv504217_1452809": {
+"id": "sv504217_1452809",
+"navn": "Moss verft",
+"lat": 59.441,
+"lon": 10.6643,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv505679_1444506": {
+"id": "sv505679_1444506",
+"navn": "Son verft",
+"lat": 59.5163,
+"lon": 10.6803,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv506190_1400884": {
+"id": "sv506190_1400884",
+"navn": "Lysaker verft",
+"lat": 59.9072,
+"lon": 10.6392,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv507351_938129": {
+"id": "sv507351_938129",
+"navn": "Stokkøy verft",
+"lat": 64.0481,
+"lon": 10.0267,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb511051_1005125": {
+"id": "sb511051_1005125",
+"navn": "Bosberg utstyrsbutikk",
+"lat": 63.4517,
+"lon": 10.2053,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv511200_1400891": {
+"id": "sv511200_1400891",
+"navn": "Oslo verft",
+"lat": 59.91,
+"lon": 10.7285,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv512738_1405836": {
+"id": "sv512738_1405836",
+"navn": "Oslo verft sør",
+"lat": 59.8667,
+"lon": 10.7617,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv513443_1483244": {
+"id": "sv513443_1483244",
+"navn": "Gressvik verft",
+"lat": 59.1739,
+"lon": 10.8598,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv518604_1497508": {
+"id": "sv518604_1497508",
+"navn": "Vesterøy verft",
+"lat": 59.049,
+"lon": 10.9653,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv520573_1007674": {
+"id": "sv520573_1007674",
+"navn": "Trondheim verft",
+"lat": 63.4375,
+"lon": 10.3965,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv528708_907049": {
+"id": "sv528708_907049",
+"navn": "Steinsdalen verft",
+"lat": 64.3407,
+"lon": 10.417,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv532088_1482291": {
+"id": "sv532088_1482291",
+"navn": "Skjeberg verft",
+"lat": 59.1925,
+"lon": 11.1845,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv532964_1490970": {
+"id": "sv532964_1490970",
+"navn": "Sponvika verft",
+"lat": 59.1151,
+"lon": 11.2085,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv538400_1491817": {
+"id": "sv538400_1491817",
+"navn": "Halden verft",
+"lat": 59.1164,
+"lon": 11.3227,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb565668_892303": {
+"id": "sb565668_892303",
+"navn": "Nord-Statland utstyrsbutikk",
+"lat": 64.4944,
+"lon": 11.1614,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb573961_851995": {
+"id": "sb573961_851995",
+"navn": "Ottersøy utstyrsbutikk",
+"lat": 64.8597,
+"lon": 11.2846,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv574819_849387": {
+"id": "sv574819_849387",
+"navn": "Rørvik verft",
+"lat": 64.8836,
+"lon": 11.2998,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv581274_896576": {
+"id": "sv581274_896576",
+"navn": "Namsos verft",
+"lat": 64.4642,
+"lon": 11.4908,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sb596858_827809": {
+"id": "sb596858_827809",
+"navn": "Leka utstyrsbutikk",
+"lat": 65.0879,
+"lon": 11.7409,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv617514_786026": {
+"id": "sv617514_786026",
+"navn": "Brønnøysund verft",
+"lat": 65.4713,
+"lon": 12.1391,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv623225_669159": {
+"id": "sv623225_669159",
+"navn": "Træna verft",
+"lat": 66.5207,
+"lon": 12.1474,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb623865_666688": {
+"id": "sb623865_666688",
+"navn": "Træna utstyrsbutikk",
+"lat": 66.5436,
+"lon": 12.1594,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb626335_785538": {
+"id": "sb626335_785538",
+"navn": "Brønnøysund utstyrsbutikk",
+"lat": 65.479,
+"lon": 12.3287,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv626660_729626": {
+"id": "sv626660_729626",
+"navn": "Herøy verft",
+"lat": 65.9801,
+"lon": 12.2842,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sb632661_686863": {
+"id": "sb632661_686863",
+"navn": "Lovund utstyrsbutikk",
+"lat": 66.3657,
+"lon": 12.3761,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb636333_715642": {
+"id": "sb636333_715642",
+"navn": "Dønna utstyrsbutikk",
+"lat": 66.1091,
+"lon": 12.484,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv642429_725635": {
+"id": "sv642429_725635",
+"navn": "Sandnessjøen verft",
+"lat": 66.0217,
+"lon": 12.6271,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv652844_684586": {
+"id": "sv652844_684586",
+"navn": "Lurøy verft",
+"lat": 66.3932,
+"lon": 12.8254,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv653261_540239": {
+"id": "sv653261_540239",
+"navn": "Værøy verft",
+"lat": 67.6869,
+"lon": 12.7163,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sb663111_680146": {
+"id": "sb663111_680146",
+"navn": "Stuvland utstyrsbutikk",
+"lat": 66.4359,
+"lon": 13.0524,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb666383_510661": {
+"id": "sb666383_510661",
+"navn": "Reine utstyrsbutikk",
+"lat": 67.9562,
+"lon": 13.0036,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb668837_645099": {
+"id": "sb668837_645099",
+"navn": "Engavågen utstyrsbutikk",
+"lat": 66.7517,
+"lon": 13.1568,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv677226_637447": {
+"id": "sv677226_637447",
+"navn": "Meløy verft",
+"lat": 66.8225,
+"lon": 13.3426,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv688953_498869": {
+"id": "sv688953_498869",
+"navn": "Ballstad verft",
+"lat": 68.0675,
+"lon": 13.5353,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv692336_491476": {
+"id": "sv692336_491476",
+"navn": "Leknes verft",
+"lat": 68.1347,
+"lon": 13.6122,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb695082_584007": {
+"id": "sb695082_584007",
+"navn": "Givær utstyrsbutikk",
+"lat": 67.3056,
+"lon": 13.7245,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb702399_491400": {
+"id": "sb702399_491400",
+"navn": "Stamsund utstyrsbutikk",
+"lat": 68.1373,
+"lon": 13.8545,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv723702_585543": {
+"id": "sv723702_585543",
+"navn": "Bodø verft",
+"lat": 67.2955,
+"lon": 14.3897,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv730915_481079": {
+"id": "sv730915_481079",
+"navn": "Svolvær verft",
+"lat": 68.2331,
+"lon": 14.5392,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv739680_544219": {
+"id": "sv739680_544219",
+"navn": "Nordfold verft",
+"lat": 67.6673,
+"lon": 14.7564,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb740929_417362": {
+"id": "sb740929_417362",
+"navn": "Barkestad utstyrsbutikk",
+"lat": 68.8049,
+"lon": 14.775,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb742645_481328": {
+"id": "sb742645_481328",
+"navn": "Brettesnes utstyrsbutikk",
+"lat": 68.2314,
+"lon": 14.8219,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb742826_459050": {
+"id": "sb742826_459050",
+"navn": "Strønstad utstyrsbutikk",
+"lat": 68.4311,
+"lon": 14.8254,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb748969_409304": {
+"id": "sb748969_409304",
+"navn": "Tunstad utstyrsbutikk",
+"lat": 68.8773,
+"lon": 14.9745,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv749933_407344": {
+"id": "sv749933_407344",
+"navn": "Tunstad verft",
+"lat": 68.8949,
+"lon": 14.9982,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv757611_517436": {
+"id": "sv757611_517436",
+"navn": "Engeløya verft",
+"lat": 67.9076,
+"lon": 15.1816,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sb760152_542087": {
+"id": "sb760152_542087",
+"navn": "Nordfold utstyrsbutikk",
+"lat": 67.6865,
+"lon": 15.2396,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv762463_-634964": {
+"id": "sv762463_-634964",
+"navn": "Longyearbyen verft",
+"lat": 78.2379,
+"lon": 15.5481,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb764446_-633615": {
+"id": "sb764446_-633615",
+"navn": "Longyearbyen utstyrsbutikk",
+"lat": 78.2256,
+"lon": 15.634,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv767658_550802": {
+"id": "sv767658_550802",
+"navn": "Røsvik verft",
+"lat": 67.6077,
+"lon": 15.4153,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb774984_399309": {
+"id": "sb774984_399309",
+"navn": "Risøyhamn utstyrsbutikk",
+"lat": 68.966,
+"lon": 15.6234,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv775988_398185": {
+"id": "sv775988_398185",
+"navn": "Risøyhamn verft",
+"lat": 68.9761,
+"lon": 15.6492,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv812487_418897": {
+"id": "sv812487_418897",
+"navn": "Harstad verft",
+"lat": 68.7845,
+"lon": 16.5476,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv831286_363086": {
+"id": "sv831286_363086",
+"navn": "Kaldfarnes verft",
+"lat": 69.2795,
+"lon": 17.059,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv836112_402897": {
+"id": "sv836112_402897",
+"navn": "Engenes verft",
+"lat": 68.9215,
+"lon": 17.1459,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb836864_384622": {
+"id": "sb836864_384622",
+"navn": "Stonglandseidet utstyrsbutikk",
+"lat": 69.0849,
+"lon": 17.1803,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb837804_414368": {
+"id": "sb837804_414368",
+"navn": "Ånstad utstyrsbutikk",
+"lat": 68.818,
+"lon": 17.1774,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb841763_342211": {
+"id": "sb841763_342211",
+"navn": "Skaland utstyrsbutikk",
+"lat": 69.4635,
+"lon": 17.344,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv848971_456929": {
+"id": "sv848971_456929",
+"navn": "Narvik verft",
+"lat": 68.433,
+"lon": 17.4135,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv852662_336515": {
+"id": "sv852662_336515",
+"navn": "Fjordgard verft",
+"lat": 69.5103,
+"lon": 17.6287,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb871789_320357": {
+"id": "sb871789_320357",
+"navn": "Tussøy utstyrsbutikk",
+"lat": 69.6469,
+"lon": 18.1387,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv891000_297728": {
+"id": "sv891000_297728",
+"navn": "Vengsøy verft",
+"lat": 69.84,
+"lon": 18.668,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sb903610_318095": {
+"id": "sb903610_318095",
+"navn": "Tromsø utstyrsbutikk",
+"lat": 69.6507,
+"lon": 18.9608,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv930228_314081": {
+"id": "sv930228_314081",
+"navn": "Ramfjordbotn verft",
+"lat": 69.67,
+"lon": 19.652,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sb934635_270801": {
+"id": "sb934635_270801",
+"navn": "Vannvåg utstyrsbutikk",
+"lat": 70.0536,
+"lon": 19.8541,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv939598_268150": {
+"id": "sv939598_268150",
+"navn": "Vannvåg verft",
+"lat": 70.0737,
+"lon": 19.9892,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb953125_322722": {
+"id": "sb953125_322722",
+"navn": "Lyngseidet utstyrsbutikk",
+"lat": 69.5762,
+"lon": 20.2213,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv964928_318793": {
+"id": "sv964928_318793",
+"navn": "Olderdalen verft",
+"lat": 69.6017,
+"lon": 20.5316,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb968646_290023": {
+"id": "sb968646_290023",
+"navn": "Uløybukt utstyrsbutikk",
+"lat": 69.8556,
+"lon": 20.6961,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb970163_264504": {
+"id": "sb970163_264504",
+"navn": "Lauksletta utstyrsbutikk",
+"lat": 70.0819,
+"lon": 20.7984,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv976778_272362": {
+"id": "sv976778_272362",
+"navn": "Skjervøy verft",
+"lat": 70.006,
+"lon": 20.9511,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb1003342_245254": {
+"id": "sb1003342_245254",
+"navn": "Sør-Tverrfjord utstyrsbutikk",
+"lat": 70.223,
+"lon": 21.721,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv1013122_202113": {
+"id": "sv1013122_202113",
+"navn": "Sørvær verft",
+"lat": 70.5972,
+"lon": 22.111,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb1017438_265548": {
+"id": "sb1017438_265548",
+"navn": "Burfjord utstyrsbutikk",
+"lat": 70.0281,
+"lon": 22.0289,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv1022748_242941": {
+"id": "sv1022748_242941",
+"navn": "Nuvsvåg verft",
+"lat": 70.2237,
+"lon": 22.2381,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sb1031448_193732": {
+"id": "sb1031448_193732",
+"navn": "Breivikbotn utstyrsbutikk",
+"lat": 70.6517,
+"lon": 22.6288,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb1045172_229490": {
+"id": "sb1045172_229490",
+"navn": "Kvalfjord utstyrsbutikk",
+"lat": 70.3183,
+"lon": 22.872,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv1057144_175807": {
+"id": "sv1057144_175807",
+"navn": "Akkarfjord verft",
+"lat": 70.7807,
+"lon": 23.3836,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb1067558_264585": {
+"id": "sb1067558_264585",
+"navn": "Alta utstyrsbutikk",
+"lat": 69.9803,
+"lon": 23.3336,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb1069407_186603": {
+"id": "sb1069407_186603",
+"navn": "Hammerfest utstyrsbutikk",
+"lat": 70.6696,
+"lon": 23.6713,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb1069485_191974": {
+"id": "sb1069485_191974",
+"navn": "Rypefjord utstyrsbutikk",
+"lat": 70.6219,
+"lon": 23.6527,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb1079588_138476": {
+"id": "sb1079588_138476",
+"navn": "Ingøy utstyrsbutikk",
+"lat": 71.0824,
+"lon": 24.1389,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv1081559_147434": {
+"id": "sv1081559_147434",
+"navn": "Tufjord verft",
+"lat": 71.0005,
+"lon": 24.1561,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sv1105444_187427": {
+"id": "sv1105444_187427",
+"navn": "Kokelv verft",
+"lat": 70.6136,
+"lon": 24.6302,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb1111959_156917": {
+"id": "sb1111959_156917",
+"navn": "Måsøy utstyrsbutikk",
+"lat": 70.8738,
+"lon": 24.9373,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv1123557_129168": {
+"id": "sv1123557_129168",
+"navn": "Gjesvær verft",
+"lat": 71.1014,
+"lon": 25.3788,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv1140762_209475": {
+"id": "sv1140762_209475",
+"navn": "Børselv verft",
+"lat": 70.367,
+"lon": 25.4653,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sv1147500_174505": {
+"id": "sv1147500_174505",
+"navn": "Børselv verft nord",
+"lat": 70.6646,
+"lon": 25.8066,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sv1192293_188320": {
+"id": "sv1192293_188320",
+"navn": "Lebesby verft",
+"lat": 70.4685,
+"lon": 26.9209,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+},
+"sb1193142_176489": {
+"id": "sb1193142_176489",
+"navn": "Lebesby utstyrsbutikk",
+"lat": 70.5707,
+"lon": 27.0052,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv1196366_124639": {
+"id": "sv1196366_124639",
+"navn": "Kjøllefjord verft",
+"lat": 71.0196,
+"lon": 27.3727,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": null
+}
+},
+"sb1197292_132829": {
+"id": "sb1197292_132829",
+"navn": "Kjøllefjord utstyrsbutikk",
+"lat": 70.9461,
+"lon": 27.3521,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb1219017_144547": {
+"id": "sb1219017_144547",
+"navn": "Skjånes utstyrsbutikk",
+"lat": 70.8035,
+"lon": 27.8653,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sb1232526_177284": {
+"id": "sb1232526_177284",
+"navn": "Tana utstyrsbutikk",
+"lat": 70.4916,
+"lon": 28.0339,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv1248477_151462": {
+"id": "sv1248477_151462",
+"navn": "Berlevåg verft",
+"lat": 70.6859,
+"lon": 28.6043,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb1274565_141010": {
+"id": "sb1274565_141010",
+"navn": "Kongsfjord utstyrsbutikk",
+"lat": 70.7234,
+"lon": 29.3548,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv1305146_156500": {
+"id": "sv1305146_156500",
+"navn": "Båtsfjord verft",
+"lat": 70.5236,
+"lon": 30.054,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Det er ikke plass til å snu en båt på 50 m her.",
+"autoliner": "Det er ikke plass til å snu en båt på 45 m her.",
+"bunntral": "Det er ikke plass til å snu en båt på 60 m her.",
+"pelagisk": "Det er ikke plass til å snu en båt på 75 m her.",
+"ringnot38": "Det er ikke plass til å snu en båt på 39 m her."
+}
+},
+"sb1305262_208062": {
+"id": "sb1305262_208062",
+"navn": "Vadsø utstyrsbutikk",
+"lat": 70.0763,
+"lon": 29.7249,
+"slag": "annet",
+"tar": {
+"snokrabbe": "Kaia her er 24 m, for kort for en båt på 50 m.",
+"autoliner": "Kaia her er 24 m, for kort for en båt på 45 m.",
+"bunntral": "Kaia her er 24 m, for kort for en båt på 60 m.",
+"pelagisk": "Kaia her er 24 m, for kort for en båt på 75 m.",
+"ringnot38": "Kaia her er 24 m, for kort for en båt på 39 m."
+}
+},
+"sv1307392_207983": {
+"id": "sv1307392_207983",
+"navn": "Vadsø verft",
+"lat": 70.0726,
+"lon": 29.7794,
+"slag": "annet",
+"tar": {
+"snokrabbe": null,
+"autoliner": null,
+"bunntral": null,
+"pelagisk": null,
+"ringnot38": null
+}
+}
+}
+}

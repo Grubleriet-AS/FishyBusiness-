@@ -167,15 +167,15 @@ const portFits = (pt, type) => !portWhy(pt, type);
 // The way in (Autonav 2.0, steg 142; Jonas 28.11.2026: «Når en spiller bruker en båt fra havflåten kan disse stedene skjules fra
 // kartplotteren»). The quay rule asks the quay and the room off it; whether a hull of her size gets in to it at all is measured
 // by the planner, which sweeps her whole hull along the way from open water (17c-plan.js; tools/autonav/benk.py --alle), and
-// src/data/innseiling.json has, per place where the quay rule takes a longer vessel than has a way in, the longest that has one
-// and why the next has none (tools/autonav/grenser.py). An ocean vessel longer than that is not sent there: the chart plotter says
+// src/data/innseiling.json has, per place, the ocean vessels the quay rule takes that have no way in, and why (tools/autonav/
+// grenser.py; by type, not by length: the crab vessel of 50 m draws more than the trawler of 60 m). Such a vessel is not sent there: the chart plotter says
 // why and shows the place toned down (ui/03b-route.js, ui/03-map.js). Only where she is sent: a vessel that lies at such a place
 // already lands and bunkers there as before (portWhy is not changed), and leaves as before. The coast's boats go everywhere.
 const INNSEILING = /*@include(data/innseiling.json)*/null;
-function innWhy(pt, type){ const V = VESSELS[type], m = INNSEILING && INNSEILING.maks && pt ? INNSEILING.maks[pt.id] : null; if (!m || !V || V.cls !== 'hav' || !(V.len > m[0] + 0.5)) return null;
+function innWhy(pt, type){ const V = VESSELS[type], m = INNSEILING && INNSEILING.steder && pt ? INNSEILING.steder[pt.id] : null, w = m ? m[type] : null; if (!w || !V || V.cls !== 'hav') return null;
   const L = Math.round(V.len), nf = v => String(Math.round(v * 10) / 10).replace('.', ',');
-  return m[1] === 'bru' ? ['Brua på vei inn hit er for lav for båten.', 'The bridge on the way in here is too low for the vessel.']
-    : m[1] === 'grunt' ? ['Innseilingen hit er for grunn for en dypgang på ' + nf(V.draft) + ' m.', 'The way in here is too shallow for a draught of ' + Math.round(V.draft * 10) / 10 + ' m.']
+  return w === 'bru' ? ['Brua på vei inn hit er for lav for båten.', 'The bridge on the way in here is too low for the vessel.']
+    : w === 'grunt' ? ['Innseilingen hit er for grunn for en dypgang på ' + nf(V.draft) + ' m.', 'The way in here is too shallow for a draught of ' + Math.round(V.draft * 10) / 10 + ' m.']
     : ['Innseilingen hit er for trang for en båt på ' + L + ' m.', 'The way in here is too narrow for a ' + L + ' m vessel.']; }
 function placeWhy(pt, type){
   const V = VESSELS[type]; if (!pt || !V || V.cls !== 'hav') return null;

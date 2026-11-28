@@ -630,6 +630,32 @@ Tre ting skilte planleggeren fra «for alle hver gang»: dekningen (hvert sted l
 5. **Turer som starter mens spillet er lukket** (driftsplanen, retur) får ikke bane; de seiler som før.
 6. **Planleggingstiden** (punkt 6 fra steg 142) er ikke målt mot kravet. Funn: havnesøket med vekt 1,5 ser på 3–12 ganger færre plasser for 5 % lengre vei; ikke tatt i bruk som standard.
 
+### Åttende økt (28.11.2026; Jonas: «Når en spiller bruker en båt fra havflåten kan disse stedene skjules fra kartplotteren», så «Kjør på»)
+
+Jonas' forslag for stedene der bare de største båtene mangler bane: de skal ikke graves, de skal ikke være mål for båten. Økta målte hele kysten og bygde regelen (`docs/systemer/havner-og-mottak.md`, «Innseilingen som grense»).
+
+**Målingen** (`docs/planer/autonav-benk/ny-steg142-grenser/`: `turer.jsonl`, `tar.json`, `tabell.md`; bare planlegging, bygget `44db1150f8c2`): alle 370 steder ut til åpent vann og inn igjen med skiff og kyst21, den største havbåten kairegelen tar ved de 133 stedene som tar en, og hver mindre havbåt ved de 40 stedene der den største ikke kom inn.
+
+- **37 av 133 steder** har ikke vei inn for alle havbåtene kaia tar: 32 verft og fem mottak (Andenes, Napp, Senjahopen, Straumsjøen vest, Skudeneshavn). 47 båt-og-sted-par er for grunne, 39 for trange, 2 har for lav bru. Tre steder er ikke målt (ingen åpent vann innen 3 km, eller ikke planlagt): `mR40`, `mAA74`, `sv218372_1335482`; de har ingen grense.
+- **Per båttype, ikke per lengde:** snøkrabbebåten (50 m, 6 m dypgang) stenges ute fra steder bunntråleren (60 m, 5,1 m) kommer inn til.
+- **Det som er igjen per landsdel** (etter kairegelen i dag → med vei inn):
+
+| Del | Slag | ringnot38 | autoliner | snøkrabbe | bunntrål | pelagisk |
+|---|---|---|---|---|---|---|
+| sør | mottak | 12 → 11 | 10 → 9 | 5 → 5 | 4 → 3 | 2 → 1 |
+| sør | verft | 49 → 44 | 43 → 38 | 38 → 25 | 36 → 25 | 29 → 17 |
+| midt | mottak | 1 → 1 | 0 | 0 | 0 | 0 |
+| midt | verft | 14 → 14 | 13 → 13 | 12 → 3 | 10 → 4 | 8 → 1 |
+| nord | mottak | 31 → 31 | 26 → 26 | 14 → 10 | 5 → 5 | 3 → 2 |
+| nord | verft | 23 → 22 | 21 → 20 | 18 → 11 | 14 → 11 | 12 → 9 |
+
+  Midt-Norge (63–67° N) har etter dette Rørvik verft for 75 m-båten, Rørvik, Namsos og Lurøy for snøkrabbebåten, og de tre og Sistranda for bunntråleren. Mottak for de store båtene har landsdelen ikke fra før (kairegelen).
+- **Valg 11 (Jonas 28.11.2026, i spørsmålsverktøyet): «Grenser nå, grav to».** Grensene er lagt inn for alle 37. **Trondheim verft og Sistranda verft graves** (valg 5, `renner.py`, og 3D graver rennene), så de store båtene har verft også sør i Midt-Norge; til de er gravd, er de nedtonet som de andre. *Ikke valgt:* bare grenser; vente med grensene i Midt-Norge.
+- **Steder uten bane for skiff eller kyst21, hele kysten: 13** (Skjeberg verft, Moss verft, Florø verft, Sykkylven verft, Ålesund utstyrsbutikk, Valderøya, Norddyrøy, Vallersund, Mausund, Linesøya utstyrsbutikk, Flatanger, Samuelsberg, Varangerbotn). Florø er et fartøy som lå stille i veien ved benkens klokkeslett; resten er grunt eller trangt i kartet og må graves eller rettes. Kystbåtene har ingen grense: der seiler de som før.
+- **Planleggingstiden for havbåtene er lang:** median 12 s, p90 86 s, verst 162 s for turer som fikk bane (tre løp side om side). For skiffen median 1,5 s og p90 3,2 s; kyst21 2,1 s og 9,0 s.
+
+**Bygd:** `innWhy` og `src/data/innseiling.json` (per sted og båttype, laget av `tools/autonav/grenser.py --data`), nedtonede steder i kartplotteren for havbåter (også dem kairegelen nektet fra før), og et punkt satt for hånd på et sted som ikke tar båten, nektes med årsaken (før spurte bare Autonav-trykket). `portWhy` er urørt, så en båt som alt ligger ved et sted med grense, lander og går ut som før. Tester: `havplass.test.mjs` (stikkprøver Halden, Trondheim, Tufjord), `tests/havkart.py`. Bilder: `docs/okter/2026-11-28-142/`.
+
 ### Kontrollen av steg 143 (28.11.2026)
 
 En fersk agent fikk «Ferdig når» fra `start/143.md` og endringen. Dommen: punkt 1 og 4 holder; punkt 2 (benken med begge motorene bare på tre strekninger) og 5 (stedene uten bane) holder ikke; punkt 3 holder for vikingen, fartøyet som ligger stille har ingen test. Uten flagget er spillet urørt. Ti feil bak flagget:
@@ -685,6 +711,8 @@ Alle sju ble som anbefalt. Det som ikke ble valgt, står med for sammenhengen.
 9. **Bøyer i løp (27.11.2026, steg 142): «Fri led forbi».** Se «Femte økt».
 10. **Sanntid (27.11.2026, i spørsmålsverktøyet; Jonas: «Vi må bare fikse denne autonav-funksjonen slik at den fungerer for alle hver gang. Den må funke 100% feilfritt»): «Ført langs banen».** Når spilleren ser på båten under Autonav, følger hun banen nøyaktig i sted, kurs og fart, likt i sanntid og når spillet er lukket. Det som er kontrollert fritt, er det som seiles. Vind og sjø beveger henne i bølgene, men flytter henne ikke av banen; full fysikk gjelder når spilleren styrer selv. **Erstatter valg 3** («Fysikk med hjelp»). *Ikke valgt:* «Fysikk med hjelp» (0 treff kan ikke loves, sporfeil må måles, bredere korridorer), «Ført i havn og trange løp, fysikk ellers» (kan komme som et steg etterpå). F3 (steg 143) blir dermed: banefølgeren som fører henne, og vakta for det som ikke var der da planen ble lagt; sporfeilen i valg 4 faller bort.
 
+11. **Havbåter og steder uten vei inn (28.11.2026): «Grenser nå, grav to».** Se «Åttende økt».
+
 **Det valgene betyr for byggingen:**
 
 - Valg 2 gjør at vakta og banebyggeren (F2 og F3) også tar ruter spilleren tegner: rutepanelets varsler («Etappe WP2→WP3 krysser land», `legHazard`, `pl.unsafe`) og den grå «Kast loss»-knappen må følge den rettede banen. Det er en synlig endring i kartplotteren (`ui/03b-route.js`, `ui/07-guide.js`) og skal ses i begge formater.
@@ -725,3 +753,4 @@ Alle sju ble som anbefalt. Det som ikke ble valgt, står med for sammenhengen.
 - 24.11.2026, F2 punkt 1 (Jonas: «Kjør på med punkt 1»): «søket ble for stort» 20 → 4. Planleggeren regner båtens høyde og tidevannet under bruer som spillet gjør i dag (til 141b), og søket lærer sjøkartets ruter det det har sett. Uten bane der fasiten har vei: 46 → 32 (resten er grunt, kaidekker og trangt: punkt 2).
 - 26.11.2026, F2 (steg 142) pågår, tredje økt (Jonas: «Kjør på med neste steg i en ny økt»). Valg 8 bygd: Lindesnes var en feil i kjernens kystoppslag (rettet, stikkprøve sør, midt og nord), moloen ved Øksfjord 22 m kortere (`tools/map/rett.json`), Ålesund verft med kyst21 ikke løst og stedet satt tilbake. Punkt 3: fartøy som ligger stille stenges som boks og regnes etter midten for egen kaiplass, og svaret sier når et fartøy stenger; fasiten ser fjæra. Benken på hele lista: uten bane der fasiten har vei 8 → 4, farsjekken 0 (7 i rennene). Neste: punkt 4 (Stamsund), Ålesund verft, Senjahopen ut (startmeldingen).
 - 27.–28.11.2026, sjuende økt (Jonas: «Den må funke 100% feilfritt»; valg 10 «Ført langs banen»): F3 (steg 143) bygd bak `#autonav2` (tikken langs banen, samme klokke som bakgrunnsturen, «Kast loss» på baner, vakta), dekningen kjørt langs kysten (`benk.py --alle`: 787 turer, 2 med treff, 8 av 185 steder uten bane for de små båtene), og regelen for egen kai, basseng-linja og søkeretningen rettet. Ikke 100 % ennå: se «Sjuende økt», «Det som står igjen».
+- 28.11.2026, åttende økt (Jonas: steder havbåtene ikke kommer inn til, skjules; «Kjør på»; valg 11 «Grenser nå, grav to»): hele kysten målt for alle båtstørrelsene (370 steder), 37 steder fikk grense per båttype (`innseiling.json`), nedtonet i kartplotteren med årsak. Står igjen: grave Trondheim verft og Sistranda verft, de 13 stedene uten bane for de små båtene, og planleggingstiden for havbåtene. Se «Åttende økt».
