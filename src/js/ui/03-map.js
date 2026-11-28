@@ -897,8 +897,9 @@ function addWaypoint(pt){
   if (view.z >= 2 && !tutOn() && siteFits(S.boat.type)) for (const R of rorbuSites(pt, r + 0.05)){ const d = dist(R.p, pt); if (d < r && d < bd){ if (!siteFits(S.boat.type, R.id)){ sillR = sillR || R; continue; } bd = d; near = R; } }
   // a harbour of the coast's packs: the route ends at a free berth there (07e-havn.js), when no place of the game is nearer
   if (view.z >= 2 && !tutOn() && !near){ const B = havnTapNear(pt, r); if (B) near = B; }
-  // Father's naust: a route can end there (you sail to it; 07c-naust.js naustTarget)
-  const nt = naustTarget(pt, r), atN = b.status === 'port' && berthKind(b) === 'naust';
+  // Father's naust: a route can end there (you sail to it; 07c-naust.js naustTarget), not in «Første tur», whose way in goes to the
+  // plant's quay (tilbakemelding #439: where the plant is the home harbour, a tap by the naust ended the first landing at the naust)
+  const nt = tutOn() ? null : naustTarget(pt, r), atN = b.status === 'port' && berthKind(b) === 'naust';
   if (!near && !nt) near = portByLabel(pt);
   // (an ocean vessel is not sent to a place that does not take her, by its quay or by the way in, 06b-coastports.js placeWhy: a
   // point of the route set by hand on the place is refused with the reason, as Autonav's tap is, ui/03b-route.js leiaTo. Before
