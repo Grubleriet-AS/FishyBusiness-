@@ -593,6 +593,43 @@ Planleggingstiden har økt: manøversøket spør geometrien for hver stilling p�
 **Det som står igjen av G2:** manøveren finnes ikke ved alle kaiplasser (inn til kai: 65 turer); der går enden til havnas punkt, og `arrive()` setter henne ved kaiplassen som før. Naustene og rorbuene har ikke manøver (benken gir dem ikke `planEnd`). Sidelengs gange er en planleggingsforenkling: F3 (kaimanøveren med fysikk og avgrenset hjelp, valg 3) må avgjøre hvordan båten faktisk tas ut fra kaia.
 
 
+### Sjuende økt (27.–28.11.2026; Jonas: «Vi må bare fikse denne autonav-funksjonen slik at den fungerer for alle hver gang. Den må funke 100% feilfritt»)
+
+Tre ting skilte planleggeren fra «for alle hver gang»: dekningen (hvert sted langs kysten, ikke bare benkens liste), sanntiden (det spilleren ser, er banen som ble kontrollert), og bryteren (planleggeren inn i spillet). Jonas valgte «Ført langs banen» (valg 10). Økta bygde F3 (steg 143, `docs/planer/start/143.md`, `docs/systemer/autonav.md` 4.12z) og kjørte dekningen.
+
+**Dekningen (`benk.py --alle`):** hvert sted i `PORTS` som ikke er stengt, ut til åpent vann (0,5–3 km unna, dypere enn 15 m) og inn igjen, med skiff, kyst21 og den største båten stedet tar. Første kjøring (585 turer på bygget fra sjette økt) fant mønstrene; siste kjøring (`docs/planer/autonav-benk/ny-steg143-alle/turer.jsonl`, annethvert sted, 185 steder, 787 turer seilt som bakgrunnstur, uten fasit) er på bygget etter rettingene, men før omsøket på taket:
+
+| | skiff | kyst21 | største båten |
+|---|---|---|---|
+| Turer med bane | 340 av 354 | 342 av 354 | 105 av 140 |
+| Av dem med manøver ved kaia | 335 | 313 | 61 |
+
+- **Turer med treff: 2 av 787,** begge Lindesnes med kyst21 (fjære i renna 3D ikke har gravd).
+- **Steder uten bane for skiff eller kyst21: 8 av 185** (Vallersund, Sykkylven verft, Linesøya utstyrsbutikk, Skjeberg verft, Valderøya, Ålesund utstyrsbutikk, Mausund, Flatanger). `hvorfor.py` på Mausund, Vallersund, Valderøya og Flatanger: heller ikke fasiten har vei med minstemålene, så havna er for grunn eller trang i kartet og må graves (valg 5). Norddyrøy (første kjøring) er 25 cm for trang i munningen. De er lagt i `strekninger.json` (kategori «dekning»).
+- **Bare den største båten uten bane: 17 steder til,** nesten alle verft med båter på 50–75 m («for trangt», «for grunt»). Om stedet skal ta båten, er valg 5 mot valg 8 per sted.
+- **Manøver som mangler (78 turer):** 58 stoppet på havnesøkets tak (de fleste med de største båtene), 7 der stedet på veien var stengt, 5 der et fartøy lå i manøveren. Omsøket på taket (vekt 1,5, dobbelt tak) kom etter denne kjøringen; i utvalget som ble prøvd, fikk 12 av 13 manøver.
+- **Planleggingstiden** (tre kjøringer side om side, så maskinen var opptatt): median 2,0 s, p90 13 s, verst 66 s. Ikke målt mot kravet.
+
+**Det som ble rettet underveis:**
+
+| Funn | Årsak | Retting |
+|---|---|---|
+| Skiffen hadde manøver inn til kai på 23 av 77 turer | Regelen for egen kai: alt sluppet forbi innen 0,9 båtlengder, full margin (2 m) fra der. Kontrollen fant manøveren «i kaia» en meter utenfor linja, og banen gikk til havnas punkt | Kravet øker jevnt ut fra kaiplassen (`planSkip` med `zn`); berøringene sier hvor langt unna de er (`d`). Av 171 turer uten manøver fikk 164 den |
+| mF201 med kyst21: land 4 cm unna 30 cm ut fra kaia | Gammel kystlinje under hekken i et basseng: vann der den krysser skroget, land målt til hele linjestykket ellers | Avstanden måles bare til den delen som er utenfor bassenget (`farbPose`) |
+| Ut fra Smøla nord og Varangerbotn: bane; inn: «søket ble for stort» etter 30 s | Søket fra åpent vann oversvømmer sjøen rundt munningen | Søket går fra den innestengte enden, og veien snus. Der det ikke er vei, kommer årsaken på 1–3 s i stedet for 14–70 |
+| Vangshamn inn talt som treff på kaia | Benken regnet egen kai etter kaias midtpunkt (36 m fra skiffen) | Etter hvor skroget er (`benk.js`) |
+| Bakgrunnsturen tok 2–3 ganger banens tid (punkt 5) | Minuttets egen fartsrampe (`sailV`) i tillegg til banens | Én fartsregel for tikken og minuttsteget (`baneCap`) |
+
+**F3 bygd (steg 143):** tikken fører henne langs banen (`baneTick`, `styrTick`), «Kast loss» med `#autonav2` legger planen på baner (`styrPlan`), hun venter ved kaia mens de søkes, en vei søkes igjen der hun har drevet eller et fartøy ligger i banen (`styrLeg`), og vakta slakker for fartøy hun viker for (`styrWatch`). Benken med begge motorene på tre strekninger (Husøy ut, Ålesund verft, Stamsund; skiff og kyst21): 0 treff, modellen og bakgrunnsturen framme innen ett minutt fra hverandre (5/6, 7/8, 11/12, 36/37, 12/13, 20/21 min).
+
+**Det som står igjen før «100 %»:**
+1. **Stedene uten bane** (8 av 185 for de små båtene i annethvert sted, altså rundt 16 langs kysten, og verftene for de største): grav med `renner.py` eller rett stedet, sted for sted, og la 3D grave rennene i `renner.json` (Træna, Lindesnes og Ålesund verft venter på det samme).
+2. **Benken med begge motorene på hele lista** (punkt 2 i `start/143.md`), og dekningen kjørt på nytt med omsøket på taket og med manøver fra naust og rorbuer.
+3. **Vakta mot et fartøy som ligger stille i banen** har ingen test, og fartøy i fart behandles som i dag (utkikkens dom); benken med trafikk er F5.
+4. **Kartplotteren** (valg 2): varslene i rutepanelet og «Kast loss»-knappen følger ikke den rettede banen, og banen vises først etter «Kast loss».
+5. **Turer som starter mens spillet er lukket** (driftsplanen, retur) får ikke bane; de seiler som før.
+6. **Planleggingstiden** (punkt 6 fra steg 142) er ikke målt mot kravet. Funn: havnesøket med vekt 1,5 ser på 3–12 ganger færre plasser for 5 % lengre vei; ikke tatt i bruk som standard.
+
 ### Det kontrollen fant (24.11.2026)
 
 En fersk agent fikk diffen og «Ferdig når». Den fant at punkt 1 og 2 holder delvis og 3–5 ikke, og ti feil i koden. Rettet samme økt: flisene bes om der søket kommer til dem; et første søk viser hvor de fine rutene trengs (et løp på 13 m ble ellers 43 % omvei); fartsgrensen til korte stykker; minnet over frie stykker kjenner farten; egen kaiplass regnes etter der hun selv er for ting; stenging legges der hun sto; `baneSail` går videre fra planens sted, stopper for sjøis og fyller ikke sporet; workeren kaster flisene når kartet endres. Ett funn var feil lest: benken lar det observatøren ser av vannet følge samme regel som kaia (bare spillets egen grunnstøting teller alltid), og fars naust har tørt opptrekk.
@@ -668,3 +705,4 @@ Alle sju ble som anbefalt. Det som ikke ble valgt, står med for sammenhengen.
 - 26.11.2026, andre økt (Jonas: «fortsett»): resten av punkt 2. Der søket sier «for grunt» eller «for trangt», går det en gang til med geometrien som dommer (fire steder til har bane); moloens fot graves aldri (eget lag i feltet); Lindesnes er stengt av ei landstripe i kystdataene. Benken: uten bane der fasiten har vei 14 → 8. Samme steg fortsetter.
 - 24.11.2026, F2 punkt 1 (Jonas: «Kjør på med punkt 1»): «søket ble for stort» 20 → 4. Planleggeren regner båtens høyde og tidevannet under bruer som spillet gjør i dag (til 141b), og søket lærer sjøkartets ruter det det har sett. Uten bane der fasiten har vei: 46 → 32 (resten er grunt, kaidekker og trangt: punkt 2).
 - 26.11.2026, F2 (steg 142) pågår, tredje økt (Jonas: «Kjør på med neste steg i en ny økt»). Valg 8 bygd: Lindesnes var en feil i kjernens kystoppslag (rettet, stikkprøve sør, midt og nord), moloen ved Øksfjord 22 m kortere (`tools/map/rett.json`), Ålesund verft med kyst21 ikke løst og stedet satt tilbake. Punkt 3: fartøy som ligger stille stenges som boks og regnes etter midten for egen kaiplass, og svaret sier når et fartøy stenger; fasiten ser fjæra. Benken på hele lista: uten bane der fasiten har vei 8 → 4, farsjekken 0 (7 i rennene). Neste: punkt 4 (Stamsund), Ålesund verft, Senjahopen ut (startmeldingen).
+- 27.–28.11.2026, sjuende økt (Jonas: «Den må funke 100% feilfritt»; valg 10 «Ført langs banen»): F3 (steg 143) bygd bak `#autonav2` (tikken langs banen, samme klokke som bakgrunnsturen, «Kast loss» på baner, vakta), dekningen kjørt langs kysten (`benk.py --alle`: 787 turer, 2 med treff, 8 av 185 steder uten bane for de små båtene), og regelen for egen kai, basseng-linja og søkeretningen rettet. Ikke 100 % ennå: se «Sjuende økt», «Det som står igjen».

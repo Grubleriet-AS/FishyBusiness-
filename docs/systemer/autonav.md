@@ -562,3 +562,39 @@ Planen: `docs/planer/autonav-2-0.md`, «Planleggeren (F2, steg 142)». Ingenting
 - **Benkens observatør følger banen** (`benk.js` `banePre`, `watchBane`): hver andre meter med banens kurs og fart, og egen kai regnes fra banens ender. `bane: false` i resultatet der planen har bane og minuttsteget ikke følger den.
 - **Verktøyet for «hvorfor ingen bane»:** `python3 tools/autonav/hvorfor.py --strek id --bat skiff [--bilde mappe --radius 70,250]` planlegger på benkens side, går fasitens vei 2 m om gangen mot feltet og geometrien, og tegner feltet rundt stedet planleggeren peker på (åpent, grunt i fjæra, grunt i kartet, for trangt, dekke, land), med fasitens vei og planleggerens siste.
 - **Testene:** `tests/unit/bane.test.mjs`, `plan.test.mjs` (kjent geometri: molo, bruer, grunner, kai, løp som bare er åpne på fine ruter, øy med sjøkartets avstand; vannet hun trenger, knekket, stengingen, årsaken, gravingen og rennas stykker; omveien målt uten fasit, det andre søkets tak og fine ruter, den ferske fartøylista, bøyebåten som skrog, banens ende ved kaiplassen). Benken: se planfila for tallene og det som står igjen.
+
+## 4.12z Styringen: ført langs banen (Autonav 2.0 F3, steg 143, pågår 28.11.2026)
+
+Planen: `docs/planer/autonav-2-0.md`, valg 10 og «Sjuende økt». Startmeldingen: `docs/planer/start/143.md`. **Bak flagget `#autonav2`**: uten det kaller ingenting i spillet planleggeren, og gammel Autonav seiler som før.
+
+**Valget (Jonas 27.11.2026):** under Autonav følger båten banen nøyaktig i sted, kurs og fart, likt når spillet er åpent og lukket. Det planleggeren har kontrollert hele skroget langs, er det som seiles. Full fysikk (ror, propell, vindens skyv) gjelder når spilleren styrer selv, og der planen ikke har bane.
+
+**Hvem som flytter henne (`core/17d-styr.js`, `17b-bane.js`):**
+
+| Når | Hvem | Hva |
+|---|---|---|
+| Spillet er åpent, planen har bane | `styrTick` → `baneTick` (ett kall i `16b-dyn.js dynTick`, før `dynAuto`) | Stedet, kursen og farten banen har der hun er. Akterover og sidelengs som banen sier (`d.u`, `d.v`). |
+| Spillet er lukket, planen har bane | `sail` → `baneSail` (`05-vessels.js`, før `sailV`) | Samme bane på klokka, ett spillminutt om gangen. |
+| Planen har ikke bane der hun er | `dynAuto` og `sail` som før | Gammel Autonav. |
+
+- **Samme klokke:** begge spør `baneCap(pl, B, s)`: planens fart, det sjøen lar henne gjøre (`speedCap`, `seaDirF`), fartsgrensen der hun er (`fartKn`) og 5 knop innen 250 m fra en havn. Spurt etter hvor hun er på banen, ikke etter minuttet, så de to er på samme sted til samme tid (før tok bakgrunnsturen 2–3 ganger banens tid). Dieselen bokføres etter farten hun hadde.
+- **Minuttets bokføring mens modellen har henne** (`dynMinute`) legger ikke omveier inn i en plan med bane (`obsSail`, `landSail`): de ville gjort den til en plan uten bane.
+- **Planen mister banen sin** når antallet punkter endres av noe annet (`baneLeg`: `b2.len` er ikke planens lengde): omlegging, vending, en rute spilleren endrer. Da seiles punktene som før.
+
+**«Kast loss» med flagget (`styrPlan`, kalt fra `06-services.js depart`):** hver vei hun sendes, til et stopp eller til et punkt spilleren har tegnet (valg 2: punkter uten `leia`), søkes med `planBane` fra kaiplassen (`planEnd`) og til kaiplassen der enden er en havn. Når alle er søkt og planen står som den var, byttes rutas egne punkter med banenes (`planInto`). En vei uten bane beholder ruta si. Mens søket går, ligger hun ved kaia (`pl.b2w`, `styrWait`), høyst `STYR.hold` (6) spillminutter; en plan lagret mens den ventet, venter ikke etter lasting. `pl.b2w` og `pl.b2` er de eneste nye feltene i planen, og en lagring uten dem er en plan uten bane.
+
+**En vei søkes igjen (`styrLeg`)** fra der hun er når hun har drevet mer enn `STYR.snap` (25 m) fra der veien starter (etter fiske), eller når et fartøy har lagt seg i banen. Bare mens spillet er åpent; i minuttsteget settes hun på banens start.
+
+**Vakta (`styrWatch`, valg 1), bare mens spillet er åpent:**
+- Et fartøy hun viker for (utkikkens dom, `SJV.own`): hun forlater ikke banen. Hun slakker til 40 % av farten, 1 m/s i havn, og ligger stille der utkikken sier stopp. I nedsatt sikt høyst sikker fart (`sjvCapV`).
+- Et fartøy som ligger stille i banen foran (det kom etter at planen ble lagt): sett etter en gang i spillsekundet, skroget hver halve båtlengde så langt hun trenger for å stoppe og to lengder til. Hun venter, og etter to spillminutter søkes veien igjen rundt det. Fartøy ved endene (egen kaiplass) regnes ikke.
+
+**Det planleggeren fikk i samme økt (`17c-plan.js`, `17-farbar.js`):**
+- **Egen kai ved en kaiplass med manøver (`planSkip`, `zn`):** kaia slippes ikke forbi hel. Kravet er det hun har ved plassen (høyst 0,3 m) innen en halv båtlengde, og øker jevnt til full margin 1,5 båtlengder ut. Berøringene i kartet sier hvor langt unna de er (`d`). Søket krever 0,15 m mer enn kontrollen (`PLAN.havn.strict`) og spør halvveis på rette steg.
+- **Treff i manøveren:** stedet stenges for havnesøket, som prøver igjen (`PLAN.havn.retry`, 6) før manøveren gis opp og enden går til havnas punkt. Et søk som når taket, går en gang til med vekt 1,5 og dobbelt tak (`w2`). Planen sier hvorfor en manøver mangler: `havn.why`, `havn.drop`, `havn.ban`.
+- **Søkeretningen:** søket går fra den enden som ligger mest innestengt (kystavstanden, `PLAN.revM`), og veien snus.
+- **En kystlinje som går inn i et basseng,** måles bare der den er utenfor bassenget.
+
+**Testene:** `tests/unit/bane.test.mjs` (tikken, klokka), `styr.test.mjs` (planen på baner, ventingen, en vei igjen, vikingen), `plan.test.mjs` (regelen ved kaiplassen, taket), `farbar.test.mjs` (`d`), og `tests/autonav2.py` (med flagget ved Husøy: ut som bakgrunnstur, inn med båtmodellen; trenger `dist-vec/`). Dekningen langs kysten: `python3 tools/autonav/benk.py --alle [--hver n] --autonav ny --motor bakgrunn --uten-cpu --uten-fasit`.
+
+**Ikke bygd ennå:** rutepanelets varsler og den grå «Kast loss»-knappen følger ikke den rettede banen (valg 2 i kartplotteren); baner for turer som starter mens spillet er lukket (driftsplanen, retur); 3D graver ikke rennene i `renner.json`.
