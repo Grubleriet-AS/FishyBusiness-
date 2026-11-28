@@ -64,7 +64,7 @@ def les(tarfile, runs):
         big = tar_[-1] if tar_ else None; bane = {}
         for t in tar_:
             if t in got: bane[t] = bool(both(t))
-            else: bane[t] = True if (big in got and both(big)) else None   # (not planned: the biggest has a bane, so she is taken to have one; None where the biggest was not planned either)
+            else: bane[t] = True if (big in got and both(big)) else None   # (not planned: the biggest has a bane, so she is taken to have one; None where the biggest has none or was not planned: she is to be planned herself, --rest)
         rows[pid] = dict(q, tar_=tar_, bane=bane, small=small, why=why.get(pid, {})); rows[pid]['slag'] = q['slag'] if q.get('slag') == 'mottak' else kind(pid)
     return rows
 
@@ -102,8 +102,9 @@ def data(rows):
 
 
 if __name__ == '__main__':
-    ap = argparse.ArgumentParser(); ap.add_argument('--tar'); ap.add_argument('--tabell', nargs='+'); ap.add_argument('--data', nargs='+'); a = ap.parse_args()
+    ap = argparse.ArgumentParser(); ap.add_argument('--tar'); ap.add_argument('--tabell', nargs='+'); ap.add_argument('--data', nargs='+'); ap.add_argument('--rest', nargs='+', help='the places where a type the place takes is not planned yet, for benk.py --alle --strek'); a = ap.parse_args()
     if a.tar: asyncio.run(tar(a.tar))
     elif a.tabell: tabell(les(a.tabell[0], a.tabell[1:]))
     elif a.data: data(les(a.data[0], a.data[1:]))
+    elif a.rest: print(','.join(sorted(r['id'] for r in les(a.rest[0], a.rest[1:]).values() if any(v is False for v in r['bane'].values()) and any(t not in r['why'] and r['bane'][t] is not True for t in r['tar_']) or any(v is None for v in r['bane'].values()))))
     else: ap.print_help()
