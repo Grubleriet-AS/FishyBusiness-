@@ -243,6 +243,14 @@ export default function (t){
       const slot = (x, z, psi) => hull(x, z, psi).every(c => c[0] < 7 && c[1] > -(Bm / 2 + 0.4) + 0.05);
       h = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, slot);
       t.ok(h, 'med baugen mot en vegg: en vei finnes'); if (h){ const w = sweep(h.pts, slot); t.eq(w.bad, 0, 'uten å ta borti veggen eller kaia'); t.ok(w.M.cusp.length >= 1, 'og hun stopper og skifter minst én gang', w.M.cusp.length); }
+      // the search at its cap says so, and greedier (o.w: the way left weighs more) it finds the manoeuvre with fewer places looked at
+      // (the big boats at 25 of 372 berths, --alle 28.11.2026: planBane goes once more with PLAN.havn.w2 where the first came to its cap)
+      { const PLAN = K.get('PLAN'), full = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, slot), gr = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, slot, {w:PLAN.havn.w2}), cap = Math.max(20, Math.floor((full.n + gr.n) / 2));
+        t.ok(gr.n < full.n * 0.8, 'grådigere ser søket på færre plasser før det er framme', [gr.n, full.n]);
+        PLAN.hvWhy = ''; const c1 = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, slot, {maxN:cap}); t.ok(c1 === null && /^taket:/.test(PLAN.hvWhy), 'med færre plasser til rådighet enn det trenger, finner søket ingen manøver, og sier at det var taket', [full.n, cap, PLAN.hvWhy]);
+        const c2 = run({x:0, z:0, hd:Math.PI / 2}, {x:-50, z:30, psi:Math.PI * 1.5}, slot, {maxN:cap, w:PLAN.havn.w2}); t.ok(c2 && c2.n <= cap, 'grådigere (w ' + PLAN.havn.w2 + ') finner det den innenfor det samme taket', c2 && [c2.n, cap]);
+        if (c2){ const w = sweep(c2.pts, slot); t.eq(w.bad, 0, 'og den manøveren tar heller ikke borti noe'); }
+        PLAN.hvWhy = ''; const shutIn = (x, z, psi) => Math.hypot(x, z) < 6 || Math.hypot(x - 60, z) < 6; t.ok(run({x:0, z:0, hd:0}, {x:60, z:0, psi:0}, shutIn) === null && /^stengt:/.test(PLAN.hvWhy), 'der hun er stengt inne, sier søket «stengt», ikke taket', PLAN.hvWhy); }
       // the bane the minute step builds again from the plan (planInto's leg, baneOf) is the very one that was built from the points
       // to the centimetre, as planBane makes them: built from other numbers than the plan keeps, it had other pieces, baneOf gave
       // none, and the trip was sailed from point to point (Averøy with the skiff over land, the bench 27.11.2026)
