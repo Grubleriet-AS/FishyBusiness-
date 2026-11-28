@@ -20,6 +20,7 @@ a{color:var(--blue)}
 select,input,button,textarea{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line2);border-radius:10px;padding:7px 11px}
 button{cursor:pointer;transition:background .15s,border-color .15s}button:hover{border-color:var(--blue)}
 button.p{background:var(--acc);color:var(--acc-ink);border:0;font-weight:600}
+button:disabled{opacity:.4;cursor:not-allowed}
 :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 /* the frame: a side column with the groups on a wide screen, a row of tabs under the header on a narrow one */
 .shell{display:grid;grid-template-columns:minmax(0,1fr);min-height:100vh}
@@ -932,14 +933,26 @@ VIEW.korr = () => {
         '<p><label>Hjemmel kjøpt med båten (f.eks. h20, tomt = ingen) <input id="krLic" placeholder="ingen"></label> <label>Kjøpt (tidspunkt, for hjemmelens pris da) <input id="krAt" value="' + esc((KR.buys || [])[0] || '') + '"></label></p>' +
         '<p><label><input type="checkbox" id="krInn"> Toppfinansieringen fra Innovasjon Norge kan brukes igjen (kjøpet brukte den)</label></p>' +
         '<p><label>Ombygginger tilbake på båten (f.eks. dry:1, cabin:1) <input id="krUpg" placeholder="ingen"></label> <label>Utstyr betalt tilbake (kr) <input id="krGear" inputmode="numeric" placeholder="0"></label></p>' +
-        '<p><label>Melding til spilleren (tomt = spillets egen) <input id="krNote" style="min-width:30em"></label></p><button id="krAdd" class="p">Legg inn</button>',
+        '<p><label>Melding til spilleren (tomt = spillets egen) <input id="krNote" style="min-width:30em"></label></p>' +
+        '<div class="card" style="border:2px solid #c9861a"><p><b>Riktig konto?</b> WorkOS-ID-en er <code>' + esc(KR.id) + '</code>. Slå den opp i WorkOS (Users), og skriv e-posten som står der. Den må være den samme som spilleren skrev fra, og en spiller kan ha flere kontoer.</p>' +
+        '<p><label>E-posten i WorkOS for ' + esc(KR.id) + ' <input id="krMail" type="email" autocomplete="off" style="min-width:22em"></label> <label>Spilleren skrev fra <input id="krFromMail" type="email" autocomplete="off" style="min-width:22em"></label></p>' +
+        '<p><label><input type="checkbox" id="krSeen"> Jeg har sett i WorkOS at ID-en over hører til denne e-posten</label></p></div>' +
+        '<button id="krAdd" class="p" disabled>Legg inn</button> <span id="krGate" class="note">Fyll inn begge e-postene og kryss av først.</span>',
       'For et innbytte på verftet (ikke et kjøp til flåten, og ikke havflåten). Spillet gjør det selv neste gang det spør (innen ti minutter når det er åpent, ellers ved neste start), i havn og på båten det gjelder. Båten blir den gamle typen som levert fra verftet: verftsarbeid og kniv- og håvtrinn fulgte det gamle skroget og er ikke i lagringen lenger; verftsjobber bestilt til det nye skroget betales tilbake. En hjemmel innbyttet tok med, er solgt og blir solgt, og pengene for den står i kassa. Ble båten kjøpt med hjemmel (Båthandelens tilbud i lukket gruppe), fyll inn hjemmelen: den går tilbake til registeret, og spillet betaler prisen den hadde da den ble kjøpt (tidspunktet). Bare hjemmelen: la båttypene stå tomme. Tilbakebetalingen innfrir lånene først og resten går til kontoen, så rederiet er verdt det samme som før kjøpet, minus rentene som er betalt siden. Kassa hopper, så Juks kan sette et merke: fjern det der.')) +
     ((KR.fixes || []).length ? card('Korrigeringer på kontoen', '<table><tr><th>Lagt inn</th><th>Hva</th><th>Status</th></tr>' + KR.fixes.map(x => '<tr><td>' + when(x.at) + '</td><td>' + esc(x.kind) + ' ' + esc(JSON.stringify(x.data)) + '</td><td>' + (x.revoked ? 'trukket ' + when(x.revoked) : x.done ? 'ferdig ' + when(x.done) + (x.result && x.result.ok ? ': ' + nkr(x.result.kr) + ' tilbake, ' + nkr(x.result.off) + ' til lånene, kassa ' + nkr(x.result.cash) : x.result ? ': ' + esc(KR_WHY[x.result.why] || '') : '') : 'åpen') + '</td></tr>').join('') + '</table>') : '');
 };
 function krWire(){
   const go = () => { const w = ($('#krWho').value || '').trim(); if (w) krLoad(w); };
   if ($('#krFind')) $('#krFind').onclick = go; if ($('#krWho')) $('#krWho').onkeydown = e => { if (e.key === 'Enter') go(); };
-  const add = $('#krAdd'); if (add) add.onclick = async () => { const to = $('#krTo').value.trim(), from = $('#krFrom').value.trim(), k = $('#krKr').value.replace(/\s/g, ''), note = $('#krNote').value,
+  // the account check (28.11.2026, Jonas: «Du må ikke gjøre sånne feil, det er sykt viktig»: a correction was put on the wrong account,
+  // found from the purchase instead of the e-mail): the button opens only with the e-mail WorkOS shows for this id, the same as the
+  // one the player wrote from, and the box ticked. The e-mails are compared here and sent nowhere (the database keeps none)
+  const gate = () => { const a = ($('#krMail') && $('#krMail').value || '').trim().toLowerCase(), b = ($('#krFromMail') && $('#krFromMail').value || '').trim().toLowerCase(),
+      ok = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(a) && a === b && $('#krSeen') && $('#krSeen').checked, g = $('#krGate');
+    if ($('#krAdd')) $('#krAdd').disabled = !ok;
+    if (g) g.textContent = ok ? '' : !a || !b ? 'Fyll inn begge e-postene og kryss av først.' : a !== b ? 'E-postene er ikke like: dette er ikke kontoen spilleren skrev fra.' : 'Kryss av at du har sett det i WorkOS.'; return ok; };
+  ['#krMail', '#krFromMail'].forEach(q => { if ($(q)) $(q).oninput = gate; }); if ($('#krSeen')) $('#krSeen').onchange = gate;
+  const add = $('#krAdd'); if (add) add.onclick = async () => { if (!gate()) return; const to = $('#krTo').value.trim(), from = $('#krFrom').value.trim(), k = $('#krKr').value.replace(/\s/g, ''), note = $('#krNote').value,
       lic = ($('#krLic').value || '').trim(), at = ($('#krAt').value || '').trim(), boat = !!(to || from), inn = !!($('#krInn') && $('#krInn').checked),
       upgTx = ($('#krUpg') && $('#krUpg').value || '').trim(), gear = ($('#krGear') && $('#krGear').value || '').replace(/\s/g, ''), upg = {};
     for (const part of upgTx ? upgTx.split(',') : []){ const m = /^\s*([a-z]+)\s*:\s*(\d)\s*$/.exec(part); if (!m){ alert('Ombyggingene skrives som dry:1, cabin:1.'); return; } upg[m[1]] = +m[2]; }
@@ -948,7 +961,7 @@ function krWire(){
     if (boat && (!to || !from || to === from)){ alert('Fyll inn to ulike båttyper, eller la begge stå tomme for bare hjemmelen.'); return; }
     if (k && !(+k >= 0)){ alert('Tilbakebetalingen må være et tall.'); return; } if (lic && at && !isFinite(Date.parse(at))){ alert('Tidspunktet forstås ikke.'); return; }
     const data = {}; if (boat){ data.from = from; data.to = to; if (k) data.kr = +k; } if (lic){ data.lic = lic; if (at) data.licAt = new Date(Date.parse(at)).toISOString(); } if (inn) data.inn = true; if (upgTx) data.upg = upg; if (gear) data.gearKr = +gear;
-    if (!confirm('Angre kjøpet:' + (boat ? ' ' + to + ' blir ' + from : '') + (lic ? (boat ? ',' : '') + ' hjemmelen ' + lic + ' tilbake til registeret' : '') + (k ? ', og ' + nf(+k, 0) + ' kr for båten' : ', med tilbakebetalingen regnet av spillet') + '?')) return;
+    if (!confirm('Konto ' + KR.id + ' (' + $('#krMail').value.trim() + ').\nAngre kjøpet:' + (boat ? ' ' + to + ' blir ' + from : '') + (lic ? (boat ? ',' : '') + ' hjemmelen ' + lic + ' tilbake til registeret' : '') + (k ? ', og ' + nf(+k, 0) + ' kr for båten' : ', med tilbakebetalingen regnet av spillet') + '?')) return;
     add.disabled = true; try { if (!DEMO) await rpc('admin_fix_add', {who:KR.id, kind:'undo', data, note}); krLoad(KR.id); } catch (e){ add.disabled = false; alert(e.message); } };
   document.querySelectorAll('[data-krrev]').forEach(b => b.onclick = async () => { b.disabled = true; try { if (!DEMO) await rpc('admin_fix_revoke', {fid:+b.dataset.krrev}); krLoad(KR.id); } catch (e){ b.disabled = false; alert(e.message); } });
 }

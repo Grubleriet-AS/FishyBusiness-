@@ -113,6 +113,14 @@ async def main():
         check(all(h in km for h in ('Kvotemarkedet: salg per uke', 'Median mot taksten', 'Kjøpt fra spillere mot registeret', 'Andel fra spillere', 'Tid til første bud', 'Målingen', 'Kjøpt fra registeret'))
               and '96,2 %' in km and '10–10,9 m' in km and 'user_' not in km and kmw,
               'Økonomi i spillet has Kvotemarkedet: sales a week with the median against the takst, players against the register per group, the hours to the first bid and the events, never who', km[km.find('Kvotemarkedet'):][:300])
+        # Korrigering (28.11.2026): «Legg inn» opens only with the e-mail WorkOS shows for the id, the same as the player wrote from, and
+        # the box ticked; two different e-mails say so and keep it shut
+        await pg.click('nav button[data-t="korr"]'); await pg.fill('#krWho', 'a1b2c3d4e5'); await pg.click('#krFind'); await pg.wait_for_timeout(300)
+        kr = await pg.evaluate("""(() => { const b = () => document.getElementById('krAdd').disabled, g = () => document.getElementById('krGate').textContent, set = (id, v) => { const e = document.getElementById(id); e.value = v; e.dispatchEvent(new Event('input')); };
+          const r = {start:b()}; set('krMail', 'a@b.no'); set('krFromMail', 'c@b.no'); document.getElementById('krSeen').checked = true; document.getElementById('krSeen').dispatchEvent(new Event('change'));
+          r.differ = b(); r.msg = g(); set('krFromMail', 'A@b.no '); r.same = b(); document.getElementById('krSeen').checked = false; document.getElementById('krSeen').dispatchEvent(new Event('change')); r.unticked = b(); return r; })()""")
+        check(kr['start'] and kr['differ'] and 'ikke like' in kr['msg'] and not kr['same'] and kr['unticked'],
+              'Korrigering: «Legg inn» stays shut until the WorkOS e-mail equals the one the player wrote from and the box is ticked', kr)
         # with keys: the sign-in comes first, nothing is fetched before it
         await pg.add_init_script("")
         raw = await (await pg.request.get(BASE + 'admin/')).text()
