@@ -16,7 +16,9 @@ What it does, with no model at all:
    `ønske` or `balanse` (never fixed by the routine: they go to «Til Jonas: ønsker og balanse» in the report in /admin, never to git),
    or `uklar` (the light model decides). Weighs it: severity × churn weight (× 2 in the first hour or the tutorial, × 1.5 over 20 h).
 5. Says whether Opus is needed: only when a technical cluster or feedback is new, not handled (no open PR naming it, none closed in the
-   last HANDLED_DAYS), weighs at least MIN_FIX, and its likely risk is one the PR lock lets through (tools/triage/prlaas.py).
+   last HANDLED_DAYS), weighs at least MIN_FIX, and its likely risk is one the PR lock lets through (tools/triage/prlaas.py). A noted
+   technical feedback with no PR waits in the same queue until one names it (`waiting`, 28.11.2026). The order (`order`): the players'
+   clusters and reports, every other run each while both wait, and the regression's red tests after them.
 5b. A cluster or feedback the fix agent gave up on after two tries gets an open GitHub issue with the label `trenger-jonas`
    (--gi-opp; no player text in it, only the cluster's message, file and why). While that issue is open the cluster counts as handled,
    so the next run takes the next one in the list or the queue instead of waking Opus for the same fault every hour. Jonas closes the
@@ -44,9 +46,10 @@ import risiko, prlaas
 
 REPO = 'Grubleriet-AS/FishyBusiness-'
 PROD_URL = 'https://detstorebla.no/version.json'
-OPUS_TAK = 4          # at most this many Opus runs (a fix or a queue step) in 24 hours, counted from the lock's history (tools/triage/
-                      # laas.py teller). Jonas 18.11.2026: «Tak: 4 i døgnet», then the same evening «Senk taket … fra 4 til 2 per døgn», and
-                      # 19.11.2026, when nothing had been fixed for 19 hours: «la opus kjøre 4 ganger i døgnet»
+OPUS_TAK = 6          # at most this many Opus runs (a fix or a queue step) in 24 hours, counted from the lock's history (tools/triage/
+                      # laas.py teller). Jonas 18.11.2026: «Tak: 4 i døgnet», then the same evening «Senk taket … fra 4 til 2 per døgn»,
+                      # 19.11.2026, when nothing had been fixed for 19 hours: «la opus kjøre 4 ganger i døgnet», and 28.11.2026, when the
+                      # players' reports were not being taken: «hever opus-taket til 6, slik at vi forhåpentligvis får gjort unna mer»
 STEG_TAK = 1          # of them, at most this many on steps from the queue («maksimalt 1 av de 2 daglige kjøringene kunne brukes på nye
 RESERVE = 1           # steg fra køen, slik at 1 plass alltid holdes i reserve for feilretting»): a step only when RESERVE is left after it
 MIN_FIX = 3            # the least weight a cluster or a feedback needs before Opus is woken for it (one crash in one session is 5)
@@ -250,6 +253,63 @@ def handled(prs, now):
     return cl, fb
 
 
+NOTE_TEK = re.compile(r'\s*teknisk', re.I)
+# (the game's own grounding reports, noted «grunnstøting: …» or, before 28.11.2026, «teknisk: grunnstøting …»: Autonav's, never one by one;
+# the first words only, so a technical note that mentions a grounding still waits)
+NOTE_GRUNN = re.compile(r'\s*(teknisk\W+)?(automatisk\s+)?grunnst[øo]ting', re.I)
+NOTE_LAAS = re.compile(r'venter på PR-låsen', re.I)   # (a fix given up because the PR lock was shut: the routine writes it in the note)
+NOTED_MAX = 150        # how many noted rows agent_feedback gives, the heaviest first (supabase/migrations/20261117160000_agent_incidents.sql)
+
+
+def waiting(noted, hfb, gfb, new_ids=(), lock=None, dead=()):
+    """The noted technical feedback that still waits for a fix (28.11.2026). Before, only the feedback not noted yet was looked at, and
+    the routine notes each one in the run it arrives in: with the Opus cap used that hour, it was never seen again (the notes said
+    «Opus-taket nådd, venter», and nothing waited). One waits while its note starts with «teknisk», names no PR and no cluster (a
+    cluster's feedback follows the cluster), Jonas has not answered it or set a status (`new`), no PR names it (`tilbakemelding #N`,
+    hfb) and it is not given up (gfb), and it weighs at least MIN_FIX. The highest weight first, then the newest (the version it was
+    written on is the nearest to the players' now). The light model takes one out by rewriting its note: «rettet: …», «ønske: …».
+    A note about a grounding never waits (the text of a noted feedback is not read again, so the note's own word is the mark).
+    A fix that was given up because the PR lock was shut («venter på PR-låsen» in the note) waits until a middels fix may get a PR
+    again (lock), so it does not wake Opus every hour for nothing; and a note whose PRs were all closed without being merged more
+    than HANDLED_DAYS ago (dead: their numbers) waits again, since nothing came of them (the independent check 28.11.2026)."""
+    shut = lock is not None and not prlaas.allows(lock, 'middels')
+    out = []
+    for n in noted or []:
+        note = n.get('note') or ''
+        try: fid = int(n.get('id')); score = float(n.get('score') or 0)
+        except (TypeError, ValueError): continue
+        if fid in new_ids or fid in hfb or fid in gfb or (n.get('status') or 'new') != 'new': continue
+        nums = {int(x) for x in PR_REF.findall(note)}
+        if not NOTE_TEK.match(note) or NOTE_GRUNN.match(note) or (nums and not nums <= set(dead)) or KLYNGE_REF.search(note) or score < MIN_FIX: continue
+        if shut and NOTE_LAAS.search(note): continue
+        out.append({'id': fid, 'type': 'teknisk', 'score': score, 'klynge': None, 'topic': n.get('topic'), 'ts': n.get('ts'), 'venter': True})
+    return sorted(out, key=lambda f: (-f['score'], -(ts(f['ts']).timestamp() if ts(f['ts']) else 0)))
+
+
+def window_full(noted):
+    """True when the noted window is full and its lightest row still weighs MIN_FIX or more: a technical feedback of that weight may be
+    outside it and not wait (28.11.2026: 88 grounding reports noted with weight 5 filled it, and five technical ones fell out)."""
+    try: return len(noted or []) >= NOTED_MAX and min(float(n.get('score') or 0) for n in noted) >= MIN_FIX
+    except (TypeError, ValueError): return False
+
+
+def last_kind(what):
+    """What the last fix was, from the lock's message (tools/triage/laas.py siste): 'klynge', 'fb' (`#N`), or None."""
+    w = (what or '').strip()
+    return 'klynge' if w.startswith('klynge:') else 'fb' if re.match(r'(tilbakemelding\s+)?#\d+', w) else None
+
+
+def order(fix_cl, fix_fb, last_fix=None):
+    """The one list Opus takes the first of: [('klynge', c) | ('fb', f)]. The players come first: the error list's clusters and the
+    players' reports, each by its weight; the regression's red tests after them (Jonas 28.11.2026, «kjør på»: the players' reports
+    before the red tests). And of the two kinds from the players, the one the last fix was not goes first, so the reports get every
+    other run while both wait: 20.–28.11.2026 the clusters took 20 Opus runs, the red tests 10 and the reports none. With no history
+    the error list goes first (a crash before a bug)."""
+    cl = [('klynge', c) for c in fix_cl if not c.get('regresjon')]; reg = [('klynge', c) for c in fix_cl if c.get('regresjon')]
+    fb = [('fb', f) for f in fix_fb]
+    return (fb + cl if last_kind(last_fix) == 'klynge' else cl[:1] + fb + cl[1:] if last_kind(last_fix) == 'fb' else cl + fb) + reg
+
+
 def reward_candidates(noted, pr_state, released):
     """[(feedback id, PR number)] for the noted feedback whose note names a merged PR that has reached main.
     pr_state(n) -> the PR dict (or None); released(pr) -> True when its commit is on main."""
@@ -301,9 +361,9 @@ def reg_clusters(reg_issues, cover):
     return out
 
 
-def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=(), reg=(), cover=None):
+def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=(), reg=(), cover=None, last_fix=None):
     """Everything above, without fetching anything: the clusters, the feedback sorted, and whether Opus is needed. reg: the open
-    `regresjon` issues; cover(test) -> the files the test covers."""
+    `regresjon` issues; cover(test) -> the files the test covers; last_fix: what the last Opus fix was taken for (the lock's message)."""
     cls = clusters(errors)
     fb = [classify_feedback(r, cls) for r in rows or []]
     for f in fb:
@@ -320,8 +380,11 @@ def decide(rows, noted, errors, prs, last_run_ts, now, lock, issues=(), reg=(), 
     allowed = lambda c: prlaas.allows(lock, c['risiko'], c.get('files') or ([c['file']] if c.get('file') else []))   # (one hoy, three middels, never the same file)
     fix_cl = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and allowed(c)]
     fix_fb = [f for f in fb if f['type'] == 'teknisk' and not f['klynge'] and f['id'] not in hfb and f['id'] not in gfb and f['score'] >= MIN_FIX]
+    dead = {p.get('number') for p in prs or [] if p.get('state') != 'open' and not p.get('merged_at') and ts(p.get('closed_at')) and (now - ts(p.get('closed_at'))).total_seconds() > HANDLED_DAYS * 86400}
+    venter = waiting(noted, hfb, gfb, {f['id'] for f in fb}, lock, dead)   # (the noted ones that still wait: they stay in the queue until a PR names them)
+    fix_fb = sorted(fix_fb + venter, key=lambda f: -f['score'])   # (stable: a new one before a waiting one of the same weight)
     blocked = [c for c in cls if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX and not allowed(c)]
-    return {'klynger': cls, 'tilbakemeldinger': fb, 'rett': fix_cl, 'rett_fb': fix_fb, 'sperret': blocked, 'oppgitt': sorted(gcl) + ['#%d' % n for n in sorted(gfb)],
+    return {'klynger': cls, 'tilbakemeldinger': fb, 'rett': fix_cl, 'rett_fb': fix_fb, 'venter': venter, 'koe': order(fix_cl, fix_fb, last_fix), 'sperret': blocked, 'oppgitt': sorted(gcl) + ['#%d' % n for n in sorted(gfb)],
             'onsker': [f for f in fb if f['type'] in ('ønske', 'balanse')], 'uklare': [f for f in fb if f['type'] == 'uklar'],
             'grunn': [f for f in fb if f['type'] == 'grunnstøting']}
 
@@ -334,11 +397,15 @@ def opus_budget(total, steps):
 
 def summary(d, rewards, noted_n, opus_igjen=None):
     nye_tek = [c for c in d['klynger'] if c['ny'] and not c['behandlet'] and c['score'] >= MIN_FIX] + [f for f in d['tilbakemeldinger'] if f['type'] == 'teknisk']
-    ingenting = not d['tilbakemeldinger'] and not nye_tek and not rewards
     want = bool(d['rett'] or d['rett_fb'])
-    return {'ingenting': ingenting, 'trenger_opus': want and (opus_igjen is None or opus_igjen > 0), 'opus_igjen': opus_igjen,
+    trenger = want and (opus_igjen is None or opus_igjen > 0)
+    # (a noted feedback that waits is something to do only when Opus can take it now: with the cap used the hour is quiet, as before)
+    ingenting = not d['tilbakemeldinger'] and not nye_tek and not rewards and not (trenger and d.get('venter'))
+    koe = d.get('koe') or order(d['rett'], d['rett_fb'])
+    return {'ingenting': ingenting, 'trenger_opus': trenger, 'opus_igjen': opus_igjen,
             'opus_taket_naadd': want and opus_igjen is not None and opus_igjen <= 0, 'nye_tilbakemeldinger': len(d['tilbakemeldinger']),
-            'nye_tekniske': len(nye_tek), 'kan_rettes': [c['id'] for c in d['rett']] + ['#%s' % f['id'] for f in d['rett_fb']],
+            'nye_tekniske': len(nye_tek), 'kan_rettes': [x['id'] if k == 'klynge' else '#%s' % x['id'] for k, x in koe],
+            'venter_tekniske': [f['id'] for f in d.get('venter') or []],
             'sperret_av_pr_laasen': [c['id'] for c in d['sperret']], 'venter_paa_jonas': d.get('oppgitt', []), 'onsker_og_balanse': len(d['onsker']), 'uklare': len(d['uklare']), 'grunnstotinger': len(d.get('grunn', [])),
             'belonnet': [{'tilbakemelding': f, 'pr': p} for f, p in rewards], 'notert_for': noted_n}
 
@@ -354,6 +421,9 @@ def draft(d, s):
         L += ['', 'Gitt opp etter to forsøk, venter på Jonas (en åpen sak `trenger-jonas` på GitHub; lukk den for å prøve igjen): ' + ', '.join('`klynge:%s`' % x if not x.startswith('#') else 'tilbakemelding %s' % x for x in d['oppgitt'])]
     if d['sperret']:
         L += ['', 'Venter på PR-låsen (en middels/høy PR venter på Jonas, under 24 timer): ' + ', '.join('`klynge:%s`' % c['id'] for c in d['sperret'])]
+    if d.get('venter'):
+        L += ['', 'Tekniske tilbakemeldinger som er notert og venter på retting: ' + ', '.join('#%s' % f['id'] for f in d['venter'][:40]) +
+              '. De står i køen til en PR nevner dem (`tilbakemelding #N`), en sak `trenger-jonas` åpnes, eller notatet ikke lenger begynner med «teknisk».']
     if s['belonnet']:
         L += ['', '## Rettet og sluppet: takk-haill sendt', ''] + ['- tilbakemelding #%s (PR #%s)' % (b['tilbakemelding'], b['pr']) for b in s['belonnet']]
     if d.get('grunn'):
@@ -417,7 +487,11 @@ def real_run(a):
             try: p['files'] = [f['filename'] for f in gh('repos/%s/pulls/%d/files?per_page=100' % (REPO, p['number'])) or []]
             except Exception as e: why.append(str(e)); prs = None; break
     lock = prlaas.decide(prs or [], now) if prs is not None else {'lav': False, 'hoy': False, 'middels': False, 'middels_hoy': False, 'filer': [], 'blokkert_av': [], 'lukk': []}
-    d = decide(fbd.get('rows'), fbd.get('noted'), tech.get('errors'), prs or [], (fbd.get('last_run') or {}).get('ts'), now, lock, issues or [], reg, reg_cover)
+    import laas
+    try: forrige = laas.last_what(ROOT, 'origin', 72)
+    except Exception as e: forrige = None; why.append('Forrige retting: %s' % e)   # (without it the error list goes first, as before)
+    d = decide(fbd.get('rows'), fbd.get('noted'), tech.get('errors'), prs or [], (fbd.get('last_run') or {}).get('ts'), now, lock, issues or [], reg, reg_cover, forrige)
+    if window_full(fbd.get('noted')): why.append('De %d tyngste noterte fyller vinduet: tekniske tilbakemeldinger med lav vekt kan mangle i køen. Senk vekten på det som ikke skal rettes (grunnstøtinger noteres med 2)' % NOTED_MAX)
     rewards = []
     if a.belonn and prs is not None and not a.test:
         git('fetch', '-q', '--depth=200', 'origin', '+main:refs/remotes/origin/main')
@@ -435,8 +509,7 @@ def real_run(a):
                 else: why.append('fixed #%s: %s' % (fid, r.get('why')))
             except SystemExit as e: why.append('fixed #%s: %s' % (fid, e))
     if prs is None:   # without the PRs nothing is known about what is handled: never wake Opus blind
-        d['rett'], d['rett_fb'] = [], []
-    import laas
+        d['rett'], d['rett_fb'], d['koe'], d['venter'] = [], [], [], []
     try: igjen, igjen_steg = opus_budget(laas.takes(ROOT, 'origin', 24), laas.takes(ROOT, 'origin', 24, kind='steg'))
     except Exception as e: igjen = igjen_steg = 0; why.append('Opus-telleren: %s' % e)   # without the count, no Opus: never past the cap blind
     s = summary(d, rewards, len(fbd.get('noted') or []), igjen)
@@ -447,8 +520,9 @@ def real_run(a):
     open(os.path.join(a.out, 'rapport-utkast.md'), 'w', encoding='utf-8').write(draft(d, s))
     print('%d nye tilbakemeldinger (%d tekniske, %d ønsker/balanse, %d uklare, %d grunnstøtinger), %d klynger i feillista, %d nye tekniske å se på' % (
         len(d['tilbakemeldinger']), sum(f['type'] == 'teknisk' for f in d['tilbakemeldinger']), len(d['onsker']), len(d['uklare']), len(d.get('grunn', [])), len(d['klynger']), s['nye_tekniske']))
-    for c in d['rett'][:5]: print('  rett: klynge:%s score %s risiko %s  %s  (%s)' % (c['id'], c['score'], c['risiko'], c['msg'][:80], c['file'] or c['src']))
-    for f in d['rett_fb'][:5]: print('  rett: tilbakemelding #%s score %s' % (f['id'], f['score']))
+    for k, x in d['koe'][:8]:
+        if k == 'klynge': print('  rett: klynge:%s score %s risiko %s  %s  (%s)' % (x['id'], x['score'], x['risiko'], x['msg'][:80], x['file'] or x['src']))
+        else: print('  rett: tilbakemelding #%s score %s%s' % (x['id'], x['score'], ' (notert, venter)' if x.get('venter') else ''))
     for c in d['sperret'][:5]: print('  venter på PR-låsen: klynge:%s (%s)' % (c['id'], c['risiko']))
     for b in rewards: print('  takk-haill: tilbakemelding #%s (PR #%s er hos spillerne)' % b)
     for w in why: print('  FEIL: ' + w)
@@ -584,13 +658,56 @@ def selftest():
     iss_fb = [{'number': 91, 'state': 'open', 'title': 'Trenger Jonas: tilbakemelding #16', 'body': '- tilbakemelding #16'}]
     eq('oppgitt tilbakemelding', summary(decide([R[5]], [], [], [], iso(1), now, open_lock, iss_fb), [], 0)['trenger_opus'], False)
     eq('oppgitt i utkastet', 'Gitt opp etter to forsøk' in draft(decide([], [], E, [], iso(6), now, open_lock, iss), summary(decide([], [], E, [], iso(6), now, open_lock, iss), [], 0)), True)
-    # the budget: 2 a day, at most 1 of them on a queue step, and a step only when one is left for a fix after it
-    eq('budsjett: ingen brukt', opus_budget(0, 0), (4, 1))
-    eq('budsjett: én retting brukt, ett steg igjen', opus_budget(1, 0), (3, 1))
-    eq('budsjett: ett steg brukt, ingen flere steg', opus_budget(1, 1), (3, 0))
-    eq('budsjett: tre brukt, den siste er reserven til en feil', opus_budget(3, 0), (1, 0))
-    eq('budsjett: fire brukt', opus_budget(4, 0), (0, 0))
-    eq('budsjett: aldri under null', opus_budget(5, 1), (-1, 0))
+    # a noted technical feedback with no PR stays in the queue (28.11.2026: before, klynge.py saw only the feedback not noted yet, and the
+    # routine notes it in the same run, so one that came in an hour with the Opus cap used was never looked at again: 0 of 30 Opus
+    # runs 20.–28.11 went to a player's report). It leaves the queue by a PR naming it, an issue trenger-jonas, Jonas' own status, or
+    # a note that no longer starts with «teknisk»
+    N = [{'id': '31', 'ts': iso(50), 'topic': 'bug', 'note': 'teknisk: gjesteboka reagerer ikke ved trykk (iOS, v2)', 'score': '3', 'status': 'new'},
+         {'id': 32, 'ts': iso(40), 'topic': 'bug', 'note': 'Teknisk, driftsplanen står stille. Opus-taket nådd, venter', 'score': 4.5, 'status': 'new'},
+         {'id': 33, 'ts': iso(30), 'topic': 'idea', 'note': 'ønske: flere båter', 'score': 1, 'status': 'new'},
+         {'id': 34, 'ts': iso(30), 'topic': 'bug', 'note': 'teknisk: rettet i https://github.com/x/y/pull/40', 'score': 3, 'status': 'new'},
+         {'id': 35, 'ts': iso(30), 'topic': 'bug', 'note': 'teknisk: krasj, klynge:%s' % krasj['id'], 'score': 5, 'status': 'new'},
+         {'id': 36, 'ts': iso(30), 'topic': 'bug', 'note': 'teknisk: Jonas har svart', 'score': 3, 'status': 'seen'},
+         {'id': 37, 'ts': iso(30), 'topic': 'bug', 'note': 'rettet: var teknisk, ute i versjon v3', 'score': 3, 'status': 'new'},
+         {'id': 38, 'ts': iso(30), 'topic': 'perf', 'note': 'teknisk: litt hakking', 'score': 2, 'status': 'new'},
+         {'id': 39, 'ts': iso(20), 'topic': 'bug', 'note': 'teknisk: gitt opp', 'score': 3, 'status': 'new'},
+         {'id': 40, 'ts': iso(10), 'topic': 'bug', 'note': 'teknisk: har en PR som nevner den', 'score': 3, 'status': 'new'},
+         {'id': 41, 'ts': iso(5), 'topic': 'bug', 'note': None, 'score': None, 'status': 'new'},
+         {'id': 42, 'ts': iso(4), 'topic': 'bug', 'note': 'teknisk: grunnstøting styrt av route, spillerens svar «spillets feil», 4,7 knop', 'score': 5, 'status': 'new'},
+         {'id': 43, 'ts': iso(4), 'topic': 'bug', 'note': 'grunnstøting: rute, 5 knop, kartdybde 3 m', 'score': 5, 'status': 'new'}]
+    kan = lambda *a, **k: summary(decide(*a, **k), [], 0)['kan_rettes']
+    eq('et teknisk notat som bare nevner en grunnstøting, venter', [f['id'] for f in waiting([{'id': 44, 'ts': iso(3), 'note': 'teknisk: slept inn gang på gang uten grunnstøting', 'score': 5, 'status': 'new'}], set(), set())], [44])
+    eq('vinduet fullt av tunge notater varsles', (window_full([{'score': 5}] * NOTED_MAX), window_full([{'score': 5}] * (NOTED_MAX - 1) + [{'score': 2}]), window_full([{'score': 5}] * 20)), (True, False, False))
+    eq('notert teknisk uten PR står i køen, høyest vekt først', kan([], N, [], [], iso(1), now, open_lock), ['#32', '#40', '#39', '#31'])
+    eq('notert: ute av køen med PR som nevner den, og med en sak trenger-jonas', kan([], N, [], [{'number': 7, 'state': 'open', 'title': 't', 'body': 'tilbakemelding #40'}], iso(1), now, open_lock,
+       [{'state': 'open', 'title': 'Trenger Jonas: tilbakemelding #39', 'body': ''}]), ['#32', '#31'])
+    s = summary(decide([], N, [], [], iso(1), now, open_lock), [], 0)
+    eq('notert som venter: Opus trengs, og det er noe å gjøre', (s['trenger_opus'], s['ingenting'], s.get('venter_tekniske')), (True, False, [32, 40, 39, 31]))
+    s = summary(decide([], N, [], [], iso(1), now, open_lock), [], 0, 0)
+    eq('notert som venter med taket nådd: stille (ingen rapport hver time)', (s['trenger_opus'], s['ingenting'], s['opus_taket_naadd']), (False, True, True))
+    NL = [{'id': 51, 'ts': iso(9), 'note': 'teknisk: knappen virker ikke. Venter på PR-låsen (28.11).', 'score': 3, 'status': 'new'}, {'id': 52, 'ts': iso(8), 'note': 'teknisk: annen feil', 'score': 3, 'status': 'new'}]
+    eq('gitt opp for PR-låsen: venter mens låsen er stengt, tilbake når den er åpen', (kan([], NL, [], [], iso(1), now, {'lav': True, 'middels_hoy': False}), kan([], NL, [], [], iso(1), now, open_lock)), (['#52'], ['#52', '#51']))
+    NP = [{'id': 53, 'ts': iso(9), 'note': 'teknisk: feil, PR https://github.com/x/y/pull/60', 'score': 3, 'status': 'new'}]
+    pr60 = lambda **k: [dict({'number': 60, 'state': 'closed', 'title': 't', 'body': ''}, **k)]
+    eq('PR-en i notatet lukket uten fletting for lenge siden: venter igjen; flettet, åpen eller nylig lukket: ikke', (kan([], NP, [], pr60(closed_at=iso(24 * 5)), iso(1), now, open_lock), kan([], NP, [], pr60(closed_at=iso(24 * 5), merged_at=iso(24 * 5)), iso(1), now, open_lock),
+       kan([], NP, [], pr60(state='open'), iso(1), now, open_lock), kan([], NP, [], pr60(closed_at=iso(24)), iso(1), now, open_lock), kan([], NP, [], [], iso(1), now, open_lock)), (['#53'], [], [], [], []))
+    eq('en ny tilbakemelding står ikke to ganger', kan([dict(R[5], id=31)], N, [], [], iso(1), now, open_lock).count('#31'), 1)
+    eq('ventende i utkastet', 'venter på retting: #32, #40' in draft(decide([], N, [], [], iso(1), now, open_lock), s), True)
+    # the players' reports before the regression's red tests, and after a fix of a cluster a player's report is next (and the other way)
+    eq('spillerrapport foran rød test', kan(R2[:1], [], [], [], iso(1), now, open_lock, (), REG, cov), ['#21', 'bbbb2222', 'aaaa1111'])
+    eq('feilliste, spillerrapport, rød test', kan(R2[:1], [], E, [], iso(6), now, open_lock, (), REG, cov)[-3:], ['#21', 'bbbb2222', 'aaaa1111'])
+    eq('annenhver: etter en klynge går spillerrapporten først', kan(R2[:1], [], E, [], iso(6), now, open_lock, (), REG, cov, last_fix='klynge:0123abcd')[0], '#21')
+    eq('annenhver: etter en spillerrapport går klyngen først', kan(R2[:1], [], E, [], iso(6), now, open_lock, (), REG, cov, last_fix='#12')[0], krasj['id'])
+    eq('annenhver: uten historikk går feillista først', kan(R2[:1], [], E, [], iso(6), now, open_lock, (), REG, cov)[0], krasj['id'])
+    eq('annenhver: en rød test går aldri foran', kan(R2[:1], [], [], [], iso(1), now, open_lock, (), REG, cov, last_fix='#12'), ['#21', 'bbbb2222', 'aaaa1111'])
+    eq('forrige retting leses av låsens melding', [last_kind(x) for x in ('klynge:0123abcd', '#12', 'tilbakemelding #12', '', None, 'steg 143')], ['klynge', 'fb', 'fb', None, None, None])
+    # the budget: 6 a day, at most 1 of them on a queue step, and a step only when one is left for a fix after it
+    eq('budsjett: ingen brukt', opus_budget(0, 0), (6, 1))
+    eq('budsjett: én retting brukt, ett steg igjen', opus_budget(1, 0), (5, 1))
+    eq('budsjett: ett steg brukt, ingen flere steg', opus_budget(1, 1), (5, 0))
+    eq('budsjett: fem brukt, den siste er reserven til en feil', opus_budget(5, 0), (1, 0))
+    eq('budsjett: seks brukt', opus_budget(6, 0), (0, 0))
+    eq('budsjett: aldri under null', opus_budget(7, 1), (-1, 0))
     # the Opus cap: a fix waits when the day's runs are used, the triage goes on
     d = decide([], [], E, [], iso(6), now, open_lock)
     eq('taket nådd', (summary(d, [], 0, 0)['trenger_opus'], summary(d, [], 0, 0)['opus_taket_naadd'], summary(d, [], 0, 0)['ingenting']), (False, True, False))

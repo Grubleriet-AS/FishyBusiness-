@@ -1,5 +1,7 @@
   // --- the patch notes: what the latest updates brought, newest first; a new id at the top shows a badge until the app is opened
   const PATCH = [
+    ['krok-281126', '28.11.2026', 'Krokbytte alene om bord', 'Changing hooks alone aboard', [
+       ['Alene om bord ble bytte av kroker og nytt juksasett aldri ferdig når du hvilte i naustet eller på rorbua, eller var sliten: nedtellingen sto stille, og båten kom seg ikke fra kai. Nå går du om bord og gjør jobben, og går opp igjen og hviler når den er ferdig.', 'Alone aboard, changing hooks and fitting a new jig set never finished while you rested in the boathouse or at a rorbu, or were tired: the countdown stood still, and the boat could not leave the quay. Now you go aboard and do the job, and go up again to rest when it is done.']]],
     ['batkjop-281126', '28.11.2026', 'Båtkjøpet', 'Buying a boat', [
        ['Et båtkjøp spør først: knappen blir «Bekreft kjøp», og over den står lånene, terminbeløpet i måneden, egenkapitalen og at kjøpet ikke kan angres. Trykk igjen for å kjøpe.', 'A boat purchase asks first: the button reads «Confirm purchase», and above it stand the loans, the monthly payment, the equity and that the purchase cannot be undone. Tap again to buy.'],
        ['Kortet «Dette endrer seg» sier hvor båten ikke kan fiske etter lengden sin, som innenfor fjordlinjene og grunnlinjen.', 'The card «This changes» says where the boat may not fish by her length, such as inside the fjord lines and the baseline.'],
