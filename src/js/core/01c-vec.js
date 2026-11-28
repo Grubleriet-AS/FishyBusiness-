@@ -148,7 +148,14 @@ function vecWorker(){
       'const inflate = async b => new Uint8Array(await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).arrayBuffer());\n' +
       'onmessage = async e => { const D = e.data; try { for (const n of ["bld", "road", "bridge", "pier", "quay", "npc"]) if (D[n]) D[n] = await inflate(D[n]); const r = vecDecode(D), tr = []; for (const o of [r.bld, r.roads]) if (o) for (const v of Object.values(o)) if (ArrayBuffer.isView(v)) tr.push(v.buffer); postMessage({id:D.id, r}, tr); } catch (err){ postMessage({id:D.id, err:String(err)}); } };';
     const w = new Worker(URL.createObjectURL(new Blob([src], {type:'text/javascript'})));
-    w.onmessage = e => { const {id, r, err} = e.data, q = VEC.wait.get(id); VEC.wait.delete(id); if (!q) return; if (err){ console.error('vec: ' + err); vecDecodeHere(q.pk); return; } VEC.ms += performance.now() - q.t0; q.pk.vecQ = false; vecFinish(r); };
+    // iOS Safari's read of the bytes in the worker can fail for a moment (NotReadableError, klynge:695a13c5): tried once more there after
+    // a short pause, then decoded here, which gets round it, so it is no error; any other error is logged and decoded here at once
+    w.onmessage = e => { const {id, r, err} = e.data, q = VEC.wait.get(id); VEC.wait.delete(id); if (!q) return;
+      if (err){ const io = /NotReadableError/.test(err);
+        if (io && !q.re){ setTimeout(() => { const pk = q.pk; if (!pk.buf){ pk.vecQ = false; return; } if (VEC.worker !== w){ vecDecodeHere(pk); return; }
+          const D = vecInput(pk, false), n = ++VEC.id; D.id = n; VEC.wait.set(n, {pk, t0:q.t0, re:1}); w.postMessage(D, Object.keys(VECN).filter(k => D[k]).map(k => D[k].buffer)); }, 300); return; }
+        if (!io) console.error('vec: ' + err); vecDecodeHere(q.pk); return; }
+      VEC.ms += performance.now() - q.t0; q.pk.vecQ = false; vecFinish(r); };
     w.onerror = e => { console.error('vec worker', e.message || e); e.preventDefault && e.preventDefault(); VEC.worker = false; for (const q of VEC.wait.values()) vecDecodeHere(q.pk); VEC.wait.clear(); };
     VEC.worker = w;
   } catch (e){ VEC.worker = false; }
