@@ -6720,3 +6720,7 @@
 2026-11-27 17:13	ccr-26223d0c-yhvnxv	d0761e2+	turtest	OK	6	lite	samtidig	
 2026-11-27 17:13	ccr-26223d0c-yhvnxv	d0761e2+	admintest	OK	15	lite	samtidig	
 2026-11-27 17:13	ccr-26223d0c-yhvnxv	d0761e2+	cloudtest	FEIL	26	lite	samtidig	avsluttet med kode 1
+2026-11-28 00:31	ccr-5e1ba2f4-pusvyd	a395c50+	boottest	OK	12	lite	samtidig	
+2026-11-28 00:31	ccr-5e1ba2f4-pusvyd	a395c50+	trip2	OK	12	lite	samtidig	
+2026-11-28 00:35	ccr-5e1ba2f4-pusvyd	a395c50+	dyntest	FEIL	254	lite	samtidig	FEIL the tactical diameter is under 7.5 lengths and the advance under 7 (IMO asks 5 and 4.5 of ships over 100 m; the planing boats and the big ones run wide int
+2026-11-28 00:35	ccr-5e1ba2f4-pusvyd	a395c50+	autonavtest	OK	25	lite	samtidig	

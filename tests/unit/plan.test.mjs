@@ -151,6 +151,17 @@ export default function (t){
     t.ok(K.planSkip(Object.assign({}, ship, {x:1040, z:30}), 1030, 10, a, b, own, 45.4, false), 'med midten innenfor er hun det');
     t.ok(K.planSkip({what:'båt', id:'båt#1080,0', x:1080, z:0, R:20}, 1050, 0, a, b, own, 45.4, false), 'en bøye regnes etter kanten av sirkelen hun svinger på');
     t.ok(!K.planSkip({what:'grunn', id:'1,2', x:500, z:0}, 500, 0, a, b, own, 45.4, false) && K.planSkip({what:'grunn', id:'1,2', x:500, z:0}, 500, 0, a, b, own, 45.4, true), 'grunt vann midt på veien teller, unntatt når det graves'); }
+  // by a berth she manoeuvres at (zn, G2): her own quay is not let through whole; how near she may be it grows evenly from the berth
+  // (the skiff at 66 of 77 harbours on the way in, --alle 28.11.2026: the whole quay let through within 0.9 of her length and the
+  // full 2 m asked from there, so the manoeuvre the search found was «in the quay» a metre past that line in the check)
+  { const L = 6, own = 9, a = [0, 0], b = [1000, 0], zn = {side:2, a:null, b:{r:own, n0:0.25}}, kai = d => ({what:'kai', id:'enhet#x', x:1003, z:30, d}), at = D => [1000 - D, 0];
+    t.ok(K.planSkip(kai(0.3), ...at(0), a, b, own, L, false, zn) && !K.planSkip(kai(0.1), ...at(0), a, b, own, L, false, zn) && !K.planSkip(kai(0), ...at(2), a, b, own, L, false, zn), 'ved kaiplassen kan hun ligge 0,3 m fra kaia, men ikke nærmere enn hun ligger der, og ikke i den');
+    t.ok(K.planSkip(kai(0.3), ...at(3), a, b, own, L, false, zn) && !K.planSkip(kai(0.3), ...at(6), a, b, own, L, false, zn) && K.planSkip(kai(1.2), ...at(6), a, b, own, L, false, zn), 'en halv båtlengde ut holder fortsatt 0,3 m; seks meter ut må hun ha vel en meter');
+    let jump = 0, prev = null, jumpAt = null; for (let D = 0; D <= 12; D += 0.05){ let need = 0; while (need < 3 && !K.planSkip(kai(need), ...at(D), a, b, own, L, false, zn)) need += 0.01; if (need >= 3) need = 2; if (prev != null && Math.abs(need - prev) > jump){ jump = Math.abs(need - prev); jumpAt = [+D.toFixed(2), +prev.toFixed(2), +need.toFixed(2)]; } prev = need; }
+    t.ok(jump < 0.05, 'kravet øker jevnt ut til full margin ved sonens kant, uten sprang (5 cm steg gir under 5 cm endring)', jumpAt);
+    t.ok(!K.planSkip(kai(1.9), ...at(9.5), a, b, own, L, false, zn), 'utenfor sonen slippes ingenting forbi');
+    const z2 = {side:2, a:{r:own, n0:0}, b:null}; t.ok(K.planSkip(kai(0), 995, 0, a, b, own, L, false, z2) && K.planSkip(kai(0), 2, 0, a, b, own, L, false, z2), 'enden uten manøver har regelen som før (alt innen 0,9 båtlengder); en kaiplass som selv ligger i kaia (n0 0), slipper den forbi der');
+    t.ok(K.planSkip({what:'grunn', id:'1,2', x:1001, z:0}, 1000, 0, a, b, own, L, false, zn) && K.planSkip({what:'båt', id:'båt#1004,0', x:1004, z:0, R:3, box:[1, 0, 3, 1]}, 1000, 0, a, b, own, L, false, zn), 'vannet og et fartøy som ligger stille, regnes som før'); }
   // a vessel lying still along a floating dock (Urangsvåg with the skiff, steg 142): shut as her own box widened by the margins, not as
   // a circle round her middle as wide as she is long, which shut the only way past her
   { const seen = new Map(), sk = {L:5.9, B:2.45, T:0.6}, h = {what:'båt', id:'båt#100,100', x:100, z:100, R:Math.hypot(8, 2.5), box:[1, 0, 8, 2.5]}, bl = K.planBlockOf(h, sk, 2, 2, 1, seen), half = sk.B / 2 + 2;

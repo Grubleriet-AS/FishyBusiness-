@@ -299,8 +299,20 @@ function planBlockOf(hit, boat, side, c2, tries, seen){ const key = hit.what + '
 // lying still (her box) by her middle, as the observer counts her (Sandshamn with the autoliner, steg 142: a ship of 75 m whose middle
 // lay 97 m from the quay was let pass by her nearest point, and touched); a boat on a mooring buoy by the edge of the circle she swings
 // on; a touch with a place of its own (the land's, by its id) where it is; a thing, whose touch is its middle, by where she is
-function planSkip(h, X, Z, a, b, own, L, dig){ const nearE = (x, z, r) => Math.hypot(x - a[0], z - a[1]) < r || Math.hypot(x - b[0], z - b[1]) < r;
-  return h.what === 'grunn' ? dig || nearE(h.x, h.z, own) : h.box ? nearE(h.x, h.z, own) : h.R ? nearE(h.x, h.z, own + h.R) : planTouchP(h) ? nearE(h.x, h.z, own) : nearE(X, Z, 0.9 * L); }
+// zn: an end she manoeuvres at with her heading (planBane's opt.from and opt.to, G2), {side, a:{r, n0}, b:{r, n0}} (a or b null:
+// that end as above). There the land, a quay and a thing are not let through whole: she may be nearer them than the margin, as a
+// boat by her quay is, but not in them. How near by how far her middle is from the berth: n0 m (what she has at the berth itself,
+// 0.3 m at most) within half her length, then evenly more out to the margin (side) at r m. Evenly, so the search for the manoeuvre
+// and the check of the bane ask the same of the same place: with the whole berth let through within 0.9 of her length and the full
+// margin asked from there, the check found the manoeuvre «in the quay» a metre past that line, and it was thrown away at 66 of 77
+// harbours for the skiff on the way in (--alle, 28.11.2026); and within the line her stern could swing through the quay
+function planSkip(h, X, Z, a, b, own, L, dig, zn){ const nearE = (x, z, r) => Math.hypot(x - a[0], z - a[1]) < r || Math.hypot(x - b[0], z - b[1]) < r;
+  if (h.what === 'grunn') return dig || nearE(h.x, h.z, own); if (h.box) return nearE(h.x, h.z, own); if (h.R) return nearE(h.x, h.z, own + h.R);
+  if (!zn || (!zn.a && !zn.b)) return planTouchP(h) ? nearE(h.x, h.z, own) : nearE(X, Z, 0.9 * L);
+  for (const [E, z] of [[a, zn.a], [b, zn.b]]){ if (!z) continue; const D = Math.hypot(X - E[0], Z - E[1]), f0 = 0.5 * L; if (D >= z.r) continue;
+    return (h.d || 0) >= (D <= f0 ? z.n0 : z.n0 + (zn.side - z.n0) * (D - f0) / Math.max(1e-6, z.r - f0)) - 1e-9; }
+  const o1 = (x, z, r) => (!zn.a && Math.hypot(x - a[0], z - a[1]) < r) || (!zn.b && Math.hypot(x - b[0], z - b[1]) < r);
+  return planTouchP(h) ? o1(h.x, h.z, own) : o1(X, Z, 0.9 * L); }
 // Whether a bane of len m is a clear detour, held against the way the search first found with only what is solid shutting a cell
 // (h0 m, planMake's preDone: land and a deck too low for her, on the field's own cells, pulled straight). No reference is asked,
 // and that way is never longer than the shortest she can sail with her margins. (The way over the chart's cells of 100 m was tried
@@ -348,6 +360,12 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
       for (let z = z0; z < z1 + 6000; z += 6000) for (let x = x0; x < x1 + 6000; x += 6000) await mapNeed({x:Math.min(x, x1) / 1000, y:Math.min(z, z1) / 1000}, 4.5);
       await farbBlocks(x0, z0, x1, z1); return await farbRunA(planCoarseG(ax, az, bx, bz, grow)); } catch (e){ return null; } };
   J.co = await chart(0); let grow = 0;
+  // (searched from the end that lies more shut in, and the way turned round after: from a harbour the search has a few cells to
+  // look at till it is out, and from open water towards a harbour it floods the sea round the mouth first. --alle 28.11.2026: out
+  // of Smøla nord and Varangerbotn with the skiff a bane, in to them «the search grew too large» after 30 s; and where there is no
+  // way, in said so after 14 to 70 s with no reason, out after 2 to 6 with one. How shut in: the coast's distance at the end)
+  let rev = false; if (!(opt && opt.dig)) try { await farbNeed([a], 0.45); await farbNeed([b], 0.45); const ca = farbCoast(ax, az, 400, true), cb = farbCoast(bx, bz, 400, true); rev = ca === ca && cb === cb && cb < ca - PLAN.revM; } catch (e){}
+  if (rev){ J.a = [bx, bz]; J.b = [ax, az]; }
   PLAN.J = J;
   const send = msg => new Promise(res => { const id = ++PLAN.id; PLAN.wait.set(id, res); w.postMessage(Object.assign({id}, msg)); });
   // Her own berth (the bench's rule, tools/autonav/benk.js: a touch within a length and a half of the ends is the quay she lies at). The land's touch is where it is; a thing's is the thing's middle, which says nothing of where along a
@@ -356,15 +374,20 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
   const seen = new Map();
   // (the water under her counts the same way, by where it is: a naust's slip is dry under her for some metres. The bench has the same
   // rule for what its observer sees of the water; what the game itself calls a grounding always counts there)
-  const skip = (h, X, Z) => planSkip(h, X, Z, [ax, az], [bx, bz], own, boat.L, !!(opt && opt.dig), opt && (opt.from || opt.to) ? own : 0);   // (with a manoeuvre at her berth she is by her own quay all through it)
+  const skip = (h, X, Z) => planSkip(h, X, Z, [ax, az], [bx, bz], own, boat.L, !!(opt && opt.dig), zn);   // (zn: by a berth she manoeuvres at, her own quay by how near she is it, not let through whole; set below, when the map round the ends is in)
   // (the worker keeps the tiles it was given: thrown when the map has changed since, more of it come in or a channel dug, and when they are many)
   { const fv = farbFieldVer(); if (PLAN.ver !== fv || PLAN.sent > 300){ await send({op:'reset'}); PLAN.ver = fv; PLAN.sent = 0; } }
   let r = await send({op:'start', J}), tiles = 0, tries = 0, exp = 0, boatShut = null; const shut = [];   // (shut: what the check on the geometry found and shut, for the answer)
   const o = Object.assign({}, bb, {end:!(opt && opt.end === false)}), sw = {m:side, keel:planKeel(), squat:sq, sqV:P ? v => planSquat(u => dynSquat(P, u, false), v) : null, boats:true, skip}, memo = new Map(), rMin = Math.max(boat.B / 2, bb.R / 16);
   // (the harbour manoeuvres at the ends, where the caller gave her berths, opt.from and opt.to: planEnd's)
   const r2 = v => Math.round(v * 100) / 100;
-  const hv = {dep:!!(opt && opt.from && opt.from.hd != null && !opt.dig), arr:!!(opt && opt.to && opt.to.hd != null && !opt.dig), Dh:Math.max(PLAN.havn.dMin, PLAN.havn.d * boat.L), join:Math.max(8, PLAN.havn.join * boat.L), n:0, drop:[]};
+  const hv = {dep:!!(opt && opt.from && opt.from.hd != null && !opt.dig), arr:!!(opt && opt.to && opt.to.hd != null && !opt.dig), Dh:Math.max(PLAN.havn.dMin, PLAN.havn.d * boat.L), join:Math.max(8, PLAN.havn.join * boat.L), n:0, drop:(opt && opt.hvDrop || []).slice(), why:(opt && opt.hvWhy || []).slice(), ban:{d:[], a:[]}};
   if (hv.dep || hv.arr) try { await farbNeed([a, b], (hv.Dh + 3 * boat.L + 60) / 1000); } catch (e){}
+  // (what she has to the land, the quay and the things at the berth itself, PLAN.havn.fend at most: n0 for the check, n0s for the
+  // search, which asks PLAN.havn.strict more of every place so that what it finds stands in the check)
+  const zn = hv.dep || hv.arr ? {side, a:null, b:null} : null;
+  if (zn){ const HV = PLAN.havn, at0 = (x, z, hd) => { let m = HV.fend; try { farbPose(x, z, hd, boat, Hmin, {m:HV.fend, skip:h => { if (h.what !== 'grunn' && !h.box && !h.R && (h.d || 0) < m) m = h.d || 0; return true; }}); } catch (e){} const n0s = Math.max(0, m - 0.05); return {r:own, n0:Math.max(0, n0s - HV.strict), n0s}; };
+    if (hv.dep) zn.a = at0(ax, az, opt.from.hd); if (hv.arr) zn.b = at0(bx, bz, opt.to.hd); }
   for (;;){
     if (r.need){ const out = [], tr = [];
       for (const [cell, fx, fz] of r.need){ const Tf = F.N * cell; let Y = farbFieldTile(cell, fx, fz); tiles++;
@@ -389,23 +412,24 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
     // The way as a bane she can sail, her hull swept along it on the geometry at the lowest water. An arc that touches is made
     // tighter (she goes slower round it) till it is free or as tight as she can be turned; what touches then shuts the place
     let Q = null, B = null, hit = null, head = null, tail = null;
-    for (let pass = 0; pass < 3; pass++){ let redo = false; hit = null;
+    for (let pass = 0; pass < 3 + 2 * PLAN.havn.retry; pass++){ let redo = false; hit = null;
     // (the first and the last of the way with her heading in it, planHavnG: from her berth to the place she has Dh m along the way
     // the search found, and the same at the other end, sailed backwards. Where there is none, or the sweep below finds a touch within
     // it, that end is as before: the way as it came)
-    { const P = r.path, cum = [0]; for (let i = 1; i < P.length; i++) cum.push(cum[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1])); const tot = cum[P.length - 1];
+    { const P = rev ? r.path.slice().reverse() : r.path, cum = [0]; for (let i = 1; i < P.length; i++) cum.push(cum[i - 1] + Math.hypot(P[i][0] - P[i - 1][0], P[i][1] - P[i - 1][1])); const tot = cum[P.length - 1];
       const along = d => { let i = 1; while (i < P.length - 1 && cum[i] < d) i++; const l = cum[i] - cum[i - 1], u = l > 0 ? Math.max(0, Math.min(1, (d - cum[i - 1]) / l)) : 0; return {x:P[i - 1][0] + (P[i][0] - P[i - 1][0]) * u, z:P[i - 1][1] + (P[i][1] - P[i - 1][1]) * u, psi:Math.atan2(P[i][0] - P[i - 1][0], -(P[i][1] - P[i - 1][1])), i}; };
-      const freeH = e0 => (x, z, psi) => { try { return !farbPose(x, z, psi, boat, Hmin, {m:side, keel:planKeel(), squat:0, boats:true, skip:(h, X, Z) => planSkip(h, X, Z, e0, e0, own, boat.L, false, own)}); } catch (e){ return false; } };
+      const freeH = (e0, z0, ban) => { const zs = {side:side + PLAN.havn.strict, a:{r:z0.r, n0:z0.n0s}, b:null}, rB = Math.max(1, 0.12 * boat.L);
+        return (x, z, psi) => { for (const q of ban) if (Math.hypot(x - q[0], z - q[1]) < rB) return false; try { return !farbPose(x, z, psi, boat, Hmin, {m:side + 2 * PLAN.havn.strict, keel:planKeel(), squat:0, boats:true, skip:(h, X, Z) => planSkip(h, X, Z, e0, e0, own, boat.L, false, zs)}); } catch (e){ return false; } }; };
       // (a manoeuvre found is kept through the plan, PLAN.hvMemo: the second search and each new try come to the same berth and
       // mostly the same place on the way, and searching it again each time took a plan from 6 s to 57)
-      const havn = async (k, bp, H, fr, oo) => { const M = PLAN.hvMemo || (PLAN.hvMemo = new Map()), key = k + ty + '|' + [bp.x, bp.z, H.x, H.z].map(v => Math.round(v / 2)).join(',') + '|' + Math.round(H.psi * 8); if (M.has(key)) return M.get(key); const R = await farbRunA(planHavnG(bp, H, boat.L, boat.B, fr, oo)); M.set(key, R); return R; };
+      const havn = async (k, bp, H, fr, oo) => { const M = PLAN.hvMemo || (PLAN.hvMemo = new Map()), key = k + ty + '|' + [bp.x, bp.z, H.x, H.z].map(v => Math.round(v / 2)).join(',') + '|' + Math.round(H.psi * 8) + '|' + hv.ban[k].map(q => Math.round(q[0] * 2) + ',' + Math.round(q[1] * 2)).join(';'); if (M.has(key)){ const R0 = M.get(key); if (!R0) hv.why.push(k + ':' + (M.get(key + '?') || '')); return R0; } PLAN.hvWhy = ''; const R = await farbRunA(planHavnG(bp, H, boat.L, boat.B, fr, oo)); M.set(key, R); if (!R){ M.set(key + '?', PLAN.hvWhy); hv.why.push(k + ':' + PLAN.hvWhy); } return R; };
       head = null; tail = null; let d0 = 0, d1 = tot;
-      if (hv.dep && tot > hv.Dh * (hv.arr ? 2.6 : 1.4)){ const H = along(hv.Dh), R = await havn('d', {x:ax, z:az, hd:opt.from.hd}, H, freeH([ax, az]), null); if (R){ head = R.pts; d0 = hv.Dh + hv.join; hv.n += R.n; } else hv.dep = false; }
-      if (hv.arr && tot > hv.Dh * (hv.dep ? 2.6 : 1.4)){ const H = along(tot - hv.Dh), R = await havn('a', {x:bx, z:bz, hd:opt.to.hd}, H, freeH([bx, bz]), {kAhead:3, kAstern:1}); if (R){ tail = planHavnRev(R.pts); d1 = tot - hv.Dh - hv.join; hv.n += R.n; } else hv.arr = false; }
+      if (hv.dep && tot > hv.Dh * (hv.arr ? 2.6 : 1.4)){ const H = along(hv.Dh), R = await havn('d', {x:ax, z:az, hd:opt.from.hd}, H, freeH([ax, az], zn.a, hv.ban.d), null); if (R){ head = R.pts; d0 = hv.Dh + hv.join; hv.n += R.n; } else hv.dep = false; }
+      if (hv.arr && tot > hv.Dh * (hv.dep ? 2.6 : 1.4)){ const H = along(tot - hv.Dh), R = await havn('a', {x:bx, z:bz, hd:opt.to.hd}, H, freeH([bx, bz], zn.b, hv.ban.a), {kAhead:3, kAstern:1}); if (R){ tail = planHavnRev(R.pts); d1 = tot - hv.Dh - hv.join; hv.n += R.n; } else hv.arr = false; }
       // (an end with no manoeuvre goes to the harbour's own point as before the manoeuvres, opt.from.px: a bane that came to the
       // berth itself «as it came» swung her into the quay, and the check then shut the berth: Ålesund with kyst21, «no way»)
       { const na = opt && opt.from && opt.from.px != null && !head, nb = opt && opt.to && opt.to.px != null && !tail;
-        if (na || nb) return planBane(na ? {x:opt.from.px, y:opt.from.py} : a, nb ? {x:opt.to.px, y:opt.to.py} : b, type, Object.assign({}, opt, {from:na ? null : opt.from, to:nb ? null : opt.to, keep:true})); }
+        if (na || nb) return planBane(na ? {x:opt.from.px, y:opt.from.py} : a, nb ? {x:opt.to.px, y:opt.to.py} : b, type, Object.assign({}, opt, {from:na ? null : opt.from, to:nb ? null : opt.to, keep:true, hvWhy:hv.why, hvDrop:hv.drop})); }
       const mid = []; if (head){ const J = along(d0); mid.push([J.x, J.z, 0]); } for (let i = 0; i < P.length; i++) if ((!head || cum[i] > d0 + 1) && (!tail || cum[i] < d1 - 1)) mid.push([P[i][0], P[i][1], 0]); if (tail){ const J = along(d1); mid.push([J.x, J.z, 0]); }
       // (to the centimetre, as the plan keeps them, planInto: the bane the minute step builds again from the plan is then the very
       // one that is checked here. With the manoeuvres' corners, whose legs are made for their radius, a bane built from the rounded
@@ -416,7 +440,11 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
       for (let j = 0; j < n; j++) if (!await farbNeed([{x:(Q[i][0] + (Q[i + 1][0] - Q[i][0]) * j / n) / 1000, y:(Q[i][1] + (Q[i + 1][1] - Q[i][1]) * j / n) / 1000}, {x:(Q[i][0] + (Q[i + 1][0] - Q[i][0]) * (j + 1) / n) / 1000, y:(Q[i][1] + (Q[i + 1][1] - Q[i][1]) * (j + 1) / n) / 1000}], 0.4)) return fail({why:'ingen vei', cause:'ukjent', at:[Q[i][0], Q[i][1]]}, {tiles, tries, exp}); }
     for (let guard = 0; guard < 400; guard++){ B = baneBuild(Q, o); Q = B.Q; hit = await farbRunA(baneFriG(B, boat, Hmin, sw, memo)); if (!hit || hit.what === 'ukjent') break;
       if (head || tail){ const hx = hit.px != null ? hit.px : hit.x, hz = hit.pz != null ? hit.pz : hit.z, zr = hv.Dh + hv.join + boat.L, inD = head && Math.hypot(hx - ax, hz - az) < zr, inA = tail && Math.hypot(hx - bx, hz - bz) < zr;
-        if (inD || inA){ if (inD) hv.dep = false; if (inA) hv.arr = false; hv.drop.push(hit.what + ':' + hit.id + '@' + Math.round(hit.x) + ',' + Math.round(hit.z)); redo = true; break; } }
+        // (a touch within the manoeuvre itself: the place she stood at is shut to the harbour search and the manoeuvre found again,
+        // PLAN.havn.retry times; the search asks her hull at its places and half way between, the check every 0.3 m. Past that, or
+        // on the way beyond the manoeuvre, the manoeuvre is given up as before and the end goes to the harbour's point)
+        if (inD || inA){ const kk = inD ? 'd' : 'a', bn = hv.ban[kk], dE = Math.hypot(hx - (inD ? ax : bx), hz - (inD ? az : bz)); if (bn.length < PLAN.havn.retry && dE < hv.Dh + 2){ bn.push([hx, hz]); redo = true; break; } }
+        if (inD || inA){ if (inD) hv.dep = false; if (inA) hv.arr = false; hv.drop.push((inD ? 'd:' : 'a:') + hit.what + ':' + hit.id + '@' + Math.round(hit.x) + ',' + Math.round(hit.z) + ' s' + Math.round(hit.s) + '/' + Math.round(B.len) + ' ' + Math.round(Math.hypot(hx - (inD ? ax : bx), hz - (inD ? az : bz))) + 'm'); redo = true; break; } }
       const p = B.P[hit.i];
       // (water too shallow for her squat at the speed she has there: she goes slower over it, down to BANE.vSlow, before it is shut)
       if (hit.what === 'grunn' && p.vl > BANE.vSlow + 1e-6){ const v2 = r2(Math.max(BANE.vSlow, p.vl / 2));
@@ -426,7 +454,7 @@ async function planBane(a, b, type, opt){ const t0 = performance.now(), ty = typ
         if (ins.length){ if (!(u1 < p.len - 2)) ins[ins.length - 1][3] = c0; Q.splice(p.c, 0, ...ins); } continue; }
       if (p.k !== 'a' || p.r / 2 < rMin) break; Q[p.c][2] = r2(p.r / 2); }
     if (!redo) break; }
-    if (!hit){ PLAN.n.plans++; PLAN.n.tiles += tiles; const R1 = {bane:B, pts:banePts(B), nm:B.len / 1852, ms:0, tiles, tries, exp, Hmin, need:J, shut, h0:r.h0 || 0, havn:{dep:!!head, arr:!!tail, n:hv.n, drop:hv.drop}, ends:{a:{x:a.x, y:a.y}, b:{x:b.x, y:b.y}}};
+    if (!hit){ PLAN.n.plans++; PLAN.n.tiles += tiles; const R1 = {bane:B, pts:banePts(B), nm:B.len / 1852, ms:0, tiles, tries, exp, Hmin, need:J, shut, h0:r.h0 || 0, havn:{dep:!!head, arr:!!tail, n:hv.n, drop:hv.drop, why:hv.why, ban:hv.ban.d.length + hv.ban.a.length, n0:zn ? [zn.a ? zn.a.n0s : null, zn.b ? zn.b.n0s : null] : null}, ends:{a:{x:a.x, y:a.y}, b:{x:b.x, y:b.y}}};
       // (a clear detour: the second search too, and the shorter of the two that the check let through. Only then, so a trip that goes
       // nearly straight is searched once)
       if (!(opt && (opt.dig || opt.soft || opt.alt === false)) && planOmvei(B.len, r.h0)){ let R2 = null; try { R2 = await planBane(a, b, type, Object.assign({}, opt || {}, {soft:true, cap:Math.round(PLAN.omveiCap[0] + PLAN.omveiCap[1] * exp), tries:PLAN.omveiCap[2]})); } catch (e){}
@@ -489,7 +517,8 @@ function planEnd(pid, type, kind){ if (!pid) return null; try { const bp = berth
 // astern changed (kAhead 3, kAstern 1). A generator (a yield every 32 places looked at): {pts (for baneBuild: [X, Z, the corner's
 // radius, the speed, 0, how she lies on the leg and 4 where the radius stands]), len, n} or null where there is none within
 // o.maxN places or o.reach m of the berth
-PLAN.havn = {r:0.8, rMin:5, maxN:2000, cusp:0.5, kSide:4, near:1.0, tol:3, v0:0.5, v1:1.5, d:2.5, dMin:30, join:1.0};
+PLAN.revM = 20;   // (m: the goal is searched from when the coast is this much nearer it than the start)
+PLAN.havn = {r:0.8, rMin:5, maxN:2000, cusp:0.5, kSide:4, near:1.0, tol:3, v0:0.5, v1:1.5, d:2.5, dMin:30, join:1.0, fend:0.3, strict:0.15, retry:6};
 function* planHavnG(bp, goal, L, B, free, o){ o = o || {}; const HV = PLAN.havn, NB = 16, dphi = 2 * Math.PI / NB, r = Math.max(HV.rMin, HV.r * L), tt = r * Math.tan(dphi / 2), chord = 2 * r * Math.sin(dphi / 2), arc = r * dphi;
   const step = Math.max(2.5, Math.min(8, 0.3 * L)), g = Math.max(0.75, Math.min(2, 0.5 * Math.min(step, chord))), sl = Math.max(1.5, Math.min(4, B / 2)), near = HV.near * L, D0 = Math.hypot(goal.x - bp.x, goal.z - bp.z), reach = o.reach || D0 + 3 * L + 20, tol = Math.max(1.5 * g, HV.tol), maxN = o.maxN || HV.maxN;
   const kA = o.kAhead || 1, kS = o.kAstern || 3, kMin = Math.min(kA, kS), cuspC = HV.cusp * L, hg = ((Math.round((goal.psi - bp.hd) / dphi) % NB) + NB) % NB;
@@ -505,11 +534,13 @@ function* planHavnG(bp, goal, L, B, free, o){ o = o || {}; const HV = PLAN.havn,
     if (++n > maxN) break; if (!(n & 31)) yield;
     const psi = bp.hd + h * dphi, sn = Math.sin(psi), cs = Math.cos(psi);
     for (const dir of [1, -1]){ const md = dir > 0 ? 0 : 1, kc = dir > 0 ? kA : kS;
-      { const nx = x + dir * step * sn, nz = z - dir * step * cs; if (free(nx, nz, psi)) add(k, nx, nz, h, step * kc, step, null, md); }
+      { const nx = x + dir * step * sn, nz = z - dir * step * cs; if (free(nx, nz, psi) && free((x + nx) / 2, (z + nz) / 2, psi)) add(k, nx, nz, h, step * kc, step, null, md); }   // (and half way: a corner she slides past between the two)
       for (const sg of [1, -1]){ const h2 = (h + sg + NB) % NB, p2 = bp.hd + h2 * dphi, cx = x + dir * tt * sn, cz = z - dir * tt * cs, ex = cx + dir * tt * Math.sin(p2), ez = cz - dir * tt * Math.cos(p2);
         if (free(((x + ex) / 2 + cx) / 2, ((z + ez) / 2 + cz) / 2, psi + sg * dphi / 2) && free(ex, ez, p2)) add(k, ex, ez, h2, arc * kc * 1.15, arc, [cx, cz], md); } }
     if (Math.hypot(x - bp.x, z - bp.z) <= near) for (const sd of [1, -1]){ const nx = x + sd * sl * cs, nz = z + sd * sl * sn; if (free(nx, nz, psi)) add(k, nx, nz, h, sl * HV.kSide, sl, null, sd > 0 ? 3 : 2); } }
-  if (found < 0) return null;
+  // (why there is none, for the plan's own account and the bench: her berth itself is shut to her, the place on the way is, the
+  // search came to its cap, or there is no way between them within reach)
+  if (found < 0){ let w = 'stengt'; try { w = !free(bp.x, bp.z, bp.hd) ? 'plassen' : !free(goal.x, goal.z, goal.psi) ? 'målet' : n > maxN ? 'taket' : 'stengt'; } catch (e){} PLAN.hvWhy = w + ':' + n; return null; }
   const chain = []; for (let k = found; k > 0; k = par[k]) chain.push(k); chain.reverse();
   const vAt = (x, z) => Math.hypot(x - bp.x, z - bp.z) < 1.5 * L ? HV.v0 : HV.v1, pts = [[bp.x, bp.z, 0, 0, 0, 0]]; let cur = [bp.x, bp.z], cm = -1;
   for (const k of chain){ const md = MD[k]; if (cm !== -1 && md !== cm) pts.push([cur[0], cur[1], 0, vAt(cur[0], cur[1]), 0, cm]);

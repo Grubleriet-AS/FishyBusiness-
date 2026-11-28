@@ -106,7 +106,7 @@
       BK.cur = {to:to ? to.name : null, toPort:!!(to && to.id), from:{x:from.x, y:from.y}, endP:{x:endP.x, y:endP.y}, seen:new Map(), hits:[], left:false, rpAt:-1e9, st:{}, own:0, jumps:0, m:0, tN:0, tSum:0, tMax:0, fuel0:S.boat.fuel, bg:null, berth:new Set()}; },
     // what a touch is of, for her own berth: the land, a unit's quay, the foreshore and the bottom as such, a thing as itself
     bkey(h){ return h.what === 'land' || h.what === 'kai' || h.what === 'fjære' || h.what === 'grunn' ? h.what : h.what + '|' + h.id; },
-    hit(c, h, kn){ const b = S.boat, key = h.what + '|' + h.id, o = c.seen.get(key);
+    hit(c, h, kn, pose){ const b = S.boat, key = h.what + '|' + h.id, o = c.seen.get(key);
       if (o){ if (kn > o.knMax) o.knMax = +kn.toFixed(1); o.n++; return; }
       const pl = S.plan, T = DYN.line, L = BOAT.len || 10, p = km(h.x, h.z), dS = Math.round(dist(p, c.from) * 1000), dE = Math.round(dist(p, c.endP) * 1000), ll = natLL(p), model = BK.eng === 'modell';
       const hands = model && !!(T && T.assist > T.s), rp = !!(pl && pl.replan) || BK.f - c.rpAt < 480;
@@ -114,13 +114,16 @@
       // her own berth: under a knot within a length and a half of the route's start or end (the fenders); a boat moved by the minute
       // step has no speed there to speak of; and what her hull lay against where she cast off (c.berth: the quay she backs out along
       // at 1.6 knots is not struck), within that length and a half of the start
-      const own = h.what !== 'grunnstøting' && (((dS < 1.5 * L || dE < 1.5 * L) && (!model || kn < 1)) || (dS < 1.5 * L && c.berth.has(BK.bkey(h))));
+      // (by where her hull is too, not only the thing's own point: a long quay's point is its middle, 36 m from the skiff that
+      // lies along it at Vangshamn, and her own quay was counted as struck, --alle 27.11.2026)
+      const hp = pose ? km(pose.X, pose.Z) : null, dH = hp ? Math.min(dist(hp, c.from), dist(hp, c.endP)) * 1000 : 1e9, at = dS < 1.5 * L || dE < 1.5 * L || (dH < 1.5 * L && (h.what === 'kai' || h.what === 'land' || h.what === 'brygge'));
+      const own = h.what !== 'grunnstøting' && ((at && (!model || kn < 1)) || (dS < 1.5 * L && c.berth.has(BK.bkey(h))));
       const r = {what:h.what, id:String(h.id).slice(0, 60), lat:+ll.lat.toFixed(5), lon:+ll.lon.toFixed(5), near:nearPort(p), kn:+kn.toFixed(1), knMax:+kn.toFixed(1), phase, own, dS, dE, leg:pl ? [pl.idx, pl.wps.length] : null, harb:inHarbour(p), n:1};
       if (h.keel != null) r.keel = +h.keel.toFixed(2); if (h.o){ if (h.o.lying != null){ r.lying = h.o.lying; r.other = h.o.other; } if (h.o.under != null){ r.under = +h.o.under.toFixed(1); r.air = +obsAir().toFixed(1); } }
       if (h.how) r.how = h.how;
       c.seen.set(key, r); c.hits.push(r); if (own) c.own++; },
     sweep(c, pose, kn){ const P = dynCalOf(S.boat).P, first = c.st.first !== false && BK.eng === 'modell'; let hs; try { hs = BKO.step(c.st, pose, {L:P.L, B:P.B}, BK.world()); } catch (e){ BK.err = String(e && e.stack || e).slice(0, 300); return; }
-      for (const h of hs){ if (first) c.berth.add(BK.bkey(h)); BK.hit(c, h, kn); } },
+      for (const h of hs){ if (first) c.berth.add(BK.bkey(h)); BK.hit(c, h, kn, pose); } },
     aground(c){ const b = S.boat; if (c.agr) return; c.agr = true; const inc = (S.incidents || []).slice(-1)[0] || {}; BK.hit(c, {what:'grunnstøting', id:inc.how || '?', x:b.pos.x * 1000, z:b.pos.y * 1000, how:inc.how || null}, +(inc.v != null ? inc.v : (b.v || 0))); },
     // after every step of the boat model (ALS.sail calls dynTick as the game's loop does)
     watch(){ const c = BK.cur; if (!c || BK.eng !== 'modell') return; BK.f++; const b = S.boat, pl = S.plan;
@@ -209,7 +212,7 @@
       try { R = await planBane(pa, pz, null, {kn:BOAT.vmax, from:ba, to:bz}); } catch (e){ R = {why:['error: ' + String(e && e.message).slice(0, 120)]}; }
       const ms = performance.now() - t0; on = false; const t = performance.now(); if (t - last > gap) gap = t - last; ch.port1.close(); const slice = FARB.F.n.slice; FARB.F.n.slice = Math.max(sl0, slice);
       if (!R.bane) return {why:String(R.why ? R.why[0] : 'none').slice(0, 160), cause:R.cause, at:R.at, ms:Math.round(ms), gap:+gap.toFixed(1), tries:R.tries, tiles:R.tiles};
-      return {r:{wps:R.pts.map(q => ({x:q.x, y:q.y})), nm:R.nm, bane:R}, nt, pa:R.ends ? R.ends.a : pa, pz:R.ends ? R.ends.b : pz, ms:Math.round(ms), gap:+gap.toFixed(1), st:{ms:R.ms, maxSlice:+slice.toFixed(1), expanded:R.exp, tiles:R.tiles, tries:R.tries, time:Math.round(R.bane.time), h0:Math.round(R.h0 || 0), soft:R.soft ? 1 : 0, alt:R.alt, havn:R.havn && [R.havn.dep ? 1 : 0, R.havn.arr ? 1 : 0, R.havn.n, R.havn.drop], cusp:R.bane.cusp.length}}; },
+      return {r:{wps:R.pts.map(q => ({x:q.x, y:q.y})), nm:R.nm, bane:R}, nt, pa:R.ends ? R.ends.a : pa, pz:R.ends ? R.ends.b : pz, ms:Math.round(ms), gap:+gap.toFixed(1), st:{ms:R.ms, maxSlice:+slice.toFixed(1), expanded:R.exp, tiles:R.tiles, tries:R.tries, time:Math.round(R.bane.time), h0:Math.round(R.h0 || 0), soft:R.soft ? 1 : 0, alt:R.alt, havn:R.havn && [R.havn.dep ? 1 : 0, R.havn.arr ? 1 : 0, R.havn.n, R.havn.drop, R.havn.why || [], R.havn.ban || 0], cusp:R.bane.cusp.length}}; },
     plan(r, Z, nt, full){ const n = r.wps.length, last = nt ? {x:nt.x, y:nt.y, port:Z.id, berth:'naust', fish:0} : Z.id ? {x:Z.p.x, y:Z.p.y, port:Z.id, fish:0} : {x:Z.p.x, y:Z.p.y, port:null, fish:0, leia:true};
       S.plan = {wps:r.wps.map((q, i) => i === n - 1 ? last : {x:q.x, y:q.y, port:null, fish:0, leia:true}), idx:0, speed:full ? BOAT.vmax : BOAT.vcruise, full:!!full, returning:false};
       if (r.bane){ S.plan.wps = [last]; planInto(S.plan, r.bane, 0, 1); const q0 = r.bane.bane.Q[0]; S.boat.pos = {x:q0[0] / 1000, y:q0[1] / 1000}; }   // (she is where the bane begins: at her berth, the naust's too, not at the harbour's point)
