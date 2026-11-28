@@ -160,7 +160,11 @@
         if (Q.top_me) a.push('<p class="ph-note mb-top">' + L('Du har det høyeste budet. Du får beskjed om noen byr over, og pengene tilbake da.', 'You hold the highest bid. You are told if someone bids over, and get the money back then.') + '</p>');
         else a.push('<label class="ph-kv"><span>' + L('Ditt bud (minst ' + kr(n) + ')', 'Your bid (at least ' + kr(n) + ')') + '</span><input id="mbBid" type="number" inputmode="numeric" step="1000" min="' + n + '" value="' + n + '"></label>' +
           '<button class="ph-btn p" data-pa="mbbid" data-id="' + Q.id + '"' + (cash ? ' disabled data-why="' + mgEsc(mbWhyTxt(cash)) + '"' : '') + '>' + L('By', 'Bid') + (fee ? L(' · + levering ', ' · + delivery ') + kr(fee) : '') + '</button>');
-        if (Q.buynow) a.push('<button class="ph-btn" data-pa="mbbuy" data-id="' + Q.id + '"' + (spendable() < Q.buynow + bnFee ? ' disabled data-why="' + mgEsc(mbWhyTxt('cash')) + '"' : '') + '>' + L('Kjøp nå · ', 'Buy now · ') + kr(Q.buynow + bnFee) + '</button>');
+        // (28.11.2026: «Kjøp nå» asks first, as the yard's buttons do, 10-fartoy.js boatBtn: where she may not fish and «cannot be undone»)
+        if (Q.buynow){ const dis = spendable() < Q.buynow + bnFee, on = !dis && boatPendOn('mb:' + Q.id), ar = typeof lenArea === 'function' ? lenArea((VESSELS[Q.type] || {}).len || 0) : [];
+          if (on) a.push('<div class="ph-card chg chg-bad" data-boatconfirm="' + mgEsc(Q.type || '') + '"><h4>' + L('Før du kjøper', 'Before you buy') + '</h4><ul class="ph-list"><li>' + L('Du betaler ', 'You pay ') + kr(Q.buynow + bnFee) + L(' kontant, uten lån.', ' in cash, without loans.') + '</li>' +
+            ar.map(x => '<li>' + L(x.no, x.en) + ' <span class="ph-note">(' + x.ref + ')</span></li>').join('') + '<li><b>' + L('Kjøpet kan ikke angres.', 'The purchase cannot be undone.') + '</b></li></ul></div>');
+          a.push('<button class="ph-btn' + (on ? ' p' : '') + '" data-pa="mbbuy" data-id="' + Q.id + '"' + (dis ? ' disabled data-why="' + mgEsc(mbWhyTxt('cash')) + '"' : '') + '>' + (on ? L('Bekreft kjøp · ', 'Confirm purchase · ') : L('Kjøp nå · ', 'Buy now · ')) + kr(Q.buynow + bnFee) + '</button>'); }
         a.push('<p class="ph-note">' + L('Budet binder pengene hos megleren. Blir du overbydd, får du dem tilbake med en gang. Neste bud må være minst 2 % over.', 'The bid holds the money at the broker. Outbid, you get it back at once. The next bid must be at least 2 % over.') + '</p>');
       }
       h.push(a.join('') + '</div>'); }
@@ -254,6 +258,7 @@
     if (a === 'mbbid'){ const Q = MBC.byId(d.id); if (!Q) return true; const k = Math.round(+(document.getElementById('mbBid') || {}).value || 0);
       mgMsg[Q.id] = L('Sender budet …', 'Sending the bid …'); MBC.bid(Q.id, k, mgTo(Q)).then(mgAfter(Q.id, 'Budet ditt på ' + kr(k) + ' er det høyeste.', 'Your bid of ' + kr(k) + ' is the highest.')); return true; }
     if (a === 'mbbuy'){ const Q = MBC.byId(d.id); if (!Q || !Q.buynow) return true;
+      { const bk = 'mb:' + Q.id; if (!boatPendOn(bk)){ shopPend = {k:bk, kg:0, t:Date.now()}; return true; } shopPend = null; }   // (28.11.2026: the first tap asks)
       mgMsg[Q.id] = L('Kjøper …', 'Buying …'); MBC.buy(Q.id, mgTo(Q)).then(r => { if (r && r.ok){ mgSel = null; toast(L('Kjøpt: «' + Q.name + '» for ' + kr(Q.buynow) + '.', 'Bought: «' + Q.name + '» for ' + kr(Q.buynow) + '.'), 6000); } else mgMsg[Q.id] = mbWhyTxt(r && r.err, r); MBC.redraw(); }); return true; }
     return false;
   }

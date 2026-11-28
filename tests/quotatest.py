@@ -42,9 +42,9 @@ TRADE = """(async () => { const R = {}, y = yearH(S.t / 60), tap = q => { const 
   const b = S.boat, Y = PORTS.find(q => q.sted === 'verft'); b.status = 'port'; b.port = Y.id; b.pos = {...Y.p}; S.lic = null; S.crew = [];   // (boats are bought at a yard, Jonas 07.10.2026)
   // § 29: open-group cod follows the owner from a closed-group boat traded back to the open group
   const q0 = freshQuota(); q0.torsk = 1200; openUsedSave(q0); S.lic = {id:'u7', since:y - 1}; quotaState().torsk = 5000; b.type = 'trebat'; applyVessel();
-  PHONE.dact('rederi', 'buy', {k:'skiff', ti:'1'}); R.p29 = {lic:!!S.lic, torsk:quotaState().torsk, type:S.boat.type};
+  (PHONE.dact('rederi', 'buy', {k:'skiff', ti:'1'}), PHONE.dact('rederi', 'buy', {k:'skiff', ti:'1'})); R.p29 = {lic:!!S.lic, torsk:quotaState().torsk, type:S.boat.type};
   // buying a right: one NPC owner fewer, the right dated, the seller's catch off the quota
-  const r0 = npcReg().u7; DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=trebat][data-o=u7]'); tap('[data-pa=buylic][data-ti="1"]'); DOCK.close();
+  const r0 = npcReg().u7; DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=trebat][data-o=u7]'); (tap('[data-pa=buylic][data-ti="1"]'), tap('[data-pa=buylic][data-ti="1"]')); DOCK.close();
   R.buy = {lic:S.lic && S.lic.id, since:S.lic && S.lic.since, from:S.lic && S.lic.from, reg:[r0, npcReg().u7], seller:quotaState().seller, quota:licQ(S.lic).torsk};
   // steg 148b (K0 of docs/planer/regler-i-klartekst.md). «Neste mål» with the first right aboard: the next right, never the 14.99 m coastal
   // vessel at her hull's price (without a right she has no access); and the coastal fleet's tab says what the yard sells
@@ -57,14 +57,14 @@ TRADE = """(async () => { const R = {}, y = yearH(S.t / 60), tap = q => { const 
     DOCK.open('fartoy'); tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=lic]'); tap('[data-pa=mksel][data-k=snekke][data-o=h7]');
     const bt = document.querySelector('#drawerBody [data-pa=buylic][data-ti="1"]'), fl = document.querySelector('#drawerBody [data-pa=buylic][data-ti="0"]');
     R.k0.hold = {grey:!!bt && bt.disabled, why:!!document.querySelector('#drawerBody .whybox[data-why=hold]'), fleet:!!fl && !fl.disabled}; DOCK.close();
-    PHONE.dact('rederi', 'buylic', {id:'h7', ti:'1'}); R.k0.hold.lic = S.lic.id === l0 && S.boat.type === t0 && S.hold.length === 1;
-    PHONE.dact('rederi', 'buy', {k:'skiff', ti:'1'}); R.k0.hold.buy = S.boat.type === t0 && !!S.lic && S.hold.length === 1; S.hold = []; }
+    (PHONE.dact('rederi', 'buylic', {id:'h7', ti:'1'}), PHONE.dact('rederi', 'buylic', {id:'h7', ti:'1'})); R.k0.hold.lic = S.lic.id === l0 && S.boat.type === t0 && S.hold.length === 1;
+    (PHONE.dact('rederi', 'buy', {k:'skiff', ti:'1'}), PHONE.dact('rederi', 'buy', {k:'skiff', ti:'1'})); R.k0.hold.buy = S.boat.type === t0 && !!S.lic && S.hold.length === 1; S.hold = []; }
   // T1: a boat with a right traded in for a boat with the next right: the old right goes back to the register, the new one is taken
-  { const u0 = npcReg().u7, h0 = npcReg().h7; saldoOf(curVessel()); S.cash = 2e7; S.loan = null; S.loanIN = null; PHONE.dact('rederi', 'buylic', {id:'h7', ti:'1'});
+  { const u0 = npcReg().u7, h0 = npcReg().h7; saldoOf(curVessel()); S.cash = 2e7; S.loan = null; S.loanIN = null; (PHONE.dact('rederi', 'buylic', {id:'h7', ti:'1'}), PHONE.dact('rederi', 'buylic', {id:'h7', ti:'1'}));
     R.k0.reg = {lic:S.lic && S.lic.id, type:S.boat.type, u7:[u0, npcReg().u7], h7:[h0, npcReg().h7]};
     R.k0.saldo = [saldoOf(curVessel()), Math.round(VESSELS[S.boat.type].price * TAX.depF)];   // (the boat traded for has her own tax value, not the old hull's)
     // and the same quota length for another boat (10–10.9 m): the register ends where it began
-    S.lic = {id:'h10', since:y - 1}; b.type = 'hurtigsjark'; applyVessel(); freshQuota(); regTake('h10'); const t0 = npcReg().h10; PHONE.dact('rederi', 'buylic', {id:'h10b', ti:'1'});   /* (her right was once taken from the register) */ R.k0.same = {type:S.boat.type, h10:[t0, npcReg().h10]}; }
+    S.lic = {id:'h10', since:y - 1}; b.type = 'hurtigsjark'; applyVessel(); freshQuota(); regTake('h10'); const t0 = npcReg().h10; (PHONE.dact('rederi', 'buylic', {id:'h10b', ti:'1'}), PHONE.dact('rederi', 'buylic', {id:'h10b', ti:'1'}));   /* (her right was once taken from the register) */ R.k0.same = {type:S.boat.type, h10:[t0, npcReg().h10]}; }
   // structure quotas on a 14.99 m boat with a 14–14.9 m right: 10 % off, and the cap at five times its own quota (§ 12, a specialist; KM1
   // 08.11.2026, it was three), so the fifth is stopped; one NPC owner leaves the register for each (structIn took a second until KM1)
   S.cash = 1e8; S.loan = null; S.loanIN = null; b.type = 'kyst15'; applyVessel(); S.lic = {id:'h14', since:y - 1}; freshQuota(); const c0 = licQ(S.lic).torsk, g0 = npcReg().h14;

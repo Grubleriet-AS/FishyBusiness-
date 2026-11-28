@@ -184,7 +184,7 @@ async def main():
         await pg.evaluate("""DOCK.close(); S.cash = 5e6; S.order = null; DOCK.open('fartoy'); const dr = document.getElementById('drawerBody'), tap = s => { const e = dr.querySelector(s); if (e) e.click(); return !!e; };
           tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=open]'); tap('[data-pa=mksel][data-k=snekke]')"""); await pg.wait_for_timeout(300)
         note = json.loads(await J("(document.querySelector('#drawerBody [data-swaptier]') || {dataset:{}}).dataset.swaptier || null"))
-        await pg.evaluate("(e => e && e.click())(document.querySelector('#drawerBody [data-pa=buy][data-ti=\"1\"]'))"); await pg.wait_for_timeout(500)
+        await pg.evaluate("(q => { const a = document.querySelector(q); if (a) a.click(); const b = document.querySelector(q); if (b) b.click(); })('#drawerBody [data-pa=buy][data-ti=\"1\"]')"); await pg.wait_for_timeout(500)
         r = json.loads(await J("{type:S.boat.type, kn:S.equip.kniv, ho:S.equip.hott, lv:[equipLv('kniv'), equipLv('hott')], log:S.log.slice(-4).map(x => x.no).join(' | ')}"))
         await pg.evaluate("if (typeof BUYM !== 'undefined' && BUYM.close) BUYM.close(); DOCK.close()")
         check(note == 'kniv,hott' and r['type'] == 'snekke' and r.get('kn') is None and r.get('ho') is None and r['lv'] == [1, 1] and 'Ble med' in r['log'] and 'trinn 3' in r['log'].split('Ble med')[-1],
@@ -354,7 +354,7 @@ async def opp3(pg, J):
     await pg.evaluate("""DOCK.close(); S.boat.type = 'trebat'; S.boat.propLv = 2; S.boat.engLv = 1; applyVessel(); S.cash = 5e6; S.order = null; DOCK.open('fartoy'); const dr = document.getElementById('drawerBody'), tap = s => { const e = dr.querySelector(s); if (e) e.click(); return !!e; };
       tap('[data-pa=mksel]:not([data-k])'); tap('[data-pa=mktab][data-s=open]'); tap('[data-pa=mksel][data-k=snekke]')"""); await pg.wait_for_timeout(300)
     note = json.loads(await J("((document.querySelector('#drawerBody [data-swapyard]') || {}).textContent || '').replace(/\\u00a0|\\u202f/g, ' ')"))
-    await pg.evaluate("(e => e && e.click())(document.querySelector('#drawerBody [data-pa=buy][data-ti=\"1\"]'))"); await pg.wait_for_timeout(500)
+    await pg.evaluate("(q => { const a = document.querySelector(q); if (a) a.click(); const b = document.querySelector(q); if (b) b.click(); })('#drawerBody [data-pa=buy][data-ti=\"1\"]')"); await pg.wait_for_timeout(500)
     r = json.loads(await J("{type:S.boat.type, p:S.boat.propLv || 0, e:S.boat.engLv || 0, v:BOAT.vmax, v0:VESSELS.snekke.vmax, log:S.log.slice(-5).map(x => x.no).join(' | ')}"))
     await pg.evaluate("if (typeof BUYM !== 'undefined' && BUYM.close) BUYM.close(); DOCK.close()")
     check('propell trinn 2' in note and 'større motor' in note and r['type'] == 'snekke' and r['p'] == 0 and r['e'] == 0 and r['v'] == r['v0'] and 'Verftets arbeid ble med' in r['log'],

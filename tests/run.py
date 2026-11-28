@@ -618,6 +618,7 @@ COVER['src/js/ui/10w-fix.js'] = ['korrtest']; COVER['tests/korrtest.py'] = ['kor
 # a hop paid for is made when the page comes back from the payment, whatever the save to the account was doing (27.11.2026)
 LITE += ['hoppskytest']
 for _f in ('src/js/ui/10f-cloud.js', 'src/js/ui/10i-shop.js', 'src/js/ui/10u-hopp.js', 'src/js/ui/11-boot.js', 'tests/hoppskytest.py'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['hoppskytest']))
+COVER['tests/batkjoptest.py'] = ['batkjoptest']; COVER['src/js/ui/phone/10-fartoy.js'] = COVER.get('src/js/ui/phone/10-fartoy.js', []) + ['batkjoptest']; LITE += ['batkjoptest']   # the boat purchase confirmed (28.11.2026)
 for _f in ('src/js/core/06b-coastports.js', 'src/js/ui/03-map.js', 'src/data/innseiling.json'): COVER[_f] = list(dict.fromkeys(COVER.get(_f, []) + ['havkart']))
 COVER['tests/havkart.py'] = ['havkart']; COVER['tests/unit/havplass.test.mjs'] = COVER.get('tests/unit/havplass.test.mjs', [])
 
