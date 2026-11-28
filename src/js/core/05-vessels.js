@@ -846,6 +846,7 @@ function sail(H, W, hs){
   if (b.fuel <= 0){ b.fuel = 0; b.status = 'adrift'; b.v = 0; log('Tom for drivstoff. Båten driver.', 'Out of fuel. The boat is adrift.'); return; }
   if (typeof dynLive === 'function' && dynLive()){ dynMinute(H, W); return; }   // the manoeuvring model has her on the tick (16b-dyn.js): the minute only books
   if (pl.replan){ b.v = 0; return; }   // a way round shallow water ahead is being found (sailReplan)
+  if (pl.b2w && styrWait(pl)){ b.v = 0; return; }   // her banes are being found (Autonav 2.0, 17d-styr.js styrPlan): she lies where she is
   // (Autonav 2.0: the plan has a bane, and she follows it by the clock with the bane's own speeds, the sea's and the limits where
   // she is, as the boat model's tick does when the game is looked at: 17b-bane.js baneSail, baneCap; 17d-styr.js)
   if (pl.b2 && baneSail(pl, b, Infinity, W)) return;

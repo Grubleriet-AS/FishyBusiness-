@@ -132,7 +132,7 @@ function banePass(pl, b, g, Y, s){ const R = pl.b2;
 // to the side (v). o.hold: the watch has her stopped (she keeps her place). False where the plan has no bane for where she is
 function baneTick(pl, b, d, dt, o){ const g = baneLeg(pl), Y = g && baneOf(g); if (!Y) return false; const B = Y.B, R = pl.b2;
   if (R.at !== g.i0 || R.i !== pl.idx){ R.at = g.i0; R.s = pl.idx > g.i0 ? Y.at[pl.idx - g.i0 - 1] : 0; }
-  const s0 = R.s; let s = s0; if (!(o && o.hold)) for (let t = dt; t > 1e-9 && s < B.len;){ const h = Math.min(0.25, t), v = Math.max(BANE.vMin, Math.min(baneV(B, s), baneCap(pl, B, s))); s = Math.min(B.len, s + v * h); t -= h; }
+  const s0 = R.s; let s = s0; if (!(o && o.hold)) for (let t = dt; t > 1e-9 && s < B.len;){ const h = Math.min(0.25, t), v = Math.max(BANE.vMin, Math.min(baneV(B, s), baneCap(pl, B, s), o && o.v > 0 ? o.v : 1e9)); s = Math.min(B.len, s + v * h); t -= h; }   // (o: the watch's word, 17d-styr.js styrWatch: lie still, or no faster than o.v)
   const q0 = baneAt(B, s0), q = baneAt(B, s), vx = dt > 0 ? (q.X - q0.X) / dt : 0, vz = dt > 0 ? (q.Z - q0.Z) / dt : 0, sn = Math.sin(q.psi), cs = Math.cos(q.psi);
   d.X = q.X; d.Y = q.Z; d.psi = ((q.psi % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI); d.u = vx * sn - vz * cs; d.v = vx * cs + vz * sn; d.r = 0; d.wall = Date.now();
   R.s = s; b.heading = d.psi; b.v = Math.hypot(vx, vz) / KN_MS; b.pos = {x:q.X / 1000, y:q.Z / 1000};

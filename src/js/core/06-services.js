@@ -234,6 +234,7 @@ function depart(){
   // from the quay the lines come in first; the boat moves when they are aboard
   if (b.status === 'port'){ b.status = 'unmooring'; b.castUntil = S.t + CAST_MIN; } else { b.status = 'sailing'; b.port = null; }
   turDepart();   // when she will be there, and a word about the trip (09g-turer.js)
+  if (S.plan && planOn()) styrPlan(S.plan);   // Autonav 2.0 behind #autonav2: the plan onto checked banes while the lines come in (17d-styr.js)
   return true;
 }
 // jobs: yard service, fitting equipment (the old «Klargjøring til neste tur» jobs, 'prep', were taken out 08.10.2026: the gear's own wear and service replace them)

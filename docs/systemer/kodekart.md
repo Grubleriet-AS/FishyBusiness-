@@ -899,7 +899,7 @@ crew: people with skills, habits and moods
   - 722 `flyOut(c)`
   - 730 `flyTick()`
 
-## `src/js/core/05-vessels.js` (1543 linjer)
+## `src/js/core/05-vessels.js` (1544 linjer)
 
 ---------- other vessels (deterministic, so every player sees the same traffic) ----------
 
@@ -964,54 +964,54 @@ crew: people with skills, habits and moods
   - 824 `plantFuel(b)`
   - 827 `sailV(H, hs)`
   - 843 `sail(H, W, hs)`
-  - 883 `sailWaiting()`
-  - 884 `sailReplan(pl, b, gp)`
-  - 940 `iceWhy(p, tried)`
-  - 942 `sailStop(pl, b, why)`
-  - 955 `planPortStuck()`
-  - 956 `planPortFree()`
-  - 967 `haltPlan(need)`
-  - 977 `arrive(w)`
-  - 998 `unstuckWhy()`
-  - 1004 `unstuckSpot()`
-  - 1017 `agFree()`
-  - 1028 `unstuck()`
-- **1042** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
-  - 1050 `moorPhase(b)`
-  - 1065 `dock(pid, berth)`
-  - 1093 `catchFactors(H, W, hs)`
-  - 1106 `stockDev(p, sp)`
-  - 1112 `fish(H, W, hs)`
-  - 1220 `endFishing(why)`
-  - 1241 `bycHere(how)`
-  - 1245 `bycAdd(sp, kg, how)`
-  - 1249 `bycConf()`
-  - 1252 `addCatch(sp, kg, cls, hook, opt)`
-- **1274** work on deck: gutting and icing take hands and time
-  - 1290 `deckHands()`
-  - 1293 `deckPending()`
-  - 1294 `deckEta(hands)`
-  - 1299 `moveKg(x, kg, patch)`
-  - 1307 `iceMinute()`
-  - 1314 `iceOut(out)`
-  - 1320 `deckMinute()`
-- **1345** lying to in a storm (H1b R8, 05.11.2026)
-  - 1367 `quayFar(b)`
-  - 1371 `lieTo(W, hs)`
-  - 1378 `lieToStep(W, hs)`
-  - 1388 `risk(W, hs)`
-  - 1416 `hullRepair()`
-  - 1419 `svcOverdue()`
-- **1420** the rescue boat (plan E3, 05.10.2026)
-  - 1446 `rescueBases()`
-  - 1455 `rescueBase(p)`
-  - 1462 `rescueAis(H)`
-  - 1466 `rescue(keepCatch)`
-  - 1494 `towSea(p)`
-  - 1499 `towRoutes(b)`
-  - 1510 `towStep(H)`
-  - 1523 `towDone(t)`
-  - 1532 `towPose(frac)`
+  - 884 `sailWaiting()`
+  - 885 `sailReplan(pl, b, gp)`
+  - 941 `iceWhy(p, tried)`
+  - 943 `sailStop(pl, b, why)`
+  - 956 `planPortStuck()`
+  - 957 `planPortFree()`
+  - 968 `haltPlan(need)`
+  - 978 `arrive(w)`
+  - 999 `unstuckWhy()`
+  - 1005 `unstuckSpot()`
+  - 1018 `agFree()`
+  - 1029 `unstuck()`
+- **1043** making fast and casting off with people (OB2, 09.11.2026; docs/planer/om-bord.md F1-F3): the short spells round a quay, on the
+  - 1051 `moorPhase(b)`
+  - 1066 `dock(pid, berth)`
+  - 1094 `catchFactors(H, W, hs)`
+  - 1107 `stockDev(p, sp)`
+  - 1113 `fish(H, W, hs)`
+  - 1221 `endFishing(why)`
+  - 1242 `bycHere(how)`
+  - 1246 `bycAdd(sp, kg, how)`
+  - 1250 `bycConf()`
+  - 1253 `addCatch(sp, kg, cls, hook, opt)`
+- **1275** work on deck: gutting and icing take hands and time
+  - 1291 `deckHands()`
+  - 1294 `deckPending()`
+  - 1295 `deckEta(hands)`
+  - 1300 `moveKg(x, kg, patch)`
+  - 1308 `iceMinute()`
+  - 1315 `iceOut(out)`
+  - 1321 `deckMinute()`
+- **1346** lying to in a storm (H1b R8, 05.11.2026)
+  - 1368 `quayFar(b)`
+  - 1372 `lieTo(W, hs)`
+  - 1379 `lieToStep(W, hs)`
+  - 1389 `risk(W, hs)`
+  - 1417 `hullRepair()`
+  - 1420 `svcOverdue()`
+- **1421** the rescue boat (plan E3, 05.10.2026)
+  - 1447 `rescueBases()`
+  - 1456 `rescueBase(p)`
+  - 1463 `rescueAis(H)`
+  - 1467 `rescue(keepCatch)`
+  - 1495 `towSea(p)`
+  - 1500 `towRoutes(b)`
+  - 1511 `towStep(H)`
+  - 1524 `towDone(t)`
+  - 1533 `towPose(frac)`
 
 ## `src/js/core/05b-ferje.js` (197 linjer)
 
@@ -1169,7 +1169,7 @@ The ocean fleet as NPCs (H1 of docs/planer/bestand-og-flaate.md, 02.11.2026)
   - 1239 `farvWarn()`
   - 1240 `farvSay(w, how)`
 
-## `src/js/core/06-services.js` (351 linjer)
+## `src/js/core/06-services.js` (352 linjer)
 
 ---------- services behind the phone ----------
 
@@ -1193,15 +1193,15 @@ The ocean fleet as NPCs (H1 of docs/planer/bestand-og-flaate.md, 02.11.2026)
 - **200** standing operations plan: a hired skipper runs a saved route on set days, lands the catch and restocks
   - 202 `autoRestock()`
   - 210 `depart()`
-  - 243 `yardStale(j, b)`
-  - 251 `finishJob(j)`
-  - 285 `fitHours(k)`
-  - 288 `jobOk(j)`
-  - 293 `queueJob(j)`
-  - 297 `jobsDone()`
-  - 303 `shelterReturn(W, hsOver)`
-  - 329 `startReturn(auto, W, home, hsOver, opsKeep)`
-- **349** CORE END
+  - 244 `yardStale(j, b)`
+  - 252 `finishJob(j)`
+  - 286 `fitHours(k)`
+  - 289 `jobOk(j)`
+  - 294 `queueJob(j)`
+  - 298 `jobsDone()`
+  - 304 `shelterReturn(W, hsOver)`
+  - 330 `startReturn(auto, W, home, hsOver, opsKeep)`
+- **350** CORE END
 
 ## `src/js/core/06b-coastports.js` (199 linjer)
 
@@ -2808,13 +2808,17 @@ PLANLEGGEREN: THE WAY FOUND ON THE FIELD, AND CHECKED ON THE MAP (Autonav 2.0 F2
   - 557 `planInto(pl, R, i0, i1)`
   - 562 `planOn()`
 
-## `src/js/core/17d-styr.js` (15 linjer)
+## `src/js/core/17d-styr.js` (68 linjer)
 
 STYRINGEN: SHE IS CARRIED ALONG THE BANE WHILE THE GAME IS LOOKED AT (Autonav 2.0 F3, steg 143, 27.11.2026)
 
 - **1** STYRINGEN: SHE IS CARRIED ALONG THE BANE WHILE THE GAME IS LOOKED AT (Autonav 2.0 F3, steg 143, 27.11.2026)
-  - 10 `styrTick(b, d, dtG)`
-  - 14 `styrOn(pl)`
+  - 11 `styrTick(b, d, dtG)`
+  - 19 `styrOn(pl)`
+  - 22 `styrWait(pl)`
+  - 29 `styrPlan(pl, find)`
+  - 42 `styrLeg(pl, g, find)`
+  - 56 `styrWatch(pl, b, d)`
 
 ## `src/js/ui/01-i18n.js` (120 linjer)
 

@@ -44,6 +44,7 @@ LITE += ['lagrefeiltest']   # the save to the account when the cloud fails (klyn
 LITE += ['planstartkai']   # the plan started at a quay that is not its home has the ways from there (06h-plan2-engine.js plan2Make, 25.11.2026)
 # OPP1 (07.11.2026): the knives and the gaff in tiers at the tackle shop
 LITE += ['opptest']
+LITE += ['autonav2']   # Autonav 2.0 behind #autonav2: the plan onto banes at «Kast loss» (steg 143, 17d-styr.js)
 LITE += ['driftsplan3test']   # Driftsplan 3, ringen og redskapet (DP3-1, steg 129)
 LITE += ['fetchsaves']   # lagringsportens henting i små biter (slippet 21.11.2026 stoppet på tidsavbrudd)
 LITE += ['planlaas_ui']   # driftsplanen låst på «Lager planen …» etter lasting (tilbakemelding 220, 21.11.2026)
@@ -61,7 +62,7 @@ HAND = ['allpairs', 'animshot', 'berth3d', 'berthtest', 'charm', 'coneshot', 'cr
         'motion2', 'motiontest', 'npcmaal', 'npcshot_skip', 'ombord', 'p31shot', 'r38shot', 'scuppershot', 'shot', 'skiffshot', 'sn26shot',
         't23shot', 'terrpair', 'terrshot', 'tutcoast', 'uiplay']
 SOLO = ['routetest', 'heattest', 'landtest', 'charttest', 'driftsplan2test']
-VECB = ['havnstengt', 'kaishot', 'driftsplan2kyst', 'havshot', 'npctest', 'havntest', 'lybtest', 'havtur', 'vectest', 'svalbardtest', 'lifeshot', 'havnshot', 'havflaate', 'etikett']   # need dist-vec/ with the vec packs; run.py builds it once before them (KYST_VEC_BUILT)
+VECB = ['autonav2', 'havnstengt', 'kaishot', 'driftsplan2kyst', 'havshot', 'npctest', 'havntest', 'lybtest', 'havtur', 'vectest', 'svalbardtest', 'lifeshot', 'havnshot', 'havflaate', 'etikett']   # need dist-vec/ with the vec packs; run.py builds it once before them (KYST_VEC_BUILT)
 READ = {'selltest', 'hailltest', 'simday', 'calib', 'kvtest', 'progweek', 'seatest'}
 # (teleport3d: twelve places since H1b R3, minutes each at 0.3 frames a second in SwiftShader; 900 s reached six, Ø2 05.11.2026)
 LONG = {'dekk125d': 2400, 'stamper3d': 3600, 'brottshot': 2700, 'sprelltest': 1500, 'stromshot': 2400, 'stromtest': 1500, 'havplantest': 2400, 'driftsplan2kyst': 1800, 'teleport3d': 3600, 'driftsplan2gui': 1200, 'signcoast': 1800, 'signtest': 1500, 'sp44shot': 2700, 'tut': 3600, 'deckshot': 2400, 'workshot': 1800, 'vessel3d': 4500, 'sea3d': 4500, 'vectest': 1500, 'svalbardtest': 1800, 'havntest': 1500, 'lybtest': 1500, 'havtur': 4800, 'havshot': 3000, 'kinotest': 1500, 'heattest': 3600, 'trackfollow': 3300, 'vindshot': 2400, 'wetshot': 2400, 'treeshot': 1500, 'lifeshot': 2400, 'havnshot': 2400, 'wakeshot': 1500, 'hull3d': 3300, 'skumkant': 1500, 'merkeshot': 3600, 'coast3d': 1500}   # SwiftShader can take ~40 s for one 3D screenshot; sea3d takes 27
@@ -434,7 +435,7 @@ for _f in ('tools/server/vakt/vakt.sh', 'tools/server/vakt/setup.sh', 'tools/ser
 COVER['src/js/core/17-farbar.js'] = ['boottest', 'trip2']; COVER['tests/unit/farbar.test.mjs'] = []
 # Autonav 2.0 F2 (steg 142, 24.11.2026): banen and the planner (17b-bane.js, 17c-plan.js). Called only by the bench and behind the flag
 # (planOn), so what they can break in the game is the page itself (one script) and a trip (sail asks whether the plan has a bane)
-COVER['src/js/core/17b-bane.js'] = ['boottest', 'trip2']; COVER['src/js/core/17d-styr.js'] = ['boottest', 'trip2']; COVER['src/js/core/17c-plan.js'] = ['boottest', 'trip2']; COVER['tests/unit/bane.test.mjs'] = []; COVER['tests/unit/plan.test.mjs'] = []
+COVER['src/js/core/17b-bane.js'] = ['boottest', 'trip2']; COVER['src/js/core/17d-styr.js'] = ['boottest', 'trip2', 'autonav2']; COVER['tests/autonav2.py'] = ['autonav2']; COVER['tests/unit/styr.test.mjs'] = []; COVER['src/js/core/17c-plan.js'] = ['boottest', 'trip2']; COVER['tests/unit/bane.test.mjs'] = []; COVER['tests/unit/plan.test.mjs'] = []
 for _f in ('tools/autonav/farsjekk.py', 'tools/autonav/farsjekk.js'): COVER[_f] = []
 # Steg 142, punkt 2 (26.11.2026): the dredged channels (src/data/renner.json, in the page through 17-farbar.js, so the page itself is
 # what it can break) and the two tools that need dist-vec/ and are run by hand (hvorfor.py: why there is no bane; renner.py: the channels)
